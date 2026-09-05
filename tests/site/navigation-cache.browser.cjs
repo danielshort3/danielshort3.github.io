@@ -217,10 +217,12 @@ async function changedShell(page, record) {
     });
     await route.fulfill({ response: destination, body: html });
   });
-  check(record, 'A destination with a newer shell hash still opens', await page.evaluate((href) => SiteNavigation.navigate(href), url));
+  check(record, 'A destination with a different shell generation stays outside the current frame',
+    await page.evaluate((href) => SiteNavigation.navigate(href), url) === false);
   record.changedState = await identity(page);
   record.injectedBundles = injected;
   check(record, 'Changing the shell hash does not reinject the persistent bundle', injected === 0);
+  check(record, 'A different deployed generation offers explicit Reload', await page.getByRole('button', { name: 'Reload', exact: true }).isVisible());
   checkIdentity(record, record.changedState);
   await page.addScriptTag({ url: duplicate });
   record.duplicateState = await identity(page);
@@ -241,6 +243,97 @@ async function changedShell(page, record) {
   checkIdentity(record, record.state);
 }
 
+async function staleGeneration(page, record, { unavailable = false, changed = false } = {}) {
+  const baseStyle = await page.evaluate(() => JSON.parse(document.querySelector('[data-site-route-manifest]').textContent).styles.find((href) => /\/styles\.[a-f0-9]+\.css$/.test(href)));
+  const oldStyle = new URL('/dist/styles.b81be451.css', base).href;
+  const oldShell = new URL('/dist/site-shell.ecbf0338.js', base).href;
+  let oldCssLoads = 0;
+  let documents = 0;
+  let incompatibleScriptLoads = 0;
+  await page.route(oldStyle, async (route) => {
+    oldCssLoads += 1;
+    await route.fulfill({ status: 200, contentType: 'text/css', body: '.legacy-header { color: navy; }' });
+  });
+  await page.route(oldShell, async (route) => {
+    incompatibleScriptLoads += 1;
+    await route.fulfill({ status: 200, contentType: 'application/javascript', body: 'window.legacyShellFixture = true;' });
+  });
+  // This old stylesheet is already present and successfully loaded, exactly as
+  // in the reported stale tab. No missing-resource/404 fallback can detect it.
+  await page.evaluate((href) => new Promise((resolve, reject) => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet'; link.href = href; link.media = 'not all';
+    link.onload = resolve; link.onerror = reject; document.head.append(link);
+  }), oldStyle);
+  if (unavailable || changed) {
+    await page.evaluate(() => SiteNavigation.navigate('/tools/text-compare'));
+    await page.locator('#textcompare-original').fill('Keep this unsaved comparison.');
+    await page.evaluate(() => { cacheQA.draftBody = SiteFrame.outlet(); });
+  }
+  const pathname = unavailable || changed ? '/portfolio/retailStore' : '/tools/text-compare';
+  const url = new URL(`${pathname}?navigation-cache=generation-${unavailable ? 'offline' : changed ? 'changed' : 'stale'}`, base).href;
+  await page.route(url, async (route) => {
+    documents += 1;
+    if (unavailable && documents > 1) { await route.abort('failed'); return; }
+    const response = await route.fetch();
+    let html = await response.text();
+    if (documents === 1 || changed) {
+      html = html.replaceAll(baseStyle, oldStyle);
+      html = rewriteManifest(html, (manifest) => {
+        manifest.styles = manifest.styles.map((href) => /\/styles\.[a-f0-9]+\.css$/.test(href) ? oldStyle : href);
+        manifest.scripts = manifest.scripts.map((href) => /\/site-shell\.[a-f0-9]+\.js$/.test(href) ? oldShell : href);
+      });
+    }
+    await route.fulfill({ response, body: html });
+  });
+  await page.evaluate((href) => {
+    cacheQA.styleFrames = [];
+    cacheQA.sampling = true;
+    const sample = () => {
+      if (!cacheQA.sampling) return;
+      const link = [...document.querySelectorAll('link[rel=stylesheet]')].find((node) => node.href === new URL(href, location.href).href);
+      const stage = SiteFrame.root().querySelector('[data-site-frame-stage]');
+      const crumbs = document.querySelector('[data-header-breadcrumb-list]');
+      cacheQA.styleFrames.push(Boolean(link && !link.disabled && !link.media && getComputedStyle(stage).display === 'grid' && getComputedStyle(crumbs).listStyleType === 'none'));
+      requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  }, baseStyle);
+  const navigated = await page.evaluate((href) => SiteNavigation.navigate(href), url);
+  await page.waitForTimeout(100);
+  record.generation = { navigated, documents, oldCssLoads, incompatibleScriptLoads };
+  check(record, 'The old stylesheet was successfully cached without a404', oldCssLoads === 1);
+  check(record, 'An old shell script is never prepared or executed', incompatibleScriptLoads === 0);
+  check(record, 'A generation mismatch revalidates HTML once', documents === 2);
+  if (unavailable || changed) {
+    check(record, 'A failed generation refresh preserves the current tool and draft', !navigated && await page.evaluate(() =>
+      location.pathname === '/tools/text-compare' && SiteFrame.outlet() === cacheQA.draftBody && document.querySelector('#textcompare-original').value === 'Keep this unsaved comparison.'));
+    check(record, changed ? 'The newer generation offers Reload' : 'A failed refresh offers Retry',
+      await page.getByRole('button', { name: changed ? 'Reload' : 'Retry', exact: true }).isVisible());
+    if (changed) {
+      await page.evaluate(() => {
+        cacheQA.reloadGuards = 0;
+        document.addEventListener('site:route-before-leave', (event) => {
+          if (event.detail.navigationType === 'reload') { cacheQA.reloadGuards += 1; event.preventDefault(); }
+        });
+      });
+      await page.getByRole('button', { name: 'Reload', exact: true }).click();
+      await page.waitForTimeout(100);
+      check(record, 'An explicit Reload honors the current leave veto and keeps the draft', await page.evaluate(() =>
+        cacheQA.reloadGuards === 1 && document.querySelector('#textcompare-original').value === 'Keep this unsaved comparison.'));
+    }
+  } else {
+    check(record, 'Revalidated Text Compare opens in the same frame', navigated && new URL(page.url()).pathname === '/tools/text-compare');
+    await page.goBack();
+    await page.waitForFunction(() => !SiteNavigation.isNavigating() && location.pathname === '/');
+    check(record, 'Warm navigation after Back reuses the compatible generation', await page.evaluate((href) => SiteNavigation.navigate(href), url));
+  }
+  record.styleFrames = await page.evaluate(() => { cacheQA.sampling = false; return cacheQA.styleFrames; });
+  check(record, 'Every painted frame retains current shell and breadcrumb styles', record.styleFrames.length > 0 && record.styleFrames.every(Boolean));
+  record.state = await identity(page);
+  checkIdentity(record, record.state);
+}
+
 (async () => {
   for (const engine of engines) {
     assert(playwright[engine]?.launch, `Unknown browser engine: ${engine}`);
@@ -251,6 +344,9 @@ async function changedShell(page, record) {
         await runCase(browser, engine, `outage-${kind}`, (page, record) => temporaryOutage(page, record, kind));
       }
       await runCase(browser, engine, 'changed-shell', changedShell);
+      await runCase(browser, engine, 'cached-old-generation', (page, record) => staleGeneration(page, record));
+      await runCase(browser, engine, 'generation-refresh-offline', (page, record) => staleGeneration(page, record, { unavailable: true }));
+      await runCase(browser, engine, 'generation-reload-guard', (page, record) => staleGeneration(page, record, { changed: true }));
     } finally {
       await browser.close();
     }

@@ -11,18 +11,6 @@ const previewRoot = path.join(root, 'img', 'home-previews');
 const publicPreviewRoot = path.join(root, 'public', 'img', 'home-previews');
 
 const GENERATED_HOME_LIBRARY_VISUALS = {
-  tools: {
-    'text-compare': 'paired-differences',
-    'nbsp-cleaner': 'spacing-cleanup',
-    'oxford-comma-checker': 'list-punctuation',
-    'point-of-view-checker': 'narrative-person',
-    'word-frequency': 'token-frequency',
-    'utm-batch-builder': 'parameter-batch',
-    'qr-code-generator': 'qr-customization',
-    'image-optimizer': 'image-compression',
-    'background-remover': 'background-transparency',
-    'screen-recorder': 'screen-capture'
-  },
   games: {
     'stellar-dogfight': 'space-combat-key-art',
     roulette: 'double-zero-roulette',
@@ -33,6 +21,19 @@ const GENERATED_HOME_LIBRARY_VISUALS = {
 };
 
 // These superseded AI previews stay in the asset tree for history, but library data must not reference them.
+const RETAINED_TOOL_PREVIEW_IDS = [
+  'text-compare',
+  'nbsp-cleaner',
+  'oxford-comma-checker',
+  'point-of-view-checker',
+  'word-frequency',
+  'utm-batch-builder',
+  'qr-code-generator',
+  'image-optimizer',
+  'background-remover',
+  'screen-recorder'
+];
+
 const RETAINED_PROJECT_PREVIEW_IDS = [
   'smartSentence',
   'chatbotLora',
@@ -86,9 +87,23 @@ function loadPublishedProjects() {
     });
 }
 
+function loadToolIcons() {
+  const toolsRoot = path.join(root, 'content', 'tools');
+  return fs.readdirSync(toolsRoot)
+    .filter((fileName) => fileName.endsWith('.json'))
+    .map((fileName) => JSON.parse(fs.readFileSync(path.join(toolsRoot, fileName), 'utf8')))
+    .map((tool) => ({
+      id: String(tool.slug || '').trim(),
+      image: `/${normalizedRelativePath(tool.iconImage).replace(/^\/+/, '')}`,
+      public: Boolean(tool.href) && String(tool.visibility || 'public').trim().toLowerCase() === 'public' &&
+        !tool.hidden && !tool.noindex
+    }));
+}
+
 function expectedPreviewTree() {
   const previewInventory = {
     projects: Object.fromEntries(RETAINED_PROJECT_PREVIEW_IDS.map((id) => [id, true])),
+    tools: Object.fromEntries(RETAINED_TOOL_PREVIEW_IDS.map((id) => [id, true])),
     ...GENERATED_HOME_LIBRARY_VISUALS,
     games: {
       ...GENERATED_HOME_LIBRARY_VISUALS.games,
@@ -155,6 +170,19 @@ function validateCatalogMappings() {
     }
   });
 
+  const tools = loadToolIcons();
+  const toolIcons = new Map(tools.map((tool) => [tool.id, tool.image]));
+  const toolItems = libraryData.tools?.items || [];
+  if (JSON.stringify(toolItems.map((item) => item.id).sort()) !==
+    JSON.stringify(tools.filter((tool) => tool.public).map((tool) => tool.id).sort())) {
+    throw new Error('Homepage tools icon catalog is out of sync with public tool content');
+  }
+  toolItems.forEach((item) => {
+    if (!toolIcons.has(item.id) || item.image !== toolIcons.get(item.id) || item.imageAlt !== '') {
+      throw new Error(`Unexpected original tool icon mapping for tools/${item.id}`);
+    }
+  });
+
   Object.entries(GENERATED_HOME_LIBRARY_VISUALS).forEach(([category, visuals]) => {
     const items = libraryData[category]?.items || [];
     const expectedIds = Object.keys(visuals);
@@ -194,6 +222,25 @@ async function validateProjectAssets(baseDir, projects) {
   for (const project of projects) {
     const assetPath = projectLibraryAsset(project.image);
     hashes.set(assetPath, await validateProjectAssetAt(baseDir, project));
+  }
+  return hashes;
+}
+
+async function validateToolIconAssets(baseDir) {
+  const hashes = new Map();
+  for (const tool of loadToolIcons()) {
+    if (!tool.id || tool.image !== `/img/tools/icons/${tool.id}.png`) {
+      throw new Error(`Unexpected canonical tool icon path for ${tool.id || 'unnamed tool'}`);
+    }
+    const filePath = path.join(baseDir, tool.image.replace(/^\/+/, ''));
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Missing original tool icon: ${path.relative(root, filePath)}`);
+    }
+    const metadata = await sharp(filePath).metadata();
+    if (metadata.format !== 'png' || !Number(metadata.width) || !Number(metadata.height)) {
+      throw new Error(`Original tool icon must be a valid PNG: ${path.relative(root, filePath)}`);
+    }
+    hashes.set(tool.image, crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex'));
   }
   return hashes;
 }
@@ -252,18 +299,21 @@ async function main() {
   const validatePublic = process.argv.slice(2).includes('--public');
   const projects = validateCatalogMappings();
   const projectSourceHashes = await validateProjectAssets(root, projects);
+  const toolSourceHashes = await validateToolIconAssets(root);
   const sourceHashes = await validatePreviewTree(previewRoot, 'img/home-previews');
 
   if (validatePublic) {
     const projectDeployedHashes = await validateProjectAssets(path.join(root, 'public'), projects);
+    const toolDeployedHashes = await validateToolIconAssets(path.join(root, 'public'));
     const deployedHashes = await validatePreviewTree(publicPreviewRoot, 'public/img/home-previews');
     validateMatchingHashes(projectSourceHashes, projectDeployedHashes);
+    validateMatchingHashes(toolSourceHashes, toolDeployedHashes);
     validateMatchingHashes(sourceHashes, deployedHashes);
-    process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews and ${sourceHashes.size} source and deployed generated previews.\n`);
+    process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews, ${toolSourceHashes.size} original tool icons, and ${sourceHashes.size} source and deployed generated previews.\n`);
     return;
   }
 
-  process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews and ${sourceHashes.size} generated previews.\n`);
+  process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews, ${toolSourceHashes.size} original tool icons, and ${sourceHashes.size} generated previews.\n`);
 }
 
 if (require.main === module) {
@@ -277,6 +327,7 @@ module.exports = {
   GENERATED_HOME_LIBRARY_VISUALS,
   RETAINED_GAME_PREVIEW_IDS,
   RETAINED_PROJECT_PREVIEW_IDS,
+  RETAINED_TOOL_PREVIEW_IDS,
   expectedPreviewTree,
   listPreviewTree,
   previewPath,
@@ -285,5 +336,6 @@ module.exports = {
   validateMatchingHashes,
   validatePreview,
   validateProjectAssets,
+  validateToolIconAssets,
   validatePreviewTree
 };

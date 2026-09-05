@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto" data-project-demo-theme="brand">
+<html lang="en" data-project-demo-theme="brand">
 <head>
 <!-- project-demo-wrapper-guard:start -->
 <script>
@@ -15,1024 +15,452 @@
   <base href="/">
   <title>Baby Names Analysis Demo</title>
   <meta name="robots" content="noindex, nofollow">
-
   <meta name="theme-color" content="#F9F9FA">
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@600&display=swap">
-
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <style>
-    :root {
-      --radius: 12px;
-      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
-      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
-      --surface-2: var(--surface-light);
-      --text: var(--text-light);
-      --muted: var(--text-muted);
-      --accent: var(--primary);
-      --good: var(--success);
-      --warn: var(--warning);
-      --bad: var(--danger);
-      --page-pad: clamp(12px, 3vw, 24px);
-      --list-height: 190px;
-    }
-
     * { box-sizing: border-box; }
-
-    html, body { height: 100%; }
-    html[data-embedded="true"],
-    html[data-embedded="true"] body {
-      height: auto !important;
-      min-height: 0 !important;
+    html, body { margin: 0; min-height: 0; }
+    .baby-names-workspace { padding: 0; color: var(--text); font-family: Inter, system-ui, sans-serif; }
+    .baby-names-workspace #main { width: 100%; min-height: 0; }
+    .baby-names-workspace .card-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .baby-names-workspace .header-copy { min-width: 0; }
+    .baby-names-workspace .title { margin: 0 0 4px; }
+    .baby-names-workspace .subtitle { margin: 0; color: var(--muted); font-size: .875rem; }
+    .baby-names-workspace .header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .baby-names-workspace .segment,
+    .baby-names-workspace .tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+    .baby-names-workspace .segment { padding: 3px; border: 1px solid var(--border); border-radius: 10px; }
+    .baby-names-workspace button,
+    .baby-names-workspace select,
+    .baby-names-workspace input { font: inherit; }
+    .baby-names-workspace button { cursor: pointer; }
+    .baby-names-workspace button:disabled { cursor: default; opacity: .55; }
+    .baby-names-workspace .segment-btn,
+    .baby-names-workspace .tab-btn,
+    .baby-names-workspace .btn-ghost { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: .8125rem; }
+    .baby-names-workspace .segment-btn { border-color: transparent; }
+    .baby-names-workspace .health-pill { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; color: var(--muted); white-space: nowrap; }
+    .baby-names-workspace .health-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .baby-names-workspace .health-pill[data-state="ok"] { color: var(--success); }
+    .baby-names-workspace .health-pill[data-state="err"] { color: var(--danger); }
+    .baby-names-workspace .content { display: grid; gap: 20px; padding: 16px 24px 24px; }
+    .baby-names-workspace .summary-section { display: grid; gap: 10px; }
+    .baby-names-workspace .summary-scope,
+    .baby-names-workspace .detail-meta { margin: 0; font-size: .8125rem; line-height: 1.5; color: var(--muted); }
+    .baby-names-workspace .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .baby-names-workspace .stat-card { display: grid; align-content: start; gap: 4px; min-width: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; }
+    .baby-names-workspace .stat-label { font-size: .8125rem; color: var(--muted); }
+    .baby-names-workspace .stat-value { font-size: clamp(1.4rem, 2.7vw, 1.85rem); line-height: 1.2; font-variant-numeric: tabular-nums; }
+    .baby-names-workspace .stat-sub { min-height: 1.25em; font-size: .75rem; color: var(--muted); }
+    .baby-names-workspace .ratings-content { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(200px, 1fr); gap: 24px; align-items: start; }
+    .baby-names-workspace .analysis-section { min-width: 0; }
+    .baby-names-workspace h2 { margin: 0; font-size: 1rem; line-height: 1.4; font-weight: 650; }
+    .baby-names-workspace h3 { margin: 0; font-size: .875rem; }
+    .baby-names-workspace .chart-help { margin-top: 4px; font-size: .75rem; }
+    .baby-names-workspace .bars { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+    .baby-names-workspace .bar-row { display: grid; grid-template-rows: 20px 112px 20px; gap: 4px; align-items: end; min-width: 0; min-height: 160px; padding: 0 1px; border: 0; border-radius: 6px; color: var(--muted); background: transparent; font-size: .75rem; font-variant-numeric: tabular-nums; }
+    .baby-names-workspace .bar-count { align-self: center; }
+    .baby-names-workspace .bar-track { display: flex; align-items: flex-end; height: 112px; padding-inline: 15%; border-bottom: 1px solid var(--border); }
+    .baby-names-workspace .bar-fill { display: block; width: 100%; height: var(--bar-height); min-height: 0; border-radius: 4px 4px 0 0; background: color-mix(in srgb, var(--primary) 65%, white); }
+    .baby-names-workspace .bar-row.is-active { color: var(--primary); font-weight: 700; background: var(--primary-soft); }
+    .baby-names-workspace .bar-row.is-active .bar-fill { background: var(--primary); }
+    .baby-names-workspace .chart-axis { margin: 6px 0 0; text-align: center; color: var(--muted); font-size: .75rem; }
+    .baby-names-workspace .mini-list { display: grid; gap: 0; list-style: none; margin: 12px 0 0; padding: 0; }
+    .baby-names-workspace .mini-list li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+    .baby-names-workspace .mini-list strong { font-weight: 600; }
+    .baby-names-workspace .mini-list .favorite-score { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .baby-names-workspace .explorer { display: grid; gap: 12px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .baby-names-workspace .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .baby-names-workspace .filter-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, .45fr); gap: 12px; }
+    .baby-names-workspace .filter-row label { display: grid; gap: 5px; font-size: .75rem; color: var(--muted); }
+    .baby-names-workspace .filter-row input,
+    .baby-names-workspace .filter-row select { width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: .875rem; }
+    .baby-names-workspace .results-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+    .baby-names-workspace .rating-filter { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--primary); border-radius: 8px; color: var(--primary); background: var(--primary-soft); font-size: .8125rem; }
+    .baby-names-workspace .name-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; list-style: none; margin: 0; padding: 0; }
+    .baby-names-workspace .name-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-width: 0; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .baby-names-workspace .name-copy { min-width: 0; }
+    .baby-names-workspace .name-text { font-size: .875rem; font-weight: 600; overflow-wrap: anywhere; }
+    .baby-names-workspace .name-meta { display: block; color: var(--muted); font-size: .75rem; }
+    .baby-names-workspace .score-value { flex-shrink: 0; color: var(--text); font-size: .875rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .baby-names-workspace .pagination { display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .baby-names-workspace .empty-state { grid-column: 1 / -1; margin: 0; padding: 14px; border: 1px dashed var(--border); border-radius: 8px; color: var(--muted); font-size: .875rem; }
+    .baby-names-workspace .method-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
+    .baby-names-workspace .method-grid dt { color: var(--muted); font-size: .75rem; }
+    .baby-names-workspace .method-grid dd { margin: 4px 0 0; font-size: .875rem; font-weight: 600; }
+    @media (max-width: 700px) {
+      .baby-names-workspace .content { padding: 14px 16px 20px; gap: 18px; }
+      .baby-names-workspace .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .baby-names-workspace .ratings-content { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+      .baby-names-workspace .panel-title { align-items: flex-start; }
+      .baby-names-workspace .name-list { grid-template-columns: minmax(0, 1fr); }
+      .baby-names-workspace .method-grid { grid-template-columns: minmax(0, 1fr); }
     }
-    html[data-embedded="true"] {
-      --page-pad: clamp(8px, 2vw, 16px);
-    }
-
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--text);
-      background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
-      display: grid;
-      place-items: start center;
-      padding: var(--page-pad);
-      overflow-x: hidden;
-    }
-
-    #main {
-      width: min(100%, 1100px);
-      background: var(--surface);
-      border: 1px solid var(--surface-accent);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-2);
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: auto auto 1fr;
-      min-height: calc(100vh - var(--page-pad) * 2);
-    }
-
-    @supports (height: 100dvh) {
-      #main {
-        min-height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      }
-    }
-
-    html[data-embedded="true"] #main {
-      min-height: 0 !important;
-    }
-
-    header.card-header {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 18px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--surface-accent);
-    }
-
-    .header-copy {
-      display: grid;
-      gap: 6px;
-      min-width: 0;
-    }
-
-    .title {
-      font-family: Inter, system-ui, sans-serif;
-      font-weight: 600;
-      margin: 0;
-      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
-    }
-
-    .subtitle {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-      max-width: 60ch;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .segment {
-      display: inline-flex;
-      padding: 4px;
-      border-radius: 999px;
-      border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 85%, #000 15%);
-      gap: 4px;
-    }
-
-    .segment button {
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .segment button.is-active {
-      background: color-mix(in srgb, var(--primary) 22%, transparent);
-      color: color-mix(in srgb, var(--primary) 88%, #ffffff 12%);
-    }
-
-    .health-row {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 8px 16px 0;
-    }
-
-    .health-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      letter-spacing: normal;
-      text-transform: none;
-      border: 1px solid var(--surface-accent);
-      color: var(--muted);
-      background: var(--surface-2);
-    }
-
-    .health-pill::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    .health-pill[data-state="ok"] {
-      color: var(--success, #38b37e);
-      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
-    }
-
-    .health-pill[data-state="warming"] {
-      color: var(--warning, #f3b550);
-      border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
-    }
-
-    .health-pill[data-state="err"] {
-      color: var(--danger, #e05757);
-      border-color: color-mix(in srgb, var(--danger, #e05757) 55%, var(--surface-accent) 45%);
-    }
-
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 4px 18px 12px;
-      border-bottom: 1px solid var(--surface-accent);
-      flex-wrap: wrap;
-    }
-
-    .status-meta {
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
-
-    .status-note {
-      color: var(--muted);
-      font-size: 0.74rem;
-    }
-
-    .content {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 18px;
-      padding: 18px;
-      align-items: start;
-    }
-
-    .panel {
-      background: var(--surface);
-      border-radius: var(--radius);
-      border: 1px solid var(--surface-accent);
-      padding: 16px;
-      display: grid;
-      gap: 16px;
-      min-height: 0;
-    }
-
-    .panel.explorer {
-      align-content: start;
-    }
-
-    .ratings-content {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 20px;
-      align-items: start;
-    }
-
-    .ratings-content > .stat-grid {
-      grid-column: 1 / -1;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .explorer-description {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.85rem;
-    }
-
-    .filter-row label {
-      display: grid;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      flex: 1 1 220px;
-    }
-
-    .panel h2,
-    .panel h3 {
-      margin: 0;
-      font-family: Inter, system-ui, sans-serif;
-      font-weight: 600;
-    }
-
-    .panel-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .meta-chip {
-      font-size: 0.72rem;
-      color: var(--muted);
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-    }
-
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .stat-card {
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface-2);
-      display: grid;
-      gap: 4px;
-    }
-
-    .stat-label {
-      font-size: 0.72rem;
-      color: var(--muted);
-      text-transform: none;
-      letter-spacing: 0.04em;
-    }
-
-    .stat-value {
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    .mini-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 6px;
-      max-height: var(--list-height);
-      min-height: 0;
-      overflow: auto;
-      scrollbar-gutter: stable;
-    }
-
-    .mini-list li {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 6px 8px;
-      border-radius: 8px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-      font-size: 0.82rem;
-    }
-
-    .mini-list strong {
-      font-weight: 600;
-    }
-
-    .bars {
-      display: grid;
-      gap: 6px;
-    }
-
-    .bar-row {
-      display: grid;
-      grid-template-columns: 26px 1fr 36px;
-      gap: 8px;
-      align-items: center;
-      font-size: 0.75rem;
-      color: var(--muted);
-      border: 0;
-      background: transparent;
-      text-align: left;
-      padding: 4px 6px;
-      border-radius: 10px;
-      cursor: pointer;
-      appearance: none;
-      font: inherit;
-    }
-
-    .bar-row:hover {
-      background: var(--surface);
-    }
-
-    .bar-row:focus-visible {
-      outline: 2px solid color-mix(in srgb, var(--primary) 60%, #ffffff 40%);
-      outline-offset: 2px;
-    }
-
-    .bar-row.is-active {
-      color: var(--text);
-      background: color-mix(in srgb, var(--primary) 14%, transparent);
-    }
-
-    .bar-track {
-      height: 8px;
-      border-radius: 999px;
-      background: color-mix(in srgb, var(--surface) 80%, #000 20%);
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: var(--accent);
-      width: 0;
-      transition: width 0.3s ease;
-    }
-
-    .rating-detail {
-      display: grid;
-      gap: 6px;
-    }
-
-    .detail-meta {
-      margin: 0;
-      font-size: 0.74rem;
-      color: var(--muted);
-    }
-
-    .tabs {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-      color: var(--muted);
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .tab-btn.is-active {
-      color: color-mix(in srgb, var(--primary) 88%, #ffffff 12%);
-      border-color: color-mix(in srgb, var(--primary) 55%, transparent);
-      background: color-mix(in srgb, var(--primary) 18%, transparent);
-    }
-
-    .filter-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .filter-row input,
-    .filter-row select {
-      border-radius: 10px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-      color: var(--text);
-      padding: 8px 10px;
-      font-size: 0.8rem;
-    }
-
-    .name-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 0 20px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      align-content: start;
-      overflow: auto;
-      max-height: 420px;
-      min-height: 220px;
-      scrollbar-gutter: stable;
-    }
-
-    #name-list-wrap {
-      min-height: 0;
-      display: grid;
-    }
-
-    .name-item {
-      display: grid;
-      gap: 8px;
-      padding: 14px 2px;
-      border-bottom: 1px solid var(--surface-accent);
-      background: var(--surface);
-    }
-
-    .name-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .name-text {
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
-    .name-chip {
-      font-size: 0.7rem;
-      color: var(--muted);
-      border: 1px solid var(--surface-accent);
-      padding: 2px 8px;
-      border-radius: 999px;
-      text-transform: none;
-      letter-spacing: 0.04em;
-    }
-
-    .name-score {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .score-value {
-      font-weight: 600;
-      font-size: 0.86rem;
-      min-width: 40px;
-    }
-
-    .score-track {
-      height: 8px;
-      border-radius: 999px;
-      background: color-mix(in srgb, var(--surface) 80%, #000 20%);
-      overflow: hidden;
-    }
-
-    .score-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: var(--accent);
-      width: 0;
-    }
-
-    .name-meta {
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
-    .empty-state {
-      grid-column: 1 / -1;
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px dashed var(--surface-accent);
-      color: var(--muted);
-      text-align: center;
-    }
-
-    @media (max-width: 980px) {
-      .ratings-content {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 600px) {
-      :root {
-        --list-height: 160px;
-      }
-      header.card-header {
-        padding: 14px;
-      }
-      .status-row {
-        padding: 8px 14px;
-      }
-      .content {
-        padding: 14px;
-      }
-      .panel {
-        padding: 12px;
-      }
-      .title-group {
-        min-width: 0;
-      }
-      .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-      }
-      .segment {
-        flex-wrap: wrap;
-        width: 100%;
-      }
-      .segment button {
-        flex: 1 1 80px;
-      }
-      .panel-title {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .ratings-content > .stat-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .name-list {
-        grid-template-columns: 1fr;
-      }
-      .mini-list {
-        min-height: 0;
-        max-height: var(--list-height);
-      }
-    }
-
     @media (max-width: 420px) {
-      :root {
-        --page-pad: 10px;
-        --list-height: 140px;
-      }
-      .status-note {
-        font-size: 0.7rem;
-      }
-      .bar-row {
-        grid-template-columns: 22px 1fr 32px;
-      }
+      .baby-names-workspace .filter-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+      .baby-names-workspace .panel-title { flex-direction: column; }
+      .baby-names-workspace .bars { gap: 4px; }
+      .baby-names-workspace .stat-card { padding: 10px 12px; }
     }
   </style>
-  <script defer src="dist/site-consent.33b42e2d.js"></script>
+  <script defer src="dist/site-consent.5fbd7df8.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
     }
   </script>
 </head>
-<body>
+<body class="demo-summary-workspace baby-names-workspace">
   <a href="#main" class="skip-link">Skip to main content</a>
-  <div id="main" role="application" aria-label="Baby names analysis demo">
+  <main id="main" aria-label="Baby names analysis demo">
     <header class="card-header">
       <div class="header-copy">
         <h1 class="title">Baby names</h1>
-        <p class="subtitle">Explore my wife's name ratings and discover similar names she might like.</p>
+        <p class="subtitle">A snapshot of my wife's ratings and the names she might like.</p>
       </div>
       <div class="header-actions">
-        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
-
-      </div>
-    </header>
-
-    <div class="status-row demo-meta-row">
-      <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
-      <span class="status-meta" id="status-meta">Fetching demo data...</span>
-      <span class="status-note">My wife has approved publication of this data through this project.</span>
-    </div>
-
-    <main class="content">
-      <section class="panel explorer" id="explorer-panel">
-        <div class="panel-title">
-          <h2>Name explorer</h2>
-          <div class="tabs" role="group" aria-label="Name lists">
-            <button class="tab-btn is-active" type="button" data-tab="recommendations" aria-pressed="true">Recommendations</button>
-            <button class="tab-btn" type="button" data-tab="ratings" aria-pressed="false">Rated names</button>
-          </div>
-        </div>
-
-        <p class="explorer-description" id="list-description">Recommendations show predicted ratings based on name similarity.</p>
         <div class="segment" role="group" aria-label="Name sex">
           <button class="segment-btn is-active" type="button" data-sex="F" aria-pressed="true">Girls</button>
           <button class="segment-btn" type="button" data-sex="M" aria-pressed="false">Boys</button>
           <button class="segment-btn" type="button" data-sex="all" aria-pressed="false">All</button>
         </div>
-        <div class="filter-row">
-          <label>Find a name
-            <input id="name-search" type="search" placeholder="Search by name" />
-          </label>
-          <label>Sort results
-            <select id="sort-select">
-              <option value="score">Score: high to low</option>
-              <option value="alpha">Name: A to Z</option>
-            </select>
-          </label>
-        </div>
-
-        <p class="detail-meta" id="list-count" role="status" aria-live="polite">Loading names…</p>
-        <div id="name-list-wrap">
-          <ul class="name-list" id="name-list" tabindex="0" aria-label="Name results"></ul>
+        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Loading data…</span>
+        <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
+      </div>
+    </header>
+    <div class="content">
+      <section class="summary-section" aria-label="Ratings summary">
+        <p class="summary-scope" id="summary-scope">Summary of all ratings for girl names. Search and rating filters affect results only.</p>
+        <div class="stat-grid">
+          <div class="stat-card"><span class="stat-label">Rating entries</span><strong class="stat-value" id="stat-rated">—</strong><span class="stat-sub">Personal ratings</span></div>
+          <div class="stat-card"><span class="stat-label">Average rating</span><strong class="stat-value" id="stat-average">—</strong><span class="stat-sub">Out of 10</span></div>
+          <div class="stat-card"><span class="stat-label">Median rating</span><strong class="stat-value" id="stat-median">—</strong><span class="stat-sub">Out of 10</span></div>
+          <div class="stat-card"><span class="stat-label">Rated 8–10</span><strong class="stat-value" id="stat-high-rated">—</strong><span class="stat-sub" id="stat-high-share">Share of rating entries</span></div>
         </div>
       </section>
+      <div class="ratings-content">
+        <section class="analysis-section" aria-labelledby="distribution-title">
+          <h2 id="distribution-title">Rating distribution</h2>
+          <p class="detail-meta chart-help" id="chart-help">Select a bar to explore names at that rating. Arrow keys move between bars.</p>
+          <div class="bars" id="rating-bars" role="group" aria-label="Filter rated names by rating" aria-describedby="chart-help"></div>
+          <p class="chart-axis">Rating out of 10 · bar labels show rating entries</p>
+        </section>
+        <section class="analysis-section" aria-labelledby="favorites-title">
+          <h2 id="favorites-title">Top five favorites</h2>
+          <ul class="mini-list" id="top-rated"><li>Loading favorites…</li></ul>
+        </section>
+      </div>
+      <section class="explorer" id="explorer-panel" aria-labelledby="explorer-title">
+        <div class="panel-title">
+          <h2 id="explorer-title">Explore names</h2>
+          <div class="tabs" role="group" aria-label="Name lists">
+            <button class="tab-btn is-active" type="button" data-tab="recommendations" aria-pressed="true">Recommendations</button>
+            <button class="tab-btn" type="button" data-tab="ratings" aria-pressed="false">Rated names</button>
+          </div>
+        </div>
+        <p class="detail-meta" id="list-description">Predicted preference ratings based on name similarity.</p>
+        <div class="filter-row">
+          <label>Find a name<input id="name-search" type="search" placeholder="Search by name" /></label>
+          <label>Sort results<select id="sort-select"><option value="score">Score: high to low</option><option value="alpha">Name: A to Z</option></select></label>
+        </div>
+        <div class="results-meta">
+          <p class="detail-meta" id="list-count" role="status" aria-live="polite" tabindex="-1">Loading names…</p>
+          <button class="rating-filter" id="rating-filter" type="button" hidden aria-label="Clear rating filter"><span id="rating-filter-label"></span><span aria-hidden="true">×</span></button>
+        </div>
+        <ul class="name-list" id="name-list" aria-label="Name results"></ul>
+        <nav class="pagination" id="pagination" aria-label="Name result pages" hidden>
+          <button class="btn-ghost" id="previous-page" type="button">Previous</button>
+          <span class="detail-meta" id="page-label"></span>
+          <button class="btn-ghost" id="next-page" type="button">Next</button>
+        </nav>
+      </section>
       <details class="demo-disclosure" id="ratings-panel">
-        <summary>Ratings snapshot and favorites</summary>
-        <div class="demo-disclosure-content ratings-content">
-
-          <div class="stat-grid">
-            <div class="stat-card">
-              <div class="stat-label">Rated names</div>
-              <div class="stat-value" id="stat-rated">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Average rating</div>
-              <div class="stat-value" id="stat-average">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Median rating</div>
-              <div class="stat-value" id="stat-median">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Top initial</div>
-              <div class="stat-value" id="stat-initial">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Common ending</div>
-              <div class="stat-value" id="stat-ending">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Average name length</div>
-              <div class="stat-value" id="stat-length">--</div>
-            </div>
-          </div>
-
-          <div>
-            <h3>Rating distribution</h3>
-            <div class="bars" id="rating-bars"></div>
-          </div>
-
-          <div class="rating-detail">
-            <h3>Selected rating</h3>
-            <p class="detail-meta" id="rating-detail-meta">Click a rating to view names.</p>
-            <ul class="mini-list" id="rating-detail-list"></ul>
-          </div>
-
-          <div>
-            <h3>Favorites</h3>
-            <ul class="mini-list" id="top-rated"></ul>
-          </div>
-          <p class="detail-meta">Source: <span id="meta-source">SSA latest</span></p>
+        <summary>Data and method</summary>
+        <div class="demo-disclosure-content">
+          <p class="detail-meta">Ratings are my wife's personal scores from 1 to 10. Repeated names remain as separate rating entries in these summaries. Recommendations are predicted preferences based on name similarity, not population forecasts or a measure of model accuracy.</p>
+          <p class="detail-meta">Recommendation source: <span id="meta-source">SSA data</span>. <span id="meta-generated"></span></p>
+          <p class="detail-meta">My wife has approved publication of this data through this project.</p>
+          <h3>Name patterns in all rated names</h3>
+          <dl class="method-grid">
+            <div><dt>Most common initial</dt><dd id="stat-initial">—</dd></div>
+            <div><dt>Most common final letter</dt><dd id="stat-ending">—</dd></div>
+            <div><dt>Average name length</dt><dd id="stat-length">—</dd></div>
+          </dl>
+          <p class="detail-meta">These describe the selected group of rated names, not just favorites. Ties in favorites are ordered alphabetically.</p>
         </div>
       </details>
-    </main>
-  </div>
-
+    </div>
+  </main>
   <script>
     const DATA_URL = "demos/data/baby-names.json";
-    const appState = {
-      data: null,
-      sex: "F",
-      tab: "recommendations",
-      query: "",
-      sort: "score",
-      selectedRating: null
-    };
+    const PAGE_SIZE = 20;
+    const appState = { data: null, sex: "F", tab: "recommendations", query: "", sort: "score", selectedRating: null, page: 1, pageCount: 1 };
+    const derivedCache = new Map();
     let dataReady = false;
-
-    const DOM = {
-      statusPill: document.getElementById("status-pill"),
-      statusMeta: document.getElementById("status-meta"),
-      metaSource: document.getElementById("meta-source"),
-      statRated: document.getElementById("stat-rated"),
-      statAverage: document.getElementById("stat-average"),
-      statMedian: document.getElementById("stat-median"),
-      statInitial: document.getElementById("stat-initial"),
-      statEnding: document.getElementById("stat-ending"),
-      statLength: document.getElementById("stat-length"),
-      ratingBars: document.getElementById("rating-bars"),
-      ratingDetailMeta: document.getElementById("rating-detail-meta"),
-      ratingDetailList: document.getElementById("rating-detail-list"),
-      topRated: document.getElementById("top-rated"),
-      nameList: document.getElementById("name-list"),
-      nameSearch: document.getElementById("name-search"),
-      sortSelect: document.getElementById("sort-select"),
-      segmentButtons: Array.from(document.querySelectorAll(".segment button")),
-      tabButtons: Array.from(document.querySelectorAll(".tab-btn")),
-      listDescription: document.getElementById("list-description"),
-      listCount: document.getElementById("list-count")
-    };
+    const DOM = Object.fromEntries([
+      "status-pill", "retry-demo", "summary-scope", "stat-rated", "stat-average", "stat-median", "stat-high-rated", "stat-high-share", "stat-initial", "stat-ending", "stat-length", "rating-bars", "top-rated", "name-list", "name-search", "sort-select", "list-description", "list-count", "rating-filter", "rating-filter-label", "pagination", "page-label", "previous-page", "next-page", "meta-source", "meta-generated"
+    ].map((id) => [id, document.getElementById(id)]));
+    const segmentButtons = Array.from(document.querySelectorAll(".segment-btn"));
+    const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
 
     const notifyResize = (() => {
       if (window.self === window.top) return () => {};
       let lastHeight = 0;
       const postHeight = () => {
-        const height = document.documentElement.scrollHeight;
-        if (Math.abs(height - lastHeight) < 4) return;
+        const height = Math.ceil(document.getElementById("main").getBoundingClientRect().bottom + window.scrollY);
+        if (!Number.isFinite(height) || Math.abs(height - lastHeight) < 2) return;
         lastHeight = height;
         window.parent.postMessage({ type: "baby-names-demo-resize", height }, "*");
       };
       window.addEventListener("load", () => requestAnimationFrame(postHeight));
       window.addEventListener("resize", () => requestAnimationFrame(postHeight));
-      return postHeight;
+      return () => requestAnimationFrame(postHeight);
     })();
 
-    function setStatus(state, text, meta) {
-      DOM.statusPill.dataset.state = state;
-      document.getElementById("retry-demo").hidden = state !== "err";
-      DOM.statusPill.textContent = text;
-      if (meta !== undefined) DOM.statusMeta.textContent = meta;
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
+    }
+
+    function setStatus(state, text) {
+      DOM["status-pill"].dataset.state = state;
+      DOM["status-pill"].textContent = text;
+      DOM["retry-demo"].hidden = state !== "err";
     }
 
     function setControlsEnabled(enabled) {
-      DOM.segmentButtons.forEach((btn) => {
-        btn.disabled = !enabled;
-      });
-      DOM.tabButtons.forEach((btn) => {
-        btn.disabled = !enabled;
-      });
-      if (DOM.nameSearch) DOM.nameSearch.disabled = !enabled;
-      if (DOM.sortSelect) DOM.sortSelect.disabled = !enabled;
-    }
-
-    function formatRating(value) {
-      if (value === null || value === undefined || Number.isNaN(value)) return "--";
-      return value.toFixed(1);
-    }
-
-    function formatNumber(value) {
-      if (value === null || value === undefined || Number.isNaN(value)) return "--";
-      return value.toFixed(1);
-    }
-
-    function collectRatings(sex) {
-      const ratings = appState.data?.ratings || {};
-      if (sex === "all") {
-        return [
-          ...(ratings.F || []).map((row) => ({ ...row, sex: "F" })),
-          ...(ratings.M || []).map((row) => ({ ...row, sex: "M" }))
-        ];
-      }
-      return (ratings[sex] || []).map((row) => ({ ...row, sex }));
-    }
-
-    function collectRecommendations(sex) {
-      const recs = appState.data?.recommendations || {};
-      if (sex === "all") {
-        return [
-          ...(recs.F || []).map((row) => ({ ...row, sex: "F" })),
-          ...(recs.M || []).map((row) => ({ ...row, sex: "M" }))
-        ];
-      }
-      return (recs[sex] || []).map((row) => ({ ...row, sex }));
+      [...segmentButtons, ...tabButtons, DOM["name-search"], DOM["sort-select"]].forEach((control) => { control.disabled = !enabled; });
     }
 
     function computeStats(ratings) {
       const count = ratings.length;
-      const sum = ratings.reduce((acc, row) => acc + row.rating, 0);
-      const avg = count ? sum / count : 0;
-      const sortedRatings = [...ratings].sort((a, b) => a.rating - b.rating || a.name.localeCompare(b.name));
-      const mid = Math.floor(sortedRatings.length / 2);
-      const median = count
-        ? (sortedRatings.length % 2
-          ? sortedRatings[mid].rating
-          : (sortedRatings[mid - 1].rating + sortedRatings[mid].rating) / 2)
-        : 0;
-      const lengthSum = ratings.reduce((acc, row) => acc + row.name.length, 0);
-      const avgLength = count ? lengthSum / count : 0;
-      const sorted = [...ratings].sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name));
-      const dist = Array.from({ length: 10 }, () => 0);
-      const initialCounts = new Map();
-      const endingCounts = new Map();
+      const distribution = Array(10).fill(0);
+      const initials = new Map();
+      const endings = new Map();
+      let sum = 0;
+      let lengthSum = 0;
+      let highCount = 0;
       ratings.forEach((row) => {
-        dist[Math.min(9, Math.max(0, row.rating - 1))] += 1;
-        const initial = row.name[0]?.toUpperCase() || "";
-        const ending = row.name.slice(-1).toUpperCase() || "";
-        initialCounts.set(initial, (initialCounts.get(initial) || 0) + 1);
-        endingCounts.set(ending, (endingCounts.get(ending) || 0) + 1);
+        sum += row.rating;
+        lengthSum += row.name.length;
+        if (row.rating >= 8) highCount += 1;
+        distribution[row.rating - 1] += 1;
+        const initial = row.name[0].toUpperCase();
+        const ending = row.name.slice(-1).toUpperCase();
+        initials.set(initial, (initials.get(initial) || 0) + 1);
+        endings.set(ending, (endings.get(ending) || 0) + 1);
       });
-      const topInitial = [...initialCounts.entries()].sort((a, b) => b[1] - a[1])[0];
-      const topEnding = [...endingCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+      const scores = ratings.map((row) => row.rating).sort((a, b) => a - b);
+      const middle = Math.floor(count / 2);
+      const mostCommon = (counts) => {
+        const entry = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+        return entry ? `${entry[0]} (${entry[1].toLocaleString()})` : "—";
+      };
       return {
         count,
-        avg,
-        median,
-        avgLength,
-        dist,
-        topInitial: topInitial ? `${topInitial[0]} (${topInitial[1]})` : "--",
-        topEnding: topEnding ? `${topEnding[0]} (${topEnding[1]})` : "--",
-        topRated: sorted.slice(0, 5)
+        average: count ? sum / count : null,
+        median: count ? (count % 2 ? scores[middle] : (scores[middle - 1] + scores[middle]) / 2) : null,
+        highCount,
+        highShare: count ? highCount / count * 100 : 0,
+        distribution,
+        topInitial: mostCommon(initials),
+        topEnding: mostCommon(endings),
+        averageLength: count ? lengthSum / count : null
       };
     }
 
-    function renderRatingDetail(ratings) {
-      const rating = appState.selectedRating;
-      if (!rating) {
-        DOM.ratingDetailMeta.textContent = "Click a rating to view names.";
-        DOM.ratingDetailList.innerHTML = "";
-        return;
-      }
-      const matches = ratings
-        .filter((row) => row.rating === rating)
-        .sort((a, b) => a.name.localeCompare(b.name));
-      if (!matches.length) {
-        DOM.ratingDetailMeta.textContent = `No names rated ${rating}/10.`;
-        DOM.ratingDetailList.innerHTML = "";
-        return;
-      }
-      const label = matches.length === 1 ? "name" : "names";
-      DOM.ratingDetailMeta.textContent = `${matches.length} ${label} rated ${rating}/10.`;
-      DOM.ratingDetailList.innerHTML = matches
-        .map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`)
-        .join("");
+    function getDerived(sex) {
+      if (derivedCache.has(sex)) return derivedCache.get(sex);
+      const collect = (key) => (sex === "all" ? ["F", "M"] : [sex]).flatMap((group) => (appState.data?.[key]?.[group] || []).map((row) => ({ ...row, sex: group })));
+      const ratings = collect("ratings");
+      const recommendations = collect("recommendations");
+      const sortLists = (rows, scoreKey) => ({
+        score: [...rows].sort((a, b) => b[scoreKey] - a[scoreKey] || a.name.localeCompare(b.name) || a.sex.localeCompare(b.sex)),
+        alpha: [...rows].sort((a, b) => a.name.localeCompare(b.name) || a.sex.localeCompare(b.sex))
+      });
+      const derived = { stats: computeStats(ratings), ratings: sortLists(ratings, "rating"), recommendations: sortLists(recommendations, "predicted") };
+      derivedCache.set(sex, derived);
+      return derived;
+    }
+
+    function updateRatingSelection() {
+      DOM["rating-bars"].querySelectorAll("[data-rating]").forEach((button) => {
+        const selected = Number(button.dataset.rating) === appState.selectedRating;
+        button.classList.toggle("is-active", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
     }
 
     function renderStats() {
-      const ratings = collectRatings(appState.sex);
-      const stats = computeStats(ratings);
-      DOM.statRated.textContent = stats.count || "--";
-      DOM.statAverage.textContent = stats.count ? formatRating(stats.avg) : "--";
-      DOM.statMedian.textContent = stats.count ? formatRating(stats.median) : "--";
-      DOM.statInitial.textContent = stats.topInitial;
-      DOM.statEnding.textContent = stats.topEnding;
-      DOM.statLength.textContent = stats.count ? formatNumber(stats.avgLength) : "--";
-
-      const maxCount = Math.max(...stats.dist, 1);
-      DOM.ratingBars.innerHTML = stats.dist.map((count, idx) => {
-        const rating = idx + 1;
-        const width = Math.round((count / maxCount) * 100);
-        const isActive = appState.selectedRating === rating;
-        return `
-          <button class="bar-row${isActive ? " is-active" : ""}" type="button" data-rating="${rating}" aria-pressed="${isActive}">
-            <span>${rating}</span>
-            <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
-            <span>${count}</span>
-          </button>
-        `;
-      }).reverse().join("");
-
-      DOM.ratingBars.querySelectorAll(".bar-row").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const rating = Number(btn.dataset.rating);
-          if (!Number.isFinite(rating)) return;
-          appState.selectedRating = rating;
-          renderStats();
-        });
-      });
-
-      renderRatingDetail(ratings);
-      DOM.topRated.innerHTML = stats.topRated.length
-        ? stats.topRated.map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`).join("")
-        : "<li class=\"empty-state\">No ratings yet</li>";
-      notifyResize();
+      const derived = getDerived(appState.sex);
+      const stats = derived.stats;
+      const group = appState.sex === "F" ? "girl names" : appState.sex === "M" ? "boy names" : "names";
+      DOM["summary-scope"].textContent = `Summary of all ratings for ${group}. Search and rating filters affect results only.`;
+      DOM["stat-rated"].textContent = stats.count.toLocaleString();
+      DOM["stat-average"].textContent = stats.average === null ? "—" : stats.average.toFixed(1);
+      DOM["stat-median"].textContent = stats.median === null ? "—" : stats.median.toFixed(1);
+      DOM["stat-high-rated"].textContent = stats.highCount.toLocaleString();
+      DOM["stat-high-share"].textContent = stats.count ? `${stats.highShare.toFixed(1)}% of rating entries` : "No ratings available";
+      DOM["stat-initial"].textContent = stats.topInitial;
+      DOM["stat-ending"].textContent = stats.topEnding;
+      DOM["stat-length"].textContent = stats.averageLength === null ? "—" : `${stats.averageLength.toFixed(1)} letters`;
+      const maxCount = Math.max(...stats.distribution, 1);
+      DOM["rating-bars"].innerHTML = stats.distribution.map((count, index) => {
+        const rating = index + 1;
+        return `<button class="bar-row" type="button" data-rating="${rating}" aria-pressed="false" aria-label="Rated ${rating} out of 10: ${count.toLocaleString()} rating ${count === 1 ? "entry" : "entries"}. Filter names."><span class="bar-count" aria-hidden="true">${count.toLocaleString()}</span><span class="bar-track" aria-hidden="true"><span class="bar-fill" style="--bar-height:${count / maxCount * 100}%"></span></span><span aria-hidden="true">${rating}</span></button>`;
+      }).join("");
+      updateRatingSelection();
+      DOM["top-rated"].innerHTML = derived.ratings.score.slice(0, 5).map((row) => `<li><strong>${escapeHtml(row.name)}${appState.sex === "all" ? ` <span class="name-meta">${row.sex === "F" ? "Girl" : "Boy"}</span>` : ""}</strong><span class="favorite-score">${row.rating}/10</span></li>`).join("") || '<li class="empty-state">No ratings available.</li>';
     }
 
-    function sortItems(items) {
-      if (appState.sort === "alpha") {
-        return items.sort((a, b) => a.name.localeCompare(b.name));
-      }
-      return items.sort((a, b) => {
-        const aScore = appState.tab === "ratings" ? a.rating : a.predicted;
-        const bScore = appState.tab === "ratings" ? b.rating : b.predicted;
-        return bScore - aScore || a.name.localeCompare(b.name);
-      });
+    function getFilteredItems() {
+      const query = appState.query.trim().toLowerCase();
+      const source = getDerived(appState.sex)[appState.tab][appState.sort];
+      return source.filter((row) => row.name.toLowerCase().includes(query) && (appState.tab !== "ratings" || appState.selectedRating === null || row.rating === appState.selectedRating));
     }
 
     function renderList() {
-      const source = appState.tab === "ratings"
-        ? collectRatings(appState.sex)
-        : collectRecommendations(appState.sex);
-      const query = appState.query.trim().toLowerCase();
-      let items = source.filter((row) => row.name.toLowerCase().includes(query));
-      const matchCount = items.length;
-      items = sortItems(items).slice(0, 60);
-      DOM.listDescription.textContent = appState.tab === "ratings"
-        ? "Actual ratings from my wife, on a scale of 1 to 10."
-        : "Recommendations show predicted ratings based on name similarity.";
-      DOM.listCount.textContent = matchCount > 60
-        ? `Showing 60 of ${matchCount} matching names. Search to narrow the list.`
-        : `${matchCount} ${matchCount === 1 ? "name" : "names"} found.`;
-
-      if (!items.length) {
-        DOM.nameList.innerHTML = "<li class=\"empty-state\">No matching names. Try a shorter search or select All.</li>";
-        notifyResize();
-        return;
-      }
-
-      DOM.nameList.innerHTML = items.map((row) => {
+      const items = getFilteredItems();
+      appState.pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+      appState.page = Math.max(1, Math.min(appState.page, appState.pageCount));
+      const start = (appState.page - 1) * PAGE_SIZE;
+      const pageItems = items.slice(start, start + PAGE_SIZE);
+      DOM["list-description"].textContent = appState.tab === "ratings" ? "Personal ratings from my wife, on a scale of 1 to 10." : "Predicted preference ratings based on name similarity; SSA count is the source-year birth count.";
+      const resultLabel = appState.tab === "ratings" ? (items.length === 1 ? "rating entry" : "rating entries") : (items.length === 1 ? "name" : "names");
+      DOM["list-count"].textContent = items.length ? `Showing ${start + 1}–${start + pageItems.length} of ${items.length.toLocaleString()} ${resultLabel}.` : "No matching names.";
+      DOM["rating-filter"].hidden = appState.selectedRating === null;
+      DOM["rating-filter-label"].textContent = appState.selectedRating === null ? "" : `Rated ${appState.selectedRating}/10`;
+      DOM["rating-filter"].setAttribute("aria-label", `Clear rating ${appState.selectedRating} filter`);
+      DOM["name-list"].innerHTML = pageItems.map((row) => {
         const score = appState.tab === "ratings" ? row.rating : row.predicted;
-        const pct = Math.round((score / 10) * 100);
-        const tag = row.sex === "F" ? "Girl" : "Boy";
-        const meta = appState.tab === "ratings"
-          ? "Rated by my wife"
-          : `Predicted rating · SSA count: ${row.count}`;
-        return `
-          <li class="name-item">
-            <div class="name-header">
-              <span class="name-text">${row.name}</span>
-              <span class="name-chip">${tag}</span>
-            </div>
-            <div class="name-score">
-              <span class="score-value">${score}/10</span>
-              <div class="score-track"><div class="score-fill" style="width:${pct}%"></div></div>
-            </div>
-            <div class="name-meta">${meta}</div>
-          </li>
-        `;
-      }).join("");
+        const metadata = [appState.sex === "all" ? (row.sex === "F" ? "Girl" : "Boy") : "", appState.tab === "recommendations" ? `Predicted · SSA count ${Number(row.count).toLocaleString()}` : ""].filter(Boolean).join(" · ");
+        return `<li class="name-item"><span class="name-copy"><span class="name-text">${escapeHtml(row.name)}</span>${metadata ? `<span class="name-meta">${metadata}</span>` : ""}</span><span class="score-value">${Number(score).toFixed(appState.tab === "ratings" ? 0 : 1)}/10</span></li>`;
+      }).join("") || '<li class="empty-state">Try a shorter search, clear the rating filter, or select All.</li>';
+      DOM["pagination"].hidden = appState.pageCount <= 1;
+      DOM["page-label"].textContent = `Page ${appState.page} of ${appState.pageCount}`;
+      DOM["previous-page"].disabled = appState.page === 1;
+      DOM["next-page"].disabled = appState.page === appState.pageCount;
       notifyResize();
     }
 
+    function updateTabs() {
+      tabButtons.forEach((button) => {
+        const active = button.dataset.tab === appState.tab;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
     function setSex(sex) {
-      if (!dataReady) return;
+      if (!dataReady || !["F", "M", "all"].includes(sex)) return;
       appState.sex = sex;
       appState.selectedRating = null;
-      DOM.segmentButtons.forEach((btn) => {
-        const active = btn.dataset.sex === sex;
-        btn.classList.toggle("is-active", active);
-        btn.setAttribute("aria-pressed", String(active));
+      appState.page = 1;
+      segmentButtons.forEach((button) => {
+        const active = button.dataset.sex === sex;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
       });
       renderStats();
       renderList();
     }
 
     function setTab(tab) {
-      if (!dataReady) return;
+      if (!dataReady || !["recommendations", "ratings"].includes(tab)) return;
       appState.tab = tab;
-      DOM.tabButtons.forEach((btn) => {
-        const active = btn.dataset.tab === tab;
-        btn.classList.toggle("is-active", active);
-        btn.setAttribute("aria-pressed", String(active));
-      });
-      appState.sort = tab === "ratings" ? "score" : appState.sort;
-      DOM.sortSelect.value = appState.sort;
+      appState.selectedRating = null;
+      appState.page = 1;
+      updateTabs();
+      updateRatingSelection();
       renderList();
+    }
+
+    function selectRating(rating) {
+      if (!dataReady || !Number.isInteger(rating) || rating < 1 || rating > 10) return;
+      appState.selectedRating = rating;
+      appState.tab = "ratings";
+      appState.page = 1;
+      updateTabs();
+      updateRatingSelection();
+      renderList();
+    }
+
+    function changePage(offset) {
+      if (!dataReady) return;
+      appState.page = Math.max(1, Math.min(appState.page + offset, appState.pageCount));
+      renderList();
+      DOM["list-count"].focus({ preventScroll: true });
+      DOM["list-count"].scrollIntoView({ block: "nearest", behavior: "instant" });
     }
 
     async function init() {
+      dataReady = false;
       setControlsEnabled(false);
+      setStatus("warming", "Loading data…");
       try {
-        const res = await fetch(DATA_URL, { cache: "no-store" });
-        if (!res.ok) throw new Error("Data unavailable");
-        const data = await res.json();
-        appState.data = data;
-        DOM.metaSource.textContent = `SSA ${data.meta?.sourceYear || "latest"} (min ${data.meta?.minCount || ""})`;
-        setStatus("ok", "Ready", "Recommendations and ratings available");
+        const response = await fetch(DATA_URL);
+        if (!response.ok) throw new Error("Data unavailable");
+        appState.data = await response.json();
+        derivedCache.clear();
+        DOM["meta-source"].textContent = `SSA ${appState.data.meta?.sourceYear || "year not supplied"}${appState.data.meta?.minCount ? `, names with at least ${appState.data.meta.minCount} births` : ""}`;
+        const generated = appState.data.meta?.generatedAt;
+        DOM["meta-generated"].textContent = generated ? `Dataset generated ${String(generated).slice(0, 10)}.` : "";
         dataReady = true;
         setControlsEnabled(true);
+        setStatus("ok", "Ready");
         renderStats();
         renderList();
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
         dataReady = false;
         setControlsEnabled(false);
-        setStatus("err", "Unavailable", "Demo data missing");
-        DOM.listCount.textContent = "Names unavailable.";
-        DOM.nameList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
+        setStatus("err", "Data unavailable");
+        DOM["list-count"].textContent = "Names unavailable.";
+        DOM["name-list"].innerHTML = '<li class="empty-state">Unable to load the demo data. Select Retry to try again.</li>';
+        DOM["top-rated"].innerHTML = '<li class="empty-state">Favorites unavailable.</li>';
+        DOM["pagination"].hidden = true;
+        notifyResize();
       }
     }
 
-    DOM.segmentButtons.forEach((btn) => {
-      btn.addEventListener("click", () => setSex(btn.dataset.sex));
+    segmentButtons.forEach((button) => button.addEventListener("click", () => setSex(button.dataset.sex)));
+    tabButtons.forEach((button) => button.addEventListener("click", () => setTab(button.dataset.tab)));
+    DOM["rating-bars"].addEventListener("click", (event) => {
+      const button = event.target.closest("[data-rating]");
+      if (button) selectRating(Number(button.dataset.rating));
     });
-
-    DOM.tabButtons.forEach((btn) => {
-      btn.addEventListener("click", () => setTab(btn.dataset.tab));
+    DOM["rating-bars"].addEventListener("keydown", (event) => {
+      const button = event.target.closest("[data-rating]");
+      if (!button || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const current = Number(button.dataset.rating);
+      const next = event.key === "Home" ? 1 : event.key === "End" ? 10 : Math.max(1, Math.min(10, current + (event.key === "ArrowRight" ? 1 : -1)));
+      DOM["rating-bars"].querySelector(`[data-rating="${next}"]`)?.focus();
     });
-
-    DOM.nameSearch.addEventListener("input", (event) => {
+    DOM["rating-filter"].addEventListener("click", () => {
+      appState.selectedRating = null;
+      appState.page = 1;
+      updateRatingSelection();
+      renderList();
+      DOM["name-search"].focus({ preventScroll: true });
+    });
+    DOM["name-search"].addEventListener("input", (event) => {
       if (!dataReady) return;
-      appState.query = event.target.value || "";
+      appState.query = event.target.value;
+      appState.page = 1;
       renderList();
     });
-
-    DOM.sortSelect.addEventListener("change", (event) => {
+    DOM["sort-select"].addEventListener("change", (event) => {
       if (!dataReady) return;
       appState.sort = event.target.value;
+      appState.page = 1;
       renderList();
     });
-
-    document.getElementById("retry-demo").addEventListener("click", () => window.location.reload());
-    document.querySelectorAll("details.demo-disclosure").forEach((details) => {
-      details.addEventListener("toggle", () => requestAnimationFrame(notifyResize));
-    });
-
+    DOM["previous-page"].addEventListener("click", () => changePage(-1));
+    DOM["next-page"].addEventListener("click", () => changePage(1));
+    DOM["retry-demo"].addEventListener("click", init);
+    document.querySelectorAll("details.demo-disclosure").forEach((details) => details.addEventListener("toggle", notifyResize));
     init();
   </script>
 </body>

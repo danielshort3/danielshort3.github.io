@@ -380,21 +380,43 @@
     return null;
   }
 
+  function iframeSourceUrl(ifr) {
+    try {
+      const source = ifr.getAttribute('src') || ifr.dataset.src || ifr.dataset.base;
+      return source ? new URL(source, location.href) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function iframeUsesViewport(ifr) {
+    return ifr.dataset.projectDemoFit === 'viewport' || /(?:^|\/)chatbot-demo(?:\.html)?\/?$/.test(iframeSourceUrl(ifr)?.pathname || '');
+  }
+
   function resizeIframeToContent(ifr) {
     if (!ifr) return;
-    const doc = ifr.contentDocument || ifr.contentWindow?.document;
-    if (!doc) return;
-    const b = doc.body;
-    const de = doc.documentElement;
-    const h = Math.max(
-      b ? b.scrollHeight : 0,
-      b ? b.offsetHeight : 0,
-      de ? de.clientHeight : 0,
-      de ? de.scrollHeight : 0,
-      de ? de.offsetHeight : 0
-    );
-    if (h > 0) {
-      ifr.style.height = `${h}px`;
+    if (iframeUsesViewport(ifr)) {
+      const height = 'clamp(560px, 75vh, 900px)';
+      if (ifr.style.height !== height) ifr.style.height = height;
+      return;
+    }
+    if (iframeSourceUrl(ifr)?.origin !== location.origin) return;
+    try {
+      const doc = ifr.contentDocument || ifr.contentWindow?.document;
+      if (!doc?.body) return;
+      // Root scrollHeight includes the previous iframe height and cannot shrink
+      // when a disclosure closes. Measure the workspace itself, as wrappers do.
+      const workspace = doc.querySelector('#demo-box, #demo-shell, #demo-card, main.card, .demo-root, main, #main');
+      const rect = workspace?.getBoundingClientRect();
+      const bodyStyle = ifr.contentWindow.getComputedStyle(doc.body);
+      const contentBottom = rect
+        ? rect.bottom + (ifr.contentWindow.scrollY || 0) + (parseFloat(bodyStyle.paddingBottom) || 0)
+        : doc.body.scrollHeight;
+      if (!Number.isFinite(contentBottom) || contentBottom <= 0) return;
+      const height = `${Math.ceil(Math.max(560, contentBottom))}px`;
+      if (ifr.style.height !== height) ifr.style.height = height;
+    } catch {
+      // Keep CSS sizing for inaccessible documents, including Tableau embeds.
     }
   }
 
@@ -481,6 +503,7 @@
   window.openModal = function(id) {
     const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
     if (!modal || !modal.classList || !modal.classList.contains('modal')) return;
+    modal.dataset.siteModal = 'projects';
     // Count views when a project modal is opened
     window.trackProjectView && window.trackProjectView(id);
     if (!modal.contains(document.activeElement) && !document.activeElement?.closest?.('.modal')) __modalPrevFocus = document.activeElement;
@@ -496,6 +519,7 @@
 
     const ifr = modal.querySelector('.modal-embed iframe');
     if (ifr) {
+      if (iframeUsesViewport(ifr)) resizeIframeToContent(ifr);
       const embedShell = ifr.closest('.modal-embed');
       if (embedShell && ifr.dataset.loaded !== 'true') {
         embedShell.classList.add('is-loading');
@@ -602,7 +626,7 @@
             <span class="modal-embed-spinner" aria-hidden="true"></span>
             <span class="modal-embed-text">Loading demo...</span>
           </div>
-          <iframe data-src="${p.embed.url}" loading="lazy"></iframe>
+          <iframe data-src="${p.embed.url}" data-project-demo-fit="${p.embed.fit === 'viewport' || /(?:^|\/)chatbot-demo(?:\.html)?(?:[?#]|$)/.test(p.embed.url) ? 'viewport' : 'content'}" loading="lazy"></iframe>
         </div>`;
       }
       if (!isTableau) {
@@ -702,14 +726,12 @@
   window.addEventListener('message', (e) => {
     const data = e && e.data || {};
     const type = typeof data?.type === 'string' ? data.type : '';
-    if (!/(chatbot|shape|sentence|nonogram|minesweeper|handwriting|digit-generator|covid-outbreak|baby-names|pizza|target-empty-package|retail-loss-sales)-demo-resize/.test(type)) return;
+    if (!/^(chatbot|shape|sentence|nonogram|minesweeper|handwriting|digit-generator|covid-outbreak|baby-names|pizza(?:-tips)?|target-empty-package|retail-loss-sales)-demo-resize$/.test(type)) return;
     try {
       const ifrs = document.querySelectorAll('.modal-embed iframe');
       for (const f of ifrs) {
-        if (f.contentWindow === e.source) {
-          const h = typeof data.height === 'number' && isFinite(data.height) ? Math.max(0, Math.floor(data.height)) : null;
-          if (h) f.style.height = `${h}px`;
-          else resizeIframeToContent(f);
+        if (f.contentWindow === e.source && iframeSourceUrl(f)?.origin === e.origin) {
+          resizeIframeToContent(f);
           break;
         }
       }

@@ -843,7 +843,9 @@
     box-sizing: border-box;
     inset: 0 0 auto;
     height: auto;
-    background: rgba(255, 255, 255, .96);
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border-bottom: 1px solid rgba(9, 31, 59, .12);
     box-shadow: none;
   }

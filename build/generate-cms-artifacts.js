@@ -110,7 +110,7 @@ function buildHomeLibraryData(content) {
       title: String(tool.title || 'Tool').trim(),
       summary: String(tool.summary || '').trim(),
       href: tool.href,
-      image: homeLibraryPreviewAsset('tools', tool.id),
+      image: tool.iconImage,
       imageAlt: '',
       iconHtml: tool.iconHtml,
       contentType: 'tool',

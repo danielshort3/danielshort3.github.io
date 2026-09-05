@@ -789,3 +789,141 @@ html[data-project-demo-theme="brand"] :is(.empty-state, .demo-empty-state) {
     transition-duration: 0s !important;
   }
 }
+
+/* Summary and interaction workspaces share compact chrome, not fixed heights. */
+html[data-project-demo-theme="brand"] body:is(.demo-summary-workspace, .demo-compact-workspace) {
+  --demo-gutter: 20px;
+}
+
+html[data-project-demo-theme="brand"] :is(.demo-summary-workspace, .demo-compact-workspace) header.card-header {
+  gap: 12px;
+  padding: 14px var(--demo-gutter) !important;
+}
+
+html[data-project-demo-theme="brand"] :is(.demo-summary-workspace, .demo-compact-workspace) :is(.content, .sentence-workspace) {
+  padding: 16px var(--demo-gutter);
+  gap: 16px;
+  align-items: start;
+}
+
+html[data-project-demo-theme="brand"] :is(.demo-summary-workspace, .demo-compact-workspace) :is(h2, h3) {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -.015em;
+}
+
+html[data-project-demo-theme="brand"] :is(.demo-summary-workspace, .demo-compact-workspace) .demo-section-label {
+  font-size: .875rem;
+  font-weight: 500;
+}
+
+html[data-project-demo-theme="brand"] :is(.demo-summary-workspace, .demo-compact-workspace) .demo-meta-row {
+  gap: 8px !important;
+  padding: 6px var(--demo-gutter) 8px !important;
+}
+
+html[data-project-demo-theme="brand"] .demo-summary-workspace .segment {
+  width: fit-content;
+  max-width: 100%;
+}
+
+html[data-project-demo-theme="brand"] .demo-summary-workspace :is(.stat-value, .kpi-value, .metric-value) {
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+html[data-project-demo-theme="brand"] .baby-names-workspace .bar-track {
+  background: transparent !important;
+}
+
+html[data-project-demo-theme="brand"] .covid-workspace .metric-value {
+  font-size: clamp(1.65rem, 2.2vw, 2rem);
+  font-weight: 650;
+}
+
+html[data-project-demo-theme="brand"] .demo-compact-workspace .prediction-summary {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+html[data-project-demo-theme="brand"] .demo-compact-workspace .prediction-summary .score-card {
+  padding: 10px 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+}
+
+html[data-project-demo-theme="brand"] .demo-compact-workspace .prediction-summary .result-badge {
+  font-size: 1.25rem;
+}
+
+html[data-project-demo-theme="brand"] .demo-compact-workspace .demo-disclosure-content.panel {
+  min-height: 0;
+  padding-inline: 0;
+  border: 0;
+}
+
+html[data-project-demo-theme="brand"] .demo-compact-workspace .log {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  grid-auto-rows: minmax(var(--log-row-height), auto);
+  overflow: visible;
+}
+
+html[data-project-demo-theme="brand"] .digit-workspace .generation-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+html[data-project-demo-theme="brand"] .digit-workspace .generation-toolbar label {
+  display: grid;
+  gap: 6px;
+  font-size: .8rem;
+}
+
+html[data-project-demo-theme="brand"] .digit-workspace .generation-toolbar .status {
+  flex: 1 1 220px;
+  align-self: center;
+  margin: 0;
+}
+
+html[data-project-demo-theme="brand"] .digit-workspace .generation-settings .settings-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html[data-project-demo-theme="brand"] .digit-workspace .grid-shell {
+  order: 0;
+  padding: 0;
+}
+
+@media (max-width: 959px) {
+  html[data-project-demo-theme="brand"] body:is(.demo-summary-workspace, .demo-compact-workspace) {
+    --demo-gutter: 12px;
+  }
+
+  html[data-project-demo-theme="brand"] :is(.demo-summary-workspace, .demo-compact-workspace) header.card-header {
+    padding: 12px var(--demo-gutter) !important;
+    gap: 8px;
+  }
+
+  html[data-project-demo-theme="brand"] :is(.demo-summary-workspace, .demo-compact-workspace) .subtitle {
+    font-size: .8125rem;
+    line-height: 1.45;
+  }
+
+  html[data-project-demo-theme="brand"] .digit-workspace .generation-toolbar .status {
+    flex-basis: 100%;
+  }
+
+  html[data-project-demo-theme="brand"] .digit-workspace .generation-settings .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -23,6 +23,8 @@
     /* Keep all content below the fixed header (--nav-height is measured from .nav, which now includes notch padding) */
     padding-top: var(--nav-height, 72px);
   }
+  /* Header clearance is part of the shared page's viewport height. */
+  body:has([data-site-shell-header]) { box-sizing: border-box; }
   main{flex:1 0 auto}
   .wrapper{
     width:100%;

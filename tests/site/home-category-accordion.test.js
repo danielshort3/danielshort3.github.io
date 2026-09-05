@@ -12,6 +12,7 @@ const {
   GENERATED_HOME_LIBRARY_VISUALS,
   RETAINED_GAME_PREVIEW_IDS,
   RETAINED_PROJECT_PREVIEW_IDS,
+  RETAINED_TOOL_PREVIEW_IDS,
   projectLibraryAsset
 } = require('../../build/validate-home-library-visuals');
 
@@ -548,7 +549,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'google-analytics',
     'eastern-ms-data-science'
   ];
-  assert(about.timeline?.title === 'My path so far' &&
+  assert(!about.timeline?.title && !about.timeline?.lead &&
     JSON.stringify(timelineItems.map((item) => item.id)) === JSON.stringify(expectedTimelineIds),
   'About should carry the approved 10-event personal timeline in chronological narrative order');
   const purdueTimelineItem = timelineItems.find((item) => item.id === 'purdue-bs-data-analytics');
@@ -627,13 +628,17 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(aboutHtml.includes('home-accordion__panel-head--profile') &&
     /<img src="img\/hero\/head-avatar-384\.jpg" alt="Daniel Short"[^>]+width="384" height="384">/.test(aboutHtml),
   'rendered About content should pair its heading with a meaningful, intrinsically sized profile image');
-  assert(aboutHtml.includes('<section class="home-timeline" data-home-timeline aria-labelledby="home-timeline-about-title">') &&
-    aboutHtml.includes('<h4 id="home-timeline-about-title">My path so far</h4>') &&
+  assert(aboutHtml.includes('<section class="home-timeline" data-home-timeline aria-label="Timeline">') &&
+    !aboutHtml.includes('home-timeline__head') &&
+    !aboutHtml.includes('My path so far') &&
     aboutHtml.includes('<ol class="home-timeline__list" data-home-timeline-scroller>') &&
     count(aboutHtml, /<li class="home-timeline__item[^>]+data-home-timeline-item=/g) === 10 &&
     !aboutHtml.includes('role="list"') &&
     !aboutHtml.includes('role="listitem"'),
   'rendered About timeline should be a labelled section with a native ordered list of 10 semantic events');
+  assert(!timelineCss.includes('.home-timeline__head') &&
+    !aboutHtml.includes('A timeline of real milestones in learning and work.'),
+  'timeline should remove its heading, subtext, and reserved heading styles at every viewport');
   assert(/data-home-timeline-item="purdue-bs-data-analytics"[\s\S]*?data-home-timeline-media-tone="dark"><img src="img\/cert_logos\/purdue_global\.png"[^>]+width="137" height="136"/.test(aboutHtml),
     'rendered Purdue milestone should retain the explicit dark plaque flag and undistorted intrinsic logo dimensions');
   Object.entries(expectedCertificateDates).forEach(([id, issueDate]) => {
@@ -645,8 +650,15 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     const itemHtml = start >= 0 ? aboutHtml.slice(start, next >= 0 ? next : aboutHtml.length) : '';
     assert(itemHtml.includes('home-timeline__item--certification') &&
       itemHtml.includes(`<time datetime="${issueDate}">`) &&
+      itemHtml.includes(`id="home-timeline-about-${id}-date"`) &&
+      itemHtml.includes(`aria-describedby="home-timeline-about-${id}-date"`) &&
       /<a class="home-timeline__entry"[^>]+target="_blank" rel="noopener noreferrer"/.test(itemHtml),
     `${id} should render its exact issue date in a semantic time element and expose a safe external credential link`);
+    const fullTitle = timelineItems.find((item) => item.id === id).title;
+    const compactTitle = fullTitle.replace(/\s+(?:Professional\s+Certificate|Certification|Certificate)$/i, '');
+    assert(itemHtml.includes(`<span class="home-timeline__title-full">${fullTitle}</span>`) &&
+      itemHtml.includes(`<span class="home-timeline__title-compact" aria-hidden="true">${compactTitle}</span>`),
+    `${id} should shorten only its visual mobile label while retaining the full accessible credential title`);
   });
   uniqueCardIconIds.forEach((id) => {
     assert(count(html, new RegExp(`data-home-icon="${id}"`, 'g')) === 1,
@@ -748,13 +760,32 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'all 16 project library cards should derive their original optimized preview from the canonical project image');
   const allManifestMotifs = Object.values(GENERATED_HOME_LIBRARY_VISUALS)
     .flatMap((visuals) => Object.values(visuals));
-  assert(JSON.stringify(Object.keys(GENERATED_HOME_LIBRARY_VISUALS).sort()) === JSON.stringify(['games', 'tools']) &&
-    allManifestMotifs.length === expectedLibraryCounts.tools + expectedLibraryCounts.games &&
+  assert(JSON.stringify(Object.keys(GENERATED_HOME_LIBRARY_VISUALS).sort()) === JSON.stringify(['games']) &&
+    allManifestMotifs.length === expectedLibraryCounts.games &&
     new Set(allManifestMotifs).size === allManifestMotifs.length &&
     Object.entries(GENERATED_HOME_LIBRARY_VISUALS).every(([category, visuals]) =>
       JSON.stringify(Object.keys(visuals).sort()) ===
       JSON.stringify(homeLibraryData[category].items.map((item) => item.id).sort())),
-  'every generated tool and game preview should retain one unique semantic concept');
+  'every generated game preview should retain one unique semantic concept');
+  const allTools = fs.readdirSync(path.join(ROOT, 'content', 'tools'))
+    .filter((fileName) => fileName.endsWith('.json'))
+    .map((fileName) => readJson(`content/tools/${fileName}`));
+  const toolsById = new Map(allTools.map((tool) => [tool.slug, tool]));
+  const toolIconPaths = homeLibraryData.tools.items.map((item) => item.image);
+  assert(homeLibraryData.tools.items.every((item) =>
+    item.image === `/${toolsById.get(item.id)?.iconImage}` && item.imageAlt === ''),
+  'every public tool library card should reuse its original canonical PNG icon');
+  assert(allTools.length === 15 && allTools.every((tool) => {
+    if (tool.iconImage !== `img/tools/icons/${tool.slug}.png`) return false;
+    const buffer = fs.readFileSync(path.join(ROOT, tool.iconImage));
+    return buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) &&
+      buffer.readUInt32BE(16) > 0 && buffer.readUInt32BE(20) > 0;
+  }),
+  'all 15 catalog tools should retain valid original PNG assets without changing public visibility');
+  const featuredTools = categories.find((category) => category.id === 'tools').items;
+  assert(featuredTools.every((tool) => homeLibraryData.tools.items.some((item) =>
+    item.id === tool.id && item.image === `/${tool.image}`)),
+  'View all tools should use the same original icon set as the homepage featured tools');
   assert(!fs.existsSync(path.join(ROOT, 'build', 'generate-home-library-visuals.js')) &&
     !fs.existsSync(path.join(ROOT, 'img', 'home-previews', 'sources')),
   'generated preview WebPs should be authoritative static assets without an old screenshot or code-art regeneration path');
@@ -774,6 +805,10 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     homeLibraryData.projects.items.every((item) =>
       !item.image.startsWith('/img/home-previews/projects/')),
   'legacy AI project previews should remain available but unused by the project library');
+  assert(JSON.stringify(fs.readdirSync(path.join(previewRoot, 'tools')).sort()) === JSON.stringify(
+    RETAINED_TOOL_PREVIEW_IDS.map((id) => `${id}.webp`).sort()) &&
+    homeLibraryData.tools.items.every((item) => !item.image.startsWith('/img/home-previews/tools/')),
+  'legacy generated tool previews should remain available but unused by the tools library');
   Object.entries(GENERATED_HOME_LIBRARY_VISUALS).forEach(([category, visuals]) => {
     const expectedCount = Object.keys(visuals).length;
     const items = homeLibraryData[category]?.items || [];
@@ -799,8 +834,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     `${category} should map every item to one exact-case, decorative generated WebP asset`);
   });
   assert(projectPreviewPaths.length === expectedLibraryCounts.projects &&
-    generatedPreviewPaths.length === expectedLibraryCounts.tools + expectedLibraryCounts.games &&
-    new Set([...projectPreviewPaths, ...generatedPreviewPaths]).size === 31,
+    toolIconPaths.length === expectedLibraryCounts.tools &&
+    generatedPreviewPaths.length === expectedLibraryCounts.games &&
+    new Set([...projectPreviewPaths, ...toolIconPaths, ...generatedPreviewPaths]).size === 31,
   'all 31 public library preview paths should remain unique');
   assert(projectPreviewPaths.every((previewPath) => {
     const dimensions = readWebpDimensions(previewPath);
@@ -811,16 +847,16 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     const dimensions = readWebpDimensions(previewPath);
     return dimensions.width === 640 && dimensions.height === 360;
   }),
-  'every generated tool and game preview should carry exact 640 by 360 WebP metadata');
+  'every generated game preview should carry exact 640 by 360 WebP metadata');
   const previewHashes = generatedPreviewPaths.map((previewPath) => crypto.createHash('sha256')
     .update(fs.readFileSync(path.join(ROOT, previewPath.replace(/^\/+/, ''))))
     .digest('hex'));
   assert(new Set(previewHashes).size === generatedPreviewPaths.length,
-  'all 15 public tool and game preview files should have unique visual content');
+  'all five public game preview files should have unique visual content');
 
   const cmsPreviewMappings = [
     'image: projectLibraryPreviewAsset(project.image)',
-    "image: homeLibraryPreviewAsset('tools', tool.id)",
+    'image: tool.iconImage',
     "image: homeLibraryPreviewAsset('games', game.id)"
   ];
   const visualBuildIndex = buildSite.indexOf(
@@ -836,9 +872,12 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     visualValidator.includes('const GENERATED_HOME_LIBRARY_VISUALS = {') &&
     visualValidator.includes("const RETAINED_GAME_PREVIEW_IDS = ['project-starfall'];") &&
     visualValidator.includes('const RETAINED_PROJECT_PREVIEW_IDS = [') &&
+    visualValidator.includes('const RETAINED_TOOL_PREVIEW_IDS = [') &&
     visualValidator.includes('function projectLibraryAsset(image)') &&
     visualValidator.includes('function validateCatalogMappings()') &&
     visualValidator.includes('async function validateProjectAssets(baseDir, projects)') &&
+    visualValidator.includes('async function validateToolIconAssets(baseDir)') &&
+    visualValidator.includes('validateMatchingHashes(toolSourceHashes, toolDeployedHashes)') &&
     visualValidator.includes('function listPreviewTree(baseDir)') &&
     visualValidator.includes("validatePreviewTree(publicPreviewRoot, 'public/img/home-previews')") &&
     visualValidator.includes('validateMatchingHashes(sourceHashes, deployedHashes)') &&
@@ -1014,7 +1053,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const profileImageCss = extractBlock(css, '.home-accordion__profile-portrait img {');
   const mobileAccordionCss = extractBlock(css, '@media (max-width: 959px), (max-height: 619px)');
   const timelineRootCss = extractBlock(timelineCss, '.home-timeline {');
-  const timelineHeadCss = extractBlock(timelineCss, '.home-timeline__head {');
   const timelineAxisCss = extractBlock(timelineCss, '.home-timeline__axis {');
   const timelineEntryCss = extractBlock(timelineCss, '.home-timeline__entry {');
   const timelineMediaCss = extractBlock(timelineCss, '.home-timeline__media {');
@@ -1029,10 +1067,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   );
   const mobileTimelineCss = extractBlock(timelineCss, '@media (max-width: 959px), (max-height: 619px)');
   const mobileTimelineRootCss = extractBlock(mobileTimelineCss, '.home-timeline {');
-  const mobileTimelineHeadCss = extractBlock(mobileTimelineCss, '.home-timeline__head {');
   const mobileTimelineListCss = extractBlock(mobileTimelineCss, '.home-timeline__list {');
   const mobileTimelineItemCss = extractBlock(mobileTimelineCss, '.home-timeline__item {');
   const mobileTimelineEntryCss = extractBlock(mobileTimelineCss, '.home-timeline__entry,');
+  const mobileTimelineAxisCss = extractBlock(mobileTimelineCss, '.home-timeline__axis {');
+  const mobileTimelineDotCss = extractBlock(mobileTimelineCss, '.home-timeline__dot {');
+  const mobileTimelineMediaCss = extractBlock(mobileTimelineCss, '.home-timeline__media {');
+  const mobileTimelineFullTitleCss = extractBlock(mobileTimelineCss, '.home-timeline__title-full {');
   const evenTimelineAxisCss = extractBlock(timelineCss, '.home-timeline__item:nth-child(even) .home-timeline__axis::after');
   assert(css.includes('--home-rail-width: 64px;') &&
     css.includes('--home-active-rail-width: 68px;') &&
@@ -1094,23 +1135,25 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     mobileAccordionCss.includes('clip-path: polygon(0 0, 100% 0, 50% 100%);'),
   'narrow or short accordion layouts should stack compact 48px and 54px bars, use document scrolling, and retain the 4px framed panel');
   assert(mobileTimelineCss.includes('grid-auto-flow: column;') &&
-    mobileTimelineCss.includes('grid-auto-columns: minmax(260px, 82vw);') &&
+    mobileTimelineCss.includes('grid-auto-columns: min(220px, 100%);') &&
     mobileTimelineCss.includes('overflow-x: auto;') &&
     mobileTimelineCss.includes('overflow-y: hidden;') &&
-    mobileTimelineCss.includes('scroll-snap-type: inline mandatory;') &&
+    mobileTimelineCss.includes('scroll-snap-type: inline proximity;') &&
     mobileTimelineCss.includes('overscroll-behavior-inline: contain;') &&
     mobileTimelineCss.includes('scroll-snap-align: start;') &&
-    mobileTimelineCss.includes('scroll-snap-stop: always;') &&
+    !mobileTimelineCss.includes('scroll-snap-stop: always;') &&
+    !mobileTimelineCss.includes('touch-action: pan-x') &&
     mobileTimelineCss.includes('scrollbar-width: none;') &&
     mobileTimelineCss.includes('display: none;') &&
     mobileTimelineCss.includes('.home-timeline__dot') &&
-    mobileTimelineCss.includes('top: 11px;') &&
-    mobileTimelineCss.includes('width: calc(100% + 14px);'),
-  'mobile timeline should preserve horizontal snapping, hide native scrollbars, show the next card, and align connectors through each dot center');
+    mobileTimelineCss.includes('width: calc(100% + var(--home-timeline-column-gap));') &&
+    mobileTimelineCss.includes('height: 2px;') &&
+    mobileTimelineDotCss.includes('width: 8px;') &&
+    mobileTimelineDotCss.includes('height: 8px;') &&
+    mobileTimelineDotCss.includes('top: 50%;'),
+  'mobile timeline should offer native proximity snapping without blocking vertical gestures and connect compact nodes with a continuous 2px spine');
   assert(timelineRootCss.includes('--home-timeline-gap: 10px;') &&
     timelineRootCss.includes('padding: 14px var(--home-timeline-gutter) 24px;') &&
-    timelineHeadCss.includes('margin-bottom: 12px;') &&
-    timelineHeadCss.includes('padding-top: 14px;') &&
     timelineAxisCss.includes('min-height: 76px;') &&
     timelineEntryCss.includes('min-height: 76px;') &&
     timelineEntryCss.includes('padding: 10px;') &&
@@ -1121,18 +1164,30 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     desktopTimelineOverlapCss.includes('margin-top: calc(0px - var(--home-timeline-stagger-overlap));') &&
     !mobileTimelineCss.includes('--home-timeline-stagger-overlap') &&
     !/\n\s*(?:height|max-height)\s*:/.test(timelineEntryCss),
-  'desktop timeline should retain compact cards while interleaving staggered milestones without changing the mobile carousel');
+  'desktop timeline should retain its compact alternating cards and interleaved milestones');
   assert(mobileTimelineRootCss.includes('padding: 10px 0 20px;') &&
-    mobileTimelineHeadCss.includes('margin: 0 18px 12px;') &&
-    mobileTimelineHeadCss.includes('padding-top: 16px;') &&
-    mobileTimelineListCss.includes('gap: 14px;') &&
-    mobileTimelineListCss.includes('padding: 0 18px 10px;') &&
-    mobileTimelineItemCss.includes('grid-template-rows: 26px auto;') &&
-    mobileTimelineItemCss.includes('padding-top: 14px;') &&
-    mobileTimelineEntryCss.includes('min-height: 132px;') &&
-    mobileTimelineEntryCss.includes('padding: 12px;') &&
+    mobileTimelineListCss.includes('gap: 6px var(--home-timeline-column-gap);') &&
+    mobileTimelineListCss.includes('padding: 4px 14px 10px;') &&
+    mobileTimelineListCss.includes('grid-template-rows: auto 12px auto;') &&
+    mobileTimelineItemCss.includes('grid-column: auto;') &&
+    mobileTimelineItemCss.includes('grid-row: 1 / span 3;') &&
+    mobileTimelineItemCss.includes('grid-template-rows: subgrid;') &&
+    mobileTimelineAxisCss.includes('position: relative;') &&
+    mobileTimelineAxisCss.includes('grid-column: 1;') &&
+    mobileTimelineAxisCss.includes('grid-row: 2;') &&
+    mobileTimelineEntryCss.includes('grid-row: 3;') &&
+    mobileTimelineEntryCss.includes('min-height: 44px;') &&
+    mobileTimelineEntryCss.includes('padding: 10px;') &&
+    mobileTimelineMediaCss.includes('width: 28px;') &&
+    mobileTimelineMediaCss.includes('height: 28px;') &&
     !/\n\s*(?:height|max-height)\s*:/.test(mobileTimelineEntryCss),
-  'mobile timeline should retain compact card and section spacing while its auto content row grows for long milestones');
+  'mobile dates, axes, and cards should share auto-sized rows without inherited desktop placement or fixed-height text clipping');
+  assert(mobileTimelineFullTitleCss.includes('position: absolute;') &&
+    mobileTimelineFullTitleCss.includes('clip-path: inset(50%);') &&
+    !mobileTimelineFullTitleCss.includes('display: none') &&
+    extractBlock(mobileTimelineCss, '.home-timeline__title-compact {').includes('display: inline;') &&
+    extractBlock(timelineCss, '.home-timeline__title-compact {').includes('display: none;'),
+  'compact certificate labels should preserve their full accessible titles while desktop keeps the full visual wording');
   assert(timelineCss.includes('.home-timeline__axis {') &&
     timelineCss.includes('grid-column: 2;') &&
     timelineCss.includes('grid-row: 2;') &&
@@ -1149,11 +1204,12 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     desktopTimelineCss.includes('width: 100%;') &&
     desktopTimelineCss.includes('padding-right: 0;') &&
     desktopTimelineCss.includes('width: min(100%, var(--home-timeline-readable-width));') &&
-    desktopTimelineCss.includes('.home-accordion__item--about .home-timeline__head') &&
+    desktopTimelineCss.includes('grid-template-rows: minmax(0, 1fr);') &&
+    !desktopTimelineCss.includes('.home-accordion__item--about .home-timeline__head') &&
     desktopTimelineCss.includes('flex: 0 0 auto;') &&
     desktopTimelineCss.includes('.home-accordion__item--about .home-timeline__list') &&
     desktopTimelineCss.includes('overflow-y: auto;'),
-  'desktop timeline should connect exact milestone centers across variable rows and gaps while its full-width scrollport keeps readable cards below the fixed profile and divider');
+  'desktop timeline should connect exact milestone centers while its scrollport keeps readable cards below the profile without reserving a removed heading row');
   assert(timelineCss.includes('.home-timeline__media[data-home-timeline-media-tone="dark"]') &&
     timelineCss.includes('object-fit: contain;') &&
     timelineCss.includes('object-position: center;') &&

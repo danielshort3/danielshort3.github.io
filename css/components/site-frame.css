@@ -289,6 +289,12 @@
     .site-frame .site-frame__tab-label { transform: rotate(0deg); font-size: .78rem; letter-spacing: .02em; }
     .site-frame[data-frame-view="overview"] .site-frame__tab { justify-content: flex-start; padding-inline: 18px; }
     .site-frame[data-frame-view="overview"] .site-frame__tab-label { font-size: .98rem; }
+    /* Touch hover/focus can persist after a rail moves out from under it. Keep
+       card text width stable so that feedback cannot rewrap the page mid-scroll. */
+    .site-frame .home-accordion__card:is(a):is(:hover, :focus-visible) {
+      padding-inline-start: 0;
+      transform: none;
+    }
     .site-frame[data-frame-home="true"][data-frame-view="library"] .site-frame__tab { flex-direction: column; gap: 5px; }
     .site-frame[data-frame-home="true"][data-frame-view="library"] .site-frame__tab-label { font-size: .7rem; }
     .site-frame:not([data-frame-audience="personal"]) .site-frame__tab { flex-direction: column; gap: 4px; padding: 6px 3px; }

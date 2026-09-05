@@ -377,12 +377,12 @@ window.PROJECTS = [
       "url": "covid-outbreak-demo.html"
     },
     "demoInstructions": {
-      "lead": "Explore how ICU breach risk changes over time, and what’s driving it.",
+      "lead": "Start with a state's historical ICU utilization and exploratory risk score, then explore the trend and map.",
       "bullets": [
         "Wait for the status pill to show the demo is ready (cold starts can take a moment).",
         "Drag the date slider to move through time.",
-        "Hover or click a state to see its risk score, top drivers, and recent trend.",
-        "Use the hotspots list to quickly jump to the highest-risk locations."
+        "Choose a state or territory from the menu, or select a state on the map.",
+        "Expand Risk drivers and hotspots for supporting detail."
       ]
     },
     "problem": "Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
@@ -479,12 +479,12 @@ window.PROJECTS = [
       "url": "target-empty-package-demo.html"
     },
     "demoInstructions": {
-      "lead": "Explore shrink trends and hotspots with filters and breakdown tabs.",
+      "lead": "Start with recorded retail value, incidents, average record value, and quarter change, then explore the trend and breakdowns.",
       "bullets": [
         "Wait for the dashboard to finish warming up and load data.",
         "Switch between “Retail Value” and “Incident Count” depending on what you want to compare.",
-        "Apply filters (location, condition, department, associate, date range) to narrow the view.",
-        "Use “Reset filters” to quickly return to the full dataset."
+        "Apply location and date filters, or expand More filters for condition, department, and associate.",
+        "Expand Record details and concentration for individual records. Use Reset filters to return to the full dataset."
       ]
     },
     "role": [
@@ -916,9 +916,9 @@ window.PROJECTS = [
       "url": "retail-loss-sales-demo.html"
     },
     "demoInstructions": {
-      "lead": "Compare store-level incident signals against sales metrics using tabs and filters.",
+      "lead": "Start with sales, incident count, and shrink summaries; each metric shows its own source period and population.",
       "bullets": [
-        "Pick a region to filter incidents and trends.",
+        "Pick a region to filter the incident chart; the summary statistics retain their stated source populations.",
         "Switch sales metrics (Total, Online, Drive-up) to change the sales view.",
         "Switch incident metrics (Count vs. Proven $) to change the incident view.",
         "Use “Reset view” to return to the default slice."
@@ -1062,12 +1062,12 @@ window.PROJECTS = [
       "url": "baby-names-demo.html"
     },
     "demoInstructions": {
-      "lead": "Explore rated names and similarity-based recommendations.",
+      "lead": "Start with the ratings summary, then explore favorites and predicted recommendations.",
       "bullets": [
-        "Choose Girls, Boys, or All at the top to change the dataset slice.",
-        "In “Ratings Snapshot”, click a rating bar to see the names at that score.",
-        "In “Name Explorer”, switch between Recommendations and Rated Names.",
-        "Use search + sort to find names quickly."
+        "Choose Girls, Boys, or All to update the summary statistics and name lists.",
+        "Select a distribution bar to filter Rated names; clear the rating chip to see all scores.",
+        "Switch between Recommendations and Rated names, then search, sort, and page through every result.",
+        "Summary statistics always describe all rating entries in the selected group. Open Data and method for source details."
       ]
     },
     "problem": "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",

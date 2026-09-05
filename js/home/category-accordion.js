@@ -75,8 +75,9 @@
     }
 
     function headerBottom() {
-      const header = document.querySelector('[data-site-shell-header]');
-      return header && getComputedStyle(header).display !== 'none' ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+      return Math.max(0, ...[...document.querySelectorAll('[data-mobile-site-masthead], [data-site-shell-header] .nav')]
+        .filter((header) => header.getClientRects().length && getComputedStyle(header).visibility !== 'hidden')
+        .map((header) => header.getBoundingClientRect().bottom));
     }
 
     async function select(category, view = 'overview', options = {}) {
@@ -90,8 +91,12 @@
       }
       const owner = frame.viewport();
       positions.set(`${previous.category}:${previous.view}`, { top: owner.scrollTop, y: window.scrollY });
+      const saved = positions.get(`${category}:${view}`);
       if (view === 'library') render(category);
-      const complete = await frame.showHome(category, view, { animate: options.animate !== false });
+      const complete = await frame.showHome(category, view, {
+        animate: options.animate !== false,
+        scroll: options.reveal === false ? null : { top: saved?.y, category, offset: headerBottom() }
+      });
       if (!complete || !active() || sequence !== operation) return false;
       const url = new URL(view === 'library' ? routes[category] : `/#${category}`, window.location.href);
       document.title = view === 'library' ? titles[category] : initial.title;
@@ -102,12 +107,7 @@
         if (window.SiteNavigation?.recordHome) window.SiteNavigation.recordHome(url, state, options.history === 'replace');
         else window.history[options.history === 'replace' ? 'replaceState' : 'pushState']({ ...window.history.state, ...state }, '', url);
       }
-      const saved = positions.get(`${category}:${view}`);
       owner.scrollTop = saved?.top || 0;
-      if (options.reveal !== false && window.matchMedia('(max-width: 959px), (max-height: 619px)').matches) {
-        const top = window.scrollY + tabs.get(category).getBoundingClientRect().top - headerBottom();
-        window.scrollTo({ top: Math.max(0, saved?.y ?? top), behavior: 'instant' });
-      }
       if (options.focus !== false) {
         const target = view === 'library' ? items.get(category).querySelector('[data-home-library-heading]') : tabs.get(category);
         target?.focus({ preventScroll: true });

@@ -135,6 +135,9 @@ const DEMO_MANIFEST = Object.freeze({
 });
 
 const memoryRateStore = new Map();
+const historicalDataCache = new Map();
+const HISTORICAL_CACHE_TTL_MS = 5 * 60 * 1000;
+const HISTORICAL_DATA_DEMOS = new Set(['retail-loss-sales', 'target-empty-package']);
 let cachedClients = null;
 let clientFactoryOverride = null;
 
@@ -675,6 +678,22 @@ function sanitizeUpstreamBody(statusCode, bodyText) {
   return JSON.stringify({ ok: false, error: 'Demo service is temporarily unavailable.' });
 }
 
+function isHistoricalSnapshot(demoId, data) {
+  const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const hasArrays = (value, fields) => isRecord(value) && fields.every((field) => Array.isArray(value[field]));
+  if (!isRecord(data) || data.ok === false || data.error || !isRecord(data.meta)) return false;
+  if (demoId === 'target-empty-package') return Array.isArray(data.rows);
+  if (demoId === 'retail-loss-sales') {
+    // Require the sections consumed by the dashboard, without rejecting valid empty collections.
+    return typeof data.meta.generatedAt === 'string' &&
+      hasArrays(data.sales, ['weekly', 'monthly', 'departments', 'boycott']) &&
+      hasArrays(data.incidents, ['monthly', 'stores']) &&
+      hasArrays(data.inventory, ['years']) &&
+      hasArrays(data.emptyPackages, ['monthly']);
+  }
+  return false;
+}
+
 async function handleDemoRequest(req, res, segments) {
   if (!isAllowedOrigin(req)) {
     sendJson(res, 403, { ok: false, error: 'Origin not allowed.' });
@@ -745,8 +764,31 @@ async function handleDemoRequest(req, res, segments) {
   }
 
   let upstream;
+  // Only these anonymous historical snapshots are reusable. Origin checks,
+  // runtime configuration and per-visitor rate limits still run on every hit.
+  const cacheKey = resolved.method === 'GET' && resolved.upstreamPath === '/data' &&
+    HISTORICAL_DATA_DEMOS.has(resolved.demoId)
+    ? `${config.region}:${functionArn}:${resolved.demoId}`
+    : null;
+  const cached = cacheKey ? historicalDataCache.get(cacheKey) : null;
   try {
-    upstream = await invokeLambda(req, resolved, body, functionArn, config, clients);
+    if (cached && cached.expiresAt > Date.now()) {
+      upstream = cached.response;
+    } else {
+      if (cacheKey) historicalDataCache.delete(cacheKey);
+      upstream = await invokeLambda(req, resolved, body, functionArn, config, clients);
+      if (cacheKey && upstream.statusCode === 200) {
+        const data = JSON.parse(upstream.bodyText);
+        if (isHistoricalSnapshot(resolved.demoId, data)) {
+          for (const [key, value] of historicalDataCache) {
+            if (value.expiresAt <= Date.now()) historicalDataCache.delete(key);
+          }
+          // Bound memory even when a long-lived process sees changing aliases.
+          if (historicalDataCache.size >= 4) historicalDataCache.delete(historicalDataCache.keys().next().value);
+          historicalDataCache.set(cacheKey, { response: upstream, expiresAt: Date.now() + HISTORICAL_CACHE_TTL_MS });
+        }
+      }
+    }
   } catch (err) {
     const statusCode = err?.statusCode || 502;
     sendJson(res, statusCode, {
@@ -758,7 +800,11 @@ async function handleDemoRequest(req, res, segments) {
 
   res.statusCode = upstream.statusCode;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
+  const cachedResponse = cacheKey && historicalDataCache.get(cacheKey);
+  const browserMaxAge = cachedResponse?.response === upstream
+    ? Math.max(0, Math.floor((cachedResponse.expiresAt - Date.now()) / 1000))
+    : 0;
+  res.setHeader('Cache-Control', browserMaxAge > 0 ? `private, max-age=${browserMaxAge}` : 'no-store');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   for (const [key, value] of Object.entries(rateHeaders)) res.setHeader(key, value);
   if (resolved.method === 'HEAD' || upstream.statusCode === 204) {
@@ -771,6 +817,7 @@ async function handleDemoRequest(req, res, segments) {
 function setClientFactoryForTests(factory) {
   clientFactoryOverride = factory || null;
   cachedClients = null;
+  historicalDataCache.clear();
 }
 
 module.exports = {

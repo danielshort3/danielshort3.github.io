@@ -50,12 +50,12 @@
     "url": "baby-names-demo.html"
   },
   "demoInstructions": {
-    "lead": "Explore rated names and similarity-based recommendations.",
+    "lead": "Start with the ratings summary, then explore favorites and predicted recommendations.",
     "bullets": [
-      "Choose Girls, Boys, or All at the top to change the dataset slice.",
-      "In “Ratings Snapshot”, click a rating bar to see the names at that score.",
-      "In “Name Explorer”, switch between Recommendations and Rated Names.",
-      "Use search + sort to find names quickly."
+      "Choose Girls, Boys, or All to update the summary statistics and name lists.",
+      "Select a distribution bar to filter Rated names; clear the rating chip to see all scores.",
+      "Switch between Recommendations and Rated names, then search, sort, and page through every result.",
+      "Summary statistics always describe all rating entries in the selected group. Open Data and method for source details."
     ]
   },
   "problem": "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",

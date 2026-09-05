@@ -653,22 +653,49 @@
         transform: scale(1);
       }
     }
+    .covid-workspace .content {
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+      gap: 16px;
+      padding: 16px;
+    }
+    .covid-workspace .panel { gap: 12px; padding: 14px; }
+    .covid-workspace :is(.state-summary, .risk-details) { grid-column: 1 / -1; }
+    .covid-workspace .selection-row { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+    .covid-workspace .selection-row label { display: grid; gap: 4px; width: min(100%, 280px); color: var(--muted); font-size: .8rem; }
+    .covid-workspace .selection-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; }
+    .covid-workspace .model-context { margin: 0; }
+    .covid-workspace .controls { margin: 0; padding: 0; }
+    .covid-workspace .trend { margin: 0; padding: 0; border: 0; }
+    .covid-workspace .trend h2 { font-size: 1.05rem; }
+    .covid-workspace #trend-chart { height: 190px; }
+    .covid-workspace .risk-details .demo-disclosure-content { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 980px) {
+      .covid-workspace .content { grid-template-columns: 1fr; }
+      .covid-workspace .risk-details .demo-disclosure-content { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .covid-workspace .content { gap: 12px; padding: 12px; }
+      .covid-workspace .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .covid-workspace .selection-row { flex-wrap: wrap; align-items: center; }
+      .covid-workspace .selection-row label { width: 100%; }
+      .covid-workspace .detail-header { flex-direction: row; align-items: center; }
+    }
   </style>
-  <script defer src="dist/site-consent.33b42e2d.js"></script>
+  <script defer src="dist/site-consent.5fbd7df8.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
     }
   </script>
 </head>
-<body>
+<body class="demo-summary-workspace covid-workspace">
   <a href="#main" class="skip-link">Skip to main content</a>
   <main id="main">
     <div id="demo-box" role="application" aria-label="COVID outbreak drivers demo">
       <header class="card-header">
         <div class="header-copy">
           <h1 class="title">COVID outbreak drivers</h1>
-          <p class="subtitle">Select a state and date to explore ICU risk, recent trends, and SHAP-inspired drivers.</p>
+          <p class="subtitle">Explore historical ICU utilization and an experimental risk score by state and date.</p>
         </div>
         <div class="header-actions">
           <span class="health-pill aws-status-badge" id="connection-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
@@ -681,42 +708,17 @@
       </div>
 
       <div class="content">
-        <section class="panel">
-          <div class="map-wrap" id="map-wrap" data-ready="false">
-            <div class="control-row">
-              <div>
-                <h2>State risk map</h2>
-                <div class="empty-note">Select a state to see its risk and ICU trend.</div>
-              </div>
-              <div class="date-display" id="date-value">--</div>
-            </div>
-            <div class="legend map-legend" aria-label="Risk legend">
-              <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low (&lt;5%)</span>
-              <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated (5-15%)</span>
-              <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High (15%+)</span>
-            </div>
-            <div class="map-svg">
-              <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="list" aria-label="State risk map"></svg>
-            </div>
-            <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
+        <section class="panel state-summary" aria-label="Selected state summary">
+          <div class="selection-row">
+            <label for="state-select">State or territory
+              <select id="state-select" disabled><option value="">Loading states…</option></select>
+            </label>
+            <div class="date-display" id="date-value">--</div>
           </div>
-
-          <div class="controls">
-            <div class="control-row">
-              <div class="empty-note" id="date-range">Range: --</div>
-              <div class="empty-note" id="date-selected">Selected: --</div>
-            </div>
-            <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Date slider" />
-            <div class="timeline-ticks" id="timeline-ticks" aria-hidden="true"></div>
-          </div>
-        </section>
-
-        <section class="panel">
           <div class="detail-header">
             <h2 id="state-title">Select a state</h2>
             <span class="risk-pill" id="risk-pill" data-risk="unknown">No data</span>
           </div>
-
           <div class="metrics">
             <div class="metric">
               <div class="metric-label">7-day breach probability</div>
@@ -727,35 +729,65 @@
               <div class="metric-value" id="icu-value">--</div>
             </div>
           </div>
+          <p class="empty-note model-context">Historical, exploratory model output. The risk score is not an operational forecast.</p>
+          <div class="controls">
+            <div class="control-row">
+              <div class="empty-note" id="date-range">Range: --</div>
+              <div class="empty-note" id="date-selected">Selected: --</div>
+            </div>
+            <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Historical date" />
+            <div class="timeline-ticks" id="timeline-ticks" aria-hidden="true"></div>
+          </div>
+        </section>
 
+        <section class="panel trend-panel">
           <div class="trend">
-            <h3>Recent trend (45 days)</h3>
-            <svg id="trend-chart" viewBox="0 0 360 140" preserveAspectRatio="none"></svg>
+            <h2>Recent trend (45 days)</h2>
+            <svg id="trend-chart" viewBox="0 0 360 140" preserveAspectRatio="none" role="img" aria-label="Selected state risk and ICU trend"></svg>
             <div class="legend">
               <span class="key"><span class="swatch" style="background:var(--accent)"></span> Risk</span>
               <span class="key"><span class="swatch" style="background:var(--accent-2)"></span> ICU</span>
             </div>
           </div>
+        </section>
 
-          <details class="demo-disclosure">
-            <summary>Risk drivers and hotspots</summary>
-            <div class="demo-disclosure-content">
-              <div class="drivers">
-                <h3>Top drivers</h3>
-                <ul id="drivers-list"></ul>
-              </div>
-              <div class="hotspots">
-                <h3>Top hotspots</h3>
-                <ol id="hotspots-list"></ol>
-              </div>
-              <div class="territories" id="territories-panel">
-                <h3>Territories</h3>
-                <ul id="territories-list"></ul>
+        <section class="panel map-panel">
+          <div class="map-wrap" id="map-wrap" data-ready="false">
+            <div class="control-row">
+              <div>
+                <h2>State risk map</h2>
+                <div class="empty-note">Select a state on the map or use the menu above.</div>
               </div>
             </div>
-          </details>
-
+            <div class="legend map-legend" aria-label="Risk legend">
+              <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low (&lt;5%)</span>
+              <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated (5–15%)</span>
+              <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High (15%+)</span>
+            </div>
+            <div class="map-svg">
+              <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="list" aria-label="State risk map"></svg>
+            </div>
+            <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
+          </div>
         </section>
+
+        <details class="demo-disclosure risk-details">
+          <summary>Risk drivers and hotspots</summary>
+          <div class="demo-disclosure-content">
+            <div class="drivers">
+              <h3>Top drivers</h3>
+              <ul id="drivers-list"></ul>
+            </div>
+            <div class="hotspots">
+              <h3>Top hotspots</h3>
+              <ol id="hotspots-list"></ol>
+            </div>
+            <div class="territories" id="territories-panel">
+              <h3>Territories</h3>
+              <ul id="territories-list"></ul>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
   </main>
@@ -900,6 +932,7 @@
       dateSlider: document.getElementById("date-slider"),
       timelineTicks: document.getElementById("timeline-ticks"),
       stateTitle: document.getElementById("state-title"),
+      stateSelect: document.getElementById("state-select"),
       riskPill: document.getElementById("risk-pill"),
       probValue: document.getElementById("prob-value"),
       icuValue: document.getElementById("icu-value"),
@@ -957,11 +990,12 @@
       if (DOM.dateSlider) {
         DOM.dateSlider.disabled = !ready;
       }
+      DOM.stateSelect.disabled = !ready || !appState.states.size;
     }
 
     async function fetchJson(path) {
       return retryRequest(
-        () => getJson(joinUrl(appState.endpoint, path)),
+        () => getJson(joinUrl(appState.endpoint, path), { cache: "default" }),
         WARM_RETRY_OPTIONS
       );
     }
@@ -1267,19 +1301,29 @@
       if (cache.state.has(stateId)) {
         return cache.state.get(stateId);
       }
-      try {
-        const data = await fetchJson(`state/${stateId}`);
-        cache.state.set(stateId, data);
-        return data;
-      } catch (err) {
+      const request = fetchJson(`state/${stateId}`).catch((err) => {
+        cache.state.delete(stateId);
         console.warn(err);
         return null;
-      }
+      });
+      cache.state.set(stateId, request);
+      return request;
+    }
+
+    function updateStateOptions(states) {
+      const escapeOption = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[character]);
+      DOM.stateSelect.innerHTML = states.slice().sort((a, b) => a.name.localeCompare(b.name))
+        .map((item) => `<option value="${escapeOption(item.id)}">${escapeOption(item.name)}</option>`).join("");
+      DOM.stateSelect.disabled = !serverReady || !states.length;
     }
 
     function selectState(stateId) {
       if (!serverReady) return;
       appState.activeState = stateId;
+      DOM.stateSelect.value = stateId || "";
+      const selectionDate = appState.activeDate;
       updateMap();
       const data = appState.states.get(stateId);
       if (!data) {
@@ -1298,8 +1342,11 @@
       DOM.probValue.textContent = formatPercent(data.prob);
       DOM.icuValue.textContent = formatPercent(data.icuUtilization);
       updateDrivers(data.drivers);
+      updateTrend([]);
       loadStateHistory(stateId).then((payload) => {
-        updateTrend(payload ? payload.history : []);
+        if (appState.activeState !== stateId || appState.activeDate !== selectionDate) return;
+        const history = (payload?.history || []).filter((point) => !selectionDate || point.date <= selectionDate);
+        updateTrend(history);
       });
     }
 
@@ -1359,12 +1406,13 @@
         const states = new Map(payload.states.map((item) => [item.id, item]));
         appState.activeDate = date;
         appState.states = states;
+        updateStateOptions(payload.states);
         DOM.dateSlider.value = String(index);
         syncDateUI(index);
         updateMap();
         updateHotspots(payload.hotspots);
         updateTerritories(payload.states);
-        if (!appState.activeState) {
+        if (!appState.states.has(appState.activeState)) {
           const mappedHotspot = payload.hotspots?.find((item) => appState.states.get(item.id)?.inMap);
           const mappedState = payload.states?.find((item) => item.inMap);
           selectState((mappedHotspot || mappedState || payload.states?.[0])?.id);
@@ -1434,6 +1482,7 @@
     }
 
     document.getElementById("retry-demo").addEventListener("click", retryData);
+    DOM.stateSelect.addEventListener("change", (event) => selectState(event.target.value));
     document.querySelectorAll("details.demo-disclosure").forEach((details) => {
       details.addEventListener("toggle", () => requestAnimationFrame(notifyResize));
     });

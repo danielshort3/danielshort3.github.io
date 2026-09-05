@@ -41,12 +41,12 @@
     "url": "target-empty-package-demo.html"
   },
   "demoInstructions": {
-    "lead": "Explore shrink trends and hotspots with filters and breakdown tabs.",
+    "lead": "Start with recorded retail value, incidents, average record value, and quarter change, then explore the trend and breakdowns.",
     "bullets": [
       "Wait for the dashboard to finish warming up and load data.",
       "Switch between “Retail Value” and “Incident Count” depending on what you want to compare.",
-      "Apply filters (location, condition, department, associate, date range) to narrow the view.",
-      "Use “Reset filters” to quickly return to the full dataset."
+      "Apply location and date filters, or expand More filters for condition, department, and associate.",
+      "Expand Record details and concentration for individual records. Use Reset filters to return to the full dataset."
     ]
   },
   "role": [

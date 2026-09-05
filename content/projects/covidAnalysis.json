@@ -46,12 +46,12 @@
     "url": "covid-outbreak-demo.html"
   },
   "demoInstructions": {
-    "lead": "Explore how ICU breach risk changes over time, and what’s driving it.",
+    "lead": "Start with a state's historical ICU utilization and exploratory risk score, then explore the trend and map.",
     "bullets": [
       "Wait for the status pill to show the demo is ready (cold starts can take a moment).",
       "Drag the date slider to move through time.",
-      "Hover or click a state to see its risk score, top drivers, and recent trend.",
-      "Use the hotspots list to quickly jump to the highest-risk locations."
+      "Choose a state or territory from the menu, or select a state on the map.",
+      "Expand Risk drivers and hotspots for supporting detail."
     ]
   },
   "problem": "Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",

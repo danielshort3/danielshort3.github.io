@@ -47,7 +47,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.cd5ca3ec.css">
+  <link rel="stylesheet" href="dist/styles.40f7dbbd.css">
   <link rel="stylesheet" href="dist/styles-home.65fcffeb.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
@@ -56,13 +56,13 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.de8dd6d2.js"></script>
+  <script defer src="dist/site-shell.2090cb2c.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"ProfilePage","@id":"https://www.danielshort.me/#webpage","url":"https://www.danielshort.me/","name":"Daniel Short | Data Analytics, ML Projects & Web Tools","description":"Personal website for Daniel Short, featuring machine learning projects, analytics work, practical tools, and browser games.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/07-website-hero-light-version.png"},"mainEntity":{"@id":"https://www.danielshort.me/#person"}}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"home","path":"/","category":"about","view":"overview","navigation":"soft","styles":["/dist/styles.cd5ca3ec.css","/dist/styles-home.65fcffeb.css"],"scripts":["/dist/site-shell.de8dd6d2.js","/js/common/no-js.js","/dist/site-home.37151532.js","/dist/site-consent.33b42e2d.js"],"module":"home"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"home","path":"/","category":"about","view":"overview","navigation":"soft","styles":["/dist/styles.40f7dbbd.css","/dist/styles-home.65fcffeb.css"],"scripts":["/dist/site-shell.2090cb2c.js","/js/common/no-js.js","/dist/site-home.3cafe56c.js","/dist/site-consent.5fbd7df8.js"],"module":"home"}</script>
 </head>
 <body data-page="home" data-audience="personal" class="site-page audience-page home-pattern-page" data-site-route-id="home" data-site-route-category="about" data-site-route-view="overview" data-site-route-navigation="soft" data-site-route-module="home">
   <a href="#main" class="skip-link">Skip to main content</a>
@@ -124,19 +124,14 @@
                 <img src="img/hero/head-avatar-384.jpg" alt="Daniel Short" loading="eager" decoding="async" width="384" height="384">
               </figure>
             </header>
-            <section class="home-timeline" data-home-timeline aria-labelledby="home-timeline-about-title">
-              <header class="home-timeline__head">
-                <span class="home-timeline__head-icon" data-home-icon="timeline" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M5 7h7M5 12h11M5 17h8"></path><circle cx="5" cy="7" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle><circle cx="5" cy="17" r="1.5"></circle></svg></span>
-                <h4 id="home-timeline-about-title">My path so far</h4>
-                <p>A timeline of real milestones in learning and work.</p>
-              </header>
+            <section class="home-timeline" data-home-timeline aria-label="Timeline">
               <ol class="home-timeline__list" data-home-timeline-scroller>
             <li class="home-timeline__item home-timeline__item--job" data-home-timeline-item="target">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-target-date">
                 <time datetime="2022-06">Jun 2022</time> <span class="home-timeline__date-separator">–</span> <time datetime="2023-11">Nov 2023</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <article class="home-timeline__entry">
+              <article class="home-timeline__entry" aria-describedby="home-timeline-about-target-date">
                 <span class="home-timeline__media"><img src="img/company_logos/target-256.png" alt="Target logo" loading="lazy" decoding="async" width="256" height="256"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Work</span>
@@ -146,56 +141,56 @@
               </article>
             </li>
             <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="google-data-analytics">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-google-data-analytics-date">
                 <time datetime="2023-01-03">Jan 3, 2023</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <a class="home-timeline__entry" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener noreferrer">
+              <a class="home-timeline__entry" aria-describedby="home-timeline-about-google-data-analytics-date" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener noreferrer">
                 <span class="home-timeline__media"><img src="img/cert_logos/google-48.png" alt="Google logo" loading="lazy" decoding="async" width="48" height="48"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Certification</span>
-                  <strong class="home-timeline__title">Google Data Analytics Professional Certificate</strong>
+                  <strong class="home-timeline__title"><span class="home-timeline__title-full">Google Data Analytics Professional Certificate</span><span class="home-timeline__title-compact" aria-hidden="true">Google Data Analytics</span></strong>
                   <span class="home-timeline__subtitle">Google / Coursera</span>
                 </span>
                 <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
               </a>
             </li>
             <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="ibm-data-analyst">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-ibm-data-analyst-date">
                 <time datetime="2023-01-11">Jan 11, 2023</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <a class="home-timeline__entry" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener noreferrer">
+              <a class="home-timeline__entry" aria-describedby="home-timeline-about-ibm-data-analyst-date" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener noreferrer">
                 <span class="home-timeline__media"><img src="img/cert_logos/ibm-48.png" alt="IBM logo" loading="lazy" decoding="async" width="48" height="48"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Certification</span>
-                  <strong class="home-timeline__title">IBM Data Analyst Professional Certificate</strong>
+                  <strong class="home-timeline__title"><span class="home-timeline__title-full">IBM Data Analyst Professional Certificate</span><span class="home-timeline__title-compact" aria-hidden="true">IBM Data Analyst</span></strong>
                   <span class="home-timeline__subtitle">IBM / Coursera</span>
                 </span>
                 <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
               </a>
             </li>
             <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="ibm-machine-learning">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-ibm-machine-learning-date">
                 <time datetime="2023-02-12">Feb 12, 2023</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <a class="home-timeline__entry" href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank" rel="noopener noreferrer">
+              <a class="home-timeline__entry" aria-describedby="home-timeline-about-ibm-machine-learning-date" href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank" rel="noopener noreferrer">
                 <span class="home-timeline__media"><img src="img/cert_logos/ibm-48.png" alt="IBM logo" loading="lazy" decoding="async" width="48" height="48"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Certification</span>
-                  <strong class="home-timeline__title">IBM Machine Learning Professional Certificate</strong>
+                  <strong class="home-timeline__title"><span class="home-timeline__title-full">IBM Machine Learning Professional Certificate</span><span class="home-timeline__title-compact" aria-hidden="true">IBM Machine Learning</span></strong>
                   <span class="home-timeline__subtitle">IBM / Coursera</span>
                 </span>
                 <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
               </a>
             </li>
             <li class="home-timeline__item home-timeline__item--degree" data-home-timeline-item="purdue-bs-data-analytics">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-purdue-bs-data-analytics-date">
                 <time datetime="2023-05">May 2023</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <a class="home-timeline__entry" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">
+              <a class="home-timeline__entry" aria-describedby="home-timeline-about-purdue-bs-data-analytics-date" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">
                 <span class="home-timeline__media" data-home-timeline-media-tone="dark"><img src="img/cert_logos/purdue_global.png" alt="Purdue University Global logo" loading="lazy" decoding="async" width="137" height="136"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Degree</span>
@@ -206,26 +201,26 @@
               </a>
             </li>
             <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="google-advanced-data-analytics">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-google-advanced-data-analytics-date">
                 <time datetime="2023-05-20">May 20, 2023</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <a class="home-timeline__entry" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">
+              <a class="home-timeline__entry" aria-describedby="home-timeline-about-google-advanced-data-analytics-date" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">
                 <span class="home-timeline__media"><img src="img/cert_logos/google-48.png" alt="Google logo" loading="lazy" decoding="async" width="48" height="48"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Certification</span>
-                  <strong class="home-timeline__title">Google Advanced Data Analytics Professional Certificate</strong>
+                  <strong class="home-timeline__title"><span class="home-timeline__title-full">Google Advanced Data Analytics Professional Certificate</span><span class="home-timeline__title-compact" aria-hidden="true">Google Advanced Data Analytics</span></strong>
                   <span class="home-timeline__subtitle">Google / Coursera</span>
                 </span>
                 <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
               </a>
             </li>
             <li class="home-timeline__item home-timeline__item--job" data-home-timeline-item="randall-reilly">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-randall-reilly-date">
                 <time datetime="2023-11">Nov 2023</time> <span class="home-timeline__date-separator">–</span> <time datetime="2024-01">Jan 2024</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <article class="home-timeline__entry">
+              <article class="home-timeline__entry" aria-describedby="home-timeline-about-randall-reilly-date">
                 <span class="home-timeline__media"><img src="img/company_logos/randall-reilly.png" alt="Randall Reilly logo" loading="lazy" decoding="async" width="200" height="200"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Work</span>
@@ -235,11 +230,11 @@
               </article>
             </li>
             <li class="home-timeline__item home-timeline__item--job" data-home-timeline-item="visit-grand-junction">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-visit-grand-junction-date">
                 <time datetime="2024-02">Feb 2024</time> <span class="home-timeline__date-separator">–</span> <span class="home-timeline__current">Present</span>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <article class="home-timeline__entry">
+              <article class="home-timeline__entry" aria-describedby="home-timeline-about-visit-grand-junction-date">
                 <span class="home-timeline__media"><img src="img/company_logos/visit-grand-junction.png" alt="Visit Grand Junction logo" loading="lazy" decoding="async" width="284" height="225"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Work</span>
@@ -249,26 +244,26 @@
               </article>
             </li>
             <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="google-analytics">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-google-analytics-date">
                 <time datetime="2024-04-18">Apr 18, 2024</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <a class="home-timeline__entry" href="https://skillshop.credential.net/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a" target="_blank" rel="noopener noreferrer">
+              <a class="home-timeline__entry" aria-describedby="home-timeline-about-google-analytics-date" href="https://skillshop.credential.net/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a" target="_blank" rel="noopener noreferrer">
                 <span class="home-timeline__media"><img src="img/cert_logos/google-48.png" alt="Google logo" loading="lazy" decoding="async" width="48" height="48"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Certification</span>
-                  <strong class="home-timeline__title">Google Analytics Certification</strong>
+                  <strong class="home-timeline__title"><span class="home-timeline__title-full">Google Analytics Certification</span><span class="home-timeline__title-compact" aria-hidden="true">Google Analytics</span></strong>
                   <span class="home-timeline__subtitle">Google Skillshop</span>
                 </span>
                 <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
               </a>
             </li>
             <li class="home-timeline__item home-timeline__item--degree" data-home-timeline-item="eastern-ms-data-science">
-              <div class="home-timeline__date">
+              <div class="home-timeline__date" id="home-timeline-about-eastern-ms-data-science-date">
                 <time datetime="2025-05">May 2025</time>
               </div>
               <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>
-              <article class="home-timeline__entry">
+              <article class="home-timeline__entry" aria-describedby="home-timeline-about-eastern-ms-data-science-date">
                 <span class="home-timeline__media"><img src="img/cert_logos/eastern-48.png" alt="Eastern University logo" loading="lazy" decoding="async" width="48" height="48"></span>
                 <span class="home-timeline__copy">
                   <span class="home-timeline__type">Degree</span>
@@ -571,7 +566,7 @@
       </nav>
     </div>
   </footer>
-  <script defer src="dist/site-home.37151532.js" data-tools-account-src="dist/site-tools-account.bbf760b9.js"></script>
-  <script defer src="dist/site-consent.33b42e2d.js"></script>
+  <script defer src="dist/site-home.3cafe56c.js" data-tools-account-src="dist/site-tools-account.bbf760b9.js"></script>
+  <script defer src="dist/site-consent.5fbd7df8.js"></script>
 </body>
 </html>

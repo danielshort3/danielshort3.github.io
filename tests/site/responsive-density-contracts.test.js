@@ -385,18 +385,18 @@ function runResponsiveDensityContractTests({ assert }) {
   );
   assert(
     /body\.consent-blocked:has\(#pcz-modal\.pcz-visible\)::before\s*\{[^}]*opacity\s*:\s*0\s*!important\s*;[^}]*pointer-events\s*:\s*none\s*!important\s*;[^}]*backdrop-filter\s*:\s*none\s*;/s.test(privacyCss) &&
-      consentJs.includes("const CSS_VERSION = 'v12';") &&
+      consentJs.includes("const CSS_VERSION = 'v13';") &&
       consentJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
       consentJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
-      consentJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,16px);') &&
+      consentJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,12px);') &&
       consentJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
       consentJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
-    'Cookie Settings critical CSS v12 should match the shared shell without stacking the first-run backdrop',
+    'Cookie Settings critical CSS v13 should match the shared shell without stacking the first-run backdrop',
   );
   assert(
     !privacyCss.includes('@media (prefers-color-scheme: dark)') &&
       !privacyCss.includes('data-theme-scope') &&
-      /#pcz-banner \.pcz-btn,\s*#pcz-modal \.pcz-save-preferences\s*\{[^}]*min-height:\s*38px;/s.test(privacyCss) &&
+      /#pcz-banner \.pcz-btn,\s*#pcz-modal \.pcz-save-preferences\s*\{[^}]*min-height:\s*44px;/s.test(privacyCss) &&
       /#pcz-banner \.pcz-close\s*\{[^}]*width:\s*32px;[^}]*height:\s*32px;/s.test(privacyCss) &&
       /#pcz-modal \.pref-info\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/s.test(privacyCss) &&
       consentJs.includes('modal._pczRestoreBackground = isolateModalBackground(modal);') &&

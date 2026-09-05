@@ -356,7 +356,7 @@
 
     .content {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+      grid-template-columns: minmax(0, 1fr);
       gap: 24px;
       justify-content: center;
       align-items: start;
@@ -380,7 +380,7 @@
       grid-template-columns: repeat(var(--grid-cols), var(--cell-size));
       gap: var(--grid-gap);
       width: 100%;
-      min-height: var(--grid-min-height, 420px);
+      min-height: 0;
       align-content: center;
       justify-content: center;
     }
@@ -535,14 +535,14 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.33b42e2d.js"></script>
+  <script defer src="dist/site-consent.5fbd7df8.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
     }
   </script>
 </head>
-<body>
+<body class="demo-compact-workspace digit-workspace">
 <a href="#main" class="skip-link">Skip to main content</a>
   <script>
     (function () {
@@ -592,6 +592,32 @@
     </header>
 
     <div class="content demo-workspace">
+      <div class="generation-toolbar" aria-label="Generation controls">
+        <label for="cluster-select">Digit
+          <select id="cluster-select" class="grid-number-pill" aria-label="Number to generate">
+            <option value="auto">Auto</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+          </select>
+        </label>
+        <label for="grid-select">Grid size
+          <select id="grid-select">
+            <option value="4">4 × 4 · 16 digits</option>
+            <option value="6">6 × 6 · 36 digits</option>
+            <option value="8" selected>8 × 8 · 64 digits</option>
+          </select>
+        </label>
+        <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
+        <p class="status" id="status" role="status" aria-live="polite">Preparing demo...</p>
+      </div>
       <div class="grid-shell">
         <h2 class="demo-section-label">Generated digits</h2>
         <div class="grid" id="grid" aria-live="polite">
@@ -599,69 +625,22 @@
         </div>
         <p class="hint" id="grid-download-hint" hidden>Select any digit image to download it.</p>
       </div>
-
-      <aside class="panel">
-        <div class="grid-heading" aria-label="Generation target">
-          <div class="grid-heading-main">
-            <span class="grid-heading-key">Digit to generate</span>
-            <span class="grid-number-control">
-              <label class="visually-hidden" for="cluster-select">Number</label>
-              <select id="cluster-select" class="grid-number-pill" aria-label="Number to generate">
-                <option value="auto">Auto</option>
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4" selected>4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-              </select>
-            </span>
-          </div>
+      <details class="demo-disclosure generation-settings">
+        <summary>Advanced generation settings</summary>
+        <p class="hint">Keep a seed to reproduce a grid. Change the latent dimension or distortion to explore how the model varies each digit.</p>
+        <div class="settings-grid">
+          <label>Seed
+            <input id="seed-input" type="number" min="0" placeholder="optional">
+          </label>
+          <label>Latent dimension
+            <select id="dim-select"></select>
+          </label>
+          <label>Distortion level
+            <input id="value-slider" type="range" min="0" max="20" step="0.2" value="5">
+            <span id="value-label" class="range-value">5.0</span>
+          </label>
         </div>
-        <div class="grid-actions">
-          <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
-        </div>
-        <p class="status" id="status" role="status" aria-live="polite">Preparing demo...</p>
-        <details class="demo-disclosure">
-          <summary>Advanced generation settings</summary>
-          <p class="hint">Keep a seed to reproduce a grid. Change the latent dimension or distortion to explore how the model varies each digit.</p>
-          <div class="settings-grid">
-            <label>
-              Seed
-              <input id="seed-input" type="number" min="0" placeholder="optional">
-            </label>
-            <label>
-              Latent dimension
-              <select id="dim-select"></select>
-            </label>
-            <label>
-              Grid density
-              <select id="grid-select">
-                <option value="4">4 x 4</option>
-                <option value="6">6 x 6</option>
-                <option value="8" selected>8 x 8</option>
-              </select>
-            </label>
-            <label>
-              Grid minimum height
-              <select id="grid-height-select">
-                <option value="320">320 px</option>
-                <option value="420" selected>420 px</option>
-                <option value="520">520 px</option>
-              </select>
-            </label>
-            <label>
-              Distortion level
-              <input id="value-slider" type="range" min="0" max="20" step="0.2" value="5">
-              <span id="value-label" class="range-value">5.0</span>
-            </label>
-          </div>
-        </details>
-      </aside>
+      </details>
     </div>
   </div>
   </main>
@@ -680,8 +659,6 @@
       retryRequest
     } = window.DemoAws;
     const GRID_SIZES = [4, 6, 8];
-    const GRID_MIN_HEIGHTS = [320, 420, 520];
-    const DEFAULT_GRID_MIN_HEIGHT = 420;
     const CELL_SIZE_MIN = 24;
     const CELL_SIZE_MAX = 108;
     const COMPACT_CELL_SIZE_MAX = 72;
@@ -708,7 +685,6 @@
     const gridShell = document.querySelector('.grid-shell');
     const seedInput = document.getElementById('seed-input');
     const gridSelect = document.getElementById('grid-select');
-    const gridHeightSelect = document.getElementById('grid-height-select');
     const clusterSelect = document.getElementById('cluster-select');
     const dimSelect = document.getElementById('dim-select');
     const valueSlider = document.getElementById('value-slider');
@@ -724,7 +700,6 @@
     let gridSize = compactLayout ? 6 : 8;
     let gridRows = gridSize;
     let gridCols = gridSize;
-    let gridMinHeight = DEFAULT_GRID_MIN_HEIGHT;
     let gridMetricsFrame = null;
     let lastSeed = null;
     let currentState = {
@@ -764,7 +739,6 @@
         dimSelect,
         valueSlider,
         gridSelect,
-        gridHeightSelect,
         seedInput
       ];
       controls.forEach(control => {
@@ -872,13 +846,6 @@
       scheduleGridMetricsUpdate();
     }
 
-    function setGridMinimumHeight(height) {
-      const next = GRID_MIN_HEIGHTS.includes(height) ? height : DEFAULT_GRID_MIN_HEIGHT;
-      gridMinHeight = next;
-      gridEl.style.setProperty('--grid-min-height', `${next}px`);
-      scheduleGridMetricsUpdate();
-    }
-
     function isCompactLayout() {
       return !!(compactMedia && compactMedia.matches);
     }
@@ -895,7 +862,9 @@
       const shellWidth = gridShell ? gridShell.clientWidth : 0;
       const gridWidth = gridEl.clientWidth || Math.max(0, shellWidth - 32);
       const availableWidth = Math.max(0, gridWidth);
-      const availableHeight = Math.max(gridMinHeight, 1);
+      // Bound cells by width and a modest gallery height; empty galleries never
+      // reserve that height, and a resized view does not request new images.
+      const availableHeight = isCompactLayout() ? 360 : 480;
       const widthCell = (availableWidth - gap * Math.max(0, gridCols - 1)) / Math.max(1, gridCols);
       const heightCell = (availableHeight - gap * Math.max(0, gridRows - 1)) / Math.max(1, gridRows);
       const maxSize = isCompactLayout() ? COMPACT_CELL_SIZE_MAX : CELL_SIZE_MAX;
@@ -1102,10 +1071,6 @@
       setGridSize(Number.isFinite(next) ? next : gridSize);
       fetchGrid();
     });
-    gridHeightSelect.addEventListener('change', () => {
-      const next = Number(gridHeightSelect.value);
-      setGridMinimumHeight(Number.isFinite(next) ? next : DEFAULT_GRID_MIN_HEIGHT);
-    });
     clusterSelect.addEventListener('change', () => {
       fetchGrid();
     });
@@ -1119,8 +1084,6 @@
 
     buildDimOptions(latentDim);
     syncRange(valueSlider.value);
-    gridHeightSelect.value = String(DEFAULT_GRID_MIN_HEIGHT);
-    setGridMinimumHeight(DEFAULT_GRID_MIN_HEIGHT);
     setGridSize(gridSize);
     gridSelect.value = String(gridSize);
     bindGridResize();
