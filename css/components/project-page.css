@@ -352,9 +352,9 @@
     gap:clamp(14px,2vw,20px);
   }
   .project-image-comparison-selectable{
-    grid-template-columns:minmax(220px, .8fr) minmax(0, 1.4fr);
-    gap:clamp(20px,3vw,36px);
-    align-items:start;
+    grid-template-columns:minmax(220px, 1fr) minmax(0, 1.4fr);
+    gap:20px clamp(20px,3vw,36px);
+    align-items:stretch;
   }
   .project-image-comparison-selectable .project-image-comparison-section{
     min-width:0;
@@ -364,12 +364,6 @@
     grid-template-columns:minmax(0,1fr);
     width:min(100%,360px);
     margin-inline:auto;
-  }
-  .project-image-comparison-selectable .project-stage-full-caption{
-    min-height:0;
-  }
-  .project-image-comparison-selectable .project-stage-full-description{
-    display:none;
   }
   .project-image-comparison-selectable .project-stage-full-image-frame{
     touch-action:pan-y;
@@ -438,6 +432,19 @@
     align-items:center;
     gap:10px;
   }
+  .project-comparison-footer{
+    grid-column:1 / -1;
+    display:grid;
+    gap:12px;
+    min-width:0;
+  }
+  .project-comparison-footer .project-comparison-credit{
+    text-align:center;
+    overflow-wrap:anywhere;
+  }
+  .project-comparison-footer [data-selection-retry]{
+    justify-self:start;
+  }
   .project-selection-controls[hidden]{display:none;}
   .project-selection-controls label{
     display:grid;
@@ -480,6 +487,27 @@
   }
   .project-selection-status:empty{display:none;}
   .project-comparison-credit a{color:inherit;}
+  @media (min-width:960px){
+    .project-image-comparison-selectable .project-image-comparison-section{
+      grid-row:span 2;
+      grid-template-rows:subgrid;
+      align-content:normal;
+    }
+    .project-image-comparison-selectable .project-stage-full-grid{
+      container-type:size;
+      width:100%;
+      min-height:0;
+      margin:0;
+      place-items:center;
+    }
+    .project-image-comparison-selectable .project-stage-full{
+      /* Match the comparison card height while preserving the original's proportions. */
+      width:min(100cqw, calc((100cqh - 2px) * var(--comparison-full-aspect) + 2px));
+    }
+    .project-image-comparison-selectable .project-image-comparison-zoom-card{
+      width:100%;
+    }
+  }
   @media (max-width:959px){
     .project-image-comparison-selectable{grid-template-columns:minmax(0,1fr);}
     .project-image-comparison-selectable .project-stage-full-grid{width:min(100%,240px);}
