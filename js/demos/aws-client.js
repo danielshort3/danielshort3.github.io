@@ -93,7 +93,24 @@
 
   const RETRYABLE_STATUSES = new Set([408, 425, 500, 502, 503, 504]);
 
+  const endpointConfigurationErrors = new Map();
+  const isConfigurationError = (err) => err?.status === 503
+    && err?.code === 'DEMO_PROXY_CONFIGURATION_UNAVAILABLE';
+
+  const runEndpointRequest = async (base, operation, refreshConfiguration = false) => {
+    const key = normalizeBase(base);
+    if (refreshConfiguration) endpointConfigurationErrors.delete(key);
+    if (endpointConfigurationErrors.has(key)) throw endpointConfigurationErrors.get(key);
+    try {
+      return await operation();
+    } catch (err) {
+      if (isConfigurationError(err)) endpointConfigurationErrors.set(key, err);
+      throw err;
+    }
+  };
+
   const isRetryableError = (err) => {
+    if (isConfigurationError(err)) return false;
     if (!err) return false;
     if (typeof err.status === 'number') return RETRYABLE_STATUSES.has(err.status);
     if (err.name === 'AbortError') return true;
@@ -158,6 +175,7 @@
       const message = data?.error || data?.message || text || `${res.status} ${res.statusText}`;
       const err = new Error(message);
       err.status = res.status;
+      err.code = typeof data?.code === 'string' ? data.code : '';
       const retryAfter = Number.parseInt(String(res.headers.get('Retry-After') || ''), 10);
       if (Number.isFinite(retryAfter) && retryAfter > 0) err.retryAfter = retryAfter;
       err.data = data;
@@ -190,14 +208,22 @@
   };
 
   const healthJson = (base, options = {}) => {
-    return getJson(joinUrl(normalizeBase(base), 'health'), options);
+    // A new health check allows manual reconnect after configuration is corrected.
+    return runEndpointRequest(base, () => getJson(joinUrl(normalizeBase(base), 'health'), options), true);
   };
 
   const warmupJson = (base, payload = {}, options = {}) => {
-    return postJson(joinUrl(normalizeBase(base), 'warmup'), payload, options);
+    return runEndpointRequest(base, () => postJson(joinUrl(normalizeBase(base), 'warmup'), payload, options));
   };
 
   const postWithFallback = async (base, paths, payload, options = {}) => {
+    const key = normalizeBase(base);
+    if (endpointConfigurationErrors.has(key)) {
+      const error = endpointConfigurationErrors.get(key);
+      // Skip this initialization fallback, while allowing a later user retry.
+      endpointConfigurationErrors.delete(key);
+      throw error;
+    }
     const attempts = Array.isArray(paths) ? paths : [paths];
     let lastErr = null;
     for (const path of attempts) {

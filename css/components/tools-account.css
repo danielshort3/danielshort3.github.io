@@ -6,6 +6,9 @@
   }
 
   .tools-account-bar{
+    box-sizing:border-box;
+    min-width:0;
+    max-width:100%;
     padding:10px 12px;
     border-radius:10px;
     border:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 12%, transparent);
@@ -36,8 +39,11 @@
   .tools-account-actions{
     grid-area:account;
     display:flex;
+    flex-wrap:wrap;
     align-items:center;
+    gap:8px;
     min-width:0;
+    max-width:100%;
   }
 
   .tools-account-extensions{
@@ -51,11 +57,14 @@
   }
 
   .tools-account-status{
+    min-width:0;
+    max-width:100%;
     margin:0;
     color:var(--brand-graphite, var(--text-muted));
     font-size:.84rem;
     font-weight:600;
     line-height:1.35;
+    overflow-wrap:anywhere;
   }
 
   .tools-account-status[data-tone="error"]{
@@ -68,6 +77,8 @@
     align-items:center;
     gap:6px;
     min-block-size:44px;
+    min-width:0;
+    max-width:100%;
     padding:8px 11px;
     border-radius:8px;
     border:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 12%, transparent);
@@ -77,6 +88,8 @@
     font-size:.9rem;
     letter-spacing:.01em;
     text-decoration:none;
+    white-space:normal;
+    overflow-wrap:anywhere;
     transition:transform .2s ease, background .2s ease, border-color .2s ease;
   }
   .tools-account-tools-link:hover{
@@ -89,13 +102,19 @@
   .tools-account-trigger{
     box-sizing:border-box;
     min-block-size:44px;
+    min-width:0;
+    max-width:100%;
     padding:9px 13px;
     border-radius:8px;
     font-size:.86rem;
+    white-space:normal;
+    overflow-wrap:anywhere;
   }
 
   .tools-account-disclosure-root{
     position:relative;
+    min-width:0;
+    max-width:100%;
   }
 
   .tools-account-trigger{
@@ -106,6 +125,7 @@
   }
 
   .tools-account-trigger svg{
+    flex:0 0 14px;
     width:14px;
     height:14px;
     fill:none;
@@ -119,6 +139,7 @@
   }
 
   .tools-account-disclosure{
+    box-sizing:border-box;
     position:absolute;
     z-index:20;
     inset-block-start:calc(100% + 8px);
@@ -132,6 +153,21 @@
     border-radius:10px;
     background:#fff;
     box-shadow:0 18px 42px rgba(9,31,59,.18);
+    opacity:0;
+    transform:translateY(-6px);
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity var(--motion-duration, var(--motion-base)) var(--easing-standard),
+      transform var(--motion-duration, var(--motion-base)) var(--easing-standard),
+      visibility 0s linear var(--motion-duration, var(--motion-base));
+  }
+
+  .tools-account-disclosure.is-open{
+    opacity:1;
+    transform:translateY(0);
+    visibility:visible;
+    pointer-events:auto;
+    transition-delay:0s;
   }
 
   .tools-account-identity{
@@ -149,6 +185,7 @@
     align-items:center;
     min-block-size:44px;
     width:100%;
+    min-width:0;
     padding:9px 10px;
     border:0;
     border-radius:7px;
@@ -159,6 +196,8 @@
     font-weight:600;
     text-align:left;
     text-decoration:none;
+    white-space:normal;
+    overflow-wrap:anywhere;
     cursor:pointer;
   }
 
@@ -176,16 +215,25 @@
     width:100%;
   }
 
-  @media (max-width:620px){
+  :is(.personal-tool-header__account,.personal-library__account) .tools-account-disclosure{
+    inset-inline-start:auto;
+    inset-inline-end:0;
+  }
+
+  @media (max-width:959px), (max-height:619px){
     .tools-account-structure{
-      grid-template-columns:minmax(0,1fr) auto;
-      grid-template-areas:
-        "context account"
-        "extensions extensions";
+      display:flex;
+      flex-wrap:wrap;
+    }
+
+    .tools-account-context{
+      flex:1 1 auto;
     }
 
     .tools-account-actions{
-      justify-self:end;
+      flex:0 1 auto;
+      justify-content:flex-end;
+      margin-inline-start:auto;
     }
 
     .tools-account-disclosure{
@@ -194,6 +242,7 @@
     }
 
     .tools-account-extensions{
+      flex:1 1 100%;
       justify-content:flex-start;
       width:100%;
     }
@@ -262,7 +311,7 @@
 
   .tools-dashboard-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr));
     gap:clamp(16px,3vw,22px);
     align-items:start;
   }
@@ -322,7 +371,7 @@
   .tools-sessions-controls{
     display:grid;
     gap:12px;
-    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 200px), 1fr));
     align-items:end;
   }
 
@@ -338,6 +387,8 @@
   }
 
   .tools-sessions-input{
+    box-sizing:border-box;
+    min-width:0;
     width:100%;
     padding:10px 12px;
     border-radius:14px;
@@ -385,7 +436,7 @@
   .tools-sessions-more-grid{
     display:grid;
     gap:12px;
-    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 200px), 1fr));
     margin-top:10px;
   }
 
@@ -634,7 +685,7 @@
 
   .tools-session-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr));
     gap:clamp(16px,3vw,22px);
     align-items:start;
   }
@@ -650,6 +701,26 @@
     cursor:pointer;
     color:var(--text-muted);
     font-size:.95rem;
+  }
+
+  .tools-disclosure-content{
+    display:flow-root;
+    min-width:0;
+  }
+
+  .tools-disclosure-content[hidden]{
+    display:none;
+  }
+
+  :is(.tools-session-details, .tools-session-advanced, .tools-session-field, .tools-sessions-more) > summary{
+    box-sizing:border-box;
+    min-height:44px;
+    padding-block:8px;
+  }
+
+  :is(.tools-dashboard-card, .tools-dashboard-item-main, .tools-sessions-panel, .tools-sessions-control, .tools-session-details-field){
+    min-width:0;
+    overflow-wrap:anywhere;
   }
 
   .tools-session-details-form{
@@ -814,6 +885,45 @@
 
   .tools-session-advanced .tools-session-fields{
     margin-top:12px;
+  }
+
+  @media (max-width:480px){
+    :is(.tools-dashboard-overview, .tools-dashboard-grid, .tools-session-grid, .tools-sessions-controls, .tools-sessions-more-grid){
+      grid-template-columns:minmax(0, 1fr);
+    }
+
+    :is(.tools-account-modal-actions, .tools-session-modal-actions, .tools-session-details-actions, .tools-dashboard-item){
+      flex-direction:column;
+      align-items:stretch;
+    }
+
+    :is(.tools-account-modal-actions, .tools-session-modal-actions, .tools-session-details-actions) > *{
+      width:100%;
+      min-width:0;
+      box-sizing:border-box;
+      white-space:normal;
+    }
+
+    .tools-dashboard-item-actions{
+      justify-content:flex-start;
+    }
+
+    :is(.tools-sessions-buttons, .tools-sessions-bulk-actions) > *{
+      min-width:0;
+      flex:1 1 auto;
+    }
+
+    .tools-sessions-toggle{
+      min-height:44px;
+      box-sizing:border-box;
+      white-space:normal;
+    }
+
+    .tools-sessions-toggle input{
+      min-width:18px;
+      min-height:18px;
+      flex:0 0 18px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce){

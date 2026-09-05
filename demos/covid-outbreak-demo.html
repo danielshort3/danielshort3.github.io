@@ -13,7 +13,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">
-  <title>COVID Outbreak Drivers Demo</title>
+  <title>COVID outbreak drivers Demo</title>
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
@@ -22,8 +22,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@600&display=swap">
   <style>
     :root {
-      --radius-lg: 18px;
-      --radius-md: 14px;
+      --radius-lg: 12px;
+      --radius-md: 12px;
       --page-pad: clamp(12px, 3vw, 24px);
       --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
       --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
@@ -38,8 +38,8 @@
       --risk-elevated: var(--warning);
       --risk-high: var(--danger);
       --risk-none: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
-      --map-bg: color-mix(in srgb, var(--surface) 45%, #ffffff 55%);
-      --map-border: color-mix(in srgb, var(--surface) 30%, #ffffff 70%);
+      --map-bg: var(--surface-2);
+      --map-border: var(--border);
       --map-text: var(--brand-midnight, #091F3B);
       --map-line: color-mix(in srgb, var(--map-text) 70%, #ffffff 30%);
     }
@@ -104,7 +104,7 @@
       justify-content: space-between;
       gap: 12px;
       padding: 16px 18px;
-      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
     }
 
@@ -116,7 +116,7 @@
 
     .title {
       margin: 0;
-      font-family: Inter, Inter, system-ui, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       font-weight: 600;
       font-size: clamp(1.1rem, 2.2vw, 1.35rem);
     }
@@ -142,8 +142,8 @@
       padding: 6px 12px;
       border-radius: 999px;
       font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      letter-spacing: normal;
+      text-transform: none;
       border: 1px solid var(--border);
       color: var(--muted);
       background: var(--surface-2);
@@ -187,13 +187,14 @@
 
     .content {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr);
+      align-items: start;
       gap: 22px;
       padding: 20px 22px 24px;
     }
 
     .panel {
-      background: color-mix(in srgb, var(--surface) 92%, #000 8%);
+      background: var(--surface);
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
       padding: 16px;
@@ -205,7 +206,7 @@
     .panel h2,
     .panel h3 {
       margin: 0;
-      font-family: Inter, Inter, system-ui, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       font-weight: 600;
     }
 
@@ -231,7 +232,8 @@
       border-radius: 16px;
       padding: 8px;
       overflow: hidden;
-      min-height: clamp(280px, 45vw, 420px);
+      min-height: 0;
+      aspect-ratio: 975 / 610;
     }
 
     #map-svg {
@@ -420,7 +422,7 @@
       border-radius: 999px;
       font-size: 0.75rem;
       font-weight: 700;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.04em;
       border: 1px solid transparent;
     }
@@ -590,7 +592,7 @@
       }
 
       .map-svg {
-        min-height: 260px;
+        min-height: 0;
       }
     }
 
@@ -652,7 +654,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -660,100 +662,106 @@
   </script>
 </head>
 <body>
-<a href="#main" class="skip-link">Skip to main content</a>
+  <a href="#main" class="skip-link">Skip to main content</a>
   <main id="main">
-  <div id="demo-box" role="application" aria-label="COVID outbreak drivers demo">
-    <header class="card-header">
-      <div class="header-copy">
-        <h1 class="title">COVID Outbreak Drivers</h1>
-        <p class="subtitle">Explore 7-day ICU breach risk by state with SHAP-inspired drivers. Move the date slider to surface emerging hotspots.</p>
-      </div>
-      <div class="header-actions">
-        <span class="health-pill aws-status-badge" id="connection-pill" data-state="warming" role="status" aria-live="polite">Warming up</span>
-      </div>
-    </header>
+    <div id="demo-box" role="application" aria-label="COVID outbreak drivers demo">
+      <header class="card-header">
+        <div class="header-copy">
+          <h1 class="title">COVID outbreak drivers</h1>
+          <p class="subtitle">Select a state and date to explore ICU risk, recent trends, and SHAP-inspired drivers.</p>
+        </div>
+        <div class="header-actions">
+          <span class="health-pill aws-status-badge" id="connection-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
+        </div>
+      </header>
 
-    <div class="status-row demo-meta-row">
-      <span class="status-meta" id="connection-meta">Connecting to AWS Lambda</span>
-    </div>
+      <div class="status-row demo-meta-row">
+        <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
+        <span class="status-meta" id="connection-meta">Loading map and historical data…</span>
+      </div>
 
-    <div class="content">
-      <section class="panel">
-        <div class="map-wrap" id="map-wrap" data-ready="false">
-          <div class="control-row">
-            <div>
-              <h2>Risk Map</h2>
-              <div class="empty-note">Hover a state for a quick readout.</div>
+      <div class="content">
+        <section class="panel">
+          <div class="map-wrap" id="map-wrap" data-ready="false">
+            <div class="control-row">
+              <div>
+                <h2>State risk map</h2>
+                <div class="empty-note">Select a state to see its risk and ICU trend.</div>
+              </div>
+              <div class="date-display" id="date-value">--</div>
             </div>
-            <div class="date-display" id="date-value">--</div>
+            <div class="legend map-legend" aria-label="Risk legend">
+              <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low (&lt;5%)</span>
+              <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated (5-15%)</span>
+              <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High (15%+)</span>
+            </div>
+            <div class="map-svg">
+              <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="list" aria-label="State risk map"></svg>
+            </div>
+            <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
           </div>
-          <div class="legend map-legend" aria-label="Risk legend">
-            <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low (&lt;5%)</span>
-            <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated (5-15%)</span>
-            <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High (15%+)</span>
+
+          <div class="controls">
+            <div class="control-row">
+              <div class="empty-note" id="date-range">Range: --</div>
+              <div class="empty-note" id="date-selected">Selected: --</div>
+            </div>
+            <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Date slider" />
+            <div class="timeline-ticks" id="timeline-ticks" aria-hidden="true"></div>
           </div>
-          <div class="map-svg">
-            <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="list" aria-label="State risk map"></svg>
+        </section>
+
+        <section class="panel">
+          <div class="detail-header">
+            <h2 id="state-title">Select a state</h2>
+            <span class="risk-pill" id="risk-pill" data-risk="unknown">No data</span>
           </div>
-          <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
-        </div>
 
-        <div class="controls">
-          <div class="control-row">
-            <div class="empty-note" id="date-range">Range: --</div>
-            <div class="empty-note" id="date-selected">Selected: --</div>
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">7-day breach probability</div>
+              <div class="metric-value" id="prob-value">--</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Adult ICU utilization</div>
+              <div class="metric-value" id="icu-value">--</div>
+            </div>
           </div>
-          <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Date slider" />
-        </div>
-      </section>
 
-      <section class="panel">
-        <div class="detail-header">
-          <h2 id="state-title">Select a state</h2>
-          <span class="risk-pill" id="risk-pill" data-risk="unknown">No data</span>
-        </div>
-
-        <div class="metrics">
-          <div class="metric">
-            <div class="metric-label">7-day breach probability</div>
-            <div class="metric-value" id="prob-value">--</div>
+          <div class="trend">
+            <h3>Recent trend (45 days)</h3>
+            <svg id="trend-chart" viewBox="0 0 360 140" preserveAspectRatio="none"></svg>
+            <div class="legend">
+              <span class="key"><span class="swatch" style="background:var(--accent)"></span> Risk</span>
+              <span class="key"><span class="swatch" style="background:var(--accent-2)"></span> ICU</span>
+            </div>
           </div>
-          <div class="metric">
-            <div class="metric-label">Adult ICU utilization</div>
-            <div class="metric-value" id="icu-value">--</div>
-          </div>
-        </div>
 
-        <div class="drivers">
-          <h3>Top drivers</h3>
-          <ul id="drivers-list"></ul>
-        </div>
+          <details class="demo-disclosure">
+            <summary>Risk drivers and hotspots</summary>
+            <div class="demo-disclosure-content">
+              <div class="drivers">
+                <h3>Top drivers</h3>
+                <ul id="drivers-list"></ul>
+              </div>
+              <div class="hotspots">
+                <h3>Top hotspots</h3>
+                <ol id="hotspots-list"></ol>
+              </div>
+              <div class="territories" id="territories-panel">
+                <h3>Territories</h3>
+                <ul id="territories-list"></ul>
+              </div>
+            </div>
+          </details>
 
-        <div class="trend">
-          <h3>Recent trend (45 days)</h3>
-          <svg id="trend-chart" viewBox="0 0 360 140" preserveAspectRatio="none"></svg>
-          <div class="legend">
-            <span class="key"><span class="swatch" style="background:var(--accent)"></span> Risk</span>
-            <span class="key"><span class="swatch" style="background:var(--accent-2)"></span> ICU</span>
-          </div>
-        </div>
-
-        <div class="hotspots">
-          <h3>Top hotspots</h3>
-          <ol id="hotspots-list"></ol>
-        </div>
-
-        <div class="territories" id="territories-panel">
-          <h3>Territories</h3>
-          <ul id="territories-list"></ul>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
-  </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-composite-projections@1/dist/d3-composite-projections.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-composite-projections@1.5.0/d3-composite-projections.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
@@ -916,6 +924,8 @@
       meta: null
     };
     let serverReady = false;
+    let dateRequestId = 0;
+    let failedDateIndex = null;
 
     const numberFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
     const dateFormatter = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" });
@@ -935,6 +945,7 @@
 
     function setConnection(state, text) {
       DOM.connectionPill.dataset.state = state;
+      document.getElementById("retry-demo").hidden = state !== "err";
       DOM.connectionPill.textContent = text;
     }
 
@@ -1338,27 +1349,56 @@
       if (!serverReady) return;
       const date = appState.dates[index];
       if (!date) return;
-      appState.activeDate = date;
-      syncDateUI(index);
-      const payload = await loadDate(date);
-      appState.states = new Map(payload.states.map((item) => [item.id, item]));
-      updateMap();
-      updateHotspots(payload.hotspots);
-      updateTerritories(payload.states);
-      if (!appState.activeState) {
-        const mappedHotspot = payload.hotspots?.find((item) => appState.states.get(item.id)?.inMap);
-        const mappedState = payload.states?.find((item) => item.inMap);
-        selectState((mappedHotspot || mappedState || payload.states?.[0])?.id);
-      } else {
-        selectState(appState.activeState);
+      const requestId = ++dateRequestId;
+      failedDateIndex = null;
+      setConnection("warming", "Loading date…");
+      DOM.connectionMeta.textContent = `Loading ${formatDateLabel(date)}.${appState.activeDate ? ` Showing ${formatDateLabel(appState.activeDate)} until ready.` : ""}`;
+      try {
+        const payload = await loadDate(date);
+        if (requestId !== dateRequestId) return;
+        const states = new Map(payload.states.map((item) => [item.id, item]));
+        appState.activeDate = date;
+        appState.states = states;
+        DOM.dateSlider.value = String(index);
+        syncDateUI(index);
+        updateMap();
+        updateHotspots(payload.hotspots);
+        updateTerritories(payload.states);
+        if (!appState.activeState) {
+          const mappedHotspot = payload.hotspots?.find((item) => appState.states.get(item.id)?.inMap);
+          const mappedState = payload.states?.find((item) => item.inMap);
+          selectState((mappedHotspot || mappedState || payload.states?.[0])?.id);
+        } else {
+          selectState(appState.activeState);
+        }
+        setConnection("ok", "Ready");
+        DOM.connectionMeta.textContent = "Historical data ready";
+      } catch (err) {
+        if (requestId !== dateRequestId) return;
+        failedDateIndex = index;
+        const previousIndex = appState.dates.indexOf(appState.activeDate);
+        if (previousIndex >= 0) {
+          DOM.dateSlider.value = String(previousIndex);
+          syncDateUI(previousIndex);
+        }
+        setConnection("err", "Date unavailable");
+        const previousDate = appState.activeDate
+          ? `Still showing ${formatDateLabel(appState.activeDate)}.`
+          : "No date has loaded yet.";
+        DOM.connectionMeta.textContent = `Unable to load ${formatDateLabel(date)}. ${previousDate} Retry to try that date again.`;
       }
+    }
+
+    function retryData() {
+      if (failedDateIndex !== null) return handleDateChange(failedDateIndex);
+      window.location.reload();
     }
 
     async function init() {
       appState.endpoint = resolveEndpoint(endpointConfig);
       setServerReady(false);
-      setConnection("warming", "Warming up");
-      DOM.connectionMeta.textContent = "Warming AWS Lambda";
+      setConnection("warming", "Preparing demo…");
+      DOM.connectionMeta.textContent = "Loading historical data…";
       try {
         await renderMap();
       } catch (err) {
@@ -1378,7 +1418,7 @@
         DOM.dateSlider.value = String(latestIdx);
         setServerReady(true);
         setConnection("ok", "Ready");
-        DOM.connectionMeta.textContent = "Live data loaded from AWS";
+        DOM.connectionMeta.textContent = "Historical data ready";
         DOM.dateSlider.addEventListener("input", (event) => {
           handleDateChange(Number(event.target.value));
         });
@@ -1387,11 +1427,16 @@
         console.error(err);
         setServerReady(false);
         setConnection("err", "Unavailable");
-        DOM.connectionMeta.textContent = "Unable to reach AWS Lambda. Check the endpoint.";
+        DOM.connectionMeta.textContent = "Unable to load data. Retry to reconnect.";
         DOM.dateValue.textContent = "--";
         updateMap();
       }
     }
+
+    document.getElementById("retry-demo").addEventListener("click", retryData);
+    document.querySelectorAll("details.demo-disclosure").forEach((details) => {
+      details.addEventListener("toggle", () => requestAnimationFrame(notifyResize));
+    });
 
     init();
   </script>

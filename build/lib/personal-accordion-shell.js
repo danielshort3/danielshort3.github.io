@@ -1,5 +1,7 @@
 'use strict';
 
+const audienceApi = require('../../js/common/audience-config');
+
 const PERSONAL_SHELL_START = '<!-- personal-accordion-shell:start -->';
 const PERSONAL_SHELL_END = '<!-- personal-accordion-shell:end -->';
 const PERSONAL_CONTENT_START = '<!-- personal-accordion-content:start -->';
@@ -46,6 +48,13 @@ const CATEGORY_CONFIG = Object.freeze({
     libraryHref: '/games',
     icon: '<path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path>'
   }),
+  resume: Object.freeze({
+    label: 'Resume',
+    color: '#087f8c',
+    colorEnd: '#006973',
+    href: '/resume-analytics',
+    icon: '<path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5M9 12h6M9 16h6"></path>'
+  }),
   contact: Object.freeze({
     label: 'Contact',
     color: '#334155',
@@ -57,6 +66,24 @@ const CATEGORY_CONFIG = Object.freeze({
 });
 
 const CATEGORY_ORDER = Object.freeze(['about', 'projects', 'tools', 'games', 'contact']);
+const PROFESSIONAL_CATEGORY_ORDER = Object.freeze(['about', 'projects', 'resume', 'contact']);
+
+function getShellAudience(value) {
+  return ['analytics', 'data-science', 'tourism'].includes(value) ? value : 'personal';
+}
+
+function getShellCategory(categoryId, audience = 'personal') {
+  const category = CATEGORY_CONFIG[categoryId];
+  if (getShellAudience(audience) === 'personal') return category;
+  const config = audienceApi.getAudience(audience);
+  const href = {
+    about: config.homePath,
+    projects: config.portfolioPath,
+    resume: config.resumePath,
+    contact: config.contactPath
+  }[categoryId] || config.homePath;
+  return { ...category, href, libraryHref: href };
+}
 const LIBRARY_PRESENTATION = Object.freeze({
   projects: Object.freeze({
     title: 'Project library',
@@ -163,8 +190,20 @@ function readBodyRouteMetadata(html) {
     id: getTagAttribute(bodyTag, 'data-site-route-id'),
     category: getTagAttribute(bodyTag, 'data-site-route-category'),
     view: getTagAttribute(bodyTag, 'data-site-route-view'),
-    navigation: getTagAttribute(bodyTag, 'data-site-route-navigation')
+    navigation: getTagAttribute(bodyTag, 'data-site-route-navigation'),
+    module: getTagAttribute(bodyTag, 'data-site-route-module')
   };
+}
+
+function getRouteModule(html, fallbackId) {
+  const bodyTag = /<body\b[^>]*>/i.exec(String(html || ''))?.[0] || '';
+  const page = getTagAttribute(bodyTag, 'data-page');
+  if (page === 'contact') return 'contact:contact';
+  if (page === 'search') return 'search:search';
+  if (/\bdata-portfolio-workbench(?:[\s=>])/i.test(html)) return 'portfolio:workbench';
+  if (page === 'project' || /^resume(?:-|$)/.test(page) ||
+      ['analytics', 'data-science', 'tourism'].includes(page)) return 'page:content';
+  return fallbackId;
 }
 
 function renderSiteRouteManifest(html, options = {}) {
@@ -188,7 +227,7 @@ function renderSiteRouteManifest(html, options = {}) {
     navigation,
     styles: Array.isArray(options.styles) ? options.styles : extractRouteStyles(html),
     scripts: Array.isArray(options.scripts) ? options.scripts : extractRouteScripts(html),
-    module: String(options.module || id).trim() || id
+    module: String(options.module || bodyMetadata.module || getRouteModule(html, id)).trim() || id
   };
   return `<script type="application/json" id="${SITE_ROUTE_MANIFEST_ID}" data-site-route-manifest data-version="${SITE_ROUTE_MANIFEST_VERSION}">${escapeJsonForHtml(manifest)}</script>`;
 }
@@ -263,12 +302,12 @@ function validatePersonalRouteDocument(html) {
   return manifest;
 }
 
-function markHardNavigationLinks(html, forceAll = false) {
+function markHardNavigationLinks(html, forceAll = false, clearPrevious = false) {
   return String(html || '').replace(/<a\b[^>]*>/gi, (tag) => {
     const href = getTagAttribute(tag, 'href');
     return forceAll || isHardNavigationPath(href)
       ? setTagAttribute(tag, 'data-navigation', 'hard')
-      : tag;
+      : clearPrevious ? removeTagAttribute(tag, 'data-navigation') : tag;
   });
 }
 
@@ -294,12 +333,13 @@ function finalizePersonalRouteDocument(html, options = {}) {
     ? { id: 'home', category: 'about', view: 'overview', navigation: 'soft', path: '/', module: 'home' }
     : options;
   const routePath = getCanonicalRoutePath(output, routeOptions.path);
-  const navigation = isHardNavigationPath(routePath) || routeOptions.navigation === 'hard' ? 'hard' : 'soft';
+  const navigation = isHardNavigationPath(routePath) || routeOptions.navigation === 'hard' || (!isHomepage && bodyMetadata.navigation === 'hard') ? 'hard' : 'soft';
   output = output.replace(/<body\b[^>]*>/i, (bodyTag) => {
     let next = setTagAttribute(bodyTag, 'data-site-route-id', routeOptions.id || bodyMetadata.id);
     next = setTagAttribute(next, 'data-site-route-category', routeOptions.category || bodyMetadata.category);
     next = setTagAttribute(next, 'data-site-route-view', routeOptions.view || bodyMetadata.view);
     next = setTagAttribute(next, 'data-site-route-navigation', navigation);
+    next = setTagAttribute(next, 'data-site-route-module', routeOptions.module || bodyMetadata.module || getRouteModule(output, routeOptions.id || bodyMetadata.id));
     return next;
   });
   output = markPersistentShellChrome(markHardNavigationLinks(output, navigation === 'hard'));
@@ -509,16 +549,21 @@ function preparePersonalToolDetailHtml(html, options = {}) {
   return `${source.slice(0, chromeStart)}${header}\n${mainHtml}${boundary}${suffix}`;
 }
 
-function renderPersonalRails(activeCategory) {
+function renderPersonalRails(activeCategory, audience = 'personal') {
   const active = normalizeCategory(activeCategory);
-  const rails = CATEGORY_ORDER.map((categoryId) => {
-    const category = CATEGORY_CONFIG[categoryId];
+  const isProfessional = getShellAudience(audience) !== 'personal';
+  const order = isProfessional ? PROFESSIONAL_CATEGORY_ORDER : CATEGORY_ORDER;
+  const rails = order.map((categoryId) => {
+    const category = getShellCategory(categoryId, audience);
     const isActive = categoryId === active;
-    const stateAttributes = isActive
+    const stateAttributes = isProfessional
+      ? (isActive ? 'aria-current="page" data-personal-rail-active="true" data-site-tab-active="true"' : '')
+      : isActive
       ? 'aria-current="page" data-personal-rail-active="true" data-site-tab-active="true" data-personal-transition="collapse"'
       : 'hidden inert aria-hidden="true" tabindex="-1"';
+    const label = isProfessional ? category.label : `Return to the ${category.label} section on the homepage`;
     return [
-      `  <a class="personal-accordion__rail personal-accordion__rail--${categoryId}${isActive ? ' is-active' : ''}" href="${category.href}" aria-label="Return to the ${category.label} section on the homepage" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};" data-site-tab="${categoryId}" data-site-tab-category="${categoryId}" ${stateAttributes}>`,
+      `  <a class="personal-accordion__rail personal-accordion__rail--${categoryId}${isActive ? ' is-active' : ''}" href="${escapeHtml(category.href)}" aria-label="${escapeHtml(label)}" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};" data-site-tab="${categoryId}" data-site-tab-category="${categoryId}" ${stateAttributes}>`,
       `    <span class="personal-accordion__rail-icon" aria-hidden="true">${renderIcon(category.icon)}</span>`,
       `    <span class="personal-accordion__rail-label">${category.label}</span>`,
       '    <span class="personal-accordion__rail-notch" aria-hidden="true"></span>',
@@ -526,7 +571,7 @@ function renderPersonalRails(activeCategory) {
     ].join('\n');
   });
   return [
-    `<div class="personal-accordion__rails" data-personal-category-marker="${active}" data-site-tab-rail data-site-tab-rail-mode="expanded">`,
+    `<div class="personal-accordion__rails"${isProfessional ? ' role="navigation" aria-label="Site sections"' : ''} data-personal-category-marker="${active}" data-site-tab-rail data-site-tab-rail-mode="${isProfessional ? 'navigation' : 'expanded'}">`,
     rails.join('\n'),
     '</div>'
   ].join('\n');
@@ -585,7 +630,8 @@ function removePersonalBodyAttributes(html) {
       'data-site-route-id',
       'data-site-route-category',
       'data-site-route-view',
-      'data-site-route-navigation'
+      'data-site-route-navigation',
+      'data-site-route-module'
     ].reduce((tag, name) => removeTagAttribute(tag, name), bodyTag);
     if (/\sdata-audience="personal"/i.test(next)) next = removeTagAttribute(next, 'data-audience');
     return next;
@@ -612,7 +658,8 @@ function normalizeSkipLinkHrefs(html) {
 
   let pathname = '';
   try {
-    pathname = new URL(canonicalHref, 'https://www.danielshort.me').pathname || '/';
+    const url = new URL(canonicalHref.replace(/&amp;/g, '&'), 'https://www.danielshort.me');
+    pathname = `${url.pathname || '/'}${url.search}`;
   } catch (_) {
     return source;
   }
@@ -726,7 +773,7 @@ function findFragmentRange(html, options = {}) {
 
 function renderPersonalAccordionShell(fragment, options = {}) {
   const categoryId = normalizeCategory(options.category);
-  const category = CATEGORY_CONFIG[categoryId];
+  const category = getShellCategory(categoryId, options.audience);
   const isLibrary = options.view === 'library';
   const itemId = String(options.itemId || categoryId).trim() || categoryId;
   const fit = String(options.fit || 'document').trim() || 'document';
@@ -753,7 +800,7 @@ function renderPersonalAccordionShell(fragment, options = {}) {
     '  <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>',
     `<section class="personal-accordion personal-accordion--${escapeHtml(categoryId)} personal-accordion--${isLibrary ? 'library' : 'detail'}" data-personal-accordion-shell data-personal-active-category="${escapeHtml(categoryId)}" data-site-route-content style="--panel-color: ${category.color}; --panel-color-end: ${category.colorEnd};">`,
     '  <div class="personal-accordion__shell">',
-    renderPersonalRails(categoryId).split('\n').map((line) => `    ${line}`).join('\n'),
+    renderPersonalRails(categoryId, options.audience).split('\n').map((line) => `    ${line}`).join('\n'),
     `    <div class="personal-accordion__panel" data-personal-detail-panel="${escapeHtml(categoryId)}">`,
     toolbar ? toolbar.split('\n').map((line) => `      ${line}`).join('\n') : '',
     '      <div class="personal-accordion__content" data-personal-detail-content>',
@@ -771,6 +818,7 @@ function renderPersonalAccordionShell(fragment, options = {}) {
 
 function wrapPersonalAccordionHtml(html, options = {}) {
   const category = normalizeCategory(options.category);
+  const audience = getShellAudience(options.audience);
   const unwrappedHtml = unwrapPersonalAccordionHtml(html);
   const cleanHtml = category === 'projects'
     ? stripLegacyProjectPager(unwrappedHtml)
@@ -779,12 +827,12 @@ function wrapPersonalAccordionHtml(html, options = {}) {
   const fragment = cleanHtml.slice(range.start, range.end);
   const shell = renderPersonalAccordionShell(fragment, options);
   const bodyAttributes = {
-    'data-audience': 'personal',
+    'data-audience': audience,
     'data-personal-accordion-view': options.view === 'library' ? 'library' : 'detail',
     'data-personal-category': category,
     'data-personal-item': String(options.itemId || category).trim() || category,
     'data-personal-fit': String(options.fit || 'document').trim() || 'document',
-    'data-site-route-id': `${category}:${String(options.itemId || category).trim() || category}`,
+    'data-site-route-id': `${audience === 'personal' ? '' : `${audience}:`}${category}:${String(options.itemId || category).trim() || category}`,
     'data-site-route-category': category,
     'data-site-route-view': options.view === 'library' ? 'library' : 'detail'
   };
@@ -797,14 +845,28 @@ function wrapPersonalAccordionHtml(html, options = {}) {
   const suffix = cleanHtml.slice(range.end);
   const boundary = suffix && !/^\r?\n/.test(suffix) ? '\n' : '';
   const output = cleanHtml.slice(0, range.start) + shell + boundary + suffix;
-  const normalized = normalizeSkipLinkHrefs(setBodyAttributes(output, bodyAttributes));
+  bodyAttributes['data-site-route-module'] = options.module || getRouteModule(cleanHtml, bodyAttributes['data-site-route-id']);
+  let normalized = normalizeSkipLinkHrefs(setBodyAttributes(
+    markHardNavigationLinks(output, false, audience !== 'personal' && bodyAttributes['data-site-route-navigation'] === 'soft'),
+    bodyAttributes
+  ));
+  if (audience !== 'personal') {
+    const referrerTag = '<meta name="referrer" content="no-referrer">';
+    let referrerWritten = false;
+    normalized = normalized.replace(/<meta\b[^>]*\bname=["']referrer["'][^>]*>/gi, () => {
+      if (referrerWritten) return '';
+      referrerWritten = true;
+      return referrerTag;
+    });
+    if (!referrerWritten) normalized = normalized.replace(/<\/head>/i, `  ${referrerTag}\n</head>`);
+  }
   return finalizePersonalRouteDocument(normalized, {
     id: bodyAttributes['data-site-route-id'],
     path: canonicalPath,
     category,
     view: bodyAttributes['data-site-route-view'],
     navigation: bodyAttributes['data-site-route-navigation'],
-    module: bodyAttributes['data-site-route-id']
+    module: bodyAttributes['data-site-route-module']
   });
 }
 
@@ -884,6 +946,18 @@ function markProfessionalInternalHtml(html, audience = 'analytics') {
     let next = setTagAttribute(bodyTag, 'data-internal-professional-copy', 'true');
     next = setTagAttribute(next, 'data-audience', audienceKey);
     return next;
+  });
+  output = output.replace(/<a\b[^>]*>/gi, (tag) => {
+    const href = getTagAttribute(tag, 'href');
+    if (!href || /^(?:#|mailto:|tel:)/i.test(href)) return tag;
+    try {
+      const url = new URL(href.replace(/&amp;/g, '&'), 'https://www.danielshort.me/');
+      if (url.origin !== 'https://www.danielshort.me' || !/^\/(?:portfolio(?:\/[^/]+)?|contact|search)(?:\.html)?\/?$/i.test(url.pathname)) return tag;
+      url.searchParams.set('audience', audienceKey);
+      return setTagAttribute(tag, 'href', `${url.pathname}${url.search}${url.hash}`);
+    } catch (_) {
+      return tag;
+    }
   });
   output = output.replace(/<link\b[^>]*\brel="canonical"[^>]*>/i, (tag) => {
     const hrefMatch = /\shref="([^"]+)"/i.exec(tag);

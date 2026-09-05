@@ -24,7 +24,7 @@
 
   <style>
     :root {
-      --radius: 14px;
+      --radius: 12px;
       --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
       --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
       --surface-2: var(--surface-light);
@@ -90,7 +90,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px 18px;
-      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      background: var(--surface);
       border-bottom: 1px solid var(--surface-accent);
     }
 
@@ -101,7 +101,7 @@
     }
 
     .title {
-      font-family: Inter, Inter, system-ui, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       font-weight: 600;
       margin: 0;
       font-size: clamp(1.1rem, 2.2vw, 1.35rem);
@@ -160,8 +160,8 @@
       padding: 6px 12px;
       border-radius: 999px;
       font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      letter-spacing: normal;
+      text-transform: none;
       border: 1px solid var(--surface-accent);
       color: var(--muted);
       background: var(--surface-2);
@@ -211,14 +211,14 @@
 
     .content {
       display: grid;
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      grid-template-columns: minmax(0, 1fr);
       gap: 18px;
       padding: 18px;
-      align-items: stretch;
+      align-items: start;
     }
 
     .panel {
-      background: color-mix(in srgb, var(--surface) 92%, #000 8%);
+      background: var(--surface);
       border-radius: var(--radius);
       border: 1px solid var(--surface-accent);
       padding: 16px;
@@ -228,14 +228,39 @@
     }
 
     .panel.explorer {
-      grid-template-rows: auto auto 1fr;
-      height: 100%;
+      align-content: start;
+    }
+
+    .ratings-content {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .ratings-content > .stat-grid {
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .explorer-description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .filter-row label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      flex: 1 1 220px;
     }
 
     .panel h2,
     .panel h3 {
       margin: 0;
-      font-family: Inter, Inter, system-ui, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       font-weight: 600;
     }
 
@@ -252,7 +277,7 @@
       padding: 4px 8px;
       border-radius: 999px;
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: var(--surface);
     }
 
     .stat-grid {
@@ -265,7 +290,7 @@
       padding: 10px 12px;
       border-radius: 12px;
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 88%, #000 12%);
+      background: var(--surface-2);
       display: grid;
       gap: 4px;
     }
@@ -273,7 +298,7 @@
     .stat-label {
       font-size: 0.72rem;
       color: var(--muted);
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.04em;
     }
 
@@ -289,7 +314,7 @@
       display: grid;
       gap: 6px;
       max-height: var(--list-height);
-      min-height: var(--list-height);
+      min-height: 0;
       overflow: auto;
       scrollbar-gutter: stable;
     }
@@ -301,7 +326,7 @@
       padding: 6px 8px;
       border-radius: 8px;
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      background: var(--surface);
       font-size: 0.82rem;
     }
 
@@ -332,7 +357,7 @@
     }
 
     .bar-row:hover {
-      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      background: var(--surface);
     }
 
     .bar-row:focus-visible {
@@ -375,11 +400,12 @@
       display: inline-flex;
       gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .tab-btn {
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: var(--surface);
       color: var(--muted);
       padding: 6px 12px;
       border-radius: 999px;
@@ -405,7 +431,7 @@
     .filter-row select {
       border-radius: 10px;
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: var(--surface);
       color: var(--text);
       padding: 8px 10px;
       font-size: 0.8rem;
@@ -416,10 +442,12 @@
       padding: 0;
       margin: 0;
       display: grid;
-      gap: 8px;
+      gap: 0 20px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: start;
       overflow: auto;
-      max-height: var(--list-height);
-      min-height: var(--list-height);
+      max-height: 420px;
+      min-height: 220px;
       scrollbar-gutter: stable;
     }
 
@@ -428,23 +456,12 @@
       display: grid;
     }
 
-    .panel.explorer #name-list-wrap {
-      height: 100%;
-    }
-
-    .panel.explorer .name-list {
-      max-height: none;
-      min-height: var(--list-height);
-      height: 100%;
-    }
-
     .name-item {
       display: grid;
       gap: 8px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      padding: 14px 2px;
+      border-bottom: 1px solid var(--surface-accent);
+      background: var(--surface);
     }
 
     .name-header {
@@ -465,7 +482,7 @@
       border: 1px solid var(--surface-accent);
       padding: 2px 8px;
       border-radius: 999px;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.04em;
     }
 
@@ -502,6 +519,7 @@
     }
 
     .empty-state {
+      grid-column: 1 / -1;
       padding: 16px;
       border-radius: 12px;
       border: 1px dashed var(--surface-accent);
@@ -510,7 +528,7 @@
     }
 
     @media (max-width: 980px) {
-      .content {
+      .ratings-content {
         grid-template-columns: 1fr;
       }
     }
@@ -549,7 +567,10 @@
         flex-direction: column;
         align-items: flex-start;
       }
-      .stat-grid {
+      .ratings-content > .stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .name-list {
         grid-template-columns: 1fr;
       }
       .mini-list {
@@ -571,7 +592,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -579,100 +600,107 @@
   </script>
 </head>
 <body>
-<a href="#main" class="skip-link">Skip to main content</a>
+  <a href="#main" class="skip-link">Skip to main content</a>
   <div id="main" role="application" aria-label="Baby names analysis demo">
     <header class="card-header">
       <div class="header-copy">
-        <h1 class="title">Baby Name Signals</h1>
-        <p class="subtitle">Interactive look at my wife's ratings and similarity-based recommendations.</p>
+        <h1 class="title">Baby names</h1>
+        <p class="subtitle">Explore my wife's name ratings and discover similar names she might like.</p>
       </div>
       <div class="header-actions">
-        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Warming up</span>
-        <div class="segment" role="tablist" aria-label="Name sex">
-          <button class="segment-btn is-active" type="button" data-sex="F" aria-pressed="true">Girls</button>
-          <button class="segment-btn" type="button" data-sex="M" aria-pressed="false">Boys</button>
-          <button class="segment-btn" type="button" data-sex="all" aria-pressed="false">All</button>
-        </div>
+        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
+
       </div>
     </header>
 
     <div class="status-row demo-meta-row">
+      <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
       <span class="status-meta" id="status-meta">Fetching demo data...</span>
       <span class="status-note">My wife has approved publication of this data through this project.</span>
     </div>
 
     <main class="content">
-      <section class="panel" id="ratings-panel">
-        <div class="panel-title">
-          <h2>Ratings Snapshot</h2>
-          <span class="meta-chip" id="meta-source">SSA latest</span>
-        </div>
-
-        <div class="stat-grid">
-          <div class="stat-card">
-            <div class="stat-label">Rated Names</div>
-            <div class="stat-value" id="stat-rated">--</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Average Rating</div>
-            <div class="stat-value" id="stat-average">--</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Median Rating</div>
-            <div class="stat-value" id="stat-median">--</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Top Initial</div>
-            <div class="stat-value" id="stat-initial">--</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Common Ending</div>
-            <div class="stat-value" id="stat-ending">--</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Avg Name Length</div>
-            <div class="stat-value" id="stat-length">--</div>
-          </div>
-        </div>
-
-        <div>
-          <h3>Rating Distribution</h3>
-          <div class="bars" id="rating-bars"></div>
-        </div>
-
-        <div class="rating-detail">
-          <h3>Selected Rating</h3>
-          <p class="detail-meta" id="rating-detail-meta">Click a rating to view names.</p>
-          <ul class="mini-list" id="rating-detail-list"></ul>
-        </div>
-
-        <div>
-          <h3>Favorites</h3>
-          <ul class="mini-list" id="top-rated"></ul>
-        </div>
-      </section>
-
       <section class="panel explorer" id="explorer-panel">
         <div class="panel-title">
-          <h2>Name Explorer</h2>
-          <div class="tabs" role="tablist" aria-label="Name lists">
+          <h2>Name explorer</h2>
+          <div class="tabs" role="group" aria-label="Name lists">
             <button class="tab-btn is-active" type="button" data-tab="recommendations" aria-pressed="true">Recommendations</button>
-            <button class="tab-btn" type="button" data-tab="ratings" aria-pressed="false">Rated Names</button>
+            <button class="tab-btn" type="button" data-tab="ratings" aria-pressed="false">Rated names</button>
           </div>
         </div>
 
+        <p class="explorer-description" id="list-description">Recommendations show predicted ratings based on name similarity.</p>
+        <div class="segment" role="group" aria-label="Name sex">
+          <button class="segment-btn is-active" type="button" data-sex="F" aria-pressed="true">Girls</button>
+          <button class="segment-btn" type="button" data-sex="M" aria-pressed="false">Boys</button>
+          <button class="segment-btn" type="button" data-sex="all" aria-pressed="false">All</button>
+        </div>
         <div class="filter-row">
-          <input id="name-search" type="search" placeholder="Search by name" aria-label="Search by name" />
-          <select id="sort-select" aria-label="Sort list">
-            <option value="score">Sort: Score high to low</option>
-            <option value="alpha">Sort: A to Z</option>
-          </select>
+          <label>Find a name
+            <input id="name-search" type="search" placeholder="Search by name" />
+          </label>
+          <label>Sort results
+            <select id="sort-select">
+              <option value="score">Score: high to low</option>
+              <option value="alpha">Name: A to Z</option>
+            </select>
+          </label>
         </div>
 
+        <p class="detail-meta" id="list-count" role="status" aria-live="polite">Loading names…</p>
         <div id="name-list-wrap">
-          <ul class="name-list" id="name-list"></ul>
+          <ul class="name-list" id="name-list" tabindex="0" aria-label="Name results"></ul>
         </div>
       </section>
+      <details class="demo-disclosure" id="ratings-panel">
+        <summary>Ratings snapshot and favorites</summary>
+        <div class="demo-disclosure-content ratings-content">
+
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-label">Rated names</div>
+              <div class="stat-value" id="stat-rated">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Average rating</div>
+              <div class="stat-value" id="stat-average">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Median rating</div>
+              <div class="stat-value" id="stat-median">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Top initial</div>
+              <div class="stat-value" id="stat-initial">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Common ending</div>
+              <div class="stat-value" id="stat-ending">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Average name length</div>
+              <div class="stat-value" id="stat-length">--</div>
+            </div>
+          </div>
+
+          <div>
+            <h3>Rating distribution</h3>
+            <div class="bars" id="rating-bars"></div>
+          </div>
+
+          <div class="rating-detail">
+            <h3>Selected rating</h3>
+            <p class="detail-meta" id="rating-detail-meta">Click a rating to view names.</p>
+            <ul class="mini-list" id="rating-detail-list"></ul>
+          </div>
+
+          <div>
+            <h3>Favorites</h3>
+            <ul class="mini-list" id="top-rated"></ul>
+          </div>
+          <p class="detail-meta">Source: <span id="meta-source">SSA latest</span></p>
+        </div>
+      </details>
     </main>
   </div>
 
@@ -707,8 +735,8 @@
       sortSelect: document.getElementById("sort-select"),
       segmentButtons: Array.from(document.querySelectorAll(".segment button")),
       tabButtons: Array.from(document.querySelectorAll(".tab-btn")),
-      ratingsPanel: document.getElementById("ratings-panel"),
-      explorerPanel: document.getElementById("explorer-panel")
+      listDescription: document.getElementById("list-description"),
+      listCount: document.getElementById("list-count")
     };
 
     const notifyResize = (() => {
@@ -725,20 +753,9 @@
       return postHeight;
     })();
 
-    function syncPanelHeights() {
-      if (!DOM.ratingsPanel || !DOM.explorerPanel) return;
-      if (window.matchMedia("(max-width: 980px)").matches) {
-        DOM.explorerPanel.style.height = "auto";
-        return;
-      }
-      const leftHeight = DOM.ratingsPanel.offsetHeight;
-      if (leftHeight) {
-        DOM.explorerPanel.style.height = `${leftHeight}px`;
-      }
-    }
-
     function setStatus(state, text, meta) {
       DOM.statusPill.dataset.state = state;
+      document.getElementById("retry-demo").hidden = state !== "err";
       DOM.statusPill.textContent = text;
       if (meta !== undefined) DOM.statusMeta.textContent = meta;
     }
@@ -883,7 +900,6 @@
       DOM.topRated.innerHTML = stats.topRated.length
         ? stats.topRated.map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`).join("")
         : "<li class=\"empty-state\">No ratings yet</li>";
-      syncPanelHeights();
       notifyResize();
     }
 
@@ -904,10 +920,17 @@
         : collectRecommendations(appState.sex);
       const query = appState.query.trim().toLowerCase();
       let items = source.filter((row) => row.name.toLowerCase().includes(query));
+      const matchCount = items.length;
       items = sortItems(items).slice(0, 60);
+      DOM.listDescription.textContent = appState.tab === "ratings"
+        ? "Actual ratings from my wife, on a scale of 1 to 10."
+        : "Recommendations show predicted ratings based on name similarity.";
+      DOM.listCount.textContent = matchCount > 60
+        ? `Showing 60 of ${matchCount} matching names. Search to narrow the list.`
+        : `${matchCount} ${matchCount === 1 ? "name" : "names"} found.`;
 
       if (!items.length) {
-        DOM.nameList.innerHTML = "<li class=\"empty-state\">No matching names</li>";
+        DOM.nameList.innerHTML = "<li class=\"empty-state\">No matching names. Try a shorter search or select All.</li>";
         notifyResize();
         return;
       }
@@ -918,7 +941,7 @@
         const tag = row.sex === "F" ? "Girl" : "Boy";
         const meta = appState.tab === "ratings"
           ? "Rated by my wife"
-          : `SSA count: ${row.count}`;
+          : `Predicted rating · SSA count: ${row.count}`;
         return `
           <li class="name-item">
             <div class="name-header">
@@ -933,7 +956,6 @@
           </li>
         `;
       }).join("");
-      syncPanelHeights();
       notifyResize();
     }
 
@@ -958,7 +980,8 @@
         btn.classList.toggle("is-active", active);
         btn.setAttribute("aria-pressed", String(active));
       });
-      DOM.sortSelect.value = tab === "ratings" ? "score" : DOM.sortSelect.value;
+      appState.sort = tab === "ratings" ? "score" : appState.sort;
+      DOM.sortSelect.value = appState.sort;
       renderList();
     }
 
@@ -980,6 +1003,7 @@
         dataReady = false;
         setControlsEnabled(false);
         setStatus("err", "Unavailable", "Demo data missing");
+        DOM.listCount.textContent = "Names unavailable.";
         DOM.nameList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
       }
     }
@@ -1004,8 +1028,9 @@
       renderList();
     });
 
-    window.addEventListener("resize", () => {
-      syncPanelHeights();
+    document.getElementById("retry-demo").addEventListener("click", () => window.location.reload());
+    document.querySelectorAll("details.demo-disclosure").forEach((details) => {
+      details.addEventListener("toggle", () => requestAnimationFrame(notifyResize));
     });
 
     init();

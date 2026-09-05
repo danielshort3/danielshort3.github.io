@@ -13,7 +13,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">
-  <title>Empty-Package Shrink Explorer</title>
+  <title>Empty-package recoveries</title>
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
@@ -22,8 +22,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@600&display=swap">
   <style>
     :root {
-      --radius-lg: 18px;
-      --radius-md: 14px;
+      --radius-lg: 12px;
+      --radius-md: 12px;
       --radius-sm: 10px;
       --page-pad: clamp(12px, 3vw, 24px);
       --shadow-1: 0 6px 18px rgba(9,31,59,.08);
@@ -102,7 +102,7 @@
       justify-content: space-between;
       gap: 12px;
       padding: 18px 20px;
-      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      background: var(--surface);
       border-bottom: 1px solid var(--surface-accent);
     }
 
@@ -114,7 +114,7 @@
 
     .title {
       margin: 0;
-      font-family: Inter, Inter, system-ui, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       font-weight: 600;
       font-size: clamp(1.2rem, 2.4vw, 1.45rem);
     }
@@ -138,8 +138,8 @@
       border-radius: 999px;
       border: 1px solid var(--surface-accent);
       font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      text-transform: none;
+      letter-spacing: normal;
       color: var(--muted);
       background: color-mix(in srgb, var(--surface) 84%, #000 16%);
     }
@@ -175,8 +175,8 @@
       padding: 6px 12px;
       border-radius: 999px;
       font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      letter-spacing: normal;
+      text-transform: none;
       border: 1px solid var(--surface-accent);
       color: var(--muted);
       background: var(--surface-2);
@@ -226,18 +226,22 @@
 
     .content {
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      align-items: start;
       gap: 22px;
       padding: 20px 22px 24px;
     }
 
-    .column {
-      display: grid;
-      gap: 22px;
+    #trend-panel {
+      grid-column: 1 / -1;
+    }
+
+    .filter-grid.primary-filters {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .panel {
-      background: color-mix(in srgb, var(--surface) 92%, #000 8%);
+      background: var(--surface);
       border-radius: var(--radius-md);
       border: 1px solid var(--surface-accent);
       padding: 16px;
@@ -249,12 +253,13 @@
     .panel h2,
     .panel h3 {
       margin: 0;
-      font-family: Inter, Inter, system-ui, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       font-weight: 600;
     }
 
     .panel-title {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
@@ -265,8 +270,8 @@
       border: 1px solid var(--surface-accent);
       padding: 4px 10px;
       font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      text-transform: none;
+      letter-spacing: normal;
       color: var(--muted);
       background: var(--surface-2);
     }
@@ -288,111 +293,35 @@
       gap: 12px;
     }
 
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card {
-      --kpi-accent: var(--brand-signal-blue, var(--primary));
-      position: relative;
-      overflow: hidden;
-      padding: 14px 14px 14px 16px;
-      border-radius: var(--radius-sm);
-      border: 1px solid color-mix(in srgb, var(--kpi-accent) 20%, var(--surface-accent) 80%);
-      background:
-        linear-gradient(135deg,
-          color-mix(in srgb, var(--kpi-accent) 7%, #ffffff 93%),
-          #ffffff 54%);
+    .kpi-card {
+      padding: 12px;
       display: grid;
       gap: 6px;
       align-content: start;
-      min-height: 108px;
-      box-shadow: 0 8px 18px rgba(9, 31, 59, 0.08);
+      border-bottom: 1px solid var(--surface-accent);
     }
 
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 4px;
-      background: var(--kpi-accent);
+    .kpi-label {
+      color: var(--muted);
+      font-size: 0.78rem;
     }
 
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card::after {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto;
-      height: 2px;
-      background: linear-gradient(90deg,
-        color-mix(in srgb, var(--kpi-accent) 82%, #ffffff 18%),
-        color-mix(in srgb, var(--kpi-accent) 18%, transparent));
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card.is-primary {
-      background:
-        linear-gradient(135deg,
-          color-mix(in srgb, var(--kpi-accent) 12%, #ffffff 88%),
-          #ffffff 52%);
-      border-color: color-mix(in srgb, var(--kpi-accent) 38%, transparent);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="change"] {
-      --kpi-accent: var(--brand-action-copper, #D97706);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="incidents"] {
-      --kpi-accent: var(--brand-risk, #B91C1C);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="average"] {
-      --kpi-accent: var(--brand-success, #166534);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="hotspot"] {
-      --kpi-accent: var(--brand-deep-blue, #0145C8);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="largest"] {
-      --kpi-accent: var(--brand-action-copper, #D97706);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: color-mix(in srgb, var(--kpi-accent) 58%, var(--brand-midnight, var(--text)) 42%);
+    .kpi-value {
+      font-size: clamp(1.3rem, 2.4vw, 1.8rem);
       font-weight: 600;
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-value {
-      min-width: 0;
-      font-size: clamp(1.16rem, 2vw, 1.5rem);
-      font-weight: 600;
-      letter-spacing: 0.01em;
-      line-height: 1.18;
-      color: var(--brand-midnight, var(--text));
+      color: var(--text);
       overflow-wrap: anywhere;
     }
 
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="hotspot"] .kpi-value,
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="largest"] .kpi-value {
-      font-size: clamp(1.02rem, 1.6vw, 1.28rem);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-value[data-trend="up"] {
-      color: var(--success, #38b37e);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-value[data-trend="down"] {
-      color: var(--danger, #e05757);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-value[data-trend="flat"] {
-      color: color-mix(in srgb, var(--muted) 80%, #ffffff 20%);
-    }
-
-    html[data-project-demo-theme="brand"] .exec-panel .kpi-sub {
-      font-size: 0.72rem;
+    .kpi-sub {
+      font-size: 0.78rem;
       color: var(--muted);
       line-height: 1.4;
     }
 
+    #kpi-panel .kpi-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -403,15 +332,15 @@
       padding: 12px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      background: var(--surface);
       display: grid;
       gap: 6px;
     }
 
     .stat-label {
       font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      text-transform: none;
+      letter-spacing: normal;
       color: var(--muted);
     }
 
@@ -434,7 +363,7 @@
     .insight-card {
       border-radius: var(--radius-sm);
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: var(--surface);
       padding: 10px 12px;
       display: grid;
       gap: 6px;
@@ -442,8 +371,8 @@
 
     .insight-title {
       font-size: 0.74rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      text-transform: none;
+      letter-spacing: normal;
       color: var(--muted);
     }
 
@@ -459,13 +388,14 @@
 
     .tabs {
       display: inline-flex;
+      flex-wrap: wrap;
       gap: 8px;
       align-items: center;
     }
 
     .tab-btn {
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: var(--surface);
       color: var(--muted);
       padding: 6px 12px;
       border-radius: 999px;
@@ -483,7 +413,7 @@
     .chart-wrap {
       border-radius: var(--radius-sm);
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 88%, #000 12%);
+      background: var(--surface-2);
       padding: 12px;
     }
 
@@ -508,8 +438,8 @@
       display: grid;
       gap: 6px;
       font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      text-transform: none;
+      letter-spacing: normal;
       color: var(--muted);
     }
 
@@ -517,7 +447,7 @@
     .filter-grid select {
       border-radius: 10px;
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: var(--surface);
       color: var(--text);
       padding: 8px 10px;
       font-size: 0.8rem;
@@ -549,7 +479,7 @@
       padding: 10px 12px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      background: var(--surface);
     }
 
     .breakdown-top {
@@ -637,14 +567,12 @@
       .kpi-grid {
         grid-template-columns: 1fr;
       }
-      html[data-project-demo-theme="brand"] .exec-panel .kpi-card {
-        min-height: 96px;
-      }
       svg {
         height: 200px;
       }
-      .status-note {
-        display: none;
+      .filter-grid,
+      .filter-grid.primary-filters {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
 
@@ -659,7 +587,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -667,131 +595,51 @@
   </script>
 </head>
 <body>
-<a href="#main" class="skip-link">Skip to main content</a>
+  <a href="#main" class="skip-link">Skip to main content</a>
   <div id="main" role="application" aria-label="Empty package shrink demo">
     <header class="card-header">
       <div class="header-copy">
-        <h1 class="title">Empty-Package Shrink Explorer</h1>
-        <p class="subtitle">Executive KPIs and aggregated drilldowns highlight concentration and acceleration.</p>
+        <h1 class="title">Empty-package recoveries</h1>
+        <p class="subtitle">Follow recovery trends and explore patterns by location, department, or associate.</p>
       </div>
       <div class="header-actions">
-        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Loading</span>
+        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
         <span class="pill" id="date-range-pill">Loading dates</span>
         <button class="btn-ghost" id="reset-filters" type="button">Reset filters</button>
       </div>
     </header>
 
     <div class="status-row demo-meta-row">
+      <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
       <span class="status-meta" id="status-meta">Loading anonymized data...</span>
       <span class="status-note">Employee and location identifiers are anonymized.</span>
     </div>
 
     <main class="content">
-      <section class="panel exec-panel" id="executive-panel">
+      <section class="panel" id="trend-panel">
         <div class="panel-title">
-          <h2>Executive KPIs</h2>
-          <span class="meta-chip" id="kpi-meta">All records</span>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi-card is-primary" data-kpi="value">
-            <div class="kpi-label">Recovered Value</div>
-            <div class="kpi-value" id="kpi-total">--</div>
-            <div class="kpi-sub" id="kpi-total-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="change">
-            <div class="kpi-label">QoQ Change</div>
-            <div class="kpi-value" id="kpi-qoq" data-trend="flat">--</div>
-            <div class="kpi-sub" id="kpi-qoq-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="incidents">
-            <div class="kpi-label">Incidents</div>
-            <div class="kpi-value" id="kpi-incidents">--</div>
-            <div class="kpi-sub" id="kpi-incidents-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="average">
-            <div class="kpi-label">Avg Recovery</div>
-            <div class="kpi-value" id="kpi-avg">--</div>
-            <div class="kpi-sub" id="kpi-avg-sub">Per incident</div>
-          </div>
-          <div class="kpi-card" data-kpi="hotspot">
-            <div class="kpi-label">Top Hotspot</div>
-            <div class="kpi-value" id="kpi-hotspot">--</div>
-            <div class="kpi-sub" id="kpi-hotspot-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="largest">
-            <div class="kpi-label">Largest Single Recovery</div>
-            <div class="kpi-value" id="kpi-largest">--</div>
-            <div class="kpi-sub" id="kpi-largest-sub">--</div>
+          <h2>Quarterly trend</h2>
+          <div class="tabs" role="group" aria-label="Metric toggle">
+            <button class="tab-btn is-active" type="button" data-metric="value" aria-pressed="true">Retail value</button>
+            <button class="tab-btn" type="button" data-metric="count" aria-pressed="false">Incident count</button>
           </div>
         </div>
-      </section>
-      <div class="column">
-        <section class="panel" id="kpi-panel">
-          <div class="panel-title">
-            <h2>Action Drivers</h2>
-            <span class="meta-chip" id="snapshot-meta">All records</span>
-          </div>
-          <div class="insight-grid">
-            <div class="insight-card">
-              <div class="insight-title">Hotspot Locations</div>
-              <div class="insight-value" id="insight-locations">--</div>
-              <div class="insight-meta" id="insight-locations-meta">--</div>
-            </div>
-            <div class="insight-card">
-              <div class="insight-title">Department Concentration</div>
-              <div class="insight-value" id="insight-departments">--</div>
-              <div class="insight-meta" id="insight-departments-meta">--</div>
-            </div>
-            <div class="insight-card">
-              <div class="insight-title">Repeat Associates</div>
-              <div class="insight-value" id="insight-employees">--</div>
-              <div class="insight-meta" id="insight-employees-meta">--</div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" id="trend-panel">
-          <div class="panel-title">
-            <h2>Quarterly Trend</h2>
-            <div class="tabs" role="tablist" aria-label="Metric toggle">
-              <button class="tab-btn is-active" type="button" data-metric="value" aria-pressed="true">Retail Value</button>
-              <button class="tab-btn" type="button" data-metric="count" aria-pressed="false">Incident Count</button>
-            </div>
-          </div>
-          <div class="chart-wrap">
-            <svg id="trend-chart" viewBox="0 0 640 220" aria-label="Quarterly trend chart" role="img"></svg>
-          </div>
-          <div class="chart-meta" id="trend-meta">--</div>
-        </section>
-      </div>
-
-      <section class="panel explorer" id="explorer-panel">
+        <div class="chart-wrap">
+          <svg id="trend-chart" viewBox="0 0 640 220" aria-label="Quarterly trend chart" role="img"></svg>
+        </div>
+        <div class="chart-meta" id="trend-meta">--</div>
         <div class="panel-title">
-          <h2>Explore the Data</h2>
+          <h3>Filter records</h3>
           <span class="meta-chip" id="filter-meta">Filters</span>
         </div>
-
-        <div class="filter-grid">
+        <div class="filter-grid primary-filters">
           <label>
             Location
             <select id="filter-location" aria-label="Filter by location" disabled>
               <option value="all">All locations</option>
             </select>
           </label>
-          <label>
-            Package Condition
-            <select id="filter-condition" aria-label="Filter by condition" disabled>
-              <option value="all">All conditions</option>
-            </select>
-          </label>
-          <label>
-            Department
-            <input id="filter-department" list="department-list" placeholder="All departments" aria-label="Filter by department" disabled />
-          </label>
-          <label>
-            Associate
-            <input id="filter-employee" list="employee-list" placeholder="All associates" aria-label="Filter by employee" disabled />
-          </label>
+
           <label>
             Start date
             <input id="filter-start" type="date" aria-label="Filter start date" disabled />
@@ -801,13 +649,63 @@
             <input id="filter-end" type="date" aria-label="Filter end date" disabled />
           </label>
         </div>
+        <details class="demo-disclosure">
+          <summary>More filters</summary>
+          <div class="demo-disclosure-content filter-grid">
+            <label>
+              Package condition
+              <select id="filter-condition" aria-label="Filter by condition" disabled>
+                <option value="all">All conditions</option>
+              </select>
+            </label>
+            <label>
+              Department
+              <input id="filter-department" list="department-list" placeholder="All departments" aria-label="Filter by department" disabled />
+            </label>
+            <label>
+              Associate
+              <input id="filter-employee" list="employee-list" placeholder="All associates" aria-label="Filter by employee" disabled />
+            </label>
+          </div>
+        </details>
+
         <datalist id="department-list"></datalist>
         <datalist id="employee-list"></datalist>
         <div class="filter-note">Filters update KPIs, trend, and breakdowns. Empty input means all.</div>
 
+      </section>
+      <section class="panel exec-panel" id="executive-panel">
+        <div class="panel-title">
+          <h2>At a glance</h2>
+          <span class="meta-chip" id="kpi-meta">All records</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card is-primary" data-kpi="value">
+            <div class="kpi-label">Recovered value</div>
+            <div class="kpi-value" id="kpi-total">--</div>
+            <div class="kpi-sub" id="kpi-total-sub">--</div>
+          </div>
+          <div class="kpi-card" data-kpi="change">
+            <div class="kpi-label">Quarter-over-quarter change</div>
+            <div class="kpi-value" id="kpi-qoq" data-trend="flat">--</div>
+            <div class="kpi-sub" id="kpi-qoq-sub">--</div>
+          </div>
+          <div class="kpi-card" data-kpi="incidents">
+            <div class="kpi-label">Incidents</div>
+            <div class="kpi-value" id="kpi-incidents">--</div>
+            <div class="kpi-sub" id="kpi-incidents-sub">--</div>
+          </div>
+
+        </div>
+      </section>
+      <section class="panel explorer" id="explorer-panel">
+        <div class="panel-title">
+          <h2>Record breakdown</h2>
+        </div>
+
         <div class="panel-title">
           <h3>Breakdown</h3>
-          <div class="tabs" role="tablist" aria-label="Breakdown toggle">
+          <div class="tabs" role="group" aria-label="Breakdown toggle">
             <button class="tab-btn is-active" type="button" data-breakdown="location" aria-pressed="true">Location</button>
             <button class="tab-btn" type="button" data-breakdown="department" aria-pressed="false">Department</button>
             <button class="tab-btn" type="button" data-breakdown="employee" aria-pressed="false">Associate</button>
@@ -816,11 +714,54 @@
         <ul class="breakdown-list" id="breakdown-list"></ul>
 
         <div class="panel-title">
-          <h3>Priority Recoveries</h3>
+          <h3>Priority recoveries</h3>
           <span class="meta-chip" id="record-meta">Top 6 by value</span>
         </div>
         <ul class="record-list" id="record-list"></ul>
       </section>
+      <details class="demo-disclosure" id="kpi-panel">
+        <summary>Concentration and recovery details</summary>
+        <div class="demo-disclosure-content">
+          <div class="panel-title">
+            <h2>Concentration overview</h2>
+            <span class="meta-chip" id="snapshot-meta">All records</span>
+          </div>
+          <div class="insight-grid">
+            <div class="insight-card">
+              <div class="insight-title">Hotspot locations</div>
+              <div class="insight-value" id="insight-locations">--</div>
+              <div class="insight-meta" id="insight-locations-meta">--</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Department concentration</div>
+              <div class="insight-value" id="insight-departments">--</div>
+              <div class="insight-meta" id="insight-departments-meta">--</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Repeat associates</div>
+              <div class="insight-value" id="insight-employees">--</div>
+              <div class="insight-meta" id="insight-employees-meta">--</div>
+            </div>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-card" data-kpi="average">
+              <div class="kpi-label">Average recovery</div>
+              <div class="kpi-value" id="kpi-avg">--</div>
+              <div class="kpi-sub" id="kpi-avg-sub">Per incident</div>
+            </div>
+            <div class="kpi-card" data-kpi="hotspot">
+              <div class="kpi-label">Top hotspot</div>
+              <div class="kpi-value" id="kpi-hotspot">--</div>
+              <div class="kpi-sub" id="kpi-hotspot-sub">--</div>
+            </div>
+            <div class="kpi-card" data-kpi="largest">
+              <div class="kpi-label">Largest single recovery</div>
+              <div class="kpi-value" id="kpi-largest">--</div>
+              <div class="kpi-sub" id="kpi-largest-sub">--</div>
+            </div>
+          </div>
+        </div>
+      </details>
     </main>
   </div>
 
@@ -912,6 +853,7 @@
 
     function setStatus(stateValue, label, meta) {
       DOM.statusPill.dataset.state = stateValue;
+      document.getElementById("retry-demo").hidden = stateValue !== "err";
       DOM.statusPill.textContent = label;
       if (meta !== undefined) DOM.statusMeta.textContent = meta;
     }
@@ -1328,7 +1270,7 @@
         DOM.recordList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
         return;
       }
-      setStatus("warming", "Connecting", "Fetching demo data...");
+      setStatus("warming", "Preparing demo…", "Fetching demo data...");
       try {
         const data = await retryRequest(
           () => getJson(joinUrl(API_URL, "data"), { cache: "no-store" }),
@@ -1423,6 +1365,11 @@
     DOM.resetFilters.addEventListener("click", () => {
       if (!dataReady) return;
       resetFilters();
+    });
+
+    document.getElementById("retry-demo").addEventListener("click", () => window.location.reload());
+    document.querySelectorAll("details.demo-disclosure").forEach((details) => {
+      details.addEventListener("toggle", () => requestAnimationFrame(notifyResize));
     });
 
     init();

@@ -91,7 +91,7 @@ body[data-consent-banner="open"] .speed-dial {
   background: transparent;
   transform: translateY(140%);
   opacity: 0;
-  transition: transform 0.38s ease, opacity 0.38s ease;
+  transition: transform var(--motion-duration, var(--motion-slow, 320ms)) var(--easing-standard, ease), opacity var(--motion-duration, var(--motion-slow, 320ms)) var(--easing-standard, ease);
   pointer-events: none;
 }
 
@@ -286,7 +286,7 @@ body[data-consent-banner="open"] .speed-dial {
   backdrop-filter: var(--modal-backdrop-filter, blur(4px));
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--motion-slow, 320ms) var(--easing-standard, ease);
+  transition: opacity var(--motion-duration, var(--motion-slow, 320ms)) var(--easing-standard, ease);
 }
 
 #pcz-modal.pcz-visible {
@@ -307,8 +307,8 @@ body[data-consent-banner="open"] .speed-dial {
   background: var(--modal-surface, #ffffff);
   box-shadow: var(--pcz-shadow);
   outline: none;
-  transform: translateY(20px) scale(0.985);
-  transition: transform var(--motion-slow, 320ms) var(--easing-standard, cubic-bezier(0.22, 0.61, 0.36, 1));
+  transform: translateY(12px);
+  transition: transform var(--motion-duration, var(--motion-slow, 320ms)) var(--easing-standard, cubic-bezier(0.22, 0.61, 0.36, 1));
   scrollbar-gutter: stable both-edges;
 }
 
@@ -554,9 +554,9 @@ body[data-consent-banner="open"] .speed-dial {
   margin-top: 0;
   pointer-events: none;
   transition:
-    grid-template-rows 0.24s ease,
-    opacity 0.24s ease,
-    margin-top 0.24s ease;
+    grid-template-rows var(--motion-base, 220ms) var(--easing-standard, ease),
+    opacity var(--motion-base, 220ms) var(--easing-standard, ease),
+    margin-top var(--motion-base, 220ms) var(--easing-standard, ease);
 }
 
 #pcz-modal .pref-option.is-expanded .pref-disclosure {
@@ -765,6 +765,55 @@ body[data-consent-banner="open"] .speed-dial {
   body[data-page="home"].home-pattern-page[data-consent-banner="open"] .site-chatbot {
     opacity: 0;
     pointer-events: none;
+  }
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  #pcz-banner .pcz-card {
+    padding: 10px;
+  }
+
+  #pcz-banner .pcz-copy {
+    padding-right: 52px;
+  }
+
+  #pcz-banner .pcz-btn,
+  body.has-mobile-site-dock #pcz-banner .pcz-btn,
+  #pcz-banner .pcz-inline-link {
+    min-height: 44px;
+  }
+
+  #pcz-banner .pcz-inline-link {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  #pcz-banner .pcz-close {
+    top: 8px;
+    right: 8px;
+    width: 44px;
+    height: 44px;
+  }
+
+  #pcz-banner .pcz-close,
+  #pcz-banner .pcz-close:is(:hover, :focus-visible) {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  #pcz-modal .pref-status-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  #pcz-modal .pref-status-row .pref-state {
+    justify-self: start;
+  }
+
+  #pcz-modal .pref-option-head {
+    grid-template-columns: minmax(0, 1fr) 44px;
   }
 }
 

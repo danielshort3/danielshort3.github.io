@@ -30,9 +30,9 @@ const PERSONAL_LIBRARY_CONTRACTS = [
 ];
 
 const PROFESSIONAL_DIRECTORY_RESULT_CONTRACTS = [
-  { file: 'pages/professional/analytics/portfolio.html', pathPrefix: '/portfolio/', label: 'Analytics portfolio' },
-  { file: 'pages/professional/data-science/portfolio.html', pathPrefix: '/portfolio/', label: 'Data science portfolio' },
-  { file: 'pages/professional/tourism/portfolio.html', pathPrefix: '/portfolio/', label: 'Tourism portfolio' }
+  { file: 'pages/professional/analytics/portfolio.html', audience: 'analytics', pathPrefix: '/portfolio/', label: 'Analytics portfolio' },
+  { file: 'pages/professional/data-science/portfolio.html', audience: 'data-science', pathPrefix: '/portfolio/', label: 'Data science portfolio' },
+  { file: 'pages/professional/tourism/portfolio.html', audience: 'tourism', pathPrefix: '/portfolio/', label: 'Tourism portfolio' }
 ];
 
 const REQUIRED_ALIAS_REDIRECTS = [
@@ -738,11 +738,36 @@ function validateProfessionalDirectoryResultAnchors() {
       report(contract.file, 'incomplete HTML document shell');
       return;
     }
-    if (/data-personal-accordion-shell/i.test(html)) {
-      report(contract.file, 'professional workbench must not contain the personal accordion shell');
+    if (!extractElementWithAttribute(html, 'data-personal-accordion-shell')) {
+      report(contract.file, 'professional workbench is missing its complete shared tab shell');
     }
     if (!/data-internal-professional-copy=["']true["']/i.test(html)) {
       report(contract.file, 'professional workbench is missing its internal-copy marker');
+    }
+    const body = collectTagAttributes(html, 'body')[0] || {};
+    if (body['data-audience'] !== contract.audience || body['data-site-route-navigation'] !== 'soft' || body['data-site-route-module'] !== 'portfolio:workbench') {
+      report(contract.file, 'professional tab shell must retain its audience and scoped workbench navigation');
+    }
+    const robots = collectTagAttributes(html, 'meta').find((tag) => tag.name === 'robots')?.content || '';
+    if (!/\bnoindex\b/i.test(robots) || !/\bnofollow\b/i.test(robots)) {
+      report(contract.file, 'professional workbench must retain noindex and nofollow metadata');
+    }
+    const canonical = collectTagAttributes(html, 'link').find((tag) => tag.rel === 'canonical')?.href;
+    try {
+      const url = new URL(canonical || '', SITE_ORIGIN);
+      if (url.pathname !== '/portfolio' || url.searchParams.get('audience') !== contract.audience) {
+        report(contract.file, 'professional workbench canonical must retain its audience query');
+      }
+    } catch (_) {
+      report(contract.file, 'professional workbench canonical is invalid');
+    }
+    const rails = extractElementWithAttribute(html, 'data-site-tab-rail');
+    const railTags = collectOpeningTags(rails || '');
+    const railLinks = railTags.filter((tag) => tag.name === 'a');
+    if (!railTags.some((tag) => tag.attributes['data-site-tab-rail-mode'] === 'navigation') ||
+      railLinks.length !== 4 || railLinks.some((tag) => Object.prototype.hasOwnProperty.call(tag.attributes, 'hidden') ||
+        Object.prototype.hasOwnProperty.call(tag.attributes, 'inert') || tag.attributes['aria-hidden'] === 'true')) {
+      report(contract.file, 'professional navigation must expose four usable tab links without JavaScript');
     }
 
     const container = extractElementWithAttribute(html, 'data-portfolio-results');

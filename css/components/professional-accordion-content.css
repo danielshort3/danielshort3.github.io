@@ -1,0 +1,454 @@
+/* Professional content shares the personal tab shell while retaining its audience. */
+@layer components {
+  /* Earlier components contain important hero dimensions; reset them in the same layer. */
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero.hero--default {
+    min-height: 0 !important;
+    padding-block: var(--personal-section-space) !important;
+    background: #ffffff !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero.hero--default > .professional-hero-layout {
+    width: 100%;
+    max-width: var(--personal-content-width) !important;
+    min-height: 0;
+    margin-inline: auto;
+    padding-inline: var(--personal-content-gutter) !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
+    gap: 28px !important;
+    align-items: start !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .story-chapter {
+    padding-block: var(--personal-section-space) !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .story-chapter__frame {
+    width: 100%;
+    max-width: var(--personal-content-width) !important;
+    padding-inline: var(--personal-content-gutter) !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero-copy {
+    max-width: 100% !important;
+    padding-inline: 0 !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero h1 {
+    width: 100% !important;
+    max-width: 24ch !important;
+    font-size: clamp(1.7rem, 2.6vw, 2.25rem) !important;
+    line-height: 1.14 !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero .hero-tagline {
+    font-size: .98rem !important;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) .hero.hero--default {
+    min-height: 0 !important;
+    height: auto !important;
+    padding-block: var(--personal-section-space) !important;
+    background: #ffffff !important;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) .hero > .wrapper {
+    width: 100% !important;
+    max-width: var(--personal-content-width) !important;
+    min-height: 0 !important;
+    padding-inline: var(--personal-content-gutter) !important;
+    align-items: flex-start !important;
+    gap: 20px !important;
+    text-align: left !important;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) .hero h1 {
+    width: 100% !important;
+    max-width: 24ch !important;
+    margin: 0 !important;
+    font-size: clamp(1.7rem, 2.6vw, 2.25rem) !important;
+    line-height: 1.14 !important;
+    text-align: left !important;
+  }
+
+  @media (max-width: 1199px) {
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero.hero--default > .professional-hero-layout {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px !important;
+    }
+  }
+}
+
+@layer overrides {
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .personal-accordion {
+    --personal-rail-size: 272px;
+    color: #091f3b;
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) [data-site-tab-rail-mode="navigation"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) [data-site-tab-rail-mode="navigation"] .personal-accordion__rail {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) [data-site-tab-rail-mode="navigation"] .personal-accordion__rail.is-active {
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .48);
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) [data-site-tab-rail-mode="navigation"] .personal-accordion__rail-notch {
+    display: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.jump-panel, .jump-panel-reveal) {
+    display: none !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.professional-hero > .wrapper, .hero-identity, .story-chapter, .story-chapter__frame, .section-title)::before,
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.professional-hero > .wrapper, .hero-identity, .story-chapter, .story-chapter__frame)::after {
+    content: none !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) #main > :is(.surface-band, .professional-hero)::before,
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) #main > :is(.surface-band, .professional-hero)::after {
+    content: none !important;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) .hero::before,
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) .hero::after {
+    content: none !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.professional-hero, .surface-band, .portfolio-main) {
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page.home-pattern-page[data-audience]:not([data-audience="personal"]) #main {
+    background: #ffffff;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) #main > .surface-band {
+    padding-block: var(--personal-section-space);
+    border: 0;
+    border-top: 1px solid rgba(9, 31, 59, .1);
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) #main > .surface-band > .wrapper {
+    width: 100%;
+    max-width: var(--personal-content-width);
+    margin-inline: auto;
+    padding-inline: var(--personal-content-gutter);
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero-copy {
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.professional-hero h1, .resume-name, .portfolio-workbench__title-block h1) {
+    max-width: 24ch;
+    margin: 0;
+    color: #091f3b;
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    font-size: clamp(1.7rem, 2.6vw, 2.25rem);
+    font-weight: 800;
+    letter-spacing: -.035em;
+    line-height: 1.14;
+    text-align: left;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero h1 br {
+    display: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero .hero-identity {
+    gap: 12px;
+    margin: 0;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero .hero-avatar {
+    width: 64px;
+    height: 64px;
+    flex-basis: 64px;
+    border-radius: 50%;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.hero-tagline, .resume-summary) {
+    max-width: 65ch;
+    color: #4f6078;
+    font-size: .98rem;
+    line-height: 1.65;
+    text-align: left;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero .hero-status {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #4f6078;
+    font-size: .84rem;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero :is(.hero-eyebrow, .hero-status) {
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) .hero h1 {
+    color: #091f3b;
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    font-weight: 800;
+    letter-spacing: -.035em;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) .hero :is(.cta-group, [data-professional-contact-links]) {
+    justify-content: flex-start;
+    margin: 0;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) .contact-options-heading {
+    margin-inline: 0;
+    text-align: left;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) #contact-options .contact-grid {
+    width: 100%;
+    max-width: 720px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 24px 0 0;
+    padding: 0;
+  }
+
+  body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) #contact-options .contact-card {
+    min-width: 0;
+    align-items: flex-start;
+    padding: 20px;
+    border: 1px solid rgba(9, 31, 59, .14);
+    border-radius: 8px;
+    background: #ffffff;
+    text-align: left;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.professional-hero-proof-link, .work-card, .project-examples-card, .certification-card) {
+    border: 1px solid rgba(9, 31, 59, .14);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero-proof-link {
+    min-height: 128px;
+    padding: 16px;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.section-title, .project-examples-head h2) {
+    color: #091f3b;
+    font-size: clamp(1.35rem, 2vw, 1.7rem);
+    letter-spacing: -.025em;
+    text-align: left;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.work-head, .cert-head, .project-examples-head) {
+    max-width: 100%;
+    margin-inline: 0;
+    text-align: left;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .resume-section {
+    border-top: 0 !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .resume-paper {
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .resume-paper::before {
+    content: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .resume-title {
+    color: #4f6078;
+    font-size: .96rem;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.5;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .resume-pdf {
+    width: 100%;
+    max-width: 800px;
+    margin: 24px auto 0;
+    border: 1px solid rgba(9, 31, 59, .14);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-workbench {
+    width: 100%;
+    padding: var(--personal-section-space) var(--personal-content-gutter);
+    overflow: visible;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.portfolio-main, .portfolio-workbench__shell) {
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    flex: none;
+    overflow: visible;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-brand-panel {
+    padding: 0 0 20px;
+    border: 0;
+    border-bottom: 1px solid rgba(9, 31, 59, .14);
+    border-radius: 0;
+    color: #091f3b;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-brand-panel::before,
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.portfolio-brand-panel__identity, .portfolio-brand-panel__actions, .portfolio-brand-panel__graph, .portfolio-brand-panel__stamp) {
+    display: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-brand-panel__main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-brand-panel__description {
+    color: #4f6078;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-proof-strip strong {
+    color: #091f3b;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-proof-strip span {
+    color: #4f6078;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-mobile-filter-trigger {
+    border-color: rgba(21, 93, 252, .3);
+    background: #f5f8ff;
+    color: #155dfc;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-mobile-filter-trigger__status {
+    color: #4f6078;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.portfolio-workbench__filters, .portfolio-workbench__results, .portfolio-inspector) {
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-filter-head {
+    color: #091f3b;
+    background: #f5f7fb;
+    border-bottom-color: rgba(9, 31, 59, .14);
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.portfolio-filter-head h2, .portfolio-filter-clear) {
+    color: #091f3b;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-filter-clear:not(:disabled):is(:hover, :focus-visible) {
+    color: #155dfc;
+  }
+
+  @media (min-width: 821px) and (max-width: 1439px) and ((min-height: 481px) or (pointer: fine) or (pointer: none)) {
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-workbench__layout {
+      grid-template-columns: minmax(180px, 210px) minmax(0, 1fr);
+    }
+
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-inspector {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .personal-accordion {
+      --personal-rail-size: 100%;
+      --personal-mobile-rail-size: 56px;
+    }
+
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) [data-site-tab-rail-mode="navigation"] .personal-accordion__rail {
+      flex-direction: column;
+      gap: 4px;
+      padding: 6px 3px;
+    }
+
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) [data-site-tab-rail-mode="navigation"] .personal-accordion__rail-label {
+      font-size: .7rem;
+      letter-spacing: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .professional-hero-proof-link {
+      min-height: 112px;
+      padding: 12px;
+    }
+
+    body.personal-accordion-page.contact-page[data-audience]:not([data-audience="personal"]) #contact-options .contact-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 820px), (max-height: 480px) and (pointer: coarse) {
+    /* The panel is a stacking context below the tab rail until a sheet needs the viewport. */
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .personal-accordion__panel:has(
+      :is(.portfolio-inspector, .portfolio-workbench__filters):is([data-motion-state="opening"], [data-motion-state="open"], [data-motion-state="closing"])
+    ) {
+      z-index: 9;
+    }
+
+    body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-workbench[data-mobile-filters="true"] {
+      padding-bottom: var(--personal-section-space);
+    }
+  }
+}
+
+/* Match the shell's unlayered document scroll rules while a compact dialog is active. */
+body.personal-accordion-page[data-audience]:not([data-audience="personal"]).portfolio-inspector-open,
+body.personal-accordion-page[data-audience]:not([data-audience="personal"]).portfolio-filter-sheet-open {
+  overflow: hidden;
+}
+
+@media print {
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.personal-accordion__rails, .personal-accordion__toolbar) {
+    display: none !important;
+  }
+
+  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.personal-accordion, .personal-accordion__shell, .personal-accordion__panel, .personal-accordion__content) {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    border: 0;
+    overflow: visible;
+    background: #ffffff;
+  }
+}

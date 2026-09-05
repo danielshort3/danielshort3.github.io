@@ -318,9 +318,9 @@
     });
   };
 
-  const normalizeAudienceSectionOrder = () => {
+  const normalizeAudienceSectionOrder = (root = document) => {
     if (!document.body?.matches('[data-page="analytics"], [data-page="data-science"], [data-page="tourism"]')) return;
-    const main = document.getElementById('main');
+    const main = root.matches?.('#main') ? root : root.querySelector('#main');
     if (!main) return;
     const order = document.body.matches('[data-page="analytics"]')
       ? [
@@ -451,10 +451,10 @@
     ]
   ]);
 
-  const prepareAnalyticsStory = () => {
+  const prepareAnalyticsStory = (root = document) => {
     if (!document.body?.matches('[data-page="analytics"].home-pattern-page')) return;
-    const main = document.getElementById('main');
-    const panel = document.querySelector('.jump-panel');
+    const main = root.matches?.('#main') ? root : root.querySelector('#main');
+    const panel = root.querySelector('.jump-panel');
     if (!main) return;
 
     groupAnalyticsWorkCardMeta(main);
@@ -594,15 +594,23 @@
   };
 
   window.addEventListener('pageshow', resetScrollLocks);
+  const sharedContentModules = new Set(['page:content', 'portfolio:workbench', 'contact:contact', 'search:search']);
+  const initializeRouteContent = (root = document) => {
+    normalizeAudienceSectionOrder(root);
+    prepareAnalyticsStory(root);
+    initSmoothScrollLinks(root);
+    sortWorkCardsByRecency(root);
+    updateWorkExperienceSummaries(root);
+    initResponsiveDisclosures(root);
+    if (root.querySelector('.jump-panel')) initJumpPanelSpy(root);
+    if (isPage('project')) initProjectDemoTabs(root);
+    initProjectEmbeds(root);
+  };
   document.addEventListener('DOMContentLoaded', () => {
     initClientErrorTelemetry();
     resetScrollLocks();
-    normalizeAudienceSectionOrder();
-    prepareAnalyticsStory();
-    initSmoothScrollLinks();
-    sortWorkCardsByRecency();
-    updateWorkExperienceSummaries();
-    initResponsiveDisclosures();
+    if (sharedContentModules.has(document.body?.dataset.siteRouteModule) && window.SiteRoutes) return;
+    initializeRouteContent();
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
       requestContactModal();
     }
@@ -624,19 +632,8 @@
   });
   document.addEventListener('site:content-updated', (event) => {
     const routeRoot = event.detail?.root || document;
-    normalizeAudienceSectionOrder();
-    prepareAnalyticsStory();
-    initSmoothScrollLinks();
-    sortWorkCardsByRecency();
-    updateWorkExperienceSummaries();
-    initResponsiveDisclosures();
-    if (isPage('home') || document.querySelector('.jump-panel')) {
-      initJumpPanelSpy();
-    }
-    if (isPage('project')) {
-      initProjectDemoTabs();
-    }
-    initProjectEmbeds(routeRoot);
+    if (sharedContentModules.has(document.body?.dataset.siteRouteModule)) return;
+    initializeRouteContent(routeRoot);
     window.initializeContactModal?.(routeRoot);
   });
   trackContactOrigin();
@@ -652,6 +649,7 @@
       document.head.appendChild(tag);
     });
     loadedScripts.set(src, promise);
+    promise.catch(() => loadedScripts.delete(src));
     return promise;
   }
 
@@ -715,7 +713,9 @@
     }
     const scriptPromise = ensureContactScript();
     if (scriptPromise && typeof scriptPromise.then === 'function') {
-      scriptPromise.then(open);
+      return scriptPromise.then(open).catch(() => {
+        window.location.assign('/contact');
+      });
     } else {
       open();
     }
@@ -865,8 +865,8 @@
     }
   }
 
-  function initSmoothScrollLinks(){
-    const links = $$('a[data-smooth-scroll="true"]');
+  function initSmoothScrollLinks(root = document){
+    const links = $$('a[data-smooth-scroll="true"]', root);
     if (!links.length) return;
 
     const prefersReducedMotion = () => {
@@ -1040,8 +1040,8 @@
     });
   }
 
-  function initProjectDemoTabs() {
-    const shells = $$('[data-demo-tabs="true"]');
+  function initProjectDemoTabs(root = document) {
+    const shells = $$('[data-demo-tabs="true"]', root);
     if (!shells.length) return;
 
     shells.forEach((shell) => {
@@ -1079,30 +1079,38 @@
         if (!nextTab) return;
         const nextPanel = getPanelForTab(nextTab);
         if (!nextPanel) return;
-
-        tabs.forEach((tab) => {
-          const active = tab === nextTab;
-          tab.classList.toggle('is-active', active);
-          tab.setAttribute('aria-selected', String(active));
-          if (active) {
-            tab.removeAttribute('tabindex');
-          } else {
-            tab.setAttribute('tabindex', '-1');
-          }
-        });
-
-        panels.forEach((panel) => {
-          const active = panel === nextPanel;
-          panel.classList.toggle('is-active', active);
-          if (active) {
-            panel.removeAttribute('hidden');
-          } else {
-            panel.setAttribute('hidden', '');
-          }
-        });
-
-        loadPanelIframes(nextPanel);
         if (focus) nextTab.focus();
+        if (nextTab.getAttribute('aria-selected') === 'true' && !nextPanel.hidden) {
+          loadPanelIframes(nextPanel);
+          return;
+        }
+
+        const update = () => {
+          tabs.forEach((tab) => {
+            const active = tab === nextTab;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', String(active));
+            if (active) {
+              tab.removeAttribute('tabindex');
+            } else {
+              tab.setAttribute('tabindex', '-1');
+            }
+          });
+
+          panels.forEach((panel) => {
+            const active = panel === nextPanel;
+            panel.classList.toggle('is-active', active);
+            panel.hidden = !active;
+          });
+
+          loadPanelIframes(nextPanel);
+        };
+        const container = shell.querySelector('.project-demo-panels') || nextPanel.parentElement;
+        if (window.SiteMotion && container) {
+          window.SiteMotion.swap(container, update, { duration: '--motion-fast' });
+        } else {
+          update();
+        }
       };
 
       tabs.forEach((tab) => {
@@ -1139,6 +1147,45 @@
     ? window.matchMedia('(max-width: 768px)')
     : null;
   let responsiveDisclosureMediaBound = false;
+  const responsiveDisclosureStates = new WeakMap();
+
+  function prepareResponsiveDisclosure(details) {
+    let state = responsiveDisclosureStates.get(details);
+    if (state) return state;
+    const summary = details.querySelector(':scope > summary');
+    if (!summary) return null;
+    const content = document.createElement('div');
+    content.className = 'site-disclosure-content';
+    content.dataset.disclosureContent = 'true';
+    [...details.childNodes].filter((node) => node !== summary).forEach((node) => content.appendChild(node));
+    details.appendChild(content);
+    details.dataset.disclosureMotionReady = 'true';
+    state = { content, expanded: details.open, summary };
+    responsiveDisclosureStates.set(details, state);
+
+    on(summary, 'click', (event) => {
+      if (event.defaultPrevented) return;
+      // Native summary activation handles pointer, Enter, and Space consistently.
+      event.preventDefault();
+      if (!responsiveDisclosureMedia?.matches) return;
+      const expanded = !state.expanded;
+      state.expanded = expanded;
+      details.dataset.disclosureExpanded = String(expanded);
+      summary.setAttribute('aria-expanded', String(expanded));
+      content.inert = !expanded;
+      details.open = true;
+      const complete = () => {
+        if (state.expanded === expanded) details.open = expanded;
+      };
+      if (window.SiteMotion) {
+        window.SiteMotion.height(content, expanded, { duration: '--motion-slow', onFinish: complete });
+      } else {
+        content.hidden = !expanded;
+        complete();
+      }
+    });
+    return state;
+  }
 
   function enhanceWorkExperienceDisclosures(root = document) {
     $$('.work-card:not([data-work-disclosure-ready="true"])', root).forEach((card) => {
@@ -1171,8 +1218,17 @@
     const viewport = responsiveDisclosureMedia?.matches ? 'mobile' : 'desktop';
     $$('[data-project-mobile-disclosure]', root).forEach((details) => {
       if (!(details instanceof HTMLDetailsElement)) return;
+      const state = prepareResponsiveDisclosure(details);
+      if (!state) return;
       if (details.dataset.responsiveDisclosureViewport === viewport) return;
-      details.open = viewport === 'desktop';
+      window.SiteMotion?.finish(state.content);
+      const expanded = viewport === 'desktop';
+      state.expanded = expanded;
+      state.content.hidden = !expanded;
+      state.content.inert = !expanded;
+      state.summary.setAttribute('aria-expanded', String(expanded));
+      details.dataset.disclosureExpanded = String(expanded);
+      details.open = expanded;
       details.dataset.responsiveDisclosureViewport = viewport;
     });
   }
@@ -1292,8 +1348,8 @@
     return { centerLink, updateControls };
   };
 
-  function initJumpPanelSpy(){
-    const panel = document.querySelector('.jump-panel');
+  function initJumpPanelSpy(root = document){
+    const panel = root.querySelector('.jump-panel');
     if (!panel) return;
     const isStoryRail = panel.dataset.storyRail === 'true';
     const storyMain = isStoryRail ? (panel.closest('main') || document.getElementById('main')) : null;
@@ -2020,138 +2076,6 @@
     }
   }
 
-  function initSpeedDial(){
-    if (!document || !document.body || typeof document.createElement !== 'function') return;
-    let dial = document.querySelector('[data-speed-dial]');
-    if (!dial) {
-      dial = document.createElement('div');
-      if (!dial || typeof dial.setAttribute !== 'function') return;
-      const menuId = 'speed-dial-menu';
-      dial.className = 'speed-dial';
-      dial.setAttribute('data-speed-dial', 'true');
-      dial.innerHTML = `
-        <div class="speed-dial__tray" data-speed-dial-tray>
-          <div class="speed-dial__actions" id="${menuId}" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-            <div class="speed-dial__item">
-              <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-              <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-                  <path d="M7 9h10"></path>
-                  <path d="M7 13h6"></path>
-                </svg>
-              </a>
-            </div>
-            <div class="speed-dial__item">
-              <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-              <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-                  <path d="M3 7l9 6 9-6"></path>
-                </svg>
-              </a>
-            </div>
-            <div class="speed-dial__item">
-              <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-              <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-                <span class="icon icon-github" aria-hidden="true"></span>
-              </a>
-            </div>
-          </div>
-        </div>
-        <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="${menuId}" aria-label="Open contact options" data-speed-dial-toggle>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-            <path d="M12 8v6"></path>
-            <path d="M9 11h6"></path>
-          </svg>
-        </button>
-      `;
-      document.body.appendChild(dial);
-    }
-
-    if (dial.dataset.speedDialBound === 'yes') return;
-    dial.dataset.speedDialBound = 'yes';
-
-    const toggle = dial.querySelector('[data-speed-dial-toggle]');
-    const menu = dial.querySelector('[data-speed-dial-menu]');
-    const actions = [...dial.querySelectorAll('[data-speed-dial-action]')];
-    if (!toggle || !menu || !actions.length) return;
-
-    let isLocked = false;
-    let suppressHover = false;
-
-    const setExpanded = (expanded) => {
-      dial.classList.toggle('is-open', expanded);
-      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-      toggle.setAttribute('aria-label', expanded ? 'Close contact options' : 'Open contact options');
-      menu.setAttribute('aria-hidden', expanded ? 'false' : 'true');
-      actions.forEach(action => {
-        action.tabIndex = expanded ? 0 : -1;
-      });
-      if (!expanded && menu.contains(document.activeElement)) {
-        toggle.focus({ preventScroll: true });
-      }
-    };
-
-    const closeMenu = () => {
-      isLocked = false;
-      suppressHover = false;
-      setExpanded(false);
-    };
-
-    setExpanded(false);
-
-    toggle.addEventListener('click', (event) => {
-      event.preventDefault();
-      if (isLocked) {
-        isLocked = false;
-        try {
-          if (dial.matches(':hover')) suppressHover = true;
-        } catch {}
-        setExpanded(false);
-        return;
-      }
-      isLocked = true;
-      suppressHover = false;
-      setExpanded(true);
-    });
-
-    actions.forEach(action => {
-      action.addEventListener('click', closeMenu);
-    });
-
-    let canHover = false;
-    try {
-      canHover = Boolean(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
-    } catch {}
-    if (canHover) {
-      dial.addEventListener('pointerenter', () => {
-        if (isLocked || suppressHover) return;
-        setExpanded(true);
-      });
-      dial.addEventListener('pointerleave', () => {
-        if (isLocked) return;
-        suppressHover = false;
-        setExpanded(false);
-      });
-    }
-
-    document.addEventListener('click', (event) => {
-      if (!dial.classList.contains('is-open')) return;
-      if (dial.contains(event.target)) return;
-      closeMenu();
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape') return;
-      if (!dial.classList.contains('is-open')) return;
-      event.preventDefault();
-      closeMenu();
-      toggle.focus({ preventScroll: true });
-    });
-  }
-
   function initCookieSettingsButton(){
     if (!document || !document.body || typeof document.createElement !== 'function') return;
     try {
@@ -2165,7 +2089,6 @@
   }
 
   initCookieSettingsButton();
-  initSpeedDial();
 
   // ---- Global modal close handlers (X button and backdrop) ----
   document.addEventListener('click', (e) => {
@@ -2451,10 +2374,82 @@
   });
   document.addEventListener('site:route-unmounted', (event) => {
     if (typeof activeSmoothScrollCancel === 'function') activeSmoothScrollCancel();
-    cleanupProjectEmbeds(event.detail?.root || document);
+    const root = event.detail?.root || document;
+    root.querySelectorAll?.('[data-disclosure-content], .project-demo-panels').forEach((element) => {
+      window.SiteMotion?.finish(element);
+    });
+    cleanupProjectEmbeds(root);
   });
   document.addEventListener('site:route-mounted', (event) => {
     initCookieSettingsButton();
     initProjectEmbeds(event.detail?.root || document);
   });
+
+  const mountSharedContent = (context) => {
+    window.SiteRealm?.sync({ url: context.url });
+    // The viewport observer belongs to the shared service, not the first route
+    // that happens to contain a disclosure.
+    initResponsiveDisclosures(context.root);
+    const initialize = () => initializeRouteContent(context.root);
+    if (window.SiteRoutes?.runInScope) window.SiteRoutes.runInScope(context.id, initialize);
+    else initialize();
+    context.cleanup(() => cleanupProjectEmbeds(context.root));
+  };
+  const preloadSharedContent = async (module, context = {}) => {
+    const root = context.document || context.root;
+    if (module === 'portfolio:workbench') {
+      await ensurePortfolioScripts(root?.body?.dataset.page || 'portfolio');
+    } else if (module === 'contact:contact') {
+      if (!window.SiteContact) await ensureContactScript();
+    } else if (module === 'search:search') {
+      if (!window.SiteSearch) await loadScriptOnce('js/search/site-search.js');
+      await window.SiteSearch?.preload(context);
+    } else if (module === 'page:content'
+      && root?.querySelector('[data-project-image-comparison]')
+      && !window.ProjectImageComparisons) {
+      await loadScriptOnce('js/portfolio/project-image-comparison.js');
+    }
+  };
+  window.SiteContent = Object.freeze({ mount: mountSharedContent, preload: preloadSharedContent });
+  if (window.SiteRoutes?.register) {
+    window.SiteRoutes.register('page:content', {
+      preload(context) { return preloadSharedContent('page:content', context); },
+      async mount(context) {
+        mountSharedContent(context);
+        if (!context.root.querySelector('[data-project-image-comparison]')) return;
+        if (!window.ProjectImageComparisons) await loadScriptOnce('js/portfolio/project-image-comparison.js');
+        if (!context.signal.aborted) context.cleanup(window.ProjectImageComparisons.mount(context.root));
+      }
+    });
+    window.SiteRoutes.register('portfolio:workbench', {
+      preload(context) { return preloadSharedContent('portfolio:workbench', context); },
+      async mount(context) {
+        mountSharedContent(context);
+        await ensurePortfolioScripts(document.body?.dataset.page || 'portfolio');
+        if (context.signal.aborted) return;
+        window.buildPortfolioWorkbench?.(context.root, { stateKey: String(context.url) });
+        context.cleanup(() => window.disposePortfolioWorkbench?.(context.root));
+      }
+    });
+    window.SiteRoutes.register('contact:contact', {
+      preload(context) { return preloadSharedContent('contact:contact', context); },
+      async mount(context) {
+        mountSharedContent(context);
+        await ensureContactScript();
+        if (context.signal.aborted) return;
+        const controller = window.initializeContactModal?.(context.root);
+        if (controller) context.cleanup(() => controller.dispose());
+      },
+      beforeLeave() { return window.SiteContact?.canLeave() !== false; }
+    });
+    window.SiteRoutes.register('search:search', {
+      preload(context) { return preloadSharedContent('search:search', context); },
+      async mount(context) {
+        mountSharedContent(context);
+        await loadScriptOnce('js/search/site-search.js');
+        if (context.signal.aborted) return;
+        await window.SiteSearch?.mount(context)?.ready;
+      }
+    });
+  }
 })();

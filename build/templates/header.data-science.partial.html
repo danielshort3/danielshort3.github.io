@@ -1,5 +1,5 @@
-<header id="combined-header-nav">
-  <nav class="nav" aria-label="Primary">
+<header id="combined-header-nav" data-site-shell-header>
+  <nav class="nav" aria-label="Site header">
     <div class="wrapper nav-wrapper">
       <a href="data-science" class="brand" data-entry-home-link="true">
         <img src="img/brand/00-ds-logo-master-full-color.svg" srcset="img/brand/00-ds-logo-master-full-color.svg 1x" sizes="56px" alt="Daniel Short DS logo" class="brand-logo" decoding="async" loading="eager" width="381" height="392">
@@ -7,91 +7,23 @@
           <span class="brand-title">Daniel Short</span>
         </span>
       </a>
-      <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
-        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-      </button>
-      <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
-        <a href="data-science" class="nav-link" data-professional-home-link="true">Home</a>
-        <div class="nav-item nav-item-portfolio">
-          <a href="portfolio?audience=data-science" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
-            Portfolio
-            <span class="nav-link-caret" aria-hidden="true"></span>
-          </a>
-          <div class="nav-dropdown" id="nav-dropdown-portfolio" aria-label="Highlighted projects">
-            <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
-              <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
-                <div class="nav-dropdown-header" aria-hidden="true">Featured Projects</div>
-                <div class="nav-project-grid nav-project-stack">
-                  <a href="portfolio/smartSentence?audience=data-science" class="nav-project-card" data-project-id="smartSentence">
-                    <span class="nav-project-rank">#1</span>
-                    <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/smartSentence.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/smartSentence.webm" data-preview-mp4="/img/projects/smartSentence.mp4" data-preview-poster="/img/projects/smartSentence.webp"></span>
-                    <span class="nav-project-meta">
-                      <span class="nav-dropdown-title">Smart Sentence Retriever</span>
-                      <span class="nav-dropdown-subtitle">NLP Embeddings &amp; Serverless Retrieval</span>
-                    </span>
-                  </a>
-                  <a href="portfolio/chatbotLora?audience=data-science" class="nav-project-card" data-project-id="chatbotLora">
-                    <span class="nav-project-rank">#2</span>
-                    <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/chatbotLora.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4" data-preview-poster="/img/projects/chatbotLora.webp"></span>
-                    <span class="nav-project-meta">
-                      <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
-                      <span class="nav-dropdown-subtitle">RAG Chatbot Fine-Tuned with LoRA</span>
-                    </span>
-                  </a>
-                  <a href="portfolio/shapeClassifier?audience=data-science" class="nav-project-card" data-project-id="shapeClassifier">
-                    <span class="nav-project-rank">#3</span>
-                    <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/shapeClassifier.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/shapeClassifier.webm" data-preview-mp4="/img/projects/shapeClassifier.mp4" data-preview-poster="/img/projects/shapeClassifier.webp"></span>
-                    <span class="nav-project-meta">
-                      <span class="nav-dropdown-title">Shape Classifier Demo</span>
-                      <span class="nav-dropdown-subtitle">Handwritten Shape Recognition</span>
-                    </span>
-                  </a>
-                </div>
-                <div class="nav-dropdown-footer nav-dropdown-footer-inline">
-                  <a href="portfolio?audience=data-science" class="nav-dropdown-link nav-dropdown-all" data-portfolio-default-link="true">
-                    <span class="nav-dropdown-title">View full portfolio</span>
-                    <span class="nav-dropdown-subtitle">Browse the complete project library</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+      <nav class="header-breadcrumbs" aria-label="Breadcrumb" data-header-breadcrumbs hidden>
+        <ol class="header-breadcrumbs__list" data-header-breadcrumb-list></ol>
+      </nav>
+      <form class="nav-search" action="search" method="get" role="search" data-nav-search="collapsed">
+        <label class="visually-hidden" for="nav-search-q">Search site</label>
+        <div class="nav-search-field">
+          <input id="nav-search-q" class="nav-search-input" type="search" name="q" placeholder="Search…" autocomplete="off">
+          <button class="nav-search-button" type="submit" aria-controls="nav-search-q" aria-expanded="false" aria-label="Open search">
+            <span class="visually-hidden">Search</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="M20 20l-3.5-3.5"></path>
+            </svg>
+          </button>
         </div>
-
-
-
-        <div class="nav-item nav-item-resume">
-          <a href="resume-data-science" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
-            Resume
-            <span class="nav-link-caret" aria-hidden="true"></span>
-          </a>
-          <div class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume" aria-label="Resume shortcuts">
-            <div class="nav-dropdown-inner nav-dropdown-inner-simple">
-              <div class="nav-dropdown-column nav-dropdown-column-list">
-                <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-                <div class="nav-dropdown-list">
-                  <a href="resume-data-science" class="nav-dropdown-link" data-resume-home-link="true">
-                    <span class="nav-dropdown-title">Resume</span>
-                    <span class="nav-dropdown-subtitle">ML, NLP, modeling, and deployment</span>
-                  </a>
-                  <a href="resume-data-science-pdf" class="nav-dropdown-link" data-resume-preview-link="true">
-                    <span class="nav-dropdown-title">Preview PDF</span>
-                    <span class="nav-dropdown-subtitle">Open the PDF preview</span>
-                  </a>
-                  <a href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Data-Science.pdf" class="nav-dropdown-link" download data-resume-download-link="true">
-                    <span class="nav-dropdown-title">Download Resume</span>
-                    <span class="nav-dropdown-subtitle">Download the PDF</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="nav-item nav-item-contact">
-          <a href="contact?audience=data-science" class="nav-link nav-link-cta">Contact</a>
-        </div>
-
-      </div>
+        <input type="hidden" name="audience" value="data-science" data-search-audience>
+      </form>
     </div>
   </nav>
 </header>

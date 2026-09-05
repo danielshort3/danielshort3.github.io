@@ -126,11 +126,10 @@
     }
 
     .grid-heading-main {
-      display: flex;
-      align-items: baseline;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      display: grid;
+      width: 100%;
+      gap: 8px;
+      text-align: left;
     }
 
     .grid-heading-key {
@@ -141,20 +140,21 @@
     }
 
     .grid-number-pill {
-      appearance: none;
+      appearance: auto;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 42px;
-      padding: 6px 30px 6px 14px;
-      border-radius: 999px;
-      border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--surface-accent));
-      background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%);
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
       color: var(--text);
-      font-weight: 800;
+      font-weight: 500;
       font-size: 1.05rem;
       font-family: inherit;
-      box-shadow: var(--shadow-1);
+      box-shadow: none;
       cursor: pointer;
       transition: border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
     }
@@ -165,25 +165,10 @@
       align-items: center;
     }
 
-    .grid-number-control::after {
-      content: "";
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      width: 7px;
-      height: 7px;
-      border-right: 2px solid currentColor;
-      border-bottom: 2px solid currentColor;
-      color: currentColor;
-      pointer-events: none;
-      transform: translateY(-62%) rotate(45deg);
-      opacity: .82;
-    }
-
     select.grid-number-pill {
       line-height: 1.1;
-      text-align: center;
-      text-align-last: center;
+      text-align: left;
+      text-align-last: left;
     }
 
     select.grid-number-pill option {
@@ -193,7 +178,7 @@
 
     .grid-number-pill:hover {
       border-color: color-mix(in srgb, var(--primary) 72%, var(--surface-accent));
-      box-shadow: var(--shadow-2);
+      box-shadow: none;
     }
 
     .grid-number-pill:active {
@@ -210,7 +195,7 @@
       flex-wrap: wrap;
       gap: 10px;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       width: 100%;
     }
 
@@ -223,27 +208,6 @@
       color: var(--text);
       font-size: .95rem;
       font-weight: 600;
-    }
-
-    .settings-panel {
-      border: 1px solid var(--surface-accent);
-      border-radius: 12px;
-      padding: 10px 12px;
-      background: color-mix(in srgb, var(--surface) 94%, #000 6%);
-    }
-
-    .settings-panel summary {
-      cursor: pointer;
-      list-style: none;
-      font-size: .85rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .settings-panel summary::-webkit-details-marker {
-      display: none;
     }
 
     .settings-grid {
@@ -262,6 +226,7 @@
     .settings-grid input[type="number"],
     .settings-grid select {
       width: 100%;
+      min-height: 44px;
       padding: 6px 8px;
       border-radius: 8px;
       border: 1px solid var(--surface-accent);
@@ -391,22 +356,22 @@
 
     .content {
       display: grid;
-      grid-template-columns: minmax(260px, 1fr) minmax(220px, 280px);
-      gap: 18px;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+      gap: 24px;
       justify-content: center;
       align-items: start;
-      padding: 16px;
+      padding: 24px;
     }
 
     .grid-shell {
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
-      border: 1px solid var(--surface-accent);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: var(--shadow-1);
+      background: var(--surface);
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
       display: grid;
       gap: 12px;
-      justify-items: center;
+      justify-items: stretch;
     }
 
     .grid {
@@ -418,6 +383,12 @@
       min-height: var(--grid-min-height, 420px);
       align-content: center;
       justify-content: center;
+    }
+
+    .grid-empty-state {
+      grid-column: 1 / -1;
+      align-self: center;
+      min-width: 0;
     }
 
     .digit-cell {
@@ -450,11 +421,11 @@
     }
 
     .panel {
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
-      border: 1px solid var(--surface-accent);
-      border-radius: 16px;
-      padding: 14px 16px;
-      box-shadow: var(--shadow-1);
+      background: var(--surface);
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
       display: grid;
       gap: 12px;
       align-content: start;
@@ -486,9 +457,13 @@
       justify-content: center;
     }
 
-    @media (max-width: 860px) {
+    @media (max-width: 959px) {
       .content {
         grid-template-columns: 1fr;
+        padding: 16px;
+      }
+      .content > .panel {
+        order: -1;
       }
     }
 
@@ -502,10 +477,6 @@
       header.card-header {
         padding: 10px 12px;
         gap: 6px;
-      }
-
-      .subtitle {
-        display: none;
       }
 
       .health-row {
@@ -564,7 +535,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
@@ -612,24 +583,27 @@
   <div id="demo-box" role="application" aria-label="Digit generator demo">
     <header class="card-header">
       <div class="header-copy">
-        <h1 class="title">Synthetic Digit Generator</h1>
-        <p class="subtitle">Seed a latent vector, choose one dimension, and sweep a single axis to see the grid morph.</p>
+        <h1 class="title">Digit Generator</h1>
+        <p class="subtitle">Choose a digit and generate a collection of handwritten variations.</p>
       </div>
       <div class="header-actions">
-        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Warming up</span>
+        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Preparing demo</span>
       </div>
     </header>
 
-    <div class="status-row demo-meta-row">
-      <span class="status" id="status">Generating grid...</span>
-    </div>
-
-    <div class="content">
+    <div class="content demo-workspace">
       <div class="grid-shell">
+        <h2 class="demo-section-label">Generated digits</h2>
+        <div class="grid" id="grid" aria-live="polite">
+          <div class="demo-empty-state grid-empty-state" id="grid-empty-state">Generated digits will appear here when the demo is ready.</div>
+        </div>
+        <p class="hint" id="grid-download-hint" hidden>Select any digit image to download it.</p>
+      </div>
+
+      <aside class="panel">
         <div class="grid-heading" aria-label="Generation target">
-          <div class="grid-heading-eyebrow">Generated grid</div>
           <div class="grid-heading-main">
-            <span class="grid-heading-key">Number</span>
+            <span class="grid-heading-key">Digit to generate</span>
             <span class="grid-number-control">
               <label class="visually-hidden" for="cluster-select">Number</label>
               <select id="cluster-select" class="grid-number-pill" aria-label="Number to generate">
@@ -651,19 +625,17 @@
         <div class="grid-actions">
           <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
         </div>
-        <div class="grid" id="grid" aria-live="polite"></div>
-      </div>
-
-      <aside class="panel" aria-live="polite">
-        <details class="settings-panel">
-          <summary>Extra settings</summary>
+        <p class="status" id="status" role="status" aria-live="polite">Preparing demo...</p>
+        <details class="demo-disclosure">
+          <summary>Advanced generation settings</summary>
+          <p class="hint">Keep a seed to reproduce a grid. Change the latent dimension or distortion to explore how the model varies each digit.</p>
           <div class="settings-grid">
             <label>
               Seed
               <input id="seed-input" type="number" min="0" placeholder="optional">
             </label>
             <label>
-              Dim
+              Latent dimension
               <select id="dim-select"></select>
             </label>
             <label>
@@ -731,6 +703,8 @@
     const postToEndpoint = (base, payload) => postWithFallback(base, ['generate'], payload);
 
     const gridEl = document.getElementById('grid');
+    const gridEmptyState = document.getElementById('grid-empty-state');
+    const gridDownloadHint = document.getElementById('grid-download-hint');
     const gridShell = document.querySelector('.grid-shell');
     const seedInput = document.getElementById('seed-input');
     const gridSelect = document.getElementById('grid-select');
@@ -767,6 +741,14 @@
 
     function setStatus(text) {
       statusEl.textContent = text;
+    }
+
+    function showEmptyGrid(message) {
+      if (gridEl.querySelector('.digit-cell')) return;
+      gridEmptyState.textContent = message;
+      gridEmptyState.hidden = false;
+      gridDownloadHint.hidden = true;
+      if (!gridEmptyState.isConnected) gridEl.appendChild(gridEmptyState);
     }
 
     function setHealth(state, text) {
@@ -955,17 +937,22 @@
         cell.appendChild(img);
         gridEl.appendChild(cell);
       });
+      const hasImages = Boolean(gridEl.querySelector('.digit-cell'));
+      gridEmptyState.hidden = hasImages;
+      gridDownloadHint.hidden = !hasImages;
+      if (!hasImages) showEmptyGrid('No digit images were returned. Select Generate to try again.');
       scheduleGridMetricsUpdate();
     }
 
     async function warmUpServer() {
-      setHealth('warming', 'Warming AWS');
-      setStatus('Warming server...');
+      setHealth('warming', 'Preparing demo');
+      setStatus('Preparing demo...');
       setControlsEnabled(false);
       const endpoints = candidates();
       if (!endpoints.length) {
         setHealth('err', 'No endpoint');
         setStatus('No endpoint configured.');
+        showEmptyGrid('The digit collection is unavailable. Reload the demo to try connecting again.');
         serverReady = false;
         return;
       }
@@ -1008,13 +995,14 @@
       }
       serverReady = false;
       setHealth('err', 'Unavailable');
-      setStatus('Unable to reach AWS Lambda.');
+      setStatus('The demo is temporarily unavailable.');
+      showEmptyGrid('The digit collection is unavailable. Reload the demo to try connecting again.');
       if (lastErr) console.error(lastErr);
     }
 
     async function fetchGrid() {
       if (!serverReady) {
-        setStatus('Server warming up...');
+        setStatus('Preparing demo...');
         return;
       }
       const seed = ensureSeed();
@@ -1035,6 +1023,7 @@
 
       const id = ++requestId;
       setStatus('Generating grid...');
+      showEmptyGrid('Creating your digit collection. The generated images will appear here.');
       try {
         const endpoints = candidates();
         let data = null;
@@ -1066,6 +1055,7 @@
       } catch (err) {
         if (id !== requestId) return;
         setStatus('Failed to generate digits.');
+        showEmptyGrid('The digit collection could not be generated. Select Generate to try again.');
       }
     }
 

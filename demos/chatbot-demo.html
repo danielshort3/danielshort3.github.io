@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <style>
@@ -40,8 +40,8 @@
       --success: var(--brand-success, #166534);
       --warning: var(--brand-action-copper, #d97706);
       --danger: var(--brand-risk, #b91c1c);
-      --shadow: 0 18px 42px rgba(9, 31, 59, 0.14);
-      --chat-height: min(720px, calc(100dvh - 132px));
+      --shadow: 0 2px 12px rgba(9, 31, 59, 0.05);
+      --chat-height: min(760px, calc(100dvh - 132px));
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -75,9 +75,7 @@
     }
 
     body {
-      background:
-        radial-gradient(circle at 18% -8%, color-mix(in srgb, var(--brand-signal-blue, #005fed) 11%, transparent), transparent 30rem),
-        var(--brand-canvas, #f9f9fa);
+      background: var(--bg);
       color: var(--text);
       overflow-x: hidden;
     }
@@ -126,12 +124,12 @@
 
     .demo-toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto;
       align-items: center;
       gap: 12px;
-      background: color-mix(in srgb, var(--brand-mist, #eef2f7) 64%, #ffffff 36%);
+      background: #ffffff;
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 12px;
       padding: 12px;
       box-shadow: var(--shadow);
     }
@@ -167,7 +165,7 @@
     }
 
     .view-tab {
-      min-height: 38px;
+      min-height: 44px;
       border-radius: 11px;
       padding: 0 12px;
       color: var(--muted);
@@ -192,7 +190,7 @@
     }
 
     .backend-select-wrap select {
-      min-height: 38px;
+      min-height: 44px;
       min-width: 150px;
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -207,30 +205,32 @@
     .warmup-button,
     .chat-send,
     .clear-button {
-      min-height: 40px;
+      min-height: 44px;
       border-radius: 12px;
       font-weight: 800;
     }
 
     .warmup-button {
       padding: 0 16px;
-      color: #ffffff;
-      background: linear-gradient(180deg, var(--brand-signal-blue, #005fed), var(--brand-deep-blue, #0145c8));
-      min-width: 138px;
+      color: var(--text);
+      background: #ffffff;
+      border: 1px solid var(--line);
+      min-width: 110px;
     }
 
     .warmup-button.ready {
-      background: linear-gradient(180deg, color-mix(in srgb, var(--brand-success, #166534) 86%, #ffffff 14%), var(--brand-success, #166534));
+      color: var(--success);
+      background: #ffffff;
     }
 
     .warmup-button.starting {
-      background: var(--brand-slate, #475569);
+      background: var(--panel-soft);
     }
 
     .startup-notice {
       width: min(420px, calc(100vw - 32px));
       border: 0;
-      border-radius: 16px;
+      border-radius: 12px;
       padding: 0;
       color: var(--text);
       background: var(--panel);
@@ -327,9 +327,48 @@
       overflow-wrap: anywhere;
     }
 
-    .timer-details {
+    .demo-settings {
       position: relative;
+      min-width: 0;
     }
+
+    .demo-settings > summary {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .demo-settings-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 30;
+      width: min(340px, calc(100vw - 32px));
+      display: grid;
+      gap: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(9, 31, 59, .1);
+      max-height: calc(100dvh - 160px);
+      overflow-y: auto;
+    }
+
+    .demo-settings-panel .backend-select-wrap {
+      font-size: 12px;
+      gap: 8px;
+      font-weight: 600;
+      text-transform: none;
+    }
+
+    .demo-settings-panel .view-tabs { display: grid; }
+
+    .timer-details { position: relative; }
 
     .timer-details summary {
       list-style: none;
@@ -340,76 +379,27 @@
     }
 
     .timer {
-      --timer-progress: 0deg;
-      --timer-color: var(--brand-slate, #475569);
-      --timer-track: #e6ebf2;
-      min-width: 78px;
-      display: grid;
-      justify-items: center;
-      gap: 4px;
-      color: var(--accent-strong);
-      opacity: .5;
-      transition: opacity 160ms ease;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       cursor: pointer;
-    }
-
-    .timer.active {
-      opacity: 1;
-    }
-
-    .timer-label {
       color: var(--muted);
-      font-size: 10px;
-      font-weight: 800;
-      line-height: 1;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .timer-ring {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: conic-gradient(var(--timer-color) var(--timer-progress), var(--timer-track) 0);
-      position: relative;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-    }
-
-    .timer-ring::after {
-      content: "";
-      position: absolute;
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--panel);
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
-    }
-
-    .timer-value {
-      position: relative;
-      z-index: 1;
-      color: var(--text);
       font-size: 12px;
-      font-weight: 900;
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
     }
+
+    .timer::before { content: 'Connection details'; }
+    .timer-label { margin-left: auto; }
+    .timer-value { font-variant-numeric: tabular-nums; }
+    .timer.active { color: var(--text); }
 
     .timer-detail-panel {
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      z-index: 20;
-      width: min(340px, calc(100vw - 24px));
-      padding: 12px;
+      width: 100%;
+      padding-top: 12px;
       display: grid;
       gap: 8px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
+      border-top: 1px solid var(--line);
       color: var(--muted);
     }
 
@@ -458,7 +448,7 @@
     }
 
     .chat-stage {
-      width: min(680px, 100%);
+      width: min(860px, 100%);
       height: var(--chat-height);
       min-height: 0;
       margin-inline: auto;
@@ -466,7 +456,7 @@
 
     html[data-embedded="true"] .chat-stage {
       height: min(760px, 100%);
-      width: min(680px, calc(100% - clamp(16px, 3vw, 28px)));
+      width: min(860px, calc(100% - clamp(16px, 3vw, 28px)));
     }
 
     .chat-shell {
@@ -477,10 +467,12 @@
       background: var(--panel);
       color: var(--text);
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 12px;
       overflow: hidden;
       box-shadow: var(--shadow);
     }
+
+    .chat-shell--regular { grid-template-rows: minmax(0, 1fr) auto; }
 
     .chat-head {
       min-height: 72px;
@@ -490,7 +482,7 @@
       justify-content: space-between;
       gap: 12px;
       border-bottom: 1px solid var(--line);
-      background: color-mix(in srgb, var(--brand-mist, #eef2f7) 64%, #ffffff 36%);
+      background: #ffffff;
     }
 
     .chat-brand {
@@ -526,9 +518,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      background:
-        radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--brand-signal-blue, #005fed) 8%, transparent), transparent 18rem),
-        color-mix(in srgb, var(--brand-mist, #eef2f7) 58%, #ffffff 42%);
+      background: #ffffff;
     }
 
     .empty-state {
@@ -540,10 +530,10 @@
       color: var(--muted);
     }
 
-    .empty-state h2 {
+    .empty-state .empty-title {
       margin: 0;
       color: var(--text);
-      font-size: clamp(22px, 4vw, 30px);
+      font-size: clamp(20px, 3vw, 26px);
       line-height: 1.12;
       font-weight: 800;
       letter-spacing: 0;
@@ -563,11 +553,11 @@
     }
 
     .suggestion {
-      min-height: 36px;
-      border-radius: 999px;
-      padding: 0 12px;
-      background: var(--accent-soft);
-      border: 1px solid var(--line-strong);
+      min-height: 44px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #ffffff;
+      border: 1px solid var(--line);
       color: var(--text);
       font-weight: 700;
       font-size: 13px;
@@ -587,7 +577,7 @@
 
     .followup {
       width: 100%;
-      min-height: 38px;
+      min-height: 44px;
       border-radius: 8px;
       padding: 9px 11px;
       background: color-mix(in srgb, var(--brand-signal-blue, #005fed) 7%, #ffffff 93%);
@@ -616,7 +606,7 @@
 
     .message.user {
       align-self: flex-end;
-      background: linear-gradient(180deg, var(--brand-signal-blue, #005fed), var(--brand-deep-blue, #0145c8));
+      background: var(--accent);
       color: #ffffff;
     }
 
@@ -625,7 +615,7 @@
       background: #ffffff;
       color: var(--text);
       border: 1px solid var(--line);
-      box-shadow: 0 10px 24px rgba(9, 31, 59, 0.08);
+      box-shadow: none;
       white-space: normal;
     }
 
@@ -635,6 +625,22 @@
 
     .message.assistant p + p {
       margin-top: 0.45em;
+    }
+
+    .message-error {
+      display: grid;
+      gap: 12px;
+    }
+
+    .message-error .clear-button { justify-self: start; }
+    .message-error .demo-disclosure { width: 100%; }
+    .message-error pre {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-size: 12px;
+      color: var(--muted);
     }
 
     .waiting {
@@ -737,7 +743,7 @@
       min-width: 88px;
       padding: 0 14px;
       color: #ffffff;
-      background: linear-gradient(180deg, var(--brand-signal-blue, #005fed), var(--brand-deep-blue, #0145c8));
+      background: var(--accent);
       border: 1px solid var(--accent-strong);
     }
 
@@ -753,7 +759,7 @@
       min-height: 0;
       overflow: hidden;
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 12px;
       background:
         radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--brand-signal-blue, #005fed) 10%, transparent), transparent 24rem),
         #ffffff;
@@ -793,7 +799,7 @@
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: linear-gradient(180deg, var(--brand-signal-blue, #005fed), var(--brand-deep-blue, #0145c8));
+      background: var(--accent);
       color: #ffffff;
       box-shadow: 0 18px 42px rgba(23, 32, 51, 0.22);
       z-index: 3;
@@ -843,13 +849,13 @@
       padding: 12px;
     }
 
-    .popup-window .empty-state h2 {
+    .popup-window .empty-state .empty-title {
       font-size: 23px;
     }
 
     .popup-close {
-      width: 34px;
-      height: 34px;
+      width: 44px;
+      height: 44px;
       border-radius: 8px;
       background: color-mix(in srgb, var(--brand-signal-blue, #005fed) 10%, #ffffff 90%);
       color: var(--text);
@@ -874,168 +880,48 @@
       }
     }
 
-    @media (max-width: 820px) {
-      :root {
-        --chat-height: 100%;
-      }
+    @media (max-width: 960px) {
+      :root { --chat-height: 100%; }
 
-      html,
-      body {
-        height: 100%;
-        overflow: hidden;
-      }
+      html, body { height: 100%; }
 
       .demo-root {
         padding: 0;
-        gap: 0;
         height: 100dvh;
         min-height: 0;
-      }
-
-      .demo-toolbar {
-        border-radius: 0;
-        border-left: 0;
-        border-right: 0;
-        box-shadow: none;
-        padding: 9px 10px;
-      }
-
-      .demo-toolbar {
-        grid-template-columns: 1fr;
         gap: 8px;
       }
 
-      .demo-title {
-        display: none;
-      }
-
-      .view-tabs {
-        display: grid;
-        width: 100%;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .view-panel {
-        display: none !important;
-      }
-
-      .view-panel.active {
-        display: grid !important;
-        place-items: stretch;
-      }
-
-      .views,
-      .view-panel,
-      .chat-stage,
-      .popup-preview {
-        min-height: 0;
-        height: 100%;
-      }
-
-      .backend-select-wrap,
-      .backend-select-wrap select {
-        width: 100%;
-      }
-
-      .startup-notice-actions {
-        display: grid;
-      }
-
-      .warmup-button {
-        width: 100%;
-      }
-
-      .server-control {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .timer {
-        min-width: 86px;
-      }
-
-      .chat-stage,
-      .popup-preview {
-        width: 100%;
-        height: var(--chat-height);
-        border: 0;
-        border-radius: 0;
-        box-shadow: none;
-      }
-
-      html[data-embedded="true"] .chat-stage {
-        height: 100%;
-      }
-
-      .chat-shell {
-        border: 0;
-        border-radius: 0;
-        box-shadow: none;
-      }
-
-      .chat-head {
-        min-height: 58px;
-        padding: 10px 12px;
-      }
-
-      .chat-messages {
+      .demo-toolbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
         padding: 12px;
+        border-radius: 0;
+        box-shadow: none;
       }
 
-      .chat-composer {
-        padding: 10px 12px max(10px, env(safe-area-inset-bottom));
-      }
-
-      .chat-form {
-        grid-template-columns: minmax(0, 1fr) 74px;
-      }
-
-      .chat-form textarea {
-        min-height: 46px;
-        max-height: 96px;
-      }
-
-      .chat-send {
-        min-width: 0;
-        width: 74px;
-      }
-
-      .popup-preview-copy {
-        max-width: 100%;
-        padding: 20px;
-        text-align: center;
-      }
-
-      .popup-window {
-        right: 10px;
-        bottom: 84px;
-        width: calc(100% - 20px);
-        height: min(560px, calc(100% - 98px));
-        transform-origin: bottom center;
-      }
-
-      .popup-window .chat-shell {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        box-shadow: var(--shadow);
-      }
-
-      .popup-launcher {
-        right: 18px;
-        bottom: 18px;
-        width: 58px;
-        height: 58px;
-      }
-    }
-
-    @media (max-width: 430px) {
-      .chat-form {
-        grid-template-columns: minmax(0, 1fr) 74px;
-      }
-
-      .chat-send {
-        width: 74px;
-      }
+      .demo-title { grid-column: 1 / -1; }
+      .demo-title h1 { font-size: 20px; }
+      .demo-title p { font-size: 12px; }
+      .server-control { justify-content: flex-start; }
+      .demo-settings { justify-self: end; }
+      .demo-settings-panel { max-height: calc(100dvh - 200px); }
+      .views, .view-panel, .chat-stage, .popup-preview { min-height: 0; height: 100%; }
+      .view-panel.active { place-items: stretch; }
+      .chat-stage, html[data-embedded="true"] .chat-stage { width: 100%; height: 100%; }
+      .chat-shell { border-inline: 0; border-radius: 0; box-shadow: none; }
+      .chat-messages { padding: 16px; }
+      .chat-composer { padding: 12px 12px max(12px, env(safe-area-inset-bottom)); }
+      .chat-form { grid-template-columns: minmax(0, 1fr) 74px; }
+      .chat-form textarea { min-height: 48px; max-height: 96px; font-size: 16px; }
+      .chat-send { min-width: 0; width: 74px; }
+      .suggestions { display: grid; }
+      .suggestion { width: 100%; }
+      .popup-preview { border-radius: 0; }
+      .popup-preview-copy { padding: 20px; text-align: center; }
+      .popup-window { right: 10px; bottom: 84px; width: calc(100% - 20px); height: calc(100% - 98px); }
+      .popup-window .chat-shell { border: 1px solid var(--line); border-radius: 12px; }
+      .popup-launcher { right: 18px; bottom: 18px; width: 58px; height: 58px; }
     }
   </style>
   <script>
@@ -1075,74 +961,74 @@
     })();
   </script>
 
-  <div class="demo-root" id="main">
+  <main class="demo-root demo-workspace" id="main">
     <header class="demo-toolbar">
       <div class="demo-title">
-        <h1>Travel Assistant Demo</h1>
-        <p>Input and output are saved on AWS for this portfolio demo.</p>
+        <h1>Travel Assistant</h1>
+        <p>Explore Grand Junction with a source-grounded chat. Inputs and responses are saved on AWS.</p>
       </div>
-      <div class="view-tabs" role="tablist" aria-label="Chatbot view">
-        <button class="view-tab active" id="regular-view-button" type="button" role="tab" aria-selected="true" aria-controls="regular-view" data-view="regular">Regular</button>
-        <button class="view-tab" id="popup-view-button" type="button" role="tab" aria-selected="false" aria-controls="popup-view" data-view="popup">Pop-up</button>
-      </div>
-      <label class="backend-select-wrap" for="backend-select">
-        Backend
-        <select id="backend-select" aria-label="Chat backend">
-          <option value="qwen-sagemaker">Qwen / SageMaker</option>
-          <option value="bedrock">Bedrock</option>
-        </select>
-      </label>
       <div class="server-control" id="server-control" role="status" aria-live="polite">
         <span class="server-dot off" id="server-dot" aria-hidden="true"></span>
-        <button class="warmup-button" id="warmup-button" type="button">Start server</button>
-        <details class="timer-details" id="timer-details">
-          <summary class="timer" id="server-timer" data-timer-mode="idle" aria-label="Server timer inactive">
-            <span class="timer-label" id="server-timer-label">Idle</span>
-            <span class="timer-ring" aria-hidden="true">
-              <span class="timer-value" id="server-timer-value">--</span>
-            </span>
-          </summary>
-          <div class="timer-detail-panel" id="timer-detail-panel">
-            <div class="timer-detail-row"><span>Status</span><strong id="server-text">Server off</strong></div>
-            <div class="timer-detail-row"><span>Stage</span><strong id="server-stage">Ready to start on demand.</strong></div>
-            <div class="timer-detail-row"><span>Endpoint</span><strong id="server-detail-endpoint">Unknown</strong></div>
-            <div class="timer-detail-row"><span>Instances</span><strong id="server-detail-instances">0 current / 0 desired</strong></div>
-            <div class="timer-detail-row"><span>Warm ETA</span><strong id="server-detail-warm">--</strong></div>
-            <div class="timer-detail-row"><span>Shutoff ETA</span><strong id="server-detail-shutoff">--</strong></div>
-            <div class="timer-detail-row"><span>Basis</span><strong id="server-detail-basis">Local status check</strong></div>
-          </div>
-        </details>
+        <button class="warmup-button" id="warmup-button" type="button">Prepare demo</button>
       </div>
+      <details class="demo-settings demo-disclosure" id="chat-settings">
+        <summary>Settings</summary>
+        <div class="demo-settings-panel">
+          <label class="backend-select-wrap" for="backend-select">
+            Backend
+            <select id="backend-select" aria-label="Chat backend">
+              <option value="qwen-sagemaker">Qwen / SageMaker</option>
+              <option value="bedrock">Bedrock</option>
+            </select>
+          </label>
+          <div>
+            <p class="demo-section-label">Presentation</p>
+            <div class="view-tabs" role="tablist" aria-label="Chatbot view">
+              <button class="view-tab active" id="regular-view-button" type="button" role="tab" aria-selected="true" aria-controls="regular-view" data-view="regular">Regular</button>
+              <button class="view-tab" id="popup-view-button" type="button" role="tab" aria-selected="false" aria-controls="popup-view" data-view="popup">Pop-up</button>
+            </div>
+          </div>
+          <button class="clear-button" id="regular-clear" type="button">Clear conversation</button>
+          <details class="timer-details" id="timer-details">
+            <summary class="timer" id="server-timer" data-timer-mode="idle" aria-label="Server timer inactive">
+              <span class="timer-label" id="server-timer-label">Idle</span>
+              <span class="timer-ring" aria-hidden="true">
+                <span class="timer-value" id="server-timer-value">--</span>
+              </span>
+            </summary>
+            <div class="timer-detail-panel" id="timer-detail-panel">
+              <div class="timer-detail-row"><span>Status</span><strong id="server-text">Server off</strong></div>
+              <div class="timer-detail-row"><span>Stage</span><strong id="server-stage">Ready to start on demand.</strong></div>
+              <div class="timer-detail-row"><span>Endpoint</span><strong id="server-detail-endpoint">Unknown</strong></div>
+              <div class="timer-detail-row"><span>Instances</span><strong id="server-detail-instances">0 current / 0 desired</strong></div>
+              <div class="timer-detail-row"><span>Warm ETA</span><strong id="server-detail-warm">--</strong></div>
+              <div class="timer-detail-row"><span>Shutoff ETA</span><strong id="server-detail-shutoff">--</strong></div>
+              <div class="timer-detail-row"><span>Basis</span><strong id="server-detail-basis">Local status check</strong></div>
+            </div>
+      </details>
+        </div>
+      </details>
     </header>
 
     <dialog class="startup-notice" id="qwen-startup-notice" aria-labelledby="qwen-startup-title">
       <div class="startup-notice-panel">
-        <h2 id="qwen-startup-title">Qwen / SageMaker May Need a Few Minutes</h2>
-        <p>This backend can start from cold. Press Start server and allow up to about five minutes before the first answer is ready.</p>
+        <h2 id="qwen-startup-title">This demo may need a few minutes</h2>
+        <p>This model starts on demand. Press Prepare demo and allow up to ten minutes before the first answer is ready.</p>
         <div class="startup-notice-actions">
           <button class="clear-button" id="qwen-startup-close" type="button">OK</button>
-          <button class="warmup-button" id="qwen-startup-start" type="button">Start server</button>
+          <button class="warmup-button" id="qwen-startup-start" type="button">Prepare demo</button>
         </div>
       </div>
     </dialog>
 
-    <main class="views">
+    <div class="views">
       <section class="view-panel active" id="regular-view" role="tabpanel" aria-labelledby="regular-view-button">
         <div class="chat-stage">
-          <article class="chat-shell" aria-label="Regular chatbot">
-            <header class="chat-head">
-              <div class="chat-brand">
-                <strong>Travel Assistant</strong>
-                <span>Source-grounded chat demo</span>
-              </div>
-              <div class="head-actions">
-                <button class="clear-button" id="regular-clear" type="button">Clear</button>
-              </div>
-            </header>
+          <article class="chat-shell chat-shell--regular" aria-label="Travel conversation">
             <section class="chat-messages" id="regular-messages" aria-live="polite"></section>
             <section class="chat-composer">
               <form class="chat-form" id="regular-form" novalidate>
-                <textarea id="regular-prompt" name="regular-prompt" placeholder="Ask about Grand Junction" rows="1" maxlength="1200" autocomplete="off" required></textarea>
+                <textarea id="regular-prompt" name="regular-prompt" placeholder="Ask about Grand Junction" aria-label="Your travel question" rows="1" maxlength="1200" autocomplete="off" required></textarea>
                 <button class="chat-send" id="regular-send" type="submit">Send</button>
               </form>
             </section>
@@ -1178,7 +1064,7 @@
               <section class="chat-messages" id="popup-messages" aria-live="polite"></section>
               <section class="chat-composer">
                 <form class="chat-form" id="popup-form" novalidate>
-                  <textarea id="popup-prompt" name="popup-prompt" placeholder="Ask about Grand Junction" rows="1" maxlength="1200" autocomplete="off" required></textarea>
+                  <textarea id="popup-prompt" name="popup-prompt" placeholder="Ask about Grand Junction" aria-label="Your travel question" rows="1" maxlength="1200" autocomplete="off" required></textarea>
                   <button class="chat-send" id="popup-send" type="submit">Send</button>
                 </form>
               </section>
@@ -1186,8 +1072,8 @@
           </aside>
         </div>
       </section>
-    </main>
-  </div>
+    </div>
+  </main>
 
   <script src="js/demos/aws-client.js"></script>
   <script>
@@ -1233,7 +1119,7 @@
       localStorage.setItem(BACKEND_STORAGE_KEY, selectedBackendId);
       localStorage.setItem(BACKEND_DEFAULT_VERSION_KEY, BACKEND_DEFAULT_VERSION);
     }
-    const START_TIMEOUT_SEC = 300;
+    const START_TIMEOUT_SEC = 600;
     const DEFAULT_WARM_HOLD_SEC = 300;
     const STATUS_RETRY_OPTIONS = {
       retries: 2,
@@ -1247,6 +1133,7 @@
     const serverStage = document.getElementById('server-stage');
     const serverTimer = document.getElementById('server-timer');
     const timerDetails = document.getElementById('timer-details');
+    const chatSettings = document.getElementById('chat-settings');
     const serverTimerLabel = document.getElementById('server-timer-label');
     const serverTimerValue = document.getElementById('server-timer-value');
     const serverDetailEndpoint = document.getElementById('server-detail-endpoint');
@@ -1278,6 +1165,8 @@
     let readyDeadline = 0;
     let readyDuration = 0;
     let sharedStatusTimer = null;
+
+    const boundRetryButtons = new WeakSet();
 
     const sharedConversation = {
       activeContextId: 'regular',
@@ -1429,7 +1318,7 @@
       const alwaysLive = isAlwaysLiveBackend();
       serverText.textContent = alwaysLive
         ? `${activeBackend().label} live`
-        : (info?.online ? 'Server ready' : (info?.startupInProgress ? 'Starting server' : 'Server off'));
+        : (info?.online ? 'Ready' : (info?.startupInProgress ? 'Starting server' : 'Server off'));
       serverStage.textContent = alwaysLive
         ? (stage.message || 'Serverless endpoint is always available.')
         : stageMessage(stage);
@@ -1514,7 +1403,7 @@
     }
 
     function updateSendButtons() {
-      const coldTitle = isAlwaysLiveBackend() ? '' : 'Start the server first.';
+      const coldTitle = isAlwaysLiveBackend() ? '' : 'Prepare the demo first.';
       contexts.forEach(ctx => {
         const active = Boolean(ctx.controller);
         ctx.prompt.disabled = active ? false : !serverReady;
@@ -1522,6 +1411,10 @@
         ctx.send.textContent = active ? 'Stop' : 'Send';
         ctx.send.classList.toggle('stop', active);
         ctx.send.title = serverReady ? '' : coldTitle;
+        ctx.messages.querySelectorAll('[data-retry-prompt]').forEach(button => {
+          button.disabled = active || !serverReady;
+          button.title = serverReady ? '' : coldTitle;
+        });
         [...ctx.suggestions, ...ctx.followups].forEach(button => {
           button.disabled = !serverReady;
           button.title = serverReady ? '' : coldTitle;
@@ -1533,16 +1426,16 @@
       const backend = activeBackend();
       if (state === 'ready') {
         warmupButton.disabled = !isAlwaysLiveBackend(backend);
-        warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Check Bedrock' : 'Server ready';
+        warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Check connection' : 'Ready';
         return;
       }
       if (state === 'starting') {
         warmupButton.disabled = true;
-        warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Checking' : 'Starting';
+        warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Checking…' : 'Preparing demo…';
         return;
       }
       warmupButton.disabled = false;
-      warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Check Bedrock' : 'Start server';
+      warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Check connection' : 'Prepare demo';
     }
 
     function stopSharedStatusPolling() {
@@ -1710,7 +1603,7 @@
       const stage = remaining > 0
         ? 'Fast queries are available until the warm window ends.'
         : 'Warm window is ending; AWS may scale down soon.';
-      setServerVisual('ready', 'Server ready', stage);
+      setServerVisual('ready', 'Ready', stage);
       setTimerDisplay({
         mode: 'ready',
         label: 'Shuts off in',
@@ -1892,6 +1785,7 @@
     }
 
     function setView(view) {
+      chatSettings.open = false;
       const target = view === 'popup' ? 'popup' : 'regular';
       const previousCtx = activeChatContext();
       const targetCtx = contextById(target);
@@ -2410,6 +2304,11 @@
     }
 
     function bindSyncedMessageControls(ctx) {
+      ctx.messages.querySelectorAll('[data-retry-prompt]').forEach(button => {
+        if (boundRetryButtons.has(button)) return;
+        boundRetryButtons.add(button);
+        button.addEventListener('click', () => retryFailedResponse(ctx, button));
+      });
       ctx.suggestions = [];
       ctx.followups = [];
       ctx.messages.querySelectorAll('[data-suggestion-prompt]').forEach(button => {
@@ -2483,7 +2382,7 @@
         button.dataset.followupPrompt = text;
         button.dataset.followupContext = JSON.stringify(followupContext(ctx, data, links, text, previousQuestion));
         button.disabled = !serverReady;
-        button.title = serverReady ? '' : 'Start the server first.';
+        button.title = serverReady ? '' : 'Prepare the demo first.';
         button.addEventListener('click', () => {
           submitSuggestedPrompt(ctx, text, decodeFollowupContext(button));
         });
@@ -2517,9 +2416,9 @@
       return node;
     }
 
-    function addWaitingMessage(ctx, text) {
-      const node = addMessage(ctx, 'assistant', '');
-      node.innerHTML = '';
+    function renderWaitingMessage(node, text) {
+      node.replaceChildren();
+      delete node.dataset.partialAnswer;
       const wait = document.createElement('span');
       wait.className = 'waiting';
       const spinner = document.createElement('span');
@@ -2529,8 +2428,56 @@
       label.textContent = text;
       wait.append(spinner, label);
       node.appendChild(wait);
+    }
+
+    function addWaitingMessage(ctx, text) {
+      const node = addMessage(ctx, 'assistant', '');
+      renderWaitingMessage(node, text);
       syncMessagesFrom(ctx);
       return node;
+    }
+
+    function renderFailedResponse(node, err, prompt, followupContext) {
+      const partial = String(node.dataset.partialAnswer || '').trim();
+      node.replaceChildren();
+      if (partial) {
+        const partialResponse = document.createElement('p');
+        partialResponse.textContent = partial;
+        node.appendChild(partialResponse);
+      }
+      const content = document.createElement('div');
+      content.className = 'message-error';
+      const message = document.createElement('p');
+      message.textContent = 'The assistant couldn’t finish that response. Please try again.';
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'clear-button';
+      retry.textContent = 'Retry response';
+      retry.dataset.retryPrompt = prompt;
+      if (followupContext) retry.dataset.followupContext = JSON.stringify(followupContext);
+      const details = document.createElement('details');
+      details.className = 'demo-disclosure';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Error details';
+      const detailContent = document.createElement('div');
+      detailContent.className = 'demo-disclosure-content';
+      const technical = document.createElement('pre');
+      technical.textContent = describeError(err);
+      detailContent.appendChild(technical);
+      details.append(summary, detailContent);
+      content.append(message, retry, details);
+      node.appendChild(content);
+    }
+
+    function retryFailedResponse(ctx, button) {
+      if (!serverReady || ctx.controller) return;
+      const message = button.closest('.message.assistant');
+      if (!message) return;
+      handleSubmit(ctx, { preventDefault() {} }, {
+        message,
+        prompt: button.dataset.retryPrompt || '',
+        followupContext: decodeFollowupContext(button)
+      });
     }
 
     function emptyState(ctx) {
@@ -2539,16 +2486,17 @@
       ctx.followups = [];
       const node = document.createElement('div');
       node.className = 'empty-state';
-      const title = document.createElement('h2');
-      title.textContent = 'Travel Planning Chat';
+      const title = document.createElement('p');
+      title.className = 'empty-title';
+      title.textContent = 'Where would you like to explore?';
       const copy = document.createElement('p');
-      copy.textContent = 'Ask for destination ideas, itinerary help, current-resource links, and practical planning details.';
+      copy.textContent = 'Choose a starting point or ask your own travel question.';
       const suggestions = document.createElement('div');
       suggestions.className = 'suggestions';
       [
-        'Plan a Grand Junction first day with Colorado National Monument and downtown',
-        'Build a Grand Junction weekend with Riverfront Trail, downtown, and local food',
-        'Create a Grand Junction base-camp day trip to Grand Mesa lakes'
+        'Plan my first day in Grand Junction',
+        'Suggest a food and riverfront weekend',
+        'Plan a day trip to Grand Mesa'
       ].forEach(text => {
         const button = document.createElement('button');
         button.className = 'suggestion';
@@ -2556,7 +2504,7 @@
         button.textContent = text;
         button.dataset.suggestionPrompt = text;
         button.disabled = !serverReady;
-        button.title = serverReady ? '' : 'Start the server first.';
+        button.title = serverReady ? '' : 'Prepare the demo first.';
         button.addEventListener('click', () => {
           if (!serverReady) return;
           submitSuggestedPrompt(ctx, text);
@@ -2760,30 +2708,36 @@
       throw new DOMException('Stopped', 'AbortError');
     }
 
-    async function handleSubmit(ctx, event) {
+    async function handleSubmit(ctx, event, retry = null) {
       event.preventDefault();
       if (ctx.controller) {
         ctx.controller.abort();
         return;
       }
-      const prompt = ctx.prompt.value.trim();
+      const prompt = retry ? retry.prompt.trim() : ctx.prompt.value.trim();
       if (!prompt) return;
       if (!serverReady) {
-        setServerVisual('off', 'Server off', 'Press Start server before sending a query.', '');
+        setServerVisual('off', 'Server off', 'Press Prepare demo before sending a query.', '');
         warmupButton.focus();
         return;
       }
-      const followupContext = ctx.pendingFollowupContext;
-      ctx.pendingFollowupContext = null;
+      const followupContext = retry ? retry.followupContext : ctx.pendingFollowupContext;
+      if (!retry) ctx.pendingFollowupContext = null;
       clearFollowups(ctx);
 
       const empty = ctx.messages.querySelector('.empty-state');
       if (empty) empty.remove();
-      addMessage(ctx, 'user', prompt);
-      ctx.prompt.value = '';
-      autoResize(ctx.prompt);
-      syncPromptFrom(ctx);
-      const answer = addWaitingMessage(ctx, 'Running model...');
+      if (!retry) addMessage(ctx, 'user', prompt);
+      if (!retry || ctx.prompt.value.trim() === prompt) {
+        ctx.prompt.value = '';
+        autoResize(ctx.prompt);
+        syncPromptFrom(ctx);
+      }
+      const answer = retry ? retry.message : addWaitingMessage(ctx, 'Preparing your response…');
+      if (retry) {
+        renderWaitingMessage(answer, 'Preparing your response…');
+        syncMessagesFrom(ctx);
+      }
 
       try {
         const data = await submitPrompt(ctx, prompt, followupContext, answer);
@@ -2805,7 +2759,12 @@
             ? `${partial}\n\nStopped before final answer.`
             : 'Stopped before final answer.';
         } else {
-          answer.textContent = `Request failed: ${describeError(err)}`;
+          renderFailedResponse(answer, err, prompt, followupContext);
+          if (!ctx.prompt.value.trim()) {
+            ctx.prompt.value = prompt;
+            autoResize(ctx.prompt);
+            syncPromptFrom(ctx);
+          }
           recordLog('submit:error', { error: describeError(err) }, 'error');
         }
         syncMessagesFrom(ctx);
@@ -2827,7 +2786,10 @@
           ctx.controller.abort();
         }
       });
-      ctx.clear.addEventListener('click', () => clearContext(ctx));
+      ctx.clear.addEventListener('click', () => {
+        chatSettings.open = false;
+        clearContext(activeChatContext() || ctx);
+      });
       ctx.prompt.addEventListener('focus', () => {
         sharedConversation.activeContextId = ctx.id;
       });
@@ -2846,6 +2808,15 @@
 
     viewButtons.forEach(button => {
       button.addEventListener('click', () => setView(button.dataset.view));
+    });
+    chatSettings.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !chatSettings.open) return;
+      event.preventDefault();
+      chatSettings.open = false;
+      chatSettings.querySelector('summary').focus();
+    });
+    document.addEventListener('pointerdown', event => {
+      if (chatSettings.open && !chatSettings.contains(event.target)) chatSettings.open = false;
     });
     popupLauncher.addEventListener('click', () => togglePopup());
     popupClose.addEventListener('click', () => togglePopup(false));

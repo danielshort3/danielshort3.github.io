@@ -121,6 +121,12 @@ function runResponsiveDensityContractTests({ assert }) {
     'generated details should use their canonical project, tool, and game libraries',
   );
   const personalShellCss = read('css/components/personal-accordion-shell.css');
+  const utilityLayoutCss = read('css/utilities/layout.css');
+  assert(
+    /@media \(pointer:\s*fine\)\s*\{\s*html:has\(body\.personal-accordion-page\)::-webkit-scrollbar,/s.test(personalShellCss) &&
+      /@media \(pointer:\s*fine\)\s*\{\s*\.contact-page::-webkit-scrollbar\s*\{/s.test(utilityLayoutCss),
+    'custom root WebKit scrollbars must remain limited to fine pointers so touch viewports retain their full visible width',
+  );
   assert(
     personalShellCss.includes('--personal-rail-size: 68px;') &&
       personalShellCss.includes('--personal-mobile-rail-size: 48px;') &&
@@ -135,6 +141,32 @@ function runResponsiveDensityContractTests({ assert }) {
   assert(
     homeAccordionCss.includes('.home-accordion__item.is-active .home-accordion__rail {\n      width: 100%;\n      height: 54px;'),
     'the active mobile homepage rail should override the desktop rail width and fill the viewport',
+  );
+  const homeCtaRules = Array.from(homeAccordionCss.matchAll(/\.home-accordion__panel-cta\s*\{([^}]+)\}/g), (match) => match[1]);
+  const homeCtaBase = homeCtaRules[0];
+  const homeCtaMobile = homeCtaRules.find((rule) => /width:\s*calc\(100% - \d+px\)/.test(rule));
+  const ctaWidthDeduction = Number(homeCtaMobile?.match(/width:\s*calc\(100% - (\d+)px\)/)?.[1]);
+  const ctaMargin = Number(homeCtaMobile?.match(/margin:\s*\d+px (\d+)px/)?.[1]);
+  const ctaPadding = Number(homeCtaBase?.match(/padding:\s*0 (\d+)px/)?.[1]);
+  const ctaBorder = Number(homeCtaBase?.match(/border:\s*(\d+)px/)?.[1]);
+  const ctaIsBorderBox = /box-sizing:\s*border-box;/.test(homeCtaBase);
+  [297, 312, 367, 382].forEach((containerWidth) => {
+    const outerWidth = containerWidth - ctaWidthDeduction + ctaMargin * 2 +
+      (ctaIsBorderBox ? 0 : (ctaPadding + ctaBorder) * 2);
+    assert(
+      Number.isFinite(outerWidth) && outerWidth <= containerWidth &&
+        /min-height:\s*(?:4[4-9]|[5-9]\d)px;/.test(homeCtaBase),
+      `the homepage overview CTA should fit a ${containerWidth}px panel including padding, borders and margins, even when a scrollbar reduces the viewport`,
+    );
+  });
+  const personalMobileCss = personalShellCss.slice(personalShellCss.indexOf('@media (max-width: 959px), (max-height: 619px)'));
+  const contextRule = personalMobileCss.match(/\.personal-accordion__context\s*\{([^}]+)\}/)?.[1] || '';
+  assert(
+    /\.personal-accordion__toolbar\s*\{[^}]*flex-wrap:\s*wrap;[^}]*gap:\s*8px 12px;/s.test(personalMobileCss) &&
+      !/position:\s*absolute|translate\(/.test(contextRule) &&
+      /max-width:\s*100%;/.test(contextRule) &&
+      /\.personal-accordion__back\s*\{[^}]*min-height:\s*44px;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s.test(personalShellCss),
+    'mobile Back and context must share wrapping layout space so enlarged labels cannot overlap an absolutely centered title',
   );
 
   const directContactHeader = cmsRenderers.renderHeader({
@@ -153,15 +185,8 @@ function runResponsiveDensityContractTests({ assert }) {
     tools: [],
     audience: { key: 'personal' },
   });
-  const contactStart = directContactHeader.indexOf('class="nav-item nav-item-contact"');
-  const contactEnd = directContactHeader.indexOf('class="nav-search"', contactStart);
-  const contactMarkup = directContactHeader.slice(contactStart, contactEnd);
-  assert(
-    contactMarkup.includes('<a href="contact" class="nav-link nav-link-cta">Contact</a>') &&
-      !contactMarkup.includes('nav-link-has-menu') &&
-      !contactMarkup.includes('nav-dropdown-contact'),
-    'Contact should be one direct navigation link without a dropdown',
-  );
+  assert(directContactHeader.includes('class="nav-search"') && !directContactHeader.includes('nav-item-contact') && !directContactHeader.includes('nav-dropdown'),
+    'the shared masthead should use brand and search while category tabs provide navigation');
 
   const compactStaticCard = projectGenerator.renderPortfolioStaticResults([{
     id: 'responsive-contract',
@@ -215,13 +240,13 @@ function runResponsiveDensityContractTests({ assert }) {
     'mobile workbench controls should stay inside the viewport and preserve 44px targets',
   );
   assert(
-    portfolioJs.includes("window.matchMedia('(min-width: 821px)')") &&
-      portfolioJs.includes("window.matchMedia('(max-width: 820px)')") &&
-      workbenchCss.includes('@media (max-width: 820px)') &&
+    portfolioJs.includes("const PORTFOLIO_COMPACT_QUERY = '(max-width: 820px), (max-height: 480px) and (pointer: coarse)'") &&
+      (portfolioJs.match(/window\.matchMedia\(PORTFOLIO_COMPACT_QUERY\)/g) || []).length >= 2 &&
+      workbenchCss.includes('@media (max-width: 820px), (max-height: 480px) and (pointer: coarse)') &&
       portfolioJs.includes('aria-haspopup="dialog"') &&
       portfolioJs.includes("document.body?.classList.toggle('portfolio-inspector-open', active)") &&
       portfolioJs.includes('createBackgroundIsolation(inspector, [inspectorBackdrop])'),
-    'mobile filter and Quick view dialogs should share the 820px workbench breakpoint and isolate their background',
+    'filter and Quick view dialogs should share one compact breakpoint for portrait and short touch landscape and isolate their background',
   );
 
   const baseCss = read('css/base/base.css');
@@ -232,6 +257,7 @@ function runResponsiveDensityContractTests({ assert }) {
   const shortLinksCss = read('css/components/short-links.css');
   const stormbreakCss = read('css/games/stormbreak.css');
   const toolsWorkspaceCss = read('css/components/tools-workspace.css');
+  const toolsAccountCss = read('css/components/tools-account.css');
   const personalAccordionCss = read('css/components/personal-accordion-shell.css');
   const utmBatchBuilderCss = read('css/components/utm-batch-builder.css');
   const toolsMobileCss = toolsWorkspaceCss.slice(
@@ -239,6 +265,25 @@ function runResponsiveDensityContractTests({ assert }) {
   );
   const utmMobileCss = utmBatchBuilderCss.slice(
     utmBatchBuilderCss.indexOf('@media (max-width: 600px)'),
+  );
+  const accountCompactCss = toolsAccountCss.slice(toolsAccountCss.indexOf('@media (max-width:959px), (max-height:619px)'));
+  assert(
+    /\.tools-account-disclosure\s*\{[^}]*box-sizing:\s*border-box;/s.test(toolsAccountCss) &&
+      /\.tools-account-disclosure\s*\{[^}]*inset-inline-start:\s*auto;[^}]*inset-inline-end:\s*0;/s.test(accountCompactCss) &&
+      /:is\(\.personal-tool-header__account,\.personal-library__account\) \.tools-account-disclosure\s*\{[^}]*inset-inline-start:\s*auto;[^}]*inset-inline-end:\s*0;/s.test(toolsAccountCss),
+    'right-side account menus should open inward across compact widths, including 621–959px and short landscape viewports',
+  );
+  assert(
+    /\.tools-account-structure\s*\{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;/s.test(accountCompactCss) &&
+      /\.tools-account-actions\s*\{[^}]*flex-wrap:\s*wrap;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s.test(toolsAccountCss) &&
+      /\.tools-account-trigger\s*\{[^}]*min-block-size:\s*44px;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/s.test(toolsAccountCss) &&
+      /\.tools-account-status\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*overflow-wrap:\s*anywhere;/s.test(toolsAccountCss),
+    'signed-out labels, account actions and long save statuses should wrap inside their available width while retaining 44px targets',
+  );
+  assert(
+    /\.personal-tool-header__account:has\(\.tools-account-extensions:not\(\[hidden\]\)\)\s*\{[^}]*grid-column:\s*1 \/ -1;[^}]*grid-row:\s*auto;[^}]*width:\s*100%;[^}]*max-width:\s*100%;/s.test(toolsMobileCss) &&
+      /\.personal-tool-header__actions > \*\s*\{[^}]*box-sizing:\s*border-box;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*min-block-size:\s*44px;[^}]*white-space:\s*normal;/s.test(toolsWorkspaceCss),
+    'visible Save/status controls should receive a full compact header row and extra header actions must fit their containing block',
   );
   assert(
     !baseCss.includes('font-size:16px !important;') &&
@@ -300,6 +345,16 @@ function runResponsiveDensityContractTests({ assert }) {
   const contactJs = read('js/forms/contact.js');
   const variablesCss = read('css/variables.css');
   const modalCss = read('css/components/modal.css');
+  assert(
+    workbenchCss.includes('grid-template-columns: min(5.5rem, 28%) minmax(0, 1fr);') &&
+      /\.portfolio-result-card__open\s*\{[^}]*box-sizing:\s*border-box;[^}]*min-height:\s*44px;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/s.test(workbenchCss),
+    'enlarged text must not let the compact project thumbnail or Quick view action exceed its card width',
+  );
+  assert(
+    /\.contact-form \.form-actions > \*\s*\{[^}]*box-sizing:\s*border-box;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*min-block-size:\s*44px;/s.test(modalCss) &&
+      /\.portfolio-inspector__cta\s*\{[^}]*min-height:\s*44px;/s.test(workbenchCss),
+    'Clear form and the case-study CTA must retain a full 44px target in every layout',
+  );
   const modalMobileCss = modalCss.slice(modalCss.lastIndexOf('@media (max-width: 768px)'));
   const privacyMobileCss = privacyCss.slice(privacyCss.indexOf('@media (max-width: 640px)'));
   assert(

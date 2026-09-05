@@ -1,0 +1,103 @@
+@layer components {
+  .header-breadcrumbs {
+    --breadcrumb-accent: #091f3b;
+    display: flex;
+    flex: 1 1 0;
+    justify-content: center;
+    min-width: 0;
+    color: #526174;
+    font-family: var(--font-sans);
+    font-size: .875rem;
+    line-height: 1.4;
+  }
+
+  .header-breadcrumbs[hidden] {
+    display: none;
+  }
+
+  .header-breadcrumbs__list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .header-breadcrumbs__item {
+    display: flex;
+    align-items: center;
+    flex: 0 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .header-breadcrumbs__item:first-child {
+    flex-shrink: 0;
+  }
+
+  .header-breadcrumbs__separator {
+    flex: 0 0 auto;
+    padding-inline: 10px;
+    color: #7b8796;
+    user-select: none;
+  }
+
+  .header-breadcrumbs__link,
+  .header-breadcrumbs__current {
+    display: block;
+    min-width: 0;
+    padding-block: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-breadcrumbs__link {
+    box-sizing: border-box;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 3px;
+    text-decoration: underline;
+    transition: color var(--motion-fast) var(--easing-standard), text-decoration-color var(--motion-fast) var(--easing-standard);
+  }
+
+  .header-breadcrumbs__link:focus-visible {
+    outline: 2px solid var(--breadcrumb-accent);
+    outline-offset: 3px;
+  }
+
+  .header-breadcrumbs__current {
+    color: var(--breadcrumb-accent);
+    font-weight: 600;
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    .header-breadcrumbs {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-breadcrumbs__link {
+      transition: none;
+    }
+  }
+}
+
+@layer overrides {
+  /* Keep the header trail quieter than ordinary links inside content lists. */
+  .header-breadcrumbs__link {
+    color: #526174;
+    text-decoration-color: #c5cdd7;
+    text-underline-offset: 3px;
+  }
+
+  .header-breadcrumbs__link:hover {
+    color: var(--breadcrumb-accent);
+    text-decoration-color: currentColor;
+  }
+}

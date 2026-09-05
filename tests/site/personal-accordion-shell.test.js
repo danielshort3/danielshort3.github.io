@@ -295,8 +295,8 @@ function runPersonalAccordionShellTests({ assert }) {
     config.relPath.replace(/\\/g, '/'),
     config
   ]));
-  assert(uniqueManagedPages.length === 49,
-    'The personal shell route sweep should cover four category roots, six utility/fallback pages, 16 projects, 18 tools, and five games');
+  assert(uniqueManagedPages.length === 50,
+    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 16 projects, 18 tools, and five games');
   assert(INTERNAL_TOOL_PAGE_IDS.length === 8 &&
     INTERNAL_TOOL_PAGE_IDS.every((itemId) => !TOOL_PAGE_IDS.includes(itemId)),
   'Account-reachable tools should remain a distinct internal shell list instead of joining the public catalog');
@@ -334,7 +334,7 @@ function runPersonalAccordionShellTests({ assert }) {
     assert(routeManifest && routeManifest.version === SITE_ROUTE_MANIFEST_VERSION &&
       routeManifest.id === `${category}:${expectedItem}` &&
       routeManifest.category === category &&
-      routeManifest.module === routeManifest.id &&
+      routeManifest.module === ({ project: 'page:content', search: 'search:search', contact: 'contact:contact' }[getTagAttribute(html, /<body\b[^>]*>/i, 'data-page')] || routeManifest.id) &&
       validatedRouteManifest.id === routeManifest.id &&
       Array.isArray(routeManifest.styles) && routeManifest.styles.length >= 2 &&
       Array.isArray(routeManifest.scripts) && routeManifest.scripts.length >= 2,
@@ -483,17 +483,15 @@ function runPersonalAccordionShellTests({ assert }) {
     const audience = relativePath.split('/')[2];
     const canonical = getTagAttribute(html, /<link\b[^>]*\brel="canonical"[^>]*>/i, 'href');
     const ogUrl = getTagAttribute(html, /<meta\b[^>]*\bproperty="og:url"[^>]*>/i, 'content');
-    assert(!html.includes('data-personal-accordion-shell'), `${relativePath} should stay unwrapped`);
+    assert(html.includes('data-personal-accordion-shell'), `${relativePath} should use the shared tab shell`);
     assert(new RegExp(`<body[^>]*data-audience="${audience}"`, 'i').test(html), `${relativePath} should retain its audience`);
     assert(count(html, /<meta\b[^>]*\bname="robots"[^>]*\bcontent="noindex, nofollow"[^>]*>/gi) === 1,
       `${relativePath} should contain one noindex directive`);
     assert(canonical.includes(`?audience=${audience}`), `${relativePath} should canonicalize to its visible audience URL`);
     assert(canonical === ogUrl, `${relativePath} canonical and og:url should match`);
     assert(!canonical.includes('/pages/professional/'), `${relativePath} should not expose its internal storage URL`);
-    assert(html.includes('data-footer-realm="professional"') && !html.includes('data-footer-realm="personal"'),
-      `${relativePath} should retain professional footer chrome`);
-    assert(html.includes(`href="${audience}" class="nav-link" data-professional-home-link="true"`),
-      `${relativePath} should retain its audience-specific professional header`);
+    assert(html.includes('footer--personal-compact'), relativePath + ' should use the shared compact footer');
+    assert(html.includes('data-site-tab-rail-mode="navigation"') && !html.includes('id="primary-menu"'), relativePath + ' should use audience tabs without header menus');
   });
 
   const vercel = readJson('vercel.json');
@@ -504,11 +502,11 @@ function runPersonalAccordionShellTests({ assert }) {
     rule.has.some((condition) => condition.type === 'query' && condition.key === key && condition.value === value)
   ));
   assert(hasRewrite('/portfolio/:project', 'audience', 'data-science', '/pages/professional/data-science/portfolio/:project'),
-    'Project audience deep links should route to an unwrapped professional copy');
+    'Project audience deep links should route to a professional copy with the shared tab shell');
   assert(hasRewrite('/portfolio', 'audience', 'tourism', '/pages/professional/tourism/portfolio'),
-    'Portfolio audience links should route to an unwrapped professional copy');
+    'Portfolio audience links should route to a professional copy with the shared tab shell');
   assert(hasRewrite('/contact', 'audience', 'analytics', '/pages/professional/analytics/contact'),
-    'Contact audience links should route to an unwrapped professional copy');
+    'Contact audience links should route to a professional copy with the shared tab shell');
   assert(hasRewrite('/portfolio/:project', 'mode', '(professional|work|career|analytics)', '/pages/professional/analytics/portfolio/:project'),
     'Legacy professional mode deep links should retain the professional project layout');
 
@@ -521,18 +519,20 @@ function runPersonalAccordionShellTests({ assert }) {
   });
 
   const probabilityApp = read('js/games/probability-engine/app.js');
-  assert(probabilityApp.includes('dom.modalBackground = Array.from(new Set([') &&
-    probabilityApp.includes('dom.appShell') &&
-    probabilityApp.includes('.personal-accordion__rails'),
-  'Probability Engine modal background should include its nested app shell and shell navigation');
-  assert(probabilityApp.includes('element.setAttribute("inert", "")') &&
-    probabilityApp.includes('dom.offlineModal.setAttribute("aria-hidden", "false")') &&
-    probabilityApp.includes('window.requestAnimationFrame(() => dom.claimOfflineButton.focus())'),
-  'Probability Engine modal open should inert the background, expose the dialog, and move focus');
-  assert(probabilityApp.includes('element.removeAttribute("inert")') &&
-    probabilityApp.includes('dom.offlineModal.setAttribute("aria-hidden", "true")') &&
-    probabilityApp.includes('lastFocusedBeforeOffline.focus()'),
-  'Probability Engine modal close should restore interactivity, hide the dialog, and restore focus');
+  assert(probabilityApp.includes('window.createModalAccessibility(dom.offlineModal)') &&
+    probabilityApp.includes('dom.offlineModal.before(offlineModalPlaceholder)') &&
+    probabilityApp.includes('document.body.appendChild(dom.offlineModal)'),
+  'Probability Engine offline dialog should use shared accessibility and portal outside the clipped route content');
+  assert(probabilityApp.includes('offlineModalAccessibility.show()') &&
+    probabilityApp.includes('offlineModalAccessibility.isolateBackground()') &&
+    probabilityApp.includes('dom.claimOfflineButton.focus({ preventScroll: true })'),
+  'Probability Engine modal open should expose the dialog, focus Claim, and isolate background controls');
+  assert(probabilityApp.includes('offlineModalAccessibility.hide({') &&
+    probabilityApp.includes('lastFocusedBeforeOffline.focus({ preventScroll: true })') &&
+    probabilityApp.includes('offlineModalAccessibility.dispose()') &&
+    probabilityApp.includes('window.SiteRoutes?.addCleanup(disposeOfflineModal)') &&
+    probabilityApp.includes('offlineModalPlaceholder.replaceWith(dom.offlineModal)'),
+  'Probability Engine modal should restore its owner and interactivity after close or route disposal');
 
   const shellCss = read('css/components/personal-accordion-shell.css');
   assert(shellCss.includes('.personal-accordion--contact .personal-accordion__panel') &&

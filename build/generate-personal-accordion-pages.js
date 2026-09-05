@@ -87,6 +87,12 @@ const UTILITY_PAGE_CONFIGS = Object.freeze([
     backHref: '/#projects'
   }),
   Object.freeze({
+    relPath: 'dshort.html',
+    itemId: 'dshort',
+    category: 'about',
+    backHref: '/'
+  }),
+  Object.freeze({
     relPath: '404.html',
     itemId: 'not-found',
     category: 'about',
@@ -213,10 +219,24 @@ function writeWrapped(relPath, options) {
 
 function writeProfessionalCopy(relPath, html, audience) {
   const marked = markProfessionalInternalHtml(html, audience);
-  if (marked.includes('data-personal-accordion-shell')) {
-    throw new Error(`${relPath} professional copy must remain unwrapped.`);
-  }
-  write(relPath, marked);
+  const itemId = path.basename(relPath, '.html');
+  const category = itemId === 'contact' ? 'contact' : itemId === 'search' ? 'about' : 'projects';
+  const backHref = category === 'projects' && itemId !== 'portfolio'
+    ? `/portfolio?audience=${audience}`
+    : `/${audience}`;
+  const wrapped = wrapPersonalAccordionHtml(marked, {
+    audience,
+    category,
+    itemId,
+    navigation: 'soft',
+    chrome: 'compact',
+    fit: 'document',
+    backHref,
+    backLabel: category === 'projects' && itemId !== 'portfolio' ? 'Back to projects' : 'Back to about',
+    backCompactLabel: category === 'projects' && itemId !== 'portfolio' ? 'Projects' : 'About'
+  });
+  validateWrappedPage(wrapped, relPath, category);
+  write(relPath, wrapped);
 }
 
 function buildLibraryPage(sourceHtml, category, libraryData) {
@@ -409,6 +429,31 @@ function buildGamePages() {
   return Object.keys(GAME_PAGE_PATHS).length;
 }
 
+function buildProfessionalPages() {
+  PROFESSIONAL_AUDIENCES.forEach((audience) => {
+    const pages = [
+      { itemId: audience, category: 'about' },
+      { itemId: `resume-${audience}`, category: 'resume' },
+      { itemId: `resume-${audience}-pdf`, category: 'resume' }
+    ];
+    if (audience === 'analytics') {
+      pages.push({ itemId: 'resume', category: 'resume' }, { itemId: 'resume-pdf', category: 'resume' });
+    }
+    pages.forEach(({ itemId, category }) => writeWrapped(path.join('pages', `${itemId}.html`), {
+      audience,
+      category,
+      itemId,
+      navigation: 'soft',
+      chrome: 'compact',
+      fit: 'document',
+      backHref: itemId.endsWith('-pdf') ? `/resume-${audience}` : `/${audience}`,
+      backLabel: itemId.endsWith('-pdf') ? 'Back to resume' : 'Back to about',
+      backCompactLabel: itemId.endsWith('-pdf') ? 'Resume' : 'About'
+    }));
+    writeProfessionalCopy(path.join('pages', 'professional', audience, 'search.html'), read(path.join('pages', 'search.html')), audience);
+  });
+}
+
 function main() {
   const libraryData = loadHomeLibraryData();
   fs.mkdirSync(professionalDir, { recursive: true });
@@ -421,9 +466,10 @@ function main() {
   const projectCount = buildProjectPages();
   const toolCount = buildToolPages();
   const gameCount = buildGamePages();
+  buildProfessionalPages();
 
   process.stdout.write(
-    `[personal-accordion] Wrapped 4 personal category roots, ${utilityCount} utility/fallback pages, ${projectCount} projects, ${toolCount} tools, and ${gameCount} games; three audience-specific portfolio/contact copies remain unwrapped.\n`
+    `[personal-accordion] Wrapped 4 personal category roots, ${utilityCount} utility/fallback pages, ${projectCount} projects, ${toolCount} tools, ${gameCount} games, and all professional landing, project, contact, search, and resume pages.\n`
   );
 }
 
@@ -441,6 +487,7 @@ module.exports = {
   buildLibraryPage,
   buildPortfolioIndex,
   buildProjectPages,
+  buildProfessionalPages,
   buildToolPages,
   buildUtilityPages,
   buildGamePages,

@@ -19,6 +19,7 @@ const adminDir = path.join(root, 'admin');
 const cmsApiPath = path.join(root, 'api', 'cms', '[...slug].js');
 const chatbotApiPath = path.join(root, 'api', 'chatbot.js');
 const chatbotLogsApiPath = path.join(root, 'api', 'chatbot', 'logs.js');
+const chatbotStreamApiPath = path.join(root, 'api', 'chatbot-stream.js');
 const toolsApiPath = path.join(root, 'api', 'tools', '[...slug].js');
 const demosApiPath = path.join(root, 'api', 'demos', '[...slug].js');
 const sentenceDemoApiPath = path.join(root, 'api', 'sentence-demo', '[...slug].js');
@@ -687,6 +688,11 @@ function loadChatbotApi() {
   return require(chatbotApiPath);
 }
 
+function loadChatbotStreamApi() {
+  clearChatbotApiCache();
+  return require(chatbotStreamApiPath);
+}
+
 function loadChatbotLogsApi() {
   clearChatbotApiCache();
   return require(chatbotLogsApiPath);
@@ -769,6 +775,27 @@ function createLocalServer() {
           ok: false,
           error: err && err.message ? err.message : 'Local chatbot API failed to load'
         }));
+      }
+      return;
+    }
+
+    if (pathname === '/api/chatbot-stream') {
+      req.query = Object.fromEntries(url.searchParams.entries());
+      const handleStreamError = (err) => {
+        console.error('[dev] Local chatbot stream handler failed:', err);
+        if (res.destroyed || res.writableEnded) return;
+        if (res.headersSent) {
+          res.end(JSON.stringify({ type: 'error', error: 'Chatbot stream is temporarily unavailable.' }) + '\n');
+          return;
+        }
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ ok: false, error: 'Local chatbot stream handler failed.' }));
+      };
+      try {
+        Promise.resolve(loadChatbotStreamApi()(req, res)).catch(handleStreamError);
+      } catch (err) {
+        handleStreamError(err);
       }
       return;
     }

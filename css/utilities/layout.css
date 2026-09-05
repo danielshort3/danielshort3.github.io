@@ -109,19 +109,21 @@
   scrollbar-color: var(--primary) var(--surface);
 }
 
-/* WebKit (Chrome, Edge, Safari) */
-.contact-page::-webkit-scrollbar {
-  width: 10px;
-  background: var(--surface);
-}
+/* Keep the native overlay scrollbar on touch screens. */
+@media (pointer: fine) {
+  .contact-page::-webkit-scrollbar {
+    width: 10px;
+    background: var(--surface);
+  }
 
-.contact-page::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 6px;
-}
+  .contact-page::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 6px;
+  }
 
-.contact-page::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--primary) 75%, #000 25%);
+  .contact-page::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--primary) 75%, #000 25%);
+  }
 }
 
 /* === Center the entire CTA block ========================================= */
@@ -196,7 +198,7 @@
     height:3px;
     margin:4px 0;
     background:var(--text-light);
-    transition:transform .3s,opacity .3s;
+    transition:transform var(--motion-base) var(--easing-standard),opacity var(--motion-fast) var(--easing-standard);
   }
   .burger[aria-expanded="true"] .bar:nth-child(1){
     transform:translateY(7px) rotate(45deg);
@@ -234,25 +236,27 @@
     border-top:none;
     background:var(--surface);
     box-shadow:0 24px 48px rgba(0,0,0,.45);
-    transform:translateX(-50%);
+    transform:translate3d(-50%, -6px, 0);
     opacity:0;
     pointer-events:none;
-    max-height:0;
-    overflow:hidden;
-    -webkit-clip-path:inset(0 0 100% 0);
-            clip-path:inset(0 0 100% 0);
+    max-height:var(--nav-mobile-dropdown-max, calc(100svh - var(--nav-height,72px) - 48px));
+    overflow-y:auto;
+    overflow-x:hidden;
+    visibility:hidden;
     transition:
-      max-height .28s ease,
-      -webkit-clip-path .28s ease,
-      clip-path .28s ease,
-      opacity .2s ease;
+      transform var(--motion-fast) var(--easing-standard),
+      opacity var(--motion-fast) var(--easing-standard),
+      visibility 0s linear var(--motion-fast);
   }
   .nav-row.open{
     opacity:1;
-    max-height:var(--nav-mobile-dropdown-max, calc(100svh - var(--nav-height,72px) - 48px));
+    transform:translate3d(-50%, 0, 0);
     pointer-events:auto;
-    -webkit-clip-path:inset(0 0 0 0);
-            clip-path:inset(0 0 0 0);
+    visibility:visible;
+    transition:
+      transform var(--motion-base) var(--easing-standard),
+      opacity var(--motion-base) var(--easing-standard),
+      visibility 0s;
     overflow-y:auto;
     overflow-x:hidden;
     -webkit-overflow-scrolling:touch;

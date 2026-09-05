@@ -291,6 +291,14 @@
     margin-top:4px;
   }
 
+  .work-details > .site-disclosure-content {
+    display:flow-root;
+  }
+
+  .work-details > .site-disclosure-content[hidden] {
+    display:none;
+  }
+
   .destination-section + .destination-section {
     margin-top: 0;
   }
@@ -339,10 +347,11 @@
       content:"+";
       flex:0 0 auto;
       font-size:1rem;
+      transition:transform var(--motion-base, 220ms) var(--easing-standard, ease);
     }
 
-    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details[open] > summary::after {
-      content:"−";
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details:is([data-disclosure-expanded="true"], [open]:not([data-disclosure-motion-ready])) > summary::after {
+      transform:rotate(45deg);
     }
 
     body[data-page="analytics"].home-pattern-page .work-details .work-highlights li:nth-child(n + 3) {
@@ -404,5 +413,45 @@
       line-height:1.45;
     }
 
+  }
+}
+
+@layer overrides {
+  body[data-page="analytics"].home-pattern-page .work-card > :is(.work-logo-shell, .work-card-meta) {
+    grid-row:1 / span 2;
+  }
+
+  body[data-page="analytics"].home-pattern-page .work-card > .work-primary-highlight {
+    grid-column:3;
+    grid-row:1;
+    align-self:end;
+    min-width:0;
+  }
+
+  body[data-page="analytics"].home-pattern-page .work-card > .work-details {
+    grid-column:3;
+    grid-row:2;
+    align-self:start;
+    min-width:0;
+  }
+
+  @media (max-width: 768px) {
+    body[data-page="analytics"].home-pattern-page .work-card > :is(.work-logo-shell, .work-card-meta) {
+      grid-row:1;
+    }
+
+    body[data-page="analytics"].home-pattern-page .work-card > .work-primary-highlight {
+      grid-column:1 / -1;
+      grid-row:2;
+    }
+
+    body[data-page="analytics"].home-pattern-page .work-card > .work-details {
+      grid-column:1 / -1;
+      grid-row:3;
+    }
+
+    body[data-page="analytics"].home-pattern-page .work-card > .work-details .work-highlights li:nth-child(n + 3) {
+      display:list-item;
+    }
   }
 }

@@ -6,18 +6,18 @@
   'use strict';
 
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window.SiteNavigation?.version === 1) return;
 
   const CONTENT_SELECTOR = '[data-site-route-content], [data-personal-detail-content]';
   const MANIFEST_SELECTOR = 'script#site-route-manifest[data-site-route-manifest]';
   const SHELL_SELECTOR = '[data-site-persistent-shell], [data-personal-accordion-shell], [data-home-accordion]';
-  const PROGRESS_DELAY_MS = 350;
   const ROUTE_CACHE_LIMIT = 12;
   const ROUTE_EVENT = 'site:route-change';
   const CONTENT_EVENT = 'site:content-updated';
   const NAVIGATION_EVENT = 'site:navigation-start';
   const REQUEST_HEADER = 'X-Site-Route';
   const ROUTE_VIEWS = new Set(['overview', 'library', 'detail']);
-  const ROUTE_CATEGORIES = new Set(['about', 'projects', 'tools', 'games', 'contact']);
+  const ROUTE_CATEGORIES = new Set(['about', 'projects', 'tools', 'games', 'resume', 'contact']);
   const PROFESSIONAL_AUDIENCES = new Set(['analytics', 'data-science', 'tourism']);
   const HARD_BOUNDARY_PATHS = new Set([
     '/tools/background-remover',
@@ -53,18 +53,25 @@
   ];
 
   const routeCache = new Map();
+  const preparedRoutes = new Map();
+  const preparedStyleRefs = new Map();
+  const scriptBytes = new Map();
+  const styleLoads = new Map();
   const pendingFetches = new Map();
   const loadedScripts = new Set();
+  const scriptLoads = new Map();
+  const routeMotions = new Map();
   let activeNavigation = null;
   let navigationSequence = 0;
   let historySequence = 0;
   let committedHistoryIndex = 0;
   let committedHistoryState = null;
   let committedUrl = window.location.href;
+  let committedSnapshot = null;
   let restoringVetoedPop = false;
 
   Array.from(document.scripts || []).forEach((script) => {
-    if (script.src) loadedScripts.add(normalizeAssetUrl(script.src));
+    if (script.src) loadedScripts.add(scriptIdentity(script.src));
   });
 
   function resolveUrl(value, base = document.baseURI || window.location.href) {
@@ -158,7 +165,7 @@
   }
 
   function getPersonalRouteIntent(url) {
-    if (!url || isProfessionalAudienceUrl(url) || isHardBoundary(url)) return null;
+    if (!url || isHardBoundary(url)) return null;
     const path = normalizePathname(url.pathname);
     if (/^\/(?:api|admin|documents|demos)(?:\/|$)/i.test(path)) return null;
 
@@ -196,6 +203,12 @@
     }
     if (path === '/search') return { category: 'tools', view: 'detail' };
     if (path === '/solutions') return { category: 'projects', view: 'detail' };
+    if (/^\/resume(?:-|\/|$)/i.test(path)) return { category: 'resume', view: 'detail' };
+    if (isProfessionalAudienceUrl(url)) {
+      const category = /(?:portfolio|projects)/i.test(path) ? 'projects' : /resume/i.test(path) ? 'resume' : /contact/i.test(path) ? 'contact' : 'about';
+      return { category, view: 'detail' };
+    }
+    if (['/dshort', '/404', '/accessibility'].includes(path)) return { category: 'about', view: 'detail' };
     return null;
   }
 
@@ -268,7 +281,7 @@
     if (!url || manifest.path !== normalizePathname(url.pathname)) {
       throw new Error('The route manifest does not match the requested path.');
     }
-    if (isHardBoundary(url) || isProfessionalAudienceUrl(url)) {
+    if (isHardBoundary(url)) {
       throw new Error('The destination requires document navigation.');
     }
     return manifest;
@@ -302,6 +315,7 @@
   }
 
   function getRouteOutlet(scope) {
+    if (scope === document && window.SiteFrame?.outlet()) return window.SiteFrame.outlet();
     return scope?.querySelector?.(CONTENT_SELECTOR) || null;
   }
 
@@ -349,7 +363,7 @@
       const abortFromNavigation = () => controller.abort(options.signal?.reason || makeAbortError());
       options.signal?.addEventListener('abort', abortFromNavigation, { once: true });
       const promise = fetch(url.href, {
-        cache: options.prefetch ? 'force-cache' : 'default',
+        cache: options.cache || (options.prefetch ? 'force-cache' : 'default'),
         credentials: 'same-origin',
         headers: { Accept: 'text/html', [REQUEST_HEADER]: '1' },
         redirect: 'follow',
@@ -407,13 +421,88 @@
 
   function prefetchRoute(url) {
     if (!url || !isCurrentRouteSoft()) return Promise.resolve(null);
-    return fetchRouteDocument(url, { prefetch: true }).catch(() => null);
+    return prepareRoute(url, { prefetch: true }).catch(() => null);
+  }
+
+  function prepareRoute(url, options = {}) {
+    const key = normalizeRouteUrl(url);
+    let prepared = preparedRoutes.get(key);
+    if (!prepared) {
+      prepared = prepareRouteResources(url, options);
+      preparedRoutes.set(key, prepared);
+      prepared.catch(() => {
+        if (preparedRoutes.get(key) === prepared) {
+          preparedRoutes.delete(key);
+          preparedStyleRefs.delete(key);
+          routeCache.delete(key);
+        }
+        prunePreparedStyles();
+      });
+    } else {
+      preparedRoutes.delete(key);
+      preparedRoutes.set(key, prepared);
+    }
+    while (preparedRoutes.size > ROUTE_CACHE_LIMIT) {
+      const oldest = preparedRoutes.keys().next().value;
+      preparedRoutes.delete(oldest);
+      if (!activeNavigation?.key.startsWith(oldest)) preparedStyleRefs.delete(oldest);
+    }
+    return raceWithAbort(prepared, options.signal);
+  }
+
+  async function prepareRouteResources(url, options = {}) {
+    const key = normalizeRouteUrl(url);
+    const route = await fetchRouteDocument(url, { prefetch: options.prefetch, cache: options.cache });
+    preparedStyleRefs.set(key, new Set(route.manifest.styles));
+    try {
+      const [styles] = await Promise.all([prepareRouteStyles(route), prepareRouteScripts(route, undefined, options.cache)]);
+      prunePreparedStyles();
+      return { ...route, styles, frame: window.SiteFrame.describe(route.document, route.manifest) };
+    } catch (error) {
+      // A rebuild can remove assets referenced by prefetched HTML. Revalidate the
+      // document once, and never keep a failed document for the Retry button.
+      routeCache.delete(key);
+      if (isAbortError(error) || options.cache === 'reload') throw error;
+      return prepareRouteResources(url, { cache: 'reload' });
+    }
+  }
+
+  function prunePreparedStyles() {
+    const currentManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
+    const keep = new Set(currentManifest?.styles || []);
+    preparedStyleRefs.forEach((styles, key) => {
+      if (preparedRoutes.has(key) || activeNavigation?.key.startsWith(key)) styles.forEach((href) => keep.add(href));
+      else preparedStyleRefs.delete(key);
+    });
+    styleLoads.forEach((promise, href) => {
+      if (keep.has(href)) return;
+      promise.then(({ link }) => {
+        const liveManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
+        const retained = (liveManifest?.styles || []).includes(href) || [...preparedStyleRefs].some(([key, styles]) =>
+          (preparedRoutes.has(key) || activeNavigation?.key.startsWith(key)) && styles.has(href)
+        );
+        if (!retained && styleLoads.get(href) === promise) {
+          styleLoads.delete(href);
+          link?.remove();
+        }
+      }, () => {});
+    });
   }
 
   function isPersistentScript(src) {
     const url = resolveUrl(src);
     if (!url) return true;
     return PERSISTENT_SCRIPT_PATTERNS.some((pattern) => pattern.test(url.pathname));
+  }
+
+  function scriptIdentity(src) {
+    const url = resolveUrl(src);
+    if (!url) return '';
+    // Persistent services belong to the open document, even after asset hashes
+    // change. Reexecuting the shell would adopt and nest the existing frame.
+    url.pathname = url.pathname.replace(/(\/site-(?:shell|consent|tools-account))(?:[.-][a-f0-9]+)?\.js$/i, '$1.js');
+    url.hash = '';
+    return url.href;
   }
 
   function routeScriptsFor(manifest) {
@@ -423,13 +512,15 @@
   function loadScript(src, targetDocument, targetUrl, signal) {
     const normalized = normalizeAssetUrl(src);
     if (!normalized) return Promise.resolve();
+    const identity = scriptIdentity(normalized);
+    if (scriptLoads.has(identity)) return raceWithAbort(scriptLoads.get(identity), signal);
     const alreadyPresent = Array.from(document.scripts || []).some((script) =>
-      normalizeAssetUrl(script.getAttribute('src') || script.src) === normalized
+      scriptIdentity(script.getAttribute('src') || script.src) === identity
     );
-    if (alreadyPresent) loadedScripts.add(normalized);
-    if (loadedScripts.has(normalized)) return Promise.resolve();
+    if (alreadyPresent) loadedScripts.add(identity);
+    if (loadedScripts.has(identity)) return Promise.resolve();
     throwIfAborted(signal);
-    return new Promise((resolve, reject) => {
+    const ready = new Promise((resolve, reject) => {
       const source = Array.from(targetDocument.scripts || []).find((node) =>
         normalizeAssetUrl(node.getAttribute('src') || node.src, getDocumentAssetBase(targetDocument, targetUrl)) === normalized
       );
@@ -451,7 +542,7 @@
         reject(signal.reason || makeAbortError());
       };
       script.addEventListener('load', () => {
-        loadedScripts.add(normalized);
+        loadedScripts.add(identity);
         cleanup();
         resolve();
       }, { once: true });
@@ -463,22 +554,32 @@
       signal?.addEventListener('abort', abort, { once: true });
       document.head.appendChild(script);
     });
+    scriptLoads.set(identity, ready);
+    const cleanup = () => {
+      if (scriptLoads.get(identity) === ready) scriptLoads.delete(identity);
+    };
+    ready.then(cleanup, cleanup);
+    return ready;
   }
 
   async function loadScriptsInOrder(scripts, targetDocument, targetUrl, signal) {
     for (const src of scripts) await loadScript(src, targetDocument, targetUrl, signal);
   }
 
-  async function preloadScriptBytes(scripts, signal) {
+  async function preloadScriptBytes(scripts, signal, cache = 'force-cache') {
     await Promise.all(scripts.map(async (src) => {
       throwIfAborted(signal);
-      const response = await fetch(src, {
-        cache: 'force-cache',
-        credentials: 'same-origin',
-        signal
-      });
-      if (!response.ok) throw new Error(`Unable to preload route script ${src}.`);
-      await response.arrayBuffer();
+      let ready = scriptBytes.get(src);
+      if (!ready) {
+        ready = fetch(src, { cache, credentials: 'same-origin' }).then(async (response) => {
+          if (!response.ok) throw new Error(`Unable to preload route script ${src}.`);
+          await response.arrayBuffer();
+        });
+        scriptBytes.set(src, ready);
+        ready.catch(() => scriptBytes.delete(src));
+        while (scriptBytes.size > 64) scriptBytes.delete(scriptBytes.keys().next().value);
+      }
+      await raceWithAbort(ready, signal);
     }));
   }
 
@@ -490,12 +591,13 @@
     return '';
   }
 
-  async function prepareRouteScripts(route, signal) {
+  async function prepareRouteScripts(route, signal, cache) {
     const runtime = window.SiteRoutes;
     if (!runtime?.mount || !runtime?.get) throw new Error('The route lifecycle runtime is unavailable.');
     const persistentScripts = route.manifest.scripts.filter((src) => isPersistentScript(src));
     const scripts = routeScriptsFor(route.manifest);
     await loadScriptsInOrder(persistentScripts, route.document, route.url, signal);
+    await preloadScriptBytes(scripts, signal, cache);
     let routeKey = registeredRouteKey(route.manifest);
 
     if (!routeKey) {
@@ -506,7 +608,10 @@
       routeKey = registeredRouteKey(route.manifest);
       if (!routeKey) throw new Error(`Route ${route.manifest.id} could not install a lifecycle adapter.`);
     }
-    await preloadScriptBytes(scripts, signal);
+    const lifecycle = runtime.get(registeredRouteKey(route.manifest) || routeKey);
+    if (typeof lifecycle?.preload === 'function') {
+      await lifecycle.preload({ root: route.document, document: route.document, manifest: route.manifest, url: route.url, signal });
+    }
     return registeredRouteKey(route.manifest) || routeKey;
   }
 
@@ -517,9 +622,10 @@
   }
 
   function loadStylesheet(href, targetDocument, signal) {
-    if (findStylesheet(href)) return Promise.resolve({ link: null, added: false });
+    if (styleLoads.has(href)) return raceWithAbort(styleLoads.get(href), signal);
+    if (findStylesheet(href)) return Promise.resolve({ link: findStylesheet(href), added: false });
     throwIfAborted(signal);
-    return new Promise((resolve, reject) => {
+    const ready = new Promise((resolve, reject) => {
       const targetLink = Array.from(targetDocument.querySelectorAll('link[rel~="stylesheet"][href]')).find((link) =>
         normalizeAssetUrl(link.getAttribute('href') || link.href, getDocumentAssetBase(targetDocument)) === href
       );
@@ -555,22 +661,52 @@
       signal?.addEventListener('abort', abort, { once: true });
       document.head.appendChild(link);
     });
+    styleLoads.set(href, ready);
+    ready.catch(() => styleLoads.delete(href));
+    return ready;
   }
 
   async function prepareRouteStyles(route, signal) {
     const loaded = await Promise.all(route.manifest.styles.map((href) =>
       loadStylesheet(href, route.document, signal)
     ));
-    return loaded.filter((entry) => entry.added).map((entry) => entry.link);
+    return loaded.map((entry) => entry.link).filter(Boolean);
   }
 
   function activatePreparedStyles(links) {
     links.forEach((link) => {
       if (!link) return;
       const media = link.dataset.siteRouteMedia || '';
-      delete link.dataset.siteRouteMedia;
       if (media) link.media = media;
       else link.removeAttribute('media');
+    });
+  }
+
+  // A nonmatching stylesheet can finish fetching before WebKit attaches its
+  // CSSStyleSheet. Measure only once the activated rules are in the document.
+  function waitForStylesheetActivation(links, signal) {
+    throwIfAborted(signal);
+    const attached = () => links.every((link) => !link ||
+      (link.sheet && Array.from(document.styleSheets).includes(link.sheet)));
+    if (attached()) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      let animationFrame;
+      const cleanup = () => {
+        window.cancelAnimationFrame(animationFrame);
+        window.clearTimeout(timeout);
+        signal?.removeEventListener('abort', abort);
+      };
+      const abort = () => { cleanup(); reject(signal.reason || makeAbortError()); };
+      const check = () => {
+        if (attached()) { cleanup(); resolve(); }
+        else animationFrame = window.requestAnimationFrame(check);
+      };
+      const timeout = window.setTimeout(() => {
+        cleanup();
+        reject(new Error('The page styles could not be activated.'));
+      }, 5000);
+      signal?.addEventListener('abort', abort, { once: true });
+      animationFrame = window.requestAnimationFrame(check);
     });
   }
 
@@ -578,7 +714,13 @@
     if (!previousManifest) return;
     const keep = new Set(nextManifest.styles);
     previousManifest.styles.forEach((href) => {
-      if (!keep.has(href)) findStylesheet(href)?.remove();
+      if (!keep.has(href)) {
+        const link = findStylesheet(href);
+        if (link) {
+          if (!('siteRouteMedia' in link.dataset)) link.dataset.siteRouteMedia = link.getAttribute('media') || '';
+          link.media = 'not all';
+        }
+      }
     });
   }
 
@@ -605,6 +747,13 @@
     const current = document.head.querySelector(selector);
     const target = targetDocument.head.querySelector(selector);
     if (!target) {
+      if (selector === 'meta[name="referrer"]') {
+        const policy = current || document.createElement('meta');
+        policy.name = 'referrer';
+        policy.content = 'strict-origin-when-cross-origin';
+        if (!current) document.head.appendChild(policy);
+        return;
+      }
       current?.remove();
       return;
     }
@@ -620,6 +769,7 @@
       'link[rel="canonical"]',
       'meta[name="description"]',
       'meta[name="robots"]',
+      'meta[name="referrer"]',
       'meta[name="theme-color"]'
     ].forEach((selector) => syncSingleHeadElement(targetDocument, selector));
 
@@ -646,22 +796,36 @@
     current.textContent = target.textContent;
   }
 
-  function replaceRouteContent(route, metadataDocument = route.document) {
-    const currentOutlet = getRouteOutlet(document);
-    if (!currentOutlet) throw new Error('The current route content outlet is unavailable.');
-    const progress = document.querySelector('[data-site-route-progress]');
-    if (progress && currentOutlet.contains(progress)) currentOutlet.before(progress);
+  function captureDocumentMetadata() {
+    const snapshot = document.implementation.createHTMLDocument(document.title);
+    snapshot.documentElement.lang = document.documentElement.lang;
+    snapshot.head.replaceChildren(...[...document.head.querySelectorAll(
+      'title, meta, link[rel="canonical"], script[type="application/ld+json"], script[data-site-route-manifest]'
+    )].map((node) => node.cloneNode(true)));
+    snapshot.body.replaceWith(document.body.cloneNode(false));
+    const manifest = document.querySelector(MANIFEST_SELECTOR);
+    if (manifest && !document.head.contains(manifest)) snapshot.head.append(manifest.cloneNode(true));
+    const skip = document.querySelector('[data-site-shell-skip-link], .skip-link');
+    if (skip) snapshot.body.append(skip.cloneNode(true));
+    return snapshot;
+  }
+
+  function rememberCommittedRoute() {
+    const savedFrame = window.SiteFrame?.snapshot();
+    if (!savedFrame) return;
+    committedSnapshot = {
+      frame: savedFrame,
+      document: captureDocumentMetadata(),
+      manifest: readRouteManifest(document, resolveUrl(window.location.href), { strict: false }),
+      url: committedUrl
+    };
+  }
+
+  function replaceRouteContent(route, metadataDocument = route.document, options = {}) {
     syncBody(route.document.body);
     syncHead(metadataDocument, route.document);
     syncSkipLink(route.document);
-    const nextOutlet = document.importNode(route.outlet, true);
-    nextOutlet.classList.add('site-route-content--preparing');
-    currentOutlet.replaceWith(nextOutlet);
-    const nextPanel = nextOutlet.matches?.('[data-site-route-panel], .personal-accordion__panel')
-      ? nextOutlet
-      : nextOutlet.querySelector?.('[data-site-route-panel], .personal-accordion__panel, .home-accordion__item.is-active .home-accordion__panel');
-    if (progress && nextPanel) nextPanel.prepend(progress);
-    return nextOutlet;
+    return window.SiteFrame.commit(route.frame || window.SiteFrame.describe(route.document, route.manifest), options);
   }
 
   function getScrollOwner(outlet = getRouteOutlet(document)) {
@@ -669,7 +833,7 @@
     const descendants = Array.from(outlet.querySelectorAll?.(
       '[data-site-route-scroll], [data-personal-detail-content], [data-home-timeline-scroller], .home-accordion__item.is-active .home-accordion__scroller'
     ) || []);
-    const candidates = [outlet, ...descendants];
+    const candidates = [window.SiteFrame?.viewport(), outlet, ...descendants].filter(Boolean);
     for (const node of candidates) {
       try {
         const style = window.getComputedStyle?.(node);
@@ -865,17 +1029,10 @@
 
   function beginNavigationUi(trigger) {
     const outlet = getRouteOutlet(document);
-    const progress = getProgressElement();
     const previousBusy = trigger?.getAttribute?.('aria-busy');
     outlet?.setAttribute('aria-busy', 'true');
     trigger?.setAttribute?.('aria-busy', 'true');
-    const timer = window.setTimeout(() => {
-      if (progress) progress.hidden = false;
-      document.documentElement.classList.add('site-route-is-loading');
-    }, PROGRESS_DELAY_MS);
     return () => {
-      window.clearTimeout(timer);
-      if (progress) progress.hidden = true;
       document.documentElement.classList.remove('site-route-is-loading');
       getRouteOutlet(document)?.removeAttribute('aria-busy');
       if (trigger) {
@@ -889,7 +1046,7 @@
     document.querySelector('[data-site-route-error]')?.remove();
   }
 
-  function showOfflineError(url) {
+  function showOfflineError(url, { hardRetry = false } = {}) {
     clearRouteError();
     const outlet = getRouteOutlet(document);
     if (!outlet) return;
@@ -898,49 +1055,18 @@
     error.dataset.siteRouteError = 'true';
     error.setAttribute('role', 'status');
     const message = document.createElement('span');
-    message.textContent = 'This page is not available offline yet.';
+    message.textContent = navigator.onLine === false ? 'This page is not available offline yet.' : 'This page could not be loaded. Please try again.';
     const retry = document.createElement('button');
     retry.type = 'button';
     retry.className = 'site-route-error__retry';
     retry.textContent = 'Retry';
-    retry.addEventListener('click', () => navigate(url, { trigger: retry }));
+    retry.addEventListener('click', () => {
+      if (hardRetry) hardNavigate(url);
+      else navigate(url, { trigger: retry });
+    });
     error.append(message, retry);
     outlet.parentElement?.insertBefore(error, outlet);
     retry.focus();
-  }
-
-  function animateOutgoing(outlet, direction) {
-    if (!outlet || prefersReducedMotion() || typeof outlet.animate !== 'function') return Promise.resolve();
-    const motion = window.matchMedia?.('(max-width: 959px), (max-height: 619px)')?.matches ? 4 : 6;
-    const distance = direction === 'back' ? motion : -motion;
-    const animation = outlet.animate([
-      { opacity: 1, transform: 'translate3d(0, 0, 0)' },
-      { opacity: 0, transform: `translate3d(${distance}px, 0, 0)` }
-    ], {
-      duration: 72,
-      easing: 'cubic-bezier(.4, 0, 1, 1)',
-      fill: 'both'
-    });
-    return animation.finished.catch(() => {}).finally(() => {
-      outlet.classList.add('site-route-content--leaving');
-      animation.cancel();
-    });
-  }
-
-  function animateIncoming(outlet, direction) {
-    if (!outlet) return;
-    outlet.classList.remove('site-route-content--preparing');
-    if (prefersReducedMotion()) return;
-    document.documentElement.dataset.siteRouteDirection = direction;
-    outlet.classList.remove('site-route-content--entering');
-    void outlet.offsetWidth;
-    outlet.classList.add('site-route-content--entering');
-    const cleanup = () => {
-      outlet.classList.remove('site-route-content--entering');
-      delete document.documentElement.dataset.siteRouteDirection;
-    };
-    outlet.addEventListener('animationend', cleanup, { once: true });
-    window.setTimeout(cleanup, 240);
   }
 
   function navigationDirection(previousManifest, nextManifest, navigationType) {
@@ -978,21 +1104,20 @@
 
     const targetKey = `${normalizeRouteUrl(url)}${url.hash}`;
     if (activeNavigation?.key === targetKey) return activeNavigation.promise;
-    if (activeNavigation?.committed) {
-      return activeNavigation.promise.then(() => navigate(url, options));
-    }
-    if (activeNavigation) activeNavigation.controller.abort(makeAbortError());
+    const preceding = activeNavigation;
+    preceding?.controller.abort(makeAbortError());
 
     const controller = new AbortController();
     const sequence = ++navigationSequence;
     const finishUi = beginNavigationUi(options.trigger);
-    const previousManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
+    let previousManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
     const returnFocus = getReturnFocusId(options.trigger);
     const navigationType = options.navigationType || 'push';
     const homepageHistoryIntent = navigationType === 'pop'
       ? getHomepageHistoryIntent(options.historyState)
       : null;
-    const documentUrl = homepageHistoryIntent ? resolveUrl('/', url.href) : url;
+    const documentUrl = homepageHistoryIntent ? resolveUrl('/', url.href) :
+      (navigationType === 'pop' && options.historyState?.siteRoute?.requestUrl ? resolveUrl(options.historyState.siteRoute.requestUrl) : url);
     clearRouteError();
     dispatch(NAVIGATION_EVENT, { href: url.href, navigationType });
 
@@ -1000,63 +1125,95 @@
       let addedStyles = [];
       let committed = false;
       let provisionalHistory = null;
+      let unmounted = false;
+      let savedFrame = null;
+      let savedDocument = null;
+      let mountLoadingTimer;
+      const frame = window.SiteFrame;
+      const runtime = window.SiteRoutes;
       try {
-        const routePromise = fetchRouteDocument(documentUrl, { signal: controller.signal });
+        let ready = false;
+        const routePromise = prepareRoute(documentUrl, { signal: controller.signal }).then((route) => { ready = true; return route; });
+        routePromise.catch(() => {});
         const metadataPromise = homepageHistoryIntent && normalizeRouteUrl(documentUrl) !== normalizeRouteUrl(url)
-          ? fetchRouteDocument(url, { signal: controller.signal })
+          ? prepareRoute(url, { signal: controller.signal })
           : routePromise;
-        const [route, metadataRoute] = await Promise.all([routePromise, metadataPromise]);
+        metadataPromise.catch(() => {});
+        // A cancelled mount cleans up before the next controller can own the body.
+        if (preceding?.committed) await preceding.promise.catch(() => false);
         throwIfAborted(controller.signal);
-        const prepared = await Promise.all([
-          prepareRouteStyles(route, controller.signal),
-          prepareRouteScripts(route, controller.signal)
-        ]);
-        addedStyles = prepared[0];
-        throwIfAborted(controller.signal);
-
-        const runtime = window.SiteRoutes;
+        const baseline = committedSnapshot;
+        if (baseline) previousManifest = baseline.manifest;
         const canLeave = await runtime.beforeLeave({ navigationType, reason: 'navigate', url });
         if (canLeave === false) {
-          addedStyles.forEach((link) => link?.remove());
           if (navigationType === 'pop') restoreVetoedPop(options.historyState);
+          if (preceding && baseline) {
+            frame.restore(baseline.frame);
+            await frame.wipe(true, { signal: controller.signal });
+          }
           return false;
         }
-
-        if (navigationType === 'push') saveCurrentHistory(returnFocus);
-        const direction = navigationDirection(previousManifest, route.manifest, navigationType);
-        await animateOutgoing(getRouteOutlet(document), direction);
         throwIfAborted(controller.signal);
+        savedFrame = baseline?.frame || frame.snapshot();
+        savedDocument = baseline?.document || captureDocumentMetadata();
+        if (navigationType === 'push' && getRouteOutlet(document) === savedFrame.body) saveCurrentHistory(returnFocus);
+        await frame.wipe(false, { signal: controller.signal });
+        throwIfAborted(controller.signal);
+        if (!ready) frame.setLoading(true);
+        const [route, metadataRoute] = await Promise.all([routePromise, metadataPromise]);
+        addedStyles = route.styles;
+        throwIfAborted(controller.signal);
+        // Brief stylesheet activation or synchronous mounting should not flash
+        // a loading sweep. Longer mounts still receive feedback inside the frame.
+        mountLoadingTimer = window.setTimeout(() => {
+          if (!controller.signal.aborted) frame.setLoading(true);
+        }, 80);
+        if (activeNavigation?.sequence === sequence) activeNavigation.committed = true;
+        // Capture before cleanup or route-owned body styles can change the outer box.
+        const outgoingGeometry = frame.hold();
         await runtime.unmount({ navigationType, reason: 'navigate', url });
+        unmounted = true;
         throwIfAborted(controller.signal);
 
         activatePreparedStyles(addedStyles);
-        const outlet = replaceRouteContent(route, metadataRoute.document);
+        await waitForStylesheetActivation(addedStyles, controller.signal);
+        throwIfAborted(controller.signal);
+        const outlet = replaceRouteContent(route, metadataRoute.document, { from: outgoingGeometry, defer: true });
         committed = true;
-        if (activeNavigation?.sequence === sequence) activeNavigation.committed = true;
         retireOldStyles(previousManifest, route.manifest);
         const routeKey = registeredRouteKey(route.manifest);
         if (!routeKey) throw new Error(`Route ${route.manifest.id} lost its lifecycle registration.`);
-        if (navigationType === 'push') provisionalHistory = beginProvisionalHistory(url);
+        if (navigationType === 'push') provisionalHistory = beginProvisionalHistory(documentUrl);
         await runtime.mount(routeKey, {
           manifest: route.manifest,
           navigationType,
           root: outlet,
           signal: controller.signal,
-          url
+          url: documentUrl
         });
         throwIfAborted(controller.signal);
+        window.clearTimeout(mountLoadingTimer);
+        frame.release();
 
+        const displayUrl = resolveUrl(window.location.href) || url;
         if (navigationType === 'push') {
           const targetState = window.history.state;
           restoreProvisionalHistory(provisionalHistory);
-          pushRouteHistory(url, route.manifest, targetState);
+          pushRouteHistory(displayUrl, route.manifest, {
+            ...targetState,
+            siteRoute: { ...targetState?.siteRoute, requestUrl: documentUrl.href }
+          });
+          provisionalHistory = null;
         } else {
-          acceptPoppedHistory(url, options.historyState);
+          acceptPoppedHistory(displayUrl, options.historyState);
         }
+        rememberCommittedRoute();
         const historyState = navigationType === 'pop' ? options.historyState : window.history.state;
+        frame.setLoading(false);
+        await Promise.all([frame.wipe(true, { signal: controller.signal }), frame.whenSettled()]);
+        throwIfAborted(controller.signal);
         restoreScroll(navigationType === 'pop' ? historyState?.siteRoute?.scroll : null, url);
-        window.requestAnimationFrame(() => focusRouteHeading(navigationType, historyState));
-        animateIncoming(outlet, direction);
+        window.requestAnimationFrame(() => { if (sequence === navigationSequence) focusRouteHeading(navigationType, historyState); });
         announce(`${document.title} loaded.`);
         const detail = {
           category: route.manifest.category,
@@ -1064,29 +1221,70 @@
           id: route.manifest.id,
           navigationType,
           to: route.manifest.id,
-          url: url.href,
+          url: displayUrl.href,
           view: route.manifest.view
         };
         dispatch(CONTENT_EVENT, detail);
         dispatch(ROUTE_EVENT, detail);
-        sendVirtualPageview(url);
+        sendVirtualPageview(displayUrl);
         return true;
       } catch (error) {
+        window.clearTimeout(mountLoadingTimer);
         restoreProvisionalHistory(provisionalHistory);
-        getRouteOutlet(document)?.classList.remove('site-route-content--leaving');
-        if (!committed) addedStyles.forEach((link) => link?.remove());
-        if (!committed && (isAbortError(error) || controller.signal.aborted || sequence !== navigationSequence)) return false;
+        if (isAbortError(error) || controller.signal.aborted || sequence !== navigationSequence) return false;
+        const failedKey = normalizeRouteUrl(documentUrl);
+        preparedRoutes.delete(failedKey);
+        preparedStyleRefs.delete(failedKey);
+        routeCache.delete(failedKey);
         dispatch('site:route-navigation-error', { error, href: url.href });
-        if (committed || navigator.onLine !== false) hardNavigate(url);
-        else {
-          if (navigationType === 'pop') restoreVetoedPop(options.historyState);
-          showOfflineError(url);
-          announce('The requested page is unavailable offline.');
+        let rollbackFailed = false;
+        if (savedFrame && savedDocument) {
+          try {
+            const rollbackManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
+            const active = runtime.current();
+            const remount = unmounted || !active || active.root !== savedFrame.body || active.signal?.aborted;
+            const rollbackGeometry = frame.hold();
+            if (committed || remount) await runtime.unmount({ reason: 'rollback' });
+            syncBody(savedDocument.body);
+            syncHead(savedDocument);
+            syncSkipLink(savedDocument);
+            const restored = frame.restore(savedFrame, { from: rollbackGeometry, defer: true });
+            if (previousManifest) retireOldStyles(rollbackManifest, previousManifest);
+            const restoredStyles = (previousManifest?.styles || []).map(findStylesheet).filter(Boolean);
+            activatePreparedStyles(restoredStyles);
+            await waitForStylesheetActivation(restoredStyles);
+            if (remount && previousManifest) {
+              const key = registeredRouteKey(previousManifest);
+              if (key) await runtime.mount(key, { root: restored, manifest: previousManifest, url: committedUrl, navigationType: 'restore' });
+            }
+            frame.release();
+            await Promise.all([frame.wipe(true), frame.whenSettled()]);
+            rememberCommittedRoute();
+          } catch (rollbackError) {
+            rollbackFailed = true;
+            dispatch('site:route-rollback-error', { error: rollbackError, originalError: error, href: url.href });
+            // A failed restore must still leave an accessible retry. A full load
+            // bypasses the route controller that could not be recovered.
+            try {
+              await frame.release({ animate: false });
+              await frame.wipe(true);
+            } catch (releaseError) {
+              dispatch('site:route-rollback-error', { error: releaseError, originalError: error, href: url.href, phase: 'release' });
+            }
+          }
         }
+        if (navigationType === 'pop') restoreVetoedPop(options.historyState);
+        frame.setLoading(false);
+        showOfflineError(url, { hardRetry: rollbackFailed });
+        announce('The requested page could not be loaded.');
         return false;
       } finally {
-        finishUi();
-        if (activeNavigation?.sequence === sequence) activeNavigation = null;
+        window.clearTimeout(mountLoadingTimer);
+        if (activeNavigation?.sequence === sequence) {
+          finishUi();
+          frame.setLoading(false);
+          activeNavigation = null;
+        } else if (options.trigger) options.trigger.removeAttribute('aria-busy');
       }
     })();
 
@@ -1096,9 +1294,7 @@
 
   function schedulePrefetch(url) {
     if (!url) return;
-    const run = () => prefetchRoute(url);
-    if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(run, { timeout: 900 });
-    else window.setTimeout(run, 0);
+    prefetchRoute(url);
   }
 
   function initHistory() {
@@ -1112,7 +1308,9 @@
   }
 
   function initNavigation() {
+    window.SiteFrame?.adopt();
     initHistory();
+    rememberCommittedRoute();
 
     document.addEventListener('click', (event) => {
       if (event.defaultPrevented || event.__contactHandled) return;
@@ -1122,10 +1320,6 @@
       if (!link) return;
       const url = getEligibleLinkUrl(link);
       if (!url || hasBlockingInteractionLayer()) return;
-      if (document.querySelector('.home-accordion.is-view-changing')) {
-        event.preventDefault();
-        return;
-      }
       event.preventDefault();
       navigate(url, { trigger: link });
     });
@@ -1177,15 +1371,25 @@
     window.addEventListener('pagehide', () => {
       saveCurrentHistory();
       activeNavigation?.controller.abort(makeAbortError());
+      window.SiteFrame?.finish();
+      [...routeMotions.values()].forEach((settle) => settle(false));
     });
 
     window.addEventListener('pageshow', (event) => {
       if (!event.persisted) return;
       activeNavigation = null;
+      window.SiteFrame?.finish();
+      window.SiteFrame?.setLoading(false);
+      window.SiteFrame?.wipe(true);
       document.documentElement.classList.remove('site-route-is-loading');
+      getRouteOutlet(document)?.classList.remove('site-route-content--leaving', 'site-route-content--preparing', 'site-route-content--entering');
       const progress = document.querySelector('[data-site-route-progress]');
       if (progress) progress.hidden = true;
       restoreScroll(window.history.state?.siteRoute?.scroll, resolveUrl(window.location.href));
+    });
+
+    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.addEventListener?.('change', (event) => {
+      if (event.matches) [...routeMotions.values()].forEach((settle) => settle(true));
     });
   }
 
@@ -1193,6 +1397,34 @@
     version: 1,
     hardBoundaryPaths: Object.freeze(Array.from(HARD_BOUNDARY_PATHS)),
     navigate,
+    isNavigating: () => Boolean(activeNavigation),
+    cancelPending: () => {
+      if (!activeNavigation || activeNavigation.committed) return false;
+      activeNavigation.controller.abort(makeAbortError());
+      return true;
+    },
+    recordHome: (url, state, replace = false) => {
+      const previous = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
+      if (!previous || previous.id !== 'home') return;
+      clearRouteError();
+      const manifest = { ...previous, category: state.homePanel, view: state.homeView };
+      if (replace || window.location.href === url.href) {
+        window.history.replaceState({ ...window.history.state, ...state }, '', url);
+      } else {
+        saveCurrentHistory();
+        pushRouteHistory(url, manifest, { ...window.history.state, ...state });
+      }
+      document.body.dataset.siteRouteCategory = state.homePanel;
+      document.body.dataset.siteRouteView = state.homeView;
+      const node = document.querySelector(MANIFEST_SELECTOR);
+      if (node) {
+        const value = JSON.parse(node.textContent || '{}');
+        node.textContent = JSON.stringify({ ...value, category: state.homePanel, view: state.homeView });
+      }
+      committedUrl = window.location.href;
+      committedHistoryState = window.history.state;
+      rememberCommittedRoute();
+    },
     prefetch: (value) => {
       const url = resolveUrl(value);
       return url && getPersonalRouteIntent(url) ? prefetchRoute(url) : Promise.resolve(null);

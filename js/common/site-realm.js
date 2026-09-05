@@ -164,160 +164,33 @@
 
   const trimLeadingSlash = (value) => String(value || '').replace(/^\/+/, '');
 
-  const buildResumeNavHtml = (audience) => {
-    const resumePath = trimLeadingSlash(audience.resumePath);
-    const previewPath = trimLeadingSlash(audience.resumePreviewPath);
-    const downloadPath = trimLeadingSlash(audience.resumeDownloadPath);
-    return `
-      <div class="nav-item nav-item-resume">
-        <a href="${escapeHtml(resumePath)}" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
-          ${escapeHtml(audience.resumeNavTitle || 'Resume')}
-          <span class="nav-link-caret" aria-hidden="true"></span>
-        </a>
-        <div class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume" aria-label="Resume shortcuts">
-          <div class="nav-dropdown-inner nav-dropdown-inner-simple">
-            <div class="nav-dropdown-column nav-dropdown-column-list">
-              <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-              <div class="nav-dropdown-list">
-                <a href="${escapeHtml(resumePath)}" class="nav-dropdown-link" data-resume-home-link="true">
-                  <span class="nav-dropdown-title">${escapeHtml(audience.resumeNavTitle || 'Resume')}</span>
-                  <span class="nav-dropdown-subtitle">${escapeHtml(audience.resumeNavSubtitle || 'View the digital resume')}</span>
-                </a>
-                <a href="${escapeHtml(previewPath)}" class="nav-dropdown-link" data-resume-preview-link="true">
-                  <span class="nav-dropdown-title">Preview PDF</span>
-                  <span class="nav-dropdown-subtitle">${escapeHtml(audience.resumePreviewSubtitle || 'Open the PDF preview')}</span>
-                </a>
-                <a href="${escapeHtml(downloadPath)}" class="nav-dropdown-link" download data-resume-download-link="true">
-                  <span class="nav-dropdown-title">Download Resume</span>
-                  <span class="nav-dropdown-subtitle">${escapeHtml(audience.resumeDownloadSubtitle || 'Download the PDF')}</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  };
-
-  const setNavLinkLabel = (link, label) => {
-    if (!link) return;
-    const caret = link.querySelector('.nav-link-caret');
-    link.textContent = '';
-    link.append(document.createTextNode(label));
-    if (caret) link.append(document.createTextNode('\n            '), caret);
-  };
-
   const applyAudienceNavigation = (audience) => {
-    if (!audience || normalizeAudience(audience.key) === PERSONAL_MODE) return;
+    if (!audience) return;
     const header = document.getElementById('combined-header-nav');
-    const menu = header?.querySelector('#primary-menu');
-    if (!header || !menu) return;
-
-    header.querySelectorAll('[data-entry-home-link="true"], [data-audience-home-link="true"]')
+    if (!header) return;
+    header.querySelectorAll('[data-entry-home-link="true"]')
       .forEach((link) => link.setAttribute('href', audience.homePath || '/'));
-    menu.querySelectorAll('.nav-item-tools, .nav-item-games').forEach((item) => item.remove());
-    menu.querySelector('.nav-search')?.remove();
-
-    let homeLink = menu.querySelector('[data-professional-home-link="true"]');
-    if (!homeLink) {
-      homeLink = document.createElement('a');
-      homeLink.className = 'nav-link';
-      homeLink.textContent = 'Home';
-      homeLink.dataset.professionalHomeLink = 'true';
-      menu.insertBefore(homeLink, menu.firstElementChild);
-    }
-    homeLink.setAttribute('href', audience.homePath || '/');
-
-    const portfolioItem = menu.querySelector('.nav-item-portfolio');
-    const portfolioLink = portfolioItem?.querySelector(':scope > .nav-link');
-    setNavLinkLabel(portfolioLink, 'Portfolio');
-    portfolioItem?.querySelectorAll('[data-portfolio-home-link="true"], [data-portfolio-default-link="true"]')
-      .forEach((link) => link.setAttribute('href', audience.portfolioPath || '/portfolio'));
-    const expectedFeaturedIds = new Set(Array.isArray(audience.featuredProjectIds) ? audience.featuredProjectIds : []);
-    const renderedFeaturedIds = new Set(Array.from(portfolioItem?.querySelectorAll('[data-project-id]') || [])
-      .map((card) => card.dataset.projectId)
-      .filter(Boolean));
-    const hasAudienceFeaturedSet = expectedFeaturedIds.size > 0
-      && [...expectedFeaturedIds].every((id) => renderedFeaturedIds.has(id));
-    if (portfolioItem && !hasAudienceFeaturedSet) {
-      portfolioItem.querySelector('.nav-dropdown')?.remove();
-      portfolioLink?.querySelector('.nav-link-caret')?.remove();
-      portfolioLink?.classList.remove('nav-link-has-menu');
-      portfolioLink?.removeAttribute('aria-haspopup');
-      portfolioLink?.removeAttribute('aria-expanded');
-      portfolioLink?.removeAttribute('aria-controls');
-    }
-
-    let resumeItem = menu.querySelector('.nav-item-resume');
-    if (resumeItem) resumeItem.remove();
-    const contactItem = menu.querySelector('.nav-item-contact');
-    if (audience.resumePath && contactItem) {
-      contactItem.insertAdjacentHTML('beforebegin', buildResumeNavHtml(audience).trim());
-      resumeItem = menu.querySelector('.nav-item-resume');
-    }
-
-    const contactPath = audience.contactPath || `/contact?audience=${encodeURIComponent(audience.key)}`;
-    const contactLink = contactItem?.querySelector(':scope > .nav-link');
-    if (contactLink) contactLink.setAttribute('href', contactPath);
-    const firstContactLink = contactItem?.querySelector('.nav-dropdown-list .nav-dropdown-link');
-    const contactTitle = firstContactLink?.querySelector('.nav-dropdown-title');
-    const contactSubtitle = firstContactLink?.querySelector('.nav-dropdown-subtitle');
-    if (contactTitle) contactTitle.textContent = 'Message about a role';
-    if (contactSubtitle) contactSubtitle.textContent = `Best for ${audience.label || audience.shortLabel || 'professional'} opportunities`;
-
     header.dataset.siteRealmNav = audience.key;
+    const form = header.querySelector('.nav-search');
+    if (!form) return;
+    let contextInput = form.querySelector('[data-search-audience]');
+    if (normalizeAudience(audience.key) === PERSONAL_MODE) {
+      contextInput?.remove();
+      return;
+    }
+    if (!contextInput) {
+      contextInput = document.createElement('input');
+      contextInput.type = 'hidden';
+      contextInput.name = 'audience';
+      contextInput.dataset.searchAudience = '';
+      form.appendChild(contextInput);
+    }
+    contextInput.value = audience.key;
   };
 
   const applyAudienceFooter = (audience) => {
-    if (!audience || normalizeAudience(audience.key) === PERSONAL_MODE) return;
-    const footer = document.querySelector('.footer.footer-classic');
-    if (!footer || footer.dataset.audience === audience.key) return;
-
-    const contactPath = audience.contactPath || `/contact?audience=${encodeURIComponent(audience.key)}`;
-    const contactModalPath = `${contactPath.replace(/#.*$/, '')}#contact-modal`;
-    const identity = footer.querySelector('.footer-identity');
-    const nav = footer.querySelector('.footer-nav');
-    const externalLinks = Array.from(footer.querySelectorAll('.footer-nav a.footer-link'))
-      .filter((link) => /^(?:mailto:|https?:)/i.test(link.getAttribute('href') || ''))
-      .map((link) => link.cloneNode(true));
-
-    if (identity) {
-      identity.innerHTML = `
-        <section class="footer-identity-panel" data-footer-realm="professional" aria-label="Daniel Short footer summary">
-          <h2 class="footer-identity-name">Daniel Short</h2>
-          <p class="footer-identity-summary">${escapeHtml(audience.label || audience.shortLabel || 'Professional')} portfolio</p>
-          <div class="footer-identity-actions">
-            <a href="${escapeHtml(trimLeadingSlash(audience.resumePath || ''))}" class="footer-link footer-identity-link" data-resume-home-link="true">${escapeHtml(audience.resumeNavTitle || 'Resume')}</a>
-            <a href="${escapeHtml(trimLeadingSlash(contactModalPath))}" class="footer-link footer-identity-link" data-contact-modal-link="true">Contact</a>
-          </div>
-        </section>
-      `.trim();
-    }
-
-    if (nav) {
-      nav.innerHTML = `
-        <div class="footer-nav-panel" data-footer-realm="professional">
-          <section class="footer-col" aria-labelledby="footer-professional-work">
-            <h2 class="footer-col-title" id="footer-professional-work">Work</h2>
-            <a href="${escapeHtml(trimLeadingSlash(audience.homePath || '/'))}" class="footer-link">Home</a>
-            <a href="${escapeHtml(trimLeadingSlash(audience.portfolioPath || '/portfolio'))}" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
-            <a href="${escapeHtml(trimLeadingSlash(audience.resumePath || ''))}" class="footer-link" data-resume-home-link="true">${escapeHtml(audience.resumeNavTitle || 'Resume')}</a>
-          </section>
-          <section class="footer-col" aria-labelledby="footer-professional-connect">
-            <h2 class="footer-col-title" id="footer-professional-connect">Connect</h2>
-            <a href="${escapeHtml(trimLeadingSlash(contactModalPath))}" class="footer-link" data-contact-modal-link="true">Contact</a>
-          </section>
-        </div>
-      `.trim();
-      const connect = nav.querySelector('#footer-professional-connect')?.closest('.footer-col');
-      externalLinks.forEach((link) => connect?.appendChild(link));
-    }
-
-    footer.querySelectorAll('.footer-utility a[href*="sitemap"]').forEach((link) => link.remove());
-    document.querySelectorAll('.speed-dial [data-contact-modal-link]').forEach((link) => {
-      link.setAttribute('href', trimLeadingSlash(contactModalPath));
-    });
-    footer.dataset.audience = audience.key;
+    const footer = document.querySelector('[data-site-shell-footer]');
+    if (footer && audience) footer.dataset.audience = audience.key;
   };
 
   const applyAudienceContact = (audience) => {
@@ -387,7 +260,8 @@
     const path = (url.pathname || '/').replace(/\/index\.html$/i, '/').replace(/\.html$/i, '');
     const needsAudience = path === '/portfolio'
       || path.startsWith('/portfolio/')
-      || path === '/contact';
+      || path === '/contact'
+      || path === '/search';
     if (!needsAudience || url.searchParams.has('audience')) return href;
 
     url.searchParams.set('audience', audienceKey);
@@ -426,8 +300,12 @@
   };
 
   let linkObserver = null;
+  let audienceLinkRevision = 0;
   const observeAudienceLinks = (audienceKey) => {
-    if (normalizeAudience(audienceKey) === PERSONAL_MODE || linkObserver || !document.body || !('MutationObserver' in window)) return;
+    const revision = ++audienceLinkRevision;
+    linkObserver?.disconnect();
+    linkObserver = null;
+    if (normalizeAudience(audienceKey) === PERSONAL_MODE || !document.body || !('MutationObserver' in window)) return;
     linkObserver = new MutationObserver((mutations) => {
       const hasNewLinks = mutations.some((mutation) => Array.from(mutation.addedNodes || []).some((node) => (
         node && node.nodeType === 1 && (
@@ -435,7 +313,9 @@
           || (typeof node.querySelector === 'function' && node.querySelector('a[href]'))
         )
       )));
-      if (hasNewLinks) window.requestAnimationFrame(() => preserveAudienceContext(audienceKey));
+      if (hasNewLinks) window.requestAnimationFrame(() => {
+        if (revision === audienceLinkRevision) preserveAudienceContext(audienceKey);
+      });
     });
     try {
       linkObserver.observe(document.body, { childList: true, subtree: true });
@@ -445,19 +325,30 @@
     }
   };
 
-  const applyRealm = () => {
+  const applyRealm = (options = {}) => {
     canonicalizeLegacyMode();
-    const audience = setDocumentRealm(detectAudience());
+    let audienceKey = '';
+    if (options.url) {
+      try {
+        const url = new URL(options.url, window.location.href);
+        audienceKey = normalizeAudience(url.searchParams.get('audience') || detectAudienceFromPath(url.pathname) || bodyAudience() || PERSONAL_MODE);
+      } catch {}
+    }
+    const audience = setDocumentRealm(audienceKey || detectAudience());
     applyAudienceNavigation(audience);
     applyAudienceFooter(audience);
     applyAudienceContact(audience);
     preserveAudienceContext(audience.key);
     updateSwitches(audience);
     observeAudienceLinks(audience.key);
+    return audience;
   };
 
   if (redirectLegacyRoot()) return;
   canonicalizeLegacyMode();
   setDocumentRealm(detectAudience());
   document.addEventListener('DOMContentLoaded', applyRealm);
+  document.addEventListener('site:route-before-mount', (event) => applyRealm(event.detail || {}));
+  document.addEventListener('site:route-mounted', (event) => applyRealm(event.detail || {}));
+  window.SiteRealm = Object.freeze({ sync: applyRealm });
 })();

@@ -1037,7 +1037,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(css.includes('--home-rail-width: 64px;') &&
     css.includes('--home-active-rail-width: 68px;') &&
     css.includes('--home-collapsed-rails-width: 256px;') &&
-    css.includes('--home-panel-motion: var(--personal-transition-duration, 440ms);') &&
+    css.includes('--home-panel-motion: var(--motion-slow);') &&
     css.includes('flex-basis: calc(100% - var(--home-collapsed-rails-width));') &&
     css.includes('@keyframes homeAccordionContentIn') &&
     css.includes('gap: 0;') &&
@@ -1085,7 +1085,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     mobileAccordionCss.includes('height: 48px;') &&
     mobileAccordionCss.includes('min-height: 48px;') &&
     mobileAccordionCss.includes('height: 54px;') &&
-    mobileAccordionCss.includes('min-height: 54px;') &&
+    mobileAccordionCss.includes('transition: height var(--motion-slow) var(--easing-standard)') &&
+    !mobileAccordionCss.includes('min-height: 54px;') &&
+    mobileAccordionCss.includes('.home-accordion:not(.is-library-mode) .home-accordion__scroller') &&
     mobileAccordionCss.includes('border: 4px solid var(--panel-color);') &&
     mobileAccordionCss.includes('width: 20px;') &&
     mobileAccordionCss.includes('height: 10px;') &&
@@ -1248,7 +1250,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     js.includes('timelineScrollerById') &&
     js.includes("panel?.querySelector('[data-home-timeline-scroller]')") &&
     js.includes("window.matchMedia('(min-width: 960px) and (min-height: 620px)')") &&
-    js.includes('scrollIntoView'),
+    js.includes('getVisibleHeaderBottom()') && js.includes('window.scrollTo({'),
   'accordion should preserve spacious-rail panel scroll positions and reveal newly opened stacked sections');
   assert(js.includes('decodeURIComponent(rawId)') &&
     js.includes('catch (error)') &&
@@ -1368,10 +1370,10 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     !navigation.includes('const isHomeSearch ='),
   'homepage search should use the same compact, explicitly expandable desktop behavior as the rest of the site');
 
-  assert(navigation.includes("if (document.body.dataset.page === 'home') return;") &&
+  assert(!navigation.includes('setupMobileSiteDock') &&
     css.includes('.mobile-site-dock {') &&
     css.includes('display: none !important;'),
-  'selected homepage should prevent the shared bottom dock and retain a CSS safety fallback');
+  'homepage should share the dock-free navigation runtime and retain a CSS safety fallback');
   assert(count(css, /var\(--personal-footer-block-size, 0px\)/g) === 3 &&
     css.includes('min-height: min(540px, calc(100svh') &&
     !css.includes('.footer.footer-classic'),

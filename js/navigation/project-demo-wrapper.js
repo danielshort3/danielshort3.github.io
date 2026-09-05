@@ -15,7 +15,8 @@
     if (!frame) return;
     const frameContainer = frame.closest('.project-demo-wrapper-frame');
     const frameMain = frame.closest('.project-demo-wrapper-main');
-    const mobileQuery = window.matchMedia('(max-width: 959px)');
+    const mobileQuery = window.matchMedia('(max-width: 959px), (max-height: 619px)');
+    const usesContentHeight = () => mobileQuery.matches && frame.dataset.projectDemoFit !== 'viewport';
     const routeUrl = context?.url instanceof URL
       ? context.url
       : new URL(String(context?.url || window.location.href), window.location.href);
@@ -52,19 +53,21 @@
 
     const measureFrame = () => {
       resizeFrame = 0;
-      if (!active || context?.signal?.aborted || !frameContainer || !frameMain || !mobileQuery.matches) return;
+      if (!active || context?.signal?.aborted || !frameContainer || !frameMain || !usesContentHeight()) return;
       try {
         const frameDocument = frame.contentDocument;
         const frameBody = frameDocument?.body;
         const frameRoot = frameDocument?.documentElement;
         if (!frameBody || !frameRoot) return;
-        const nextHeight = Math.max(
-          560,
-          frameBody.scrollHeight,
-          frameBody.offsetHeight,
-          frameRoot.scrollHeight,
-          frameRoot.offsetHeight
-        );
+        // Measure the actual workspace, not the root scrollHeight (which is at
+        // least the previous iframe height and cannot shrink after closing details).
+        const content = frameDocument.querySelector('#demo-box, #demo-shell, #demo-card, main.card, .demo-root, main, #main');
+        const contentRect = content?.getBoundingClientRect();
+        const bodyStyle = frame.contentWindow.getComputedStyle(frameBody);
+        const contentBottom = contentRect
+          ? contentRect.bottom + frame.contentWindow.scrollY + (parseFloat(bodyStyle.paddingBottom) || 0)
+          : frameBody.scrollHeight;
+        const nextHeight = Math.max(560, contentBottom);
         if (!Number.isFinite(nextHeight) || Math.abs(nextHeight - lastHeight) < 2) return;
         lastHeight = Math.ceil(nextHeight);
         const height = `${lastHeight}px`;
@@ -78,14 +81,14 @@
     };
 
     const scheduleMeasurement = () => {
-      if (!active || !mobileQuery.matches || resizeFrame) return;
+      if (!active || !usesContentHeight() || resizeFrame) return;
       resizeFrame = window.requestAnimationFrame(measureFrame);
     };
 
     const observeFrame = () => {
       disconnectObserver();
       clearScheduledMeasurements();
-      if (!active || !mobileQuery.matches) {
+      if (!active || !usesContentHeight()) {
         clearMobileHeight();
         return;
       }
@@ -110,7 +113,7 @@
     };
 
     const handleViewportChange = () => {
-      if (mobileQuery.matches) observeFrame();
+      if (usesContentHeight()) observeFrame();
       else {
         disconnectObserver();
         clearMobileHeight();

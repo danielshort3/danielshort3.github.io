@@ -600,7 +600,7 @@
   }
 
   @media (max-width: 768px) {
-    body.has-mobile-site-masthead[data-page="home"].home-pattern-page:has(.home-accordion.is-library-mode) {
+    body.has-mobile-site-masthead[data-page="home"].home-pattern-page:has(.home-accordion:not(.site-frame).is-library-mode) {
       padding-top: 0 !important;
     }
 

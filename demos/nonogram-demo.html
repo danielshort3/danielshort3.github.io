@@ -24,9 +24,9 @@
 
   <style>
     :root {
-      --radius: 14px;
-      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
-      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+      --radius: 12px;
+      --shadow-1: 0 1px 4px rgba(9,31,59,.04);
+      --shadow-2: 0 2px 12px rgba(9,31,59,.05);
       --surface-2: var(--surface-light);
       --text: var(--text-light);
       --page-pad: clamp(12px, 3vw, 24px);
@@ -56,15 +56,17 @@
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
-      background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
+      background: var(--bg, #f9f9fa);
       display: grid;
       place-items: start center;
       padding: var(--page-pad);
       overflow-x: hidden;
     }
 
+    main { width: min(100%, 1120px); }
+
     #demo-box {
-      width: min(100%, 980px);
+      width: 100%;
       background: var(--surface);
       border: 1px solid var(--surface-accent);
       border-radius: var(--radius);
@@ -85,7 +87,7 @@
       justify-content: space-between;
       gap: 12px;
       padding: 16px 18px;
-      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      background: #ffffff;
       border-bottom: 1px solid var(--surface-accent);
     }
 
@@ -150,8 +152,7 @@
       border: 1px solid var(--surface-accent);
       background: var(--surface-2);
       font-size: .7rem;
-      letter-spacing: .12em;
-      text-transform: uppercase;
+      letter-spacing: 0;
       color: var(--text-muted);
     }
 
@@ -180,7 +181,7 @@
 
     .content {
       display: grid;
-      grid-template-columns: auto minmax(260px, 320px);
+      grid-template-columns: minmax(0, 1fr);
       gap: 18px;
       justify-content: center;
       align-items: start;
@@ -192,6 +193,7 @@
       gap: 12px;
       align-items: start;
       justify-items: center;
+      min-width: 0;
     }
 
     .board-actions {
@@ -203,6 +205,33 @@
       width: 100%;
     }
 
+    .board-actions button {
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 10px;
+    }
+
+    .puzzle-summary {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      width: 100%;
+    }
+
+    .puzzle-summary .stat { gap: 8px; }
+
+    .puzzle-details {
+      width: min(100%, 720px);
+      margin-inline: auto;
+    }
+
+    .puzzle-details p {
+      margin: 0 0 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
     .board-shell {
       position: relative;
       display: grid;
@@ -212,8 +241,8 @@
       align-items: stretch;
       justify-content: center;
       justify-items: stretch;
-      background: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
-      border-radius: 16px;
+      background: #ffffff;
+      border-radius: 12px;
       padding: 12px;
       border: 1px solid var(--surface-accent);
       box-shadow: var(--shadow-1);
@@ -306,7 +335,7 @@
       font-weight: 600;
       font-size: .65rem;
       color: var(--text-muted);
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: #ffffff;
     }
 
     .clues-top {
@@ -399,7 +428,7 @@
     .panel {
       background: color-mix(in srgb, var(--surface) 90%, #000 10%);
       border: 1px solid var(--surface-accent);
-      border-radius: 16px;
+      border-radius: 12px;
       padding: 14px 16px;
       box-shadow: var(--shadow-1);
       display: grid;
@@ -435,7 +464,7 @@
       padding: 8px 10px;
       border-radius: 10px;
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      background: var(--surface-2);
       font-size: .8rem;
       color: var(--text-muted);
       display: flex;
@@ -478,8 +507,8 @@
 
     @media (max-width: 420px) {
       :root {
-        --cell-size: 28px;
-        --clue-size: 50px;
+        --cell-size: 36px;
+        --clue-size: 54px;
         --page-pad: 10px;
       }
       .content {
@@ -499,7 +528,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
@@ -544,43 +573,51 @@
   </script>
   <main id="main">
 
-  <div id="demo-box" role="application" aria-label="Nonogram solver demo">
+  <div id="demo-box" class="demo-workspace" aria-label="Nonogram solver demo">
     <header class="card-header">
       <div class="header-copy">
         <h1 class="title">Nonogram Solver</h1>
-        <p class="subtitle">Use the row and column clues (numbers show consecutive filled blocks) to fill the grid; the agent reveals a 5x5 puzzle one pick at a time.</p>
+        <p class="subtitle">Watch an AI agent reveal a 5 × 5 picture from its row and column clues.</p>
       </div>
       <div class="header-actions">
-        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Warming up</span>
+        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
       </div>
     </header>
 
-    <div class="status demo-meta-row" id="status">Ready. Generate a puzzle to begin.</div>
+    <div class="status demo-meta-row" id="status" role="status" aria-live="polite">Ready. Generate a puzzle to begin.</div>
 
     <div class="content">
       <div class="board-column">
-	        <div class="board-shell" aria-label="Nonogram board">
-	          <div class="clues-top" id="clues-top"></div>
-	          <div class="clues-left" id="clues-left"></div>
-	          <div class="grid" id="grid"></div>
+        <div class="board-actions">
+          <button id="action-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
+          <button id="solution-btn" class="solution-trigger" type="button" disabled>
+            <span class="solution-label">Solution</span>
+            <span class="solution-icon" aria-hidden="true">?</span>
+          </button>
+        </div>
+
+          <div class="board-shell" aria-label="Nonogram board">
+            <div class="clues-top" id="clues-top"></div>
+            <div class="clues-left" id="clues-left"></div>
+            <div class="grid" id="grid"></div>
           <div id="accuracy-toast" class="accuracy-toast" role="status" aria-live="polite" aria-atomic="true">
             <span class="toast-label">AI Accuracy</span>
             <span class="toast-score">--</span>
           </div>
-	        </div>
-	        <div class="board-actions">
-	          <button id="action-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
-	          <button id="solution-btn" class="solution-trigger" type="button" disabled>
-	            <span class="solution-label">Solution</span>
-	            <span class="solution-icon" aria-hidden="true">?</span>
-	          </button>
-	        </div>
+          </div>
       </div>
 
-      <aside class="panel" aria-live="polite">
-        <div class="stat"><span>Accuracy</span> <strong id="stat-accuracy">-</strong></div>
-        <div class="log" id="log"></div>
-      </aside>
+      <div class="puzzle-summary" aria-live="polite">
+        <div class="stat"><span>Accuracy</span> <strong id="stat-accuracy">—</strong></div>
+      </div>
+      <details class="demo-disclosure puzzle-details">
+        <summary>How it works &amp; solver details</summary>
+        <div class="demo-disclosure-content panel">
+          <p>Clues describe consecutive groups of filled cells, with an empty cell between groups. Start a new puzzle to watch the agent choose cells. Use Solution to compare its choices with the completed picture.</p>
+          <p class="demo-section-label">Move history</p>
+          <div class="log" id="log" aria-label="Solver move history"></div>
+        </div>
+      </details>
     </div>
   </div>
   </main>
@@ -616,13 +653,13 @@
     const gridEl = document.getElementById('grid');
     const cluesTop = document.getElementById('clues-top');
     const cluesLeft = document.getElementById('clues-left');
-	    const statusEl = document.getElementById('status');
-	    const healthPill = document.getElementById('health-pill');
-	    const logEl = document.getElementById('log');
-	    const accuracyToast = document.getElementById('accuracy-toast');
-	    const toastScore = accuracyToast?.querySelector('.toast-score');
-	    const solutionBtn = document.getElementById('solution-btn');
-	    const actionBtn = document.getElementById('action-btn');
+      const statusEl = document.getElementById('status');
+      const healthPill = document.getElementById('health-pill');
+      const logEl = document.getElementById('log');
+      const accuracyToast = document.getElementById('accuracy-toast');
+      const toastScore = accuracyToast?.querySelector('.toast-score');
+      const solutionBtn = document.getElementById('solution-btn');
+      const actionBtn = document.getElementById('action-btn');
 
     const statAccuracy = document.getElementById('stat-accuracy');
 
@@ -631,35 +668,35 @@
     let current = null;
     let solving = false;
     let intervalId = null;
-	    let solutionVisible = false;
-	    let solutionSnapshot = null;
-	    let serverReady = false;
-	    let initialLoadTriggered = false;
-	    let actionMode = 'new';
+      let solutionVisible = false;
+      let solutionSnapshot = null;
+      let serverReady = false;
+      let initialLoadTriggered = false;
+      let actionMode = 'new';
 
     function setStatus(text) {
       statusEl.textContent = text;
     }
 
-	    function setHealth(state, text) {
-	      if (!healthPill) return;
-	      healthPill.dataset.state = state;
-	      healthPill.textContent = text;
-	    }
+      function setHealth(state, text) {
+        if (!healthPill) return;
+        healthPill.dataset.state = state;
+        healthPill.textContent = text;
+      }
 
-	    function setActionMode(nextMode) {
-	      actionMode = nextMode === 'solve' ? 'solve' : 'new';
-	      if (!actionBtn) return;
-	      actionBtn.textContent = actionMode === 'solve' ? 'Solve With AI' : 'New Puzzle';
-	      actionBtn.dataset.mode = actionMode;
-	    }
+      function setActionMode(nextMode) {
+        actionMode = nextMode === 'solve' ? 'solve' : 'new';
+        if (!actionBtn) return;
+        actionBtn.textContent = actionMode === 'solve' ? 'Solve With AI' : 'New Puzzle';
+        actionBtn.dataset.mode = actionMode;
+      }
 
-	    function setControlsEnabled(enabled) {
-	      actionBtn.disabled = !enabled;
-	      if (!enabled) {
-	        solutionBtn.disabled = true;
-	      }
-	    }
+      function setControlsEnabled(enabled) {
+        actionBtn.disabled = !enabled;
+        if (!enabled) {
+          solutionBtn.disabled = true;
+        }
+      }
 
     function resetStats() {
       statAccuracy.textContent = '-';
@@ -806,8 +843,8 @@
     }
 
     async function warmUpServer() {
-      setHealth('warming', 'Warming AWS');
-      setStatus('Warming server...');
+      setHealth('warming', 'Preparing demo…');
+      setStatus('Preparing demo…');
       setControlsEnabled(false);
       const endpoints = candidates();
       if (!endpoints.length) {
@@ -858,20 +895,20 @@
       if (lastErr) console.error(lastErr);
     }
 
-	    async function loadPuzzle() {
-	      if (!serverReady) {
-	        setStatus('Server warming up...');
-	        return;
-	      }
-	      stopAnimation();
-	      solving = false;
-	      if (actionBtn) {
-	        actionBtn.disabled = true;
-	        actionBtn.textContent = 'Generating...';
-	      }
-	      solutionBtn.disabled = true;
-	      setStatus('Generating puzzle...');
-	      resetStats();
+      async function loadPuzzle() {
+        if (!serverReady) {
+          setStatus('Preparing demo…');
+          return;
+        }
+        stopAnimation();
+        solving = false;
+        if (actionBtn) {
+          actionBtn.disabled = true;
+          actionBtn.textContent = 'Generating...';
+        }
+        solutionBtn.disabled = true;
+        setStatus('Generating puzzle...');
+        resetStats();
       resetSolutionToggle();
       clearLog();
       clearBoard();
@@ -892,37 +929,37 @@
         }
         if (!data) throw new Error('No endpoint available');
 
-	        current = data;
-	        renderBoard(data.grid);
-	        renderClues(data.row_clues, data.col_clues);
-	        clearBoard();
-	        setActionMode('solve');
-	        if (actionBtn) actionBtn.disabled = false;
-	        solutionBtn.disabled = false;
-	        setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
-	      } catch (err) {
-	        setStatus('Failed to load puzzle.');
-	        setActionMode('new');
-	        if (actionBtn) {
-	          actionBtn.disabled = false;
-	          actionBtn.textContent = 'New Puzzle';
-	        }
-	        solutionBtn.disabled = true;
-	      }
-	    }
+          current = data;
+          renderBoard(data.grid);
+          renderClues(data.row_clues, data.col_clues);
+          clearBoard();
+          setActionMode('solve');
+          if (actionBtn) actionBtn.disabled = false;
+          solutionBtn.disabled = false;
+          setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
+        } catch (err) {
+          setStatus('Failed to load puzzle.');
+          setActionMode('new');
+          if (actionBtn) {
+            actionBtn.disabled = false;
+            actionBtn.textContent = 'New Puzzle';
+          }
+          solutionBtn.disabled = true;
+        }
+      }
 
-	    function runSolve() {
-	      if (!current || solving) return;
-	      const steps = current.steps || [];
-	      if (!steps.length) return;
-	      solving = true;
-	      if (actionBtn) {
-	        actionBtn.disabled = true;
-	        actionBtn.textContent = 'Solving...';
-	      }
-	      setSolutionVisible(false);
-	      solutionBtn.disabled = true;
-	      setStatus('Solving...');
+      function runSolve() {
+        if (!current || solving) return;
+        const steps = current.steps || [];
+        if (!steps.length) return;
+        solving = true;
+        if (actionBtn) {
+          actionBtn.disabled = true;
+          actionBtn.textContent = 'Solving...';
+        }
+        setSolutionVisible(false);
+        solutionBtn.disabled = true;
+        setStatus('Solving...');
       resetStats();
       resetSolutionToggle();
       clearLog();
@@ -950,17 +987,17 @@
       }, 180);
     }
 
-	    function setSolutionVisible(nextVisible) {
-	      if (!current) return false;
-	      if (nextVisible === solutionVisible) return true;
-	      if (nextVisible) {
-	        stopAnimation();
-	        solving = false;
-	        if (actionBtn && actionMode === 'solve') actionBtn.disabled = false;
-	        const solution = getSolutionGrid();
-	        if (!solution) {
-	          setStatus('Solution data unavailable.');
-	          return false;
+      function setSolutionVisible(nextVisible) {
+        if (!current) return false;
+        if (nextVisible === solutionVisible) return true;
+        if (nextVisible) {
+          stopAnimation();
+          solving = false;
+          if (actionBtn && actionMode === 'solve') actionBtn.disabled = false;
+          const solution = getSolutionGrid();
+          if (!solution) {
+            setStatus('Solution data unavailable.');
+            return false;
         }
         solutionSnapshot = captureBoardState();
         clearBoard();
@@ -984,28 +1021,28 @@
       setSolutionVisible(show);
     }
 
-	    function finishSolve() {
-	      stopAnimation();
-	      solving = false;
-	      setActionMode('new');
-	      if (actionBtn) actionBtn.disabled = false;
-	      const accuracyText = formatAccuracy();
-	      statAccuracy.textContent = accuracyText;
-	      showAccuracyToast(accuracyText);
-	      setStatus('Puzzle Solved!');
-	    }
+      function finishSolve() {
+        stopAnimation();
+        solving = false;
+        setActionMode('new');
+        if (actionBtn) actionBtn.disabled = false;
+        const accuracyText = formatAccuracy();
+        statAccuracy.textContent = accuracyText;
+        showAccuracyToast(accuracyText);
+        setStatus('Puzzle Solved!');
+      }
 
-	    if (actionBtn) {
-	      actionBtn.addEventListener('click', () => {
-	        if (!current || actionMode === 'new') {
-	          loadPuzzle();
-	          return;
-	        }
-	        runSolve();
-	      });
-	    }
-	    solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
-	    solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
+      if (actionBtn) {
+        actionBtn.addEventListener('click', () => {
+          if (!current || actionMode === 'new') {
+            loadPuzzle();
+            return;
+          }
+          runSolve();
+        });
+      }
+      solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
+      solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
 
     renderBoard(5);
     resetStats();

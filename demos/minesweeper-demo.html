@@ -24,14 +24,14 @@
 
   <style>
     :root {
-      --radius: 14px;
-      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
-      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+      --radius: 12px;
+      --shadow-1: 0 1px 4px rgba(9,31,59,.04);
+      --shadow-2: 0 2px 12px rgba(9,31,59,.05);
       --surface-2: var(--surface-light);
       --text: var(--text-light);
       --page-pad: clamp(12px, 3vw, 24px);
-      --cell-size: clamp(26px, 3.8vw, 34px);
-      --cell-gap: 6px;
+      --cell-size: clamp(24px, calc((100vw - 112px) / 9), 42px);
+      --cell-gap: 4px;
       --log-row-height: 36px;
       --grid-size: 9;
     }
@@ -52,15 +52,17 @@
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
-      background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
+      background: var(--bg, #f9f9fa);
       display: grid;
       place-items: start center;
       padding: var(--page-pad);
       overflow-x: hidden;
     }
 
+    main { width: min(100%, 1120px); }
+
     #demo-box {
-      width: min(100%, 980px);
+      width: 100%;
       background: var(--surface);
       border: 1px solid var(--surface-accent);
       border-radius: var(--radius);
@@ -81,7 +83,7 @@
       justify-content: space-between;
       gap: 12px;
       padding: 16px 18px;
-      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      background: #ffffff;
       border-bottom: 1px solid var(--surface-accent);
     }
 
@@ -121,8 +123,7 @@
       border: 1px solid var(--surface-accent);
       background: var(--surface-2);
       font-size: .7rem;
-      letter-spacing: .12em;
-      text-transform: uppercase;
+      letter-spacing: 0;
       color: var(--text-muted);
     }
 
@@ -165,7 +166,7 @@
 
     .content {
       display: grid;
-      grid-template-columns: auto minmax(260px, 320px);
+      grid-template-columns: minmax(0, 1fr);
       gap: 18px;
       justify-content: center;
       align-items: start;
@@ -177,6 +178,7 @@
       gap: 12px;
       align-items: start;
       justify-items: center;
+      min-width: 0;
     }
 
     .board-actions {
@@ -188,6 +190,33 @@
       width: 100%;
     }
 
+    .board-actions button {
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 10px;
+    }
+
+    .puzzle-summary {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      width: 100%;
+    }
+
+    .puzzle-summary .stat { gap: 8px; }
+
+    .puzzle-details {
+      width: min(100%, 720px);
+      margin-inline: auto;
+    }
+
+    .puzzle-details p {
+      margin: 0 0 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
     .board-shell {
       position: relative;
       display: grid;
@@ -195,8 +224,8 @@
       align-items: stretch;
       justify-content: center;
       justify-items: stretch;
-      background: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
-      border-radius: 16px;
+      background: #ffffff;
+      border-radius: 12px;
       padding: 16px;
       border: 1px solid var(--surface-accent);
       box-shadow: var(--shadow-1);
@@ -313,9 +342,9 @@
     }
 
     .panel {
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: #ffffff;
       border: 1px solid var(--surface-accent);
-      border-radius: 16px;
+      border-radius: 12px;
       padding: 14px 16px;
       display: grid;
       gap: 12px;
@@ -352,7 +381,7 @@
       padding: 8px 10px;
       border-radius: 10px;
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      background: var(--surface-2);
       font-size: .8rem;
       color: var(--text-muted);
       display: flex;
@@ -442,7 +471,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -452,22 +481,30 @@
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
   <main id="main">
-  <div id="demo-box" role="application" aria-label="Minesweeper solver demo">
+  <div id="demo-box" class="demo-workspace" aria-label="Minesweeper solver demo">
     <header class="card-header">
       <div class="header-copy">
         <h1 class="title">Minesweeper AI Solver</h1>
-        <p class="subtitle">A reinforcement learning agent reads the board, picks safe moves, and closes the puzzle step-by-step.</p>
+        <p class="subtitle">Watch an AI agent solve a 9 × 9 board, one move at a time.</p>
       </div>
       <div class="header-actions">
-        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Warming up</span>
+        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
       </div>
     </header>
 
-    <div class="status demo-meta-row" id="status">Ready. Generate a puzzle to begin.</div>
+    <div class="status demo-meta-row" id="status" role="status" aria-live="polite">Ready. Generate a puzzle to begin.</div>
     <p class="demo-note">Model success rate is ~72% on 9x9 grids with 10 mines. Some wins rely on forced guesses because not every game is solvable without guessing.</p>
 
     <div class="content">
       <div class="board-column">
+        <div class="board-actions">
+          <button id="action-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
+          <button id="solution-btn" class="solution-trigger" type="button" disabled>
+            <span class="solution-label">Solution</span>
+            <span class="solution-icon" aria-hidden="true">?</span>
+          </button>
+        </div>
+
         <div class="board-shell" aria-label="Minesweeper board">
           <div class="grid" id="grid"></div>
           <div id="performance-toast" class="performance-toast" role="status" aria-live="polite" aria-atomic="true">
@@ -475,22 +512,22 @@
             <span class="toast-score">--</span>
           </div>
         </div>
-	        <div class="board-actions">
-	          <button id="action-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
-	          <button id="solution-btn" class="solution-trigger" type="button" disabled>
-	            <span class="solution-label">Solution</span>
-	            <span class="solution-icon" aria-hidden="true">?</span>
-	          </button>
-	        </div>
       </div>
 
-      <aside class="panel" aria-live="polite">
-        <div class="stat"><span>Model</span> <strong id="stat-model">-</strong></div>
-        <div class="stat"><span>Success Rate</span> <strong id="stat-success">-</strong></div>
-        <div class="stat"><span>Moves</span> <strong id="stat-moves">-</strong></div>
-        <div class="stat"><span>Outcome</span> <strong id="stat-outcome">-</strong></div>
-        <div class="log" id="log"></div>
-      </aside>
+      <div class="puzzle-summary" aria-live="polite">
+        <div class="stat"><span>Moves</span> <strong id="stat-moves">—</strong></div>
+        <div class="stat"><span>Outcome</span> <strong id="stat-outcome">—</strong></div>
+      </div>
+      <details class="demo-disclosure puzzle-details">
+        <summary>How it works &amp; solver details</summary>
+        <div class="demo-disclosure-content panel">
+          <p>Start a new puzzle to watch the agent reveal cells and flag mines. Numbers count mines in neighboring cells. Use Solution to inspect the completed board.</p>
+          <div class="stat"><span>Model</span> <strong id="stat-model">—</strong></div>
+          <div class="stat"><span>Success rate</span> <strong id="stat-success">—</strong></div>
+          <p class="demo-section-label">Move history</p>
+          <div class="log" id="log" aria-label="Solver move history"></div>
+        </div>
+      </details>
     </div>
   </div>
   </main>
@@ -523,14 +560,14 @@
     const candidates = () => listCandidates(endpointConfig).filter(Boolean);
     const postToEndpoint = (base, payload) => postWithFallback(base, ['solve'], payload);
 
-	    const gridEl = document.getElementById('grid');
-	    const statusEl = document.getElementById('status');
-	    const healthPill = document.getElementById('health-pill');
-	    const logEl = document.getElementById('log');
-	    const actionBtn = document.getElementById('action-btn');
-	    const solutionBtn = document.getElementById('solution-btn');
-	    const performanceToast = document.getElementById('performance-toast');
-	    const toastScore = performanceToast?.querySelector('.toast-score');
+      const gridEl = document.getElementById('grid');
+      const statusEl = document.getElementById('status');
+      const healthPill = document.getElementById('health-pill');
+      const logEl = document.getElementById('log');
+      const actionBtn = document.getElementById('action-btn');
+      const solutionBtn = document.getElementById('solution-btn');
+      const performanceToast = document.getElementById('performance-toast');
+      const toastScore = performanceToast?.querySelector('.toast-score');
 
     const statModel = document.getElementById('stat-model');
     const statSuccess = document.getElementById('stat-success');
@@ -547,9 +584,9 @@
     let initialLoadTriggered = false;
     let toastTimer = null;
     let lastActionCell = null;
-	    let stepHighlightTimer = null;
-	    let hitCell = null;
-	    let actionMode = 'new';
+      let stepHighlightTimer = null;
+      let hitCell = null;
+      let actionMode = 'new';
 
     const notifyResize = (() => {
       if (window.self === window.top) return () => {};
@@ -569,23 +606,23 @@
       statusEl.textContent = text;
     }
 
-	    function setHealth(state, text) {
-	      if (!healthPill) return;
-	      healthPill.dataset.state = state;
-	      healthPill.textContent = text;
-	    }
+      function setHealth(state, text) {
+        if (!healthPill) return;
+        healthPill.dataset.state = state;
+        healthPill.textContent = text;
+      }
 
-	    function setActionMode(nextMode) {
-	      actionMode = nextMode === 'solve' ? 'solve' : 'new';
-	      if (!actionBtn) return;
-	      actionBtn.textContent = actionMode === 'solve' ? 'Solve With AI' : 'New Puzzle';
-	      actionBtn.dataset.mode = actionMode;
-	    }
+      function setActionMode(nextMode) {
+        actionMode = nextMode === 'solve' ? 'solve' : 'new';
+        if (!actionBtn) return;
+        actionBtn.textContent = actionMode === 'solve' ? 'Solve With AI' : 'New Puzzle';
+        actionBtn.dataset.mode = actionMode;
+      }
 
-	    function setControlsEnabled(enabled) {
-	      actionBtn.disabled = !enabled;
-	      if (!enabled) solutionBtn.disabled = true;
-	    }
+      function setControlsEnabled(enabled) {
+        actionBtn.disabled = !enabled;
+        if (!enabled) solutionBtn.disabled = true;
+      }
 
     function resetStats() {
       statMoves.textContent = '-';
@@ -813,33 +850,33 @@
       }, 2600);
     }
 
-	    function runSolve() {
-	      if (!current || solving) return;
-	      const steps = current.steps || [];
-	      if (!steps.length) return;
-	      solving = true;
-	      stopAnimation();
-	      if (actionBtn) {
-	        actionBtn.disabled = true;
-	        actionBtn.textContent = 'Solving...';
-	      }
-	      resetStats();
-	      solutionVisible = false;
-	      revealSnapshot = null;
-	      renderBoard(current.grid);
+      function runSolve() {
+        if (!current || solving) return;
+        const steps = current.steps || [];
+        if (!steps.length) return;
+        solving = true;
+        stopAnimation();
+        if (actionBtn) {
+          actionBtn.disabled = true;
+          actionBtn.textContent = 'Solving...';
+        }
+        resetStats();
+        solutionVisible = false;
+        revealSnapshot = null;
+        renderBoard(current.grid);
 
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       let idx = 0;
 
-	      const finish = () => {
-	        solving = false;
-	        setActionMode('new');
-	        if (actionBtn) actionBtn.disabled = false;
-	        statMoves.textContent = `${current.step_count} moves`;
-	        updateOutcome();
-	        solutionVisible = true;
-	        revealSnapshot = null;
-	        revealFlags();
+        const finish = () => {
+          solving = false;
+          setActionMode('new');
+          if (actionBtn) actionBtn.disabled = false;
+          statMoves.textContent = `${current.step_count} moves`;
+          updateOutcome();
+          solutionVisible = true;
+          revealSnapshot = null;
+          revealFlags();
         solutionBtn.disabled = true;
         let resultMessage = current.success
           ? `Solved in ${current.step_count} moves`
@@ -866,8 +903,8 @@
     }
 
     async function warmUpServer() {
-      setHealth('warming', 'Warming AWS');
-      setStatus('Warming server...');
+      setHealth('warming', 'Preparing demo…');
+      setStatus('Preparing demo…');
       setControlsEnabled(false);
       const endpoints = candidates();
       if (!endpoints.length) {
@@ -922,21 +959,21 @@
       if (lastErr) console.error(lastErr);
     }
 
-	    async function loadPuzzle() {
-	      if (!serverReady) {
-	        setStatus('Server warming up...');
-	        return;
-	      }
-	      stopAnimation();
-	      solving = false;
-	      if (actionBtn) {
-	        actionBtn.disabled = true;
-	        actionBtn.textContent = 'Generating...';
-	      }
-	      solutionBtn.disabled = true;
-	      solutionVisible = false;
-	      revealSnapshot = null;
-	      hitCell = null;
+      async function loadPuzzle() {
+        if (!serverReady) {
+          setStatus('Preparing demo…');
+          return;
+        }
+        stopAnimation();
+        solving = false;
+        if (actionBtn) {
+          actionBtn.disabled = true;
+          actionBtn.textContent = 'Generating...';
+        }
+        solutionBtn.disabled = true;
+        solutionVisible = false;
+        revealSnapshot = null;
+        hitCell = null;
       setStatus('Generating puzzle...');
       resetStats();
 
@@ -957,26 +994,26 @@
         }
         if (!data) throw new Error('No endpoint available');
 
-	        current = data;
-	        renderBoard(data.grid);
-	        statMoves.textContent = `${data.step_count} moves`;
-	        setModelStats(data.model);
-	        setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
-	        setActionMode('solve');
-	        if (actionBtn) actionBtn.disabled = false;
-	        solutionBtn.disabled = false;
-	        updateOutcome();
-	        notifyResize();
-	      } catch (err) {
-	        setStatus('Failed to load puzzle.');
-	        setActionMode('new');
-	        if (actionBtn) {
-	          actionBtn.disabled = false;
-	          actionBtn.textContent = 'New Puzzle';
-	        }
-	        solutionBtn.disabled = true;
-	      }
-	    }
+          current = data;
+          renderBoard(data.grid);
+          statMoves.textContent = `${data.step_count} moves`;
+          setModelStats(data.model);
+          setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
+          setActionMode('solve');
+          if (actionBtn) actionBtn.disabled = false;
+          solutionBtn.disabled = false;
+          updateOutcome();
+          notifyResize();
+        } catch (err) {
+          setStatus('Failed to load puzzle.');
+          setActionMode('new');
+          if (actionBtn) {
+            actionBtn.disabled = false;
+            actionBtn.textContent = 'New Puzzle';
+          }
+          solutionBtn.disabled = true;
+        }
+      }
 
     function setSolutionVisible(nextVisible) {
       if (!current) return false;
@@ -998,21 +1035,21 @@
       setSolutionVisible(show);
     }
 
-	    if (actionBtn) {
-	      actionBtn.addEventListener('click', () => {
-	        if (!current || actionMode === 'new') {
-	          loadPuzzle();
-	          return;
-	        }
-	        runSolve();
-	      });
-	    }
-	    solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
-	    solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
-	    solutionBtn.addEventListener('focus', () => previewSolution(true));
-	    solutionBtn.addEventListener('blur', () => previewSolution(false));
+      if (actionBtn) {
+        actionBtn.addEventListener('click', () => {
+          if (!current || actionMode === 'new') {
+            loadPuzzle();
+            return;
+          }
+          runSolve();
+        });
+      }
+      solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
+      solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
+      solutionBtn.addEventListener('focus', () => previewSolution(true));
+      solutionBtn.addEventListener('blur', () => previewSolution(false));
 
-	    warmUpServer();
-	  </script>
+      warmUpServer();
+    </script>
 </body>
 </html>
