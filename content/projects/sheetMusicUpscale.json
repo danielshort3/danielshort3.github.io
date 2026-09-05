@@ -3,10 +3,8 @@
   "title": "Sheet Music Watermark Removal & Upscale",
   "subtitle": "UNet & VDSR Pipeline",
   "image": "img/projects/sheetMusicUpscale.png",
-  "imageWidth": 1604,
-  "imageHeight": 1230,
-  "videoWebm": "img/projects/sheetMusicUpscale.webm",
-  "videoMp4": "img/projects/sheetMusicUpscale.mp4",
+  "imageWidth": 1600,
+  "imageHeight": 900,
   "previewComparison": {
     "type": "three-way",
     "initialDividers": [
@@ -15,10 +13,10 @@
     ],
     "minimumGap": 10,
     "sourceCrop": {
-      "left": 842,
-      "top": 520,
-      "width": 712,
-      "height": 400
+      "left": 240,
+      "top": 552,
+      "width": 320,
+      "height": 180
     },
     "stages": [
       {
@@ -26,41 +24,72 @@
         "shortLabel": "Original",
         "description": "Low-resolution source with the preview watermark intact.",
         "fullImage": "img/projects/sheetMusicUpscale-original-full.webp",
-        "fullAlt": "Complete original demonstration frame showing the full sheet music page and its four-times magnified watermarked detail.",
-        "fullWidth": 1604,
-        "fullHeight": 1231,
+        "fullAlt": "Original low-resolution horn sheet with a preview watermark over pitched notes.",
+        "fullWidth": 612,
+        "fullHeight": 792,
         "image": "img/projects/sheetMusicUpscale-original-comparison.webp",
-        "alt": "Magnified low-resolution sheet music with a large translucent preview watermark.",
-        "width": 712,
-        "height": 400
+        "alt": "Selected pitched notes under the preview watermark.",
+        "width": 720,
+        "height": 405
       },
       {
         "label": "Watermark removed",
         "shortLabel": "Removed",
         "description": "UNet output after the watermark-removal pass.",
         "fullImage": "img/projects/sheetMusicUpscale-watermark-removed-full.webp",
-        "fullAlt": "Complete watermark-removal demonstration frame showing the full cleaned sheet music page and its four-times magnified detail.",
-        "fullWidth": 1604,
-        "fullHeight": 1231,
+        "fullAlt": "Complete horn sheet after the U-Net watermark-removal pass.",
+        "fullWidth": 612,
+        "fullHeight": 792,
         "image": "img/projects/sheetMusicUpscale-watermark-removed-comparison.webp",
-        "alt": "The same magnified sheet music after the preview watermark was removed.",
-        "width": 712,
-        "height": 400
+        "alt": "The same selected notes after watermark removal.",
+        "width": 720,
+        "height": 405
       },
       {
         "label": "Upscaled",
         "shortLabel": "Upscaled",
         "description": "VDSR output with sharper notation and staff lines.",
         "fullImage": "img/projects/sheetMusicUpscale-upscaled-full.webp",
-        "fullAlt": "Complete upscaled demonstration frame showing the full sheet music page and its sharper four-times magnified detail.",
-        "fullWidth": 1604,
-        "fullHeight": 1231,
+        "fullAlt": "Complete horn sheet after VDSR upscaling.",
+        "fullWidth": 1700,
+        "fullHeight": 2200,
         "image": "img/projects/sheetMusicUpscale-upscaled-comparison.webp",
-        "alt": "The same magnified sheet music after upscaling sharpened the notation and staff lines.",
-        "width": 712,
-        "height": 400
+        "alt": "The same selected notes after upscaling.",
+        "width": 720,
+        "height": 405
       }
-    ]
+    ],
+    "selection": true,
+    "credit": "Source: Lord, I Need You, Horn 1–2 in G · PraiseCharts",
+    "creditUrl": "https://www.praisecharts.com/23870",
+    "provenance": {
+      "pipeline": "U-Net watermark removal followed by VDSR upscaling",
+      "run": "Watermark-Remover-Agent/output/manual/20260409_195930",
+      "log": "Watermark-Remover-Agent/output/logs/20260409_193627/pipeline.log:391-395",
+      "images": [
+        {
+          "stage": "original",
+          "source": "1_original/001_lord_i_need_you_frenchhorn12_G_001.png",
+          "sha256": "837e94af6a78975f228e1b3bfa8e69c2975253c2ade3afabcad3a9b80873d972",
+          "width": 612,
+          "height": 792
+        },
+        {
+          "stage": "watermark-removed",
+          "source": "2_watermark_removed/001_lord_i_need_you_frenchhorn12_G_001.png",
+          "sha256": "2b324fa9c2cff8c88ce4651cf1eccc037e0e1c38173397f0bdd804dfef2f9d74",
+          "width": 612,
+          "height": 792
+        },
+        {
+          "stage": "upscaled",
+          "source": "3_upscaled/001_lord_i_need_you_frenchhorn12_G_001.png",
+          "sha256": "671cc6e1993b7ff4699bdb706d86690c14a61b5a2cce69a6aeeee02708b802a6",
+          "width": 1700,
+          "height": 2200
+        }
+      ]
+    }
   },
   "tools": [
     "Python",

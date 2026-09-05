@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { loadSiteContentAsync } = require('./lib/content-loader');
+const { versionedImageUrl, versionImageContent } = require('./lib/versioned-image-url');
 const {
   buildGamesDirectoryWorkbenchData,
   buildToolsDirectoryWorkbenchData,
@@ -52,7 +53,7 @@ function projectLibraryPreviewAsset(image) {
   if (!normalized) return '';
   const extension = path.posix.extname(normalized);
   const basename = extension ? normalized.slice(0, -extension.length) : normalized;
-  return `${basename}-640.webp`;
+  return versionedImageUrl(`${basename}-640.webp`);
 }
 
 function homeLibraryItem({
@@ -260,7 +261,7 @@ function applyAudienceLinks(page, content) {
 }
 
 async function main() {
-  const content = await loadSiteContentAsync(root);
+  const content = versionImageContent(await loadSiteContentAsync(root));
   const navigation = content.site.navigation || {};
   const headerHtml = renderHeader({
     settings: content.site.settings,
@@ -373,7 +374,11 @@ async function main() {
   process.stdout.write(`[cms] Generated ${managedPages.length} managed page(s) and shared content artifacts from content/.\n`);
 }
 
-main().catch((err) => {
-  process.stderr.write(`[cms] ${err && err.message ? err.message : err}\n`);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((err) => {
+    process.stderr.write(`[cms] ${err && err.message ? err.message : err}\n`);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { buildHomeLibraryData };

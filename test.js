@@ -39933,17 +39933,18 @@ try {
       'sheetMusicUpscale comparison stages should have unique alternative text');
     assert(new Set(sheetMusicComparison.stages.map((stage) => stage.fullAlt)).size === 3,
       'sheetMusicUpscale full stages should have unique alternative text');
-    assert(sheetMusicComparison.stages.every((stage) => stage.width === 712 && stage.height === 400),
-      'sheetMusicUpscale comparison stages should share the aligned 712x400 crop');
-    assert(sheetMusicComparison.stages.every((stage) => stage.fullWidth === 1604 && stage.fullHeight === 1231),
-      'sheetMusicUpscale full stages should preserve the complete 1604x1231 frames');
+    assert(sheetMusicComparison.stages.every((stage) => stage.width === 720 && stage.height === 405),
+      'sheetMusicUpscale fallback stages should share an aligned 16:9 crop');
+    assert(sheetMusicComparison.stages.every((stage, index) =>
+      stage.fullWidth === (index === 2 ? 1700 : 612) && stage.fullHeight === (index === 2 ? 2200 : 792)),
+      'sheetMusicUpscale should preserve native low-resolution and upscaled sheet dimensions');
     assert(sheetMusicComparison.sourceCrop &&
-           sheetMusicComparison.sourceCrop.left === 842 && sheetMusicComparison.sourceCrop.top === 520 &&
-           sheetMusicComparison.sourceCrop.width === 712 && sheetMusicComparison.sourceCrop.height === 400,
-      'sheetMusicUpscale should map the zoomed comparison back to its exact full-frame region');
+           sheetMusicComparison.sourceCrop.left === 240 && sheetMusicComparison.sourceCrop.top === 552 &&
+           sheetMusicComparison.sourceCrop.width === 320 && sheetMusicComparison.sourceCrop.height === 180,
+      'sheetMusicUpscale should start on the pitched notation beneath the watermark');
     sheetMusicComparison.stages.forEach((stage) => {
-      assert(stage.image && fs.existsSync(stage.image), `sheetMusicUpscale comparison asset missing: ${stage.image}`);
-      assert(stage.fullImage && fs.existsSync(stage.fullImage), `sheetMusicUpscale full-stage asset missing: ${stage.fullImage}`);
+      assert(stage.image && fs.existsSync(stage.image.replace(/[?#].*$/, '')), `sheetMusicUpscale comparison asset missing: ${stage.image}`);
+      assert(stage.fullImage && fs.existsSync(stage.fullImage.replace(/[?#].*$/, '')), `sheetMusicUpscale full-stage asset missing: ${stage.fullImage}`);
     });
 
     const sheetMusicHtml = fs.readFileSync('pages/portfolio/sheetMusicUpscale.html', 'utf8');
@@ -39952,12 +39953,16 @@ try {
     const dividerHandles = sheetMusicHtml.match(/data-comparison-divider="(?:left|right)" role="slider"/g) || [];
     const stageRailLabels = sheetMusicHtml.match(/<span class="project-image-comparison-stage-index">0[1-3]<\/span>/g) || [];
     const comparisonHooks = sheetMusicHtml.match(/data-project-image-comparison/g) || [];
-    const fullImagesHeadingIndex = sheetMusicHtml.indexOf('>Full images</h3>');
+    const fullImagesHeadingIndex = sheetMusicHtml.indexOf('>Choose an area</h3>');
     const zoomedComparisonHeadingIndex = sheetMusicHtml.indexOf('>Zoomed comparison</h3>');
-    assert(fullStageFigures.length === 3 && fullStageFigures.every((figure) => !/\shidden(?:\s|=|>)/.test(figure)),
-      'sheetMusicUpscale preview should render all three complete stage images without hiding them');
+    assert(fullStageFigures.length === 1 && fullStageFigures.every((figure) => !/\shidden(?:\s|=|>)/.test(figure)),
+      'sheetMusicUpscale preview should provide one complete original sheet for selection');
     assert(fullImagesHeadingIndex >= 0 && zoomedComparisonHeadingIndex > fullImagesHeadingIndex,
-      'sheetMusicUpscale preview should label the full images before the zoomed comparison');
+      'sheetMusicUpscale preview should label the selection before the zoomed comparison');
+    assert(sheetMusicComparison.selection === true && sheetMusicHtml.includes('data-comparison-selection') &&
+           sheetMusicHtml.includes('data-selection-zoom') && sheetMusicHtml.includes('data-selection-reset') &&
+           sheetMusicHtml.includes('data-selection-retry'),
+      'sheetMusicUpscale should expose selection, zoom, reset, and image recovery controls');
     assert(stageFigures.length === 3, 'sheetMusicUpscale preview should render exactly three aligned stage figures');
     assert(stageFigures.every((figure) => !/\shidden(?:\s|=|>)/.test(figure)),
       'sheetMusicUpscale stage figures should all remain available in the no-JS source');

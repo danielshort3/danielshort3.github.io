@@ -25,6 +25,7 @@
     { "source": "/api/demos/covid-outbreak/state/:state", "destination": "/api/demos/covid-outbreak%2Fstate%2F:state" },
     { "source": "/api/demos/:demo/:action", "destination": "/api/demos/:demo%2F:action" },
     { "source": "/api/tools/transcribe/:action", "destination": "/api/tools/transcribe%2F:action" },
+    { "source": "/api/tools/auth/:action", "destination": "/api/tools/auth%2F:action" },
     { "source": "/api/chatbot/logs", "destination": "/api/chatbot?__route=logs" },
     { "source": "/api/short-links/test/:slug*", "destination": "/api/short-links/test%2F:slug*" },
     { "source": "/api/short-links/sets", "destination": "/api/short-links/sets/__collection__" },

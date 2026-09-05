@@ -10,6 +10,7 @@
 const { sendJson, getBearerToken } = require('../tools-api');
 const { verifyCognitoIdToken } = require('../cognito-jwt');
 const {
+  COOKIE_NAME,
   assertSameOriginRequest,
   authenticateToolsRequest,
   createSessionFromClaims,
@@ -76,6 +77,19 @@ async function session(req, res, dependencies = {}){
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
+    return;
+  }
+
+  // An ordinary signed-out visit is a successful session lookup. Check for
+  // credential presence, including malformed or empty values, so supplied
+  // credentials still pass through the existing authentication checks.
+  const headers = req.headers || {};
+  const hasTokenHeader = ['authorization', 'x-tools-token', 'x-user-token']
+    .some((name) => typeof headers[name] !== 'undefined');
+  const hasSessionCookie = String(headers.cookie || '').split(';')
+    .some((part) => part.split('=', 1)[0].trim() === COOKIE_NAME);
+  if (!hasTokenHeader && !hasSessionCookie) {
+    sendJson(res, 200, { ok: true, source: null, expiresAt: null, user: null });
     return;
   }
 

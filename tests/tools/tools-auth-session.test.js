@@ -265,12 +265,102 @@ async function run(){
   assert.strictEqual(authEndpointModule.userFromClaims({ email_verified: 'TRUE' }).emailVerified, false);
 
   const sessionResponse = createResponse();
-  await authHandler({ method: 'GET', headers: {} }, sessionResponse, ['session']);
+  await authHandler({ method: 'GET', headers: cookieRequest.headers }, sessionResponse, ['session']);
   assert.strictEqual(sessionResponse.statusCode, 200);
   assert.strictEqual(JSON.parse(sessionResponse.body).source, 'cookie');
   assert.strictEqual(JSON.parse(sessionResponse.body).user.emailVerified, true);
   assert.strictEqual(sessionResponse.headers['cache-control'], 'no-store');
   assert.strictEqual(sessionResponse.headers.pragma, 'no-cache');
+
+  const anonymousSession = { ok: true, source: null, expiresAt: null, user: null };
+  const anonymousHandler = authEndpointModule.createHandler({
+    authenticateRequest: async () => {
+      throw new Error('An absent session should not attempt credential validation.');
+    }
+  });
+  for (const headers of [{}, { cookie: 'preferences=essential; unrelated=value' }]) {
+    const response = createResponse();
+    await anonymousHandler({ method: 'GET', headers }, response, ['session']);
+    assert.strictEqual(response.statusCode, 200);
+    assert.deepStrictEqual(JSON.parse(response.body), anonymousSession);
+    assert.strictEqual(response.headers['cache-control'], 'no-store');
+    assert.strictEqual(response.headers.pragma, 'no-cache');
+    assert.strictEqual(response.headers['set-cookie'], undefined);
+  }
+
+  const signedInSessionResponse = createResponse();
+  await authEndpointModule({ method: 'GET', headers: cookieRequest.headers }, signedInSessionResponse, ['session']);
+  assert.strictEqual(signedInSessionResponse.statusCode, 200);
+  assert.strictEqual(JSON.parse(signedInSessionResponse.body).user.sub, claims.sub);
+
+  for (const headers of [
+    { cookie: `${sessions.COOKIE_NAME}=${tampered}` },
+    { cookie: `${sessions.COOKIE_NAME}=${expiredValue}` },
+    { cookie: `${sessions.COOKIE_NAME}=malformed` },
+    { cookie: `${sessions.COOKIE_NAME}=` },
+    { authorization: 'Basic invalid' },
+    { authorization: 'Bearer ' },
+    { authorization: '' },
+    { 'x-tools-token': '' },
+    { 'x-user-token': '' }
+  ]) {
+    const response = createResponse();
+    await authEndpointModule({ method: 'GET', headers }, response, ['session']);
+    assert.strictEqual(response.statusCode, 401, 'Supplied invalid credentials must not become anonymous success');
+    assert.deepStrictEqual(JSON.parse(response.body), { ok: false, error: 'Unauthorized' });
+    assert.strictEqual(response.headers['cache-control'], 'no-store');
+  }
+
+  process.env.TOOLS_AUTH_BEARER_FALLBACK = 'true';
+  const bearerSessionHandler = authEndpointModule.createHandler({
+    authenticateRequest: (req) => sessions.authenticateToolsRequest(req, {
+      verifyToken: async (token) => {
+        if (token !== 'read-token') throw new Error('Invalid token');
+        return { ...claims, exp: now + 3600 };
+      }
+    })
+  });
+  for (const headerName of ['authorization', 'x-tools-token', 'x-user-token']) {
+    const response = createResponse();
+    await bearerSessionHandler({
+      method: 'GET',
+      headers: { [headerName]: headerName === 'authorization' ? 'Bearer read-token' : 'read-token' }
+    }, response, ['session']);
+    assert.strictEqual(response.statusCode, 200);
+    assert.strictEqual(JSON.parse(response.body).source, 'bearer');
+    assert.strictEqual(JSON.parse(response.body).user.sub, claims.sub);
+
+    const invalidResponse = createResponse();
+    await bearerSessionHandler({
+      method: 'GET',
+      headers: { [headerName]: headerName === 'authorization' ? 'Bearer invalid' : 'invalid' }
+    }, invalidResponse, ['session']);
+    assert.strictEqual(invalidResponse.statusCode, 401);
+  }
+
+  for (const secret of [undefined, 'invalid']) {
+    if (typeof secret === 'undefined') delete process.env.TOOLS_SESSION_SECRETS;
+    else process.env.TOOLS_SESSION_SECRETS = secret;
+    const response = createResponse();
+    await authEndpointModule({
+      method: 'GET',
+      headers: { cookie: `${sessions.COOKIE_NAME}=${created.value}` }
+    }, response, ['session']);
+    assert.strictEqual(response.statusCode, 503, 'Configured sessions must still report invalid server configuration');
+  }
+  process.env.TOOLS_SESSION_SECRETS = `${firstKey.toString('base64url')},${previousKey.toString('base64url')}`;
+
+  const configErrorResponse = createResponse();
+  await authEndpointModule.createHandler({
+    authenticateRequest: async () => {
+      throw Object.assign(new Error('Cognito configuration missing'), { code: 'COGNITO_ENV_MISSING' });
+    }
+  })({ method: 'GET', headers: { authorization: 'Bearer read-token' } }, configErrorResponse, ['session']);
+  assert.strictEqual(configErrorResponse.statusCode, 503);
+
+  const protectedResponse = createResponse();
+  await require('../../api/_lib/tools-endpoints/me')({ method: 'GET', headers: {} }, protectedResponse);
+  assert.strictEqual(protectedResponse.statusCode, 401, 'Protected endpoints must still require authentication');
 
   const logoutResponse = createResponse();
   await authHandler({
@@ -282,10 +372,30 @@ async function run(){
   assert(logoutResponse.headers['set-cookie'].includes('Max-Age=0'));
   assert.strictEqual(logoutResponse.headers['cache-control'], 'no-store');
 
+  for (const action of ['exchange', 'logout']) {
+    const response = createResponse();
+    await authHandler({
+      method: 'POST',
+      socket: { encrypted: true },
+      headers: {
+        host: 'www.danielshort.me',
+        origin: 'https://attacker.example',
+        authorization: 'Bearer exchange-token'
+      }
+    }, response, [action]);
+    assert.strictEqual(response.statusCode, 403);
+    assert.strictEqual(response.headers['set-cookie'], undefined);
+  }
+
   const methodResponse = createResponse();
   await authHandler({ method: 'GET', headers: {} }, methodResponse, ['exchange']);
   assert.strictEqual(methodResponse.statusCode, 405);
   assert.strictEqual(methodResponse.headers.allow, 'POST');
+
+  const sessionMethodResponse = createResponse();
+  await authHandler({ method: 'POST', headers: {} }, sessionMethodResponse, ['session']);
+  assert.strictEqual(sessionMethodResponse.statusCode, 405);
+  assert.strictEqual(sessionMethodResponse.headers.allow, 'GET');
 
   const unknownResponse = createResponse();
   await authHandler({ method: 'GET', headers: {} }, unknownResponse, ['unknown']);
@@ -410,7 +520,36 @@ async function run(){
   assert.strictEqual(restoredDualAuth.claims.email_verified, true);
   assert.strictEqual(JSON.parse(authStorage.get('toolsAuth')).sessionOnly, true);
 
+  authStorage.clear();
+  fetchCalls.length = 0;
+  clientContext.fetch = async (url, options) => {
+    fetchCalls.push({ url, options });
+    return { ok: true, status: 200, json: async () => anonymousSession };
+  };
+  assert.strictEqual(await clientContext.window.ToolsAuth.ensureFreshAuth(), null);
+  assert.strictEqual(fetchCalls.length, 1);
+  assert.strictEqual(authStorage.has('toolsAuth'), false, 'An anonymous lookup must not create a stored login');
+
   const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+  const authRewrite = vercel.rewrites.find((rule) => rule.source === '/api/tools/auth/:action');
+  assert(authRewrite, 'Nested tools auth actions must reach the deployed serverless function');
+  assert.strictEqual(authRewrite.destination, '/api/tools/auth%2F:action');
+  const toolsRouter = require('../../api/tools/[...slug]');
+  for (const action of ['session', 'exchange', 'logout']) {
+    const destination = authRewrite.destination.replace(':action', action);
+    for (const request of [
+      { url: `/api/tools/auth/${action}` },
+      { url: destination },
+      { url: destination, query: { slug: `auth/${action}` } }
+    ]) {
+      const response = createResponse();
+      await toolsRouter({ ...request, method: 'GET', headers: {} }, response);
+      assert.strictEqual(response.statusCode, action === 'session' ? 200 : 405);
+      if (action === 'session') assert.deepStrictEqual(JSON.parse(response.body), anonymousSession);
+      else assert.strictEqual(response.headers.allow, 'POST');
+      assert.strictEqual(response.headers['cache-control'], 'no-store');
+    }
+  }
   const policyEntries = vercel.headers
     .map((entry) => ({
       source: entry.source,

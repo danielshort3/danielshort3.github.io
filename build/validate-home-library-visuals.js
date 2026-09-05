@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
+const { versionedImageUrl } = require('./lib/versioned-image-url');
 
 const root = path.resolve(__dirname, '..');
 const previewRoot = path.join(root, 'img', 'home-previews');
@@ -165,13 +166,13 @@ function validateCatalogMappings() {
       throw new Error(`Canonical project image does not derive the expected optimized asset for ${id}`);
     }
     const item = projectItems.find((entry) => entry.id === id);
-    if (!item || item.image !== expectedImage || item.imageAlt !== '') {
+    if (!item || item.image !== versionedImageUrl(expectedImage) || item.imageAlt !== '') {
       throw new Error(`Unexpected original project preview mapping for projects/${id}`);
     }
   });
 
   const tools = loadToolIcons();
-  const toolIcons = new Map(tools.map((tool) => [tool.id, tool.image]));
+  const toolIcons = new Map(tools.map((tool) => [tool.id, versionedImageUrl(tool.image)]));
   const toolItems = libraryData.tools?.items || [];
   if (JSON.stringify(toolItems.map((item) => item.id).sort()) !==
     JSON.stringify(tools.filter((tool) => tool.public).map((tool) => tool.id).sort())) {
@@ -237,8 +238,21 @@ async function validateToolIconAssets(baseDir) {
       throw new Error(`Missing original tool icon: ${path.relative(root, filePath)}`);
     }
     const metadata = await sharp(filePath).metadata();
-    if (metadata.format !== 'png' || !Number(metadata.width) || !Number(metadata.height)) {
-      throw new Error(`Original tool icon must be a valid PNG: ${path.relative(root, filePath)}`);
+    if (metadata.format !== 'png' || metadata.width !== 256 || metadata.height !== 256) {
+      throw new Error(`Original tool icon must be a square 256px PNG: ${path.relative(root, filePath)}`);
+    }
+    const { data, info } = await sharp(filePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const alphaAt = (x, y) => data[(y * info.width + x) * info.channels + 3];
+    const corners = [[0, 0], [info.width - 1, 0], [0, info.height - 1], [info.width - 1, info.height - 1]];
+    if (corners.some(([x, y]) => alphaAt(x, y) !== 0)) {
+      throw new Error(`Tool icon background must be transparent, not a painted checkerboard: ${path.relative(root, filePath)}`);
+    }
+    let opaquePixels = 0;
+    for (let offset = 3; offset < data.length; offset += info.channels) {
+      if (data[offset] === 255) opaquePixels += 1;
+    }
+    if (opaquePixels < info.width * info.height * .04) {
+      throw new Error(`Tool icon must retain its visible artwork: ${path.relative(root, filePath)}`);
     }
     hashes.set(tool.image, crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex'));
   }

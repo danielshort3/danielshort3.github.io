@@ -437,7 +437,13 @@
     background: #f8fafc;
   }
 
+  .home-accordion__item--tools .home-accordion__card-media {
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  }
+
   .home-accordion__item--tools .home-accordion__card-media img {
+    min-width: 0;
+    min-height: 0;
     width: 82%;
     height: 82%;
     padding: 0;

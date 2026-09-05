@@ -8,6 +8,15 @@ Recommended output:
 - Main mark centered with about `18-22%` safe padding
 - Slug-matched filenames under `img/tools/icons/`, for example `img/tools/icons/text-compare.png`
 
+The current deployed assets are 256×256 RGBA PNGs. The original fourteen raster
+icons had a checkerboard painted into their RGB backgrounds; those backgrounds
+were removed directly from the source pixels on September 5, 2026. Protected
+artwork masks retain opaque white document interiors and other white details,
+and exterior edges use real alpha transparency. Opaque foreground RGB values
+are unchanged. The existing transparent Campaign Creative Tracker asset remains
+unchanged. Future replacements must preserve genuine alpha rather than painting
+a checkerboard to suggest transparency.
+
 ## Shared Style Prefix
 
 Paste this before each tool-specific prompt:
@@ -19,7 +28,7 @@ Create a premium professional website tool icon for the Daniel Short analytics b
 ## Negative Prompt
 
 ```text
-No readable text, no fake UI screenshots, no tiny labels, no letters, no numbers, no mascots, no cartoon style, no purple gradients, no beige or brown palette, no cluttered dashboard, no photo-realism, no heavy shadows, no black background, no low-contrast white-on-white shapes.
+No readable text, no fake UI screenshots, no tiny labels, no letters, no numbers, no mascots, no cartoon style, no purple gradients, no beige or brown palette, no cluttered dashboard, no photo-realism, no heavy shadows, no black background, no low-contrast white-on-white shapes, no painted checkerboard or simulated transparency.
 ```
 
 ## Tool-Specific Prompts
@@ -91,7 +100,7 @@ Suggested asset path: `img/tools/icons/image-optimizer.png`
 ### Background Remover
 
 ```text
-A product silhouette lifted from a checkerboard transparency field, with a clean selection outline and copper refinement brush.
+A product silhouette isolated on real transparent alpha, with a clean selection outline and copper refinement brush. Do not include a checkerboard panel behind the product.
 ```
 
 Suggested asset path: `img/tools/icons/background-remover.png`
