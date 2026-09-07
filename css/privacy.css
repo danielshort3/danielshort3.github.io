@@ -650,8 +650,8 @@ body[data-consent-banner="open"] .speed-dial {
 
   #pcz-banner .pcz-card {
     border-radius: 8px;
-    gap: 6px;
-    padding: 8px 38px 8px 10px;
+    gap: 8px;
+    padding: 10px;
     border-color: color-mix(in srgb, var(--pcz-accent) 12%, rgba(255, 255, 255, 0.08));
   }
 
@@ -670,7 +670,7 @@ body[data-consent-banner="open"] .speed-dial {
 
   #pcz-banner .pcz-btn {
     width: 100%;
-    min-height: 32px;
+    min-height: 44px;
     padding: 6px 8px;
     font-size: 0.8rem;
     justify-content: center;
@@ -679,8 +679,8 @@ body[data-consent-banner="open"] .speed-dial {
 
   #pcz-banner .pcz-close {
     right: 8px;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
 
   #pcz-modal {

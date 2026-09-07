@@ -62,7 +62,9 @@ const motion = () => {
 module.exports = function runPortfolioMotionTests({ assert }) {
   const compactQuery = source.match(/const PORTFOLIO_COMPACT_QUERY = '([^']+)';/)?.[1];
   assert(compactQuery === '(max-width: 820px), (max-height: 480px) and (pointer: coarse)', 'compact workbenches must include short touch landscape without changing fine-pointer desktop layouts');
-  assert((css.match(/@media \(max-width: 820px\), \(max-height: 480px\) and \(pointer: coarse\)/g) || []).length === 3, 'all compact workbench CSS blocks must match the shared interaction query');
+  const compactCssQueries = [...css.matchAll(/@media\s+(\(max-width:\s*820px\)[^{]*)\{/g)]
+    .map((match) => match[1].trim());
+  assert(compactCssQueries.length >= 3 && compactCssQueries.every((query) => query === compactQuery), 'all compact workbench CSS blocks must match the shared interaction query');
   assert(!source.includes("window.matchMedia('(min-width: 821px)')"), 'filter dialogs must derive desktop state from the same compact query as Quick view');
   const sheetSource = source.slice(source.indexOf('  const setSheetOpen = (open) => {'), source.indexOf('  if (openButton) {'));
   const root = element();

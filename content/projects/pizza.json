@@ -3,6 +3,7 @@
   "title": "Pizza Tips Regression Modeling",
   "subtitle": "Excel Analytics & Regression Modeling",
   "image": "img/projects/pizza.png",
+  "iconImage": "img/projects/icons/pizza.png",
   "imageWidth": 1398,
   "imageHeight": 1398,
   "videoWebm": "img/projects/pizza.webm",
@@ -10,7 +11,7 @@
   "tools": [
     "Excel",
     "Statistics",
-    "AWS"
+    "JavaScript"
   ],
   "concepts": [
     "Analytics"
@@ -26,12 +27,12 @@
     },
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_1.pdf",
+      "url": "documents/Project_1.pdf",
       "label": "PDF"
     },
     {
       "icon": "img/icons/excel-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_1.xlsx",
+      "url": "documents/Project_1.xlsx",
       "label": "Excel"
     }
   ],
@@ -40,15 +41,16 @@
     "url": "pizza-tips-demo.html"
   },
   "demoInstructions": {
-    "lead": "Adjust inputs and estimate a tip using the regression model.",
+    "lead": "Adjust an order and estimate its tip directly in your browser.",
     "bullets": [
-      "Use the delivery slider to load an example ticket (or enter values directly).",
-      "Edit order cost and other inputs (housing, time, weather) to test scenarios.",
-      "Click “Estimate Tip” to see the prediction.",
-      "Use “Reset” to return to defaults."
+      "Edit the order cost, delivery city, housing type, and order hour to compare scenarios.",
+      "Select “Update estimate” to calculate the tip and uncertainty interval.",
+      "Expand the delivery map to choose a location or compare estimated tips across the area.",
+      "Select “Reset” to return to the computed example."
     ]
   },
   "problem": "Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.",
+  "task": "Test which recorded delivery and weather factors are associated with tip size using regression analysis.",
   "actions": [
     "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
     "Ran a multiple regression in Excel: Tip = f(cost, delivery time, rain, max/min temperature)."
@@ -59,5 +61,11 @@
     "Weather and delivery time didn’t show a meaningful effect on tip size."
   ],
   "order": 12,
-  "notes": "Delivery records were joined to NOAA daily weather; missing distance and time-of-day controls limit causal interpretation."
+  "notes": "Delivery records were joined to NOAA daily weather; missing distance and time-of-day controls limit causal interpretation.",
+  "mobilePreview": {
+    "image": "img/projects/pizza-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Pizza Tip Estimator showing an example order, estimated tip, and delivery controls."
+  }
 }

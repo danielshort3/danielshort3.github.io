@@ -75,6 +75,35 @@ function isAdminRequest(req){
   }
 }
 
+function isToolsAdminClaims(claims){
+  const { isAdminClaims, DEFAULT_ADMIN_GROUPS, DEFAULT_ADMIN_EMAILS } = require('./local-transcribe')._internal;
+  const allowlist = (key, fallback) => new Set(
+    (typeof process.env[key] === 'string' ? process.env[key].split(/[\s,;]+/) : fallback)
+      .map(value => String(value || '').trim().toLowerCase()).filter(Boolean)
+  );
+  return isAdminClaims(claims, {
+    adminGroups: allowlist('TOOLS_ADMIN_GROUPS', DEFAULT_ADMIN_GROUPS),
+    adminEmails: allowlist('TOOLS_ADMIN_EMAILS', DEFAULT_ADMIN_EMAILS)
+  });
+}
+
+async function authorizeAdminRequest(req, res){
+  if (isAdminRequest(req)) return true;
+  try {
+    const { authenticateToolsRequest } = require('./tools-auth-session');
+    const { claims } = await authenticateToolsRequest(req);
+    if (!claims?.sub || !isToolsAdminClaims(claims)) {
+      sendJson(res, 403, { ok: false, error: 'Administrator access required' });
+      return false;
+    }
+    return true;
+  } catch (err) {
+    const status = err?.code === 'AUTH_ORIGIN_MISMATCH' ? 403 : 401;
+    sendJson(res, status, { ok: false, error: status === 403 ? 'Same-origin request required' : 'Unauthorized' });
+    return false;
+  }
+}
+
 function sendJson(res, status, body){
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -227,6 +256,8 @@ module.exports = {
   isInternalRecordSlug,
   getAdminToken,
   isAdminRequest,
+  isToolsAdminClaims,
+  authorizeAdminRequest,
   sendJson,
   readJson,
   normalizeSlug,

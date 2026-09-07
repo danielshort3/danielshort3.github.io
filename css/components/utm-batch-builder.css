@@ -846,3 +846,134 @@
     }
   }
 }
+
+@layer overrides {
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-shell {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-layout {
+    grid-template-columns: minmax(340px, .75fr) minmax(0, 1.25fr);
+    gap: 20px;
+    align-items: start;
+    height: auto;
+  }
+
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-card {
+    padding: 0;
+    margin: 0 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body.utmtool-page[data-page][data-tools-layout] :is(.utmtool-accordion, .utmtool-inline-details, .utmtool-presets-panel) {
+    margin: 12px 0;
+    border: 1px solid #dce3ec;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  body.utmtool-page[data-page][data-tools-layout] :is(.utmtool-accordion-summary, .utmtool-inline-summary) {
+    padding: 12px;
+    background: #fff;
+    color: #091f3b;
+    font-weight: 600;
+  }
+
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-accordion-body { padding: 12px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-presets-panel { padding: 16px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-accordion-title { font-size: 14px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-field { padding: 10px 0; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-field:first-child { padding-top: 0; }
+
+  body.utmtool-page[data-page][data-tools-layout] :is(.utmtool-label, .utmtool-mode-label, .utmtool-sub-label, .utmtool-help, .utmtool-check) {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #526174;
+  }
+
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-label { color: #091f3b; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-help { margin: 8px 0; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-required { padding: 0; background: transparent; border: 0; font-size: 11px; color: #637182; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-field-head { gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  body.utmtool-page[data-page][data-tools-layout] :is(.utmtool-input, .utmtool-select) { padding: 8px 10px; min-height: 38px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-textarea { min-height: 92px; padding: 12px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-row { gap: 8px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-mode { max-width: 100%; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-mode .utmtool-select { max-width: 205px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-csv-upload-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-file-input { width: 100%; min-width: 0; max-width: 100%; font-size: 13px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-csv-import .utmtool-help { margin-bottom: 0; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-file-input::file-selector-button { padding: 8px 12px; color: #17636f; background: #fff; border: 1px solid #b8cdd2; border-radius: 5px; margin-right: 8px; cursor: pointer; }
+
+  body.utmtool-page[data-page][data-tools-layout] :is(.utmtool-quiet-button, .utmtool-page-link) {
+    padding: 4px 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    color: #17636f;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-quiet-button { text-decoration: underline; text-underline-offset: 3px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-run-actions { padding-top: 4px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-run-actions .btn-primary { flex: 1; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-card-head { gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-actions-row { flex-wrap: wrap; gap: 8px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-output > .utmtool-row { display: grid; margin-bottom: 18px; }
+
+  body.utmtool-page[data-page][data-tools-layout] :is(.utmtool-mode-card, .utmtool-rel-block, .utmtool-rel-group, .utmtool-rel-inspector, .utmtool-custom-row, .utmtool-csv-chip, .utmtool-pill, .utmtool-codeblock) {
+    border: 1px solid #dce3ec;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: none;
+    color: #091f3b;
+    transform: none;
+  }
+
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-mode-card.is-selected { border-color: #087f8c; background: #eef7f8; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-mode-title { font-size: 14px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-mode-desc { font-size: 13px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-mode-grid { grid-template-columns: minmax(0, 1fr); }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-rel-layout { display: block; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-rel-inspector { margin-top: 14px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-rel-group-head { flex-wrap: wrap; }
+
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-table-scroll { border: 1px solid #dce3ec; border-radius: 6px; background: #fff; max-width: 100%; overflow: auto; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-table-header { padding: 0; background: #fff; color: #091f3b; border-bottom: 1px solid #dce3ec; align-items: center; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-th { font-size: 12px; font-weight: 600; padding: 10px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-tr { padding: 0; border: 0; border-bottom: 1px solid #e7ebef; background: #fff; align-items: center; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-tr.is-selected { background: #eef7f8; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-td { font-size: 13px; line-height: 1.5; padding: 8px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-copy-btn { padding: 5px 8px; min-height: 32px; font-size: 12px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-page-link { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-height: 32px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-selected-link { margin-top: 16px; padding: 14px; border: 1px solid #dce3ec; border-radius: 6px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-selected-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; color: #526174; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-selected-link p { margin: 8px 0 0; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-workspace-status { padding-top: 14px; margin-top: 14px; border-top: 1px solid #dce3ec; color: #526174; font-size: 13px; line-height: 1.6; }
+  body.utmtool-page[data-page][data-tools-layout] :is(.utmtool-banner, .utmtool-toast) { border-radius: 6px; box-shadow: none; background: #f5f8fa; color: #091f3b; padding: 12px; }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-banner-error { background: #fff3f2; color: #8f2820; border: 1px solid #efd2ce; }
+
+  @media (max-width: 1050px) {
+    body.utmtool-page[data-page][data-tools-layout] .utmtool-layout { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 760px) {
+    body.utmtool-page[data-page][data-tools-layout] .utmtool-card-head .utmtool-actions-row { width: 100%; }
+    body.utmtool-page[data-page][data-tools-layout] .utmtool-card-head .utmtool-actions-row button { flex: 1; }
+    body.utmtool-page[data-page][data-tools-layout] .utmtool-field-head { align-items: start; }
+    body.utmtool-page[data-page][data-tools-layout] .utmtool-mode { width: 100%; }
+    body.utmtool-page[data-page][data-tools-layout] .utmtool-mode .utmtool-select { flex: 1; max-width: none; }
+    body.utmtool-page[data-page][data-tools-layout] .utmtool-copy-btn { min-height: 40px; }
+  }
+}

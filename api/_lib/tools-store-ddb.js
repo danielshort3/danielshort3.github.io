@@ -3,7 +3,7 @@
 
   Env vars required:
   - TOOLS_DDB_TABLE (or TOOLS_DDB_TABLE_NAME)
-  - AWS_REGION (or AWS_DEFAULT_REGION)
+  - TOOLS_AWS_REGION (falls back to AWS_REGION or AWS_DEFAULT_REGION)
   - Prefer TOOLS_AWS_ROLE_ARN for Vercel OIDC credentials
   - Prefer TOOLS_AWS_ACCESS_KEY_ID / TOOLS_AWS_SECRET_ACCESS_KEY to avoid conflicts
   - Falls back to AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
@@ -181,9 +181,7 @@ function getAwsCredentialConfig(region){
 
 function getRequiredEnv(){
   const tableName = pickEnv(['TOOLS_DDB_TABLE', 'TOOLS_DDB_TABLE_NAME']).raw.trim();
-  const region =
-    (process.env.AWS_REGION ? String(process.env.AWS_REGION).trim() : '') ||
-    (process.env.AWS_DEFAULT_REGION ? String(process.env.AWS_DEFAULT_REGION).trim() : '');
+  const region = pickEnv(['TOOLS_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']).raw.trim();
 
   if (!tableName) {
     const err = new Error('TOOLS_DDB_TABLE is not configured');
@@ -191,7 +189,7 @@ function getRequiredEnv(){
     throw err;
   }
   if (!region) {
-    const err = new Error('AWS_REGION is not configured');
+    const err = new Error('TOOLS_AWS_REGION, AWS_REGION, or AWS_DEFAULT_REGION must be configured');
     err.code = 'DDB_ENV_MISSING';
     throw err;
   }

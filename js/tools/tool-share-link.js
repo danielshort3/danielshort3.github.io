@@ -1,8 +1,7 @@
 /* ===================================================================
    File: js/tools/tool-share-link.js
    Purpose: Shareable tool state — encode form inputs into ?s= and
-            restore them on page load. Loaded BEFORE the tool script
-            so the tool initializes against the restored values.
+            restore them after tool scripts create their controls.
    =================================================================== */
 (() => {
   'use strict';
@@ -40,9 +39,10 @@
         const group = el.name || id;
         if (el.checked) state[group] = el.value;
       } else if (type === 'checkbox') {
-        const group = String((state[group] || '') + '').split(',').map((s) => s.trim()).filter(Boolean);
+        const key = el.name || el.id;
+        const group = Array.isArray(state[key]) ? state[key] : [];
         if (el.checked) group.push(el.value || el.id);
-        state[el.name || el.id] = group.join(',');
+        state[key] = group;
       } else {
         state[id] = el.value;
       }
@@ -70,8 +70,12 @@
     catch (e) { return false; }
     if (!state || typeof state !== 'object' || state.v !== 1) return false;
 
+    const getStateKey = (el) => {
+      const grouped = el.type === 'checkbox' || el.type === 'radio';
+      return grouped && el.name && el.name in state ? el.name : el.id || el.name;
+    };
     scope.querySelectorAll('input, select, textarea').forEach((el) => {
-      const key = el.id || el.name;
+      const key = getStateKey(el);
       if (!key || !(key in state)) return;
       const val = state[key];
       if (val == null) return;
@@ -79,7 +83,7 @@
       if (type === 'radio') {
         el.checked = (el.value === val) || (el.name === val);
       } else if (type === 'checkbox') {
-        const list = String(val).split(',').map((s) => s.trim()).filter(Boolean);
+        const list = Array.isArray(val) ? val : String(val).split(',').map((s) => s.trim()).filter(Boolean);
         const byValue = el.value && list.indexOf(el.value) !== -1;
         const byId = el.id && list.indexOf(el.id) !== -1;
         el.checked = byValue || byId;
@@ -96,7 +100,7 @@
     });
 
     scope.querySelectorAll('input, select, textarea').forEach((el) => {
-      const key = el.id || el.name;
+      const key = getStateKey(el);
       if (key && state[key] != null) {
         el.dispatchEvent(new Event('input', { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
@@ -109,22 +113,26 @@
   }
 
   function showCopyButton(scope) {
-    const existing = scope.querySelector('[data-tools-share="copy"]');
-    if (existing) return;
+    const existing = scope.querySelector('[data-tool-share-link], [data-tools-share="copy"]');
+    if (existing?.dataset.toolsShareBound === 'true') return;
     const hasInputs = scope.querySelector(
       'input:not([type="file"]):not([type="password"]):not([type="hidden"]):not([type="submit"]):not([type="button"]), select, textarea'
     );
     if (!hasInputs) return;
-    const primaryBtn = scope.querySelector('button[type="submit"], .btn-primary, .btn-secondary');
+    const primaryBtn = existing ? null : scope.querySelector('button[type="submit"], .btn-primary, .btn-secondary');
     const anchor = primaryBtn || scope;
-    if (!anchor || !anchor.parentNode) return;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn-ghost tools-share-copy';
+    if (!existing && (!anchor || !anchor.parentNode)) return;
+    const btn = existing || document.createElement('button');
+    if (!existing) {
+      btn.type = 'button';
+      btn.className = 'btn-ghost tools-share-copy';
+      btn.textContent = 'Copy link to my inputs';
+      btn.setAttribute('aria-label', 'Copy a link that restores these inputs');
+    }
     btn.dataset.toolsShare = 'copy';
-    btn.textContent = 'Copy link to my inputs';
-    btn.setAttribute('aria-label', 'Copy a link that restores these inputs');
-    let copied = false;
+    btn.dataset.toolsShareBound = 'true';
+    const idleLabel = btn.textContent;
+    window.SiteRoutes?.addCleanup?.(() => { delete btn.dataset.toolsShareBound; });
     btn.addEventListener('click', () => {
       const { state, tooBig } = collectState(scope);
       if (tooBig) {
@@ -135,9 +143,8 @@
       const url = buildShareUrl(scope, state);
       const flash = () => {
         btn.textContent = 'Link copied \u2014 ready to paste';
-        copied = true;
         setTimeout(() => {
-          btn.textContent = 'Copy link to my inputs';
+          btn.textContent = idleLabel;
           btn.disabled = false;
         }, 2500);
       };
@@ -147,7 +154,9 @@
         fallbackCopy(url, flash);
       }
     });
-    anchor.insertAdjacentElement ? anchor.insertAdjacentElement('afterend', btn) : anchor.insertAdjacentAfterElement(1, btn);
+    if (!existing) {
+      anchor.insertAdjacentElement ? anchor.insertAdjacentElement('afterend', btn) : anchor.insertAdjacentAfterElement(1, btn);
+    }
   }
 
   function fallbackCopy(url, done) {
@@ -168,19 +177,21 @@
   }
 
   function main() {
-    document.addEventListener('DOMContentLoaded', () => {
-      // Only run on tool pages (have a tools-account-dock)
-      if (!document.querySelector('[data-tools-account="dock"]')) return;
-      const scope = document.querySelector('main') || document;
-      const params = new URLSearchParams(window.location.search);
-      const restored = restore(scope, params);
-      if (restored) showCopyButton(scope);
-      else showCopyButton(scope);
-    });
+    // Only run on tool pages (have a tools-account-dock).
+    if (!document.querySelector('[data-tools-account="dock"]')) return;
+    const scope = document.querySelector('main') || document;
+    const params = new URLSearchParams(window.location.search);
+    restore(scope, params);
+    showCopyButton(scope);
   }
 
-  if (document.readyState === 'loading') {
-    main();
+  if (document.currentScript?.dataset?.siteRouteOwnedScript) {
+    // Soft routes load scripts in sequence; format inputs may not exist yet.
+    document.addEventListener('site:route-mounted', main, { once: true });
+  } else if (document.readyState !== 'complete') {
+    // The route runtime replays document readiness early. The native event
+    // bubbles to window only after all deferred tool scripts have finished.
+    window.addEventListener('DOMContentLoaded', main, { once: true });
   } else {
     main();
   }

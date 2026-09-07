@@ -3,6 +3,7 @@
   "title": "Sheet Music Watermark Removal & Upscale",
   "subtitle": "UNet & VDSR Pipeline",
   "image": "img/projects/sheetMusicUpscale.png",
+  "iconImage": "img/projects/icons/sheetMusicUpscale.png",
   "imageWidth": 1600,
   "imageHeight": 900,
   "previewComparison": {
@@ -60,8 +61,6 @@
       }
     ],
     "selection": true,
-    "credit": "Source: Lord, I Need You, Horn 1–2 in G · PraiseCharts",
-    "creditUrl": "https://www.praisecharts.com/songs/details/23870/lord-i-need-you-sheet-music/brass-pack/french-horn-1-2",
     "provenance": {
       "pipeline": "U-Net watermark removal followed by VDSR upscaling",
       "run": "Watermark-Remover-Agent/output/manual/20260409_195930",
@@ -109,16 +108,17 @@
     },
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_10_pdf.zip",
+      "url": "/documents/Project_10_pdf.zip",
       "label": "PDFs"
     },
     {
       "icon": "img/icons/jupyter-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_10.zip",
+      "url": "/documents/Project_10.zip",
       "label": "Notebook"
     }
   ],
   "problem": "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
+  "task": "Create a workflow that removes watermarks and upscales sheet-music scans while keeping notation readable.",
   "actions": [
     "Trained a UNet model on paired page images for watermark removal.",
     "Upscaled low-resolution scans (e.g., ~612x792) to print-friendly resolution (e.g., ~1700x2200) with Very Deep Super-Resolution (VDSR).",

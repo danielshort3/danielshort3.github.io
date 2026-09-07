@@ -11,8 +11,7 @@ const https = require('https');
 const net = require('net');
 const { getLinkWithLegacyFallback } = require('./short-links-store');
 const {
-  getAdminToken,
-  isAdminRequest,
+  authorizeAdminRequest,
   sendJson,
   normalizeSlug,
   getRequestBaseUrl
@@ -478,15 +477,7 @@ async function checkDestination(url){
 }
 
 async function handler(req, res, options = {}){
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
-    return;
-  }
+  if (!await authorizeAdminRequest(req, res)) return;
 
   if (req.method !== 'GET') {
     res.statusCode = 405;

@@ -217,11 +217,11 @@
   const escapeHtmlWithBreaks = (text) => escapeHtml(text).replace(/\r\n|\r|\n/g, '<br>');
 
   const getCopyStyle = () => ({
-    insBg: insBgEl?.value || '#00FF00',
-    insColor: insTextEl?.value || '#000000',
-    delBg: delBgEl?.value || '#FF0000',
-    delColor: delTextEl?.value || '#000000',
-    delStrike: delStrikeEl?.value || '#000000'
+    insBg: insBgEl?.value || '#DDF2EC',
+    insColor: insTextEl?.value || '#091F3B',
+    delBg: delBgEl?.value || '#FBE4E8',
+    delColor: delTextEl?.value || '#091F3B',
+    delStrike: delStrikeEl?.value || '#091F3B'
   });
 
   const normalizeHexColor = (value, fallback) => {
@@ -232,11 +232,11 @@
 
   const applyPreviewStyle = () => {
     const style = getCopyStyle();
-    document.body.style.setProperty('--textcompare-ins-bg', normalizeHexColor(style.insBg, '#00FF00'));
-    document.body.style.setProperty('--textcompare-ins-text', normalizeHexColor(style.insColor, '#000000'));
-    document.body.style.setProperty('--textcompare-del-bg', normalizeHexColor(style.delBg, '#FF0000'));
-    document.body.style.setProperty('--textcompare-del-text', normalizeHexColor(style.delColor, '#000000'));
-    document.body.style.setProperty('--textcompare-del-strike', normalizeHexColor(style.delStrike, '#000000'));
+    document.body.style.setProperty('--textcompare-ins-bg', normalizeHexColor(style.insBg, '#DDF2EC'));
+    document.body.style.setProperty('--textcompare-ins-text', normalizeHexColor(style.insColor, '#091F3B'));
+    document.body.style.setProperty('--textcompare-del-bg', normalizeHexColor(style.delBg, '#FBE4E8'));
+    document.body.style.setProperty('--textcompare-del-text', normalizeHexColor(style.delColor, '#091F3B'));
+    document.body.style.setProperty('--textcompare-del-strike', normalizeHexColor(style.delStrike, '#091F3B'));
   };
 
   const hexToRgb = (hex) => {
@@ -275,11 +275,11 @@
   };
 
   const buildClipboardFragment = (runs, style) => {
-    const insBg = normalizeHexColor(style.insBg, '#00FF00');
-    const insColor = normalizeHexColor(style.insColor, '#000000');
-    const delBg = normalizeHexColor(style.delBg, '#FF0000');
-    const delColor = normalizeHexColor(style.delColor, '#000000');
-    const delStrike = normalizeHexColor(style.delStrike, '#000000');
+    const insBg = normalizeHexColor(style.insBg, '#DDF2EC');
+    const insColor = normalizeHexColor(style.insColor, '#091F3B');
+    const delBg = normalizeHexColor(style.delBg, '#FBE4E8');
+    const delColor = normalizeHexColor(style.delColor, '#091F3B');
+    const delStrike = normalizeHexColor(style.delStrike, '#091F3B');
 
     const insStyle = `background:${insBg};background-color:${insBg};color:${insColor};mso-highlight:${insBg};`;
     const delWrapStyle = `background:${delBg};background-color:${delBg};mso-highlight:${delBg};`;
@@ -314,10 +314,10 @@
   };
 
   const buildClipboardRtf = (runs, style) => {
-    const insBg = normalizeHexColor(style.insBg, '#00FF00');
-    const insColor = normalizeHexColor(style.insColor, '#000000');
-    const delBg = normalizeHexColor(style.delBg, '#FF0000');
-    const delColor = normalizeHexColor(style.delColor, '#000000');
+    const insBg = normalizeHexColor(style.insBg, '#DDF2EC');
+    const insColor = normalizeHexColor(style.insColor, '#091F3B');
+    const delBg = normalizeHexColor(style.delBg, '#FBE4E8');
+    const delColor = normalizeHexColor(style.delColor, '#091F3B');
 
     const insBgRgb = hexToRgb(insBg);
     const insColorRgb = hexToRgb(insColor);
@@ -865,6 +865,7 @@
   };
 
   const runCompare = ({ reportOutcome = false } = {}) => {
+    if (reportOutcome) window.ToolWorkspace?.selectTab('textcompare-view-comparison', { focus: false });
     setCopyStatus('');
     setWarningStatus('', '');
     markSessionDirty();
@@ -1011,6 +1012,7 @@
   });
 
   exampleBtn?.addEventListener('click', () => {
+    window.ToolWorkspace?.selectTab('textcompare-view-drafts', { focus: false });
     applyTextToField('original', ORIGINAL_EXAMPLE, { sourceKind: 'text' });
     applyTextToField('revised', REVISED_EXAMPLE, { sourceKind: 'text' });
     clearFieldStatuses();
@@ -1020,6 +1022,7 @@
   });
 
   clearBtn?.addEventListener('click', () => {
+    window.ToolWorkspace?.selectTab('textcompare-view-drafts', { focus: false });
     latestCompareRequestId += 1;
     originalEl.value = '';
     revisedEl.value = '';
@@ -1033,6 +1036,7 @@
     setWarningStatus('', '');
     clearFieldStatuses();
     markSessionDirty();
+    updateWorkspaceSummary();
     originalEl.focus();
   });
 
@@ -1047,6 +1051,20 @@
   });
 
   copyBtn?.addEventListener('click', copyFormatted);
+  const updateWorkspaceSummary = () => {
+    const status = document.querySelector('[data-textcompare-ready]');
+    if (!status) return;
+    const ready = Boolean(originalEl.value.trim() && revisedEl.value.trim());
+    status.textContent = ready ? 'Ready to compare' : 'Paste both drafts to compare.';
+    const modeSummary = document.querySelector('[data-textcompare-mode-summary]');
+    if (modeSummary) {
+      const mode = getSelectedMode();
+      modeSummary.textContent = `${mode === 'structured' ? 'Structured' : mode === 'document' ? 'Document' : 'Auto'} mode · ${mode === 'structured' ? 'Compare line-oriented content' : 'Preserve paragraph boundaries'}`;
+    }
+  };
+  [originalEl, revisedEl].forEach((input) => input.addEventListener('input', updateWorkspaceSummary));
+  modeInputs.forEach((input) => input.addEventListener('change', updateWorkspaceSummary));
+  updateWorkspaceSummary();
   const MAX_SAVED_OUTPUT_HTML_CHARS = 120_000;
   const MAX_SAVED_OUTPUT_TEXT_CHARS = 120_000;
 
@@ -1082,6 +1100,8 @@
     const snapshot = detail?.snapshot;
     const output = snapshot?.output;
     if (!output || typeof output !== 'object') return;
+    updateWorkspaceSummary();
+    window.ToolWorkspace?.selectTab('textcompare-view-comparison', { focus: false });
 
     const summary = String(output.summary || '').trim();
     if (summary) summaryEl.textContent = summary;

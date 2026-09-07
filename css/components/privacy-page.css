@@ -95,7 +95,7 @@
 
   .pref-toggle[aria-pressed="true"]{
     background:var(--primary);
-    color:var(--on-primary);
+    color:var(--cta-blue-text, #ffffff);
   }
 
   .pref-toggle[disabled]{
@@ -140,7 +140,7 @@
   .pref-info:hover,
   .pref-info:focus-visible{
     background:var(--primary);
-    color:var(--on-primary);
+    color:var(--cta-blue-text, #ffffff);
   }
 
   .pref-description{
@@ -157,7 +157,7 @@
     border:none;
     border-radius:8px;
     background-color:var(--primary);
-    color:var(--on-primary);
+    color:var(--cta-blue-text, #ffffff);
     cursor:pointer;
     font-weight:600;
     width:100%;
@@ -165,7 +165,7 @@
   }
 
   #save-privacy-preferences:hover{
-    background-color:var(--primary-dark, #2ca9bc);
+    background-color:var(--cta-blue-hover, #0145c8);
   }
 
   @media (min-width: 680px){
@@ -230,6 +230,174 @@
     .pref-toggle{
       min-height:48px;
       padding:10px 12px;
+    }
+  }
+}
+
+@layer overrides {
+  body.policy-page .personal-accordion .policy-list a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  body.personal-accordion-page[data-personal-item="privacy"] .personal-accordion__content > #main.privacy-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--frame-section-gap, 24px);
+    align-items: start;
+    justify-items: stretch;
+    width: min(100%, calc(var(--frame-collection-width, 1200px) + var(--frame-content-gutter, 24px) + var(--frame-content-gutter, 24px)));
+    margin-inline: auto;
+    padding: var(--frame-section-gap, 24px) var(--frame-content-gutter, 24px);
+    box-sizing: border-box;
+  }
+
+  .privacy-layout > * {
+    min-width: 0;
+  }
+
+  .privacy-layout .privacy-intro h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 3.4cqi, 2.4rem);
+    line-height: 1.15;
+    text-align: left;
+  }
+
+  .privacy-layout .privacy-intro .policy-lead {
+    max-width: var(--frame-reading-width, 72ch);
+    margin: 12px 0;
+    text-align: left;
+  }
+
+  .privacy-layout .privacy-preferences-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: #155dfc;
+    font-weight: 650;
+    text-underline-offset: 3px;
+  }
+
+  body.personal-accordion-page[data-personal-item="privacy"] .privacy-layout .policy-card {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .privacy-layout .privacy-article {
+    max-width: var(--frame-reading-width, 72ch);
+  }
+
+  .privacy-layout .privacy-article > .policy-section:first-child {
+    margin-top: 0;
+  }
+
+  .privacy-layout .policy-section {
+    scroll-margin-top: 20px;
+  }
+
+  .privacy-layout .privacy-rail {
+    display: grid;
+    gap: var(--frame-section-gap, 24px);
+  }
+
+  .privacy-layout .privacy-contents {
+    display: none;
+  }
+
+  .privacy-layout .privacy-contents h2,
+  .privacy-layout .privacy-preferences h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.35;
+  }
+
+  .privacy-layout .privacy-contents ul {
+    display: grid;
+    gap: 2px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .privacy-layout .privacy-contents a {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    color: #0a3a88;
+    font-size: .875rem;
+    line-height: 1.4;
+    text-underline-offset: 3px;
+  }
+
+  .privacy-layout .privacy-preferences {
+    scroll-margin-top: 20px;
+  }
+
+  .privacy-layout .privacy-preferences .policy-lead {
+    margin: 10px 0;
+    text-align: left;
+    font-size: .875rem;
+    line-height: 1.55;
+  }
+
+  .privacy-layout .privacy-preferences #privacy-preferences-form {
+    margin-top: 12px;
+  }
+
+  .privacy-layout .privacy-preferences .pref-grid {
+    gap: 8px;
+  }
+
+  .privacy-layout .privacy-preferences .pref-option {
+    padding: 0;
+    gap: 8px;
+  }
+
+  .privacy-layout .privacy-preferences .pref-toggle {
+    min-height: 48px;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .privacy-layout .privacy-preferences #save-privacy-preferences {
+    width: 100%;
+  }
+
+  .privacy-layout #privacy-preferences-status:empty {
+    display: none;
+  }
+
+  @container site-content (min-width: 1000px) {
+    body.personal-accordion-page[data-personal-item="privacy"] .personal-accordion__content > #main.privacy-layout {
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 304px);
+      column-gap: var(--frame-section-gap, 28px);
+      row-gap: min(var(--frame-section-gap, 24px), 24px);
+      grid-template-areas: "intro intro" "article rail";
+    }
+
+    .privacy-layout .privacy-intro { grid-area: intro; }
+    .privacy-layout .privacy-article { grid-area: article; }
+    .privacy-layout .privacy-rail {
+      grid-area: rail;
+      padding-left: var(--frame-section-gap, 24px);
+      border-left: 1px solid #dce3ec;
+    }
+    .privacy-layout .privacy-contents { display: block; }
+    .privacy-layout .privacy-preferences .pref-label { font-size: .875rem; }
+    .privacy-layout .privacy-preferences .pref-state { font-size: .75rem; }
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    .privacy-layout .policy-section,
+    .privacy-layout .privacy-preferences,
+    .privacy-layout #prefs-title {
+      scroll-margin-top: calc(var(--nav-height, 62px) + 20px);
     }
   }
 }

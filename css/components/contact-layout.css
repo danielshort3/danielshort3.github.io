@@ -1,0 +1,195 @@
+/* Personal Contact uses the shared frame as a compact contact workspace. */
+@layer overrides {
+  body.contact-page[data-audience="personal"] .site-frame #main {
+    box-sizing: border-box;
+    display: grid;
+    align-items: start;
+    gap: var(--frame-section-gap, 24px);
+    width: min(100%, calc(var(--frame-collection-width, 1200px) + 2 * var(--frame-content-gutter, 24px)));
+    max-width: none;
+    min-height: 0;
+    margin: 0 auto;
+    padding: var(--frame-section-gap, 24px) var(--frame-content-gutter, 24px);
+    background: #ffffff;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #main > .hero.hero--default,
+  body.contact-page[data-audience="personal"] .site-frame #contact-options {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #main > .hero.hero--default {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame :is(.hero, #contact-options) > .wrapper {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    align-items: flex-start;
+    gap: 16px;
+    text-align: left;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .hero h1 {
+    width: 100%;
+    max-width: 24ch;
+    margin: 0;
+    font-size: clamp(2rem, 3.2cqi, 2.5rem);
+    line-height: 1.12;
+    letter-spacing: -.035em;
+    text-align: left;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .hero .hero-tagline {
+    width: 100%;
+    max-width: 48ch;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .hero .cta-group {
+    display: flex;
+    justify-content: flex-start;
+    width: auto;
+    margin: 4px 0 0;
+    padding: 0;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .hero .cta-group .hero-cta {
+    flex: 0 0 auto;
+    width: max-content;
+    max-width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 12px 18px;
+    font-size: .9rem;
+    line-height: 1.3;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .hero .scroll-indicator {
+    display: none;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #contact-options {
+    padding: 20px;
+    border: 1px solid #dce3ec;
+    border-radius: 10px;
+    background: #f8fafc;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .contact-options-heading {
+    max-width: none;
+    margin: 0 0 16px;
+    text-align: left;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .contact-options-heading .section-title {
+    margin: 0 0 8px;
+    padding: 0;
+    font-size: 1.375rem;
+    line-height: 1.25;
+    text-align: left;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .contact-options-heading .section-title::before {
+    display: none;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame .contact-options-heading .section-subtitle {
+    margin: 0;
+    font-size: .875rem;
+    line-height: 1.5;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-grid.contact-big {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    justify-content: stretch;
+    gap: 3px 12px;
+    min-width: 0;
+    min-height: 88px;
+    margin: 0;
+    padding: 15px 16px;
+    border-radius: 8px;
+    background: #ffffff;
+    text-align: left;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card > :is(svg, .icon) {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 32px;
+    height: 32px;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card > span:not(.icon),
+  body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card > small {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card small {
+    font-size: .8125rem;
+    line-height: 1.4;
+  }
+
+  @container site-content (min-width: 760px) {
+    body.contact-page[data-audience="personal"] .site-frame #main {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+
+  @container site-content (max-width: 480px) {
+    body.contact-page[data-audience="personal"] .site-frame #contact-options {
+      padding: 16px;
+    }
+
+    body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card {
+      gap: 3px 10px;
+      padding-inline: 12px;
+    }
+  }
+
+  @media screen {
+    body.contact-page[data-audience="personal"] .site-frame[data-frame-fit="viewport"][data-frame-compact="false"] .site-frame__body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    body.contact-page[data-audience="personal"] .site-frame[data-frame-fit="viewport"][data-frame-compact="false"] #main {
+      flex: 1 0 auto;
+      align-content: center;
+    }
+  }
+}

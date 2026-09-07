@@ -1,15 +1,32 @@
 'use strict';
 
 (function initActivityEvents() {
-  const body = document.body;
-  const pathParts = window.location.pathname.split('/').filter(Boolean);
-  const directorySearchTimers = new WeakMap();
-  const directorySearchValues = new WeakMap();
-  const directoryDepthTracked = new WeakSet();
+  const directorySearchTimers = new Map();
+  const directoryFilterTimers = new Set();
+  const directoryDepthListeners = new Map();
+  let directorySearchValues = new WeakMap();
+  let directoryDepthTracked = new WeakSet();
   let pendingToolRun = null;
   let gameSessionStarted = false;
   let caseStudyTimer = null;
+  let caseStudyObserver = null;
   let caseStudyTracked = false;
+  let routeKey = '';
+  let routeMain = null;
+  let routeVersion = 0;
+
+  function currentPathParts() {
+    return window.location.pathname.split('/').filter(Boolean);
+  }
+
+  function analyticsAllowed() {
+    try {
+      const consent = window.consentAPI?.get?.();
+      return Boolean((consent?.categories || consent)?.analytics);
+    } catch (_) {
+      return false;
+    }
+  }
 
   function safeId(value, fallback = 'unknown') {
     const normalized = String(value || '')
@@ -151,7 +168,8 @@
     document.querySelectorAll('[data-portfolio-workbench]').forEach((root) => {
       const results = root.querySelector('[data-portfolio-results]');
       if (!results) return;
-      results.addEventListener('scroll', () => {
+      const onScroll = () => {
+        if (results.isConnected === false) return;
         if (directoryDepthTracked.has(results)) return;
         const scrollable = Math.max(0, Number(results.scrollHeight || 0) - Number(results.clientHeight || 0));
         if (scrollable <= 0) return;
@@ -164,7 +182,9 @@
           result_bucket: resultBucket(visibleDirectoryResultCount(root))
         });
         if (sent) directoryDepthTracked.add(results);
-      }, { passive: true });
+      };
+      results.addEventListener('scroll', onScroll, { passive: true });
+      directoryDepthListeners.set(results, onScroll);
     });
   }
 
@@ -226,7 +246,10 @@
     }
 
     if (!group || !value || !state) return false;
-    window.setTimeout(() => {
+    const version = routeVersion;
+    const timer = window.setTimeout(() => {
+      directoryFilterTimers.delete(timer);
+      if (version !== routeVersion || root.isConnected === false) return;
       emit('directory_filter_apply', {
         directory_type: directoryType(root),
         filter_group: safeId(group),
@@ -235,6 +258,7 @@
         result_bucket: resultBucket(visibleDirectoryResultCount(root))
       });
     }, 0);
+    directoryFilterTimers.add(timer);
     return true;
   }
 
@@ -244,9 +268,13 @@
     const query = String(input.value || '').trim();
     const priorTimer = directorySearchTimers.get(input);
     if (priorTimer) window.clearTimeout(priorTimer);
+    directorySearchTimers.delete(input);
     if (!query) return;
 
+    const version = routeVersion;
     const timer = window.setTimeout(() => {
+      directorySearchTimers.delete(input);
+      if (version !== routeVersion || root.isConnected === false) return;
       const currentQuery = String(input.value || '').trim();
       if (!currentQuery || currentQuery !== query || directorySearchValues.get(input) === currentQuery) return;
       const visibleResults = visibleDirectoryResultCount(root);
@@ -290,6 +318,7 @@
     let sourceSurface = explicit?.dataset?.sourceSurface || '';
 
     if (!explicit) {
+      const pathParts = currentPathParts();
       if (pathParts[0] !== 'portfolio' || pathParts.length < 2) return false;
       contentId = pathParts[1].replace(/\.html$/i, '');
       contentType = 'project_resource';
@@ -324,6 +353,8 @@
   }
 
   function toolContext() {
+    const body = document.body;
+    const pathParts = currentPathParts();
     const main = document.querySelector('main');
     const bodyPage = safeId(body?.dataset?.page || '');
     const pathIsTool = pathParts[0] === 'tools' && pathParts.length > 1;
@@ -433,17 +464,23 @@
   }
 
   function gameId() {
+    const pathParts = currentPathParts();
     if (pathParts[0] !== 'games' || pathParts.length < 2) return '';
     return safeId(pathParts[1].replace(/\.html$/i, ''));
   }
 
   function setupCaseStudyEngagement() {
+    const pathParts = currentPathParts();
     if (pathParts[0] !== 'portfolio' || pathParts.length < 2 || typeof IntersectionObserver !== 'function') return;
+    if (caseStudyTracked || !analyticsAllowed()) return;
     const proofSection = document.querySelector('.project-star');
     if (!proofSection) return;
 
+    const version = routeVersion;
+    const projectId = safeId(pathParts[1].replace(/\.html$/i, ''));
     let sufficientlyVisible = false;
     const observer = new IntersectionObserver((entries) => {
+      if (caseStudyObserver !== observer || version !== routeVersion || proofSection.isConnected === false) return;
       sufficientlyVisible = entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.5);
       if (!sufficientlyVisible || caseStudyTracked) {
         if (caseStudyTimer !== null) window.clearTimeout(caseStudyTimer);
@@ -454,8 +491,8 @@
       if (caseStudyTimer !== null) return;
       caseStudyTimer = window.setTimeout(() => {
         caseStudyTimer = null;
-        if (!sufficientlyVisible || caseStudyTracked || document.visibilityState === 'hidden') return;
-        const projectId = safeId(pathParts[1].replace(/\.html$/i, ''));
+        if (caseStudyObserver !== observer || version !== routeVersion || proofSection.isConnected === false ||
+          !sufficientlyVisible || caseStudyTracked || !analyticsAllowed() || document.visibilityState === 'hidden') return;
         caseStudyTracked = emit('case_study_engaged', {
           project_id: projectId
         });
@@ -466,7 +503,38 @@
       }, 5000);
     }, { threshold: [0.5] });
 
+    caseStudyObserver = observer;
     observer.observe(proofSection);
+  }
+
+  function refreshRouteActivity() {
+    const params = new URLSearchParams(window.location.search);
+    const nextKey = `${window.location.pathname}|${params.get('audience') || ''}|${params.get('mode') || ''}`;
+    const nextMain = document.querySelector('main');
+    const routeChanged = nextKey !== routeKey || nextMain !== routeMain;
+    routeVersion += 1;
+    directorySearchTimers.forEach((timer) => window.clearTimeout(timer));
+    directorySearchTimers.clear();
+    directoryFilterTimers.forEach((timer) => window.clearTimeout(timer));
+    directoryFilterTimers.clear();
+    directoryDepthListeners.forEach((listener, results) => results.removeEventListener('scroll', listener));
+    directoryDepthListeners.clear();
+    if (caseStudyTimer !== null) window.clearTimeout(caseStudyTimer);
+    caseStudyTimer = null;
+    if (caseStudyObserver) caseStudyObserver.disconnect();
+    caseStudyObserver = null;
+
+    if (routeChanged) {
+      routeKey = nextKey;
+      routeMain = nextMain;
+      directorySearchValues = new WeakMap();
+      directoryDepthTracked = new WeakSet();
+      gameSessionStarted = false;
+      caseStudyTracked = false;
+    }
+    if (routeChanged || !analyticsAllowed()) pendingToolRun = null;
+    setupDirectoryDepthTracking();
+    setupCaseStudyEngagement();
   }
 
   function startGameSession(event) {
@@ -579,6 +647,7 @@
 
   document.addEventListener('pointerdown', startGameSession, true);
   document.addEventListener('keydown', startGameSession, true);
-  setupDirectoryDepthTracking();
-  setupCaseStudyEngagement();
+  window.addEventListener('site:route-complete', refreshRouteActivity);
+  window.addEventListener('consent-changed', refreshRouteActivity);
+  refreshRouteActivity();
 })();

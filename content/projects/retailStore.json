@@ -3,6 +3,7 @@
   "title": "Store-Level Loss & Sales ETL",
   "subtitle": "SQL ETL + Anomaly Detection",
   "image": "img/projects/retailStore.png",
+  "iconImage": "img/projects/icons/retailStore.png",
   "imageWidth": 1410,
   "imageHeight": 1410,
   "videoWebm": "img/projects/retailStore.webm",
@@ -10,7 +11,7 @@
   "tools": [
     "SQL",
     "Python",
-    "AWS"
+    "JavaScript"
   ],
   "concepts": [
     "Automation",
@@ -28,12 +29,12 @@
     },
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_12.pdf",
+      "url": "documents/Project_12.pdf",
       "label": "PDF"
     },
     {
       "icon": "img/icons/jupyter-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_12.ipynb",
+      "url": "documents/Project_12.ipynb",
       "label": "Notebook"
     },
     {
@@ -60,6 +61,7 @@
   ],
   "notes": "Store, state, and employee identifiers are anonymized; risk rankings normalize incident signals with sales context so high-volume stores are not treated as high-risk by volume alone.",
   "problem": "Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.",
+  "task": "Unify incident, sales, and HR data into consistent reporting that highlights unusual patterns and supports investigation planning.",
   "actions": [
     "Modeled incident, sales, and HR data in SQL so stores, regions, time periods, and risk measures use consistent definitions.",
     "Built Python reporting views that separate frequency, severity, and sales context for faster investigation planning.",
@@ -76,5 +78,11 @@
     "surprise": "Raw incident volume was misleading; sales context and normalization changed which stores looked genuinely unusual.",
     "next": "I’d calibrate alert thresholds against reviewed cases and add drift monitoring so the ranking stays useful over time."
   },
-  "order": 11
+  "order": 11,
+  "mobilePreview": {
+    "image": "img/projects/retailStore-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Store loss and sales dashboard showing summary metrics and its monthly sales trend."
+  }
 }

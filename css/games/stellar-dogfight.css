@@ -3649,3 +3649,70 @@
         min-inline-size: 44px;
       }
     }
+
+/* Keep the game's dark surfaces isolated from the shared light shell. */
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-shell :is(h1, h2, h3, h4) {
+  color: var(--text, #f5f9ff);
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-command-menu-open .site-frame__panel {
+  z-index: 6;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-command-menu-open .site-frame__viewport {
+  z-index: 8;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .command-drawer {
+  top: max(var(--page-pad), var(--mobile-site-masthead-height, var(--nav-height, 62px)));
+}
+
+@container site-content (max-width: 760px) {
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .mission-shell {
+    grid-template-rows: max-content minmax(0, 1fr);
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 10px;
+    row-gap: 4px;
+    padding: 10px;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-title-compact {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-title-compact .eyebrow {
+    display: none;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-title-compact h1 {
+    font-size: 1.05rem;
+    white-space: normal;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-topbar-summary {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-topbar-actions {
+    display: flex;
+    grid-column: 2;
+    grid-row: 1 / 3;
+    width: auto;
+  }
+
+  /* The frame provides library navigation and the hangar provides launch. */
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-topbar-actions > :is(a, [data-action="launch"]) {
+    display: none;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-topbar-actions .btn-icon-only {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

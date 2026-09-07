@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
-  <title>Short Links (Admin) | Daniel Short</title>
+  <title>Links &amp; QR codes | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/tools/short-links">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Private dashboard for managing short redirect links.">
-  <meta property="og:title" content="Short Links (Admin) | Daniel Short">
+  <meta name="description" content="Create short links, customize QR codes, and see how your links are used in one private workspace.">
+  <meta property="og:title" content="Links &amp; QR codes | Daniel Short">
   <meta property="og:site_name" content="Daniel Short">
-  <meta property="og:description" content="Private dashboard for managing short redirect links.">
+  <meta property="og:description" content="Create short links, customize QR codes, and see how your links are used in one private workspace.">
   <meta property="og:url" content="https://www.danielshort.me/tools/short-links">
   <meta property="og:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta property="og:image:width" content="1672">
@@ -20,18 +20,8 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
-  <meta name="theme-color" content="#0D1117">
-  <script id="ds-sw-register">
-  (function () {
-    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-    if (new URLSearchParams(window.location.search).has("no_sw")) return;
-    var host = window.location.hostname || "";
-    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function () {});
-    });
-  })();
-  </script>
+  <meta name="theme-color" content="#087f8c">
+  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -41,8 +31,8 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.40f7dbbd.css">
-  <link rel="stylesheet" href="dist/styles-tools.0ef63d8d.css">
+  <link rel="stylesheet" href="dist/styles.81f47dfb.css">
+  <link rel="stylesheet" href="dist/styles-tools.e4cf1865.css">
   <link rel="stylesheet" href="css/components/short-links.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -50,18 +40,18 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.2090cb2c.js"></script>
+  <script defer src="dist/site-shell.8928284a.js"></script>
   <script src="js/common/no-js.js"></script>
-  <meta name="twitter:title" content="Short Links (Admin) | Daniel Short">
-  <meta name="twitter:description" content="Private dashboard for managing short redirect links.">
+  <meta name="twitter:title" content="Links &amp; QR codes | Daniel Short">
+  <meta name="twitter:description" content="Create short links, customize QR codes, and see how your links are used in one private workspace.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta property="og:image:type" content="image/png">
   <meta name="author" content="Daniel Short">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-<link rel="stylesheet" href="dist/styles-personal-accordion.b4b0114f.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:short-links","path":"/tools/short-links","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.40f7dbbd.css","/dist/styles-tools.0ef63d8d.css","/css/components/short-links.css","/dist/styles-personal-accordion.b4b0114f.css"],"scripts":["/dist/site-shell.2090cb2c.js","/js/common/no-js.js","/js/tools/tool-share-link.js","/js/admin/short-links.js","/dist/site-tools-account.bbf760b9.js","/dist/site-consent.5fbd7df8.js"],"module":"tools:short-links"}</script>
+<link rel="stylesheet" href="dist/styles-personal-accordion.16c6538c.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:short-links","path":"/tools/short-links","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.81f47dfb.css","/dist/styles-tools.e4cf1865.css","/css/components/short-links.css","/dist/styles-personal-accordion.16c6538c.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.8928284a.js","/js/common/no-js.js","/js/tools/tool-share-link.js","/js/tools/short-links-client.js","/js/tools/qr-core.js","/js/admin/short-links.js","/dist/site-tools-account.384a9982.js","/dist/site-consent.ab1759e7.js"],"module":"tools:short-links"}</script>
 </head>
 <body data-page="short-links" class="short-links-page tools-tool-page site-page personal-accordion-page" data-tools-layout="admin" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="short-links" data-personal-fit="viewport" data-site-route-id="tools:short-links" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:short-links">
   <a href="/tools/short-links#main" class="skip-link">Skip to main content</a>
@@ -144,12 +134,12 @@
 <header class="personal-tool-header tools-hero personal-tool-header--with-actions shortlinks-command-header" data-personal-tool-header="short-links">
   <div class="wrapper personal-tool-header__inner">
     <div class="personal-tool-header__copy">
-      <h1 id="personal-tool-title-short-links">Short Links (Admin)</h1>
-      <p class="personal-tool-header__summary">Create and manage private /go/&lt;slug&gt; redirect links with click counts (requires admin token).</p>
+      <h1 id="personal-tool-title-short-links">Links &amp; QR codes</h1>
+      <p class="personal-tool-header__summary">Shorten a link. Make a QR code. Keep everything together.</p>
     </div>
     <div class="personal-tool-header__actions"><div class="shortlinks-command-actions" aria-label="Short links controls">
         <div class="shortlinks-command-controls">
-          <button type="button" class="btn-primary" data-shortlinks="new-link-from-list">New short link</button>
+          <button type="button" class="btn-primary" data-shortlinks="new-link-from-list">Create link</button>
           <details class="shortlinks-account-menu">
             <summary class="btn-ghost">Account</summary>
             <div class="shortlinks-command-popover shortlinks-account-popover">
@@ -176,20 +166,20 @@
                       </svg>
                     </span>
                     <span class="shortlinks-command-status-copy">
-                      <strong data-shortlinks="admin-access-summary">Admin locked</strong>
-                      <small data-shortlinks="access-meta">Token required</small>
+                      <strong data-shortlinks="admin-access-summary">Workspace access</strong>
+                      <small data-shortlinks="access-meta">Sign in to manage links</small>
                     </span>
                   </summary>
                   <div class="shortlinks-command-popover shortlinks-access-popover">
                     <div class="shortlinks-popover-head">
                       <div>
-                        <h2 id="shortlinks-access-title">Admin access</h2>
-                        <p>Use the short-links admin token for redirects and exports.</p>
+                        <h2 id="shortlinks-access-title">Advanced workspace access</h2>
+                        <p>Use an access key if you manage this workspace without a signed-in account.</p>
                       </div>
                     </div>
                     <form class="contact-form shortlinks-form" data-shortlinks="auth">
                       <div class="form-field">
-                        <label for="shortlinks-token">Admin token</label>
+                        <label for="shortlinks-token">Workspace access key</label>
                         <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
                         <label class="shortlinks-token-remember">
                           <input type="checkbox" data-shortlinks="remember-token">
@@ -198,10 +188,10 @@
                         <p class="contact-form-note">Session-only by default. Remember only on a trusted device.</p>
                       </div>
                       <div class="form-actions shortlinks-action-row shortlinks-action-row-compact">
-                        <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
+                        <button type="submit" class="btn-primary"><span class="btn-label">Connect</span></button>
                         <button type="button" class="btn-secondary" data-shortlinks="refresh">Refresh</button>
-                        <button type="button" class="btn-secondary" data-shortlinks="health">Check backend</button>
-                        <button type="button" class="btn-ghost" data-shortlinks="forget-token">Forget token</button>
+                        <button type="button" class="btn-secondary" data-shortlinks="health">Check connection</button>
+                        <button type="button" class="btn-ghost" data-shortlinks="forget-token">Disconnect key</button>
                       </div>
                       <div class="contact-form-status" data-shortlinks="status" role="status" aria-live="polite"></div>
                       <div class="contact-form-status" data-shortlinks="health-status" role="status" aria-live="polite"></div>
@@ -227,19 +217,28 @@
         <div data-shortlinks="summary" hidden aria-hidden="true"></div>
         <section class="shortlinks-workspace" aria-label="Short links dashboard">
           <section class="shortlinks-main-workflow" aria-label="Short links workflow">
-            <nav class="shortlinks-mode-tabs" aria-label="Short links workflow" role="tablist">
-              <button id="shortlinks-tab-links" type="button" class="shortlinks-mode-tab is-active" role="tab" aria-selected="true" aria-controls="shortlinks-mode-links" tabindex="0" data-shortlinks="mode-tab" data-shortlinks-mode="links">All links</button>
-              <button id="shortlinks-tab-templates" type="button" class="shortlinks-mode-tab" role="tab" aria-selected="false" aria-controls="shortlinks-mode-templates" tabindex="-1" data-shortlinks="mode-tab" data-shortlinks-mode="templates">Templates</button>
-              <button id="shortlinks-tab-projects" type="button" class="shortlinks-mode-tab" role="tab" aria-selected="false" aria-controls="shortlinks-mode-projects" tabindex="-1" data-shortlinks="mode-tab" data-shortlinks-mode="projects">Project sync</button>
-            </nav>
+            <div class="shortlinks-workspace-navigation">
+              <nav class="shortlinks-mode-tabs" aria-label="Links and QR codes" role="tablist">
+                <button id="shortlinks-tab-links" type="button" class="shortlinks-mode-tab is-active" role="tab" aria-selected="true" aria-controls="shortlinks-mode-links" tabindex="0" data-shortlinks="mode-tab" data-shortlinks-mode="links">Links</button>
+                <button id="shortlinks-tab-qr" type="button" class="shortlinks-mode-tab" role="tab" aria-selected="false" aria-controls="shortlinks-mode-qr" tabindex="-1" data-shortlinks="mode-tab" data-shortlinks-mode="qr">QR codes</button>
+                <button id="shortlinks-tab-analytics" type="button" class="shortlinks-mode-tab" role="tab" aria-selected="false" aria-controls="shortlinks-mode-analytics" tabindex="-1" data-shortlinks="mode-tab" data-shortlinks-mode="analytics">Analytics</button>
+              </nav>
+              <details class="shortlinks-tools-menu">
+                <summary>Tools</summary>
+                <div class="shortlinks-tools-menu-panel" role="tablist" aria-label="Additional link tools">
+                  <button id="shortlinks-tab-templates" type="button" class="shortlinks-mode-tab" role="tab" aria-selected="false" aria-controls="shortlinks-mode-templates" tabindex="0" data-shortlinks="mode-tab" data-shortlinks-mode="templates">Templates</button>
+                  <button id="shortlinks-tab-projects" type="button" class="shortlinks-mode-tab" role="tab" aria-selected="false" aria-controls="shortlinks-mode-projects" tabindex="-1" data-shortlinks="mode-tab" data-shortlinks-mode="projects">Project sync &amp; exports</button>
+                </div>
+              </details>
+            </div>
 
             <section class="shortlinks-mode-panel shortlinks-editor-overlay" id="shortlinks-mode-single" data-shortlinks-mode-panel="single" role="dialog" aria-modal="true" aria-labelledby="shortlinks-create-title" hidden>
               <section class="shortlinks-shell-card shortlinks-create-card" aria-labelledby="shortlinks-create-title">
                 <div class="shortlinks-card-head shortlinks-card-head-create">
                   <div class="shortlinks-card-copy">
-                    <p class="shortlinks-kicker">Single link</p>
+                    <p class="shortlinks-kicker">Ready to share</p>
                     <h2 id="shortlinks-create-title" class="section-title">Create a short link</h2>
-                    <p class="shortlinks-panel-lead">Paste a destination, choose a clean code, and publish a redirect that is ready to share.</p>
+                    <p class="shortlinks-panel-lead">One destination for your short link and QR code.</p>
                   </div>
                   <div class="shortlinks-editor-head-actions">
                     <p class="shortlinks-editor-meta" data-shortlinks="editor-meta" aria-live="polite">New short link</p>
@@ -247,53 +246,58 @@
                   </div>
                 </div>
                 <form class="contact-form shortlinks-form" data-shortlinks="editor">
-                  <div class="shortlinks-form-grid">
+                  <div class="shortlinks-create-fields">
                     <div class="form-field shortlinks-field-main">
-                      <label for="shortlinks-destination">Destination</label>
-                      <div class="shortlinks-destination-row">
-                        <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
-                        <button type="button" class="btn-ghost" data-shortlinks="destination-picker-open">Browse site pages</button>
-                      </div>
-                      <p class="contact-form-note">Use a full URL or a site path that starts with <code>/</code>.</p>
+                      <label for="shortlinks-destination">Destination URL</label>
+                      <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://example.com/your-page" data-shortlinks="destination" required aria-describedby="shortlinks-destination-help">
+                      <p id="shortlinks-destination-help" class="contact-form-note">Where should this link take people?</p>
                     </div>
-                    <div class="shortlinks-form-stack">
-                      <div class="form-field" data-shortlinks="audience-field" hidden>
-                        <label for="shortlinks-audience">Audience target</label>
-                        <select id="shortlinks-audience" data-shortlinks="audience">
-                          <option value="personal">Personal site</option>
-                          <option value="analytics" selected>Data Analytics</option>
-                          <option value="data-science">Data Science</option>
-                          <option value="tourism">Tourism</option>
-                        </select>
-                        <p class="contact-form-note">Shown for internal home, resume, and portfolio links that change by site version.</p>
+                    <div class="form-field">
+                      <label for="shortlinks-label">Title <span class="shortlinks-optional">(optional)</span></label>
+                      <input id="shortlinks-label" type="text" autocomplete="off" maxlength="160" placeholder="Give this link a name" data-shortlinks="label">
+                    </div>
+                    <div class="form-field" data-shortlinks="slug-field">
+                      <label for="shortlinks-slug">Custom ending <span class="shortlinks-optional">(optional)</span></label>
+                      <div class="shortlinks-url-input">
+                        <span aria-hidden="true">dshort.me/</span>
+                        <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="auto-generated" data-shortlinks="slug" aria-describedby="shortlinks-slug-help">
                       </div>
+                      <p id="shortlinks-slug-help" class="contact-form-note">Leave blank and we will create a short ending for you.</p>
+                    </div>
+                    <div class="shortlinks-legacy-control" hidden>
+                      <label for="shortlinks-slug-mode">Short code type</label>
+                      <select id="shortlinks-slug-mode" data-shortlinks="slug-mode">
+                        <option value="custom">Custom short code</option>
+                        <option value="random" selected>Random short code</option>
+                      </select>
+                    </div>
+                    <div class="shortlinks-legacy-control" data-shortlinks="random-length-field" hidden>
+                      <label for="shortlinks-random-length">Random length</label>
+                      <input id="shortlinks-random-length" type="number" min="4" max="12" step="1" value="6" inputmode="numeric" autocomplete="off" data-shortlinks="random-length">
+                    </div>
+                  </div>
+                  <details class="shortlinks-create-options" data-shortlinks="create-options">
+                    <summary>More options <span>Tags, expiration, and campaign tracking</span></summary>
+                    <div class="shortlinks-options-fields">
                       <div class="form-field">
-                        <label for="shortlinks-slug-mode">Short code type</label>
-                        <select id="shortlinks-slug-mode" data-shortlinks="slug-mode">
-                          <option value="custom" selected>Custom short code</option>
-                          <option value="random">Random short code</option>
-                        </select>
-                        <p class="contact-form-note">Use a named slug or let the server generate a compact code for <code>dshort.me</code>.</p>
+                        <label for="shortlinks-tags">Tags</label>
+                        <input id="shortlinks-tags" type="text" autocomplete="off" maxlength="500" placeholder="resume, social, events" data-shortlinks="tags" aria-describedby="shortlinks-tags-help">
+                        <p id="shortlinks-tags-help" class="contact-form-note">Separate tags with commas to keep related links together.</p>
                       </div>
-                      <div class="form-field" data-shortlinks="slug-field">
-                        <label for="shortlinks-slug">Custom short code</label>
-                        <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
-                        <p class="contact-form-note">Allowed: <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>_</code>, and <code>/</code>.</p>
+                      <div class="shortlinks-inline-grid">
+                        <div class="form-field">
+                          <label for="shortlinks-expiration-mode">Expiration</label>
+                          <select id="shortlinks-expiration-mode" data-shortlinks="expiration-mode">
+                            <option value="permanent" selected>Never expires</option>
+                            <option value="temporary">Set expiration</option>
+                          </select>
+                        </div>
+                        <div class="form-field" data-shortlinks="expiration-date-field" hidden>
+                          <label for="shortlinks-expires-at">Expires on</label>
+                          <input id="shortlinks-expires-at" type="datetime-local" data-shortlinks="expires-at">
+                        </div>
                       </div>
-                      <div class="form-field" data-shortlinks="random-length-field" hidden>
-                        <label for="shortlinks-random-length">Random length</label>
-                        <input id="shortlinks-random-length" type="number" min="4" max="12" step="1" value="6" inputmode="numeric" autocomplete="off" data-shortlinks="random-length">
-                        <p class="contact-form-note">Generates mixed uppercase and lowercase letters plus numbers such as <code>dshort.me/Ab12Cd</code>.</p>
-                      </div>
-                      <div class="form-field">
-                        <label for="shortlinks-expiration-mode">Expiration</label>
-                        <select id="shortlinks-expiration-mode" data-shortlinks="expiration-mode">
-                          <option value="permanent" selected>Permanent</option>
-                          <option value="temporary">Temporary</option>
-                        </select>
-                        <p class="contact-form-note">Use permanent for resume links and temporary for time-boxed shares.</p>
-                      </div>
-                      <div class="shortlinks-inline-grid" data-shortlinks="expiration-duration-fields" hidden>
+                      <div class="shortlinks-inline-grid shortlinks-legacy-control" data-shortlinks="expiration-duration-fields" hidden>
                         <div class="form-field">
                           <label for="shortlinks-expiration-duration-value">Active for</label>
                           <input id="shortlinks-expiration-duration-value" type="number" min="1" max="365" step="1" value="7" inputmode="numeric" autocomplete="off" data-shortlinks="expiration-duration-value">
@@ -307,15 +311,96 @@
                           </select>
                         </div>
                       </div>
+                      <fieldset class="shortlinks-campaign-fields">
+                        <legend>Campaign tracking <span class="shortlinks-optional">(optional)</span></legend>
+                        <p class="contact-form-note">Add campaign details to the destination URL.</p>
+                        <div class="shortlinks-utm-grid">
+                          <div class="form-field">
+                            <label for="shortlinks-utm-source">Source</label>
+                            <input id="shortlinks-utm-source" type="text" autocomplete="off" placeholder="newsletter" data-shortlinks="utm-source">
+                          </div>
+                          <div class="form-field">
+                            <label for="shortlinks-utm-medium">Medium</label>
+                            <input id="shortlinks-utm-medium" type="text" autocomplete="off" placeholder="email" data-shortlinks="utm-medium">
+                          </div>
+                          <div class="form-field">
+                            <label for="shortlinks-utm-campaign">Campaign</label>
+                            <input id="shortlinks-utm-campaign" type="text" autocomplete="off" placeholder="spring-launch" data-shortlinks="utm-campaign">
+                          </div>
+                        </div>
+                      </fieldset>
+                      <div class="shortlinks-site-options">
+                        <button type="button" class="btn-secondary" data-shortlinks="destination-picker-open">Choose a website page</button>
+                        <p class="contact-form-note">You can also enter a site path beginning with /.</p>
+                      </div>
+                      <div class="form-field" data-shortlinks="audience-field" hidden>
+                        <label for="shortlinks-audience">Website version</label>
+                        <select id="shortlinks-audience" data-shortlinks="audience">
+                          <option value="personal">Personal site</option>
+                          <option value="analytics" selected>Data Analytics</option>
+                          <option value="data-science">Data Science</option>
+                          <option value="tourism">Tourism</option>
+                        </select>
+                        <p class="contact-form-note">For home, resume, and portfolio destinations with more than one version.</p>
+                      </div>
                     </div>
-                  </div>
+                  </details>
                   <div class="form-actions shortlinks-action-row shortlinks-editor-actions">
-                    <button type="submit" class="btn-primary" data-shortlinks="create-link"><span class="btn-label">Create short link</span></button>
+                    <button type="submit" class="btn-primary" data-shortlinks="create-link"><span class="btn-label">Create link</span></button>
                     <button type="button" class="btn-ghost" data-shortlinks="clear">Reset</button>
                   </div>
                   <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
                 </form>
+                <section class="shortlinks-create-result" data-shortlinks="create-result" aria-label="Your link is ready" hidden>
+                  <div class="shortlinks-result-copy"><p data-shortlinks="result-status" role="status" aria-live="polite"></p>
+                    <span class="shortlinks-result-badge">Ready to share</span>
+                    <h3>Your link is ready</h3>
+                    <p>Share your short link or download its QR code.</p>
+                    <a class="shortlinks-result-url" data-shortlinks="result-url" target="_blank" rel="noopener noreferrer"></a>
+                    <p class="shortlinks-result-destination" data-shortlinks="result-destination"></p>
+                    <div class="shortlinks-action-row">
+                      <button type="button" class="btn-primary" data-shortlinks="result-copy">Copy link</button>
+                      <button type="button" class="btn-secondary" data-shortlinks="result-new">Create another</button>
+                    </div>
+                  </div>
+                  <div class="shortlinks-result-qr">
+                    <canvas width="256" height="256" data-shortlinks="result-qr" role="img" aria-label="QR code for your short link"></canvas>
+                    <button type="button" class="btn-secondary" data-shortlinks="result-download">Download QR</button>
+                    <a href="/tools/qr-code-generator" class="shortlinks-text-link" data-shortlinks="result-customize">Customize QR code</a>
+                  </div>
+                </section>
               </section>
+            </section>
+
+            <section class="shortlinks-mode-panel shortlinks-library-panel" id="shortlinks-mode-qr" data-shortlinks-mode-panel="qr" role="tabpanel" aria-labelledby="shortlinks-tab-qr" hidden>
+              <div class="shortlinks-library-head">
+                <div>
+                  <h2>Your QR codes</h2>
+                  <p>Every link has a QR code. Customize it once and keep the design with your link.</p>
+                </div>
+                <a href="/tools/qr-code-generator" class="btn-secondary">Open QR creator</a>
+              </div>
+              <div class="shortlinks-qr-library" data-shortlinks="qr-library" aria-live="polite"></div>
+            </section>
+
+            <section class="shortlinks-mode-panel shortlinks-library-panel" id="shortlinks-mode-analytics" data-shortlinks-mode-panel="analytics" role="tabpanel" aria-labelledby="shortlinks-tab-analytics" hidden>
+              <div class="shortlinks-library-head">
+                <div>
+                  <h2>Link activity</h2>
+                  <p>See how people reach your destinations through links and QR codes.</p>
+                </div>
+                <label class="shortlinks-view shortlinks-analytics-range">
+                  <span class="shortlinks-view-label">Date range</span>
+                  <select data-shortlinks="analytics-range">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="all">All time</option>
+                  </select>
+                </label>
+              </div>
+              <div class="contact-form-status" data-shortlinks="analytics-status" role="status" aria-live="polite"></div>
+              <div class="shortlinks-analytics-content" data-shortlinks="analytics-content"></div>
             </section>
 
           <section class="shortlinks-mode-panel" id="shortlinks-mode-templates" data-shortlinks-mode-panel="templates" role="tabpanel" aria-labelledby="shortlinks-tab-templates" hidden>
@@ -535,7 +620,7 @@
                 <section class="shortlinks-master-pane" aria-labelledby="shortlinks-links-title">
                   <div class="shortlinks-master-head">
                     <div>
-                      <h2 id="shortlinks-links-title">All redirects</h2>
+                      <h2 id="shortlinks-links-title">Your links</h2>
                       <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
                     </div>
                   </div>
@@ -543,15 +628,15 @@
                   <div class="shortlinks-toolbar shortlinks-toolbar-main">
                     <label class="shortlinks-filter">
                       <span class="shortlinks-filter-label">Search links</span>
-                      <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs or destinations" data-shortlinks="filter">
+                      <input type="search" autocomplete="off" spellcheck="false" placeholder="Search titles, links, or tags" data-shortlinks="filter">
                     </label>
                     <label class="shortlinks-view">
                       <span class="shortlinks-view-label">Status</span>
                       <select data-shortlinks="status-filter">
                         <option value="all" selected>All statuses</option>
                         <option value="active">Active</option>
-                        <option value="temporary">Temporary</option>
-                        <option value="permanent">Permanent</option>
+                        <option value="temporary">Has expiration</option>
+                        <option value="permanent">Never expires</option>
                         <option value="healthy">Healthy</option>
                         <option value="warning">Warnings</option>
                         <option value="expiring-soon">Expiring soon</option>
@@ -562,7 +647,8 @@
                     <label class="shortlinks-view">
                       <span class="shortlinks-view-label">Sort</span>
                       <select data-shortlinks="sort">
-                        <option value="slug" selected>Slug A-Z</option>
+                        <option value="created-desc" selected>Newest first</option>
+                        <option value="slug">Short link A-Z</option>
                         <option value="-updated">Recently updated</option>
                         <option value="-clicks">Most clicks</option>
                         <option value="expires">Expiring soon</option>
@@ -613,10 +699,10 @@
                   <div class="shortlinks-list shortlinks-results" data-shortlinks="list" aria-live="polite"></div>
                 </section>
 
-                <aside id="shortlinks-detail-panel" class="shortlinks-detail-panel" data-shortlinks="detail-panel" aria-label="Selected link details">
+                <aside id="shortlinks-detail-panel" class="shortlinks-detail-panel" data-shortlinks="detail-panel" aria-label="Selected link details" hidden>
                   <div class="shortlinks-detail-empty">
                     <h3>Select a link</h3>
-                    <p>Choose a redirect from the list to inspect its destination, health, clicks, and actions.</p>
+                    <p>Select a link to see its destination, QR code, and activity.</p>
                   </div>
                 </aside>
               </div>
@@ -723,8 +809,10 @@
     </div>
   </footer>
   <script defer src="js/tools/tool-share-link.js"></script>
+  <script defer src="js/tools/short-links-client.js"></script>
+  <script defer src="js/tools/qr-core.js"></script>
   <script defer src="js/admin/short-links.js"></script>
-  <script defer src="dist/site-tools-account.bbf760b9.js"></script>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-tools-account.384a9982.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>
 </html>

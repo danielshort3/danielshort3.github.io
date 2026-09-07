@@ -216,6 +216,24 @@ test('capture API Gateway route uses the existing JWT authorizer', () => {
   );
 });
 
+test('local attachment origins stay confined to signed S3 transfers', () => {
+  const template = fs.readFileSync(path.join(__dirname, 'template.yaml'), 'utf8');
+  const bucket = template.slice(template.indexOf('  AttachmentsBucket:'), template.indexOf('  UserPool:'));
+  const cors = bucket.slice(bucket.indexOf('      CorsConfiguration:'));
+  assert.match(cors, /AllowedOrigins:\s+Fn::Split:[\s\S]*?Fn::Join:[\s\S]*?!Join \[',', !Ref AllowedOrigins\]/);
+  const localOrigins = [...template.matchAll(/'http:\/\/(?:localhost|127\.0\.0\.1):\d+'/g)].map((match) => match[0]);
+  assert.deepEqual(localOrigins, [
+    "'http://localhost:4173'", "'http://127.0.0.1:4173'",
+    "'http://localhost:4181'", "'http://127.0.0.1:4181'"
+  ], 'Only the four supported local attachment origins should be added.');
+  for (const origin of localOrigins) assert(cors.includes(origin), 'Local origins must appear only in bucket CORS.');
+  assert.match(cors, /AllowedMethods:\s+- GET\s+- POST\s+- PUT\s+- HEAD/);
+  assert.match(cors, /AllowedHeaders:\s+- '\*'/);
+  assert.match(cors, /ExposedHeaders:\s+- ETag\s+- x-amz-request-id\s+- x-amz-id-2\s+MaxAge: 3000/);
+  assert.match(bucket, /BlockPublicAcls: true\s+BlockPublicPolicy: true\s+IgnorePublicAcls: true\s+RestrictPublicBuckets: true/);
+  assert.match(template, /AllowOrigins: !Ref AllowedOrigins/);
+});
+
 test('capture ID reuse with different normalized data returns conflict', async () => {
   let stored;
   const createClient = {

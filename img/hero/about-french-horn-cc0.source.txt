@@ -1,0 +1,17 @@
+Asset: about-french-horn-cc0.webp
+Title: Double Horn in F / B-flat (MI21)
+Photograph supplied by: The Metropolitan Museum of Art
+Instrument: Eduard Kruspe, 1904-19; accession 2002.324a, b
+Museum record: https://www.metmuseum.org/art/collection/search/503607
+Source: https://commons.wikimedia.org/wiki/File:Double_Horn_in_F_-_B-flat_MET_MI21.jpg
+Source revision: https://commons.wikimedia.org/w/index.php?title=File:Double_Horn_in_F_-_B-flat_MET_MI21.jpg&oldid=1005888839
+Downloaded original: https://upload.wikimedia.org/wikipedia/commons/1/1b/Double_Horn_in_F_-_B-flat_MET_MI21.jpg
+Original SHA-1: 3672798b41009e81ae0c6ac4316da8af7e2cd14d
+License: CC0 1.0 Universal Public Domain Dedication
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+Museum open access policy: https://www.metmuseum.org/hubs/open-access
+Attribution is not required. This record preserves provenance for maintenance.
+Verified: 2026-09-06
+Changes for this site: proportionally resized from 1884 x 1476 to 384 x 301
+and converted to WebP quality 94. Original light studio background retained.
+No cropping, retouching, mirroring, background generation, or generative edits.

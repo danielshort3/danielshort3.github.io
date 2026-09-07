@@ -1,6 +1,7 @@
 'use strict';
 
 const audienceApi = require('../../js/common/audience-config');
+const framePolicy = require('../../js/navigation/site-frame-policy');
 
 const PERSONAL_SHELL_START = '<!-- personal-accordion-shell:start -->';
 const PERSONAL_SHELL_END = '<!-- personal-accordion-shell:end -->';
@@ -296,7 +297,6 @@ function validatePersonalRouteDocument(html) {
     if (!executable) return;
     const content = tag.replace(/^<script\b[^>]*>|<\/script>$/gi, '').trim();
     if (!content) return;
-    if (getTagAttribute(tag, 'id') === 'ds-sw-register') return;
     throw new Error(`Soft route ${manifest.path || manifest.id} has an unclassified inline executable script.`);
   });
   return manifest;
@@ -383,18 +383,28 @@ function getPersonalLibraryPresentation(categoryValue, itemCount = 0) {
   });
 }
 
+function getPersonalToolGroup(tool = {}) {
+  if (tool.visibility === 'admin') return 'Admin tools';
+  if (tool.visibility === 'authed') return 'Account tools';
+  if ((tool.slug || tool.id) === 'screen-recorder') return 'Recording';
+  if (tool.categoryId === 'tools-writing') return 'Text';
+  if (tool.categoryId === 'tools-marketing') return 'Links';
+  return 'Images';
+}
+
 function renderPersonalLibraryHeader(options = {}) {
   const presentation = getPersonalLibraryPresentation(options.category, options.itemCount);
   const containerTag = options.containerTag === 'header' ? 'header' : 'div';
-  const headingTag = options.headingTag === 'h3' ? 'h3' : 'h1';
+  const headingTag = ['h2', 'h3'].includes(options.headingTag) ? options.headingTag : 'h1';
   const headingId = String(options.headingId || `personal-library-title-${presentation.categoryId}`).trim();
   const headingAttributes = [
     `id="${escapeHtml(headingId)}"`,
     options.headingFocusable ? 'data-home-library-heading tabindex="-1"' : ''
   ].filter(Boolean).join(' ');
   const headingClass = ['home-library__heading', options.wrapper ? 'wrapper' : ''].filter(Boolean).join(' ');
+  const showCount = !['projects', 'tools'].includes(presentation.categoryId);
   const countMarkup = options.dynamicCount
-    ? `<span data-home-library-count>${presentation.count}</span> ${escapeHtml(presentation.countNoun)}`
+    ? `<span data-home-library-count>${presentation.count || ''}</span> ${escapeHtml(presentation.countNoun)}`
     : escapeHtml(presentation.countLabel);
   const countClass = [
     'personal-library__meta',
@@ -410,7 +420,7 @@ function renderPersonalLibraryHeader(options = {}) {
     `  <div class="${headingClass}">`,
     `    <${headingTag} ${headingAttributes}>${escapeHtml(presentation.title)}</${headingTag}>`,
     presentation.summary ? `    <p>${escapeHtml(presentation.summary)}</p>` : '',
-    `    <p class="${countClass}">${countMarkup}</p>`,
+    showCount ? `    <p class="${countClass}"${options.dynamicCount && !presentation.count ? ' hidden' : ''}>${countMarkup}</p>` : '',
     '  </div>',
     `</${containerTag}>`
   ].filter(Boolean).join('\n');
@@ -776,7 +786,6 @@ function renderPersonalAccordionShell(fragment, options = {}) {
   const category = getShellCategory(categoryId, options.audience);
   const isLibrary = options.view === 'library';
   const itemId = String(options.itemId || categoryId).trim() || categoryId;
-  const fit = String(options.fit || 'document').trim() || 'document';
   const backLabel = String(options.backLabel || `Back to ${category.label}`).trim();
   const backCompactLabel = String(options.backCompactLabel || (isLibrary ? 'Categories' : 'Library')).trim();
   const backAriaLabel = String(options.backAriaLabel || backLabel).trim();
@@ -831,7 +840,7 @@ function wrapPersonalAccordionHtml(html, options = {}) {
     'data-personal-accordion-view': options.view === 'library' ? 'library' : 'detail',
     'data-personal-category': category,
     'data-personal-item': String(options.itemId || category).trim() || category,
-    'data-personal-fit': String(options.fit || 'document').trim() || 'document',
+    'data-personal-fit': framePolicy.resolveFit(options.fit),
     'data-site-route-id': `${audience === 'personal' ? '' : `${audience}:`}${category}:${String(options.itemId || category).trim() || category}`,
     'data-site-route-category': category,
     'data-site-route-view': options.view === 'library' ? 'library' : 'detail'
@@ -882,22 +891,28 @@ function renderLibraryCard(item, categoryId) {
   const href = String(item && item.href || '').trim();
   const title = String(item && item.title || 'Explore').trim();
   const summary = String(item && item.summary || '').trim();
-  const image = String(item && item.image || '').trim();
-  const imageAlt = String(item && item.imageAlt || '').trim();
+  const iconImage = String(item && item.iconImage || '').trim();
+  const image = iconImage || String(item && item.image || '').trim();
+  const imageAlt = iconImage ? '' : String(item && item.imageAlt || '').trim();
   const iconHtml = String(item && item.iconHtml || '').trim();
-  const imageDimensions = categoryId === 'tools' ? ' width="256" height="256"' : '';
+  const imageDimensions = iconImage || categoryId === 'tools' ? ' width="256" height="256"' : '';
   const media = image
     ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(imageAlt)}"${imageDimensions} loading="lazy" decoding="async">`
     : (iconHtml || `<span class="personal-library__initial" aria-hidden="true">${escapeHtml(title.charAt(0) || '?')}</span>`);
-  const mediaType = image ? 'image' : 'glyph';
+  const mediaType = iconImage ? 'icon' : image ? 'image' : 'glyph';
   const contentType = String(item && item.contentType || categoryId.replace(/s$/, '')).trim();
   const contentId = String(item && item.contentId || item && item.id || '').trim();
   const resourceType = String(item && item.resourceType || contentType).trim();
+  const visibility = categoryId === 'tools' ? String(item && item.visibility || 'public').trim().toLowerCase() : 'public';
+  const visibilityAttributes = visibility !== 'public'
+    ? ` data-tools-visibility="${escapeHtml(visibility)}" hidden aria-hidden="true"`
+    : '';
   return [
-    '      <li class="home-library__item">',
-    `        <a class="home-library__card" href="${escapeHtml(href)}" data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="personal_library_page">`,
+    `      <li class="home-library__item"${visibilityAttributes}>`,
+    `        <a class="home-library__card${iconImage ? ' home-library__card--icon' : ''}" href="${escapeHtml(href)}" data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="personal_library_page">`,
     `          <span class="home-library__media home-library__media--${mediaType}" aria-hidden="${imageAlt ? 'false' : 'true'}">${media}</span>`,
     '          <span class="home-library__copy">',
+    item.badge ? `            <small class="home-library__badge">${escapeHtml(item.badge)}</small>` : '',
     `            <strong>${escapeHtml(title)}</strong>`,
     summary ? `            <span>${escapeHtml(summary)}</span>` : '',
     '          </span>',
@@ -905,6 +920,35 @@ function renderLibraryCard(item, categoryId) {
     '        </a>',
     '      </li>'
   ].filter(Boolean).join('\n');
+}
+
+function renderPersonalLibraryGroups(items, categoryId) {
+  const groups = new Map();
+  items.forEach((item) => {
+    const group = String(item.group || '');
+    if (!groups.has(group)) groups.set(group, []);
+    groups.get(group).push(item);
+  });
+  const groupedEntries = [...groups].map(([label, entries], index) => ({
+    label,
+    entries,
+    headingId: `home-library-${categoryId}-group-${index + 1}`
+  }));
+  const jumpGroups = groupedEntries.filter(({ label, entries }) => label && entries.some((item) => !item.visibility || item.visibility === 'public'));
+  const jumpLinks = jumpGroups.length > 1 ? [
+    `    <nav class="home-library__jump-links" aria-label="${escapeHtml(CATEGORY_CONFIG[categoryId].label)} categories">`,
+    ...jumpGroups.map(({ label, headingId }) => `      <a href="#${headingId}" data-home-library-jump data-page-transition="false">${escapeHtml(label)}</a>`),
+    '    </nav>'
+  ].join('\n') : '';
+  const sections = groupedEntries.map(({ label, entries, headingId }) => [
+    `    <section class="home-library__group"${label ? ` aria-label="${escapeHtml(label)}"` : ''}>`,
+    label ? `      <h2 id="${headingId}" tabindex="-1">${escapeHtml(label)}</h2>` : '',
+    `      <ul class="home-library__list" aria-label="${escapeHtml(label || CATEGORY_CONFIG[categoryId].label)}">`,
+    entries.map((item) => renderLibraryCard(item, categoryId)).join('\n'),
+    '      </ul>',
+    '    </section>'
+  ].filter(Boolean).join('\n')).join('\n');
+  return [jumpLinks, sections].filter(Boolean).join('\n');
 }
 
 function renderPersonalLibraryMain(options = {}) {
@@ -932,9 +976,9 @@ function renderPersonalLibraryMain(options = {}) {
     toolsDock ? toolsDock.split('\n').map((line) => `  ${line}`).join('\n') : '',
     `  <section class="${libraryClasses}" aria-labelledby="personal-library-title-${categoryId}">`,
     header.split('\n').map((line) => `    ${line}`).join('\n'),
-    `    <ul class="home-library__list wrapper" aria-label="${escapeHtml(category.label)}">`,
-    items.map((item) => renderLibraryCard(item, categoryId)).join('\n'),
-    '    </ul>',
+    '    <div class="home-library__groups wrapper">',
+    renderPersonalLibraryGroups(items, categoryId),
+    '    </div>',
     '  </section>',
     '</main>'
   ].filter(Boolean).join('\n');
@@ -1009,6 +1053,7 @@ module.exports = {
   findFragmentRange,
   findMainRange,
   getPersonalLibraryPresentation,
+  getPersonalToolGroup,
   markProfessionalInternalHtml,
   markHardNavigationLinks,
   normalizeSkipLinkHrefs,
@@ -1016,6 +1061,7 @@ module.exports = {
   renderPersonalAccordionShell,
   renderPersonalLibraryHeader,
   renderPersonalLibraryMain,
+  renderPersonalLibraryGroups,
   renderPersonalRails,
   renderSiteRouteManifest,
   renderPersonalToolHeader,

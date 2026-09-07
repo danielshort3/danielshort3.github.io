@@ -360,6 +360,10 @@ const runHomeTransitionRuntime = (source, options = {}) => {
       entries.push(listener);
       windowListeners.set(type, entries);
     },
+    dispatchEvent(event) {
+      (windowListeners.get(event.type) || []).forEach((listener) => listener(event));
+      return true;
+    },
     cancelAnimationFrame() {},
     clearTimeout,
     history,
@@ -490,13 +494,12 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'homepage rails should use the approved site-native category colors'
   );
   const categoryIconIds = ['about', 'projects', 'tools', 'games', 'contact'];
-  const uniqueCardIconIds = [
-    'stormbreak', 'stellar-dogfight', 'probability', 'message', 'email', 'github'
-  ];
-  const specificIconIds = [...categoryIconIds, ...uniqueCardIconIds];
+  const uniqueCardIconIds = ['message', 'email', 'github'];
+  const gameFallbackIconIds = ['stormbreak', 'stellar-dogfight', 'probability'];
+  const specificIconIds = [...categoryIconIds, ...uniqueCardIconIds, ...gameFallbackIconIds];
   assert(specificIconIds.every((id) => iconDefinitions[id]) &&
     new Set(specificIconIds.map((id) => iconDefinitions[id])).size === specificIconIds.length,
-  'category and glyph-backed card icons should resolve to distinct on-brand SVG definitions');
+  'category, glyph-backed card, and game fallback icons should resolve to distinct on-brand SVG definitions');
   const authoredIconIds = categories.flatMap((category) => (category.items || [])
     .map((item) => item.icon)
     .filter(Boolean));
@@ -550,7 +553,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'google-analytics',
     'eastern-ms-data-science'
   ];
-  assert(!about.timeline?.title && !about.timeline?.lead &&
+  assert(about.timeline?.title === 'My journey' && !about.timeline?.lead &&
     JSON.stringify(timelineItems.map((item) => item.id)) === JSON.stringify(expectedTimelineIds),
   'About should carry the approved 10-event personal timeline in chronological narrative order');
   const purdueTimelineItem = timelineItems.find((item) => item.id === 'purdue-bs-data-analytics');
@@ -616,8 +619,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
         /\bhidden\b/.test(panelTag) && /\binert\b/.test(panelTag),
       `${id} should be specifically authored as collapsed and non-interactive`);
     }
-    assert(count(itemHtml, new RegExp(`data-home-icon="${id}"`, 'g')) === 2,
-      `${id} rail and panel title should share one deliberate category icon identity`);
+    assert(count(itemHtml, new RegExp(`data-home-icon="${id}"`, 'g')) === (id === 'about' ? 1 : 2),
+      `${id} should retain its category icon, with About using the personal portrait beside the greeting`);
     assert(itemHtml.indexOf('home-accordion__rail-icon') >= 0 &&
       itemHtml.indexOf('home-accordion__rail-icon') < itemHtml.indexOf('home-accordion__rail-label'),
     `${id} rail should keep its icon before its label for the desktop column layout`);
@@ -626,10 +629,51 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     `${id} item should be labelled by a semantic accordion heading button`);
   });
   const aboutHtml = getItemHtml('about');
-  assert(aboutHtml.includes('home-accordion__panel-head--profile') &&
-    /<img src="img\/hero\/head-avatar-384\.jpg" alt="Daniel Short"[^>]+width="384" height="384">/.test(aboutHtml),
+  const startHereProjectIds = ['babynames', 'handwritingRating'];
+  const connections = about.aboutStory?.connections || [];
+  const expectedConnections = [
+    { id: 'ai', href: '/tools', title: /AI & machine learning/i, contentType: 'directory', contentId: 'tools' },
+    { id: 'family', href: '/portfolio/babynames', title: /Family/i, contentType: 'project', contentId: 'babynames' },
+    { id: 'french-horn', href: '/portfolio/sheetMusicUpscale', title: /French horn/i, contentType: 'project', contentId: 'sheetMusicUpscale' }
+  ];
+  assert(about.aboutStory?.title === 'Life shapes what I build.' && connections.length === expectedConnections.length &&
+    about.currentWork?.href === '/portfolio/website',
+  'About should connect three personal interests to real work and retain the current website project link');
+  expectedConnections.forEach((expected, index) => {
+    const connection = connections[index];
+    assert(connection?.id === expected.id && expected.title.test(connection?.title || '') &&
+      connection?.project?.href === expected.href && connection?.project?.contentType === expected.contentType &&
+      connection?.project?.contentId === expected.contentId,
+    `${expected.id} should link its personal story to the approved working destination and analytics identity`);
+    const connectionHtml = aboutHtml.match(new RegExp(`<li[^>]+data-home-about-connection="${expected.id}"[^>]*>([\\s\\S]*?)<\\/li>`))?.[1] || '';
+    assert(connectionHtml.includes('home-about__interest') &&
+      new RegExp(`<a[^>]+class="home-about__project"[^>]+href="${expected.href}"`).test(connectionHtml) &&
+      connectionHtml.includes(`data-content-id="${expected.contentId}"`),
+    `${expected.id} should render a distinct personal interest and a directly actionable project link`);
+  });
+  assert(/20\s+years/i.test(`${connections[2]?.title || ''} ${connections[2]?.description || ''}`),
+    'The French horn story should retain the authored 20-year personal connection');
+  assert(aboutHtml.includes('class="home-about"') && aboutHtml.includes('class="home-about__personal"') &&
+    count(aboutHtml, /data-home-about-connection=/g) === 3 && !aboutHtml.includes('home-featured') &&
+    aboutHtml.indexOf('home-about__personal') < aboutHtml.indexOf('class="home-timeline"'),
+  'The About layout should pair its personal-story column with the timeline instead of large featured cards');
+  assert(about.timeline?.newestFirst === true && about.timeline?.collapsible === false &&
+    about.timeline?.sortBy === 'startDate' && about.timeline?.compactTitles === true &&
+    about.timeline?.dateDisplay === 'monthYear' &&
+    /<h3[^>]*>My journey<\/h3>/.test(aboutHtml) && !aboutHtml.includes('home-timeline__details') &&
+    !aboutHtml.includes('home-timeline__chevron'),
+  'My journey should stay mounted beneath a static heading with compact timeline titles and start-date ordering');
+  const displayedTimelineIds = [...aboutHtml.matchAll(/data-home-timeline-item="([^"]+)"/g)].map((match) => match[1]);
+  assert(JSON.stringify(displayedTimelineIds) === JSON.stringify([
+    'visit-grand-junction', 'eastern-ms-data-science', 'google-analytics', 'randall-reilly',
+    'google-advanced-data-analytics', 'purdue-bs-data-analytics',
+    'ibm-machine-learning', 'ibm-data-analyst', 'google-data-analytics', 'target'
+  ]), 'The rendered timeline should lead with current work, then show milestone start dates newest first');
+  assert(aboutHtml.includes('class="home-about__profile"') &&
+    /<img class="home-about__portrait" src="img\/hero\/head-avatar-384\.jpg" alt="Daniel Short"[^>]+width="384" height="384">/.test(aboutHtml),
   'rendered About content should pair its heading with a meaningful, intrinsically sized profile image');
-  assert(aboutHtml.includes('<section class="home-timeline" data-home-timeline aria-label="Timeline">') &&
+  const timelineHeadingId = aboutHtml.match(/<h3[^>]+id="([^"]+)"[^>]*>My journey<\/h3>/)?.[1] || '';
+  assert(timelineHeadingId && aboutHtml.includes(`aria-labelledby="${timelineHeadingId}"`) &&
     !aboutHtml.includes('home-timeline__head') &&
     !aboutHtml.includes('My path so far') &&
     aboutHtml.includes('<ol class="home-timeline__list" data-home-timeline-scroller>') &&
@@ -656,10 +700,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       /<a class="home-timeline__entry"[^>]+target="_blank" rel="noopener noreferrer"/.test(itemHtml),
     `${id} should render its exact issue date in a semantic time element and expose a safe external credential link`);
     const fullTitle = timelineItems.find((item) => item.id === id).title;
-    const compactTitle = fullTitle.replace(/\s+(?:Professional\s+Certificate|Certification|Certificate)$/i, '');
-    assert(itemHtml.includes(`<span class="home-timeline__title-full">${fullTitle}</span>`) &&
-      itemHtml.includes(`<span class="home-timeline__title-compact" aria-hidden="true">${compactTitle}</span>`),
-    `${id} should shorten only its visual mobile label while retaining the full accessible credential title`);
+    const compactTitle = fullTitle.replace(/\bProfessional\s+/g, '');
+    assert(itemHtml.includes(fullTitle) && (compactTitle === fullTitle ||
+      (itemHtml.includes(`<span class="home-timeline__title-full visually-hidden">${fullTitle}</span>`) &&
+        itemHtml.includes(`<span class="home-timeline__title-compact" aria-hidden="true">${compactTitle}</span>`))),
+    `${id} should preserve its full accessible credential title while abbreviating only the visual Professional label`);
   });
   uniqueCardIconIds.forEach((id) => {
     assert(count(html, new RegExp(`data-home-icon="${id}"`, 'g')) === 1,
@@ -742,6 +787,64 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(JSON.stringify(Object.fromEntries(Object.entries(homeLibraryData)
     .map(([id, library]) => [id, library.items?.length || 0]))) === JSON.stringify(expectedLibraryCounts),
   'generated HOME_LIBRARY_DATA should expose all 16 projects, 10 public tools, and 5 games');
+  const projectGroupNames = [...new Set(homeLibraryData.projects.items.map((item) => item.group))];
+  assert(JSON.stringify(projectGroupNames) === JSON.stringify(['Start here', 'Machine learning', 'Data stories', 'Practical applications']) &&
+    JSON.stringify(homeLibraryData.projects.items.filter((item) => item.group === 'Start here').map((item) => item.id)) === JSON.stringify(startHereProjectIds),
+  'Project discovery should retain its two approved Start here projects and distinct subject groups');
+  const expectedToolGroups = {
+    Text: ['text-compare', 'nbsp-cleaner', 'oxford-comma-checker', 'point-of-view-checker', 'word-frequency'],
+    Images: ['image-optimizer', 'background-remover'],
+    Links: ['utm-batch-builder', 'qr-code-generator'],
+    Recording: ['screen-recorder']
+  };
+  assert(JSON.stringify([...new Set(homeLibraryData.tools.items.map((item) => item.group))]) === JSON.stringify(Object.keys(expectedToolGroups)),
+    'Tool library should expose Text, Images, Links, and Recording in that order');
+  Object.entries(expectedToolGroups).forEach(([group, toolIds]) => {
+    const actualIds = homeLibraryData.tools.items.filter((item) => item.group === group).map((item) => item.id).sort();
+    assert(JSON.stringify(actualIds) === JSON.stringify([...toolIds].sort()),
+      `${group} should contain its relevant tools without misclassifying text and links as images`);
+  });
+  const groupDocument = {
+    createElement(tagName) {
+      return {
+        tagName,
+        dataset: {},
+        attributes: {},
+        children: [],
+        setAttribute(name, value) { this.attributes[name] = value; },
+        append(...children) { this.children.push(...children); }
+      };
+    }
+  };
+  const dynamicGroups = vm.createContext({ document: groupDocument });
+  vm.runInContext(extractFunctionBlock(js, 'function appendLibraryGroups('), dynamicGroups);
+  const groupFragment = groupDocument.createElement('fragment');
+  dynamicGroups.appendLibraryGroups(groupFragment, [
+    { id: 'first', group: 'Start here' },
+    { id: 'analysis', group: 'Data stories' },
+    { id: 'second', group: 'Start here' }
+  ], 'projects', (entry) => ({ tagName: 'li', id: entry.id }));
+  const renderedGroups = groupFragment.children.filter((group) => group.tagName === 'section').map((group) => ({
+    name: group.attributes['aria-label'],
+    heading: group.children.find((child) => child.tagName === 'h3')?.textContent,
+    items: group.children.find((child) => child.tagName === 'ul')?.children.map((child) => child.id)
+  }));
+  assert(JSON.stringify(renderedGroups) === JSON.stringify([
+    { name: 'Start here', heading: 'Start here', items: ['first', 'second'] },
+    { name: 'Data stories', heading: 'Data stories', items: ['analysis'] }
+  ]), 'Opening a homepage library should group all cards under the same meaningful headings as a direct library visit');
+  const groupJumps = groupFragment.children.find((group) => group.tagName === 'nav');
+  assert(groupJumps?.attributes['aria-label'] === 'Projects categories' &&
+    JSON.stringify(groupJumps.children.map((link) => link.href)) === JSON.stringify([
+      '#home-library-projects-group-1', '#home-library-projects-group-2'
+    ]) && groupJumps.children.every((link) => link.dataset.pageTransition === 'false') &&
+    groupFragment.children.filter((group) => group.tagName === 'section')
+      .every((group, index) => group.children[0].id === `home-library-projects-group-${index + 1}` && group.children[0].tabIndex === -1),
+  'Homepage category jumps should target focusable group headings and opt out of route transitions');
+  const singleGroupFragment = groupDocument.createElement('fragment');
+  dynamicGroups.appendLibraryGroups(singleGroupFragment, [{ id: 'game' }], 'games', (entry) => ({ tagName: 'li', id: entry.id }));
+  assert(!singleGroupFragment.children.some((child) => child.tagName === 'nav'),
+    'A short ungrouped catalog should not add category navigation');
   const publishedProjectIds = new Set(publishedProjects.map((project) => String(project.id)));
   assert(publishedProjects.length === expectedLibraryCounts.projects &&
     publishedProjects.every((project) => homeLibraryData.projects.items
@@ -758,7 +861,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       item.image === versionedImageUrl(`/img/projects/${item.id}-640.webp`) &&
       item.imageAlt === '';
   }),
-  'all 16 project library cards should derive their original optimized preview from the canonical project image');
+  'all 16 project library records should retain their original optimized screenshot independently from optional icons');
+  assert(homeLibraryData.projects.items.filter((item) => item.iconImage).length === expectedLibraryCounts.projects &&
+    homeLibraryData.projects.items.every((item) => {
+      const project = publishedProjectsById.get(item.id);
+      return (item.iconImage || '') === (project.iconImage ? versionedImageUrl(`/${project.iconImage}`) : '');
+    }),
+  'all sixteen project library entries should use their approved icons while preserving separate canonical previews');
   const allManifestMotifs = Object.values(GENERATED_HOME_LIBRARY_VISUALS)
     .flatMap((visuals) => Object.values(visuals));
   assert(JSON.stringify(Object.keys(GENERATED_HOME_LIBRARY_VISUALS).sort()) === JSON.stringify(['games']) &&
@@ -1219,11 +1328,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const homepageCardCss = extractBlock(css, '.home-accordion__card {');
   const homepageCardInteractiveCss = extractBlock(css, '.home-accordion__card:is(a):is(:hover, :focus-visible)');
   const reducedMotionCss = extractBlock(css, '@media (prefers-reduced-motion: reduce)');
-  assert(homepageCardCss.includes('padding-inline-start .18s ease') &&
-    homepageCardInteractiveCss.includes('padding-inline-start: 8px;') &&
+  assert(homepageCardCss.includes('padding: 18px;') &&
+    homepageCardCss.includes('transition: background-color .18s ease;') &&
+    !/\b(?:padding(?:-[\w-]+)?|transform)\s*:/.test(homepageCardInteractiveCss) &&
+    homepageCardInteractiveCss.includes('outline: 3px solid') &&
     reducedMotionCss.includes('.home-accordion__card') &&
     reducedMotionCss.includes('transition: none;'),
-  'main-tab preview cards should gain a subtle smooth left inset on hover and keyboard focus without animating for reduced motion');
+  'main-tab preview cards should keep even padding and stable content on hover and keyboard focus while retaining a visible outline and reduced motion');
   assert(css.includes('@media (pointer: coarse)') &&
     css.includes('min-height: 44px;') &&
     css.includes('@media (prefers-reduced-motion: reduce)') &&
@@ -1419,7 +1530,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     js.includes('revealPanelTrigger(initialHashPanel);'),
   'initial deep links should restore canonical library or overview state without animating first paint');
   assert(!html.includes('data-home-accordion-scroller tabindex="0"') &&
-    html.includes('<h3>Hi, I’m Daniel.</h3>'),
+    html.includes('<h2>Hi, I’m Daniel.</h2>'),
   'authored panels should avoid generic scroller tab stops and keep panel titles beneath accordion headings');
 
   assert(navigation.includes("const nextExpanded = enhanced && Boolean(expanded);") &&

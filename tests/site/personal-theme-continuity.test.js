@@ -517,10 +517,10 @@ function runPersonalThemeContinuityTests({ assert }) {
   );
   assert(stellar.sourceFile, 'Stellar Dogfight should resolve to an HTML source file');
   const stellarBody = bodyTagForHtml(read(stellar.sourceFile));
-  assert(tagAttribute(stellarBody, 'data-personal-fit') === 'immersive',
-    'Stellar Dogfight should retain immersive fit');
+  assert(tagAttribute(stellarBody, 'data-personal-fit') === 'viewport',
+    'Stellar Dogfight should use the shared bounded frame for its hangar and play surface');
   assert(tagAttribute(stellarBody, 'data-personal-chrome') === 'compact',
-    'Stellar Dogfight should retain compact personal chrome even with immersive fit');
+    'Stellar Dogfight should retain compact personal chrome');
 }
 
 module.exports = runPersonalThemeContinuityTests;

@@ -1195,19 +1195,6 @@
     return 'forward';
   }
 
-  function sendVirtualPageview(url) {
-    let consent = null;
-    try { consent = window.consentAPI?.get?.(); } catch (_) {}
-    if (!consent?.analytics) return;
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: 'virtual_page_view',
-      page_location: url.href,
-      page_path: `${url.pathname}${url.search}${url.hash}`,
-      page_title: document.title
-    });
-  }
-
   function hardNavigate(url) {
     window.location.assign(url.href);
   }
@@ -1231,6 +1218,7 @@
     let previousManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
     const returnFocus = getReturnFocusId(options.trigger);
     const navigationType = options.navigationType || 'push';
+    const previousUrl = committedUrl;
     const homepageHistoryIntent = navigationType === 'pop'
       ? getHomepageHistoryIntent(options.historyState)
       : null;
@@ -1348,7 +1336,9 @@
         };
         dispatch(CONTENT_EVENT, detail);
         dispatch(ROUTE_EVENT, detail);
-        sendVirtualPageview(displayUrl);
+        window.dispatchEvent(new CustomEvent('site:route-complete', {
+          detail: { url: displayUrl.href, previousUrl, title: document.title, source: 'router' }
+        }));
         return true;
       } catch (error) {
         window.clearTimeout(mountLoadingTimer);

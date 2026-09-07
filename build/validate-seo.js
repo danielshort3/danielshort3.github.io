@@ -669,10 +669,22 @@ function canonicalInternalPath(href, pathPrefix) {
 
 function validatePersonalLibraryAnchors() {
   let homeLibraryData = {};
+  let toolsLibraryItems = [];
   try {
     homeLibraryData = require(path.join(root, 'js', 'home', 'home-library-data.js'));
   } catch (error) {
     report('js/home/home-library-data.js', `could not be loaded (${error.code || error.message})`);
+  }
+  try {
+    const { loadSiteContent } = require('./lib/content-loader');
+    // The full Tools library includes access-gated cards; the homepage is public-only.
+    toolsLibraryItems = loadSiteContent(root).tools.filter((tool) => {
+      const visibility = String(tool.visibility || 'public').trim().toLowerCase();
+      return ['admin', 'authed'].includes(visibility)
+        || (visibility === 'public' && !tool.hidden && !tool.noindex);
+    }).map((tool) => ({ href: `/${String(tool.href || '').replace(/^\/+/, '')}` }));
+  } catch (error) {
+    report('content/tools', `could not load the complete Tools catalog (${error.code || error.message})`);
   }
 
   PERSONAL_LIBRARY_CONTRACTS.forEach((contract) => {
@@ -691,7 +703,8 @@ function validatePersonalLibraryAnchors() {
       report(contract.file, `personal accordion does not identify ${contract.category} as active`);
     }
 
-    const expectedItems = homeLibraryData[contract.category] && Array.isArray(homeLibraryData[contract.category].items)
+    const expectedItems = contract.category === 'tools' ? toolsLibraryItems
+      : homeLibraryData[contract.category] && Array.isArray(homeLibraryData[contract.category].items)
       ? homeLibraryData[contract.category].items
       : [];
     const expectedPaths = expectedItems

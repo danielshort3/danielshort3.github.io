@@ -96,8 +96,9 @@ module.exports = function runPageTransitionTests({ assert }) {
   assert(router.includes('meta[name="referrer"]') && router.includes('syncHead(metadataDocument, route.document)'),
     'route commits must synchronize referrer policy and the existing document metadata');
   assert(router.includes('pushRouteHistory(displayUrl') && router.includes('requestUrl: documentUrl.href') &&
-    router.includes('sendVirtualPageview(displayUrl)'),
-    'search mounts may sanitize the URL without the router publishing its query again');
+    router.includes("new CustomEvent('site:route-complete'") && router.includes('url: displayUrl.href, previousUrl') &&
+    !router.includes("event: 'virtual_page_view'"),
+    'completed routes must publish the committed URL for shared consent-aware analytics');
   assert(router.includes('captureScroll()') && router.includes('restoreVetoedPop(options.historyState)') &&
     router.includes("heading.setAttribute('tabindex', '-1')"),
     'history, leave-veto rollback, scrolling and accessible focus remain route-owned');

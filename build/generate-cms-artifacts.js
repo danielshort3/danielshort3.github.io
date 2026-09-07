@@ -18,6 +18,7 @@ const {
   renderToolsDirectoryBody
 } = require('./lib/cms-renderers');
 const { renderVisualPageBody } = require('../api/_lib/cms-widgets');
+const { getPersonalToolGroup } = require('./lib/personal-accordion-shell');
 
 const root = path.resolve(__dirname, '..');
 
@@ -63,10 +64,13 @@ function homeLibraryItem({
   href,
   image,
   imageAlt,
+  iconImage,
   iconHtml,
   contentType,
   contentId,
-  resourceType
+  resourceType,
+  group,
+  badge
 }) {
   return {
     id: String(id || '').trim(),
@@ -75,15 +79,23 @@ function homeLibraryItem({
     href: normalizeHomeLibraryHref(href),
     image: normalizeHomeLibraryAsset(image),
     imageAlt: String(imageAlt || '').trim(),
+    ...(iconImage ? { iconImage: versionedImageUrl(normalizeHomeLibraryAsset(iconImage)) } : {}),
     iconHtml: String(iconHtml || '').trim(),
     external: false,
     contentType: String(contentType || '').trim(),
     contentId: String(contentId || id || '').trim(),
-    resourceType: String(resourceType || contentType || '').trim()
+    resourceType: String(resourceType || contentType || '').trim(),
+    group: String(group || '').trim(),
+    badge: String(badge || '').trim()
   };
 }
 
 function buildHomeLibraryData(content) {
+  const personal = (content.audiences || []).find((audience) => audience.key === 'personal');
+  const startHereIds = Array.isArray(personal?.projectLibrary?.startHereProjectIds)
+    ? personal.projectLibrary.startHereProjectIds
+    : [];
+  const projectGroups = ['Start here', 'Machine learning', 'Data stories', 'Practical applications'];
   const projects = (Array.isArray(content.projects) ? content.projects : [])
     .filter((project) => project && project.id && project.published !== false)
     .map((project) => homeLibraryItem({
@@ -93,12 +105,20 @@ function buildHomeLibraryData(content) {
       href: `/portfolio/${encodeURIComponent(String(project.id).trim())}`,
       image: projectLibraryPreviewAsset(project.image),
       imageAlt: '',
+      iconImage: project.iconImage,
       contentType: 'project',
       contentId: project.id,
-      resourceType: 'case_study'
-    }));
+      resourceType: 'case_study',
+      group: startHereIds.includes(project.id) ? 'Start here' :
+        (project.concepts || []).includes('Analytics') ? 'Data stories' :
+          (project.concepts || []).includes('Machine Learning') ? 'Machine learning' : 'Practical applications',
+      badge: ['iframe', 'tableau'].includes(project.embed?.type) ? 'Interactive project' : 'Case study'
+    }))
+    .sort((a, b) => projectGroups.indexOf(a.group) - projectGroups.indexOf(b.group) ||
+      (a.group === 'Start here' ? startHereIds.indexOf(a.id) - startHereIds.indexOf(b.id) : 0));
 
   const toolsPage = content.pagesById && content.pagesById.tools;
+  const toolCategoryIds = new Map(content.tools.map((tool) => [tool.slug, tool.categoryId]));
   const toolsDirectory = toolsPage
     ? buildToolsDirectoryWorkbenchData(toolsPage, content.tools)
     : { items: [] };
@@ -116,8 +136,11 @@ function buildHomeLibraryData(content) {
       iconHtml: tool.iconHtml,
       contentType: 'tool',
       contentId: tool.id,
-      resourceType: 'tool'
-    }));
+      resourceType: 'tool',
+      group: getPersonalToolGroup({ id: tool.id, categoryId: toolCategoryIds.get(tool.id) })
+    }))
+    .sort((a, b) => ['Text', 'Images', 'Links', 'Recording'].indexOf(a.group) -
+      ['Text', 'Images', 'Links', 'Recording'].indexOf(b.group));
 
   const gamesPage = content.pagesById && content.pagesById.games;
   const gamesDirectory = gamesPage
@@ -132,6 +155,7 @@ function buildHomeLibraryData(content) {
       href: game.href,
       image: homeLibraryPreviewAsset('games', game.id),
       imageAlt: '',
+      iconImage: game.iconImage,
       iconHtml: game.iconHtml,
       contentType: 'game',
       contentId: game.id,

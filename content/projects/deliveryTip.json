@@ -3,6 +3,7 @@
   "title": "Delivery Tip",
   "subtitle": "Excel Geo-Analytics & Optimization",
   "image": "img/projects/deliveryTip.png",
+  "iconImage": "img/projects/icons/deliveryTip.png",
   "imageWidth": 960,
   "imageHeight": 794,
   "tools": [
@@ -18,16 +19,17 @@
   "resources": [
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_11.pdf",
+      "url": "/documents/Project_11.pdf",
       "label": "PDF"
     },
     {
       "icon": "img/icons/excel-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_11.xlsx",
+      "url": "/documents/Project_11.xlsx",
       "label": "Excel"
     }
   ],
   "problem": "I wanted to know which shifts and neighborhoods lead to better tips.",
+  "task": "Compare delivery shifts and neighborhoods to identify patterns that could guide when and where to work.",
   "actions": [
     "Built a geospatial heat map and pivot filters from 1,251 deliveries.",
     "Compared tips by daypart, zone, and order size."

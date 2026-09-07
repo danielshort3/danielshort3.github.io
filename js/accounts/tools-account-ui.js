@@ -17,7 +17,7 @@
     'image-optimizer': { name: 'Image Optimizer', href: '/tools/image-optimizer' },
     'screen-recorder': { name: 'Screen Recorder', href: '/tools/screen-recorder' },
     'job-application-tracker': { name: 'Job Application Tracker', href: '/tools/job-application-tracker' },
-    'short-links': { name: 'Short Links', href: '/tools/short-links' },
+    'short-links': { name: 'Links & QR codes', href: '/tools/short-links' },
     'utm-batch-builder': { name: 'UTM Batch Builder', href: '/tools/utm-batch-builder' },
     'campaign-creative-tracker': { name: 'Campaign Creative Tracker', href: '/tools/campaign-creative-tracker' },
     'ga4-utm-performance': { name: 'GA4 UTM Performance', href: '/tools/ga4-utm-performance' },
@@ -33,6 +33,13 @@
     'whisper-transcribe-monitor': { persistence: 'custom', signInMode: 'popup' }
   };
 
+  const SESSION_PRIVACY_NOTES = {
+    'image-optimizer': 'Save uploads settings, file names, and result summaries; image files stay on your device.',
+    'screen-recorder': 'Save uploads recording settings and result summaries; the recording stays on your device.',
+    'background-remover': 'Save uploads settings, file names, and a small processed-image preview to your account.',
+    'qr-code-generator': 'Save uploads QR content and a preview. Wi-Fi passwords and their QR preview are excluded.'
+  };
+
   const getToolAccountCapabilities = ({ page, toolId, autosaveMode } = {}) => {
     const normalizedMode = String(autosaveMode || '').trim().toLowerCase();
     const configured = TOOL_ACCOUNT_CAPABILITIES[toolId] || {};
@@ -43,6 +50,7 @@
 
     return {
       persistence,
+      savePrivacyNote: SESSION_PRIVACY_NOTES[toolId] || 'Save uploads this tool’s inputs, settings, and available results to your account.',
       embedded: configured.embedded === true,
       signInMode: configured.signInMode || 'redirect',
       showToolsLink: Boolean((toolId && page !== 'short-links') || page === 'tools-dashboard')
@@ -333,7 +341,7 @@
     if (!rule || rule === 'public') return true;
     if (rule === 'authed' || rule === 'authenticated' || rule === 'logged-in') return !!context.authed;
     if (rule === 'admin' || rule === 'admins') return !!context.admin;
-    return true;
+    return false;
   };
 
   const applyToolsCatalogVisibility = () => {
@@ -826,7 +834,8 @@
             </div>
           </div>
           <div class="tools-account-extensions" data-tools-account="extensions" hidden>
-            <button type="button" class="btn-secondary tools-account-save" data-tools-action="save-session" hidden>Save</button>
+            <button type="button" class="btn-secondary tools-account-save" aria-describedby="tools-session-privacy" data-tools-action="save-session" hidden>Save</button>
+            <p class="tools-account-status" id="tools-session-privacy" data-tools-account="save-privacy" hidden></p>
             <p class="tools-account-status" data-tools-account="status" role="status" aria-live="polite" aria-atomic="true" hidden></p>
           </div>
         </div>
@@ -866,6 +875,7 @@
       embeddedActionsEl: structureEl?.querySelector('[data-tools-account="embedded-actions"]') || null,
       extensionsEl,
       saveButton: structureEl?.querySelector('[data-tools-action="save-session"]') || null,
+      savePrivacyEl: structureEl?.querySelector('[data-tools-account="save-privacy"]') || null,
       statusEl: structureEl?.querySelector('[data-tools-account="status"]') || null,
       toolControlsEl
     };
@@ -894,6 +904,10 @@
     const manualSaveVisible = capabilities.persistence === 'manual' && ['dirty', 'saving', 'error'].includes(saveState);
     const autosaveRetryVisible = capabilities.persistence === 'autosave' && retryable;
     const saveVisible = authed && (manualSaveVisible || autosaveRetryVisible);
+    if (refs.savePrivacyEl) {
+      refs.savePrivacyEl.textContent = capabilities.savePrivacyNote || '';
+      refs.savePrivacyEl.hidden = !saveVisible;
+    }
     if (refs.saveButton) {
       const saveLabel = saveState === 'saving' ? 'Saving…' : (retryable ? 'Retry save' : 'Save');
       // Replacing unchanged text during input blur can cancel WebKit's pending tap.
@@ -1611,7 +1625,7 @@
               <h2 id="tools-account-modal-signed-out">Sign in to view your history</h2>
               <p class="tools-dashboard-subtitle">Once signed in, your sessions and tool activity appear here.</p>
             </header>
-            <p class="tools-dashboard-empty">You can still use most tools without signing in; history and saved sessions require an account.</p>
+            <p class="tools-dashboard-empty">You can still use most tools without signing in. Saving a session sends its inputs, settings, and available results to your account. <a href="/privacy#local-tools">What each tool saves</a></p>
           </section>
         `.trim();
       }
@@ -1666,7 +1680,7 @@
           <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-account">
             <header class="tools-dashboard-card-head">
               <h2 id="tools-account-modal-account">Account</h2>
-              <p class="tools-dashboard-subtitle">Your tools history is private to this signed-in account.</p>
+              <p class="tools-dashboard-subtitle">Your saved sessions and tool activity are stored for this signed-in account. <a href="/privacy#stored-data">Storage and deletion</a></p>
             </header>
             <dl class="tools-account-modal-meta">
               ${email ? `<div class="tools-account-modal-meta-row"><dt>Email</dt><dd>${email}</dd></div>` : ''}

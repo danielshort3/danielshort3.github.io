@@ -81,6 +81,7 @@ const TOOLS_MAX_SAVED_OUTPUT_ROWS = 60;
 const TOOLS_MAX_OUTPUT_PREVIEW_CHARS = 40_000;
 const UTM_MAX_CSV_BYTES = 5 * 1024 * 1024;
 const UTM_MAX_GENERATED_ROWS = 50_000;
+const countLabel = (count: number, noun: string) => `${count.toLocaleString("en-US")} ${noun}${count === 1 ? "" : "s"}`;
 
 const dispatchToolRunEvent = (eventName: "tools:run-start" | "tools:run-complete" | "tools:run-error" | "tools:run-cancel", detail: Record<string, unknown> = {}) => {
   try {
@@ -529,104 +530,68 @@ const FieldEditor = ({
   );
 };
 
-const VirtualizedTable = ({
-  rows,
-  paramKeys,
-  filterQuery,
-  onCopyRow,
-}: {
+const VirtualizedTable = ({ rows, paramKeys, filterQuery, onCopyRow }: {
   rows: any[];
   paramKeys: string[];
   filterQuery: string;
   onCopyRow: (row: any) => void;
 }) => {
-  const query = String(filterQuery || "").trim().toLowerCase();
-  const filtered = useMemo(() => {
-    if (!query) return rows;
-    return rows.filter((row) => {
-      const baseUrl = String(row?.baseUrl || "").toLowerCase();
-      const finalUrl = String(row?.finalUrl || "").toLowerCase();
-      if (baseUrl.includes(query) || finalUrl.includes(query)) return true;
-      const params = row?.params || {};
-      return paramKeys.some((k) => String(params[k] || "").toLowerCase().includes(query));
-    });
-  }, [rows, query, paramKeys]);
-
+  const query = filterQuery.trim().toLowerCase();
+  const filtered = useMemo(() => query ? rows.filter((row) =>
+    String(row?.baseUrl || "").toLowerCase().includes(query)
+    || String(row?.finalUrl || "").toLowerCase().includes(query)
+    || paramKeys.some((key) => String(row?.params?.[key] || "").toLowerCase().includes(query))
+  ) : rows, [rows, query, paramKeys]);
+  const visibleKeys = useMemo(() => paramKeys.filter((key) =>
+    ["utm_source", "utm_medium", "utm_campaign"].includes(key)
+    || rows.some((row) => String(row?.params?.[key] || "").length > 0)
+  ), [paramKeys, rows]);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const headerRef = useRef<HTMLDivElement | null>(null);
   const [scrollTop, setScrollTop] = useState(0);
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const rowHeight = 44;
-  const height = 520;
+  const [selectedUrl, setSelectedUrl] = useState("");
+  const selectedRow = filtered.find((row) => row.finalUrl === selectedUrl) || filtered[0];
+  const rowHeight = 48;
+  const headerHeight = 44;
+  const height = Math.min(420, Math.max(160, filtered.length * rowHeight + headerHeight + 2));
   const overscan = 8;
-
+  const startIndex = Math.max(0, Math.floor(Math.max(0, scrollTop - headerHeight) / rowHeight) - overscan);
+  const visible = filtered.slice(startIndex, startIndex + Math.ceil(height / rowHeight) + overscan * 2);
+  const gridTemplate = ["minmax(150px,1.2fr)", ...visibleKeys.map(() => "minmax(110px,1fr)"), "72px"].join(" ");
+  const gridMinWidth = 150 + visibleKeys.length * 110 + 72;
   useEffect(() => {
-    const h = headerRef.current?.offsetHeight || 0;
-    setHeaderHeight(h);
-  }, [paramKeys.length]);
-
-  const totalHeight = filtered.length * rowHeight;
-  const effectiveScrollTop = Math.max(0, scrollTop - headerHeight);
-  const viewportHeight = Math.max(0, height - headerHeight);
-  const startIndex = Math.max(0, Math.floor(effectiveScrollTop / rowHeight) - overscan);
-  const visibleCount = Math.ceil(viewportHeight / rowHeight) + overscan * 2;
-  const endIndex = Math.min(filtered.length, startIndex + visibleCount);
-  const offsetY = startIndex * rowHeight;
-  const visible = filtered.slice(startIndex, endIndex);
-
-  const gridTemplate = useMemo(() => {
-    const base = "260px";
-    const params = paramKeys.map(() => "160px").join(" ");
-    const finalUrl = "minmax(420px,1fr)";
-    const actions = "120px";
-    return [base, params, finalUrl, actions].filter(Boolean).join(" ");
-  }, [paramKeys]);
-
+    setScrollTop(0);
+    if (containerRef.current) containerRef.current.scrollTop = 0;
+  }, [query]);
+  const pageLabel = (value: string) => {
+    try { const url = new URL(value); return url.pathname + url.search + url.hash || "/"; }
+    catch { return value; }
+  };
+  const label = (key: string) => key.replace(/^utm_/, "").replace(/^./, (char) => char.toUpperCase());
   return (
     <div className="utmtool-results">
-      <div className="utmtool-table-scroll" style={{ height }} onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)} ref={containerRef}>
-        <div className="utmtool-table-header" style={{ gridTemplateColumns: gridTemplate }} ref={headerRef}>
-          <div className="utmtool-th">base_url</div>
-          {paramKeys.map((k) => (
-            <div key={k} className="utmtool-th">
-              {k}
-            </div>
-          ))}
-          <div className="utmtool-th">final_url</div>
-          <div className="utmtool-th">actions</div>
+      <div className="utmtool-table-scroll" role="table" aria-label="Generated campaign links" aria-rowcount={filtered.length + 1} style={{ height }} onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)} ref={containerRef}>
+        <div className="utmtool-table-header" role="row" style={{ gridTemplateColumns: gridTemplate, minWidth: gridMinWidth, height: headerHeight }}>
+          <div className="utmtool-th" role="columnheader">Landing page</div>
+          {visibleKeys.map((key) => <div key={key} className="utmtool-th" role="columnheader">{label(key)}</div>)}
+          <div className="utmtool-th" role="columnheader">Copy</div>
         </div>
-
-        <div className="utmtool-table-body" style={{ height: totalHeight }}>
-          <div className="utmtool-table-rows" style={{ transform: `translateY(${offsetY}px)` }}>
-            {visible.map((row, idx) => {
-              const params = row?.params || {};
-              return (
-                <div
-                  key={`${startIndex + idx}-${row?.finalUrl || ""}`}
-                  className="utmtool-tr"
-                  style={{ gridTemplateColumns: gridTemplate, height: rowHeight }}
-                >
-                  <div className="utmtool-td utmtool-cell-mono">{String(row?.baseUrl || "")}</div>
-                  {paramKeys.map((k) => (
-                    <div key={k} className="utmtool-td utmtool-cell-mono">
-                      {String(params[k] || "")}
-                    </div>
-                  ))}
-                  <div className="utmtool-td utmtool-cell-mono utmtool-final-url">
-                    {String(row?.finalUrl || "")}
-                  </div>
-                  <div className="utmtool-td utmtool-actions">
-                    <button type="button" className="btn-secondary utmtool-copy-btn" onClick={() => onCopyRow(row)}>
-                      Copy
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+        <div className="utmtool-table-body" role="rowgroup" style={{ height: filtered.length * rowHeight, minWidth: gridMinWidth }}>
+          <div className="utmtool-table-rows" style={{ transform: "translateY(" + startIndex * rowHeight + "px)" }}>
+            {visible.map((row, index) => (
+              <div key={String(startIndex + index) + row.finalUrl} role="row" aria-rowindex={startIndex + index + 2} className={"utmtool-tr" + (row === selectedRow ? " is-selected" : "")} style={{ gridTemplateColumns: gridTemplate, height: rowHeight }}>
+                <div className="utmtool-td" role="cell"><button type="button" className="utmtool-page-link" title={String(row.baseUrl)} aria-pressed={row === selectedRow} onClick={() => setSelectedUrl(row.finalUrl)}>{pageLabel(String(row.baseUrl || ""))}</button></div>
+                {visibleKeys.map((key) => <div key={key} role="cell" className="utmtool-td" title={String(row.params?.[key] || "")}>{String(row.params?.[key] || "")}</div>)}
+                <div className="utmtool-td utmtool-actions" role="cell"><button type="button" className="btn-secondary utmtool-copy-btn" aria-label={"Copy link for " + String(row.baseUrl)} onClick={() => onCopyRow(row)}>Copy</button></div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      <p className="utmtool-help">Showing {filtered.length.toLocaleString("en-US")} rows.</p>
+      {selectedRow ? <div className="utmtool-selected-link">
+        <div className="utmtool-selected-head"><span>Final URL (selected row)</span><button type="button" className="btn-secondary" onClick={() => onCopyRow(selectedRow)}>Copy link</button></div>
+        <p>{String(selectedRow.finalUrl || "")}</p>
+      </div> : <p className="utmtool-help">No links match your search.</p>}
+      <p className="utmtool-help">Showing {countLabel(filtered.length, "row")}.</p>
     </div>
   );
 };
@@ -1135,7 +1100,12 @@ const RelationshipBuilder = ({
   );
 };
 
+const SETUP_TABS = [{ id: "links", label: "Links" }, { id: "parameters", label: "Parameters" }, { id: "rules", label: "Rules" }];
+const COMBINATION_LABELS: Record<CombinationMode, string> = { cartesian: "All combinations", zip: "Match rows", templateRows: "Template + rows", groups: "Grouped relationships" };
+
 const App = () => {
+  const [setupTab, setSetupTab] = useState("links");
+  const [showPresets, setShowPresets] = useState(false);
   const [config, setConfig] = useState<AppConfigState>(defaultConfig);
   const [campaignBuilder, setCampaignBuilder] = useState<CampaignBuilderState>(defaultCampaignBuilder);
 
@@ -1174,6 +1144,10 @@ const App = () => {
     });
     return { columns, rowCount: Math.max(0, parsed.length - 1), hasCsv: true };
   }, [config.csvText]);
+
+  const fieldCount = (field: FieldInputState) => field.mode === "csvColumn"
+    ? csvMeta.rowCount
+    : field.mode === "list" ? field.list.split(/\r?\n/).filter((line) => line.trim()).length : Number(Boolean(field.single.trim()));
 
   const latestRef = useRef({
     config,
@@ -1905,52 +1879,64 @@ const App = () => {
     <div className="utmtool-app" data-testid="utmtool-app">
       {toast ? <div className="utmtool-toast" role="status">{toast}</div> : null}
 
-      <div className="utmtool-layout">
-        <AccordionSection
-          title="1) Data sources"
-          subtitle="Landing pages + optional CSV mapping."
-          defaultOpen
-          mobileDefaultOpen
-        >
-          <div className="utmtool-card">
-            <h3>Base URLs</h3>
-            <FieldEditor
-              label="Landing page URL(s)"
-              required
-              field={config.baseUrl}
-              onChange={(next) => setConfig((prev) => ({ ...prev, baseUrl: next }))}
-              csvColumns={csvMeta.columns}
-              combinationMode={config.mode}
-              placeholder="https://example.com/landing"
-              help={config.mode === "cartesian" ? "Enter 1+ URLs. If using List, add one URL per line." : undefined}
-            />
+      <div className="utmtool-layout tool-workspace-grid">
+        <section className="utmtool-setup tool-workspace-card" aria-label="Campaign setup">
+          <div className="tool-workspace-header">
+            <h2>Campaign setup</h2>
+            <button type="button" className="utmtool-quiet-button" aria-expanded={showPresets} aria-controls="utmtool-presets-panel" onClick={() => setShowPresets(!showPresets)}>Saved presets</button>
           </div>
-
-          <div className="utmtool-card">
-            <h3>CSV (optional)</h3>
-            <div className="utmtool-row utmtool-csv-upload-row">
-              <label className="utmtool-label" htmlFor="utmtool-csv-file">CSV file</label>
+          <div id="utmtool-presets-panel" hidden={!showPresets} className="utmtool-presets-panel">          <div className="utmtool-card">
+            <h3>Presets</h3>
+            <div className="utmtool-row">
+              <label className="utmtool-label" htmlFor="utmtool-preset-name">Preset name</label>
               <input
-                id="utmtool-csv-file"
-                className="utmtool-file-input"
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(e) => handleCsvUpload(e.target.files?.[0] || null)}
+                id="utmtool-preset-name"
+                className="utmtool-input"
+                type="text"
+                value={presetName}
+                placeholder="Preset name"
+                onChange={(e) => setPresetName(e.target.value)}
               />
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setConfig((prev) => ({ ...prev, csvText: "" }))}
-                disabled={!config.csvText}
-              >
-                Clear CSV
+              <button type="button" className="btn-secondary" onClick={savePreset}>
+                Save
               </button>
             </div>
-            <p className="utmtool-help">
-              {csvMeta.hasCsv
-                ? `Loaded CSV with ${csvMeta.rowCount.toLocaleString("en-US")} rows and ${csvMeta.columns.length} columns. Drag a column chip onto any field to map it.`
-                : "Upload a CSV to map Base URL / UTM fields / custom params from columns."}
-            </p>
+            {presets.length ? (
+              <div className="utmtool-presets">
+                {presets
+                  .slice()
+                  .sort((a: any, b: any) => String(a.name).localeCompare(String(b.name)))
+                  .map((p: any) => (
+                    <div key={p.name} className="utmtool-preset-row">
+                      <button type="button" className="btn-secondary" onClick={() => loadPreset(p.name)}>
+                        Load {p.name}
+                      </button>
+                      <button type="button" className="btn-secondary" onClick={() => deletePreset(p.name)}>
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="utmtool-help">Saved locally in your browser (localStorage).</p>
+            )}
+          </div>
+</div>
+          <div className="tool-workspace-tabs" role="tablist" aria-label="Campaign setup">
+            {SETUP_TABS.map((tab, index) => (
+              <button key={tab.id} id={`utmtool-tab-${tab.id}`} type="button" role="tab" aria-selected={setupTab === tab.id} aria-controls={`utmtool-panel-${tab.id}`} tabIndex={setupTab === tab.id ? 0 : -1} onClick={() => setSetupTab(tab.id)} onKeyDown={(event) => {
+                let next = index;
+                if (event.key === "ArrowRight") next = (index + 1) % SETUP_TABS.length;
+                else if (event.key === "ArrowLeft") next = (index - 1 + SETUP_TABS.length) % SETUP_TABS.length;
+                else if (event.key === "Home") next = 0;
+                else if (event.key === "End") next = SETUP_TABS.length - 1;
+                else return;
+                event.preventDefault();
+                setSetupTab(SETUP_TABS[next].id);
+                document.getElementById(`utmtool-tab-${SETUP_TABS[next].id}`)?.focus();
+              }}>{tab.label}</button>
+            ))}
+          </div>
             {csvMeta.hasCsv ? (
               <div className="utmtool-csv-chips" aria-label="CSV columns">
                 {csvMeta.columns.map((c) => (
@@ -1970,16 +1956,50 @@ const App = () => {
                 ))}
               </div>
             ) : null}
-          </div>
-        </AccordionSection>
-
-        <AccordionSection
-          title="2) UTM parameters"
-          subtitle="Required UTMs first, optional UTMs tucked away."
-          defaultOpen
-        >
+          <div id="utmtool-panel-links" role="tabpanel" aria-labelledby="utmtool-tab-links" hidden={setupTab !== "links"}>
           <div className="utmtool-card">
-            <h3>Required</h3>
+            <FieldEditor
+              label="Landing pages"
+              required
+              field={config.baseUrl}
+              onChange={(next) => setConfig((prev) => ({ ...prev, baseUrl: next }))}
+              csvColumns={csvMeta.columns}
+              combinationMode={config.mode}
+              placeholder="https://example.com/landing"
+              help={config.mode === "cartesian" ? "Enter 1+ URLs. If using List, add one URL per line." : undefined}
+            />
+          </div>
+
+          <div className="utmtool-card utmtool-csv-import">
+            <div className="utmtool-row utmtool-csv-upload-row">
+              <label className="visually-hidden" htmlFor="utmtool-csv-file">Import CSV</label>
+              <input
+                id="utmtool-csv-file"
+                className="utmtool-file-input"
+                type="file"
+                accept=".csv,text/csv"
+                aria-describedby="utmtool-csv-help"
+                onChange={(e) => handleCsvUpload(e.target.files?.[0] || null)}
+              />
+              {config.csvText ? <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setConfig((prev) => ({ ...prev, csvText: "" }))}
+              >
+                Clear CSV
+              </button> : null}
+            </div>
+            <p id="utmtool-csv-help" className="utmtool-help">
+              {csvMeta.hasCsv
+                ? `${countLabel(csvMeta.rowCount, "row")} · ${countLabel(csvMeta.columns.length, "column")}. Drag columns onto fields.`
+                : "Map CSV columns to campaign fields."}
+            </p>
+
+          </div>
+
+          </div>
+          <div id="utmtool-panel-parameters" role="tabpanel" aria-labelledby="utmtool-tab-parameters" hidden={setupTab !== "parameters"}>
+          <div className="utmtool-card">
             <FieldEditor
               label="utm_source"
               required
@@ -2030,14 +2050,8 @@ const App = () => {
               </div>
             </details>
           </div>
-        </AccordionSection>
 
-        <AccordionSection
-          title="3) Custom parameters"
-          subtitle="Optional extra query params (audience, creative, placement, flight, etc.)."
-          defaultOpen={config.customParams.length > 0}
-        >
-          <div className="utmtool-card">
+            <AccordionSection title="Custom parameters" defaultOpen={config.customParams.length > 0}>          <div className="utmtool-card">
             <div className="utmtool-card-head">
               <h3>Custom parameters</h3>
               <button type="button" className="btn-secondary" onClick={addCustomParam}>
@@ -2077,14 +2091,8 @@ const App = () => {
               <p className="utmtool-help">Add any extra parameters you need (e.g., audience, creative, placement).</p>
             )}
           </div>
-        </AccordionSection>
-
-        <AccordionSection
-          title="4) Naming helpers"
-          subtitle="Build campaign names from tokens, then plug into utm_campaign."
-          defaultOpen={false}
-        >
-          <div className="utmtool-card">
+</AccordionSection>
+            <AccordionSection title="Naming helpers" defaultOpen={false}>          <div className="utmtool-card">
             <h3>Campaign Name Builder</h3>
             <div className="utmtool-campaign-row">
               <label className="utmtool-label" htmlFor="utmtool-campaign-template">Template</label>
@@ -2146,13 +2154,9 @@ const App = () => {
               </p>
             ) : null}
           </div>
-        </AccordionSection>
-
-        <AccordionSection
-          title="5) Rules & relationships"
-          subtitle="Choose how lists combine, plus formatting and exclusions."
-          defaultOpen
-        >
+</AccordionSection>
+          </div>
+          <div id="utmtool-panel-rules" role="tabpanel" aria-labelledby="utmtool-tab-rules" hidden={setupTab !== "rules"}>
           <div className="utmtool-card">
             <h3>Combination mode</h3>
             <ModePicker
@@ -2251,27 +2255,8 @@ const App = () => {
               />
             </div>
           ) : null}
-        </AccordionSection>
 
-        <AccordionSection
-          title="6) Generate & results"
-          subtitle="Preview first, then generate + export."
-          defaultOpen
-        >
-          <div className="utmtool-card">
-            <h3>Generate</h3>
-            <div className="utmtool-actions-row">
-              <button type="button" className="btn-primary" onClick={() => runGeneration("preview")} disabled={status === "generating"}>
-                Preview ({Math.max(1, Math.floor(config.previewLimit || 10))})
-              </button>
-              <button type="button" className="btn-secondary" onClick={() => runGeneration("full")} disabled={status === "generating"}>
-                Generate
-              </button>
-              <button type="button" className="btn-secondary" onClick={cancelGeneration} disabled={status !== "generating"}>
-                Cancel
-              </button>
-            </div>
-            <div className="utmtool-row utmtool-row-inline">
+            <details className="utmtool-inline-details"><summary className="utmtool-inline-summary">Generation limits</summary><div className="utmtool-inline-body">            <div className="utmtool-row utmtool-row-inline">
               <label className="utmtool-label" htmlFor="utmtool-preview-limit">Preview rows</label>
               <input
                 id="utmtool-preview-limit"
@@ -2297,43 +2282,24 @@ const App = () => {
               />
             </div>
 
-            <div className="utmtool-stats">
-              <div>
-                <span className="utmtool-stat-label">Status</span>
-                <span className="utmtool-stat-value">{status}</span>
-              </div>
-              <div>
-                <span className="utmtool-stat-label">Estimated</span>
-                <span className="utmtool-stat-value">{estimatedTotal ? estimatedTotal.toLocaleString("en-US") : "—"}</span>
-              </div>
-              <div>
-                <span className="utmtool-stat-label">Generated</span>
-                <span className="utmtool-stat-value">{generatedCount ? generatedCount.toLocaleString("en-US") : "—"}</span>
-              </div>
-            </div>
-
-            {errors.length ? (
-              <div className="utmtool-banner utmtool-banner-error" role="alert">
-                <strong>Fix these issues:</strong>
-                <ul>
-                  {errors.map((e, idx) => <li key={idx}>{e}</li>)}
-                </ul>
-              </div>
-            ) : null}
-
-            {warnings.length ? (
-              <div className="utmtool-banner utmtool-banner-warn" role="status">
-                <strong>Notes:</strong>
-                <ul>
-                  {warnings.map((w, idx) => <li key={idx}>{w}</li>)}
-                </ul>
-              </div>
-            ) : null}
+</div></details>
           </div>
+          <div className="tool-workspace-summary">
+            <strong>{countLabel(fieldCount(config.baseUrl), "page")} · {countLabel(fieldCount(config.utm.source), "source")} · {countLabel(fieldCount(config.utm.campaign), "campaign")}</strong>
+            <span>{COMBINATION_LABELS[config.mode]}</span>
+            <span>Source: {summarizeFieldInput(config.utm.source, csvMeta.columns)}</span>
+            <span>Medium: {summarizeFieldInput(config.utm.medium, csvMeta.columns)} · Campaign: {summarizeFieldInput(config.utm.campaign, csvMeta.columns)}</span>
+          </div>
+          <div className="tool-workspace-actions utmtool-run-actions">
+            <button type="button" className="btn-secondary" onClick={() => runGeneration("preview")} disabled={status === "generating"}>Preview ({Math.max(1, Math.floor(config.previewLimit || 10))})</button>
+            <button type="button" className="btn-primary" onClick={() => runGeneration("full")} disabled={status === "generating"}>Generate links</button>
+            {status === "generating" ? <button type="button" className="btn-secondary" onClick={cancelGeneration}>Cancel</button> : null}
+          </div>
+        </section>
+        <section className="utmtool-output tool-workspace-card" aria-labelledby="utmtool-output-title" aria-busy={status === "generating"}>
 
-          <div className="utmtool-card">
             <div className="utmtool-card-head">
-              <h3>Results</h3>
+              <h2 id="utmtool-output-title">Generated links</h2>
               <div className="utmtool-actions-row utmtool-actions-row-tight">
                 <button type="button" className="btn-secondary" onClick={copyAll} disabled={!rows.length}>
                   Copy all
@@ -2366,51 +2332,32 @@ const App = () => {
             ) : (
               <p className="utmtool-help">Generate to see results here.</p>
             )}
-          </div>
-        </AccordionSection>
 
-        <AccordionSection
-          title="Saved presets"
-          subtitle="Save/load configurations in your browser."
-          defaultOpen={false}
-        >
-          <div className="utmtool-card">
-            <h3>Presets</h3>
-            <div className="utmtool-row">
-              <label className="utmtool-label" htmlFor="utmtool-preset-name">Preset name</label>
-              <input
-                id="utmtool-preset-name"
-                className="utmtool-input"
-                type="text"
-                value={presetName}
-                placeholder="Preset name"
-                onChange={(e) => setPresetName(e.target.value)}
-              />
-              <button type="button" className="btn-secondary" onClick={savePreset}>
-                Save
-              </button>
-            </div>
-            {presets.length ? (
-              <div className="utmtool-presets">
-                {presets
-                  .slice()
-                  .sort((a: any, b: any) => String(a.name).localeCompare(String(b.name)))
-                  .map((p: any) => (
-                    <div key={p.name} className="utmtool-preset-row">
-                      <button type="button" className="btn-secondary" onClick={() => loadPreset(p.name)}>
-                        Load {p.name}
-                      </button>
-                      <button type="button" className="btn-secondary" onClick={() => deletePreset(p.name)}>
-                        Delete
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <p className="utmtool-help">Saved locally in your browser (localStorage).</p>
-            )}
+          <div className="utmtool-workspace-status" role="status">
+            {status === "idle" ? "Ready to generate" : status === "generating" ? "Generating…" : status === "error" ? "Check the issues below" : status === "cancelled" ? "Cancelled" : "Complete"}
+            {estimatedTotal > 0 ? ` · Estimated ${estimatedTotal.toLocaleString("en-US")}` : ""}
+            {generatedCount > 0 ? ` · ${generatedCount.toLocaleString("en-US")} generated` : ""}
+            {` · Limit ${Math.min(UTM_MAX_GENERATED_ROWS, Math.max(1, config.maxRows || 1)).toLocaleString("en-US")}`}
           </div>
-        </AccordionSection>
+            {errors.length ? (
+              <div className="utmtool-banner utmtool-banner-error" role="alert">
+                <strong>Fix these issues:</strong>
+                <ul>
+                  {errors.map((e, idx) => <li key={idx}>{e}</li>)}
+                </ul>
+              </div>
+            ) : null}
+
+            {warnings.length ? (
+              <div className="utmtool-banner utmtool-banner-warn" role="status">
+                <strong>Notes:</strong>
+                <ul>
+                  {warnings.map((w, idx) => <li key={idx}>{w}</li>)}
+                </ul>
+              </div>
+            ) : null}
+
+        </section>
       </div>
     </div>
   );

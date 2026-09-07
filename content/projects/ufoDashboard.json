@@ -3,6 +3,7 @@
   "title": "UFO Sightings Dashboard",
   "subtitle": "Tableau Geospatial Analytics",
   "image": "img/projects/ufoDashboard.png",
+  "iconImage": "img/projects/icons/ufoDashboard.png",
   "imageWidth": 2008,
   "imageHeight": 1116,
   "tools": [
@@ -42,6 +43,7 @@
     ]
   },
   "problem": "I wanted to see patterns in UFO sighting reports across the U.S.",
+  "task": "Create a Tableau dashboard for exploring geographic, seasonal, and time-of-day patterns in reported UFO sightings.",
   "actions": [
     "Cleaned and standardized a public UFO sightings dataset.",
     "Built a Tableau dashboard with maps and time-based charts."
@@ -51,5 +53,11 @@
     "California has the most reports in the dataset, while many central states have fewer."
   ],
   "order": 4,
-  "notes": "The dashboard uses reported UFO sightings without population normalization, so patterns should be read as report volume, not incidence rates."
+  "notes": "The dashboard uses reported UFO sightings without population normalization, so patterns should be read as report volume, not incidence rates.",
+  "mobilePreview": {
+    "image": "img/projects/ufoDashboard-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "UFO Sightings Dashboard showing state and city maps, sighting counts, shape trends, and a time-of-day heatmap."
+  }
 }

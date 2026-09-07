@@ -26,17 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/chatbotLora.png">
   <meta name="twitter:image:alt" content="Preview image for Chatbot (LoRA + RAG)">
   <meta name="theme-color" content="#091F3B">
-  <script id="ds-sw-register">
-  (function () {
-    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-    if (new URLSearchParams(window.location.search).has("no_sw")) return;
-    var host = window.location.hostname || "";
-    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function () {});
-    });
-  })();
-  </script>
+  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -46,7 +36,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.40f7dbbd.css">
+  <link rel="stylesheet" href="dist/styles.81f47dfb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -69,11 +59,11 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.2090cb2c.js"></script>
-  <link rel="stylesheet" href="dist/styles-personal-accordion.b4b0114f.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"analytics:projects:chatbotLora","path":"/portfolio/chatbotLora","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.40f7dbbd.css","/css/components/project-page.css","/dist/styles-personal-accordion.b4b0114f.css"],"scripts":["/js/common/no-js.js","/dist/site-shell.2090cb2c.js","/dist/site-consent.5fbd7df8.js"],"module":"page:content"}</script>
+  <script defer src="dist/site-shell.8928284a.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.16c6538c.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"analytics:projects:chatbotLora","path":"/portfolio/chatbotLora","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.81f47dfb.css","/css/components/project-page.css","/dist/styles-personal-accordion.16c6538c.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.8928284a.js","/dist/site-consent.ab1759e7.js"],"module":"page:content"}</script>
 </head>
-<body data-page="project" class="project-page project-page--compact personal-accordion-page" data-internal-professional-copy="true" data-audience="analytics" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="chatbotLora" data-personal-fit="document" data-site-route-id="analytics:projects:chatbotLora" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
+<body data-page="project" class="project-page project-page--compact personal-accordion-page" data-internal-professional-copy="true" data-audience="analytics" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="chatbotLora" data-personal-fit="viewport" data-site-route-id="analytics:projects:chatbotLora" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
   <a href="/portfolio/chatbotLora?audience=analytics#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav" data-site-shell-header>
     <nav class="nav" aria-label="Site header">
@@ -150,6 +140,9 @@
       <div class="wrapper">
         <h1>Chatbot (LoRA + RAG)</h1>
         <p class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</p>
+        <nav class="project-intro-actions" aria-label="Project actions">
+        <a class="project-intro-action project-intro-action--demo" href="/chatbot-demo" data-content-open="true" data-content-id="chatbotLora" data-content-type="project_resource" data-resource-type="demo" data-source-surface="project_intro">Open demo</a>
+      </nav>
       </div>
     </section>
 
@@ -164,7 +157,7 @@
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Task</dt>
-          <dd class="project-star-value">Built the prototype from crawl to deployment, then expanded it into a dual-backend demo comparing a custom LoRA/SageMaker model with a live Bedrock model.</dd>
+          <dd class="project-star-value">Build one tourism chatbot demo that supports both managed and fine-tuned models with source-grounded answers and citations.</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Action</dt>
@@ -173,6 +166,7 @@
               <li>Crawled Visit Grand Junction pages, built a FAISS retrieval index, and generated a tourism-specific Q&amp;A dataset with an open-source LLM through Ollama.</li>
               <li>Fine-tuned a Mistral 7B/Qwen-style chatbot path with LoRA and deployed the custom model behind AWS SageMaker/Lambda for cold-start and model-control comparison.</li>
               <li>Added a Bedrock backend as the default live path, keeping the same RAG/citation experience while providing faster always-available responses for the website demo.</li>
+              <li>Built the web interface, backend selector, health checks, warm-up state, streaming answer handling, and citation rendering so both models can be compared in one demo.</li>
             </ul>
           </dd>
         </div>
@@ -191,7 +185,9 @@
         <section class="project-demo-shell" data-demo-fit="viewport" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
-        <div class="project-demo-help">
+        <div class="project-demo-header-actions">
+          <a class="project-demo-open" href="/chatbot-demo">Open full demo</a>
+          <div class="project-demo-help">
           <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-chatbotLora-instructions">
             <span aria-hidden="true">?</span>
           </button>
@@ -204,6 +200,7 @@
         <li>Bedrock is the default live backend; choose Qwen / SageMaker only when comparing cold-start behavior.</li>
       </ul>
           </div>
+        </div>
         </div>
       </div>
 
@@ -222,7 +219,6 @@
       <div class="project-links-groups project-links-groups--flat">
         <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Chatbot-LoRA-RAG" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/chatbot-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
       </div>
       </div>
     </section>
@@ -249,6 +245,6 @@
     </div>
   </footer>
 
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>
 </html>

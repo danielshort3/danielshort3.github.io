@@ -129,6 +129,14 @@ function runPersonalAccordionShellTests({ assert }) {
   assert(count(wrapped, /<main\b/gi) === 1, 'Personal shell should preserve exactly one main element');
   assert(/<body[^>]*data-page="contact"/i.test(wrapped), 'Personal shell should preserve the original data-page');
   assert(/<body[^>]*data-audience="personal"/i.test(wrapped), 'Personal shell should stamp the personal audience');
+  assert(/<body[^>]*data-personal-fit="viewport"/i.test(wrapped), 'Shared shells should default to a bounded desktop frame');
+  for (const fit of ['document', '', 'unknown']) {
+    const normalized = wrapPersonalAccordionHtml(sample, { category: 'contact', fit });
+    assert(/<body[^>]*data-personal-fit="viewport"/i.test(normalized),
+      `A stale or unsupported ${JSON.stringify(fit)} fit cannot expand a standard generated shell`);
+  }
+  assert(/<body[^>]*data-personal-fit="immersive"/i.test(wrapPersonalAccordionHtml(sample, { category: 'games', fit: 'immersive' })),
+    'An explicitly immersive game keeps its layout exception');
   assert(count(wrapped, /data-personal-rail-active="true"/g) === 1,
     'Personal shell should identify one active category marker');
   assert(count(wrapped, /class="personal-accordion__rail(?:\s|")/g) === 5 &&
@@ -197,11 +205,13 @@ function runPersonalAccordionShellTests({ assert }) {
     projectLibrary.includes('aria-label="Back to homepage"') &&
     projectLibrary.includes('personal-accordion__back-label--mobile" aria-hidden="true">Home</span>'),
   'Project library should include a homepage back control targeting the Projects overview');
+  assert(/<body[^>]*data-personal-fit="viewport"/i.test(projectLibrary),
+    'The generated project library should retain the same bounded desktop frame as its overview and detail pages');
   assert(count(projectLibrary, /<h1\b/gi) === 1 &&
-    projectLibrary.includes('<p class="personal-library__meta">1 project</p>') &&
+    !projectLibrary.includes('personal-library__meta') &&
     !projectLibrary.includes('home-library__page-link') &&
     !/Open the dedicated [^<]+ page/i.test(projectLibrary),
-  'Canonical library should keep one heading, quiet item count, and no redundant dedicated-page control');
+  'Project library should keep one heading without an item count or redundant dedicated-page control');
 
   const toolsLibrary = renderPersonalLibraryMain({
     category: 'tools',
@@ -209,11 +219,38 @@ function runPersonalAccordionShellTests({ assert }) {
   });
   assert(toolsLibrary.includes('<h1 id="personal-library-title-tools">Tool library</h1>') &&
     toolsLibrary.includes('The complete collection of small utilities for text, links, media, and recurring workflows.') &&
-    toolsLibrary.includes('<p class="personal-library__meta">1 tool</p>') &&
+    !toolsLibrary.includes('personal-library__meta') &&
     !toolsLibrary.includes('personal-library--tools tools-hero') &&
     toolsLibrary.includes('data-personal-tool-account="true"') &&
     !toolsLibrary.includes('>All tools<'),
   'Tool library renderer should share homepage copy, avoid legacy hero semantics, and expose one compact account slot without duplicate navigation');
+
+  const groupedLibrary = renderPersonalLibraryMain({
+    category: 'projects',
+    items: [
+      { id: 'first', title: 'First project', href: '/portfolio/first', group: 'Start here' },
+      { id: 'analysis', title: 'Analysis', href: '/portfolio/analysis', group: 'Data & stories' },
+      { id: 'second', title: 'Second project', href: '/portfolio/second', group: 'Start here' }
+    ]
+  });
+  const groupedSections = [...groupedLibrary.matchAll(/<section class="home-library__group"[^>]*>([\s\S]*?)<\/section>/g)].map((match) => match[1]);
+  assert(groupedSections.length === 2 &&
+    groupedSections[0].includes('<h2 id="home-library-projects-group-1" tabindex="-1">Start here</h2>') &&
+    groupedSections[0].includes('href="/portfolio/first"') &&
+    groupedSections[0].includes('href="/portfolio/second"') &&
+    !groupedSections[0].includes('href="/portfolio/analysis"') &&
+    groupedSections[1].includes('<h2 id="home-library-projects-group-2" tabindex="-1">Data &amp; stories</h2>') &&
+    groupedSections[1].includes('aria-label="Data &amp; stories"') &&
+    groupedSections[1].includes('href="/portfolio/analysis"'),
+  'Library rendering should merge each group into one labelled list, preserve first-group order, and escape group labels');
+  assert(count(groupedLibrary, /<h1\b/g) === 1 && count(groupedLibrary, /<ul\b/g) === 2 &&
+    count(groupedLibrary, /<li\b/g) === 3,
+  'Grouped project pages should retain one page heading and exactly one card per input item');
+  assert(groupedLibrary.includes('aria-label="Projects categories"') &&
+    groupedLibrary.includes('href="#home-library-projects-group-1" data-home-library-jump data-page-transition="false">Start here</a>') &&
+    groupedLibrary.includes('href="#home-library-projects-group-2" data-home-library-jump data-page-transition="false">Data &amp; stories</a>') &&
+    !toolsLibrary.includes('home-library__jump-links'),
+  'Long grouped catalogs should expose accessible category jumps while single-group catalogs avoid redundant navigation');
 
   const toolSample = sample.replace(
     '<main id="main"><h1>Contact</h1></main>',
@@ -342,16 +379,9 @@ function runPersonalAccordionShellTests({ assert }) {
     assert(count(html, /<main\b/gi) === 1, `${relativePath} should retain one main element`);
     assert(count(html, /<footer\b[^>]*\bfooter--personal-compact\b/gi) === 1,
       `${relativePath} should include one compact personal footer`);
-    const isImmersiveGame = relativePath === 'pages/games/stellar-dogfight.html';
-    if (isImmersiveGame) {
-      assert(/<body[^>]*data-personal-fit="immersive"/i.test(html) &&
-        /<body[^>]*data-personal-chrome="compact"/i.test(html),
-      `${relativePath} should retain immersive geometry while using compact personal chrome`);
-    } else {
-      assert(/<body[^>]*data-personal-fit="viewport"/i.test(html) &&
-        /<body[^>]*data-personal-chrome="compact"/i.test(html),
-      `${relativePath} should use the viewport-fit shell and compact personal chrome`);
-    }
+    assert(/<body[^>]*data-personal-fit="viewport"/i.test(html) &&
+      /<body[^>]*data-personal-chrome="compact"/i.test(html),
+    `${relativePath} should retain the standard bounded desktop frame with natural document flow on compact screens`);
     if (projectDetailPages.has(relativePath)) {
       assert(html.includes('href="/portfolio" aria-label="Back to project library"') &&
         html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
@@ -376,10 +406,12 @@ function runPersonalAccordionShellTests({ assert }) {
     }
     if (['pages/portfolio.html', 'pages/tools.html', 'pages/games.html'].includes(relativePath)) {
       assert(count(html, /<h1\b/gi) === 1 &&
-        /<p class="personal-library__meta">\d+ (?:project|tool|game)s?<\/p>/i.test(html) &&
+        (relativePath === 'pages/games.html'
+          ? /<p class="personal-library__meta">\d+ games?<\/p>/i.test(html)
+          : !html.includes('personal-library__meta')) &&
         !html.includes('home-library__page-link') &&
         !/Open the dedicated [^<]+ page/i.test(html),
-      `${relativePath} should use one scrollable title, concise lead/count metadata, and no redundant page control`);
+      `${relativePath} should use one scrollable title, omit Tools/Projects counts, and avoid redundant page controls`);
     }
     if (toolDetailPages.has(relativePath)) {
       assert(html.includes('href="/tools" aria-label="Back to tool library"') &&
@@ -485,6 +517,8 @@ function runPersonalAccordionShellTests({ assert }) {
     const ogUrl = getTagAttribute(html, /<meta\b[^>]*\bproperty="og:url"[^>]*>/i, 'content');
     assert(html.includes('data-personal-accordion-shell'), `${relativePath} should use the shared tab shell`);
     assert(new RegExp(`<body[^>]*data-audience="${audience}"`, 'i').test(html), `${relativePath} should retain its audience`);
+    assert(/<body[^>]*data-personal-fit="viewport"/i.test(html),
+      `${relativePath} should share the standard bounded frame across audiences`);
     assert(count(html, /<meta\b[^>]*\bname="robots"[^>]*\bcontent="noindex, nofollow"[^>]*>/gi) === 1,
       `${relativePath} should contain one noindex directive`);
     assert(canonical.includes(`?audience=${audience}`), `${relativePath} should canonicalize to its visible audience URL`);

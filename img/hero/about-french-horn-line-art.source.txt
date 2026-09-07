@@ -1,0 +1,17 @@
+Asset: about-french-horn-line-art.svg
+Title: French horn
+Creator: Firkin
+Uploaded to Openclipart: 2016-09-19
+Selected listing: https://freesvg.org/french-horn
+Source: https://openclipart.org/detail/262076/french-horn
+Downloaded SVG: https://openclipart.org/download/262076
+Alternate named download: https://openclipart.org/download/262076/FrenchHorn.svg
+License: CC0 1.0 Universal Public Domain Dedication
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+Source licensing terms: https://openclipart.org/share
+Attribution is not required. This record preserves provenance for maintenance.
+Source description: From a public domain drawing on Wikimedia Commons.
+The Openclipart listing does not identify the exact Commons source file.
+Verified: 2026-09-06
+Changes for this site: filename only. Original vector paths, black color,
+transparent background, dimensions, and viewBox are unchanged.

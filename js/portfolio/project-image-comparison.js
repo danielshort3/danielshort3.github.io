@@ -12,10 +12,12 @@
     const number = Number(value);
     return Number.isFinite(number) ? number : fallback;
   };
-  // Retain small view state across soft navigation without keeping detached DOM.
-  const savedComparisons = new Map();
+  // Route scripts execute again on return. Keep only bounded scalar view state
+  // outside that script lifetime; each execution still installs fresh scoped hooks.
+  const stateKey = Symbol.for('danielshort.project-image-comparison-state');
+  const savedComparisons = window[stateKey] || (window[stateKey] = new Map());
 
-  function initRegionSelection(comparison, slides, saved, listenerOptions) {
+  function initRegionSelection(comparison, slides, saved, listenerOptions, resetDividers) {
     const overview = $('[data-comparison-overview]', comparison);
     const selection = $('[data-comparison-selection]', comparison);
     const controls = $('[data-selection-controls]', comparison);
@@ -30,6 +32,8 @@
     let initial;
     try { initial = JSON.parse(comparison.dataset.comparisonCrop); } catch (_) { return () => {}; }
     const pageRatio = readNumber(comparison.dataset.comparisonPageRatio, 612 / 792);
+    const requestedAspect = readNumber(comparison.dataset.comparisonSelectionAspect, 16 / 9);
+    const selectionAspect = requestedAspect > 0 ? requestedAspect : 16 / 9;
     const defaultState = {
       x: (initial.left + initial.width / 2) / 100,
       y: (initial.top + initial.height / 2) / 100,
@@ -48,7 +52,7 @@
     const renderRegion = () => {
       state.zoom = clamp(readNumber(state.zoom, defaultState.zoom), 1, 6);
       const width = 1 / state.zoom;
-      const height = width * pageRatio / (16 / 9);
+      const height = width * pageRatio / selectionAspect;
       state.x = clamp(readNumber(state.x, defaultState.x), width / 2, 1 - width / 2);
       state.y = clamp(readNumber(state.y, defaultState.y), height / 2, 1 - height / 2);
       const left = state.x - width / 2;
@@ -88,6 +92,15 @@
     };
     const focusSelection = () => {
       try { selection.focus({ preventScroll: true }); } catch (_) { selection.focus(); }
+    };
+    const cancelPointer = () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+      pending = null;
+      const id = pointer?.id;
+      pointer = null;
+      selection.classList.remove('is-dragging');
+      if (id !== undefined && selection.hasPointerCapture(id)) selection.releasePointerCapture(id);
     };
 
     overview.addEventListener('click', (event) => {
@@ -139,6 +152,8 @@
       renderRegion();
     }, listenerOptions);
     reset.addEventListener('click', () => {
+      cancelPointer();
+      resetDividers();
       state = { ...defaultState };
       renderRegion();
     }, listenerOptions);
@@ -184,11 +199,7 @@
     return () => {
       disposed = true;
       request += 1;
-      if (frame) window.cancelAnimationFrame(frame);
-      pending = null;
-      if (pointer && selection.hasPointerCapture(pointer.id)) selection.releasePointerCapture(pointer.id);
-      pointer = null;
-      selection.classList.remove('is-dragging');
+      cancelPointer();
       selection.disabled = true;
     };
   }
@@ -215,38 +226,43 @@
         savedComparisons.set(stateKey, saved);
         if (savedComparisons.size > 8) savedComparisons.delete(savedComparisons.keys().next().value);
       }
-      let left = readNumber(saved.left ?? comparison.dataset.comparisonLeft, 33);
-      let right = readNumber(saved.right ?? comparison.dataset.comparisonRight, 67);
+      // Runtime positions are mutable; preserve canonical defaults across remounts.
+      const defaultLeft = readNumber(comparison.dataset.comparisonDefaultLeft, readNumber(comparison.dataset.comparisonLeft, 33));
+      const defaultRight = readNumber(comparison.dataset.comparisonDefaultRight, readNumber(comparison.dataset.comparisonRight, 67));
+      comparison.dataset.comparisonDefaultLeft = String(defaultLeft);
+      comparison.dataset.comparisonDefaultRight = String(defaultRight);
+      let left = readNumber(saved.left, defaultLeft);
+      let right = readNumber(saved.right, defaultRight);
       let animationFrame = 0;
       let pendingPointerMove = null;
+      let activeDrag = null;
+      let viewportPointerType = null;
       const eventController = typeof AbortController === 'function' ? new AbortController() : null;
       const listenerOptions = eventController ? { signal: eventController.signal } : undefined;
 
       const getBounds = () => {
         const width = Math.max(viewport.getBoundingClientRect().width, 1);
-        const edge = Math.min(12, (22 / width) * 100);
         const pointerGap = Math.min(24, (44 / width) * 100);
         return {
-          edge,
           gap: Math.max(configuredGap, pointerGap)
         };
       };
 
       const getDividerRange = (side, bounds = getBounds()) => side === 'left'
         ? {
-          minimum: bounds.edge,
-          maximum: 100 - bounds.edge - bounds.gap
+          minimum: bounds.gap,
+          maximum: 100 - 2 * bounds.gap
         }
         : {
-          minimum: bounds.edge + bounds.gap,
-          maximum: 100 - bounds.edge
+          minimum: 2 * bounds.gap,
+          maximum: 100 - bounds.gap
         };
 
       const normalizeState = () => {
         const bounds = getBounds();
-        right = clamp(right, bounds.edge + bounds.gap, 100 - bounds.edge);
-        left = clamp(left, bounds.edge, right - bounds.gap);
-        right = clamp(right, left + bounds.gap, 100 - bounds.edge);
+        right = clamp(right, 2 * bounds.gap, 100 - bounds.gap);
+        left = clamp(left, bounds.gap, right - bounds.gap);
+        right = clamp(right, left + bounds.gap, 100 - bounds.gap);
       };
 
       const updateDividerAria = (divider, side) => {
@@ -320,43 +336,48 @@
         });
       };
 
-      const bindDivider = (divider, side) => {
-        let activePointerId = null;
+      const cancelDividerDrag = () => {
+        if (animationFrame) window.cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
+        pendingPointerMove = null;
+        const drag = activeDrag;
+        activeDrag = null;
+        viewport.classList.remove('is-dragging');
+        if (!drag) return;
+        drag.divider.classList.remove('is-dragging');
+        if (drag.target.hasPointerCapture(drag.id)) drag.target.releasePointerCapture(drag.id);
+      };
 
-        divider.addEventListener('pointerdown', (event) => {
-          if (event.isPrimary === false || (event.pointerType === 'mouse' && event.button !== 0)) return;
-          activePointerId = event.pointerId;
-          divider.classList.add('is-dragging');
-          divider.setPointerCapture(event.pointerId);
-          focusDivider(divider);
-          queuePointerMove(side, event.clientX);
+      const startDividerDrag = (event, side, target) => {
+        if (event.isPrimary === false || (event.pointerType === 'mouse' && event.button !== 0)) return;
+        cancelDividerDrag();
+        const divider = side === 'left' ? leftDivider : rightDivider;
+        activeDrag = { id: event.pointerId, side, target, divider };
+        event.preventDefault();
+        divider.classList.add('is-dragging');
+        viewport.classList.add('is-dragging');
+        target.setPointerCapture(event.pointerId);
+        focusDivider(divider);
+        // Give feedback on pointerdown, before the first animation frame.
+        moveDivider(side, valueFromPointer(event.clientX));
+      };
+
+      const bindPointerTarget = (target) => {
+        target.addEventListener('pointermove', (event) => {
+          if (!activeDrag || activeDrag.target !== target || event.pointerId !== activeDrag.id) return;
+          queuePointerMove(activeDrag.side, event.clientX);
         }, listenerOptions);
-
-        divider.addEventListener('pointermove', (event) => {
-          if (event.pointerId !== activePointerId) return;
-          queuePointerMove(side, event.clientX);
-        }, listenerOptions);
-
         const endPointer = (event) => {
-          if (event.pointerId !== activePointerId) return;
-          if (animationFrame) {
-            window.cancelAnimationFrame(animationFrame);
-            animationFrame = 0;
-          }
-          flushPointerMove();
-          const pointerId = activePointerId;
-          activePointerId = null;
-          divider.classList.remove('is-dragging');
-          if (divider.hasPointerCapture(pointerId)) divider.releasePointerCapture(pointerId);
+          if (!activeDrag || activeDrag.target !== target || event.pointerId !== activeDrag.id) return;
+          if (event.type === 'pointerup') flushPointerMove();
+          cancelDividerDrag();
         };
+        ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((type) => target.addEventListener(type, endPointer, listenerOptions));
+      };
 
-        divider.addEventListener('pointerup', endPointer, listenerOptions);
-        divider.addEventListener('pointercancel', endPointer, listenerOptions);
-        divider.addEventListener('lostpointercapture', (event) => {
-          if (event.pointerId !== activePointerId) return;
-          activePointerId = null;
-          divider.classList.remove('is-dragging');
-        }, listenerOptions);
+      const bindDivider = (divider, side) => {
+        divider.addEventListener('pointerdown', (event) => startDividerDrag(event, side, divider), listenerOptions);
+        bindPointerTarget(divider);
 
         divider.addEventListener('keydown', (event) => {
           const range = getDividerRange(side);
@@ -373,6 +394,7 @@
           if (nextValue === null) return;
 
           event.preventDefault();
+          cancelDividerDrag();
           moveDivider(side, nextValue);
         }, listenerOptions);
       };
@@ -387,7 +409,20 @@
       });
       bindDivider(leftDivider, 'left');
       bindDivider(rightDivider, 'right');
+      bindPointerTarget(viewport);
+      viewport.addEventListener('pointerdown', (event) => {
+        viewportPointerType = event.pointerType;
+        // Touching the image still permits page scrolling; direct handles remain draggable.
+        if (event.pointerType !== 'mouse' || event.button !== 0 || event.target.closest?.('[data-comparison-divider]')) return;
+        const value = valueFromPointer(event.clientX);
+        const side = Math.abs(value - left) <= Math.abs(value - right) ? 'left' : 'right';
+        startDividerDrag(event, side, viewport);
+      }, listenerOptions);
       viewport.addEventListener('click', (event) => {
+        // Mouse positions are handled on pointerdown/move, including gestures canceled by Reset.
+        const handledMouseGesture = event.pointerType === 'mouse' || viewportPointerType === 'mouse';
+        viewportPointerType = null;
+        if (handledMouseGesture) return;
         if (event.defaultPrevented || event.button !== 0 || event.target.closest?.('[data-comparison-divider]')) return;
 
         const requestedValue = valueFromPointer(event.clientX);
@@ -400,7 +435,14 @@
         focusDivider(divider);
       }, listenerOptions);
       render();
-      const disposeSelection = initRegionSelection(comparison, slides, saved, listenerOptions);
+      const resetDividers = () => {
+        cancelDividerDrag();
+        left = defaultLeft;
+        right = defaultRight;
+        normalizeState();
+        render();
+      };
+      const disposeSelection = initRegionSelection(comparison, slides, saved, listenerOptions, resetDividers);
 
       slides.forEach((slide) => {
         const image = $('img', slide);
@@ -428,10 +470,8 @@
         if (cleaned) return;
         cleaned = true;
         disposeSelection();
+        cancelDividerDrag();
         eventController?.abort();
-        if (animationFrame) window.cancelAnimationFrame(animationFrame);
-        animationFrame = 0;
-        pendingPointerMove = null;
         comparison._projectImageComparisonObserver?.disconnect?.();
         comparison._projectImageComparisonObserver = null;
         comparison._projectImageComparisonCleanup = null;

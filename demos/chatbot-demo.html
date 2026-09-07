@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <style>
@@ -455,8 +455,8 @@
     }
 
     html[data-embedded="true"] .chat-stage {
-      height: min(760px, 100%);
-      width: min(860px, calc(100% - clamp(16px, 3vw, 28px)));
+      height: 100%;
+      width: 100%;
     }
 
     .chat-shell {
@@ -473,6 +473,11 @@
     }
 
     .chat-shell--regular { grid-template-rows: minmax(0, 1fr) auto; }
+
+    .chat-shell--regular:has(.empty-state) {
+      grid-template-rows: minmax(0, max-content) auto;
+      align-content: start;
+    }
 
     .chat-head {
       min-height: 72px;
@@ -522,10 +527,10 @@
     }
 
     .empty-state {
-      margin: auto;
+      margin: 0 auto;
       max-width: 520px;
       display: grid;
-      gap: 12px;
+      gap: 10px;
       text-align: center;
       color: var(--muted);
     }
@@ -533,7 +538,7 @@
     .empty-state .empty-title {
       margin: 0;
       color: var(--text);
-      font-size: clamp(20px, 3vw, 26px);
+      font-size: clamp(20px, 2.5vw, 24px);
       line-height: 1.12;
       font-weight: 800;
       letter-spacing: 0;
@@ -541,7 +546,7 @@
 
     .empty-state p {
       margin: 0;
-      line-height: 1.5;
+      line-height: 1.4;
       font-size: 14px;
     }
 
@@ -911,6 +916,8 @@
       .chat-stage, html[data-embedded="true"] .chat-stage { width: 100%; height: 100%; }
       .chat-shell { border-inline: 0; border-radius: 0; box-shadow: none; }
       .chat-messages { padding: 16px; }
+      .chat-shell--regular:has(.empty-state) { align-content: start; }
+      .empty-state { text-align: left; }
       .chat-composer { padding: 12px 12px max(12px, env(safe-area-inset-bottom)); }
       .chat-form { grid-template-columns: minmax(0, 1fr) 74px; }
       .chat-form textarea { min-height: 48px; max-height: 96px; font-size: 16px; }
@@ -922,6 +929,24 @@
       .popup-window { right: 10px; bottom: 84px; width: calc(100% - 20px); height: calc(100% - 98px); }
       .popup-window .chat-shell { border: 1px solid var(--line); border-radius: 12px; }
       .popup-launcher { right: 18px; bottom: 18px; width: 58px; height: 58px; }
+    }
+
+    @media (max-height: 360px) {
+      .demo-toolbar {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 6px;
+        padding: 8px;
+      }
+      .demo-title { grid-column: auto; }
+      .demo-title h1 { font-size: 16px; }
+      .demo-title p { font-size: 11px; line-height: 1.25; }
+      .warmup-button { min-width: 0; padding: 0 8px; font-size: 12px; }
+      .demo-settings > summary { padding: 8px; font-size: 12px; }
+      .chat-messages { padding: 8px; }
+      .chat-composer { padding: 8px; }
+      .chat-form { grid-template-columns: minmax(0, 1fr) 60px; }
+      .chat-form textarea { min-height: 44px; max-height: 72px; padding: 10px; }
+      .chat-send { width: 60px; min-width: 0; padding: 0 8px; }
     }
   </style>
   <script>
@@ -1086,24 +1111,24 @@
     const BACKEND_DEFAULT_VERSION = 'bedrock-default-2026-05-06';
     const { resolveEndpoint, getJson, postJson, retryRequest } = window.DemoAws;
     const RUNTIME_CONFIG = window.VGJ_CHATBOT_CONFIG || {};
+    function resolveBackendApiUrl(backendId, defaultUrl, storageKey) {
+      if (['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
+        return `/api/chatbot-demo/${backendId}`;
+      }
+      return resolveEndpoint({ defaultUrl, storageKey }).replace(/\/$/, '');
+    }
     const BACKENDS = {
       'qwen-sagemaker': {
         id: 'qwen-sagemaker',
         label: 'Qwen / SageMaker',
-        apiUrl: resolveEndpoint({
-          defaultUrl: RUNTIME_CONFIG.qwenApiUrl || DEFAULT_QWEN_API_URL,
-          storageKey: 'demo.endpoint.chatbot.markdown'
-        }).replace(/\/$/, ''),
+        apiUrl: resolveBackendApiUrl('qwen', RUNTIME_CONFIG.qwenApiUrl || DEFAULT_QWEN_API_URL, 'demo.endpoint.chatbot.markdown'),
         billingModel: 'sagemaker_instance_hour',
         alwaysOn: false
       },
       bedrock: {
         id: 'bedrock',
         label: 'Bedrock',
-        apiUrl: resolveEndpoint({
-          defaultUrl: RUNTIME_CONFIG.bedrockApiUrl || DEFAULT_BEDROCK_API_URL,
-          storageKey: 'demo.endpoint.chatbot.bedrock'
-        }).replace(/\/$/, ''),
+        apiUrl: resolveBackendApiUrl('bedrock', RUNTIME_CONFIG.bedrockApiUrl || DEFAULT_BEDROCK_API_URL, 'demo.endpoint.chatbot.bedrock'),
         streamUrl: DEFAULT_BEDROCK_STREAM_URL,
         billingModel: 'on_demand_tokens',
         alwaysOn: true
@@ -1166,7 +1191,8 @@
     let readyDuration = 0;
     let sharedStatusTimer = null;
 
-    const boundRetryButtons = new WeakSet();
+    // Track DOM nodes: copied message markup does not retain click listeners.
+    const boundMessageControls = new WeakSet();
 
     const sharedConversation = {
       activeContextId: 'regular',
@@ -1837,7 +1863,7 @@
       try {
         const parsed = new URL(url);
         const parts = parsed.pathname.split('/').filter(Boolean);
-        const slug = parts[parts.length - 1] || parsed.hostname;
+        const slug = decodeURIComponent(parts[parts.length - 1] || parsed.hostname).replace(/\.(?:html?|aspx?)$/i, '');
         return slug.replace(/[-_]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase()) || `Source ${index + 1}`;
       } catch {
         return `Source ${index + 1}`;
@@ -1849,14 +1875,30 @@
     }
 
     function sourceKey(url) {
-      return String(url || '').split('#')[0].replace(/\/+$/, '').toLowerCase();
+      try {
+        const parsed = new URL(url);
+        parsed.hash = '';
+        parsed.pathname = parsed.pathname.replace(/\/+$/, '') || '/';
+        return parsed.href;
+      } catch {
+        return '';
+      }
+    }
+
+    function safeAnswerUrl(url) {
+      try {
+        const parsed = new URL(String(url || '').trim());
+        return /^https?:$/.test(parsed.protocol) ? parsed.href : '';
+      } catch {
+        return '';
+      }
     }
 
     function sourceItems(data) {
       const items = new Map();
       const add = (url, label) => {
         if (!url) return;
-        const href = String(url).trim();
+        const href = safeAnswerUrl(url);
         const key = sourceKey(href);
         if (!key || items.has(key)) return;
         items.set(key, { url: href, label: label || sourceLabel(href, items.size) });
@@ -1874,7 +1916,16 @@
     }
 
     function cleanLinkedUrl(rawUrl) {
-      return String(rawUrl || '').replace(/[.,;:!?]+$/, '');
+      let url = String(rawUrl || '');
+      // Bare URLs follow Markdown's sentence-punctuation convention. Explicit
+      // Markdown/autolink destinations bypass this, preserving literal endings.
+      url = url.replace(/[.,;:!?]+$/, '');
+      let balance = [...url].reduce((count, char) => count + (char === '(' ? 1 : char === ')' ? -1 : 0), 0);
+      while (balance < 0 && url.endsWith(')')) {
+        url = url.slice(0, -1);
+        balance += 1;
+      }
+      return url;
     }
 
     function linkState(maxLinks = 10) {
@@ -1896,6 +1947,12 @@
 
     function normalizeAnswerLinks(container) {
       container.querySelectorAll('a[href]').forEach(link => {
+        const href = safeAnswerUrl(link.getAttribute('href'));
+        if (!href) {
+          link.replaceWith(...link.childNodes);
+          return;
+        }
+        link.href = href;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
       });
@@ -1908,15 +1965,20 @@
         const key = sourceKey(href);
         if (key) state.usedUrls.add(key);
       });
+      state.inlineCount = state.usedUrls.size;
     }
 
     function appendAnswerLink(container, text, href, state = null) {
-      if (!reserveLinkUrl(href, state)) {
+      const safeHref = safeAnswerUrl(href);
+      if (!safeHref) {
         container.append(document.createTextNode(text));
         return null;
       }
+      // Explicit model links must behave identically in both Markdown renderers.
+      // The link budget only limits inferred links added later.
+      reserveLinkUrl(safeHref, state);
       const link = document.createElement('a');
-      link.href = href;
+      link.href = safeHref;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       link.textContent = text;
@@ -1929,6 +1991,73 @@
       return pattern.exec(text);
     }
 
+    function nextMarkdownLink(text, index) {
+      const pattern = /\[([^\]\n]+)\]\(/g;
+      pattern.lastIndex = index;
+      let match;
+      while ((match = pattern.exec(text))) {
+        let depth = 1;
+        let end = pattern.lastIndex;
+        for (; end < text.length; end += 1) {
+          if (text[end] === '\\') {
+            end += 1;
+            continue;
+          }
+          if (text[end] === '(') depth += 1;
+          if (text[end] === ')') {
+            depth -= 1;
+            if (depth === 0) break;
+          }
+        }
+        if (depth !== 0) continue;
+        const destination = text.slice(pattern.lastIndex, end).match(/^(?:<(https?:\/\/[^>]+)>|(https?:\/\/\S+?))(?:\s+(?:"[^"]*"|'[^']*'))?\s*$/);
+        if (!destination) continue;
+        const href = (destination[1] || destination[2]).replace(/\\([\\()])/g, '$1');
+        if (!safeAnswerUrl(href)) continue;
+        return { index: match.index, 0: text.slice(match.index, end + 1), 1: match[1], 2: href };
+      }
+      return null;
+    }
+
+    function referenceLabel(value) {
+      return value.trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    function markdownReferenceDefinitions(text) {
+      const references = new Map();
+      let fence = '';
+      const lines = text.split('\n').filter(line => {
+        const marker = line.match(/^ {0,3}(`{3,}|~{3,})/);
+        if (marker) {
+          if (!fence) fence = marker[1];
+          else if (marker[1][0] === fence[0] && marker[1].length >= fence.length) fence = '';
+          return true;
+        }
+        if (fence) return true;
+        const definition = line.match(/^ {0,3}\[([^\]\n]+)\]:\s*(.+?)\s*$/);
+        if (!definition) return true;
+        const token = `[reference](${definition[2]})`;
+        const match = nextMarkdownLink(token, 0);
+        if (!match || match[0] !== token) return true;
+        const key = referenceLabel(definition[1]);
+        if (!references.has(key)) references.set(key, match[2]);
+        return false;
+      });
+      return { text: lines.join('\n'), references };
+    }
+
+    function nextReferenceLink(text, index, references) {
+      if (!references?.size) return null;
+      const pattern = /\[([^\]\n]+)\](?:\[([^\]\n]*)\])?/g;
+      pattern.lastIndex = index;
+      let match;
+      while ((match = pattern.exec(text))) {
+        const href = references.get(referenceLabel(match[2] || match[1]));
+        if (href) return { index: match.index, 0: match[0], 1: match[1], 2: href };
+      }
+      return null;
+    }
+
     function appendInlineMarkdown(container, text, state, options = {}) {
       const allowLinks = options.allowLinks !== false;
       let index = 0;
@@ -1937,14 +2066,20 @@
         const boldUnderscore = text.indexOf('__', index);
         const italicAsterisk = text.indexOf('*', index);
         const italicUnderscore = text.indexOf('_', index);
-        const markdownLink = nextRegexMatch(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, text, index);
-        const bareUrl = nextRegexMatch(/https?:\/\/[^\s<>)"']+/g, text, index);
+        const codeStart = text.indexOf('`', index);
+        const markdownLink = nextMarkdownLink(text, index);
+        const referenceLink = nextReferenceLink(text, index, options.references);
+        const autoLink = nextRegexMatch(/<(https?:\/\/[^<>\s]+)>/g, text, index);
+        const bareUrl = nextRegexMatch(/https?:\/\/[^\s<>"']+/g, text, index);
         const candidates = [
+          { type: 'code', index: codeStart },
           { type: 'bold_double', index: boldDouble },
           { type: 'bold_underscore', index: boldUnderscore },
           { type: 'italic_asterisk', index: italicAsterisk },
           { type: 'italic_underscore', index: italicUnderscore },
           markdownLink ? { type: 'markdown_link', index: markdownLink.index, match: markdownLink } : null,
+          referenceLink ? { type: 'markdown_link', index: referenceLink.index, match: referenceLink } : null,
+          autoLink ? { type: 'autolink', index: autoLink.index, match: autoLink } : null,
           bareUrl ? { type: 'bare_url', index: bareUrl.index, match: bareUrl } : null
         ].filter(value => value && value.index >= 0).sort((a, b) => a.index - b.index);
         const nextToken = candidates[0];
@@ -1956,19 +2091,37 @@
         if (next > index) {
           container.append(document.createTextNode(text.slice(index, next)));
         }
+        if (nextToken.type === 'code') {
+          const marker = text.slice(next).match(/^`+/)[0];
+          const end = text.indexOf(marker, next + marker.length);
+          if (end >= 0) {
+            const code = document.createElement('code');
+            code.textContent = text.slice(next + marker.length, end);
+            container.appendChild(code);
+            index = end + marker.length;
+            continue;
+          }
+        }
         if (nextToken.type === 'markdown_link') {
-          const [, label, rawUrl] = nextToken.match;
-          const href = cleanLinkedUrl(rawUrl);
+          const label = nextToken.match[1];
+          const href = nextToken.match[2];
           if (allowLinks) {
             const link = appendAnswerLink(container, '', href, state);
             if (link) {
-              appendInlineMarkdown(link, label, state, { allowLinks: false });
+              appendInlineMarkdown(link, label, state, { ...options, allowLinks: false });
             } else {
-              appendInlineMarkdown(container, label, state, { allowLinks: false });
+              appendInlineMarkdown(container, label, state, { ...options, allowLinks: false });
             }
           } else {
-            appendInlineMarkdown(container, label, state, { allowLinks: false });
+            appendInlineMarkdown(container, label, state, { ...options, allowLinks: false });
           }
+          index = next + nextToken.match[0].length;
+          continue;
+        }
+        if (nextToken.type === 'autolink') {
+          const url = nextToken.match[1];
+          if (allowLinks) appendAnswerLink(container, url, url, state);
+          else container.append(document.createTextNode(url));
           index = next + nextToken.match[0].length;
           continue;
         }
@@ -1979,6 +2132,7 @@
           } else {
             container.append(document.createTextNode(url));
           }
+          container.append(document.createTextNode(nextToken.match[0].slice(url.length)));
           index = next + nextToken.match[0].length;
           continue;
         }
@@ -2007,11 +2161,12 @@
     function renderMarkdownFallback(container, text, state) {
       const normalized = String(text || '').replace(/\r\n?/g, '\n').trim();
       if (!normalized) return;
-      normalized.split(/\n{2,}/).forEach(paragraphText => {
+      const resolved = markdownReferenceDefinitions(normalized);
+      resolved.text.split(/\n{2,}/).filter(Boolean).forEach(paragraphText => {
         const paragraph = document.createElement('p');
         paragraphText.split('\n').forEach((line, lineIndex) => {
           if (lineIndex > 0) paragraph.appendChild(document.createElement('br'));
-          appendInlineMarkdown(paragraph, line, state);
+          appendInlineMarkdown(paragraph, line, state, { references: resolved.references });
         });
         container.appendChild(paragraph);
       });
@@ -2033,7 +2188,7 @@
     function shouldSkipAutoLinkNode(node, root) {
       let parent = node.parentElement;
       while (parent && parent !== root) {
-        if (parent.tagName === 'A') return true;
+        if (['A', 'CODE', 'PRE', 'SCRIPT', 'STYLE'].includes(parent.tagName)) return true;
         parent = parent.parentElement;
       }
       return false;
@@ -2048,17 +2203,14 @@
         const text = node.nodeValue || '';
         const parts = [];
         let index = 0;
-        const pattern = /https?:\/\/[^\s<>)"']+/g;
+        const pattern = /https?:\/\/[^\s<>"']+/g;
         let match;
         while ((match = pattern.exec(text))) {
           if (match.index > index) parts.push(document.createTextNode(text.slice(index, match.index)));
           const url = cleanLinkedUrl(match[0]);
-          const link = document.createElement('a');
-          link.href = url;
-          link.target = '_blank';
-          link.rel = 'noreferrer';
-          link.textContent = url;
-          parts.push(link);
+          const fragment = document.createDocumentFragment();
+          appendAnswerLink(fragment, url, url, state);
+          parts.push(fragment, document.createTextNode(match[0].slice(url.length)));
           index = match.index + match[0].length;
         }
         if (!parts.length) return;
@@ -2129,6 +2281,113 @@
       return candidates.sort((a, b) => b.priority - a.priority || b.phrase.length - a.phrase.length);
     }
 
+    function descriptiveAnswerLinks(container, links) {
+      container.querySelectorAll('a[href]').forEach(link => {
+        const text = link.textContent.trim();
+        const rawLabel = /^(?:https?:\/\/|www\.)/i.test(text);
+        const genericLabel = /^(?:here|link|source|website|official (?:site|website)|read more|learn more|\[?\d+\]?)$/i.test(text);
+        if (!rawLabel && !genericLabel) return;
+        const source = links.find(item => sourceKey(item.url) === sourceKey(link.href));
+        link.textContent = source?.label || sourceLabel(link.href, 0);
+      });
+    }
+
+    function promoteCitationLink(parent, marker, link, links) {
+      // Only reuse a phrase before this citation in the same paragraph/list item.
+      // A DOM Range preserves emphasis when the phrase spans formatted nodes.
+      const walker = document.createTreeWalker(parent, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      let text = '';
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (!(node.compareDocumentPosition(marker) & Node.DOCUMENT_POSITION_FOLLOWING)) break;
+        if (shouldSkipAutoLinkNode(node, parent)) {
+          text += '\n';
+          continue;
+        }
+        nodes.push({ node, start: text.length, end: text.length + node.length });
+        text += node.nodeValue;
+      }
+      const source = links.find(item => sourceKey(item.url) === sourceKey(link.href));
+      const candidates = linkPhraseCandidates(source?.label || link.textContent, link.href);
+      const lower = text.toLowerCase();
+      const match = candidates
+        .map(item => ({ ...item, index: lower.lastIndexOf(item.phrase.toLowerCase()) }))
+        .filter(item => item.index >= Math.max(0, text.length - 400) &&
+          !/[\p{L}\p{N}_]/u.test(text[item.index - 1] || '') &&
+          !/[\p{L}\p{N}_]/u.test(text[item.index + item.phrase.length] || ''))
+        .sort((a, b) => b.priority - a.priority || b.index - a.index || b.phrase.length - a.phrase.length)[0];
+      if (match) {
+        const start = nodes.find(item => item.start <= match.index && item.end > match.index);
+        const endIndex = match.index + match.phrase.length;
+        const end = nodes.find(item => item.start < endIndex && item.end >= endIndex);
+        if (start && end) {
+          const range = document.createRange();
+          range.setStart(start.node, match.index - start.start);
+          range.setEnd(end.node, endIndex - end.start);
+          const inline = link.cloneNode(false);
+          inline.appendChild(range.extractContents());
+          range.insertNode(inline);
+          return true;
+        }
+      }
+      return [...parent.querySelectorAll('a[href]')].some(existing =>
+        sourceKey(existing.href) === sourceKey(link.href) &&
+        (existing.compareDocumentPosition(marker) & Node.DOCUMENT_POSITION_FOLLOWING));
+    }
+
+    function normalizeCitationGroups(container, links) {
+      const parents = new Set([...container.querySelectorAll('a[href]')].map(link => link.parentElement));
+      parents.forEach(parent => {
+        if (['CODE', 'PRE'].includes(parent.tagName)) return;
+        [...parent.childNodes].forEach(opening => {
+          if (opening.parentNode !== parent || opening.nodeType !== Node.TEXT_NODE) return;
+          const openMatch = opening.nodeValue.match(/\(\s*(?:(?:sources?|references?):\s*)?$/i);
+          if (!openMatch) return;
+          const group = [];
+          const anchors = [];
+          let closing = null;
+          let closeOffset = 0;
+          for (let node = opening.nextSibling; node; node = node.nextSibling) {
+            if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'A' && node.hasAttribute('href')) {
+              anchors.push(node);
+              group.push(node);
+              continue;
+            }
+            if (node.nodeType !== Node.TEXT_NODE) return;
+            const offset = node.nodeValue.indexOf(')');
+            const separator = offset < 0 ? node.nodeValue : node.nodeValue.slice(0, offset);
+            // Preserve parentheses with substantive prose, e.g. "(see ... before leaving)".
+            if (!/^(?:\s|[,;:&]|\band\b)*$/i.test(separator)) return;
+            if (offset >= 0) {
+              closing = node;
+              closeOffset = offset;
+              break;
+            }
+            group.push(node);
+          }
+          if (!closing || !anchors.length) return;
+          opening.nodeValue = opening.nodeValue.slice(0, openMatch.index);
+          closing.nodeValue = closing.nodeValue.slice(closeOffset + 1);
+          const marker = document.createComment('citation');
+          parent.insertBefore(marker, opening.nextSibling);
+          group.forEach(node => node.remove());
+          const remaining = anchors.filter(link => !promoteCitationLink(parent, marker, link, links));
+          if (remaining.length) {
+            remaining.forEach((link, index) => {
+              if (index > 0) parent.insertBefore(document.createTextNode(', '), marker);
+              parent.insertBefore(link, marker);
+            });
+          } else {
+            const previous = marker.previousSibling;
+            if (previous?.nodeType === Node.TEXT_NODE) previous.nodeValue = previous.nodeValue.replace(/\s+$/, '');
+          }
+          marker.remove();
+        });
+        parent.normalize();
+      });
+    }
+
     function autoLinkSourcePhrases(container, links, state) {
       if (!links.length || state.inlineCount >= state.maxLinks) return;
       const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
@@ -2184,11 +2443,15 @@
 
     function renderAssistantAnswer(container, text, links, options = {}) {
       const includeSources = options.includeSources !== false;
+      const safeLinks = links.filter(link => safeAnswerUrl(link.url));
       const state = linkState(options.maxLinks || 10);
       renderFormattedAnswer(container, text, state);
       linkBareUrls(container, state);
-      autoLinkSourcePhrases(container, links, state);
-      if (includeSources) appendSourceDropdown(container, links);
+      descriptiveAnswerLinks(container, safeLinks);
+      normalizeCitationGroups(container, safeLinks);
+      noteExistingLinks(container, state);
+      autoLinkSourcePhrases(container, safeLinks, state);
+      if (includeSources) appendSourceDropdown(container, safeLinks.filter(link => !state.usedUrls.has(sourceKey(link.url))));
       normalizeAnswerLinks(container);
     }
 
@@ -2305,15 +2568,15 @@
 
     function bindSyncedMessageControls(ctx) {
       ctx.messages.querySelectorAll('[data-retry-prompt]').forEach(button => {
-        if (boundRetryButtons.has(button)) return;
-        boundRetryButtons.add(button);
+        if (boundMessageControls.has(button)) return;
+        boundMessageControls.add(button);
         button.addEventListener('click', () => retryFailedResponse(ctx, button));
       });
       ctx.suggestions = [];
       ctx.followups = [];
       ctx.messages.querySelectorAll('[data-suggestion-prompt]').forEach(button => {
-        if (button.dataset.syncedChatBound !== 'yes') {
-          button.dataset.syncedChatBound = 'yes';
+        if (!boundMessageControls.has(button)) {
+          boundMessageControls.add(button);
           button.addEventListener('click', () => {
             if (!serverReady) return;
             submitSuggestedPrompt(ctx, button.dataset.suggestionPrompt || button.textContent || '');
@@ -2322,8 +2585,8 @@
         ctx.suggestions.push(button);
       });
       ctx.messages.querySelectorAll('[data-followup-prompt]').forEach(button => {
-        if (button.dataset.syncedChatBound !== 'yes') {
-          button.dataset.syncedChatBound = 'yes';
+        if (!boundMessageControls.has(button)) {
+          boundMessageControls.add(button);
           button.addEventListener('click', () => {
             submitSuggestedPrompt(
               ctx,
@@ -2383,9 +2646,6 @@
         button.dataset.followupContext = JSON.stringify(followupContext(ctx, data, links, text, previousQuestion));
         button.disabled = !serverReady;
         button.title = serverReady ? '' : 'Prepare the demo first.';
-        button.addEventListener('click', () => {
-          submitSuggestedPrompt(ctx, text, decodeFollowupContext(button));
-        });
         ctx.followups.push(button);
         wrap.appendChild(button);
       });
@@ -2413,6 +2673,7 @@
       ctx.messages.appendChild(node);
       scrollMessages(ctx);
       syncMessagesFrom(ctx);
+      notifyResize();
       return node;
     }
 
@@ -2505,10 +2766,6 @@
         button.dataset.suggestionPrompt = text;
         button.disabled = !serverReady;
         button.title = serverReady ? '' : 'Prepare the demo first.';
-        button.addEventListener('click', () => {
-          if (!serverReady) return;
-          submitSuggestedPrompt(ctx, text);
-        });
         ctx.suggestions.push(button);
         suggestions.appendChild(button);
       });
@@ -2772,8 +3029,11 @@
         ctx.controller = null;
         updateSendButtons();
         const focusCtx = activeChatContext() || ctx;
-        focusCtx.prompt.focus();
+        focusCtx.prompt.focus({ preventScroll: true });
         notifyResize();
+        // Include final sources and follow-ups, even if the view changed while streaming.
+        contexts.forEach(scrollMessages);
+        window.requestAnimationFrame(() => contexts.forEach(scrollMessages));
       }
     }
 

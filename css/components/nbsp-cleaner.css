@@ -276,3 +276,39 @@
     }
   }
 }
+
+@layer overrides {
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-workspace-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); align-items: stretch; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] :is(.nbsp-form, .nbsp-results) { display: flex; flex-direction: column; gap: 0; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-textarea { width: 100%; min-height: 260px; height: clamp(260px, 33vh, 380px); margin: 0; border-radius: 6px; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-options { display: grid; gap: 0; margin-top: 12px; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 76px; padding: 14px 0; border: 0; border-bottom: 1px solid #dce3ec; background: #fff; border-radius: 0; box-shadow: none; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option strong { display: block; font-size: 14px; font-weight: 600; color: #091f3b; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option small { display: block; margin-top: 4px; font-size: 13px; line-height: 1.5; color: #526174; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option input { appearance: none; flex: 0 0 38px; width: 38px; height: 22px; min-height: 22px; margin: 0; padding: 2px; border: 1px solid #bec7d0; border-radius: 20px; background: #cbd2da; cursor: pointer; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option input::before { content: ""; display: block; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 140ms ease; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option input:checked { background: #087f8c; border-color: #087f8c; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option input:checked::before { transform: translateX(16px); }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-summary { padding: 12px 14px; margin: 0 0 16px; border: 1px solid #dce3ec; border-radius: 6px; background: #f5f8fa; color: #526174; font-size: 13px; line-height: 1.6; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] #nbsp-panel-cleaned { display: flex; flex: 1; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] #nbsp-panel-cleaned .nbsp-textarea { flex: 1; height: 100%; min-height: 320px; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-preview { min-height: 320px; max-height: none; padding: 16px; border: 1px solid #dce3ec; border-radius: 6px; background: #fff; color: #091f3b; font-size: 15px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-character-details { margin-top: 18px; padding-top: 14px; border: 0; border-top: 1px solid #dce3ec; background: #fff; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-character-details summary { font-size: 14px; font-weight: 600; color: #526174; cursor: pointer; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-counts { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; margin: 12px 0 0; padding: 0; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-counts li { display: flex; gap: 14px; padding: 10px 0; border: 0; border-bottom: 1px solid #e7ebef; background: #fff; border-radius: 0; box-shadow: none; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] :is(.nbsp-input-status, .nbsp-status) { min-height: 0; margin: 8px 0; font-size: 13px; line-height: 1.5; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-actions .btn-primary { flex: 1; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .tool-workspace-share { border-color: transparent; font-size: 12px; padding-inline: 6px; }
+  @media (max-width: 1050px) {
+    body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-workspace-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-height: 800px) and (min-width: 761px) {
+    body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-textarea { min-height: 190px; height: 190px; }
+    body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option { padding: 10px 0; min-height: 62px; }
+    body.nbsp-cleaner-page[data-page][data-tools-layout] #nbsp-panel-cleaned .nbsp-textarea { min-height: 230px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option input::before { transition: none; }
+  }
+}

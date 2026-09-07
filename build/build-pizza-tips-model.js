@@ -6,6 +6,7 @@ const OUTPUT_DIR = path.join(__dirname, '..', 'aws', 'pizza-tips-predict');
 const OUTPUT_PATH = path.join(OUTPUT_DIR, 'model.json');
 const BOUNDARY_PATH = path.join(OUTPUT_DIR, 'city-boundaries.json');
 const META_PATH = path.join(__dirname, '..', 'js', 'demos', 'pizza-tips-meta.js');
+const BROWSER_MODEL_PATH = path.join(__dirname, '..', 'js', 'demos', 'pizza-tips-model.js');
 
 const BASE_FEATURES = [
   { key: 'cost', label: 'Order Cost ($)' },
@@ -616,5 +617,23 @@ const meta = {
 
 fs.mkdirSync(path.dirname(META_PATH), { recursive: true });
 fs.writeFileSync(META_PATH, `window.PizzaTipsMeta = ${JSON.stringify(meta, null, 2)};`);
+
+// The browser reuses metadata polygons instead of downloading the full model twice.
+const browserModel = {
+  version: model.version,
+  generatedAt: model.generatedAt,
+  inputFeatures: model.inputFeatures,
+  targets: model.targets,
+  categories: {
+    city: { baseline: model.categories.city.baseline, values: model.categories.city.values },
+    housing: model.categories.housing
+  },
+  bounds: model.bounds,
+  ranges: model.ranges,
+  metrics: model.metrics,
+  coefficients: model.coefficients
+};
+fs.writeFileSync(BROWSER_MODEL_PATH,
+  `// Saved model parameters; boundaries are reused from PizzaTipsMeta.\nwindow.PizzaTipsModel = ${JSON.stringify(browserModel, null, 2)};\n`);
 
 console.log(`Model written to ${OUTPUT_PATH}`);

@@ -5,17 +5,22 @@ const path = require('path');
 const crypto = require('crypto');
 const repositoryRoot = path.resolve(__dirname, '../..');
 const toolIcon = /^img\/tools\/icons\/[a-z0-9_-]+\.(?:png|webp|avif)$/i;
+const projectIcon = /^img\/projects\/icons\/[a-z0-9_-]+\.png$/i;
+const gameIcon = /^img\/games\/icons\/[a-z0-9_-]+\.png$/i;
 const sheetPoster = /^img\/projects\/sheetMusicUpscale(?:-(?:640|960))?\.(?:png|webp|avif)$/;
 const sheetStage = /^img\/projects\/sheetMusicUpscale-(?:original|watermark-removed|upscaled)-(?:full|comparison)\.webp$/;
+const projectPreview = /^img\/projects\/[a-z0-9-]+-preview\.webp$/i;
+const websitePoster = /^img\/projects\/website(?:-(?:640|960))?\.(?:png|webp|avif)$/;
 
 function versionedImageUrl(value, { root = repositoryRoot } = {}) {
   if (typeof value !== 'string') return value;
   const pathname = value.replace(/[?#].*$/, '');
   const relative = pathname.replace(/^\//, '');
-  if (!toolIcon.test(relative) && !sheetPoster.test(relative) && !sheetStage.test(relative)) return value;
+  if (!toolIcon.test(relative) && !projectIcon.test(relative) && !gameIcon.test(relative) && !sheetPoster.test(relative) && !sheetStage.test(relative) && !projectPreview.test(relative) && !websitePoster.test(relative)) return value;
   // Responsive encoders run after CMS generation. Their source PNG is the
   // stable generation key, so build order cannot fingerprint stale variants.
-  const source = sheetPoster.test(relative) ? 'img/projects/sheetMusicUpscale.png' : relative;
+  const source = sheetPoster.test(relative) ? 'img/projects/sheetMusicUpscale.png'
+    : websitePoster.test(relative) ? 'img/projects/website.png' : relative;
   const hash = crypto.createHash('sha256').update(fs.readFileSync(path.join(root, source))).digest('hex').slice(0, 12);
   const hashIndex = value.indexOf('#');
   const fragment = hashIndex >= 0 ? value.slice(hashIndex) : '';

@@ -1,8 +1,9 @@
 # Keep Vercel CLI deployments small by ignoring local-only build outputs and large
 # folders that are already excluded from git.
+# Omit trailing slashes: CLI archive mode can otherwise re-include ignored folders.
 
 # Dependencies
-node_modules/
+node_modules
 
 # Local env files
 .env
@@ -12,32 +13,38 @@ node_modules/
 google_maps_api_key.txt
 
 # Local Vercel CLI state
-.vercel/
+.vercel
 
 # Build output (Vercel runs the build)
-/public/
-/dist/
-/tmp/
-/.venv-resume/
-/_local/
+/public
+/dist
+/tmp
+/.venv-resume
+/_local
 
 # Local-only artifacts / large folders
-/api/cms/
-/api/chatbot/logs.js
+/archive
+/design
+/output
+/.playwright-mcp
+/.codex-remote-attachments
+/.agents
+/api/cms
+/api/chatbot
 /api/short-domain.js
-/api/short-links/test/
-/go/
+/api/short-links/test
+/go
 /.short-links-generated
-/Slot-Machine-v4/
-/Project Submission/
-/Handwriting-Rating/
-/Nonogram-Solver/
-/Handwritten-Digit-Generator/
-/Covid-Analysis/
-/Baby-Names/
+/Slot-Machine-v4
+/Project Submission
+/Handwriting-Rating
+/Nonogram-Solver
+/Handwritten-Digit-Generator
+/Covid-Analysis
+/Baby-Names
 /tips_data_geocoded.csv
 
 # Local AWS build artifacts
-aws/covid-outbreak-drivers/output/
-aws/target-empty-package/output/
-aws/handwriting-rating/models/
+aws/covid-outbreak-drivers/output
+aws/target-empty-package/output
+aws/handwriting-rating/models

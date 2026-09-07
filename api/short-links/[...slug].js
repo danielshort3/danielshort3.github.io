@@ -1,12 +1,13 @@
 /*
-  Admin API for a single short link: /api/short-links/<slug>
+  Short-link detail, health, click history, sets, and tests share one Vercel Function.
 */
 'use strict';
 
-const { deleteLink, getLinkWithLegacyFallback, setLinkDisabled } = require('../_lib/short-links-store');
+const { serializeLink, buildLinkPatch } = require('../_lib/short-links-management');
+
+const { deleteLink, getLinkWithLegacyFallback, updateLink } = require('../_lib/short-links-store');
 const {
-  getAdminToken,
-  isAdminRequest,
+  authorizeAdminRequest,
   sendJson,
   readJson,
   normalizeSlug,
@@ -14,67 +15,55 @@ const {
 } = require('../_lib/short-links');
 
 function decodeRequestValue(value){
-  const raw = String(value || '');
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return raw;
-  }
+  return decodeURIComponent(String(value || ''));
 }
 
 function getSlugFromRequest(req){
+  // Derive routing from the URL before consulting Vercel's path parameters so a
+  // user-supplied ?slug= or ?setId= cannot change the selected endpoint.
+  const url = new URL(req.url || '', getRequestBaseUrl(req));
+  const match = url.pathname.match(/\/api\/short-links\/(.+)$/);
+  if (match) return decodeRequestValue(match[1]).replace(/\/+$/, '');
   const querySlug = req.query && req.query.slug;
   if (Array.isArray(querySlug)) return decodeRequestValue(querySlug.join('/'));
   if (typeof querySlug === 'string') return decodeRequestValue(querySlug);
-  try {
-    const url = new URL(req.url, getRequestBaseUrl(req));
-    const match = url.pathname.match(/\/api\/short-links\/(.+)$/);
-    return match ? decodeRequestValue(match[1]) : '';
-  } catch {
-    return '';
-  }
+  return '';
 }
 
-function serializeLink(record, fallbackSlug, fallbackUpdatedAt){
-  return {
-    slug: typeof record?.slug === 'string' ? record.slug : fallbackSlug,
-    destination: typeof record?.destination === 'string' ? record.destination : '',
-    permanent: !!record?.permanent,
-    expiresAt: Number.isFinite(Number(record?.expiresAt)) ? Number(record.expiresAt) : 0,
-    disabled: !!record?.disabled,
-    createdAt: typeof record?.createdAt === 'string' ? record.createdAt : '',
-    updatedAt: typeof record?.updatedAt === 'string' ? record.updatedAt : fallbackUpdatedAt,
-    clicks: Number.isFinite(Number(record?.clicks)) ? Number(record.clicks) : 0,
-    label: typeof record?.label === 'string' ? record.label : '',
-    templateId: typeof record?.templateId === 'string' ? record.templateId : '',
-    templateTitle: typeof record?.templateTitle === 'string' ? record.templateTitle : '',
-    batchId: typeof record?.batchId === 'string' ? record.batchId : '',
-    batchTitle: typeof record?.batchTitle === 'string' ? record.batchTitle : '',
-    contextType: typeof record?.contextType === 'string' ? record.contextType : '',
-    contextEntryId: typeof record?.contextEntryId === 'string' ? record.contextEntryId : '',
-    contextCompany: typeof record?.contextCompany === 'string' ? record.contextCompany : '',
-    contextTitle: typeof record?.contextTitle === 'string' ? record.contextTitle : ''
-  };
-}
 
 module.exports = async (req, res) => {
-  const requestSlug = getSlugFromRequest(req);
+  let requestSlug;
+  try {
+    requestSlug = getSlugFromRequest(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: 'Invalid short-link route.' });
+    return;
+  }
+  const parts = requestSlug.split('/').filter(Boolean);
+  req.query = { ...req.query, slug: parts };
+
+  if (requestSlug === 'health') {
+    delete req.query.slug;
+    return require('../_lib/short-links-endpoints/health')(req, res);
+  }
+  if (requestSlug === 'sets' || requestSlug.startsWith('sets/')) {
+    delete req.query.slug;
+    req.query.setId = parts.length > 1 ? parts.slice(1) : ['__collection__'];
+    return require('../_lib/short-links-endpoints/sets')(req, res);
+  }
+  if (requestSlug.startsWith('clicks/')) {
+    req.query.slug = parts.slice(1);
+    return require('../_lib/short-links-endpoints/clicks')(req, res);
+  }
   if (requestSlug.startsWith('test/')) {
     const testSlug = requestSlug.slice('test/'.length);
+    req.query.slug = parts.slice(1);
     const testHandler = require('../_lib/short-links-test');
     await testHandler(req, res, { slug: testSlug });
     return;
   }
 
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
-    return;
-  }
+  if (!await authorizeAdminRequest(req, res)) return;
 
   const slug = normalizeSlug(requestSlug);
   if (!slug) {
@@ -113,23 +102,30 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (!body || typeof body.disabled !== 'boolean') {
-      sendJson(res, 400, { ok: false, error: 'Invalid payload (expected { disabled: true|false })' });
-      return;
-    }
-
     const now = new Date().toISOString();
 
     let updated;
     try {
-      updated = await setLinkDisabled({ slug, disabled: body.disabled, updatedAt: now });
+      const current = await getLinkWithLegacyFallback(slug);
+      if (!current) {
+        sendJson(res, 404, { ok: false, error: 'Not Found' });
+        return;
+      }
+      const patch = buildLinkPatch(body, current);
+      updated = await updateLink({
+        slug: current.slug, patch, updatedAt: now, expectedUpdatedAt: current.updatedAt
+      });
     } catch (err) {
       if (err.code === 'DDB_ENV_MISSING') {
         sendJson(res, 503, { ok: false, error: err.message });
         return;
       }
       if (err.name === 'ConditionalCheckFailedException') {
-        sendJson(res, 404, { ok: false, error: 'Not Found' });
+        sendJson(res, 409, { ok: false, error: 'This link changed. Reload it and try again.' });
+        return;
+      }
+      if (err.statusCode === 400) {
+        sendJson(res, 400, { ok: false, error: err.message });
         return;
       }
       sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });

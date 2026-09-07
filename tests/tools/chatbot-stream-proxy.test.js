@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const { EventEmitter } = require('events');
+const { EventEmitter, getEventListeners } = require('events');
 const {
   handleChatbotStream,
   _internal
@@ -47,6 +47,46 @@ class MockResponse extends EventEmitter {
 
   bodyText() {
     return Buffer.concat(this.chunks).toString('utf8');
+  }
+}
+
+class BackpressureResponse extends MockResponse {
+  constructor() {
+    super();
+    this.backpressure = true;
+    this.blocked = new Promise(resolve => {
+      this.onBlocked = resolve;
+    });
+  }
+
+  write(value) {
+    super.write(value);
+    this.onBlocked();
+    return !this.backpressure;
+  }
+
+  drain() {
+    this.backpressure = false;
+    this.emit('drain');
+  }
+
+  disconnect() {
+    this.destroyed = true;
+    this.emit('close');
+  }
+}
+
+async function withDeadline(promise, message) {
+  let timeout;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((resolve, reject) => {
+        timeout = setTimeout(() => reject(new Error(message)), 1000);
+      })
+    ]);
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -283,7 +323,138 @@ async function run() {
     }
     assert.strictEqual(oversizedError?.code, 'CHATBOT_STREAM_TOO_LARGE');
 
-    console.log('chatbot-stream-proxy: 28 checks passed');
+    _internal.setRateLimiterForTests(async () => ({ allowed: true }));
+    const requestSignals = new Map();
+    _internal.setLambdaClientFactoryForTests(() => ({
+      async send(command, options) {
+        const event = JSON.parse(Buffer.from(command.input.Payload).toString('utf8'));
+        const { prompt } = JSON.parse(event.body);
+        requestSignals.set(prompt, options.abortSignal);
+        return {
+          StatusCode: 200,
+          EventStream: streamEvents([
+            JSON.stringify({ type: 'token', text: prompt }),
+            JSON.stringify({ type: 'done', data: { answer: prompt } })
+          ])
+        };
+      }
+    }));
+    const disconnectedRes = new BackpressureResponse();
+    const concurrentRes = new BackpressureResponse();
+    const disconnectedRequest = handleChatbotStream(request({
+      body: { prompt: 'Disconnected request' }
+    }), disconnectedRes);
+    const concurrentRequest = handleChatbotStream(request({
+      body: { prompt: 'Concurrent request' }
+    }), concurrentRes);
+    try {
+      await withDeadline(
+        Promise.all([disconnectedRes.blocked, concurrentRes.blocked]),
+        'Both requests should start streaming independently.'
+      );
+      assert.strictEqual(concurrentRes.chunks.length, 1);
+      assert.strictEqual(concurrentRes.listenerCount('drain'), 1);
+      disconnectedRes.disconnect();
+      assert.strictEqual(requestSignals.get('Disconnected request').aborted, true);
+      assert.strictEqual(requestSignals.get('Concurrent request').aborted, false);
+      await withDeadline(
+        disconnectedRequest,
+        'A disconnected backpressured request must finish without waiting for drain.'
+      );
+      assert.strictEqual(disconnectedRes.listenerCount('drain'), 0);
+      assert.strictEqual(disconnectedRes.listenerCount('error'), 0);
+      assert.strictEqual(disconnectedRes.listenerCount('close'), 0);
+      assert.strictEqual(disconnectedRes.chunks.length, 1);
+      assert.strictEqual(disconnectedRes.writableEnded, false);
+      assert.strictEqual(getEventListeners(requestSignals.get('Disconnected request'), 'abort').length, 0);
+      concurrentRes.drain();
+      await withDeadline(concurrentRequest, 'The concurrent request should finish after drain.');
+      assert.deepStrictEqual(
+        concurrentRes.bodyText().trim().split('\n').map(line => JSON.parse(line)),
+        [
+          { type: 'token', text: 'Concurrent request' },
+          { type: 'done', data: { answer: 'Concurrent request' } }
+        ]
+      );
+      assert.strictEqual(concurrentRes.writableEnded, true);
+      assert.strictEqual(concurrentRes.listenerCount('drain'), 0);
+      assert.strictEqual(concurrentRes.listenerCount('error'), 0);
+      assert.strictEqual(concurrentRes.listenerCount('close'), 0);
+      assert.strictEqual(getEventListeners(requestSignals.get('Concurrent request'), 'abort').length, 0);
+    } finally {
+      disconnectedRes.drain();
+      concurrentRes.drain();
+      await Promise.all([disconnectedRequest, concurrentRequest]);
+    }
+
+    const interruptedRes = new BackpressureResponse();
+    const interruptedController = new AbortController();
+    let upstreamClosed = false;
+    const interruptedStream = _internal.forwardLambdaEventStream(
+      interruptedRes,
+      (async function* interruptibleStream() {
+        try {
+          yield* streamEvents([
+            JSON.stringify({ type: 'token', text: 'Before timeout' }),
+            JSON.stringify({ type: 'done', data: { answer: 'After timeout' } })
+          ]);
+        } finally {
+          upstreamClosed = true;
+        }
+      })(),
+      { maxStreamBytes: _internal.MAX_STREAM_BYTES },
+      interruptedController
+    ).then(() => null, err => err);
+    try {
+      await withDeadline(interruptedRes.blocked, 'The timed stream should reach backpressure.');
+      // The handler's deadline aborts this same signal even if the response stays open.
+      interruptedController.abort();
+      const interruptedError = await withDeadline(
+        interruptedStream,
+        'An aborted stream must stop waiting for drain even when the response stays open.'
+      );
+      assert.strictEqual(interruptedError?.name, 'AbortError');
+      assert.strictEqual(upstreamClosed, true);
+      assert.strictEqual(interruptedRes.destroyed, false);
+      assert.strictEqual(interruptedRes.chunks.length, 1);
+      assert.strictEqual(interruptedRes.listenerCount('drain'), 0);
+      assert.strictEqual(interruptedRes.listenerCount('error'), 0);
+      assert.strictEqual(getEventListeners(interruptedController.signal, 'abort').length, 0);
+    } finally {
+      interruptedRes.drain();
+      await interruptedStream;
+    }
+
+    let failedSignal;
+    _internal.setLambdaClientFactoryForTests(() => ({
+      async send(command, options) {
+        failedSignal = options.abortSignal;
+        return { StatusCode: 200, EventStream: streamEvents(['invalid upstream JSON']) };
+      }
+    }));
+    const failedRes = new BackpressureResponse();
+    const failedRequest = handleChatbotStream(request(), failedRes);
+    try {
+      await withDeadline(
+        failedRequest,
+        'A terminal error must not start another unbounded backpressure wait.'
+      );
+      assert.strictEqual(failedSignal.aborted, true);
+      assert.deepStrictEqual(JSON.parse(failedRes.bodyText()), {
+        type: 'error',
+        error: 'Chatbot stream is temporarily unavailable.'
+      });
+      assert.strictEqual(failedRes.writableEnded, true);
+      assert.strictEqual(failedRes.listenerCount('drain'), 0);
+      assert.strictEqual(failedRes.listenerCount('error'), 0);
+      assert.strictEqual(failedRes.listenerCount('close'), 0);
+      assert.strictEqual(getEventListeners(failedSignal, 'abort').length, 0);
+    } finally {
+      failedRes.drain();
+      await failedRequest;
+    }
+
+    console.log('chatbot-stream-proxy: validation, streaming, backpressure, and request isolation checks passed');
   } finally {
     _internal.setLambdaClientFactoryForTests(null);
     _internal.setRateLimiterForTests(null);

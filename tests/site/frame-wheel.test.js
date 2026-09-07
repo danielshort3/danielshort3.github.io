@@ -67,4 +67,15 @@ for (const field of ['geometry', 'held', 'wipeMotion', 'wipeClosed']) {
   assert.deepEqual(moving.wheel(), { top: 100, prevented: false }, `${field} suppresses forwarding during navigation`);
 }
 
+const compact = setup();
+compact.context.compactQuery.matches = true;
+assert.deepEqual(compact.wheel(), { top: 100, prevented: false }, 'compact layouts retain native document scrolling');
+const immersive = setup();
+immersive.context.current.fit = 'immersive';
+assert.deepEqual(immersive.wheel(), { top: 100, prevented: false }, 'immersive layouts retain their own wheel behavior');
+const content = setup();
+content.context.viewport.contains = () => true;
+assert.deepEqual(content.wheel({ target: { nodeType: 1 } }), { top: 100, prevented: false },
+  'content wheel events stay native inside the single shared scrollport');
+
 console.log('Frame wheel units, gesture ownership, boundaries, and navigation guards passed.');

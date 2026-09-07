@@ -19,6 +19,11 @@
 
   if (!form || !input || !output || !summary || !countsList || !preview) return;
 
+  const syncCopyAvailability = () => { if (copyBtn) copyBtn.disabled = !output.value; };
+  output.addEventListener('input', syncCopyAvailability);
+  output.addEventListener('change', syncCopyAvailability);
+  syncCopyAvailability();
+
   const TOOL_ID = 'nbsp-cleaner';
   const MAX_IMPORT_BYTES = 24 * 1024 * 1024;
   const PREVIEW_CHARACTER_BUDGET = 4000;
@@ -430,12 +435,14 @@
   };
 
   const runCleaner = () => {
+    if (inputStatus?.dataset.tone === 'success') setInputStatus('');
     const text = normalizeInputText(input.value || '');
     input.value = text;
     if (!text.trim()) {
       summary.textContent = 'Paste text above, then run the cleaner.';
       countsList.innerHTML = '';
       output.value = '';
+      if (copyBtn) copyBtn.disabled = true;
       setCopyStatus('');
       preview.innerHTML = '<span class="nbsp-status">Preview will appear after you paste text.</span>';
       return null;
@@ -445,6 +452,7 @@
     renderCounts(perType, nonAsciiCounts);
     const { cleaned, replacedHard, strippedNonAscii } = buildCleaned(text);
     output.value = cleaned;
+    if (copyBtn) copyBtn.disabled = !cleaned;
     const findings = [];
     if (total > 0) findings.push(`${formatNumber(total)} hard spaces${replacedHard ? ' replaced' : ' detected (kept)'}`);
     if (nonAsciiTotal > 0) findings.push(`${formatNumber(nonAsciiTotal)} other non-ASCII ${strippedNonAscii ? 'removed' : 'detected (kept)'}`);
@@ -474,6 +482,7 @@
   clearBtn?.addEventListener('click', () => {
     input.value = '';
     output.value = '';
+    if (copyBtn) copyBtn.disabled = true;
     countsList.innerHTML = '';
     summary.textContent = 'Paste text and run the cleaner to see findings.';
     setCopyStatus('');
@@ -574,5 +583,9 @@
 
     payload.outputSummary = String(summary?.textContent || '').replace(/\s+/g, ' ').trim();
     payload.inputs = { Input: input.value || '' };
+  });
+
+  document.addEventListener('tools:session-applied', (event) => {
+    if (event.detail?.toolId === TOOL_ID) runCleaner();
   });
 })();

@@ -3,6 +3,7 @@
   "title": "Empty-Package Shrink Dashboard",
   "subtitle": "Excel Forecasting & BI",
   "image": "img/projects/targetEmptyPackage.png",
+  "iconImage": "img/projects/icons/targetEmptyPackage.png",
   "imageWidth": 1460,
   "imageHeight": 1460,
   "videoWebm": "img/projects/targetEmptyPackage.webm",
@@ -10,7 +11,7 @@
   "tools": [
     "Excel",
     "Time-Series",
-    "AWS"
+    "JavaScript"
   ],
   "concepts": [
     "Automation",
@@ -22,12 +23,12 @@
   "resources": [
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_7.pdf",
+      "url": "documents/Project_7.pdf",
       "label": "PDF"
     },
     {
       "icon": "img/icons/excel-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_7.xlsx",
+      "url": "documents/Project_7.xlsx",
       "label": "Excel"
     },
     {
@@ -43,7 +44,7 @@
   "demoInstructions": {
     "lead": "Start with recorded retail value, incidents, average record value, and quarter change, then explore the trend and breakdowns.",
     "bullets": [
-      "Wait for the dashboard to finish warming up and load data.",
+      "Explore the anonymized records with filters that run in your browser.",
       "Switch between “Retail Value” and “Incident Count” depending on what you want to compare.",
       "Apply location and date filters, or expand More filters for condition, department, and associate.",
       "Expand Record details and concentration for individual records. Use Reset filters to return to the full dataset."
@@ -54,6 +55,7 @@
   ],
   "notes": "Employee and location identifiers are anonymized; the dashboard compares both incident count and retail value so hotspots are not judged by volume alone.",
   "problem": "Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.",
+  "task": "Create a reusable Excel dashboard for locating empty-package shrink hotspots and comparing trends and forecasted risk.",
   "actions": [
     "Cleaned and anonymized 2021-2023 loss-prevention records into a dashboard-ready dataset.",
     "Built Excel drill-downs for location, department, associate, recovery location, date range, incident count, and retail value.",
@@ -64,5 +66,11 @@
     "Made growth periods and hotspots visible enough for targeted review instead of broad manual scanning.",
     "Created a reusable BI workflow that can be refreshed and extended with anomaly alerts."
   ],
-  "order": 6
+  "order": 6,
+  "mobilePreview": {
+    "image": "img/projects/targetEmptyPackage-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Empty-package recoveries dashboard showing the quarterly trend and recorded retail value by location."
+  }
 }

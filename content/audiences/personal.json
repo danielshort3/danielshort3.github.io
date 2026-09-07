@@ -43,6 +43,12 @@
   ],
   "portfolioTitle": "Project Library",
   "portfolioDescription": "Machine learning, analytics, software tools, and browser experiments by Daniel Short.",
+  "projectLibrary": {
+    "startHereProjectIds": [
+      "babynames",
+      "handwritingRating"
+    ]
+  },
   "brandNavPrimary": "Projects, Tools, and Games",
   "page": {
     "id": "home",
@@ -102,8 +108,67 @@
               "color": "#091f3b",
               "colorEnd": "#032b57",
               "title": "Hi, I’m Daniel.",
-              "lead": "I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.",
+              "lead": "I enjoy solving everyday inefficiencies with AI and machine learning. Family is important to me, and I’ve played French horn for 20 years.",
               "context": "Based in Grand Junction, Colorado.",
+              "currentWork": {
+                "text": "Currently building: this website and its practical browser tools.",
+                "href": "/portfolio/website"
+              },
+              "aboutStory": {
+                "title": "Life shapes what I build.",
+                "connections": [
+                  {
+                    "id": "ai",
+                    "title": "AI & machine learning",
+                    "description": "Finding better ways to tackle everyday inefficiencies.",
+                    "icon": "ai",
+                    "image": "img/hero/about-ai-network-v1.webp",
+                    "imageWidth": 512,
+                    "imageHeight": 512,
+                    "project": {
+                      "title": "Practical browser tools",
+                      "summary": "Solving everyday inefficiencies.",
+                      "href": "/tools",
+                      "contentType": "directory",
+                      "contentId": "tools",
+                      "resourceType": "library"
+                    }
+                  },
+                  {
+                    "id": "family",
+                    "title": "Family",
+                    "description": "A central part of my life.",
+                    "icon": "family",
+                    "image": "img/hero/about-family-frame-v1.webp",
+                    "imageWidth": 512,
+                    "imageHeight": 512,
+                    "project": {
+                      "title": "Baby Name Predictor",
+                      "summary": "A project inspired by naming our child.",
+                      "href": "/portfolio/babynames",
+                      "contentType": "project",
+                      "contentId": "babynames",
+                      "resourceType": "case_study"
+                    }
+                  },
+                  {
+                    "id": "french-horn",
+                    "title": "French horn",
+                    "description": "Playing for 20 years.",
+                    "image": "img/hero/about-french-horn-sheet-music-v1.webp",
+                    "imageWidth": 512,
+                    "imageHeight": 512,
+                    "project": {
+                      "title": "Sheet music restoration",
+                      "summary": "Making low-resolution sheet music easier to read.",
+                      "href": "/portfolio/sheetMusicUpscale",
+                      "contentType": "project",
+                      "contentId": "sheetMusicUpscale",
+                      "resourceType": "case_study"
+                    }
+                  }
+                ]
+              },
               "profile": {
                 "image": "img/hero/head-avatar-384.jpg",
                 "imageAlt": "Daniel Short",
@@ -111,6 +176,12 @@
                 "imageHeight": 384
               },
               "timeline": {
+                "title": "My journey",
+                "newestFirst": true,
+                "sortBy": "startDate",
+                "dateDisplay": "monthYear",
+                "compactTitles": true,
+                "collapsible": false,
                 "items": [
                   {
                     "id": "target",
@@ -254,8 +325,7 @@
                   "title": "Baby Name Predictor",
                   "summary": "I built a recommendation model to learn my wife’s taste and help us narrow the list when naming our child.",
                   "href": "/portfolio/babynames",
-                  "image": "img/projects/babynames-640.webp",
-                  "imageAlt": "Baby Name Predictor project preview",
+                  "iconImage": "img/projects/icons/babynames.png",
                   "contentType": "project",
                   "contentId": "babynames",
                   "resourceType": "case_study"
@@ -265,8 +335,7 @@
                   "title": "Handwriting Legibility Scoring",
                   "summary": "My wife said my handwriting was hard to read, so I trained a model to give it an objective legibility score.",
                   "href": "/portfolio/handwritingRating",
-                  "image": "img/projects/handwritingRating-640.webp",
-                  "imageAlt": "Handwriting Legibility Scoring project preview",
+                  "iconImage": "img/projects/icons/handwritingRating.png",
                   "contentType": "project",
                   "contentId": "handwritingRating",
                   "resourceType": "case_study"
@@ -276,8 +345,7 @@
                   "title": "Sheet Music Watermark Removal & Upscale",
                   "summary": "I wanted cleaner, more readable sheet music, so I built a pipeline to remove watermarks and upscale low-resolution scans.",
                   "href": "/portfolio/sheetMusicUpscale",
-                  "image": "img/projects/sheetMusicUpscale-640.webp",
-                  "imageAlt": "Sheet Music Watermark Removal and Upscale project preview",
+                  "iconImage": "img/projects/icons/sheetMusicUpscale.png",
                   "contentType": "project",
                   "contentId": "sheetMusicUpscale",
                   "resourceType": "case_study"
@@ -287,8 +355,7 @@
                   "title": "UFO Sightings Dashboard",
                   "summary": "I wanted to see patterns in UFO reports, so I built a dashboard to explore sightings by place, time, and shape.",
                   "href": "/portfolio/ufoDashboard",
-                  "image": "img/projects/ufoDashboard-640.webp",
-                  "imageAlt": "UFO Sightings Dashboard project preview",
+                  "iconImage": "img/projects/icons/ufoDashboard.png",
                   "contentType": "project",
                   "contentId": "ufoDashboard",
                   "resourceType": "case_study"
@@ -376,6 +443,7 @@
                   "title": "Stormbreak: Idle Olympus",
                   "summary": "Command Zeus and turn lightning, loot, and offline gains into a compounding idle-action loop.",
                   "href": "/games/stormbreak",
+                  "iconImage": "img/games/icons/stormbreak.png",
                   "icon": "stormbreak",
                   "contentType": "game",
                   "contentId": "stormbreak",
@@ -386,6 +454,7 @@
                   "title": "Stellar Dogfight",
                   "summary": "Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.",
                   "href": "/games/stellar-dogfight",
+                  "iconImage": "img/games/icons/stellar-dogfight.png",
                   "icon": "stellar-dogfight",
                   "contentType": "game",
                   "contentId": "stellar-dogfight",
@@ -396,6 +465,7 @@
                   "title": "Probability Engine",
                   "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
                   "href": "/games/probability-engine",
+                  "iconImage": "img/games/icons/probability-engine.png",
                   "icon": "probability",
                   "contentType": "game",
                   "contentId": "probability-engine",

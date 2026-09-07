@@ -5,6 +5,7 @@ window.PROJECTS = [
     "title": "Smart Sentence Retriever",
     "subtitle": "NLP Embeddings & Serverless Retrieval",
     "image": "img/projects/smartSentence.png",
+    "iconImage": "img/projects/icons/smartSentence.png?v=7be7091370e0",
     "imageWidth": 952,
     "imageHeight": 952,
     "videoWebm": "img/projects/smartSentence.webm",
@@ -68,6 +69,7 @@ window.PROJECTS = [
     ],
     "notes": "The live demo uses a fixed Alice in Wonderland corpus and checks endpoint health before enabling queries because cold starts can happen after idle time.",
     "problem": "I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.",
+    "task": "Build a semantic-search demo that retrieves and ranks relevant sentences even when a question uses different wording.",
     "actions": [
       "Cleaned Project Gutenberg text, split it into sentences, and precomputed embeddings for the fixed corpus.",
       "Compared several embedding models on a sample subset and balanced clustering quality against model size and serverless deployment cost.",
@@ -99,13 +101,20 @@ window.PROJECTS = [
         "url": "https://github.com/danielshort3/Smart-Sentence-Finder"
       }
     },
-    "order": 1
+    "order": 1,
+    "mobilePreview": {
+      "image": "img/projects/smartSentence-preview.webp?v=9f9e9ac1b7f2",
+      "width": 1280,
+      "height": 800,
+      "alt": "Sentence Search showing an example query and ranked matching passages from Alice in Wonderland."
+    }
   },
   {
     "id": "chatbotLora",
     "title": "Chatbot (LoRA + RAG)",
     "subtitle": "RAG Chatbot Fine-Tuned with LoRA",
     "image": "img/projects/chatbotLora.png",
+    "iconImage": "img/projects/icons/chatbotLora.png?v=a6d123e8bd75",
     "imageWidth": 1280,
     "imageHeight": 720,
     "videoWebm": "img/projects/chatbotLora.webm",
@@ -157,6 +166,7 @@ window.PROJECTS = [
     ],
     "notes": "Uses public Visit Grand Junction pages; retrieval provides citation links, and cold-start checks are part of the deployed demo.",
     "problem": "The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model that could answer quickly with citations.",
+    "task": "Build one tourism chatbot demo that supports both managed and fine-tuned models with source-grounded answers and citations.",
     "actions": [
       "Crawled Visit Grand Junction pages, built a FAISS retrieval index, and generated a tourism-specific Q&A dataset with an open-source LLM through Ollama.",
       "Fine-tuned a Mistral 7B/Qwen-style chatbot path with LoRA and deployed the custom model behind AWS SageMaker/Lambda for cold-start and model-control comparison.",
@@ -197,6 +207,7 @@ window.PROJECTS = [
     "title": "Shape Classifier Demo",
     "subtitle": "Handwritten Shape Recognition",
     "image": "img/projects/shapeClassifier.png",
+    "iconImage": "img/projects/icons/shapeClassifier.png?v=981b96b1622f",
     "imageWidth": 926,
     "imageHeight": 926,
     "videoWebm": "img/projects/shapeClassifier.webm",
@@ -245,6 +256,7 @@ window.PROJECTS = [
       ]
     },
     "problem": "I wanted a model that can tell what shape someone drew.",
+    "task": "Build an interactive demo that classifies browser-drawn shapes into five supported QuickDraw categories.",
     "actions": [
       "Used Google's QuickDraw sketches and built train/validation splits.",
       "Trained a small ResNet18 classifier in PyTorch.",
@@ -272,13 +284,20 @@ window.PROJECTS = [
       }
     },
     "order": 3,
-    "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task."
+    "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task.",
+    "mobilePreview": {
+      "image": "img/projects/shapeClassifier-preview.webp?v=1df34396e68a",
+      "width": 1280,
+      "height": 800,
+      "alt": "Shape Classifier with a drawn square and the model’s prediction."
+    }
   },
   {
     "id": "ufoDashboard",
     "title": "UFO Sightings Dashboard",
     "subtitle": "Tableau Geospatial Analytics",
     "image": "img/projects/ufoDashboard.png",
+    "iconImage": "img/projects/icons/ufoDashboard.png?v=ae6e397c2406",
     "imageWidth": 2008,
     "imageHeight": 1116,
     "tools": [
@@ -318,6 +337,7 @@ window.PROJECTS = [
       ]
     },
     "problem": "I wanted to see patterns in UFO sighting reports across the U.S.",
+    "task": "Create a Tableau dashboard for exploring geographic, seasonal, and time-of-day patterns in reported UFO sightings.",
     "actions": [
       "Cleaned and standardized a public UFO sightings dataset.",
       "Built a Tableau dashboard with maps and time-based charts."
@@ -327,20 +347,27 @@ window.PROJECTS = [
       "California has the most reports in the dataset, while many central states have fewer."
     ],
     "order": 4,
-    "notes": "The dashboard uses reported UFO sightings without population normalization, so patterns should be read as report volume, not incidence rates."
+    "notes": "The dashboard uses reported UFO sightings without population normalization, so patterns should be read as report volume, not incidence rates.",
+    "mobilePreview": {
+      "image": "img/projects/ufoDashboard-preview.webp?v=e114cab706b1",
+      "width": 1280,
+      "height": 800,
+      "alt": "UFO Sightings Dashboard showing state and city maps, sighting counts, shape trends, and a time-of-day heatmap."
+    }
   },
   {
     "id": "covidAnalysis",
     "title": "COVID-19 Outbreak Drivers",
     "subtitle": "Python XGBoost & SHAP",
     "image": "img/projects/covidAnalysis.png",
+    "iconImage": "img/projects/icons/covidAnalysis.png?v=9f13fa761f39",
     "imageWidth": 1446,
     "imageHeight": 1446,
     "videoWebm": "img/projects/covidAnalysis.webm",
     "videoMp4": "img/projects/covidAnalysis.mp4",
     "tools": [
       "Python",
-      "AWS"
+      "JavaScript"
     ],
     "concepts": [
       "Analytics"
@@ -379,13 +406,14 @@ window.PROJECTS = [
     "demoInstructions": {
       "lead": "Start with a state's historical ICU utilization and exploratory risk score, then explore the trend and map.",
       "bullets": [
-        "Wait for the status pill to show the demo is ready (cold starts can take a moment).",
+        "Explore the bundled historical risk scores; the dashboard runs in your browser.",
         "Drag the date slider to move through time.",
         "Choose a state or territory from the menu, or select a state on the map.",
         "Expand Risk drivers and hotspots for supporting detail."
       ]
     },
     "problem": "Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
+    "task": "Develop an early-warning model that flags states at risk of exceeding 90% ICU utilization within seven days and explains the main risk drivers.",
     "actions": [
       "Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.",
       "Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split."
@@ -434,13 +462,20 @@ window.PROJECTS = [
       }
     },
     "order": 5,
-    "notes": "The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast."
+    "notes": "The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast.",
+    "mobilePreview": {
+      "image": "img/projects/covidAnalysis-preview.webp?v=500c45797b33",
+      "width": 1280,
+      "height": 800,
+      "alt": "Historical COVID outbreak risk map with state-level percentages and the risk legend."
+    }
   },
   {
     "id": "targetEmptyPackage",
     "title": "Empty-Package Shrink Dashboard",
     "subtitle": "Excel Forecasting & BI",
     "image": "img/projects/targetEmptyPackage.png",
+    "iconImage": "img/projects/icons/targetEmptyPackage.png?v=fe4215c27311",
     "imageWidth": 1460,
     "imageHeight": 1460,
     "videoWebm": "img/projects/targetEmptyPackage.webm",
@@ -448,7 +483,7 @@ window.PROJECTS = [
     "tools": [
       "Excel",
       "Time-Series",
-      "AWS"
+      "JavaScript"
     ],
     "concepts": [
       "Automation",
@@ -460,12 +495,12 @@ window.PROJECTS = [
     "resources": [
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_7.pdf",
+        "url": "documents/Project_7.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/excel-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_7.xlsx",
+        "url": "documents/Project_7.xlsx",
         "label": "Excel"
       },
       {
@@ -481,7 +516,7 @@ window.PROJECTS = [
     "demoInstructions": {
       "lead": "Start with recorded retail value, incidents, average record value, and quarter change, then explore the trend and breakdowns.",
       "bullets": [
-        "Wait for the dashboard to finish warming up and load data.",
+        "Explore the anonymized records with filters that run in your browser.",
         "Switch between “Retail Value” and “Incident Count” depending on what you want to compare.",
         "Apply location and date filters, or expand More filters for condition, department, and associate.",
         "Expand Record details and concentration for individual records. Use Reset filters to return to the full dataset."
@@ -492,6 +527,7 @@ window.PROJECTS = [
     ],
     "notes": "Employee and location identifiers are anonymized; the dashboard compares both incident count and retail value so hotspots are not judged by volume alone.",
     "problem": "Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.",
+    "task": "Create a reusable Excel dashboard for locating empty-package shrink hotspots and comparing trends and forecasted risk.",
     "actions": [
       "Cleaned and anonymized 2021-2023 loss-prevention records into a dashboard-ready dataset.",
       "Built Excel drill-downs for location, department, associate, recovery location, date range, incident count, and retail value.",
@@ -502,13 +538,20 @@ window.PROJECTS = [
       "Made growth periods and hotspots visible enough for targeted review instead of broad manual scanning.",
       "Created a reusable BI workflow that can be refreshed and extended with anomaly alerts."
     ],
-    "order": 6
+    "order": 6,
+    "mobilePreview": {
+      "image": "img/projects/targetEmptyPackage-preview.webp?v=ee67e5e90f85",
+      "width": 1280,
+      "height": 800,
+      "alt": "Empty-package recoveries dashboard showing the quarterly trend and recorded retail value by location."
+    }
   },
   {
     "id": "handwritingRating",
     "title": "Handwriting Legibility Scoring",
     "subtitle": "PyTorch CNN Fine-Tuning",
     "image": "img/projects/handwritingRating.png",
+    "iconImage": "img/projects/icons/handwritingRating.png?v=582853161647",
     "imageWidth": 1138,
     "imageHeight": 1138,
     "videoWebm": "img/projects/handwritingRating.webm",
@@ -569,6 +612,7 @@ window.PROJECTS = [
       ]
     },
     "problem": "My wife says my handwriting is hard to read. I wanted an objective score.",
+    "task": "Build a handwritten-digit recognition model and use its confidence to explore legibility scoring.",
     "actions": [
       "Built three digit-recognition models, moving from a simple baseline to a CNN.",
       "Trained on MNIST (60,000 digits) and selected the best model.",
@@ -608,13 +652,20 @@ window.PROJECTS = [
       }
     },
     "order": 7,
-    "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark."
+    "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark.",
+    "mobilePreview": {
+      "image": "img/projects/handwritingRating-preview.webp?v=fe02ca2478f9",
+      "width": 1280,
+      "height": 800,
+      "alt": "Handwriting Legibility Scoring with a handwritten six and its measured legibility result."
+    }
   },
   {
     "id": "digitGenerator",
     "title": "Synthetic Digit Generator",
     "subtitle": "Variational Autoencoder",
     "image": "img/projects/digitGenerator.png",
+    "iconImage": "img/projects/icons/digitGenerator.png?v=f26866af05d5",
     "imageWidth": 1470,
     "imageHeight": 1470,
     "videoWebm": "img/projects/digitGenerator.webm",
@@ -667,6 +718,7 @@ window.PROJECTS = [
       ]
     },
     "problem": "I wanted to generate new handwritten digits, not just recognize them.",
+    "task": "Train a generative model that can produce new MNIST-style digits from a learned latent space.",
     "actions": [
       "Trained a Variational Autoencoder (VAE) on MNIST (60,000 training digits) with a 20-dim latent space for up to 100 epochs."
     ],
@@ -703,13 +755,20 @@ window.PROJECTS = [
       }
     },
     "order": 8,
-    "notes": "Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity."
+    "notes": "Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity.",
+    "mobilePreview": {
+      "image": "img/projects/digitGenerator-preview.webp?v=3b391f6584d9",
+      "width": 1280,
+      "height": 800,
+      "alt": "Synthetic Digit Generator showing a generated four-by-four grid of handwritten digit variations."
+    }
   },
   {
     "id": "sheetMusicUpscale",
     "title": "Sheet Music Watermark Removal & Upscale",
     "subtitle": "UNet & VDSR Pipeline",
     "image": "img/projects/sheetMusicUpscale.png?v=7328193a7824",
+    "iconImage": "img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad",
     "imageWidth": 1600,
     "imageHeight": 900,
     "previewComparison": {
@@ -767,8 +826,6 @@ window.PROJECTS = [
         }
       ],
       "selection": true,
-      "credit": "Source: Lord, I Need You, Horn 1–2 in G · PraiseCharts",
-      "creditUrl": "https://www.praisecharts.com/songs/details/23870/lord-i-need-you-sheet-music/brass-pack/french-horn-1-2",
       "provenance": {
         "pipeline": "U-Net watermark removal followed by VDSR upscaling",
         "run": "Watermark-Remover-Agent/output/manual/20260409_195930",
@@ -816,16 +873,17 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_10_pdf.zip",
+        "url": "/documents/Project_10_pdf.zip",
         "label": "PDFs"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_10.zip",
+        "url": "/documents/Project_10.zip",
         "label": "Notebook"
       }
     ],
     "problem": "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
+    "task": "Create a workflow that removes watermarks and upscales sheet-music scans while keeping notation readable.",
     "actions": [
       "Trained a UNet model on paired page images for watermark removal.",
       "Upscaled low-resolution scans (e.g., ~612x792) to print-friendly resolution (e.g., ~1700x2200) with Very Deep Super-Resolution (VDSR).",
@@ -859,6 +917,7 @@ window.PROJECTS = [
     "title": "Delivery Tip",
     "subtitle": "Excel Geo-Analytics & Optimization",
     "image": "img/projects/deliveryTip.png",
+    "iconImage": "img/projects/icons/deliveryTip.png?v=e035f25cb792",
     "imageWidth": 960,
     "imageHeight": 794,
     "tools": [
@@ -874,16 +933,17 @@ window.PROJECTS = [
     "resources": [
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_11.pdf",
+        "url": "/documents/Project_11.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/excel-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_11.xlsx",
+        "url": "/documents/Project_11.xlsx",
         "label": "Excel"
       }
     ],
     "problem": "I wanted to know which shifts and neighborhoods lead to better tips.",
+    "task": "Compare delivery shifts and neighborhoods to identify patterns that could guide when and where to work.",
     "actions": [
       "Built a geospatial heat map and pivot filters from 1,251 deliveries.",
       "Compared tips by daypart, zone, and order size."
@@ -901,6 +961,7 @@ window.PROJECTS = [
     "title": "Store-Level Loss & Sales ETL",
     "subtitle": "SQL ETL + Anomaly Detection",
     "image": "img/projects/retailStore.png",
+    "iconImage": "img/projects/icons/retailStore.png?v=8e0cf4b2dfa1",
     "imageWidth": 1410,
     "imageHeight": 1410,
     "videoWebm": "img/projects/retailStore.webm",
@@ -908,7 +969,7 @@ window.PROJECTS = [
     "tools": [
       "SQL",
       "Python",
-      "AWS"
+      "JavaScript"
     ],
     "concepts": [
       "Automation",
@@ -926,12 +987,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_12.pdf",
+        "url": "documents/Project_12.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_12.ipynb",
+        "url": "documents/Project_12.ipynb",
         "label": "Notebook"
       },
       {
@@ -958,6 +1019,7 @@ window.PROJECTS = [
     ],
     "notes": "Store, state, and employee identifiers are anonymized; risk rankings normalize incident signals with sales context so high-volume stores are not treated as high-risk by volume alone.",
     "problem": "Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.",
+    "task": "Unify incident, sales, and HR data into consistent reporting that highlights unusual patterns and supports investigation planning.",
     "actions": [
       "Modeled incident, sales, and HR data in SQL so stores, regions, time periods, and risk measures use consistent definitions.",
       "Built Python reporting views that separate frequency, severity, and sales context for faster investigation planning.",
@@ -974,13 +1036,20 @@ window.PROJECTS = [
       "surprise": "Raw incident volume was misleading; sales context and normalization changed which stores looked genuinely unusual.",
       "next": "I’d calibrate alert thresholds against reviewed cases and add drift monitoring so the ranking stays useful over time."
     },
-    "order": 11
+    "order": 11,
+    "mobilePreview": {
+      "image": "img/projects/retailStore-preview.webp?v=0ce0c37f1257",
+      "width": 1280,
+      "height": 800,
+      "alt": "Store loss and sales dashboard showing summary metrics and its monthly sales trend."
+    }
   },
   {
     "id": "pizza",
     "title": "Pizza Tips Regression Modeling",
     "subtitle": "Excel Analytics & Regression Modeling",
     "image": "img/projects/pizza.png",
+    "iconImage": "img/projects/icons/pizza.png?v=478ab0f3d86a",
     "imageWidth": 1398,
     "imageHeight": 1398,
     "videoWebm": "img/projects/pizza.webm",
@@ -988,7 +1057,7 @@ window.PROJECTS = [
     "tools": [
       "Excel",
       "Statistics",
-      "AWS"
+      "JavaScript"
     ],
     "concepts": [
       "Analytics"
@@ -1004,12 +1073,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_1.pdf",
+        "url": "documents/Project_1.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/excel-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_1.xlsx",
+        "url": "documents/Project_1.xlsx",
         "label": "Excel"
       }
     ],
@@ -1018,15 +1087,16 @@ window.PROJECTS = [
       "url": "pizza-tips-demo.html"
     },
     "demoInstructions": {
-      "lead": "Adjust inputs and estimate a tip using the regression model.",
+      "lead": "Adjust an order and estimate its tip directly in your browser.",
       "bullets": [
-        "Use the delivery slider to load an example ticket (or enter values directly).",
-        "Edit order cost and other inputs (housing, time, weather) to test scenarios.",
-        "Click “Estimate Tip” to see the prediction.",
-        "Use “Reset” to return to defaults."
+        "Edit the order cost, delivery city, housing type, and order hour to compare scenarios.",
+        "Select “Update estimate” to calculate the tip and uncertainty interval.",
+        "Expand the delivery map to choose a location or compare estimated tips across the area.",
+        "Select “Reset” to return to the computed example."
       ]
     },
     "problem": "Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.",
+    "task": "Test which recorded delivery and weather factors are associated with tip size using regression analysis.",
     "actions": [
       "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
       "Ran a multiple regression in Excel: Tip = f(cost, delivery time, rain, max/min temperature)."
@@ -1037,13 +1107,20 @@ window.PROJECTS = [
       "Weather and delivery time didn’t show a meaningful effect on tip size."
     ],
     "order": 12,
-    "notes": "Delivery records were joined to NOAA daily weather; missing distance and time-of-day controls limit causal interpretation."
+    "notes": "Delivery records were joined to NOAA daily weather; missing distance and time-of-day controls limit causal interpretation.",
+    "mobilePreview": {
+      "image": "img/projects/pizza-preview.webp?v=9138cc3d984d",
+      "width": 1280,
+      "height": 800,
+      "alt": "Pizza Tip Estimator showing an example order, estimated tip, and delivery controls."
+    }
   },
   {
     "id": "babynames",
     "title": "Baby Name Predictor",
     "subtitle": "Python ML Pipeline",
     "image": "img/projects/babynames.png",
+    "iconImage": "img/projects/icons/babynames.png?v=7fc79e6e3331",
     "imageWidth": 1238,
     "imageHeight": 1238,
     "videoWebm": "img/projects/babynames.webm",
@@ -1071,12 +1148,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_2.pdf",
+        "url": "/documents/Project_2.pdf",
         "label": "PDFs"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_2.ipynb",
+        "url": "/documents/Project_2.ipynb",
         "label": "Notebook"
       },
       {
@@ -1100,6 +1177,7 @@ window.PROJECTS = [
       ]
     },
     "problem": "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
+    "task": "Create personalized baby-name recommendations from recorded preferences and historical naming trends.",
     "actions": [
       "Aggregated SSA baby-name records (1880-present) and engineered trend features.",
       "Built a simple 'quiz' script to collect like/dislike labels.",
@@ -1110,13 +1188,20 @@ window.PROJECTS = [
       "Helped us narrow the list when naming our child."
     ],
     "order": 13,
-    "notes": "Uses SSA baby-name data plus personal quiz labels; recommendations are preference predictions, not a population forecast."
+    "notes": "Uses SSA baby-name data plus personal quiz labels; recommendations are preference predictions, not a population forecast.",
+    "mobilePreview": {
+      "image": "img/projects/babynames-preview.webp?v=f3d837c3ec2f",
+      "width": 1280,
+      "height": 800,
+      "alt": "Baby Name Predictor showing rating distribution, favorite girl names, and recommendations."
+    }
   },
   {
     "id": "pizzaDashboard",
     "title": "Pizza Delivery Dashboard",
     "subtitle": "Tableau Analytics & Forecasting",
     "image": "img/projects/pizzaDashboard.png",
+    "iconImage": "img/projects/icons/pizzaDashboard.png?v=4e01e3d6a7f6",
     "imageWidth": 1250,
     "imageHeight": 1092,
     "tools": [
@@ -1154,6 +1239,7 @@ window.PROJECTS = [
       "Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting)."
     ],
     "problem": "I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.",
+    "task": "Create a Tableau dashboard that brings delivery-zone, earnings, timing, and forecast comparisons together for shift planning.",
     "actions": [
       "Reshaped about 12,000 delivery records into a Tableau-ready dataset with consistent dates, zones, housing categories, and tip KPIs.",
       "Built map, distribution, filter, and 12-month forecast views for fast zone and timing comparison.",
@@ -1165,13 +1251,20 @@ window.PROJECTS = [
       "Added forecasting so the dashboard supports planning instead of only retrospective review."
     ],
     "order": 14,
-    "notes": "Built from delivery history; tip efficiency should be interpreted with zone and timing context rather than average tip alone."
+    "notes": "Built from delivery history; tip efficiency should be interpreted with zone and timing context rather than average tip alone.",
+    "mobilePreview": {
+      "image": "img/projects/pizzaDashboard-preview.webp?v=45ea8dbf7a11",
+      "width": 1280,
+      "height": 800,
+      "alt": "Pizza Delivery Dashboard showing delivery maps, tip distributions, forecasts, and order breakdowns."
+    }
   },
   {
     "id": "nonogram",
     "title": "Nonogram Solver",
     "subtitle": "Reinforcement Learning (RL)",
     "image": "img/projects/nonogram.png",
+    "iconImage": "img/projects/icons/nonogram.png?v=d8d2122f3f7f",
     "imageWidth": 1228,
     "imageHeight": 1228,
     "videoWebm": "img/projects/nonogram.webm",
@@ -1224,6 +1317,7 @@ window.PROJECTS = [
       ]
     },
     "problem": "I wanted to see if an RL agent could learn to solve Nonogram puzzles.",
+    "task": "Train and evaluate a reinforcement-learning agent on generated 5x5 Nonogram puzzles.",
     "actions": [
       "Generated large batches of 5x5 puzzles and trained a hybrid CNN + Transformer policy network to solve them.",
       "Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration."
@@ -1249,7 +1343,13 @@ window.PROJECTS = [
       }
     },
     "order": 15,
-    "notes": "The solver focuses on generated 5x5 puzzles; scaling to larger puzzles would need curriculum learning or search."
+    "notes": "The solver focuses on generated 5x5 puzzles; scaling to larger puzzles would need curriculum learning or search.",
+    "mobilePreview": {
+      "image": "img/projects/nonogram-preview.webp?v=7fbbfb001fb4",
+      "width": 1280,
+      "height": 800,
+      "alt": "Nonogram Solver showing a completed five-by-five puzzle, its clues, and the solver accuracy."
+    }
   },
   {
     "id": "minesweeper",
@@ -1311,11 +1411,10 @@ window.PROJECTS = [
     "id": "website",
     "title": "danielshort.me",
     "subtitle": "Responsive Portfolio Site",
-    "image": "img/projects/website.png",
-    "imageWidth": 1464,
-    "imageHeight": 1464,
-    "videoWebm": "img/projects/website.webm",
-    "videoMp4": "img/projects/website.mp4",
+    "image": "img/projects/website.png?v=e005645fec7c",
+    "iconImage": "img/projects/icons/website.png?v=5ee2dd9327e1",
+    "imageWidth": 1280,
+    "imageHeight": 800,
     "tools": [
       "HTML",
       "CSS",
@@ -1341,6 +1440,7 @@ window.PROJECTS = [
       }
     ],
     "problem": "I needed a fast site to show my work, especially on mobile.",
+    "task": "Build a fast, mobile-friendly portfolio that makes projects easy to find, explore, and share.",
     "actions": [
       "Built a static site and rendered portfolio projects from a single data file.",
       "Added Google Analytics 4, structured data, and lazy loading for heavy assets."
@@ -1355,7 +1455,8 @@ window.PROJECTS = [
       "next": "I’d add automated accessibility, broken-link, and Core Web Vitals regression checks to catch quality drift before deployment."
     },
     "order": 17,
-    "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site."
+    "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site.",
+    "imageAlt": "Current Daniel Short homepage in its light theme, with an introduction, timeline, and colored vertical tabs."
   }
 ];
 

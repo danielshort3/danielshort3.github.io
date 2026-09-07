@@ -1,0 +1,14 @@
+Asset: about-french-horn-photo.webp
+Original title: Rog.jpg
+Description: Photograph of a French horn
+Photographer: Ziga (Wikimedia Commons username: Žiga)
+Original date: 2014-11-02
+Source: https://commons.wikimedia.org/wiki/File:Rog.jpg
+Source revision: https://commons.wikimedia.org/w/index.php?title=File:Rog.jpg&oldid=1157322196
+Original file: https://upload.wikimedia.org/wikipedia/commons/4/49/Rog.jpg
+License: CC0 1.0 Universal Public Domain Dedication
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+Verified: 2026-09-06
+Original SHA-1: 6932f1b5c89ff45bf66c03747e18c4a4e2c5da59
+Preparation: Resized proportionally from 840 x 601 to 384 x 275 and converted
+to WebP quality 92. No cropping, retouching, mirroring, or generative edits.

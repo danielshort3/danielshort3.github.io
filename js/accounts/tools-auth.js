@@ -15,6 +15,26 @@
     logout: '/api/tools/auth/logout'
   };
   const SESSION_MODES = new Set(['legacy', 'dual', 'cookie']);
+  let authGeneration = 0;
+  let authRenewal = null;
+  let sessionRestoreBlocked = false;
+  let logoutPromise = null;
+
+  const cancelAuthRenewal = () => {
+    authGeneration += 1;
+    authRenewal?.controller?.abort();
+    authRenewal = null;
+  };
+
+  const authOperationIsCurrent = (operation) => !operation
+    || (operation.generation === authGeneration && !sessionRestoreBlocked);
+
+  const checkAuthOperation = (operation) => {
+    if (authOperationIsCurrent(operation)) return;
+    const error = new Error('Authentication changed while the request was pending.');
+    error.name = 'AbortError';
+    throw error;
+  };
 
   const getConfig = () => {
     const source = document.body || document.documentElement || {};
@@ -120,15 +140,19 @@
     return null;
   };
 
+  // Keep getAuth() valid-only for UI access checks, but retain expired tokens
+  // privately so their refresh token can renew the bearer before an API call.
+  const loadRefreshCandidate = () => {
+    for (const key of [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]) {
+      const auth = normalizeAuth(loadAuthFromKey(key));
+      if (auth?.idToken && !auth.sessionOnly && auth.refreshToken) return { key, auth };
+    }
+    return null;
+  };
+
   const saveAuth = (auth) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
-    } catch {}
-  };
-
-  const clearAuth = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
     } catch {}
   };
 
@@ -254,7 +278,7 @@
     return `https://${config.cognitoDomain}/oauth2/authorize?${params.toString()}`;
   };
 
-  const exchangeCodeForTokens = async (config, code, verifierOverride) => {
+  const exchangeCodeForTokens = async (config, code, verifierOverride, operation) => {
     const verifier = String(verifierOverride || sessionStorage.getItem(VERIFIER_KEY) || '').trim();
     if (!verifierOverride) {
       sessionStorage.removeItem(VERIFIER_KEY);
@@ -291,7 +315,7 @@
       claims
     });
     if (!auth) throw new Error('Unable to save auth.');
-    return persistAuthForSessionMode(config, auth);
+    return persistAuthForSessionMode(config, auth, operation);
   };
 
   const sessionAuthFromResponse = (data) => {
@@ -311,12 +335,14 @@
     });
   };
 
-  const establishServerSession = async (auth) => {
+  const establishServerSession = async (auth, operation) => {
+    checkAuthOperation(operation);
     if (!auth?.idToken) throw new Error('Missing ID token for session exchange.');
     const res = await fetch(SESSION_API.exchange, {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { Authorization: `Bearer ${auth.idToken}` }
+      headers: { Authorization: `Bearer ${auth.idToken}` },
+      ...(operation?.controller ? { signal: operation.controller.signal } : {})
     });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
@@ -328,14 +354,16 @@
     return sessionAuth;
   };
 
-  const persistAuthForSessionMode = async (config, auth) => {
+  const persistAuthForSessionMode = async (config, auth, operation) => {
+    checkAuthOperation(operation);
     const mode = String(config?.sessionMode || 'dual');
     if (mode === 'legacy') {
       saveAuth(auth);
       return auth;
     }
     try {
-      const sessionAuth = await establishServerSession(auth);
+      const sessionAuth = await establishServerSession(auth, operation);
+      checkAuthOperation(operation);
       const next = mode === 'cookie'
         ? sessionAuth
         : normalizeAuth({
@@ -346,13 +374,14 @@
       saveAuth(next);
       return next;
     } catch (err) {
+      checkAuthOperation(operation);
       if (mode === 'cookie') throw err;
       saveAuth(auth);
       return auth;
     }
   };
 
-  const refreshTokens = async (config, auth) => {
+  const refreshTokens = async (config, auth, operation) => {
     const refreshToken = String(auth?.refreshToken || '').trim();
     if (!refreshToken) throw new Error('Missing refresh token.');
 
@@ -365,11 +394,14 @@
     const res = await fetch(`https://${config.cognitoDomain}/oauth2/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
+      body: params.toString(),
+      ...(operation?.controller ? { signal: operation.controller.signal } : {})
     });
+    checkAuthOperation(operation);
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || 'Unable to refresh session.');
+      const error = new Error('Unable to refresh session.');
+      error.status = res.status;
+      throw error;
     }
     const data = await res.json();
     if (!data.id_token) throw new Error('Missing id_token from refresh response.');
@@ -379,11 +411,12 @@
       ...auth,
       idToken: data.id_token,
       accessToken: data.access_token || auth.accessToken,
+      refreshToken: data.refresh_token || auth.refreshToken,
       expiresAt,
       claims
     });
-    if (!next) throw new Error('Unable to normalize auth.');
-    return persistAuthForSessionMode(config, next);
+    if (!authIsValid(next)) throw new Error('Invalid refreshed session.');
+    return persistAuthForSessionMode(config, next, operation);
   };
 
   const normalizeReturnTo = (value) => {
@@ -403,6 +436,9 @@
     if (!config.cognitoDomain || !config.cognitoClientId || !config.cognitoRedirect) {
       throw new Error('Cognito settings are missing.');
     }
+    cancelAuthRenewal();
+    sessionRestoreBlocked = false;
+    logoutPromise = null;
 
     const returnTo = normalizeReturnTo(options.returnTo || `${window.location.pathname}${window.location.search}${window.location.hash}`);
     const mode = options.mode === 'popup' ? 'popup' : 'redirect';
@@ -460,7 +496,10 @@
     }
 
     const config = getConfig();
-    await exchangeCodeForTokens(config, code, popupState?.verifier);
+    cancelAuthRenewal();
+    sessionRestoreBlocked = false;
+    logoutPromise = null;
+    await exchangeCodeForTokens(config, code, popupState?.verifier, { generation: authGeneration });
 
     params.delete('code');
     params.delete('state');
@@ -493,10 +532,18 @@
   window.addEventListener('message', (event) => {
     if (event.origin !== window.location.origin) return;
     if (event.data?.type !== 'tools-auth:complete') return;
+    cancelAuthRenewal();
+    sessionRestoreBlocked = false;
+    logoutPromise = null;
     dispatchAuthChanged('tools-auth-message');
   });
 
   window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY || LEGACY_STORAGE_KEYS.includes(event.key) || event.key === null) {
+      cancelAuthRenewal();
+      sessionRestoreBlocked = !loadAuth() && !loadRefreshCandidate();
+      if (!sessionRestoreBlocked) logoutPromise = null;
+    }
     if (event.key !== AUTH_BROADCAST_KEY || !event.newValue) return;
     dispatchAuthChanged('tools-auth-storage');
   });
@@ -576,40 +623,67 @@
 
   const getAuth = () => loadAuth();
 
-  const ensureFreshAuth = async () => {
-    const config = getConfig();
-    const current = loadAuth();
-    if (authIsValid(current)) return current;
-    if (!current) {
-      if (config.sessionMode === 'legacy') return null;
+  const renewAuth = async (config, operation) => {
+    const candidate = loadRefreshCandidate();
+    if (candidate) {
       try {
-        const res = await fetch(SESSION_API.session, { method: 'GET', credentials: 'same-origin' });
-        if (!res.ok) return null;
-        const restored = sessionAuthFromResponse(await res.json());
-        if (authIsValid(restored)) saveAuth(restored);
-        return authIsValid(restored) ? restored : null;
+        const refreshed = await refreshTokens(config, candidate.auth, operation);
+        return authOperationIsCurrent(operation) ? refreshed : null;
       } catch (err) {
-        console.error('[tools-auth] Failed to restore server session:', err);
-        return null;
+        if (!authOperationIsCurrent(operation)) return null;
+        // A temporary network/server error must not destroy the refresh token.
+        if (err.status !== 400 && err.status !== 401) return null;
+        for (const key of [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]) {
+          if (loadAuthFromKey(key)?.refreshToken === candidate.auth.refreshToken) {
+            try { localStorage.removeItem(key); } catch {}
+          }
+        }
       }
     }
-    if (current.sessionOnly) {
-      clearAuth();
-      return null;
-    }
+    if (config.sessionMode === 'legacy') return null;
     try {
-      const refreshed = await refreshTokens(config, current);
-      return authIsValid(refreshed) ? refreshed : null;
-    } catch (err) {
-      console.error('[tools-auth] Token refresh failed, clearing auth:', err);
-      clearAuth();
+      const res = await fetch(SESSION_API.session, {
+        method: 'GET',
+        credentials: 'same-origin',
+        ...(operation.controller ? { signal: operation.controller.signal } : {})
+      });
+      if (!res.ok) return null;
+      const restored = sessionAuthFromResponse(await res.json());
+      if (!authOperationIsCurrent(operation) || !authIsValid(restored)) return null;
+      saveAuth(restored);
+      return restored;
+    } catch {
       return null;
     }
   };
 
+  const ensureFreshAuth = async () => {
+    if (sessionRestoreBlocked) return null;
+    const current = loadAuth();
+    if (authIsValid(current)) return current;
+    if (authRenewal) return authRenewal.promise;
+    const operation = {
+      generation: authGeneration,
+      controller: typeof AbortController === 'function' ? new AbortController() : null
+    };
+    operation.promise = renewAuth(getConfig(), operation).finally(() => {
+      if (authRenewal === operation) authRenewal = null;
+    });
+    authRenewal = operation;
+    return operation.promise;
+  };
+
   const fetchWithAuth = async (url, options = {}) => {
+    const { requireIdToken = false, ...fetchOptions } = options;
+    const generation = authGeneration;
     const auth = await ensureFreshAuth();
-    if (!auth) throw new Error('Not authenticated.');
+    if (!auth || generation !== authGeneration || sessionRestoreBlocked) throw new Error('Not authenticated.');
+    if (requireIdToken && (auth.sessionOnly || !auth.idToken)) {
+      const error = new Error('Sign in again to reconnect this tool.');
+      error.code = 'TOOLS_ID_TOKEN_REQUIRED';
+      error.status = 401;
+      throw error;
+    }
     const headers = new Headers(options.headers || {});
     const target = new URL(String(url || ''), window.location.origin);
     const sameOrigin = target.origin === window.location.origin;
@@ -623,18 +697,21 @@
       headers.set('Authorization', `Bearer ${auth.idToken}`);
     }
     const credentials = sameOrigin ? 'same-origin' : options.credentials;
-    const res = await fetch(url, { ...options, headers, credentials });
+    const res = await fetch(url, { ...fetchOptions, headers, credentials });
     return res;
   };
 
   const signOut = () => {
-    const request = fetch(SESSION_API.logout, {
+    if (sessionRestoreBlocked && logoutPromise) return logoutPromise;
+    sessionRestoreBlocked = true;
+    cancelAuthRenewal();
+    clearAllAuth();
+    logoutPromise = fetch(SESSION_API.logout, {
       method: 'POST',
       credentials: 'same-origin',
       keepalive: true
     }).catch(() => null);
-    clearAllAuth();
-    return request;
+    return logoutPromise;
   };
 
   window.ToolsAuth = {

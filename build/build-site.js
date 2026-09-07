@@ -239,6 +239,8 @@ function main() {
     logStep('footer', footerStep.durationMs);
 
     // 12) Shared head metadata (build-time injected)
+    const socialStep = runNodeScript(path.join('build', 'generate-social-previews.js'), { verbose });
+    logStep('social-previews', socialStep.durationMs, 'tool and game cards in img/social');
     const metaStep = runNodeScript(path.join('build', 'inject-head-metadata.js'), { verbose });
     logStep('head-metadata', metaStep.durationMs);
 

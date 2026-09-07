@@ -1166,17 +1166,7 @@
   }
 }
 
-/* Legacy workbench and tool bundles include viewport-locked desktop rules.
-   These document-fit pages must use the browser scrollport so the shared
-   library/detail shell, its right edge, and the compact footer stay reachable. */
-body.personal-accordion-page[data-personal-fit="document"] {
-  box-sizing: border-box;
-  height: auto;
-  min-height: 100svh;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-
+/* Immersive game layouts manage their own play surface. */
 body.personal-accordion-page[data-personal-fit="immersive"] {
   overflow-x: clip;
   overflow-y: visible;
@@ -1379,6 +1369,52 @@ body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .m
   overflow: visible;
 }
 
+/* The desktop frame owns the available height. The game fills that space
+   instead of subtracting the masthead and toolbar from the viewport again. */
+@media screen and (min-width: 960px) and (min-height: 620px) {
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"][data-personal-fit="viewport"] {
+    height: 100svh;
+    min-height: 100svh;
+    overflow: hidden;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .site-frame {
+    --frame-height: calc(100svh - var(--nav-height, 62px) - 28px);
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .site-frame .site-frame__body {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .site-frame .mission-shell {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .site-frame .mission-shell {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .site-frame :is(.mission-grid, .mission-main, .arena-frame) {
+    min-height: 0;
+    height: 100%;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .site-frame__viewport {
+    overflow: hidden;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .site-frame .arena-overlay {
+    overflow: auto;
+    align-items: safe center;
+    padding-block: 12px;
+  }
+}
+
 @media (max-width: 959px), (max-height: 619px) {
   body.personal-accordion-page:is(
     [data-personal-item="probability-engine"],
@@ -1421,5 +1457,59 @@ body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .m
   body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__rails {
     position: sticky;
     height: var(--personal-mobile-rail-size);
+  }
+}
+
+@media screen and (max-width: 959px), screen and (max-height: 619px) {
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing {
+    --stellar-play-top-clearance: var(--mobile-site-masthead-height, var(--nav-height, 62px));
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .site-frame__stage {
+    height: calc(100dvh - var(--stellar-play-top-clearance));
+    grid-template-rows: minmax(48px, auto) minmax(0, 1fr) !important;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .site-frame :is(
+    .site-frame__body,
+    .mission-shell,
+    .mission-grid,
+    .mission-main,
+    .arena-frame
+  ) {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .site-frame .mission-shell {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .site-frame__viewport {
+    overflow: hidden;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .site-frame .arena-overlay {
+    overflow: auto;
+    align-items: safe center;
+    padding-block: 12px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  /* The game already hides the mobile masthead while playing. Reclaim its
+     empty padding so the battlefield and touch controls remain in view. */
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing {
+    --stellar-play-top-clearance: 0px;
+  }
+
+  @layer overrides {
+    body.has-mobile-site-masthead.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing {
+      padding-top: 0 !important;
+    }
   }
 }

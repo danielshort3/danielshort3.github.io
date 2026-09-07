@@ -3,10 +3,14 @@
 
 const fs = require('fs');
 const path = require('path');
+const { loadSiteContent } = require('./lib/content-loader');
+const { buildToolsDirectoryWorkbenchData } = require('./lib/cms-renderers');
+const { versionedImageUrl } = require('./lib/versioned-image-url');
 const {
   HARD_NAVIGATION_PATHS,
   extractMainHtml,
   getPersonalLibraryPresentation,
+  getPersonalToolGroup,
   markProfessionalInternalHtml,
   preparePersonalToolDetailHtml,
   renderPersonalLibraryMain,
@@ -193,6 +197,28 @@ function loadHomeLibraryData() {
   return data && typeof data === 'object' ? data : {};
 }
 
+function buildToolsLibraryItems(content) {
+  const directory = buildToolsDirectoryWorkbenchData(content.pagesById?.tools || {}, content.tools);
+  const sourceTools = new Map(content.tools.map((tool) => [tool.slug, tool]));
+  return directory.items.filter((tool) => (
+    tool.visibility !== 'public' || (!tool.hidden && !tool.noindex)
+  )).map((tool) => ({
+    id: tool.id,
+    title: tool.title,
+    summary: tool.summary,
+    href: `/${String(tool.href || '').replace(/^\/+/, '')}`,
+    image: tool.iconImage ? versionedImageUrl(`/${String(tool.iconImage).replace(/^\/+/, '')}`, { root }) : '',
+    imageAlt: '',
+    iconHtml: tool.iconHtml,
+    contentType: 'tool',
+    contentId: tool.id,
+    resourceType: 'tool',
+    visibility: tool.visibility,
+    group: getPersonalToolGroup({ ...sourceTools.get(tool.id), visibility: tool.visibility })
+  })).sort((a, b) => ['Text', 'Images', 'Links', 'Recording', 'Account tools', 'Admin tools'].indexOf(a.group) -
+    ['Text', 'Images', 'Links', 'Recording', 'Account tools', 'Admin tools'].indexOf(b.group));
+}
+
 function countMainElements(html) {
   return (String(html || '').match(/<main\b/gi) || []).length;
 }
@@ -230,7 +256,6 @@ function writeProfessionalCopy(relPath, html, audience) {
     itemId,
     navigation: 'soft',
     chrome: 'compact',
-    fit: 'document',
     backHref,
     backLabel: category === 'projects' && itemId !== 'portfolio' ? 'Back to projects' : 'Back to about',
     backCompactLabel: category === 'projects' && itemId !== 'portfolio' ? 'Projects' : 'About'
@@ -257,7 +282,6 @@ function buildLibraryPage(sourceHtml, category, libraryData) {
     backLabel: presentation.backLabel,
     backCompactLabel: presentation.backCompactLabel,
     backAriaLabel: presentation.backAriaLabel,
-    fit: 'viewport',
     chrome: 'compact'
   });
 }
@@ -316,7 +340,6 @@ function buildContactPage() {
     category: 'contact',
     itemId: 'contact',
     view: 'detail',
-    fit: 'viewport',
     chrome: 'compact',
     backHref: '/#contact',
     backLabel: 'Back to categories',
@@ -350,7 +373,6 @@ function buildProjectPages() {
       category: 'projects',
       itemId,
       view: 'detail',
-      fit: 'viewport',
       chrome: 'compact',
       backHref: '/portfolio',
       backLabel: 'Back to project library',
@@ -375,7 +397,6 @@ function buildToolPages() {
       itemId,
       view: 'detail',
       navigation: HARD_TOOL_PAGE_IDS.includes(itemId) ? 'hard' : 'soft',
-      fit: 'viewport',
       chrome: 'compact',
       backHref: '/tools',
       backLabel: 'Back to tool library',
@@ -396,7 +417,6 @@ function buildUtilityPages() {
       category: config.category,
       itemId: config.itemId,
       view: 'detail',
-      fit: 'viewport',
       chrome: 'compact',
       backHref: config.backHref,
       backLabel: 'Back to categories',
@@ -410,12 +430,10 @@ function buildUtilityPages() {
 function buildGamePages() {
   Object.entries(GAME_PAGE_PATHS).forEach(([itemId, relPath]) => {
     if (!exists(relPath)) throw new Error(`Missing game page: ${relPath}`);
-    const isImmersive = itemId === 'stellar-dogfight';
     writeWrapped(relPath, {
       category: 'games',
       itemId,
       view: 'detail',
-      fit: isImmersive ? 'immersive' : 'viewport',
       chrome: 'compact',
       backHref: '/games',
       backLabel: 'Back to game library',
@@ -445,7 +463,6 @@ function buildProfessionalPages() {
       itemId,
       navigation: 'soft',
       chrome: 'compact',
-      fit: 'document',
       backHref: itemId.endsWith('-pdf') ? `/resume-${audience}` : `/${audience}`,
       backLabel: itemId.endsWith('-pdf') ? 'Back to resume' : 'Back to about',
       backCompactLabel: itemId.endsWith('-pdf') ? 'Resume' : 'About'
@@ -456,10 +473,13 @@ function buildProfessionalPages() {
 
 function main() {
   const libraryData = loadHomeLibraryData();
+  // The homepage remains a public showcase. The Tools page also includes
+  // account-only entries, hidden until the account UI confirms their access.
+  const toolsLibraryData = { tools: { items: buildToolsLibraryItems(loadSiteContent(root)) } };
   fs.mkdirSync(professionalDir, { recursive: true });
 
   buildPortfolioIndex(libraryData);
-  buildDirectoryIndex(path.join('pages', 'tools.html'), 'tools', libraryData);
+  buildDirectoryIndex(path.join('pages', 'tools.html'), 'tools', toolsLibraryData);
   buildDirectoryIndex(path.join('pages', 'games.html'), 'games', libraryData);
   buildContactPage();
   const utilityCount = buildUtilityPages();
@@ -485,6 +505,7 @@ module.exports = {
   TOOL_PAGE_IDS,
   UTILITY_PAGE_CONFIGS,
   buildLibraryPage,
+  buildToolsLibraryItems,
   buildPortfolioIndex,
   buildProjectPages,
   buildProfessionalPages,

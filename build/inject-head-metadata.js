@@ -15,6 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
+const { loadSocialPreviewRecords, socialPreviewMetadata } = require('./lib/social-previews');
 
 const root = path.resolve(__dirname, '..');
 const TRANSIENT_WRITE_ERROR_CODES = new Set(['EACCES', 'EBUSY', 'EPERM', 'UNKNOWN']);
@@ -89,6 +90,7 @@ const TOOL_RECORDS = Object.freeze(sortRecords(loadJsonRecords(path.join('conten
     const visibility = String(tool && tool.visibility || 'public').trim().toLowerCase();
     return tool && tool.slug && !tool.hidden && !tool.noindex && visibility === 'public';
   }));
+const SOCIAL_PREVIEW_BY_PATH = new Map(loadSocialPreviewRecords(root).map(record => [record.pathname, record]));
 const noindexPathnames = loadNoindexPathnamesFromVercel(root);
 const CSS_MANIFEST_PATH = path.join(root, 'dist', 'styles-manifest.json');
 const CSS_MANIFEST = Object.freeze(loadCssManifest());
@@ -463,6 +465,19 @@ function ensureGameSocialMetadata(headInner) {
   return next;
 }
 
+function ensureRouteSocialPreview(headInner) {
+  const record = SOCIAL_PREVIEW_BY_PATH.get(getHeadPathname(headInner));
+  const preview = record && socialPreviewMetadata(record, { root, siteOrigin: SITE_ORIGIN });
+  if (!preview) return headInner;
+  let next = upsertMetaTag(headInner, 'property', 'og:image', preview.url);
+  for (const key of ['width', 'height', 'type', 'alt']) {
+    next = upsertMetaTag(next, 'property', `og:image:${key}`, preview[key]);
+  }
+  next = upsertMetaTag(next, 'name', 'twitter:card', 'summary_large_image');
+  next = upsertMetaTag(next, 'name', 'twitter:image', preview.url);
+  return upsertMetaTag(next, 'name', 'twitter:image:alt', preview.alt);
+}
+
 function ensureIosPwaMeta(headInner) {
   let inner = headInner;
   const tags = [
@@ -515,20 +530,14 @@ function ensurePerformanceAndPwa(headInner) {
       inner = inner.slice(0, closeIndex) + '\n' + manifest + inner.slice(closeIndex);
     }
   }
-  if (!/id="ds-sw-register"/i.test(inner)) {
-    const script = [
-      '  <script id="ds-sw-register">',
-      '  (function () {',
-      '    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;',
-      '    if (new URLSearchParams(window.location.search).has("no_sw")) return;',
-      '    var host = window.location.hostname || "";',
-      '    if (!host || host === "localhost" || /^127\\./.test(host) || /^(\\d{1,3}\\.){3}\\d{1,3}$/.test(host)) return;',
-      '    window.addEventListener("load", function () {',
-      '      navigator.serviceWorker.register("/sw.js").catch(function () {});',
-      '    });',
-      '  })();',
-      '  </script>'
-    ].join('\n');
+  const script = '  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>';
+  let hasRegistration = false;
+  inner = inner.replace(/[\t ]*<script\b(?=[^>]*\bid=["']ds-sw-register["'])[^>]*>[\s\S]*?<\/script>/gi, () => {
+    if (hasRegistration) return '';
+    hasRegistration = true;
+    return script;
+  });
+  if (!hasRegistration) {
     const closeIndex = inner.lastIndexOf('</head>');
     const anchorIndex = inner.indexOf('<link rel="manifest"');
     if (anchorIndex !== -1) {
@@ -1047,6 +1056,7 @@ function processHtml(html, relPath = '') {
   inner = dedupeMeta(inner, 'name', 'twitter:image:alt');
   inner = replaceLegacySharedOgImage(inner);
   inner = ensureGameSocialMetadata(inner);
+  inner = ensureRouteSocialPreview(inner);
   inner = ensureSharedOgImageDimensions(inner);
   inner = ensureBaselineMetadata(inner);
   inner = ensureTwitterMeta(inner);

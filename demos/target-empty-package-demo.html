@@ -195,7 +195,7 @@
       border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
     }
 
-    .health-pill[data-state="warming"] {
+    .health-pill[data-state="loading"] {
       color: var(--warning, #e0a328);
       border-color: color-mix(in srgb, var(--warning, #e0a328) 55%, var(--surface-accent) 45%);
     }
@@ -606,7 +606,7 @@
       .empty-package-workspace .insight-grid { grid-template-columns: 1fr; }
     }
   </style>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -622,7 +622,7 @@
         <p class="subtitle">Follow recovery trends and explore patterns by location, department, or associate.</p>
       </div>
       <div class="header-actions">
-        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
+        <span class="health-pill aws-status-badge" id="status-pill" data-state="loading" role="status" aria-live="polite">Loading data…</span>
         <span class="pill" id="date-range-pill">Loading dates</span>
         <button class="btn-ghost" id="reset-filters" type="button">Reset filters</button>
       </div>
@@ -788,19 +788,9 @@
     </main>
   </div>
 
-  <script src="js/demos/aws-client.js"></script>
+  <script src="js/demos/dashboard-data.js"></script>
   <script type="module">
-    const DEFAULT_API_URL = "/api/demos/target-empty-package/";
-    const STORAGE_KEY = "demo.endpoint.targetEmptyPackage";
-    const { resolveEndpoint, joinUrl, getJson, retryRequest } = window.DemoAws;
-    const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY, allowOverrides: false };
-    const WARM_RETRY_OPTIONS = {
-      retries: 12,
-      baseDelayMs: 1000,
-      factor: 1.8,
-      maxDelayMs: 10000
-    };
-    const API_URL = resolveEndpoint(endpointConfig);
+    const { loadDashboardData } = window.DemoDashboardData;
     const state = {
       rows: [],
       filtered: [],
@@ -1301,18 +1291,9 @@
 
     async function init() {
       setFiltersEnabled(false);
-      if (!API_URL) {
-        setStatus("err", "Unavailable", "API endpoint missing");
-        DOM.breakdownList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
-        DOM.recordList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
-        return;
-      }
-      setStatus("warming", "Preparing demo…", "Fetching demo data...");
+      setStatus("loading", "Loading data…", "Loading anonymized records…");
       try {
-        const data = await retryRequest(
-          () => getJson(joinUrl(API_URL, "data"), { cache: "default" }),
-          WARM_RETRY_OPTIONS
-        );
+        const data = await loadDashboardData("target-empty-package");
         state.rows = (data.rows || []).map((row) => ({
           ...row,
           value: Number(row.value) || 0,

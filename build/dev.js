@@ -12,6 +12,9 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { loadLocalEnvironment } = require('./lib/local-env');
+const { handleLocalChatbotRequest } = require('./lib/local-chatbot-proxy');
+const { handleLocalJobTrackerRequest } = require('./lib/local-job-tracker-proxy');
 
 const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
@@ -23,6 +26,12 @@ const chatbotStreamApiPath = path.join(root, 'api', 'chatbot-stream.js');
 const toolsApiPath = path.join(root, 'api', 'tools', '[...slug].js');
 const demosApiPath = path.join(root, 'api', 'demos', '[...slug].js');
 const sentenceDemoApiPath = path.join(root, 'api', 'sentence-demo', '[...slug].js');
+const shortLinksApiDir = path.join(root, 'api', 'short-links');
+const shortLinksRedirectApiPath = path.join(root, 'api', 'go', '[...slug].js');
+const localUtilityApis = new Map([
+  ['/api/ga4/report', path.join(root, 'api', 'ga4', 'report.js')],
+  ['/api/contact', path.join(root, 'api', 'contact.js')]
+]);
 const MAX_PORT_SEARCH_ATTEMPTS = 50;
 const WATCH_POLL_INTERVAL_MS = 1000;
 const SOURCE_STATIC_FALLBACK_DIRS = new Set([
@@ -571,7 +580,30 @@ function resolveSourceStaticFallback(pathname) {
 }
 
 function resolveLocalStaticFile(pathname) {
-  return resolveStaticFile(publicDir, pathname) || resolveSourceStaticFallback(pathname);
+  return resolveStaticFile(publicDir, pathname)
+    || resolveSourceStaticFallback(pathname)
+    || resolveCurrentStylesheetFile(pathname);
+}
+
+function resolveCurrentStylesheetFile(pathname, directories = [publicDir, root]) {
+  const request = /^\/dist\/(styles(?:-[a-z0-9]+)*)\.[a-f0-9]{8}\.css$/i.exec(pathname);
+  if (!request) return null;
+  const family = request[1];
+  for (const directory of directories) {
+    try {
+      // An open page can still reference a bundle removed by the next build.
+      // Read the manifest on every miss so a running server follows new builds.
+      const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'dist', 'styles-manifest.json'), 'utf8'));
+      const current = Object.values(manifest).find((value) => typeof value === 'string'
+        && new RegExp(`^${family}\\.[a-f0-9]{8}\\.css$`, 'i').test(value));
+      if (!current) continue;
+      const filePath = resolveStaticFile(directory, `/dist/${current}`);
+      if (filePath) return filePath;
+    } catch {
+      // During a build the deploy copy may not be ready; try source dist next.
+    }
+  }
+  return null;
 }
 
 function parseByteRange(value, size) {
@@ -610,6 +642,9 @@ function sendFile(req, res, filePath) {
   const rangeHeader = req && req.headers ? req.headers.range : '';
   res.setHeader('Accept-Ranges', 'bytes');
   res.setHeader('Content-Type', contentType);
+  if (ext === '.html' || ext === '.css') {
+    res.setHeader('Cache-Control', 'no-store');
+  }
 
   if (rangeHeader) {
     const range = parseByteRange(rangeHeader, stat.size);
@@ -752,7 +787,65 @@ function loadSentenceDemoApi() {
   return require(sentenceDemoApiPath);
 }
 
-function createLocalServer() {
+function resolveShortLinksApiRoute(pathname, rewritten) {
+  // applyParams adds an encoding layer around captured URL segments.
+  const routeParts = (value) => (rewritten ? decodeURIComponent(value) : value).split('/').map(decodeURIComponent);
+  if (pathname === '/api/short-links') {
+    return { filename: path.join(shortLinksApiDir, 'index.js'), params: {} };
+  }
+  for (const [prefix, filename, parameter] of [
+    ['/api/short-links/', path.join(shortLinksApiDir, '[...slug].js'), 'slug'],
+    ['/api/go/', shortLinksRedirectApiPath, 'slug']
+  ]) {
+    if (pathname.startsWith(prefix)) {
+      return { filename, params: { [parameter]: routeParts(pathname.slice(prefix.length)) } };
+    }
+  }
+  return null;
+}
+
+function handleShortLinksApi(req, res, url, pathname, rewritten = false) {
+  let route;
+  try {
+    route = resolveShortLinksApiRoute(pathname, rewritten);
+  } catch {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(JSON.stringify({ ok: false, error: 'Invalid short-link route.' }));
+    return true;
+  }
+  if (!route) return false;
+  req.query = { ...Object.fromEntries(url.searchParams.entries()), ...route.params };
+  const handleError = () => {
+    if (res.destroyed || res.writableEnded) return;
+    if (res.headersSent) {
+      res.end();
+      return;
+    }
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(JSON.stringify({ ok: false, error: 'Local short-links API failed.' }));
+  };
+  try {
+    const prefixes = [
+      shortLinksApiDir + path.sep,
+      shortLinksRedirectApiPath,
+      path.join(root, 'api', '_lib', 'short-links')
+    ];
+    for (const filename of Object.keys(require.cache)) {
+      if (prefixes.some((prefix) => filename.startsWith(prefix))) delete require.cache[filename];
+    }
+    Promise.resolve(require(route.filename)(req, res)).catch(handleError);
+  } catch {
+    handleError();
+  }
+  return true;
+}
+
+function createLocalServer({ envDir = root } = {}) {
+  loadLocalEnvironment(envDir);
   const vercelConfig = readVercelConfig();
   const redirects = compileRoutes(vercelConfig.redirects);
   const rewrites = compileRoutes(vercelConfig.rewrites);
@@ -762,6 +855,56 @@ function createLocalServer() {
     const url = new URL(req.url, 'http://localhost');
     const pathname = url.pathname.replace(/\/+$/, '') || '/';
     applyResponseHeaders(pathname, responseHeaders, req, res, url);
+
+    if (handleShortLinksApi(req, res, url, pathname)) return;
+
+    if (pathname === '/api/job-tracker' || pathname.startsWith('/api/job-tracker/')) {
+      handleLocalJobTrackerRequest(req, res).catch(() => {
+        if (res.destroyed || res.writableEnded) return;
+        if (res.headersSent) {
+          res.end();
+          return;
+        }
+        res.statusCode = 502;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(JSON.stringify({ error: 'Local tracker connection failed.' }));
+      });
+      return;
+    }
+
+    if (localUtilityApis.has(pathname)) {
+      req.query = Object.fromEntries(url.searchParams.entries());
+      const handleError = () => {
+        if (res.destroyed || res.writableEnded) return;
+        if (res.headersSent) {
+          res.end();
+          return;
+        }
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(JSON.stringify({ ok: false, error: 'Local API request failed.' }));
+      };
+      try {
+        // Keep the report handler's bounded cache and rate limits across requests.
+        Promise.resolve(require(localUtilityApis.get(pathname))(req, res)).catch(handleError);
+      } catch {
+        handleError();
+      }
+      return;
+    }
+
+    if (pathname === '/api/chatbot-demo' || pathname.startsWith('/api/chatbot-demo/')) {
+      handleLocalChatbotRequest(req, res).catch(() => {
+        if (res.destroyed || res.writableEnded) return;
+        res.statusCode = 502;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(JSON.stringify({ error: 'Local chatbot connection failed.' }));
+      });
+      return;
+    }
 
     if (pathname === '/api/chatbot' || pathname === '/api/chatbot/logs') {
       req.query = Object.fromEntries(url.searchParams.entries());
@@ -901,6 +1044,9 @@ function createLocalServer() {
     const rewrittenUrl = new URL(rewrittenPath, 'http://localhost');
     const rewrittenPathname = rewrittenUrl.pathname.replace(/\/+$/, '') || '/';
 
+    // Public /go links use the same redirect handler as their Vercel rewrite.
+    if (handleShortLinksApi(req, res, url, rewrittenPathname, true)) return;
+
     const filePath = resolveLocalStaticFile(rewrittenPathname);
     if (filePath) {
       sendFile(req, res, filePath);
@@ -912,13 +1058,18 @@ function createLocalServer() {
 }
 
 function main() {
+  loadLocalEnvironment(root);
   const port = normalizePort(parsePort());
   const host = parseHost();
   const displayHost = getDisplayHost(host);
   const noWatch = hasFlag('--no-watch');
 
-  log('Running initial build...');
-  runSiteBuild({ exitOnFail: true });
+  if (hasFlag('--skip-build')) {
+    log('Serving existing build (--skip-build).');
+  } else {
+    log('Running initial build...');
+    runSiteBuild({ exitOnFail: true });
+  }
 
   const watcher = noWatch
     ? null
@@ -962,5 +1113,6 @@ module.exports = {
   compileRoutes,
   matchRule,
   applyResponseHeaders,
+  resolveCurrentStylesheetFile,
   createLocalServer
 };

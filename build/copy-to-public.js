@@ -6,6 +6,7 @@
 */
 const fs = require('fs');
 const path = require('path');
+const { BROWSER_PROJECT_DOCUMENTS } = require('./lib/browser-project-assets');
 
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'public');
@@ -325,7 +326,7 @@ function collectReferencedDocumentFiles() {
 }
 
 function copyReferencedDocuments() {
-  const relPaths = collectReferencedDocumentFiles();
+  const relPaths = [...new Set([...collectReferencedDocumentFiles(), ...BROWSER_PROJECT_DOCUMENTS])].sort();
   if (!relPaths.length) {
     log('No referenced documents detected; skipped documents/ to avoid publishing unreferenced files.');
     return;
@@ -522,6 +523,13 @@ function pruneRetiredPublicArtifacts() {
 }
 
 function copyStatic(){
+  // Fail before clearing public/ if a clean checkout is missing a required
+  // self-hosted project download; never silently fall back to an AWS URL.
+  BROWSER_PROJECT_DOCUMENTS.forEach((relPath) => {
+    if (!fs.existsSync(path.join(root, relPath)) || !fs.statSync(path.join(root, relPath)).isFile()) {
+      throw new Error(`Missing browser-project asset: ${relPath}`);
+    }
+  });
   ensureCleanDir(outDir);
   const cssManifest = readJson(cssManifestPath);
   const jsManifest = readJson(jsManifestPath);
@@ -542,8 +550,10 @@ function copyStatic(){
     if (fs.existsSync(src)) copyFile(src, path.join(outDir, name));
   });
 
-  // Copy asset and content directories used by the site.
+  // Copy asset and content directories used by the site, including the nested
+  // demos/data snapshots and the browser calculation scripts under js/demos.
   // Dist artifacts are handled separately via an explicit whitelist.
+  // Recursive img copying includes library icons in img/projects/icons and img/games/icons, plus social cards in img/social.
   const dirs = ['img', 'js', 'css', 'pages', 'demos'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
   copyReferencedDocuments();

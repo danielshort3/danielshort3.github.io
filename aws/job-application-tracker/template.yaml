@@ -102,7 +102,18 @@ Resources:
               DaysAfterInitiation: 1
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: !Ref AllowedOrigins
+          # Local attachment transfers use signed S3 URLs. API CORS continues
+          # to use AllowedOrigins alone; the local API uses its own proxy.
+          - AllowedOrigins:
+              Fn::Split:
+                - ','
+                - Fn::Join:
+                    - ','
+                    - - !Join [',', !Ref AllowedOrigins]
+                      - 'http://localhost:4173'
+                      - 'http://127.0.0.1:4173'
+                      - 'http://localhost:4181'
+                      - 'http://127.0.0.1:4181'
             AllowedMethods:
               - GET
               - POST

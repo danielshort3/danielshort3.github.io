@@ -1,0 +1,2020 @@
+{
+  "description": "Existing public dashboard responses, preserved as static site data. Raw source workbooks and CSVs are not included.",
+  "sources": {
+    "target-empty-package": "aws/target-empty-package/precompute.py",
+    "retail-loss-sales": "aws/retail-loss-sales/precompute.py",
+    "covid-outbreak": "aws/covid-outbreak-drivers/precompute.py"
+  },
+  "files": [
+    {
+      "path": "target-empty-package/data.json",
+      "bytes": 1056351,
+      "sha256": "5f490630be20645dd7351833c90cf03db7f6298adab1bac49d121109d06ab7fc"
+    },
+    {
+      "path": "retail-loss-sales/data.json",
+      "bytes": 430256,
+      "sha256": "b50ec002a7dd798364f0dc45af2a5387c19bf887948230ad90a0e9833ae0877e"
+    },
+    {
+      "path": "covid-outbreak/meta.json",
+      "bytes": 6945,
+      "sha256": "f8f10c332e1308da6effd98c7af7ef7962b341350b74073be89d9c50fd1d9bbf"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-01.json",
+      "bytes": 26278,
+      "sha256": "3cee613bbcf55e51b79d7e88dfbbbd71e73815923e3c05fea35d500fc6336ef8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-02.json",
+      "bytes": 26244,
+      "sha256": "a252b70abe4d11a5a26077c1da18afae25533107bb6b2ea0f5fd4d5f5a11f75c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-03.json",
+      "bytes": 26168,
+      "sha256": "61d5fe844dd429dd7dbe7aaeb9ce448fd73286faa7b18d402f5168e590195227"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-04.json",
+      "bytes": 26188,
+      "sha256": "e3c4235d189123596e7de2b2b7b19b7d7c16116104d136fcd8c390ef33a7271b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-05.json",
+      "bytes": 26203,
+      "sha256": "5a6c82ba33627532b99c88ddcea3623deedf0bbc02856178928674c840da0552"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-06.json",
+      "bytes": 26238,
+      "sha256": "a8b4820b9ce1ed7d09ee29f3331887a1cd90691880822861aafecf73c4acf8c1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-07.json",
+      "bytes": 26191,
+      "sha256": "cb5aebfeea2059769e778e56bb90851473fa88ff6ec2e5661494fadd6e027fba"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-08.json",
+      "bytes": 26253,
+      "sha256": "30b04ea98bc80fe219e3d96ac28768fcf53f2e1c51eaae30961a08e41705a344"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-09.json",
+      "bytes": 26220,
+      "sha256": "7f7d7433804be2818ca91d20edf4dc1a8e984099ae19367217ef6b86adbc52ff"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-10.json",
+      "bytes": 26164,
+      "sha256": "66513913f28279424261ff418f4c423287a2d9136c926df4dc3efab5bd5c8790"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-11.json",
+      "bytes": 26193,
+      "sha256": "751ead536a9ae08c106ec26dd970974514347fee248a0863a840a6ddf33b1fc6"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-12.json",
+      "bytes": 26248,
+      "sha256": "10b6f674d444242e967b709082d8097c37e37674a88fe0cb9479575642a4ba74"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-13.json",
+      "bytes": 26309,
+      "sha256": "b20f44dfc14013f3aa3a7f1d7099552e16f05fbabec9024359cd905b79ddb7a3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-14.json",
+      "bytes": 26267,
+      "sha256": "e44b69c1372ec1d8e12e9c6cd8af917b30f1af9ecdeb65b4fbf5b9042fac7751"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-15.json",
+      "bytes": 26181,
+      "sha256": "7f7a8687d0782c06cf079ff34ec219cb2f4f0df7b154e598650410c4e35e7c5f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-16.json",
+      "bytes": 26178,
+      "sha256": "a2b5b06d97e5ae68fa37e9c2bb249a32bfde3b821bd37251b94827b69105c793"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-17.json",
+      "bytes": 26214,
+      "sha256": "13530523d1e0c41f9c7f904a4115f769cbab04999fd6efc921c48caedfa1c825"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-18.json",
+      "bytes": 26258,
+      "sha256": "ef9d8cf9fdb84c5efd8e7a504ea51079c0d6ed4178af9ddef13cf303fe37825a"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-19.json",
+      "bytes": 26307,
+      "sha256": "a758ed209499cb8c1416f43bd2c9b319af4ee7e2e945ed7517ebb15b4adbae70"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-20.json",
+      "bytes": 26188,
+      "sha256": "0cd8428b4f0116bc7b39197134b31ee69091d5ebace04176212d8af0c83956f1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-21.json",
+      "bytes": 26201,
+      "sha256": "8a032041e2f42331b6e03979d7d36fa6204b8effc59764ab986abad55c98e28a"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-22.json",
+      "bytes": 26137,
+      "sha256": "1393dde76bdbe68aaef2e3a818096ba19d886f0ed4196f68a8c6480a38e67980"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-23.json",
+      "bytes": 26224,
+      "sha256": "5835d2b0bf7dba2827df7b1beced1153a257ffa4f3169043b9c8604ddeda2974"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-24.json",
+      "bytes": 26271,
+      "sha256": "6e56aad1a1f5bc7ef5671b23b30bc502022ef57ae622c6c1c8ee52f4bcf93db2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-25.json",
+      "bytes": 26083,
+      "sha256": "c8e54097ebd56776e53d01f083cde42b9aff333e40c84b24724a1b6f1bb53065"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-26.json",
+      "bytes": 26164,
+      "sha256": "249e9fd6685f7d5f73307402122b1463a5db7d29cea9bf46160d8b87d342a386"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-27.json",
+      "bytes": 26217,
+      "sha256": "2fe5cc34874854ca51f989ac523d76a2cfaac31792d4325dd88fe1d5977d18fa"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-28.json",
+      "bytes": 26203,
+      "sha256": "a1bf8bb36c649001958d27326446c6dfd26ce21dabf70ab4992d114104ad8ba7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-29.json",
+      "bytes": 26294,
+      "sha256": "adbcde2cf736d0702089bb9a7e77588fcb4ebf1debd84c5b20c90ae56bf91dd0"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-30.json",
+      "bytes": 26128,
+      "sha256": "9b40e6bec44f856257ae79f4ac6260bc543168a5b8b6a6fa6f6ac188bb19b6af"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-07-31.json",
+      "bytes": 26227,
+      "sha256": "680b05d3c7003e9d72cd9a9479c9b80bd0550f1296f1f4ba34ee9d4ad9e61905"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-01.json",
+      "bytes": 26175,
+      "sha256": "63593d3bc7444cc7445a8b6e74e4a83413213a882a3f8110b8178109e001538d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-02.json",
+      "bytes": 26197,
+      "sha256": "26c7d90df6e7d473f7eaa57f07d5a5300c4594e04dfd10434b04bf6218b56eec"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-03.json",
+      "bytes": 26155,
+      "sha256": "2b90dacb01e66284b914568643554cb18e7acfde9c5a462f86d383151e72003f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-04.json",
+      "bytes": 26225,
+      "sha256": "324db4c574ed642b3f27860fec9ef56792b4a54f591d1fc4d47315c14373d8ac"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-05.json",
+      "bytes": 26252,
+      "sha256": "b3f4f94da640c41d3eab59a29624d2f0667aa9419f2d47b92bae7ed7c6c4675c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-06.json",
+      "bytes": 26253,
+      "sha256": "6acc4586a6a3acf56b4a69cf59ed6718a7ff118fdba4f028cbd7164df9029db2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-07.json",
+      "bytes": 26273,
+      "sha256": "f16b2cfe3a05fc5c6d978ab49f4e8bc52fbf66e3efd17623c80118e1906b0582"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-08.json",
+      "bytes": 26201,
+      "sha256": "2bb037bed0c163602df6c87cb5beafa12f38527f1a7f58e5754f49a9ae1a5613"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-09.json",
+      "bytes": 26211,
+      "sha256": "08d9cbce6036033547027b4c2b40b879e123700473108542e41db27306678636"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-10.json",
+      "bytes": 26276,
+      "sha256": "c62a521b04d3113f90fc47d31b28d492327d09d64301cc5b099a9a6add61982e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-11.json",
+      "bytes": 26315,
+      "sha256": "7ff1647bb6937a9ebbaada104b960f431bcdb7735fc642d3be79cd2fa8a3763b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-12.json",
+      "bytes": 26221,
+      "sha256": "175ab59f8a6072cb68d2c7f2ca786f6ee25a70da58dd2de70aa17e3e710822ec"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-13.json",
+      "bytes": 26269,
+      "sha256": "dde2049aa41f02f2e374836fdb0b235850ee548ab5a9c3d7591ce588844d2775"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-14.json",
+      "bytes": 26242,
+      "sha256": "3484fd5932578b1029ee67357fff2f86084f46eb70cb14e2728b2646b830432d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-15.json",
+      "bytes": 26225,
+      "sha256": "8f5400fc11bcf38425554673d954594c2cafc4eb98a7080262756b6146b921cf"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-16.json",
+      "bytes": 26238,
+      "sha256": "00cb0221832397f0544f88c8606f4280ed323ebd3759a40b3303488100aef973"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-17.json",
+      "bytes": 26291,
+      "sha256": "b9c0863d872cfe4493733f6fa6b83964874328d9cc936c77dc977e34a9256649"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-18.json",
+      "bytes": 26283,
+      "sha256": "2c659d073cc3d0b5c3101c6b043e6c0ef4d8da59d11d4114f9391d3983265d34"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-19.json",
+      "bytes": 26243,
+      "sha256": "9b0c71140118a1d98cb883812befc486f2492a43c2639a67310e59291a95401c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-20.json",
+      "bytes": 26282,
+      "sha256": "3c21e73fef3acd17ee25d169e0fac4e06b7874d6c3d626035621180983f6dfa2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-21.json",
+      "bytes": 26205,
+      "sha256": "ecb691099a20453861233c50e5dcc2802b0e2570876845f7f1a9e6c083a85719"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-22.json",
+      "bytes": 26222,
+      "sha256": "c0e24b69274bec3784efe7746fe5a3e6a79177d8d92d1e5995deb5cb27d15f0e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-23.json",
+      "bytes": 26261,
+      "sha256": "6c524922f58a520e85b4b173f938508148eb60b077334c8f39a823eafee9b21f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-24.json",
+      "bytes": 26267,
+      "sha256": "b464dd06b817103e25007b515186c9f0ef802effa6658f19c73f6c50a555ae31"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-25.json",
+      "bytes": 26284,
+      "sha256": "d99d9f938795ed29eb0e18b6d3efe187cc3a951c9a7b6a05305104e601539014"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-26.json",
+      "bytes": 26340,
+      "sha256": "de5912724f62c4fd4dbd51af8e236bf0768c5e53e6994dca33ea0ec79cfa73d7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-27.json",
+      "bytes": 26291,
+      "sha256": "e98e07e24bed2bfddf810cd4af8fba6614325986d813baa3b043311def4481ae"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-28.json",
+      "bytes": 26273,
+      "sha256": "072be6c3b2678490affe97cbd67ba848e9a4bd371f1d3b66a215afee1db92801"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-29.json",
+      "bytes": 26308,
+      "sha256": "8c0c4132131c0bf9645d7da5db2722ef3e82574e749bdf566a53f8bce9b7a423"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-30.json",
+      "bytes": 26255,
+      "sha256": "5453474bfaae591fb1616299097ebcd8a20fab75217a92208b9466d5f7f3a697"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-08-31.json",
+      "bytes": 26278,
+      "sha256": "9d49dbd7f208c9cf5a62162b18c8d8b5fb0673707053a381e0d90143bf75788d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-01.json",
+      "bytes": 26273,
+      "sha256": "a7eebdd1ea2b3759a2685f9e7e6f1aee382265078cba9950305d8cf91b40edea"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-02.json",
+      "bytes": 26270,
+      "sha256": "aa120e653df75843edfe0f3c76ea4e8a601411c937164065996adc929ffbd515"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-03.json",
+      "bytes": 26285,
+      "sha256": "cca66725d1c1c9db94122567e980af2b92e77b85a715fd07bcf50ea886932d9d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-04.json",
+      "bytes": 26354,
+      "sha256": "c28fbb8c79f6fa4b752953910b9a80b5a93ed3f5bde81084c2adc506be0aabee"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-05.json",
+      "bytes": 26336,
+      "sha256": "69827ee9141e663fe361a959817659b086bf73b9538b170653d02f488f1fa5dc"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-06.json",
+      "bytes": 26267,
+      "sha256": "1461415bbdfe9b139c0b663d6ec21c93b3211a985895116a2d6bb700623315d8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-07.json",
+      "bytes": 26221,
+      "sha256": "95eabc1e1ffeac386c5239458d7479c4b89939ce058a7a6692b2cc03d1c35ded"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-08.json",
+      "bytes": 26183,
+      "sha256": "8f250d5f30c337af36f7deb3a938f75b8fc58a9f800dc2b1d4244e7a95c96b3b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-09.json",
+      "bytes": 26323,
+      "sha256": "8c6c0651fea34d23340191084b7f177e24aab97e5384f8fc6f72710477d6e6e2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-10.json",
+      "bytes": 26305,
+      "sha256": "7119f833d156f7253bf6c1d32396cfb75ec5c903dfd48dcc256a1f9dca7bdd7b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-11.json",
+      "bytes": 26297,
+      "sha256": "67f8ec6fd3b171b3c03ff480bee9eb00da2b750b83d1f01eee70d71c25f17311"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-12.json",
+      "bytes": 26361,
+      "sha256": "f8477d17cbdcf083e026b6d8c8d1e40ff1461b7517ca5ef056ee4256b99fb0a7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-13.json",
+      "bytes": 26333,
+      "sha256": "bce7395188aa7e05184d4453148df1d311c2749d7eaed1fbac9b0752a19047e5"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-14.json",
+      "bytes": 26310,
+      "sha256": "1c14f0eb4685978fad516c116e779d2b0633c230ff31506b7c9e7448a8a1f11c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-15.json",
+      "bytes": 26417,
+      "sha256": "09955361bf446cef1941d394a14b7e38e0358cfb4003a504b2a64827392c8a2e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-16.json",
+      "bytes": 26345,
+      "sha256": "91738c30e012a4253cf18ee14c2175f18f920b386cedea196c44adfcaabe28d8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-17.json",
+      "bytes": 26386,
+      "sha256": "15258e161e5b2a7cb76a086b17f1f5defd2af40e1f3ae25898c802017645e9ba"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-18.json",
+      "bytes": 26392,
+      "sha256": "941fc9e42c9ce1dc14638958a585b3fe6a025abfd88c0af0da959a4e397c93b4"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-19.json",
+      "bytes": 26353,
+      "sha256": "2a31d10aa224afd187f42613d5bd12d55e509fa7d48559e6ac9a35fa76661074"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-20.json",
+      "bytes": 26241,
+      "sha256": "f6a5ef677fd4705a6af2604a7ec8054564b161bb8c1f28cae79e1ad1eb2df557"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-21.json",
+      "bytes": 26385,
+      "sha256": "144e31a5c973547d607f54920bba6a83f782117a20e2ee64bf889c998cf1604a"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-22.json",
+      "bytes": 26338,
+      "sha256": "aef4c1cc74ed6e382c4b5ea5326c95af3b395cf1e6e43373642f321ba651c9a2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-23.json",
+      "bytes": 26321,
+      "sha256": "d7a575ece116d5942a1fe6e2e0d51ff2d618badf52b35b6b56543c56c076efc7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-24.json",
+      "bytes": 26365,
+      "sha256": "147b8ebd274e2bf65716620671d0126d6bd5162bf08c012527a02c83ca9e122c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-25.json",
+      "bytes": 26347,
+      "sha256": "f28aca0c67bc5de232bcea535b4385cfcee42b5012ce5f6f621fc8d78efa913b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-26.json",
+      "bytes": 26346,
+      "sha256": "f08fd474cf9ff48ecc0024c192bc9afea8f9f26a786613a3e36bd5d13d8d0ee7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-27.json",
+      "bytes": 26331,
+      "sha256": "e7eec600b7b22c997026383faa546e2d680857fd5f407f197286ce0db6fa83d3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-28.json",
+      "bytes": 26323,
+      "sha256": "201d3fd7cc4055d119da87c8be80bd493e9d78abc2ad8957daf798345deade63"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-29.json",
+      "bytes": 26306,
+      "sha256": "b8a225f393756fad2612e6bc998c546068a154cf284edfdbba70f25e346c0c09"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-09-30.json",
+      "bytes": 26321,
+      "sha256": "5ee4daa8fb25bccad35cb88eee9810bc00fef5b5ddc166bce09349537d66cbff"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-01.json",
+      "bytes": 26386,
+      "sha256": "a9b2a7e27f4df03405b2cede56725d012e55cb9c89317ada4061fa9a3783bece"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-02.json",
+      "bytes": 26259,
+      "sha256": "03b8ea3b8d9dbd2bf8bda96023ddce55263e488ac15dc7d94e6b51931216fb3b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-03.json",
+      "bytes": 26307,
+      "sha256": "2d35c1f4aa4e9b0be03be077ff605435d9e2f086bc71f2cc5c1a5d18ca7d7aa9"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-04.json",
+      "bytes": 26295,
+      "sha256": "ea81dc69ffde99c1777e6b5deb72956072de6bc5790ffdb89acb23bec3df75d9"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-05.json",
+      "bytes": 26331,
+      "sha256": "e4a60626e5faa5419a4e7d8ad17990c900938c3af5256e986cab8ca79a62302b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-06.json",
+      "bytes": 26234,
+      "sha256": "52c39ff172966706a532a2131dab469d9f0011079505962169ffc3af605f32d7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-07.json",
+      "bytes": 26249,
+      "sha256": "a5679b707f8049186fd0c887127c8d670c3b96a0e7a46f5eea9b54fd9f50d007"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-08.json",
+      "bytes": 26321,
+      "sha256": "ba121831c6a90790994f0f05ea0d974d601e0ab838549dc38ed1f3bf4e4dde11"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-09.json",
+      "bytes": 26352,
+      "sha256": "5fb2246ee47a6de8b03825c1f7b351a9bdb6f8b76a919d14874756fd9a7bd9a7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-10.json",
+      "bytes": 26278,
+      "sha256": "b89735b545acdc6a20bc9d5d0556442180cfc3607744c5fa48f84f5de8c59c73"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-11.json",
+      "bytes": 26197,
+      "sha256": "c0119e8413a4ef616dec4045b4d9879c5a34d54d8b02bf2feb6a2a0d0fee803b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-12.json",
+      "bytes": 26315,
+      "sha256": "b8a91a90b12f7302540531fd576a7989f10b8d6668246a0043578c098ead5529"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-13.json",
+      "bytes": 26345,
+      "sha256": "db51800c6ed1c23b629fdb22ffea60b875fe063819c88074e5da369eff1d7d1b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-14.json",
+      "bytes": 26277,
+      "sha256": "48020860d355c39f00df9cf419d954477e9945566bb07d895bf8103681a81c38"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-15.json",
+      "bytes": 26278,
+      "sha256": "36666d07b3860308266895d512264c062fa02261aff1443282414a9c410314b2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-16.json",
+      "bytes": 26256,
+      "sha256": "02da7325995cff31216dfaf906202a6f4fe02b03ff46b842582740be3d34fe17"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-17.json",
+      "bytes": 26272,
+      "sha256": "eaa2720b34593446101ec3a75078b863941f4dba3e4976a36b9b3e40fc21dec0"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-18.json",
+      "bytes": 26280,
+      "sha256": "d82b44a1fcf7dd52e6efd90bfdfcf9599bfb5597eb3846ff5ec422069abaffe3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-19.json",
+      "bytes": 26307,
+      "sha256": "c7b2b5f49560205108c7f0ee9c11f7909dad9e400d3ff54828dcc21369b88102"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-20.json",
+      "bytes": 26251,
+      "sha256": "933cf713eeefa8cace96c53e6cb8736dfebee9e37ab45966484fbc712cf6efba"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-21.json",
+      "bytes": 26192,
+      "sha256": "81e22ab3c013f535d86917bd54b536ad5f9919820bb9b0c8d7b25f5e70dd84c9"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-22.json",
+      "bytes": 26270,
+      "sha256": "816e738e53dc4925a0587050d7c898b5ee28cc032870eff92d8ab7597ffcb938"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-23.json",
+      "bytes": 26234,
+      "sha256": "8ba64debdfa1a3c3cb8d57611bb82f54333316ebdb2af03143fc84a9a2b52a01"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-24.json",
+      "bytes": 26225,
+      "sha256": "089c515e963939be6df7879cb02dac38d6fa1530b4bdeec278726fd5e091c170"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-25.json",
+      "bytes": 26278,
+      "sha256": "26fb1e4e9484a6e30255efb91b2c10c9178ccee0eb76744fb56c62cf0c7ac83c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-26.json",
+      "bytes": 26217,
+      "sha256": "7140cb98da14cef759a1931b9326394c0a56174efb63be368eed6e2e0c4a8b41"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-27.json",
+      "bytes": 26279,
+      "sha256": "18142c1686068a0a10b90a8452ca5f2ebf52075dd08d5f8d9c482129ac3ad7ca"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-28.json",
+      "bytes": 26267,
+      "sha256": "ffe8d031b19887c9e1861098cb284037ad92dc773dbe86907ad0af29702d8ce3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-29.json",
+      "bytes": 26228,
+      "sha256": "f012a00903980c3050535fe640b5e84ec31e0d06bb4fc99104b3fee5bd9b4cd0"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-30.json",
+      "bytes": 26214,
+      "sha256": "e79c1b0de74f330e9a6985174944c48658f9420a1ec76948fb2fb987489c7362"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-10-31.json",
+      "bytes": 26203,
+      "sha256": "2485a4573c1da0a93d79c14ca2f6a34939ebe8269f662a557c802f6e45703574"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-01.json",
+      "bytes": 26230,
+      "sha256": "4c62616c592eaebb00936030c736845220818e9857a03d25446b48446964e2a2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-02.json",
+      "bytes": 26119,
+      "sha256": "b47ee143c920d4831a471301e5d1f105c1a1b8b99752a8e6255becabb8327064"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-03.json",
+      "bytes": 26166,
+      "sha256": "7e1c38b73ca34574aba69effed52d98f9251d86c10049503859d86187f7a2f0b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-04.json",
+      "bytes": 26154,
+      "sha256": "df43f70d6d7907cd83954d555b382e0752f91306ed207927ea971c66d85dfae3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-05.json",
+      "bytes": 26153,
+      "sha256": "b54e7fe49407ab02259e8b10e5366d61706b1c11141a6d8374992e3d8091e2ee"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-06.json",
+      "bytes": 26222,
+      "sha256": "eccdfe51b359d0fc30dec3a2e722661288cd3474c2de9492308d95e37ce0d23c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-07.json",
+      "bytes": 26186,
+      "sha256": "fdab6db88eac63b4ec290d65dc331ee75afdc5c62ec75a42948aac74317c84ca"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-08.json",
+      "bytes": 26162,
+      "sha256": "e037cc4e570008a57b5233dd1bd63bae5ca88786abccd45beaaa71a090970546"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-09.json",
+      "bytes": 26228,
+      "sha256": "047d77bf2f38a6d86b553cff7046cd20b1ef578c332cf8047d3f87a3566eca5e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-10.json",
+      "bytes": 26207,
+      "sha256": "5ab779892baadbf6197452477a76e1731af49253a1bd11c32de540f67c7da9e8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-11.json",
+      "bytes": 26212,
+      "sha256": "47a2673b9c3402ad7e1bdde9639c357052f2ef33b0f51907c48ea926fab35344"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-12.json",
+      "bytes": 26271,
+      "sha256": "3dfca363f2fecfffa3c64f3ab55d1aa38ccaac0911a921fc569aa71cc5f8d3ba"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-13.json",
+      "bytes": 26261,
+      "sha256": "b328ceff5d116e007142b6b671ab41e9fbdee8c29330a4f9816936fc4c9a046b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-14.json",
+      "bytes": 26245,
+      "sha256": "a5bef9cfd95cd2783b90692b81879ab10d5a1c7d775bd71311bfd9c80aca6ab2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-15.json",
+      "bytes": 26258,
+      "sha256": "e3041d2f56818aabe4982dea75dd5b61fc557d57147ff89b4fa0e5fdaf09e567"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-16.json",
+      "bytes": 26275,
+      "sha256": "f8499b0f4629901ae3e5b8f98085ab1e0d74fca7e086db82fe60a2c7ee3231c1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-17.json",
+      "bytes": 26298,
+      "sha256": "4469ddaafa27badab0a3bc093a9447dd0ba51e6a996ba9665117a10c5475816f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-18.json",
+      "bytes": 26221,
+      "sha256": "157026036869ab25e75277dacc51ddbb3da524bae106bfa775e9d7da9f63e1ed"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-19.json",
+      "bytes": 26265,
+      "sha256": "7cb634931c09c79791c40a058d15b10436b7e5515607885e0c94bccb63bbcc19"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-20.json",
+      "bytes": 26241,
+      "sha256": "1bca812547c5c7e144a3c0701468b0c7e34e86e5bc2b1e2fc15215f5bdbcfe78"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-21.json",
+      "bytes": 26279,
+      "sha256": "443d528ab707c14fa9e81a5eb2f7ed957a24cbe137101f0ff1b39d878a0ab641"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-22.json",
+      "bytes": 26272,
+      "sha256": "4c8bb3512fdf964b862088a7b8b5ead951b290b9769eb42431a553420f5c55d3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-23.json",
+      "bytes": 26365,
+      "sha256": "ce498028923ea8863f446f2ff10c7b95f1dfdc3035e8f4f1bb0583193d035706"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-24.json",
+      "bytes": 26250,
+      "sha256": "fa4aefb24da504333724d899ad531bd03b727b5a0fa9a517664935520c564a9a"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-25.json",
+      "bytes": 26234,
+      "sha256": "c30e8398ef6f91852f16ec1499d9380018a6bd3a5745bd0e7ebb6052edd2614c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-26.json",
+      "bytes": 26214,
+      "sha256": "7478f05d9231a0da197cea1e418a0272fb43dc683260e55ed3dcc311697ca0cb"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-27.json",
+      "bytes": 26171,
+      "sha256": "d3137749b7d80e9df8c213afe194940dc43aecedac46847adc9aa66a2bd0d1e7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-28.json",
+      "bytes": 26252,
+      "sha256": "a2891405db06c2c64d096e87a562b81e0700c28e0aeb3e315e3337a620f83b01"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-29.json",
+      "bytes": 26169,
+      "sha256": "c28e0ad0895c8b2a9f115e272d612b53df6132401d6beccd67cf1beff063fb2b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-11-30.json",
+      "bytes": 26207,
+      "sha256": "cf69ad9b4c62d4aab9e3f7b9174bde385a171f7ff32ac90af11c7afa43157d85"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-01.json",
+      "bytes": 26257,
+      "sha256": "ff0e264aa2b8bce90f870b90998ac929f4ea4f050cbdb6b24584684e87458d65"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-02.json",
+      "bytes": 26245,
+      "sha256": "3dc77f591ab081aedbdb58d1f4a0583702559a93b7359af5e3ab8bd35e556050"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-03.json",
+      "bytes": 26162,
+      "sha256": "3a2f4ad0f597d064da08eab3ff17b081d6a02c8fa1e483d54385ea9c40847db5"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-04.json",
+      "bytes": 26189,
+      "sha256": "bb9d80c849f76de39aaf2b985155925d8688149f19d2e3194fe782a544c191b2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-05.json",
+      "bytes": 26171,
+      "sha256": "ecc2b548d4acf7e4052d30ffc04d55c4fb20390071b62e03cf5ac0cb8db03e09"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-06.json",
+      "bytes": 26119,
+      "sha256": "82c2ed15ad07788a25ee976f8aa80ecc3a21fd4f79f96bb3c8eec5ebf0830341"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-07.json",
+      "bytes": 26193,
+      "sha256": "f225aeaeb25dcdac168d3b94ff153ab93ef22380fb9ccc7aa8219c80a534dd1d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-08.json",
+      "bytes": 26213,
+      "sha256": "762042d20a51878dafb824712e38b027d5fb02659e977dfd82256703e0a7ef1d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-09.json",
+      "bytes": 26162,
+      "sha256": "90ef1712017efb1f01d7e80c5912a3396d860dc8f03e0898971d155d5c7d1d2b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-10.json",
+      "bytes": 26152,
+      "sha256": "61efda15ee1e87a6b4415936b5ea440f4c43034acd2462000e58bd66a3c0e31f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-11.json",
+      "bytes": 26096,
+      "sha256": "ec0c3a92b1e5c8054fc6b0b44bb284696094b62d0c3bada8a8e4a836a6a0a827"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-12.json",
+      "bytes": 26189,
+      "sha256": "8dc2a43d4eae0c166f8940607281828ef9dbb518b4bc25cbc2771351e058a380"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-13.json",
+      "bytes": 26159,
+      "sha256": "153b4b16f843d4da9a953269441a0bdd26776378c6f5b4132dbb58eda392c211"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-14.json",
+      "bytes": 26186,
+      "sha256": "dfee5a9bf63fc3d81a9f6e0c824d23697a02637b0df31e996a38afc51219aebe"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-15.json",
+      "bytes": 26159,
+      "sha256": "21c513b538565a2138ed0a8c971f3cda5f7371c8abe02ec595642edb86d27485"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-16.json",
+      "bytes": 26232,
+      "sha256": "89e1bd361cef83a3882707889c58134e2f0e9ae4b9082a3de6534ba9b86ae599"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-17.json",
+      "bytes": 26255,
+      "sha256": "4250592032e892cd89a4ffa0a465958beb8697b4b574e894e587f3dfe1e80125"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-18.json",
+      "bytes": 26215,
+      "sha256": "5a9eea9d48c957433b480291f7f8519ca286c17ccc3c82b4ad65dca4a64304df"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-19.json",
+      "bytes": 26253,
+      "sha256": "e6550665e70ba0079f7d80b11bf6da1897b8af7c36c33e18e8b196451ca2197e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-20.json",
+      "bytes": 26217,
+      "sha256": "623e5908421ff51a00126d951f612e015339148909ac1173e87b9cb3aa5a7978"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-21.json",
+      "bytes": 26210,
+      "sha256": "564ee237b45679b2eb36fc4bc3ab19471e99daede4da2a5b4d84590f32737d2f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-22.json",
+      "bytes": 26328,
+      "sha256": "e7673de033e7ad3214840072ef36acbf6485bdeacea9e18e5015cef928c16d64"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-23.json",
+      "bytes": 26231,
+      "sha256": "ea270981ce67514ebe2a7c4e2655b8da03aba6b255b95d6de5e3cf83c27c63b0"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-24.json",
+      "bytes": 26273,
+      "sha256": "b3cd47130847b60f85874b5c9b0bf4697f8c2d7a97b7e59b39b205b116410621"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-25.json",
+      "bytes": 26297,
+      "sha256": "c9b40a11d336f6ed6ec8ea8352321090fde98076b0b6870a58b8c2bbc538c539"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-26.json",
+      "bytes": 26211,
+      "sha256": "1b1824ec70d778c2e7b0c0c275239c1af380bf369b44bad60af1e21bad26b8f2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-27.json",
+      "bytes": 26291,
+      "sha256": "34ec2a8b7bdd5f4031fb4b36c7f0ee70cf21e4d85f86de9fd63d2a03ddf76b7c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-28.json",
+      "bytes": 26224,
+      "sha256": "7cd4b90590c797dca099724bb3aabbbe7df24d6da03bb2f28451f0e928eda9be"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-29.json",
+      "bytes": 26288,
+      "sha256": "32ea507c5aa17ba596b8dd215f52ef95e6575592e147e9f35cd7f5d7bd63c390"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-30.json",
+      "bytes": 26251,
+      "sha256": "ebe1fa4a6289f13dea034c9179c7eac05c146d14db4a3b2aad21859f491f2359"
+    },
+    {
+      "path": "covid-outbreak/by-date/2022-12-31.json",
+      "bytes": 26247,
+      "sha256": "829a1301ce260aef803978359ea660cc24046dc2c5244a72eb3bae5cff8d710f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-01.json",
+      "bytes": 26230,
+      "sha256": "2ca9099804ee1edb675749549ec6996dd765a2ea5f4cb05a03ac5500dd162436"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-02.json",
+      "bytes": 26159,
+      "sha256": "0ee9e78e3dc9593901c455e7bbaac49d839a30969eeb6c768cd7900e17c6f08b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-03.json",
+      "bytes": 26301,
+      "sha256": "6e6f4787a37cf32f4061d9a37f48d39577d5e35581ec6f882985ece76b2d45a1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-04.json",
+      "bytes": 26236,
+      "sha256": "2b155d149606daf27bd699d99a4f53721866d643190aa6f3662138860a87686c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-05.json",
+      "bytes": 26253,
+      "sha256": "5b0c32cfb2813fe409b40307f9e9819911d0e2b4c4900b02aa60c4f5f2407d8e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-06.json",
+      "bytes": 26294,
+      "sha256": "844d24ccd2bba3e3e132c35f08104e3bfab1d5241bca0bf476f88acc533d29e1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-07.json",
+      "bytes": 26244,
+      "sha256": "bf3c963fd3f97b24af54258cee26a9cbc1f85b3f64d9f5a2119c723bde834d35"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-08.json",
+      "bytes": 26244,
+      "sha256": "4b109a7f0dda821195943b076fdcf170081173303f9e47e48ed85ba1ac75a59e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-09.json",
+      "bytes": 26304,
+      "sha256": "46391cceefe036f7b2f1203f6bf85af647a300cf74c69922ae918171c1cfa74c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-10.json",
+      "bytes": 26211,
+      "sha256": "a8b781b70141402cf0eff16a3216c928d4f82c30a00562bedaec0ac5c4a584e1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-11.json",
+      "bytes": 26244,
+      "sha256": "1ba41a30fe02a94f2e1f83bfa4697578dea177ff644950656e96af3ba36b37c3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-12.json",
+      "bytes": 26285,
+      "sha256": "fe2c6849fc1976bebcda35f7e49b94eaef7055e5729367752726c3fad8f5b24b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-13.json",
+      "bytes": 26264,
+      "sha256": "9f942f97e16965c13d9f431329ff89ca8d379993165d59777af324bfd08ce1e8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-14.json",
+      "bytes": 26313,
+      "sha256": "80c888d52443adf98244c8c89db1964c0e11bb0eb4c2ddc685d4830fe63ec67e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-15.json",
+      "bytes": 26306,
+      "sha256": "869037797ebcf86e22e751ae673b42a9f3d08a33cc0afe03f37cff7fd7c9df82"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-16.json",
+      "bytes": 26217,
+      "sha256": "801aa2c44aa8182951919b16226a934fb29db1062758d82abb62e41c8f9dda0f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-17.json",
+      "bytes": 26261,
+      "sha256": "c6beb5c9d10ae871d3921c40fdd4511de6147fd03feb601750d27da5e8d2a0df"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-18.json",
+      "bytes": 26313,
+      "sha256": "b5a1a6ab248a23e949e7a4741f9c2a416fa69d6cc64c890ccfe641ea0b9cb552"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-19.json",
+      "bytes": 26319,
+      "sha256": "1675cea3309b2b604bfe2796e7fc242ae30f0b0cd2ec9a53a658eb431906dcdd"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-20.json",
+      "bytes": 26221,
+      "sha256": "e6c571eb7cdb3a2befb44c0ace3b84f47c1a0b0f0af3916ef53dcb48a8709386"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-21.json",
+      "bytes": 26329,
+      "sha256": "2276f7cd43191feb08b0c49a9638610486fadbaedc5e7bdf3703bae1207b87de"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-22.json",
+      "bytes": 26333,
+      "sha256": "f182d7d0f57936ece72e4d46159aa46e6973d3bb14be43a43664f298a17a351f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-23.json",
+      "bytes": 26300,
+      "sha256": "69e847e728dbe62ab91872ffc8c512cc4bce12be664e4308195c3d6d5693f9fa"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-24.json",
+      "bytes": 26294,
+      "sha256": "f1ed46ac71c23a4a0bd164da6ad5c009adce4a35e031990301aa2a6c4f5b4160"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-25.json",
+      "bytes": 26277,
+      "sha256": "5d6cc70d8c40be9c5386401b9daaaa515296396b87ccce0cff69e00638cc063e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-26.json",
+      "bytes": 26337,
+      "sha256": "0667f8d710fb06946488baa94eac7838e6307bdc826beba9ed5ee2267d954bb0"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-27.json",
+      "bytes": 26311,
+      "sha256": "93e6dde376570531bdeddeb41f3ed4349543d305af1e9f083a7ef3f383badd34"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-28.json",
+      "bytes": 26306,
+      "sha256": "3dffda8ce91cbcaa3e5543c0e8405c4daf18fa50a09f06090485a19b657343ae"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-29.json",
+      "bytes": 26305,
+      "sha256": "c1996011c4a6e0929907a95a46702bef331a9fa28e8ddad6988b3ef521e67b05"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-30.json",
+      "bytes": 26299,
+      "sha256": "cb9e3cf2b7a04dd8bd7e0daf0ee61cdba5fb9e1a48702b2459f785fe9a90d583"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-01-31.json",
+      "bytes": 26276,
+      "sha256": "75d2690f13e48c38842ba5102adea34ac6434923c26509b8f9e7958bd759a456"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-01.json",
+      "bytes": 26281,
+      "sha256": "bbd45c620cedddf8f138115c93f91dc29964a68bdfada0916f09fdb11648c904"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-02.json",
+      "bytes": 26299,
+      "sha256": "9a3f3cc143380a9dacae881a7858442fac1c102ada83967220b33d7edf9ed814"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-03.json",
+      "bytes": 26395,
+      "sha256": "d6224e03e28aba20f6da39a5ff057670d32f21c97f0d7c0d5cb297d3c9932ac2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-04.json",
+      "bytes": 26346,
+      "sha256": "ae5bd801f846537f94307d009b392af6f879a85e5dd27ae49c3d8161b38536af"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-05.json",
+      "bytes": 26298,
+      "sha256": "48ab97c0d05f12f19f3a1cb185a8e8e83a70048637d47b8e8f3c132ec2a8002b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-06.json",
+      "bytes": 26292,
+      "sha256": "9005355262b343fa40cac85591f0b31219140e039df6adc4732e04239eb1e024"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-07.json",
+      "bytes": 26309,
+      "sha256": "aef5a41acd57dbb59f52a606d18597472585d5975c182662b3dd36568ccc6f6c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-08.json",
+      "bytes": 26331,
+      "sha256": "ad78bbc925869a0b4a126b751401c2f1df146ad44e0e27270a6884345dd72ff1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-09.json",
+      "bytes": 26259,
+      "sha256": "a89b15db7222b80e6e6d4e948744677a5be2902dc846ea263d5fe715f822de38"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-10.json",
+      "bytes": 26325,
+      "sha256": "461922a274e09e0089aa03a3e9be764696c53f566c52a3851f77ce945168d6a8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-11.json",
+      "bytes": 26325,
+      "sha256": "d56164310236e59a0c9a5f222cc80dc826a7b8996485e7cd399be1c431783f21"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-12.json",
+      "bytes": 26298,
+      "sha256": "2e55db87c4d798d3e37b299fc22d2940a43e87bf00a730116acb733436962f3a"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-13.json",
+      "bytes": 26346,
+      "sha256": "96d1aff44515dbf1685c1e60568729152e65c56b250a6a843646db21a8314ed6"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-14.json",
+      "bytes": 26277,
+      "sha256": "eb2691bec9afd5cb13f9117d671ad940abb32fc4508faf6731c4e6ae505a326e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-15.json",
+      "bytes": 26304,
+      "sha256": "7cc403635f9f2a1851fdd9870502caecc343d5f5806b35f066f48992a729e0a1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-16.json",
+      "bytes": 26343,
+      "sha256": "38063a8e52c7e58e5ed778f5715917e70b1cac18cb499f9ef44f9e32520381fd"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-17.json",
+      "bytes": 26308,
+      "sha256": "3561aa781497473de6275ea266b928a95d253ab3f385ff8415f89b7caff8beb7"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-18.json",
+      "bytes": 26246,
+      "sha256": "5c76b9262321e0dff2839bd10786a6cf848e231b9a36912e2da549d769b4fbd5"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-19.json",
+      "bytes": 26280,
+      "sha256": "cade96000f2906fcdf78ae804249a26f7c8ec7e44d37bc23b69704284a9b2242"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-20.json",
+      "bytes": 26268,
+      "sha256": "0b85e23ecf8e8ad2e45965cb5ef333b7cab9ecc55661d5d20e7b1418a2d891ca"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-21.json",
+      "bytes": 26267,
+      "sha256": "7acf398afb7a2add236dc07240d37833e8ed9cc31175f6d02779ee04aa77430a"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-22.json",
+      "bytes": 26291,
+      "sha256": "02a97d4607c998f68fdb0b5149c68f914e89aebe1042d1f04a29505ea5555095"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-23.json",
+      "bytes": 26312,
+      "sha256": "0ede5a08549ab091459de9d5a49b4de4a0e90f5ec03c51544ac215e81c72bdc1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-24.json",
+      "bytes": 26320,
+      "sha256": "74b554e75498a6c2e8c54d9806ebeb6886585822fa4f3279435d71f4b5879293"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-25.json",
+      "bytes": 26279,
+      "sha256": "21b147463c2800cfdd8ef93f77ef785f7cbb21bc3ae114c5f2cb2342ba5264bd"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-26.json",
+      "bytes": 26215,
+      "sha256": "bd2c38422aaf9b43deea6c61abb55f564d2260a0a6706d717daef10cd9927d88"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-27.json",
+      "bytes": 26311,
+      "sha256": "1d8f05386ed67c747443c8fe75c2a223ef62826d4be68d4c5a902262d56ea990"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-02-28.json",
+      "bytes": 26252,
+      "sha256": "f11f321ff46a170fce098ea4243e66bcdc489de3847432cc8b51bdf18c85d4af"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-01.json",
+      "bytes": 26281,
+      "sha256": "e545bb9b04e8970ef2875c41764038c415eb19c18152169d0af1928eb45ef95a"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-02.json",
+      "bytes": 26264,
+      "sha256": "19f434995b432116bfa6d68442fa1e774d8a4ef85d77e390e1ed1247dde93f0b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-03.json",
+      "bytes": 26284,
+      "sha256": "48a2998c605d7e420b45c0c293a4c4cb1bf32b4c5d43a64a99685b1ab91bee8b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-04.json",
+      "bytes": 26231,
+      "sha256": "1a8a3f0a3aeb22394adc835d3ee802be2e4654086438f7b9bda7e6f065f6d29b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-05.json",
+      "bytes": 26194,
+      "sha256": "4bbab975e7ad96547206b38d1aa46444e4096bf62765341202c5f9d477b0760d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-06.json",
+      "bytes": 26234,
+      "sha256": "1e09ca7d2b06935023918928cf6f9b840d86d38ff613e502ed29a41740e62616"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-07.json",
+      "bytes": 26280,
+      "sha256": "63b349f5b1a7c6031738fcbe2dabc915c66358a49198641b2af99950fef3bd7f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-08.json",
+      "bytes": 26333,
+      "sha256": "8fbe0f7b0610f1e840a1ca859f5246a18f5caa87b2b51aec8c2b70f5fe33a920"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-09.json",
+      "bytes": 26308,
+      "sha256": "0fae02a42470b02a663b1b46052f7fa7e9d6d234446fb10673657230f257b863"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-10.json",
+      "bytes": 26325,
+      "sha256": "9142836b88d37ea8c51a723ee883910b735d4e02b7ad1e2918006e837a1880fe"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-11.json",
+      "bytes": 26315,
+      "sha256": "3cab87979832156af638e37971e396653da7db0ae9b330dde5a4a2f6df25d3ea"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-12.json",
+      "bytes": 26196,
+      "sha256": "5b026f706dc1fb6fd00923db496028d3ff1f371bac478942592b24a7bbb1ff40"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-13.json",
+      "bytes": 26305,
+      "sha256": "1ecebaa633e64f653cae524a7d5c9a757a021813044bcd48add31cfc55c9104f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-14.json",
+      "bytes": 26293,
+      "sha256": "06138894456e41734f9408f0098dc1c41bb1e7e05a3e9720d3fe5b303952aa64"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-15.json",
+      "bytes": 26305,
+      "sha256": "89c31fbe8265fcc8920e1f44db5f87ddfdf5e56dff94207dbebe9e978098ec50"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-16.json",
+      "bytes": 26242,
+      "sha256": "353971374d5aee1e41ca55542ed36481971f3c5af5b4be17844b58acd6775503"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-17.json",
+      "bytes": 26326,
+      "sha256": "247b768c624b69e16b8e211f4fd9fd8bec4f6571c138cfd7beebad330127f89f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-18.json",
+      "bytes": 26316,
+      "sha256": "a80dc77e4fb0b647262de299779fe36df8cbeafe0b7991bcdbe151e2b271dbc4"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-19.json",
+      "bytes": 26311,
+      "sha256": "b5b51da2a1bf44851915eab2d8139e9747f2e1b400ad5de68ac8a66866553fd4"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-20.json",
+      "bytes": 26237,
+      "sha256": "1b8b053e6d361484d2757deac06594d91f8ab4687785640bc57e13b93df209a6"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-21.json",
+      "bytes": 26290,
+      "sha256": "7b568e5da6349f5a413f3a2b10d6134fde3c8a90b53540191b151cfe0165532c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-22.json",
+      "bytes": 26273,
+      "sha256": "df083fb28e3ccd7135d3919e06f85de1748ba024490f0c050f529ae617a6a184"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-23.json",
+      "bytes": 26284,
+      "sha256": "3d3ab949f28f9d974ee85c1e7c178d918465c88882fcf52101ba058d99421845"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-24.json",
+      "bytes": 26345,
+      "sha256": "858ff83262b40b5538441645cb28d7b1a9a2a58ef5730f2a704f09945b862d3a"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-25.json",
+      "bytes": 26257,
+      "sha256": "27b51cab5afd80b206f7d5b975f18823ee75dcd7d76c2231b44d4dea053dfb31"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-26.json",
+      "bytes": 26281,
+      "sha256": "1a0d45c89115fb0ee77f8819f897abb2c4afccaee57e24fceee53d7200b9f912"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-27.json",
+      "bytes": 26267,
+      "sha256": "04d5eaabf065d63bcaa2c6741e3c57403f35ddebcccb2dad5ed52968f1d07c28"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-28.json",
+      "bytes": 26322,
+      "sha256": "f5014434b6276d03f9ad97a9bbe4effbd9859f43eeaee9b7f04a413b5eca38f3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-29.json",
+      "bytes": 26349,
+      "sha256": "20186f03bb1b5fec4901e33085c4e38f022054bef2a056c1a872abe423dde2ca"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-30.json",
+      "bytes": 26301,
+      "sha256": "feaa9b83bfae182313ebfd11e53bc035b995287a395f6d89ea6e132ff02ec818"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-03-31.json",
+      "bytes": 26254,
+      "sha256": "e15682aeea9713381df1f4fcc7c355c9bff17e9fbb552ef6dcb2f9d048791f6f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-01.json",
+      "bytes": 26378,
+      "sha256": "2b9998ce8a68aa5051e5d54170269346642060581740c6f689b35a86250a9ee6"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-02.json",
+      "bytes": 26289,
+      "sha256": "ec1928bb7501bea5bb8e0b6f31112f51ad3ee23059638207991186ff19a2cd64"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-03.json",
+      "bytes": 26303,
+      "sha256": "8151ecca45b5209dc7068bc6e0c1b8a92b565f8854d9192f426fdc1776606f7e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-04.json",
+      "bytes": 26281,
+      "sha256": "775031ce7c30fd497e3105cef65a95bab48c4823826dc296884ea5c3b5b3c295"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-05.json",
+      "bytes": 26291,
+      "sha256": "2f99be4245eb7f98459e75afd682363511ed5d1a04501869b3731cc0d08bb018"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-06.json",
+      "bytes": 26270,
+      "sha256": "a9c895714221d2a15dc7397795275ec959b3133c66d4408862f34774b197a3a8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-07.json",
+      "bytes": 26279,
+      "sha256": "15c2585a926734bd9a4790e0cf54fb2447308cb3e55c184402c9156541e7a0a8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-08.json",
+      "bytes": 26235,
+      "sha256": "c7e92f11c0bf9d90c98584465eba67953ee430bd4c9c20e0002ddb23c103b5cf"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-09.json",
+      "bytes": 26269,
+      "sha256": "0989a5f41025736b6697429526079fb3be9145114c5bbeab8af260d7485dbe55"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-10.json",
+      "bytes": 26274,
+      "sha256": "018c4d496da331d4e0a9d5193961dbfc3d65f55c88065604dc79886142f212c8"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-11.json",
+      "bytes": 26221,
+      "sha256": "ed1730e3f2dce731103ffb20ae9bf3e431321da1cbf53f311c1dfcfa882bf5cb"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-12.json",
+      "bytes": 26277,
+      "sha256": "4413449460878f52e3c3e646e338d683b3e775db836c9742cd90866a4386e75f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-13.json",
+      "bytes": 26247,
+      "sha256": "d2b7c855b75133856d3ab7229a8bcacd51935c712069bc097f3e3ae622b5e26f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-14.json",
+      "bytes": 26234,
+      "sha256": "7d39b8d73efac550536c67e59738b2d454513fd8ea6807530933c4534ffdd8c4"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-15.json",
+      "bytes": 26334,
+      "sha256": "187261ab6ca1b8e6f4a0894865760bd633bc661cd3e0f1e84f230cba1af17e5d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-16.json",
+      "bytes": 26312,
+      "sha256": "c274cc25591a36116e771f0f2b1cd82f6830c9f7c64cfd3797b465a3cac05e0c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-17.json",
+      "bytes": 26302,
+      "sha256": "86da407998e57f58ecd417f648d143dde0fc6de1e587a21d3152cac371cbc489"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-18.json",
+      "bytes": 26278,
+      "sha256": "fd88d2ad185ec46168b74e295b5da517c924b43f9342695c56a659015cb13d6f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-19.json",
+      "bytes": 26266,
+      "sha256": "ebab0ee01eeb63c27da2afd324d11025dd6c485b2fe386ef543851ccdcf7539c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-20.json",
+      "bytes": 26350,
+      "sha256": "dfbfce0b40cd9abcc2767a8431a9cc5f703f372043916dabe3e387446b00ec53"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-21.json",
+      "bytes": 26275,
+      "sha256": "8c69312550e803fb2e8661ca027a78ea3c03dba4272c9e7db1fac752506bba23"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-22.json",
+      "bytes": 26262,
+      "sha256": "78ea877a5587d1afac2fc54d590b9197fc521356b7071e34fa557bd8a7c18388"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-23.json",
+      "bytes": 26270,
+      "sha256": "ab94c2072786045defed14703ca0782e28a8690080e2a00e7251278d62500044"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-24.json",
+      "bytes": 26318,
+      "sha256": "2015541b06c01db67212efb82a32f99f6e66178a4de7aa481f5d80277b459e6c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-25.json",
+      "bytes": 26317,
+      "sha256": "f6c697522b47b6514a4ce0ace3f33c1cb631a17c00ccadadf9987fb28b69b6dd"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-26.json",
+      "bytes": 26268,
+      "sha256": "1fdc633b6405c447462a716669fc23f5b639c1119418f8e59c8d5b9148b67134"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-27.json",
+      "bytes": 26248,
+      "sha256": "ee43c126bfb566cdecce4c741864a592238c70bb59a0e185acee5789be8481d4"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-28.json",
+      "bytes": 26296,
+      "sha256": "a7c87e919dc4a5cfcb3ab0f2575edca77bfd3ec181d3ef436e72ab61edb71cd3"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-29.json",
+      "bytes": 26268,
+      "sha256": "b59b51e6154e91b49f6407450786e26f7a3efc761509309bfcaaaccf4cc06614"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-04-30.json",
+      "bytes": 26260,
+      "sha256": "ee1f276a8daf80de8ba00be8b153b75cee3ebd1e72c65cc9d7d831d980427800"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-01.json",
+      "bytes": 26303,
+      "sha256": "a1f676f4ffc922a49628ea9d3a0c826dab8950c0199e98149a2bbeb9f2534200"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-02.json",
+      "bytes": 26259,
+      "sha256": "6956bf8f0408676e50f49f1710346d524755dbda70c804d1cb3c60376849d95d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-03.json",
+      "bytes": 26279,
+      "sha256": "b6f84c079133f7bc8ec29883b9a0c65b7709fea3452c6282c3a3a96286902292"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-04.json",
+      "bytes": 26232,
+      "sha256": "7c9da6e4c04692d8afd30cdd514c73975080ddc16b88960627a0ee4e3010c29e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-05.json",
+      "bytes": 26324,
+      "sha256": "72e403d77e02bead72fe24bc9c0036086fea933bac5f37f598049f2e0be242d1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-06.json",
+      "bytes": 26220,
+      "sha256": "44a1e277431aee65880350acb2990eb6f986bbd9176ed3dbcc4f04a367418873"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-07.json",
+      "bytes": 26318,
+      "sha256": "a29b61e7475badc10752b029378f9831d7c64fa61122018f377bd9236e27a44f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-08.json",
+      "bytes": 26450,
+      "sha256": "f5544e39cfd05882fe33450235ed2c14a05a4d5bf870e6537d9db2b743582eeb"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-09.json",
+      "bytes": 26281,
+      "sha256": "cecb006f673acdc6d21485ad7dbfff5782ddc5172beef7e80dd7069fe1d7a155"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-10.json",
+      "bytes": 26312,
+      "sha256": "27d433f8d871b1c257924c8d411211ca0a97950b81dd640ab72c0e9ccdc88d60"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-11.json",
+      "bytes": 26266,
+      "sha256": "05c2eb09ea3be33ec5abda455a4b5df35116fd4908e2afdb4fda8c2916ed8d4c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-12.json",
+      "bytes": 26231,
+      "sha256": "0ecf8e91f382c91d793d0dc37d7d3e486cfa536747ae5b427518f9a5517304e9"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-13.json",
+      "bytes": 26230,
+      "sha256": "148f8799103e8faadea6c0d10b17c42b42205e54452d40d55d37dd34756ea986"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-14.json",
+      "bytes": 26263,
+      "sha256": "95d95be74d175a4e1780c49142088a0ffc77a6d074d6935efcbf441491f1a2ed"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-15.json",
+      "bytes": 26317,
+      "sha256": "006ef6dfd9d8ffc8bf605629fd959810603935c78d115b3a4e0c634e62654128"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-16.json",
+      "bytes": 26227,
+      "sha256": "b1441f27e3e1e811d507eb40e1d880ca667efdcc189344bf68119d94d35aadcc"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-17.json",
+      "bytes": 26246,
+      "sha256": "4fd0424d3767a929d5fb46b9cba908269a41335090b53c13e2efdb4b9b63dd2d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-18.json",
+      "bytes": 26389,
+      "sha256": "969e0591490e1afa1dc6278d4efc38b34e0355f984ebed27f4276a611509cc8e"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-19.json",
+      "bytes": 26358,
+      "sha256": "d9e6cb8b488ea6510dc8c7ea711a8d376e653cbee5bf21bfe2ab0f2355eb250f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-20.json",
+      "bytes": 26338,
+      "sha256": "29401db5f367829cafe63799c307dfb7a34af23d5b730d5e5c83c2fa59d372ea"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-21.json",
+      "bytes": 26327,
+      "sha256": "3d25adf817eb810dc0357b61129dd8837e0ebd93f1f079bfff3d44148a9dd032"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-22.json",
+      "bytes": 26325,
+      "sha256": "974248f495f219778325ceb12ed5ec2816011de696c9f2ea50d62b33443d5bfb"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-23.json",
+      "bytes": 26374,
+      "sha256": "a8b2548ba328d97fbbc82fd370607b6adb8f0cad2769a598ce4952b23c50d7c2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-24.json",
+      "bytes": 26260,
+      "sha256": "ca334b371390aa4e562f9542837bcf4d254e8e0fd2292f419945665eaa8f717d"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-25.json",
+      "bytes": 26267,
+      "sha256": "04c160e711694a35ffc496b6ee59deceade78f4978f952022a071cea8f77ab2c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-26.json",
+      "bytes": 26319,
+      "sha256": "0968bf41042066bf30e2f4af24f20e0b7efb07d0ba5c0c44ab01892a2bbb7142"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-27.json",
+      "bytes": 26350,
+      "sha256": "20ba01312813ad0bfde47cd2d555f1cd78abdc954e5ab4e341421a1542d02968"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-28.json",
+      "bytes": 26333,
+      "sha256": "e1e5c7b8dd7ddce3b83bedb2dd25bdfacc4193dad1e3b96d3eece5dcf67caddf"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-29.json",
+      "bytes": 26294,
+      "sha256": "4c973f6a5f1d7dd966500b7bfc252a9440012517f8a09317a4c778be2732807c"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-30.json",
+      "bytes": 26406,
+      "sha256": "5f6e537c40df047342bdc7e3943365fc7616a95ad27e8b3cb1ae14f8e75efe0f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-05-31.json",
+      "bytes": 26427,
+      "sha256": "1c34916641d7c0b7c473e08bda264dd4ecd2458fa7b45b1a30c06b1d0fbc11d2"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-01.json",
+      "bytes": 26394,
+      "sha256": "5a5ff5905c288e5c900eebc57a8d922c501ca052ab1389bb76882eb94bc805a0"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-02.json",
+      "bytes": 26348,
+      "sha256": "05e5cf7a474e336f443db5993a0727596fef9e7ae14b4c136fec06828cf685ca"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-03.json",
+      "bytes": 26341,
+      "sha256": "8d30286b7c7c6395803081e80d73d5c36c24e0d90295776359e8aa1a2d9bfe1b"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-04.json",
+      "bytes": 26341,
+      "sha256": "7f9178cffb36b2bf6d66deb282c9eb2e29f1cc85e206cd34914a8ceef7665590"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-05.json",
+      "bytes": 26349,
+      "sha256": "a060aa5ecd851ea9a8c9260dce7dd3e66771d71d60e274d7e3d162e0486ad585"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-06.json",
+      "bytes": 26275,
+      "sha256": "9ff029e919f4a6f1f807434466a9c9d8e49bfac495b89655c1ca1b95f34bf86f"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-07.json",
+      "bytes": 26325,
+      "sha256": "3a676b82cfe929227152631dcbfa7cbd5a847fe8d50efe557db66ec09b56b0a5"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-08.json",
+      "bytes": 26346,
+      "sha256": "7c230f1e882307f2e7a3e52d3a0581fabf06cc36bd5f66fde8bf942c704e29d1"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-09.json",
+      "bytes": 26372,
+      "sha256": "b8a8ea7d77e064c90cd872ba48958c410c5ad16dd722a88e40d2458123aced89"
+    },
+    {
+      "path": "covid-outbreak/by-date/2023-06-10.json",
+      "bytes": 26391,
+      "sha256": "e0df5d1f49d7b4edcd5553ade52dc94f6133e6500ab35cdc8171f763a8197f49"
+    },
+    {
+      "path": "covid-outbreak/state/AK.json",
+      "bytes": 25546,
+      "sha256": "953d5255a2034b1b2ac4476d5dca3ee1fab386de8b3eab0d85303f922220a58c"
+    },
+    {
+      "path": "covid-outbreak/state/AL.json",
+      "bytes": 25959,
+      "sha256": "e71dd46f5d55b5f0bbfe45bbfb2b8d83f9adf0963505dfb2a10e9137c6297828"
+    },
+    {
+      "path": "covid-outbreak/state/AR.json",
+      "bytes": 25962,
+      "sha256": "487ef59619901f26c705d62717ed816523db7ad18a8420116f419f853bf3251d"
+    },
+    {
+      "path": "covid-outbreak/state/AS.json",
+      "bytes": 25765,
+      "sha256": "07e076eb4e7cf14e58b944519054e784d9c6e36a6162a60ee216878529832f63"
+    },
+    {
+      "path": "covid-outbreak/state/AZ.json",
+      "bytes": 26069,
+      "sha256": "3ebc9095e4491183fd394c7bdff6d4a9fcc12b710db4a7edcc1c0bc9c8468b4c"
+    },
+    {
+      "path": "covid-outbreak/state/CA.json",
+      "bytes": 26012,
+      "sha256": "7cf2bcea0c92702d782e880412ab3880f10ffe7a611873f3f51f52fd5eb73b20"
+    },
+    {
+      "path": "covid-outbreak/state/CO.json",
+      "bytes": 25993,
+      "sha256": "5de348fbea49f8b856738901e91cebcd56812719c58a3485505f52ed6754da19"
+    },
+    {
+      "path": "covid-outbreak/state/CT.json",
+      "bytes": 25944,
+      "sha256": "b38eee3ef845ce053d1fd5fcd19d07492dbb4b734f6aff701cc831dc98f52cfd"
+    },
+    {
+      "path": "covid-outbreak/state/DC.json",
+      "bytes": 25648,
+      "sha256": "b0e559bf0866b8ec4c46fc4dce6bee9093fc0fdcfc7e6cb438199e762e552ed9"
+    },
+    {
+      "path": "covid-outbreak/state/DE.json",
+      "bytes": 25782,
+      "sha256": "12dd962fd13a44092134a26125965667db8e8af3ffe3eb123854d772ac747f56"
+    },
+    {
+      "path": "covid-outbreak/state/FL.json",
+      "bytes": 26081,
+      "sha256": "be3c214a3d18003d71e79d8356f2f9386665e6399afca241f2a0a411e1967d43"
+    },
+    {
+      "path": "covid-outbreak/state/GA.json",
+      "bytes": 25944,
+      "sha256": "0c1d0a9d0da275594f5c23ed333ebc33f7b9c8925eca4a4381e5144e436e04dd"
+    },
+    {
+      "path": "covid-outbreak/state/HI.json",
+      "bytes": 25863,
+      "sha256": "46580ac0841748f43459114fa45cd1bbb9a1587285262c9ddac204a628f48fd8"
+    },
+    {
+      "path": "covid-outbreak/state/IA.json",
+      "bytes": 26031,
+      "sha256": "4593ddd39d2405bac9a137eaecaf42d85ce4400a968760c618046cded3246768"
+    },
+    {
+      "path": "covid-outbreak/state/ID.json",
+      "bytes": 25669,
+      "sha256": "589045a25b86387ace4b88d5cc11297330b6eb45b7c80a0819477e5e8a6e7fcd"
+    },
+    {
+      "path": "covid-outbreak/state/IL.json",
+      "bytes": 25964,
+      "sha256": "a87a7171e1e88e8c2979f69a5049004505ab58f800b3690c4563b1f9ce940acb"
+    },
+    {
+      "path": "covid-outbreak/state/IN.json",
+      "bytes": 26069,
+      "sha256": "20ef7b22767b5b110a5e3ce3f5e97cbda0ae098bf923e78d4aabb0387a26a38f"
+    },
+    {
+      "path": "covid-outbreak/state/KS.json",
+      "bytes": 25963,
+      "sha256": "e643543a5092f5021f824f13b0900a59305682bce63532db4f4862af51db1254"
+    },
+    {
+      "path": "covid-outbreak/state/KY.json",
+      "bytes": 25915,
+      "sha256": "63da114d5ee804075f44199bc2e90f3f1594cd82356fd862d740cb72ede1b5a5"
+    },
+    {
+      "path": "covid-outbreak/state/LA.json",
+      "bytes": 25983,
+      "sha256": "889201cdb8da71771a34ce368db1b6b6a46934e777a6e953ef447cd52ef93466"
+    },
+    {
+      "path": "covid-outbreak/state/MA.json",
+      "bytes": 25813,
+      "sha256": "e2a47250d24bbfebcce1c0736ad2301fef1cdb445b988572817677361eb32fb7"
+    },
+    {
+      "path": "covid-outbreak/state/MD.json",
+      "bytes": 25776,
+      "sha256": "7499a1188c168a9f87753083a29ea9f07cfb31ec28636b844da0b733c6882dbb"
+    },
+    {
+      "path": "covid-outbreak/state/ME.json",
+      "bytes": 25582,
+      "sha256": "b2c576d807f860ea7f8c3282abacef317989700e4a62182f6bec281d9de801ad"
+    },
+    {
+      "path": "covid-outbreak/state/MI.json",
+      "bytes": 25921,
+      "sha256": "22ba107362a0c65a0953f20bc39fe9839313963a4b9eafa9e74f035ce7a737ed"
+    },
+    {
+      "path": "covid-outbreak/state/MN.json",
+      "bytes": 25939,
+      "sha256": "9c060bed658af08cb95aa4c583d990eb52df9b3762b92105edb5357510228b30"
+    },
+    {
+      "path": "covid-outbreak/state/MO.json",
+      "bytes": 25889,
+      "sha256": "f3a3c0085de7691e82d714e946ddf3e1dfa94e2bc6363e38e36ca031f8dd6c4f"
+    },
+    {
+      "path": "covid-outbreak/state/MS.json",
+      "bytes": 26006,
+      "sha256": "38a3a4b4217ed4fe3baebb3f757dc1575c1efa2164892d8374e53b38a0acef27"
+    },
+    {
+      "path": "covid-outbreak/state/MT.json",
+      "bytes": 25904,
+      "sha256": "dfc70cf4d073d5f925260d87930779490a0473f7c7724639e3ff4a454d683476"
+    },
+    {
+      "path": "covid-outbreak/state/NC.json",
+      "bytes": 25774,
+      "sha256": "67fcc28cfc9643b55e702b2c83cf2bb31596821c51dcfba7b0abffa45d2c2749"
+    },
+    {
+      "path": "covid-outbreak/state/ND.json",
+      "bytes": 25747,
+      "sha256": "54d9cbf3cf678b6ef93f173a73a5d664664b3ceaeb97b091f3a2f82e9a023292"
+    },
+    {
+      "path": "covid-outbreak/state/NE.json",
+      "bytes": 25845,
+      "sha256": "8b37feeee0419bdb8a848dca819aad2fca8c9c5ad436a590414f139e0aa35182"
+    },
+    {
+      "path": "covid-outbreak/state/NH.json",
+      "bytes": 25805,
+      "sha256": "cfb84990ee4326a52e8f8ac878a7532deed7a08380c8ea752e6af5f3100b797c"
+    },
+    {
+      "path": "covid-outbreak/state/NJ.json",
+      "bytes": 25952,
+      "sha256": "663010f71335ee75b43535e7cc5eda6ee2c3c04ab517d371eac4feb1f07993d0"
+    },
+    {
+      "path": "covid-outbreak/state/NM.json",
+      "bytes": 25780,
+      "sha256": "3fbf41d80746aa95b4de53ea6551375192ded7d1faf2209cca22d4e347dfecd2"
+    },
+    {
+      "path": "covid-outbreak/state/NV.json",
+      "bytes": 25960,
+      "sha256": "f0f8e15191fcd7dbaaed5e68d8434e8bd3e1da97923b2c2343e65936c2e15e30"
+    },
+    {
+      "path": "covid-outbreak/state/NY.json",
+      "bytes": 25873,
+      "sha256": "2be2b7c173698f7645757d6207a4ce1296ba7162d473092772ae4d15c8029a2e"
+    },
+    {
+      "path": "covid-outbreak/state/OH.json",
+      "bytes": 25982,
+      "sha256": "57ead75d73696a09362bec07d50d29176a298c53a854cdc6e59d057eaef6b175"
+    },
+    {
+      "path": "covid-outbreak/state/OK.json",
+      "bytes": 25896,
+      "sha256": "7cb202670fa7d90a4d2984ca509dbac209874329bd7e623d773d6a10ea7eb390"
+    },
+    {
+      "path": "covid-outbreak/state/OR.json",
+      "bytes": 25854,
+      "sha256": "2c6f30fc1c5ed5c48f3f9b97cf139c216fd9e947a37a07c6f7a5d804bf00f7bb"
+    },
+    {
+      "path": "covid-outbreak/state/PA.json",
+      "bytes": 25956,
+      "sha256": "d2afa97fa82d7e32d58e06b551531176b4d70b87ebd3611002034f0c243b7b3a"
+    },
+    {
+      "path": "covid-outbreak/state/PR.json",
+      "bytes": 25835,
+      "sha256": "2f0c7e93a78c92dd96fa019aead75542dcff4630725e5aed7b70a169dbe5e288"
+    },
+    {
+      "path": "covid-outbreak/state/RI.json",
+      "bytes": 25815,
+      "sha256": "97973013da131ae884e62400c249b81e3e03b3d88baac0a49d68251f6db2c6b1"
+    },
+    {
+      "path": "covid-outbreak/state/SC.json",
+      "bytes": 25845,
+      "sha256": "f3099743edbf844a54757908c849ca001021e97529c5d00593eebb65a8e59710"
+    },
+    {
+      "path": "covid-outbreak/state/SD.json",
+      "bytes": 25896,
+      "sha256": "03e95b687c3f42139d2091acaa9824ba349875703ac7070c94b17285bff1dcb2"
+    },
+    {
+      "path": "covid-outbreak/state/TN.json",
+      "bytes": 25988,
+      "sha256": "0f51cdb01a8968cf50f37ca4d3d3daf224c1c69378dcb6f576c61e552be329c4"
+    },
+    {
+      "path": "covid-outbreak/state/TX.json",
+      "bytes": 25866,
+      "sha256": "31ce188f391120c8c4c5c03b95450b9bbb689c3c50b3e24d86d09c373b7a44a8"
+    },
+    {
+      "path": "covid-outbreak/state/UT.json",
+      "bytes": 25929,
+      "sha256": "2239e4ab5517266261e490f6821234fc25c77c5f6304a07a7203d005f49a6868"
+    },
+    {
+      "path": "covid-outbreak/state/VA.json",
+      "bytes": 25919,
+      "sha256": "6fec82932d291369af0ef2b338677a734b68aaa61297dde515183c70b38971e0"
+    },
+    {
+      "path": "covid-outbreak/state/VI.json",
+      "bytes": 23534,
+      "sha256": "adc365a03fc7b2a23b57d7914a53e5cb59faf9f1fd2e1183c896df7d1e5284fd"
+    },
+    {
+      "path": "covid-outbreak/state/VT.json",
+      "bytes": 25515,
+      "sha256": "d19f1dd39cd78b41b35d70b53e38674e3812a176b2f755bf11af78e491ec1d81"
+    },
+    {
+      "path": "covid-outbreak/state/WA.json",
+      "bytes": 25888,
+      "sha256": "fe4d544fe0917aa1dc8e8a303f937ca3d23f102bf844fcdcf52d2b2c7a171e52"
+    },
+    {
+      "path": "covid-outbreak/state/WI.json",
+      "bytes": 25862,
+      "sha256": "1a1567d2ada09a509d8d5c1069b6c3dad7ed236103d1a350a9d8508db922da04"
+    },
+    {
+      "path": "covid-outbreak/state/WV.json",
+      "bytes": 25853,
+      "sha256": "62a0c8fb257d64abd7bcd693742c4d47b0150ec680ee1e498e0816b02d95d2bd"
+    },
+    {
+      "path": "covid-outbreak/state/WY.json",
+      "bytes": 25509,
+      "sha256": "e5e6239c0a871b40d91a54749c6222f714f80ab428a246f624b48f6d017a192a"
+    }
+  ]
+}

@@ -26,17 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/sheetMusicUpscale.png?v=7328193a7824">
   <meta name="twitter:image:alt" content="Preview image for Sheet Music Watermark Removal &amp; Upscale">
   <meta name="theme-color" content="#091F3B">
-  <script id="ds-sw-register">
-  (function () {
-    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-    if (new URLSearchParams(window.location.search).has("no_sw")) return;
-    var host = window.location.hostname || "";
-    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function () {});
-    });
-  })();
-  </script>
+  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -46,7 +36,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.40f7dbbd.css">
+  <link rel="stylesheet" href="dist/styles.81f47dfb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -69,11 +59,11 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.2090cb2c.js"></script>
-  <link rel="stylesheet" href="dist/styles-personal-accordion.b4b0114f.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tourism:projects:sheetMusicUpscale","path":"/portfolio/sheetMusicUpscale","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.40f7dbbd.css","/css/components/project-page.css","/dist/styles-personal-accordion.b4b0114f.css"],"scripts":["/js/common/no-js.js","/dist/site-shell.2090cb2c.js","/js/portfolio/project-image-comparison.js","/dist/site-consent.5fbd7df8.js"],"module":"page:content"}</script>
+  <script defer src="dist/site-shell.8928284a.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.16c6538c.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tourism:projects:sheetMusicUpscale","path":"/portfolio/sheetMusicUpscale","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.81f47dfb.css","/css/components/project-page.css","/dist/styles-personal-accordion.16c6538c.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.8928284a.js","/js/portfolio/project-image-comparison.js","/dist/site-consent.ab1759e7.js"],"module":"page:content"}</script>
 </head>
-<body data-page="project" class="project-page project-page--compact personal-accordion-page" data-internal-professional-copy="true" data-audience="tourism" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="sheetMusicUpscale" data-personal-fit="document" data-site-route-id="tourism:projects:sheetMusicUpscale" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
+<body data-page="project" class="project-page project-page--compact personal-accordion-page" data-internal-professional-copy="true" data-audience="tourism" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="sheetMusicUpscale" data-personal-fit="viewport" data-site-route-id="tourism:projects:sheetMusicUpscale" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
   <a href="/portfolio/sheetMusicUpscale?audience=tourism#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav" data-site-shell-header>
     <nav class="nav" aria-label="Site header">
@@ -150,6 +140,9 @@
       <div class="wrapper">
         <h1>Sheet Music Watermark Removal &amp; Upscale</h1>
         <p class="project-subtitle">UNet &amp; VDSR Pipeline</p>
+        <nav class="project-intro-actions" aria-label="Project actions">
+        <a class="project-intro-action project-intro-action--report" href="/documents/Project_10_pdf.zip" data-content-open="true" data-content-id="sheetMusicUpscale" data-content-type="project_resource" data-resource-type="report" data-source-surface="project_intro">Reports · ZIP · 1014 KB</a>
+      </nav>
       </div>
     </section>
 
@@ -164,7 +157,7 @@
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Task</dt>
-          <dd class="project-star-value">Owned the end-to-end build, from implementation through the final deliverable.</dd>
+          <dd class="project-star-value">Create a workflow that removes watermarks and upscales sheet-music scans while keeping notation readable.</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Action</dt>
@@ -189,12 +182,13 @@
         <section class="project-demo-shell project-preview-shell" data-demo-fit="fixed" aria-label="Project preview">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Project Preview</h2>
+
       </div>
 
       <div class="project-demo-panels">
         <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-image-comparison project-image-comparison-selectable" data-project-image-comparison data-comparison-id="sheetMusicUpscale" data-comparison-page-ratio="0.7727272727272727" data-comparison-crop="{&quot;left&quot;:39.21568627450981,&quot;top&quot;:69.6969696969697,&quot;width&quot;:52.28758169934641,&quot;height&quot;:22.727272727272727}" data-comparison-left="33" data-comparison-right="67" data-comparison-minimum-gap="10" style="--comparison-left:33%;--comparison-right:67%;--comparison-aspect:720 / 405;--comparison-full-aspect:612 / 792;--comparison-crop-left:39.2157%;--comparison-crop-top:69.697%;--comparison-crop-width:52.2876%;--comparison-crop-height:22.7273%">
+            <div class="project-image-comparison project-image-comparison-selectable" data-project-image-comparison data-comparison-id="sheetMusicUpscale" data-comparison-page-ratio="0.7727272727272727" data-comparison-selection-aspect="1.3333333333333333" data-comparison-crop="{&quot;left&quot;:39.21568627450981,&quot;top&quot;:69.6969696969697,&quot;width&quot;:52.28758169934641,&quot;height&quot;:22.727272727272727}" data-comparison-left="33" data-comparison-right="67" data-comparison-default-left="33" data-comparison-default-right="67" data-comparison-minimum-gap="10" style="--comparison-left:33%;--comparison-right:67%;--comparison-aspect:720 / 405;--comparison-full-aspect:612 / 792;--comparison-crop-left:39.2157%;--comparison-crop-top:69.697%;--comparison-crop-width:52.2876%;--comparison-crop-height:22.7273%">
       <section class="project-image-comparison-section project-image-comparison-full" aria-labelledby="project-comparison-full-heading-sheetMusicUpscale">
         <div class="project-image-comparison-heading">
           <h3 id="project-comparison-full-heading-sheetMusicUpscale">Choose an area</h3>
@@ -230,12 +224,12 @@
           <img class="project-stage-image" src="img/projects/sheetMusicUpscale-upscaled-comparison.webp?v=8c429800a38e" data-comparison-source="img/projects/sheetMusicUpscale-upscaled-full.webp?v=4d3126ee9ee3" alt="The same selected notes after upscaling." loading="lazy" decoding="async" width="720" height="405">
           <figcaption class="project-stage-slide-caption"><strong>Upscaled</strong><span>VDSR output with sharper notation and staff lines.</span></figcaption>
         </figure>
-            <div class="project-image-comparison-divider project-image-comparison-divider-left" data-comparison-divider="left" role="slider" tabindex="0" aria-label="Original / Watermark removed boundary" aria-orientation="horizontal" aria-controls="project-comparison-viewport-sheetMusicUpscale" aria-describedby="project-comparison-instructions-sheetMusicUpscale" aria-valuemin="0" aria-valuemax="57" aria-valuenow="33" aria-valuetext="Original ends at 33%; Watermark removed begins at 33%" data-comparison-before="Original" data-comparison-after="Watermark removed" hidden>
+            <div class="project-image-comparison-divider project-image-comparison-divider-left" data-comparison-divider="left" role="slider" tabindex="0" aria-label="Original / Watermark removed boundary" aria-orientation="horizontal" aria-controls="project-comparison-viewport-sheetMusicUpscale" aria-describedby="project-comparison-instructions-sheetMusicUpscale" aria-valuemin="10" aria-valuemax="80" aria-valuenow="33" aria-valuetext="Original ends at 33%; Watermark removed begins at 33%" data-comparison-before="Original" data-comparison-after="Watermark removed" hidden>
               <span class="project-image-comparison-handle"><svg viewBox="0 0 24 18" aria-hidden="true" focusable="false">
               <path d="M9 4 4 9l5 5M15 4l5 5-5 5"></path>
             </svg></span>
             </div>
-            <div class="project-image-comparison-divider project-image-comparison-divider-right" data-comparison-divider="right" role="slider" tabindex="0" aria-label="Watermark removed / Upscaled boundary" aria-orientation="horizontal" aria-controls="project-comparison-viewport-sheetMusicUpscale" aria-describedby="project-comparison-instructions-sheetMusicUpscale" aria-valuemin="43" aria-valuemax="100" aria-valuenow="67" aria-valuetext="Watermark removed ends at 67%; Upscaled begins at 67%" data-comparison-before="Watermark removed" data-comparison-after="Upscaled" hidden>
+            <div class="project-image-comparison-divider project-image-comparison-divider-right" data-comparison-divider="right" role="slider" tabindex="0" aria-label="Watermark removed / Upscaled boundary" aria-orientation="horizontal" aria-controls="project-comparison-viewport-sheetMusicUpscale" aria-describedby="project-comparison-instructions-sheetMusicUpscale" aria-valuemin="20" aria-valuemax="90" aria-valuenow="67" aria-valuetext="Watermark removed ends at 67%; Upscaled begins at 67%" data-comparison-before="Watermark removed" data-comparison-after="Upscaled" hidden>
               <span class="project-image-comparison-handle"><svg viewBox="0 0 24 18" aria-hidden="true" focusable="false">
               <path d="M9 4 4 9l5 5M15 4l5 5-5 5"></path>
             </svg></span>
@@ -256,7 +250,7 @@
             <span class="project-image-comparison-stage-name">Upscaled</span>
           </li>
             </ol>
-            <p class="project-image-comparison-instruction" id="project-comparison-instructions-sheetMusicUpscale">Click or tap the image to move the nearest divider. Drag either divider; it pushes the other when they meet. Use the arrow keys when a divider is focused.</p>
+            <p class="visually-hidden" id="project-comparison-instructions-sheetMusicUpscale">Click or tap the image to move the nearest divider. Drag either divider; it pushes the other when they meet. Use the arrow keys when a divider is focused.</p>
           </div>
         </div>
       </section>
@@ -267,7 +261,7 @@
         </div>
         <p class="project-selection-instructions" id="project-selection-instructions-sheetMusicUpscale" data-selection-instructions hidden>Tap the sheet to choose an area. Drag the outlined area or use its arrow keys to move it.</p>
         <p class="project-selection-status" data-selection-status role="status"></p>
-        <button type="button" class="project-selection-reset" data-selection-retry hidden>Retry images</button><p class="project-comparison-credit"><a href="https://www.praisecharts.com/songs/details/23870/lord-i-need-you-sheet-music/brass-pack/french-horn-1-2" target="_blank" rel="noopener noreferrer">Source: Lord, I Need You, Horn 1–2 in G · PraiseCharts</a></p></div>
+        <button type="button" class="project-selection-reset" data-selection-retry hidden>Retry images</button></div>
     </div>
           </div>
         </section>
@@ -278,8 +272,8 @@
       <div class="project-links-groups project-links-groups--flat">
         <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Watermark-Remover" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_10_pdf.zip" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDFs</span></a>
-        <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_10.zip" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="/documents/Project_10_pdf.zip"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Project reports · ZIP · 1014 KB</span></a>
+        <a class="project-link" role="listitem" href="/documents/Project_10.zip"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebooks · ZIP · 201 KB</span></a>
       </div>
       </div>
     </section>
@@ -307,6 +301,6 @@
   </footer>
 
   <script defer src="js/portfolio/project-image-comparison.js"></script>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>
 </html>

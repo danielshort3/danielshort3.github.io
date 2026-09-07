@@ -287,7 +287,7 @@ function fallbackMainTextForRoute(urlPath) {
   if (normalized !== '/') return '';
   return [
     'Daniel Short personal website with portfolio projects, browser tools, games, and contact information.',
-    'The homepage is an interactive graph that links to projects, tools, games, and ways to contact Daniel Short.'
+    'The homepage introduces Daniel Short and links to featured projects, browser tools, games, and contact information.'
   ].join(' ');
 }
 
@@ -811,7 +811,7 @@ function buildProjectStructuredPage(record) {
         title: 'STAR Summary',
         items: uniqueList([
           project.problem ? `Situation: ${project.problem}` : '',
-          ...normalizeTextArray(project.role).map((item) => `Task: ${item}`),
+          project.task ? `Task: ${project.task}` : '',
           ...normalizeTextArray(project.actions).map((item) => `Action: ${item}`),
           ...normalizeTextArray(project.results).map((item) => `Result: ${item}`)
         ].filter(Boolean), 16)
@@ -1119,6 +1119,23 @@ function buildPersonalHomeStructuredPage(audienceRecord, projectRecords, toolRec
   const audience = audienceRecord && audienceRecord.data;
   const page = audience && audience.page;
   if (!page) return null;
+  const accordion = (page.sections || []).find(section => section.type === 'home-accordion' && section.enabled !== false);
+  const categories = new Map((accordion?.props?.categories || []).map(category => [category.id, category]));
+  const about = categories.get('about') || {};
+  const story = about.aboutStory || {};
+  const connections = Array.isArray(story.connections) ? story.connections : [];
+  const personalLinks = connections.length
+    ? connections.filter(connection => connection.project?.href).map(connection => ({
+        label: connection.project.title,
+        url: connection.project.href,
+        description: connection.project.summary
+      }))
+    : (about.featuredItems || []).map(item => ({ label: item.title, url: item.href, description: item.summary }));
+  const introLinks = [
+    about.primaryAction && { label: about.primaryAction.label, url: about.primaryAction.href },
+    about.currentWork && { label: about.currentWork.text, url: about.currentWork.href }
+  ].filter(Boolean);
+  const contact = categories.get('contact') || {};
 
   const projects = projectRecords
     .map((record) => record.data)
@@ -1156,8 +1173,10 @@ function buildPersonalHomeStructuredPage(audienceRecord, projectRecords, toolRec
     category: 'Core',
     sourcePath: audienceRecord.relPath,
     sourceText: JSON.stringify({ audience, projects, tools, games }),
+    introParagraphs: [about.lead, about.context].filter(Boolean),
     keywords: ['projects', 'tools', 'games', 'machine learning', 'data analytics', 'browser experiments'],
     links: [
+      ...personalLinks,
       { label: 'Projects', url: '/portfolio', description: `${projects.length} projects in the project library.` },
       { label: 'Tools', url: '/tools', description: `${tools.length} practical browser tools.` },
       { label: 'Games', url: '/games', description: `${games.length} browser games and simulations.` },
@@ -1167,19 +1186,33 @@ function buildPersonalHomeStructuredPage(audienceRecord, projectRecords, toolRec
     ],
     sections: [
       {
-        title: 'Projects',
-        paragraphs: [`Models, dashboards, and data systems built around practical analysis and usable interfaces. The homepage graph represents ${projects.length} published projects.`],
+        title: about.title || 'About Daniel',
+        links: introLinks
+      },
+      {
+        title: story.title || about.featuredTitle || 'Featured projects',
+        paragraphs: connections.map(connection => [connection.title, connection.description].filter(Boolean).join(': ')),
+        links: personalLinks
+      },
+      {
+        title: categories.get('projects')?.title || 'Projects',
+        paragraphs: [categories.get('projects')?.lead, `${projects.length} published projects in the project library.`].filter(Boolean),
         links: projectLinks
       },
       {
-        title: 'Tools',
-        paragraphs: [`Small browser utilities for repeated text, link, media, analytics, and workflow tasks. The homepage graph represents ${tools.length} public tools.`],
+        title: categories.get('tools')?.title || 'Tools',
+        paragraphs: [categories.get('tools')?.lead, `${tools.length} public tools in the tool library.`].filter(Boolean),
         links: toolLinks
       },
       {
-        title: 'Games',
-        paragraphs: [`Browser games and simulations where systems, probability, balance, and feedback loops are the point. The homepage graph represents ${games.length} games.`],
+        title: categories.get('games')?.title || 'Games',
+        paragraphs: [categories.get('games')?.lead, `${games.length} games in the game library.`].filter(Boolean),
         links: gameLinks
+      },
+      {
+        title: contact.title || 'Contact',
+        paragraphs: [contact.lead].filter(Boolean),
+        links: (contact.items || []).map(item => ({ label: item.title, url: item.href, description: item.summary }))
       }
     ]
   });
@@ -1235,6 +1268,9 @@ function loadStructuredPages() {
 
 function applyStructuredPage(basePage, structuredPage) {
   if (!structuredPage) return basePage;
+  // The homepage's collapsible panels and client-filled libraries need the
+  // authored content model even when a featured card introduces an HTML h2.
+  const useHomeContent = structuredPage.url === '/';
   return {
     ...basePage,
     title: structuredPage.title || basePage.title,
@@ -1243,8 +1279,8 @@ function applyStructuredPage(basePage, structuredPage) {
     category: structuredPage.category || basePage.category,
     sourcePath: structuredPage.sourcePath || basePage.sourcePath,
     sourceHash: structuredPage.sourceHash || basePage.sourceHash,
-    sections: basePage.sections && basePage.sections.length ? basePage.sections : structuredPage.sections,
-    introParagraphs: basePage.introParagraphs && basePage.introParagraphs.length ? basePage.introParagraphs : structuredPage.introParagraphs,
+    sections: !useHomeContent && basePage.sections && basePage.sections.length ? basePage.sections : structuredPage.sections,
+    introParagraphs: !useHomeContent && basePage.introParagraphs && basePage.introParagraphs.length ? basePage.introParagraphs : structuredPage.introParagraphs,
     keywords: uniqueList([...(structuredPage.keywords || []), ...(basePage.keywords || [])], 30),
     links: normalizeStructuredLinks([...(structuredPage.links || []), ...(basePage.links || [])])
   };
@@ -1306,11 +1342,21 @@ function extractSectionsFromRegion(region) {
   };
 }
 
-function buildDigestPage({ html, relPath, urlPath, override, generatedAt }) {
+function buildDigestPage({ html, relPath, urlPath, override, generatedAt, structuredPage }) {
   const region = extractMainRegion(html);
   let mainText = extractCleanMainText(html);
   if (mainText.length < 80) {
     mainText = [mainText, fallbackMainTextForRoute(urlPath)].filter(Boolean).join(' ');
+  }
+  if (mainText.length < 80 && structuredPage) {
+    // Form-led tools can have no prose left after removing interactive inputs.
+    // Use their authored public metadata without exposing form values.
+    mainText = [
+      mainText,
+      structuredPage.summary,
+      ...(structuredPage.introParagraphs || []),
+      ...(structuredPage.sections || []).flatMap((section) => [...(section.paragraphs || []), ...(section.items || [])])
+    ].filter(Boolean).join(' ').slice(0, MAX_SOURCE_CHARS);
   }
   if (!mainText || mainText.length < 80) return null;
 
@@ -1407,9 +1453,10 @@ function buildDigests() {
     const override = overrides.get(normalizedUrl);
     if (shouldExcludeUrl(normalizedUrl, html, noindexPathnames, override)) return;
 
-    let page = buildDigestPage({ html, relPath, urlPath: normalizedUrl, override, generatedAt });
+    const structuredPage = structuredPages.get(normalizedUrl);
+    let page = buildDigestPage({ html, relPath, urlPath: normalizedUrl, override, generatedAt, structuredPage });
     if (!page) return;
-    page = applyStructuredPage(page, structuredPages.get(normalizedUrl));
+    page = applyStructuredPage(page, structuredPage);
 
     const previous = pagesByUrl.get(normalizedUrl);
     const previousScore = previous ? previous.facts.length + previous.evidence.length + previous.bodyPoints.length : -1;

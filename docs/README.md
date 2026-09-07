@@ -18,6 +18,7 @@ developers, designers, and future contributors.
 | `aws-data-migrations.md` | AWS/backfill data-migration notes |
 | `tool-icon-generation-prompts.md` | Icon generation prompts |
 | `tools-audit-and-hardening-plan-2026-07-11.md` | Tools account audit & hardening plan |
+| `tools-local-sign-in.md` | Local Cognito callbacks and tools sign-in setup |
 
 ## Project subdirectories
 

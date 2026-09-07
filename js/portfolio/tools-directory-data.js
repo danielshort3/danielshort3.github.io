@@ -46,7 +46,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "text-compare",
       "title": "Text Compare",
       "subtitle": "Text and writing",
-      "summary": "Compare two drafts and see insertions, deletions, and replacements highlighted inline.",
+      "summary": "Compare two drafts and review the changes.",
       "href": "tools/text-compare",
       "type": "Local Tool",
       "availability": "Local",
@@ -69,10 +69,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Compare two drafts and see insertions, deletions, and replacements highlighted inline."
+        "Compare two drafts and review the changes."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Your text stays on this device.",
+      "privacy": "Comparison runs on your device. Saving a session uploads drafts and results to your account; shared input links contain your drafts.",
       "inputs": [
         "Two text drafts"
       ],
@@ -90,7 +90,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "nbsp-cleaner",
       "title": "Non-breaking Space Cleaner",
       "subtitle": "Text and writing",
-      "summary": "Detects hard spaces (NBSP, narrow NBSP, etc.) and replaces them with regular spaces after confirming counts.",
+      "summary": "Find hard spaces and copy clean text.",
       "href": "tools/nbsp-cleaner",
       "type": "Local Tool",
       "availability": "Local",
@@ -113,10 +113,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Detects hard spaces (NBSP, narrow NBSP, etc.) and replaces them with regular spaces after confirming counts."
+        "Find hard spaces and copy clean text."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Your text stays on this device.",
+      "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
       "inputs": [
         "Pasted text"
       ],
@@ -134,7 +134,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "oxford-comma-checker",
       "title": "Oxford Comma Checker",
       "subtitle": "Text and writing",
-      "summary": "Scan drafts for possible missing Oxford commas in serial lists and review quick fixes.",
+      "summary": "Find candidate lists and review comma usage in context.",
       "href": "tools/oxford-comma-checker",
       "type": "Local Tool",
       "availability": "Local",
@@ -157,10 +157,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Scan drafts for possible missing Oxford commas in serial lists and review quick fixes."
+        "Find candidate lists and review comma usage in context."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Your text stays on this device.",
+      "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
       "inputs": [
         "Pasted draft"
       ],
@@ -178,7 +178,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "point-of-view-checker",
       "title": "Point of View Checker",
       "subtitle": "Text and writing",
-      "summary": "Scan text for first-person, second-person, and third-person pronouns to spot mixed POV.",
+      "summary": "Find mixed point of view and review it in context.",
       "href": "tools/point-of-view-checker",
       "type": "Local Tool",
       "availability": "Local",
@@ -201,10 +201,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Scan text for first-person, second-person, and third-person pronouns to spot mixed POV."
+        "Find mixed point of view and review it in context."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Your text stays on this device.",
+      "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
       "inputs": [
         "Pasted text"
       ],
@@ -222,7 +222,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "word-frequency",
       "title": "Word Frequency Analyzer",
       "subtitle": "Text and writing",
-      "summary": "Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.",
+      "summary": "Find frequent words and phrases, then review them in context.",
       "href": "tools/word-frequency",
       "type": "Local Tool",
       "availability": "Local",
@@ -245,10 +245,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser."
+        "Find frequent words and phrases, then review them in context."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Your text stays on this device.",
+      "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
       "inputs": [
         "Pasted text and stopword preferences"
       ],
@@ -266,7 +266,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "utm-batch-builder",
       "title": "UTM Batch Builder",
       "subtitle": "Links and campaigns",
-      "summary": "Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.",
+      "summary": "Build campaign links in batches and export a clean CSV.",
       "href": "tools/utm-batch-builder",
       "type": "Local Tool",
       "availability": "Local",
@@ -289,10 +289,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export."
+        "Build campaign links in batches and export a clean CSV."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Campaign inputs stay on this device.",
+      "privacy": "Link generation runs on your device. Saving a session uploads campaign inputs, settings, and results to your account.",
       "inputs": [
         "Destination URLs and campaign parameters"
       ],
@@ -310,7 +310,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "qr-code-generator",
       "title": "QR Code Generator",
       "subtitle": "Links and campaigns",
-      "summary": "Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.",
+      "summary": "Create QR codes for links, text, Wi-Fi, and contacts.",
       "href": "tools/qr-code-generator",
       "type": "Local Tool",
       "availability": "Local",
@@ -333,10 +333,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports."
+        "Create QR codes for links, text, Wi-Fi, and contacts."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. QR content stays on this device.",
+      "privacy": "QR generation runs on your device. Saving uploads QR content and a preview, excluding Wi-Fi passwords and their QR preview. Managed short links use a cloud service.",
       "inputs": [
         "URL or text, styling, and optional logo"
       ],
@@ -382,7 +382,7 @@ window.DIRECTORY_WORKBENCH = {
         "Organize creative families and renditions, apply controlled UTM values, manage optional A/B tests, and prepare campaign handoffs."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Creative previews and campaign planning data stay on this device.",
+      "privacy": "Planning runs in your browser. Saving a session uploads campaign planning data and available results to your account; local creative files are excluded.",
       "inputs": [
         "Creative families, rendition files, destinations, controlled UTM values, and testing rules"
       ],
@@ -400,7 +400,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "image-optimizer",
       "title": "Image Optimizer",
       "subtitle": "Media utilities",
-      "summary": "Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.",
+      "summary": "Resize, compress, and convert images on your device.",
       "href": "tools/image-optimizer",
       "type": "Local Tool",
       "availability": "Local",
@@ -423,10 +423,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”."
+        "Resize, compress, and convert images on your device."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Source images stay on this device.",
+      "privacy": "Images are processed on your device. Saving a session uploads settings, file names, and result summaries, without the image files.",
       "inputs": [
         "PNG, JPEG, WebP, or AVIF images"
       ],
@@ -444,7 +444,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "background-remover",
       "title": "Background Remover",
       "subtitle": "Media utilities",
-      "summary": "Remove backgrounds with AI matting (hair/fur friendly), refine edges with a brush, and export transparent PNG/TIFF or solid-background JPEG/WebP.",
+      "summary": "Remove backgrounds from your photos.",
       "href": "tools/background-remover",
       "type": "Local Tool",
       "availability": "Local",
@@ -467,10 +467,10 @@ window.DIRECTORY_WORKBENCH = {
         "Local Tool"
       ],
       "results": [
-        "Remove backgrounds with AI matting (hair/fur friendly), refine edges with a brush, and export transparent PNG/TIFF or solid-background JPEG/WebP."
+        "Remove backgrounds from your photos."
       ],
       "actions": [],
-      "privacy": "Runs in your browser. Source images stay on this device.",
+      "privacy": "Images are processed on your device. Saving a session uploads settings, file names, and a small processed-image preview to your account.",
       "inputs": [
         "Image file and optional edge refinements"
       ],
@@ -514,7 +514,7 @@ window.DIRECTORY_WORKBENCH = {
         "Record your screen and download the clip in browser-supported formats with optional system audio."
       ],
       "actions": [],
-      "privacy": "Recording stays in your browser until you download it.",
+      "privacy": "Recordings stay on your device. Saving a session uploads recording settings, file names, and result summaries, without the recorded video.",
       "inputs": [
         "Screen or window and optional system audio"
       ],
@@ -574,9 +574,9 @@ window.DIRECTORY_WORKBENCH = {
     },
     {
       "id": "short-links",
-      "title": "Short Links (Admin)",
+      "title": "Links & QR codes",
       "subtitle": "Cloud-backed workflows",
-      "summary": "Create and manage private /go/<slug> redirect links with click counts (requires admin token).",
+      "summary": "Shorten a link. Make a QR code. Keep everything together.",
       "href": "tools/short-links",
       "type": "Cloud Tool",
       "availability": "Cloud",
@@ -585,12 +585,12 @@ window.DIRECTORY_WORKBENCH = {
       "tags": [
         "Cloud",
         "Admin",
-        "Redirects"
+        "QR codes"
       ],
       "tools": [
         "Cloud",
         "Admin",
-        "Redirects"
+        "QR codes"
       ],
       "concepts": [
         "Cloud-backed workflows"
@@ -599,15 +599,15 @@ window.DIRECTORY_WORKBENCH = {
         "Cloud Tool"
       ],
       "results": [
-        "Create and manage private /go/<slug> redirect links with click counts (requires admin token)."
+        "Shorten a link. Make a QR code. Keep everything together."
       ],
       "actions": [],
       "privacy": "Uses an administrator-only cloud workflow and private credentials.",
       "inputs": [
-        "Short-link slug and destination URL"
+        "Destination URL and optional custom ending"
       ],
       "outputs": [
-        "Managed redirect and click history"
+        "Short link, saved QR design, and link activity"
       ],
       "iconImage": "img/tools/icons/short-links.png?v=2164dacc484e",
       "iconHtml": "",

@@ -7,6 +7,24 @@
   const dataInput = $('#qrtool-data');
   const exampleBtn = $('#qrtool-example');
   const clearBtn = $('#qrtool-clear');
+  const linkModeSelect = $('#qrtool-link-mode');
+  const linkTitleInput = $('#qrtool-link-title');
+  const linkedContext = $('[data-qrtool-linked-context]');
+  const linkHelp = $('[data-qrtool-link-help]');
+  const managedCreate = $('[data-qrtool-managed-create]');
+  const createManagedLinkButton = $('[data-qrtool-create-link]');
+  const linkStatus = $('[data-qrtool-link-status]');
+  const linkAccess = $('[data-qrtool-link-access]');
+  const accessTokenInput = $('#qrtool-access-token');
+  const designSave = $('[data-qrtool-design-save]');
+  const saveDesignButton = $('[data-qrtool-save-design]');
+  const designStatus = $('[data-qrtool-design-status]');
+  let linkedLink = null;
+  let pendingLinkedSlug = '';
+  let managedMode = false;
+  let linkedLoading = false;
+  let linkedRequestId = 0;
+  let linkedDesignSaved = '';
 
   const destinationPickerOpen = document.querySelector('[data-qrtool="destination-picker-open"]');
   const destinationModal = document.querySelector('[data-qrtool="destination-modal"]');
@@ -47,7 +65,10 @@
   const fixStatusEl = $('#qrtool-fix-status');
   const warningEl = $('#qrtool-warning');
 
-  const modeButtons = Array.from(document.querySelectorAll('[data-qrtool-mode-btn]'));
+  const advancedOptions = document.querySelector('[data-qrtool-advanced-options]');
+  const presetsDisclosure = $('#qrtool-presets');
+  const settingsStyleSummary = $('#qrtool-summary-style');
+  const settingsExportSummary = $('#qrtool-summary-export');
 
   const dotStyleSelect = $('#qrtool-dot-style');
   const cornerStyleSelect = $('#qrtool-corner-style');
@@ -276,14 +297,14 @@
     vcardAddress: '',
     vcardNote: '',
     data: '',
-    dotStyle: 'dots',
-    cornerStyle: 'extra-rounded',
+    dotStyle: 'square',
+    cornerStyle: 'square',
     ecc: 'H',
-    marginModules: 2,
-    fg: '#3095AA',
-    bg: '#131B22',
+    marginModules: 4,
+    fg: '#102C46',
+    bg: '#FFFFFF',
     transparent: false,
-    centerMode: 'image',
+    centerMode: 'none',
     logoDataUrl: 'img/ui/logo-512.png',
     logoSizePct: 30,
     logoPaddingPct: 6,
@@ -478,7 +499,6 @@
   let destinationModalPrevFocus = null;
 
   const SHORTLINKS_TOKEN_STORAGE_KEY = 'shortlinks_admin_token';
-  const SHORTLINKS_API_PATH = '/api/short-links';
 
   let shortlinksManifest = null;
   let shortlinksModalPrevFocus = null;
@@ -498,14 +518,9 @@
 
   const storage = getStorage(true) || getStorage(false);
 
-  const getSavedShortlinksToken = () => {
-    if (!storage) return '';
-    return String(storage.getItem(SHORTLINKS_TOKEN_STORAGE_KEY) || '').trim();
-  };
-
   const updateShortlinksPickerVisibility = () => {
     if (!shortlinksPickerOpen) return;
-    shortlinksPickerOpen.hidden = !getSavedShortlinksToken();
+    shortlinksPickerOpen.hidden = false;
   };
 
   const getCanonicalSiteOrigin = () => {
@@ -564,11 +579,17 @@
         note: vcardNoteInput?.value || '',
       });
     }
+    if (managedMode) {
+      return !linkedLoading && linkedLink
+        ? window.ShortLinksClient?.publicUrl(linkedLink.slug, { qr: true }) || ''
+        : '';
+    }
     return String(dataInput?.value || '');
   };
 
   const applyDataValue = (value, { forceUrlMode = true } = {}) => {
     if (!dataInput) return;
+    if (managedMode && linkedLink) return;
     if (forceUrlMode) setPayloadMode('url');
     dataInput.value = value;
     let dispatched = false;
@@ -733,24 +754,8 @@
   };
 
   const loadShortlinksManifest = async () => {
-    if (shortlinksManifest) return shortlinksManifest;
-    const token = getSavedShortlinksToken();
-    if (!token) {
-      const err = new Error('Short Links admin token not found. Open the Short Links tool and save your token first.');
-      err.code = 'TOKEN_MISSING';
-      throw err;
-    }
-
-    const headers = { Authorization: `Bearer ${token}` };
-    const resp = await fetch(SHORTLINKS_API_PATH, { method: 'GET', headers, cache: 'no-store' });
-    const isJson = (resp.headers.get('content-type') || '').includes('application/json');
-    const data = isJson ? await resp.json().catch(() => null) : null;
-    if (!resp.ok || !data || data.ok !== true) {
-      const errMsg = (data && data.error) ? data.error : `Request failed (${resp.status})`;
-      const err = new Error(errMsg);
-      err.status = resp.status;
-      throw err;
-    }
+    if (!window.ShortLinksClient) throw new Error('Link management is unavailable. Reload this page to try again.');
+    const data = await window.ShortLinksClient.list();
     shortlinksManifest = data;
     return shortlinksManifest;
   };
@@ -778,8 +783,6 @@
     const manifest = shortlinksManifest;
     const hasManifest = !!(manifest && Array.isArray(manifest.links));
     const links = manifest && Array.isArray(manifest.links) ? manifest.links : [];
-    const basePathRaw = manifest && typeof manifest.basePath === 'string' ? manifest.basePath : 'go';
-    const basePath = String(basePathRaw || 'go').replace(/^\/+|\/+$/g, '') || 'go';
 
     const query = getShortlinksQuery();
     const active = getActiveShortlinks(links);
@@ -814,7 +817,7 @@
         const slug = String(link.slug || '').trim();
         if (!slug) return;
 
-        const path = `/${basePath}/${slug}`;
+        const path = window.ShortLinksClient.publicUrl(slug);
         const destination = typeof link.destination === 'string' ? link.destination.trim() : '';
 
         const button = document.createElement('button');
@@ -824,7 +827,7 @@
 
         const label = document.createElement('span');
         label.className = 'shortlinks-picker-item-label';
-        label.textContent = slug;
+        label.textContent = link.label || slug;
 
         const pathCode = document.createElement('code');
         pathCode.className = 'shortlinks-picker-item-path';
@@ -834,11 +837,8 @@
         button.appendChild(pathCode);
 
         button.addEventListener('click', () => {
-          const origin = getCanonicalSiteOrigin();
-          applyDataValue(joinOriginAndPath(origin, path));
           closeShortlinksPicker();
-          dataInput.focus();
-          dataInput.setSelectionRange(dataInput.value.length, dataInput.value.length);
+          loadLinkedLink(slug);
         });
 
         list.appendChild(button);
@@ -863,7 +863,7 @@
       await loadShortlinksManifest();
       renderShortlinks();
     } catch (err) {
-      setStatus(shortlinksStatusEl, err && err.message ? err.message : 'Unable to load short links.', 'error');
+      showLinkError(err, shortlinksStatusEl);
     }
 
     if (shortlinksSearch) shortlinksSearch.focus({ preventScroll: true });
@@ -875,8 +875,9 @@
     if (!tabs.buttons.length || !tabs.panels.length) return;
     const visibleButtons = getVisibleTabButtons();
     if (!visibleButtons.length) return;
-    const safeName = visibleButtons.some(button => button.dataset.qrtoolTab === name)
-      ? name
+    const requestedName = { content: 'generate', style: 'customize', templates: 'customize', logo: 'customize' }[name] || name;
+    const safeName = visibleButtons.some(button => button.dataset.qrtoolTab === requestedName)
+      ? requestedName
       : visibleButtons[0].dataset.qrtoolTab;
     tabs.buttons.forEach((button) => {
       const selected = !button.hidden && button.dataset.qrtoolTab === safeName;
@@ -886,6 +887,10 @@
     tabs.panels.forEach((panel) => {
       panel.hidden = panel.dataset.qrtoolPanel !== safeName;
     });
+    if (name === 'templates' || name === 'logo') {
+      const disclosure = $(`#qrtool-panel-${name}`);
+      if (disclosure) disclosure.open = true;
+    }
     if (tabs.panelWrap) tabs.panelWrap.scrollTop = 0;
     if (shouldFocus) {
       const activeButton = visibleButtons.find(button => button.dataset.qrtoolTab === safeName);
@@ -902,7 +907,8 @@
     const hash = window.location && window.location.hash
       ? window.location.hash.replace('#', '')
       : '';
-    const initial = visibleButtons.some(button => button.dataset.qrtoolTab === hash) ? hash : defaultTab;
+    const initial = ['content', 'style', 'templates', 'logo'].includes(hash)
+      || visibleButtons.some(button => button.dataset.qrtoolTab === hash) ? hash : defaultTab;
     activateTab(initial);
     tabs.buttons.forEach((button) => {
       button.addEventListener('click', () => activateTab(button.dataset.qrtoolTab, true));
@@ -933,19 +939,7 @@
     const safeMode = mode === 'advanced' ? 'advanced' : 'basic';
     state.uiMode = safeMode;
     if (document?.body) document.body.dataset.qrtoolUiMode = safeMode;
-    modeButtons.forEach((button) => {
-      const selected = button.dataset.qrtoolModeBtn === safeMode;
-      button.setAttribute('aria-pressed', selected ? 'true' : 'false');
-    });
-    tabs.buttons.forEach((button) => {
-      const required = button.dataset.qrtoolTabMode || 'all';
-      button.hidden = safeMode === 'basic' && required === 'advanced';
-    });
-
-    const activeButton = tabs.buttons.find((button) => button.getAttribute('aria-selected') === 'true' && !button.hidden);
-    if (!activeButton && getVisibleTabButtons().length) {
-      activateTab(getVisibleTabButtons()[0].dataset.qrtoolTab);
-    }
+    if (advancedOptions) advancedOptions.open = safeMode === 'advanced';
     if (shouldMarkDirty) markSessionDirty();
   };
 
@@ -2551,6 +2545,14 @@
         exportPresetSelect.value = presetMatch;
       }
     }
+    if (settingsStyleSummary) {
+      const payloadLabel = { url: 'URL', text: 'Text', wifi: 'Wi-Fi', vcard: 'vCard' }[state.payloadMode] || 'URL';
+      settingsStyleSummary.textContent = `${payloadLabel} · ${normalizeHex(state.fg)} on ${state.transparent ? 'transparent' : normalizeHex(state.bg)}`;
+    }
+    if (settingsExportSummary) {
+      const centerLabel = state.centerMode === 'text' ? 'Center text' : state.centerMode === 'image' ? 'Logo on' : 'Logo off';
+      settingsExportSummary.textContent = `${centerLabel} · ${imageSizeSelect?.value || '1024'} px export`;
+    }
   };
 
   initColorControl({
@@ -2818,6 +2820,9 @@
   const render = () => {
     const data = (state.data || '').trim();
     if (!data) {
+      state.qr = null;
+      state.darkModules = null;
+      state.moduleCount = 0;
       try {
         stage?.style?.setProperty('--qrtool-stage-ratio', '1');
       } catch {}
@@ -2850,6 +2855,9 @@
       qrInstance.make();
     } catch (err) {
       const isMissing = String(err && (err.message || err)).includes('QR encoder missing');
+      state.qr = null;
+      state.darkModules = null;
+      state.moduleCount = 0;
       emptyOverlay?.classList.remove('hide');
       metaEl.textContent = isMissing
         ? 'QR encoder failed to load.'
@@ -2926,7 +2934,7 @@
   });
 
   const readStateFromControls = () => {
-    state.uiMode = modeButtons.some(button => button.dataset.qrtoolModeBtn === 'advanced' && button.getAttribute('aria-pressed') === 'true')
+    state.uiMode = advancedOptions?.open
       ? 'advanced'
       : 'basic';
 
@@ -3057,7 +3065,7 @@
     reader.readAsDataURL(blob);
   });
 
-  const loadLogoFromUrl = async (url, { markDirty = false } = {}) => {
+  const loadLogoFromUrl = async (url, { markDirty = false, throwOnError = false, isCurrent = () => true } = {}) => {
     const src = String(url || '').trim();
     if (!src) return;
 
@@ -3071,23 +3079,24 @@
       }
 
       const img = new Image();
-      img.onload = () => {
-        state.logoDataUrl = dataUrl;
-        state.logoImage = img;
-        if (state.ecc !== 'H') state.ecc = 'H';
-        updateControlsFromState();
-        scheduleRender();
-        schedulePersistLastConfig();
-        scheduleSyncShareUrl();
-        if (markDirty) markSessionDirty();
-      };
-      img.onerror = () => {
-        clearLogo();
-        setWarning('Logo could not be loaded. Try a different file.');
-      };
-      img.src = dataUrl;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error('Logo could not be loaded. Try a different file.'));
+        img.src = dataUrl;
+      });
+      if (!isCurrent()) return;
+      state.logoDataUrl = dataUrl;
+      state.logoImage = img;
+      if (state.ecc !== 'H') state.ecc = 'H';
+      updateControlsFromState();
+      scheduleRender();
+      schedulePersistLastConfig();
+      scheduleSyncShareUrl();
+      if (markDirty) markSessionDirty();
     } catch (err) {
+      if (!isCurrent()) return;
       setWarning(err?.message || 'Logo could not be loaded.');
+      if (throwOnError) throw err;
     }
   };
 
@@ -3119,6 +3128,10 @@
 
   const buildConfigSnapshot = ({ forShare = false } = {}) => {
     const snapshot = {
+      linkedSlug: managedMode ? linkedLink?.slug || pendingLinkedSlug : '',
+      urlMode: managedMode ? 'managed' : 'direct',
+      destinationUrl: managedMode ? String(dataInput?.value || '') : '',
+      linkTitle: managedMode ? String(linkTitleInput?.value || '') : '',
       uiMode: state.uiMode,
       payloadMode: state.payloadMode,
       payloadText: state.payloadText,
@@ -3175,9 +3188,10 @@
     return sanitizeConfigSnapshot(snapshot);
   };
 
-  const applyConfigSnapshot = (input, { markDirty = false, skipShareSync = false, allowWifiPassword = false } = {}) => {
+  const applyConfigSnapshot = (input, { markDirty = false, skipShareSync = false, allowWifiPassword = false, skipLogoLoad = false } = {}) => {
     const config = input && typeof input === 'object' ? input : null;
     if (!config) return false;
+    if (!linkedLink && !pendingLinkedSlug && config.urlMode === 'managed') managedMode = true;
 
     if (typeof config.uiMode === 'string') state.uiMode = config.uiMode === 'advanced' ? 'advanced' : 'basic';
     if (typeof config.payloadMode === 'string') state.payloadMode = ['url', 'text', 'wifi', 'vcard'].includes(config.payloadMode) ? config.payloadMode : state.payloadMode;
@@ -3230,22 +3244,177 @@
     if (typeof config.exportPreset === 'string' && exportPresetSelect) exportPresetSelect.value = config.exportPreset;
 
     const incomingLogo = typeof config.logoDataUrl === 'string' ? config.logoDataUrl.trim() : '';
+    if (Object.prototype.hasOwnProperty.call(config, 'logoDataUrl') && !incomingLogo) {
+      state.logoDataUrl = '';
+      state.logoImage = null;
+    }
     if (incomingLogo) {
       state.logoDataUrl = incomingLogo;
       state.logoImage = null;
     }
 
+    if (managedMode && (linkedLink || pendingLinkedSlug)) {
+      state.payloadMode = 'url';
+      state.data = linkedLink ? window.ShortLinksClient.publicUrl(linkedLink.slug, { qr: true }) : '';
+    }
     if (payloadModeSelect) payloadModeSelect.value = state.payloadMode;
-    if (dataInput && state.payloadMode === 'url') dataInput.value = state.data || '';
+    if (dataInput && state.payloadMode === 'url') dataInput.value = linkedLink?.destination
+      || (managedMode && typeof config.destinationUrl === 'string' ? config.destinationUrl : state.data) || '';
+    if (linkTitleInput && typeof config.linkTitle === 'string') linkTitleInput.value = config.linkTitle;
     updateControlsFromState();
     readStateFromControls();
-    if (state.centerMode === 'image' && !state.logoImage && state.logoDataUrl) {
+    if (!skipLogoLoad && state.centerMode === 'image' && !state.logoImage && state.logoDataUrl) {
       loadLogoFromUrl(state.logoDataUrl, { markDirty: false }).catch(() => {});
     }
     scheduleRender();
     if (!skipShareSync) syncShareUrl();
     if (markDirty) markSessionDirty();
     return true;
+  };
+
+  const QR_DESIGN_KEYS = Object.freeze([
+    'uiMode', 'dotStyle', 'cornerStyle', 'ecc', 'marginModules', 'fg', 'bg', 'transparent',
+    'centerMode', 'logoSizePct', 'logoPaddingPct', 'logoShape', 'logoPlateStyle', 'logoPlateColor',
+    'logoBorderStyle', 'logoBorderPct', 'logoBorderColor', 'centerText', 'centerTextWeight',
+    'centerTextColorStyle', 'centerTextColor', 'captionEnabled', 'captionText', 'captionSizePct',
+    'captionAlign', 'captionColorStyle', 'captionColor', 'captionBgStyle', 'captionBgColor',
+    'filename', 'imageSize', 'exportPreset', 'logoDataUrl'
+  ]);
+  const selectQrDesign = (config) => Object.fromEntries(QR_DESIGN_KEYS
+    .filter(key => config && Object.prototype.hasOwnProperty.call(config, key))
+    .map(key => [key, config[key]]));
+  const buildLinkedQrDesign = () => {
+    const design = { schemaVersion: 1, ...selectQrDesign(buildConfigSnapshot()) };
+    if (state.logoImage && state.centerMode === 'image'
+      && (/^data:image\/svg\+xml/i.test(design.logoDataUrl || '') || String(design.logoDataUrl || '').length > 64000)) {
+      const logoCanvas = document.createElement('canvas');
+      const width = state.logoImage.naturalWidth || state.logoImage.width;
+      const height = state.logoImage.naturalHeight || state.logoImage.height;
+      const scale = Math.min(1, 384 / Math.max(width, height));
+      logoCanvas.width = Math.max(1, Math.round(width * scale));
+      logoCanvas.height = Math.max(1, Math.round(height * scale));
+      logoCanvas.getContext('2d').drawImage(state.logoImage, 0, 0, logoCanvas.width, logoCanvas.height);
+      design.logoDataUrl = logoCanvas.toDataURL('image/png');
+    }
+    const preview = linkedLink && state.darkModules ? buildPreviewDataUrl(256) : null;
+    if (preview?.dataUrl) design.previewDataUrl = preview.dataUrl;
+    if (new TextEncoder().encode(JSON.stringify(design)).length > 128 * 1024) {
+      throw new Error('This logo is too large to save with your link. Use a smaller logo image, then save again.');
+    }
+    return design;
+  };
+  const currentDesignSignature = () => JSON.stringify(selectQrDesign(buildConfigSnapshot()));
+  const syncLinkedUi = () => {
+    const hasLink = managedMode && !!linkedLink;
+    if (linkModeSelect) linkModeSelect.value = managedMode ? 'managed' : 'direct';
+    if (linkModeSelect) linkModeSelect.disabled = linkedLoading;
+    if (payloadModeSelect) payloadModeSelect.disabled = linkedLoading;
+    if (linkedContext) linkedContext.hidden = !hasLink;
+    if (managedCreate) managedCreate.hidden = !managedMode || hasLink || !!pendingLinkedSlug;
+    if (designSave) designSave.hidden = !hasLink;
+    if (saveDesignButton) saveDesignButton.disabled = linkedLoading || !hasLink;
+    if (createManagedLinkButton) createManagedLinkButton.disabled = linkedLoading;
+    const retryButton = $('[data-qrtool-retry-link]');
+    if (retryButton) retryButton.hidden = !pendingLinkedSlug || linkedLoading;
+    if (dataInput) dataInput.readOnly = hasLink || !!pendingLinkedSlug;
+    if (destinationPickerOpen) destinationPickerOpen.hidden = hasLink || !!pendingLinkedSlug;
+    if (exampleBtn) exampleBtn.hidden = hasLink || !!pendingLinkedSlug;
+    if (clearBtn) clearBtn.hidden = hasLink || !!pendingLinkedSlug;
+    if (linkHelp) linkHelp.textContent = managedMode
+      ? 'Change the destination later and track QR visits. Your saved short link keeps the printed QR working.'
+      : 'A direct QR always opens the URL you enter. Its destination cannot change after printing.';
+    if (hasLink) {
+      $('[data-qrtool-linked-title]').textContent = linkedLink.label || linkedLink.slug;
+      $('[data-qrtool-linked-url]').textContent = window.ShortLinksClient.publicUrl(linkedLink.slug);
+      $('[data-qrtool-manage-link]').href = `/tools/short-links?link=${encodeURIComponent(linkedLink.slug)}`;
+      dataInput.value = linkedLink.destination || '';
+    }
+    if (emptyOverlay) emptyOverlay.textContent = managedMode && !hasLink
+      ? (linkedLoading ? 'Loading your saved QR…' : 'Create or select a link to preview its QR code.')
+      : 'Paste a URL to begin.';
+  };
+  const showLinkError = (error, target = linkStatus) => {
+    const needsAccess = error?.status === 401 || error?.status === 403;
+    setInlineStatus(target, error?.message || 'Unable to load this link. Please try again.', 'error');
+    if (linkAccess && needsAccess) linkAccess.hidden = false;
+    const pickerSignin = $('[data-qrtool-picker-signin]');
+    if (pickerSignin) pickerSignin.hidden = !needsAccess;
+  };
+  const syncLinkedUrl = () => {
+    const url = new URL(window.location.href);
+    const slug = managedMode ? linkedLink?.slug || pendingLinkedSlug : '';
+    if (slug) {
+      url.searchParams.set('link', slug);
+      url.searchParams.delete('cfg');
+    } else {
+      url.searchParams.delete('link');
+      url.searchParams.delete('download');
+    }
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+  const loadLinkedLink = async (slug, { download = false } = {}) => {
+    const requestId = ++linkedRequestId;
+    const requestedSlug = String(slug || '').trim();
+    pendingLinkedSlug = requestedSlug;
+    linkedLink = null;
+    managedMode = true;
+    linkedLoading = true;
+    setPayloadMode('url');
+    dataInput.value = '';
+    readStateFromControls();
+    syncLinkedUi();
+    syncLinkedUrl();
+    render();
+    setInlineStatus(linkStatus, 'Loading saved link and QR design…');
+    try {
+      if (!window.ShortLinksClient) throw new Error('Link management is unavailable. Reload this page to try again.');
+      const result = await window.ShortLinksClient.get(pendingLinkedSlug);
+      if (requestId !== linkedRequestId) return;
+      const link = result.link;
+      if (!link?.slug || !link.destination) throw new Error('This saved link could not be found. Choose another link.');
+      linkedLink = link;
+      pendingLinkedSlug = '';
+      const design = link.qrDesign ? selectQrDesign(link.qrDesign) : {
+        dotStyle: 'square', cornerStyle: 'square', fg: '#102c46', bg: '#FFFFFF',
+        marginModules: 4, ecc: 'H', centerMode: 'none', captionEnabled: false, transparent: false,
+        logoDataUrl: '', filename: link.slug.replace(/\//g, '-'), imageSize: '1024'
+      };
+      applyConfigSnapshot({ ...design, payloadMode: 'url', data: link.destination }, { skipShareSync: true, skipLogoLoad: true });
+      if (state.centerMode === 'image' && state.logoDataUrl) {
+        await loadLogoFromUrl(state.logoDataUrl, { markDirty: false, throwOnError: true, isCurrent: () => requestId === linkedRequestId });
+      }
+      if (requestId !== linkedRequestId) return;
+      linkedLoading = false;
+      readStateFromControls();
+      syncLinkedUi();
+      render();
+      linkedDesignSaved = currentDesignSignature();
+      setInlineStatus(designStatus, link.qrDesign ? 'Saved QR design loaded.' : 'Save this design with your link to reuse it on any device.');
+      const unavailable = link.disabled || (link.expiresAt && Number(link.expiresAt) * 1000 <= Date.now());
+      setInlineStatus(linkStatus, unavailable
+        ? 'This link is paused or expired. Open Manage link to activate it before sharing your QR.'
+        : 'QR linked. Manage the destination and activity from Links & QR Codes.', unavailable ? 'warning' : 'success');
+      if (linkAccess) linkAccess.hidden = true;
+      syncLinkedUrl();
+      schedulePersistLastConfig();
+      if (download) {
+        activateTab('export');
+        const url = new URL(window.location.href);
+        url.searchParams.delete('download');
+        window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+        downloadPngBtn.click();
+      }
+    } catch (error) {
+      if (requestId !== linkedRequestId) return;
+      linkedLoading = false;
+      // Keep managed mode and its pending identity on errors; never export a stale direct QR.
+      linkedLink = null;
+      pendingLinkedSlug = requestedSlug;
+      readStateFromControls();
+      syncLinkedUi();
+      render();
+      showLinkError(error);
+    }
   };
 
   const loadStoredPresets = () => {
@@ -3317,6 +3486,10 @@
 
   const syncShareUrl = () => {
     if (!window?.history?.replaceState) return;
+    if (managedMode && (linkedLink || pendingLinkedSlug)) {
+      syncLinkedUrl();
+      return;
+    }
     try {
       const token = encodeConfigToken(buildConfigSnapshot({ forShare: true }));
       if (!token || token.length > 1800) return;
@@ -3327,10 +3500,32 @@
   };
   const scheduleSyncShareUrl = debounce(syncShareUrl, 260);
 
+  const loadInitialLinkedLink = (slug, options = {}) => {
+    // Account scripts follow this controller so its session hooks register first.
+    if (document.readyState === 'loading' && !window.ToolsAuth) {
+      pendingLinkedSlug = slug;
+      managedMode = true;
+      linkedLoading = true;
+      dataInput.value = '';
+      setPayloadMode('url');
+      readStateFromControls();
+      document.addEventListener('DOMContentLoaded', () => {
+        if (document.contains(form)) loadLinkedLink(slug, options);
+      }, { once: true });
+      return;
+    }
+    loadLinkedLink(slug, options);
+  };
+
   const restoreInitialConfig = () => {
     let applied = false;
     try {
       const params = new URLSearchParams(window.location.search || '');
+      const linkedSlug = params.get('link');
+      if (linkedSlug) {
+        loadInitialLinkedLink(linkedSlug, { download: params.get('download') === 'png' });
+        return;
+      }
       const token = params.get('cfg');
       if (token) {
         const decoded = decodeConfigToken(token);
@@ -3346,6 +3541,11 @@
       const raw = storage.getItem(QR_LAST_CONFIG_STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
+      if (parsed?.linkedSlug) {
+        loadInitialLinkedLink(parsed.linkedSlug);
+        return;
+      }
+      managedMode = parsed?.urlMode === 'managed';
       if (applyConfigSnapshot(parsed, { markDirty: false, skipShareSync: true })) {
         persistLastConfig();
       }
@@ -3357,6 +3557,9 @@
   });
 
   const buildExportArtifacts = async (size) => {
+    if (getPayloadMode() === 'url' && managedMode && (linkedLoading || !linkedLink)) return null;
+    readStateFromControls();
+    render();
     if (!state.darkModules) return null;
     const safeSize = clamp(toInt(size, 1024), 128, 8192);
     const outCanvas = document.createElement('canvas');
@@ -3382,7 +3585,133 @@
     scheduleRender();
     schedulePersistLastConfig();
     scheduleSyncShareUrl();
+    syncLinkedUi();
+    if (linkedLink && !linkedLoading && linkedDesignSaved && linkedDesignSaved !== currentDesignSignature()) {
+      setInlineStatus(designStatus, 'Design changed. Save it to update the QR in your link library.');
+    }
   };
+
+  linkModeSelect?.addEventListener('change', () => {
+    ++linkedRequestId;
+    const destination = linkedLink?.destination || dataInput.value;
+    linkedLink = null;
+    pendingLinkedSlug = '';
+    linkedLoading = false;
+    managedMode = linkModeSelect.value === 'managed';
+    dataInput.value = destination;
+    setInlineStatus(linkStatus, '');
+    if (linkAccess) linkAccess.hidden = true;
+    syncLinkedUrl();
+    handleControlMutation();
+    render();
+    markSessionDirty();
+  });
+  createManagedLinkButton?.addEventListener('click', async () => {
+    let destination;
+    try {
+      destination = new URL(String(dataInput.value || '').trim());
+      if (!['http:', 'https:'].includes(destination.protocol)) throw new Error();
+    } catch {
+      setInlineStatus(linkStatus, 'Enter a complete website URL, starting with https://.', 'error');
+      dataInput.focus();
+      return;
+    }
+    const requestId = ++linkedRequestId;
+    linkedLoading = true;
+    syncLinkedUi();
+    setInlineStatus(linkStatus, 'Creating your link and QR…');
+    try {
+      if (!window.ShortLinksClient) throw new Error('Link management is unavailable. Reload this page to try again.');
+      const result = await window.ShortLinksClient.create({
+        destination: destination.toString(), label: String(linkTitleInput?.value || '').trim(),
+        permanent: false, expiresAt: 0, qrDesign: buildLinkedQrDesign()
+      });
+      if (requestId !== linkedRequestId) return;
+      if (!result.link?.slug) throw new Error('The link response was incomplete. Check your link library before trying again.');
+      await loadLinkedLink(result.link.slug);
+      if (linkedLink?.slug === result.link.slug) {
+        try {
+          await window.ShortLinksClient.update(linkedLink.slug, { qrDesign: buildLinkedQrDesign() });
+          setInlineStatus(designStatus, 'QR design saved with your link.', 'success');
+        } catch {
+          setInlineStatus(designStatus, 'Your link was created. Choose Save QR design to save its library preview.', 'warning');
+        }
+      }
+      shortlinksManifest = null;
+      markSessionDirty();
+    } catch (error) {
+      if (requestId !== linkedRequestId) return;
+      linkedLoading = false;
+      syncLinkedUi();
+      showLinkError(error);
+    }
+  });
+  saveDesignButton?.addEventListener('click', async () => {
+    if (!linkedLink || linkedLoading || getPayloadMode() !== 'url') return;
+    const slug = linkedLink.slug;
+    saveDesignButton.disabled = true;
+    setInlineStatus(designStatus, 'Saving QR design…');
+    try {
+      readStateFromControls();
+      render();
+      const qrDesign = buildLinkedQrDesign();
+      const savedSignature = currentDesignSignature();
+      const result = await window.ShortLinksClient.update(slug, { qrDesign });
+      if (linkedLink?.slug !== slug) return;
+      linkedLink = result.link || linkedLink;
+      linkedDesignSaved = savedSignature;
+      setInlineStatus(designStatus, savedSignature === currentDesignSignature()
+        ? 'QR design saved. Your link library now uses this design.'
+        : 'Previous design saved. Save again to include your latest changes.', 'success');
+      markSessionDirty();
+    } catch (error) {
+      showLinkError(error, designStatus);
+    } finally {
+      syncLinkedUi();
+    }
+  });
+  const signInForLinks = async () => {
+    closeShortlinksPicker();
+    if (linkAccess) linkAccess.hidden = false;
+    persistLastConfig();
+    try {
+      if (!window.ToolsAuth?.signIn) throw new Error('Account sign-in is loading. Please try again in a moment.');
+      await window.ToolsAuth.signIn();
+    } catch (error) {
+      showLinkError(error);
+    }
+  };
+  $('[data-qrtool-link-signin]')?.addEventListener('click', signInForLinks);
+  $('[data-qrtool-picker-signin]')?.addEventListener('click', signInForLinks);
+  $('[data-qrtool-retry-link]')?.addEventListener('click', () => {
+    if (pendingLinkedSlug) loadLinkedLink(pendingLinkedSlug, {
+      download: new URLSearchParams(window.location.search).get('download') === 'png'
+    });
+  });
+  $('[data-qrtool-connect-access]')?.addEventListener('click', async () => {
+    const token = String(accessTokenInput?.value || '').trim();
+    if (!token) {
+      setInlineStatus(linkStatus, 'Enter your workspace access token.', 'error');
+      accessTokenInput?.focus();
+      return;
+    }
+    window.ShortLinksClient?.setToken(token, !!$('#qrtool-remember-access')?.checked);
+    accessTokenInput.value = '';
+    try {
+      await loadShortlinksManifest();
+      if (linkAccess) linkAccess.hidden = true;
+      setInlineStatus(linkStatus, 'Workspace connected. You can create or select a link.', 'success');
+      if (pendingLinkedSlug) await loadLinkedLink(pendingLinkedSlug);
+    } catch (error) {
+      showLinkError(error);
+    }
+  });
+  const handleLinkAccessChanged = () => {
+    shortlinksManifest = null;
+    updateShortlinksPickerVisibility();
+  };
+  window.addEventListener('shortlinks:access-changed', handleLinkAccessChanged);
+  document.addEventListener('tools:auth-changed', handleLinkAccessChanged);
 
   dataInput.addEventListener('input', () => {
     handleControlMutation();
@@ -3390,6 +3719,14 @@
 
   if (payloadModeSelect) {
     payloadModeSelect.addEventListener('change', () => {
+      if (getPayloadMode() !== 'url') {
+        ++linkedRequestId;
+        linkedLoading = false;
+        linkedLink = null;
+        pendingLinkedSlug = '';
+        managedMode = false;
+        syncLinkedUrl();
+      }
       setPayloadMode(getPayloadMode());
       handleControlMutation();
       if (payloadModeSelect.value === 'url') dataInput?.focus();
@@ -3399,12 +3736,20 @@
     });
   }
 
-  modeButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const mode = button.dataset.qrtoolModeBtn === 'advanced' ? 'advanced' : 'basic';
-      setUiMode(mode, { markDirty: true });
-      handleControlMutation();
-    });
+  advancedOptions?.addEventListener('toggle', () => {
+    const nextMode = advancedOptions.open ? 'advanced' : 'basic';
+    if (state.uiMode === nextMode) return;
+    state.uiMode = nextMode;
+    if (document.body) document.body.dataset.qrtoolUiMode = nextMode;
+    schedulePersistLastConfig();
+    scheduleSyncShareUrl();
+    markSessionDirty();
+  });
+  document.querySelector('[data-qrtool-presets-open]')?.addEventListener('click', () => {
+    if (!presetsDisclosure) return;
+    presetsDisclosure.open = true;
+    presetsDisclosure.scrollIntoView({ block: 'nearest' });
+    configNameInput?.focus({ preventScroll: true });
   });
 
   if (autofixBtn) {
@@ -3837,7 +4182,8 @@
   readStateFromControls();
   restoreInitialConfig();
   updateControlsFromState();
-  if (state.centerMode === 'image' && !state.logoImage && state.logoDataUrl) {
+  syncLinkedUi();
+  if (!linkedLoading && state.centerMode === 'image' && !state.logoImage && state.logoDataUrl) {
     loadLogoFromUrl(state.logoDataUrl, { markDirty: false }).catch(() => {});
   }
   scheduleRender();
@@ -3925,6 +4271,13 @@
   });
 
   document.addEventListener('tools:session-applied', (event) => {
+    if (event?.detail?.toolId === TOOL_ID && managedMode && (linkedLink || pendingLinkedSlug)) {
+      setPayloadMode('url');
+      syncLinkedUi();
+      readStateFromControls();
+      scheduleRender();
+      return;
+    }
     if (event?.detail?.toolId !== TOOL_ID || getPayloadMode() !== 'wifi') return;
     if (wifiPasswordInput) wifiPasswordInput.value = '';
     state.wifiPassword = '';
