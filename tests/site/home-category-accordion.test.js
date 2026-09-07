@@ -522,8 +522,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'icon-backed homepage cards should use specific semantic icon assignments');
   const expectedItemIds = {
     about: [],
-    projects: ['babynames', 'handwritingRating', 'sheetMusicUpscale', 'ufoDashboard'],
-    tools: ['text-compare', 'image-optimizer', 'qr-code-generator', 'screen-recorder'],
+    projects: ['babynames', 'handwritingRating', 'sheetMusicUpscale'],
+    tools: ['text-compare', 'image-optimizer', 'qr-code-generator'],
     games: ['stormbreak', 'stellar-dogfight', 'probability-engine'],
     contact: ['contact-form', 'email', 'github']
   };
@@ -735,7 +735,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     count(html, /data-home-library-close=/g) === 3 &&
     html.includes('data-home-view="overview"') &&
     !html.includes('Back to categories') &&
-    html.includes('Back to homepage') &&
+    ['Projects overview', 'Tools overview', 'Games overview'].every((label) => html.includes(label)) &&
     html.includes('data-personal-tool-account="true"') &&
     !html.includes('>All tools<'),
   'homepage markup should author three progressively enhanced libraries while retaining the five-category overview');
@@ -756,11 +756,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     '/portfolio/handwritingRating',
     '/portfolio/babynames',
     '/portfolio/sheetMusicUpscale',
-    '/portfolio/ufoDashboard',
     '/tools/text-compare',
     '/tools/image-optimizer',
     '/tools/qr-code-generator',
-    '/tools/screen-recorder',
     '/games/stormbreak',
     '/games/stellar-dogfight',
     '/games/probability-engine',
@@ -1041,6 +1039,71 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     homeStyles.includes('@import url("components/home-library.css");') &&
     sharedStyles.includes('@import url("components/home-timeline.css");'),
   'homepage bundles should load library data before the controller, attach the lazy tools account loader, and include accordion, library, and shared timeline styles');
+  [[false, false], [true, false], [false, true], [true, true]].forEach(([initiallyConnected, remount]) => {
+    const listeners = new Map();
+    const scripts = [];
+    let connected = initiallyConnected;
+    let hidden = true;
+    const dock = {
+      dataset: {},
+      closest: (selector) => selector === '[data-home-library-view="tools"]' ? {} : hidden ? {} : null,
+      addEventListener() {},
+      removeEventListener() {},
+      getBoundingClientRect: () => ({ width: 0, height: 0 })
+    };
+    const context = {
+      console,
+      document: {
+        readyState: 'complete',
+        currentScript: { dataset: { toolsAccountSrc: '/dist/site-tools-account.test.js' } },
+        body: { dataset: { page: 'home' } },
+        querySelector: () => connected ? dock : null,
+        getElementById: (id) => scripts.find((script) => script.id === id),
+        createElement: () => ({ addEventListener() {} }),
+        head: { appendChild: (script) => scripts.push(script) },
+        addEventListener: (name, listener) => listeners.set(name, listener),
+        removeEventListener: (name, listener) => {
+          if (listeners.get(name) === listener) listeners.delete(name);
+        }
+      },
+      window: {
+        SiteRoutes: { current: () => ({ id: 'home' }), addCleanup() {} },
+        setTimeout: () => 1,
+        clearTimeout() {}
+      },
+      IntersectionObserver: class {
+        observe() {}
+        disconnect() {}
+      }
+    };
+    context.window.IntersectionObserver = context.IntersectionObserver;
+    vm.runInNewContext(read('js/accounts/tools-page-loader.js'), context);
+    assert(scripts.length === 0,
+      'an absent or hidden Tools dock should not load account code during homepage overview browsing');
+    listeners.get('home:library-change')?.({ detail: { category: 'projects', expanded: true } });
+    listeners.get('home:library-change')?.({ detail: { category: 'tools', expanded: false } });
+    assert(scripts.length === 0,
+      'opening another library or closing Tools should keep account loading lazy');
+    if (remount) {
+      listeners.get('site:route-unmounted')?.();
+      listeners.clear();
+      connected = false;
+      vm.runInNewContext(read('js/accounts/tools-page-loader.js'), context);
+      assert(scripts.length === 0 && ['site:route-mounted', 'site:route-unmounted', 'home:library-change']
+        .every((type) => typeof listeners.get(type) === 'function'),
+      'a surviving loader controller should reattach its route listeners after homepage scripts are cleaned up and evaluated again');
+    }
+    connected = true;
+    hidden = false;
+    listeners.get('home:library-change')?.({ detail: { category: 'tools', expanded: true } });
+    assert(scripts.length === 1 && scripts[0].src === '/dist/site-tools-account.test.js' &&
+      dock.dataset.toolsAccountLoaderReady === 'true',
+    `opening Tools should immediately initialize its ${initiallyConnected ? 'previously hidden' : 'newly attached'} zero-size account dock without waiting for intersection`);
+    listeners.get('home:library-change')?.({ detail: { category: 'tools', expanded: true } });
+    context.window.__toolsAccountLoaderController.sync();
+    assert(scripts.length === 1,
+      'repeated Tools expansion and loader synchronization should share one account bundle request');
+  });
   assert(personal.page.bottomScripts.some((script) => script.src === 'dist/site-home.js') &&
     !JSON.stringify(personal.page.bottomScripts).includes('project-graph'),
   'managed homepage source should use the stable home bundle without raw graph scripts');

@@ -1724,6 +1724,7 @@ const handleTranscribe = async (req, res, segments = []) => {
   if (action === 'config' || !action) return handleConfig(req, res);
   if (action === 'local-config') return handleLocalTranscribe(req, res, 'config');
   if (action === 'local-ticket') return handleLocalTranscribe(req, res, 'ticket');
+  if (action === 'local-url-ticket') return handleLocalTranscribe(req, res, 'url-ticket');
   if (action === 'usage') return handleUsage(req, res);
   if (action === 'history') return handleHistory(req, res);
   if (action === 'presign') return handlePresign(req, res);

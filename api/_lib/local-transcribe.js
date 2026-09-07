@@ -1,6 +1,6 @@
 /*
   Admin-only bridge configuration and signed tickets for the local transcription
-  worker. The browser uploads media directly to the worker; the website API
+  worker. The browser uploads media or submits an approved URL to the worker; the website API
   never receives the file or exposes the shared HMAC secret.
 
   Required to enable the bridge:
@@ -168,6 +168,7 @@ function publicLocalConfig(config){
     maxServiceDurationSeconds: config.maxServiceDurationSeconds,
     minDurationSeconds: config.minDurationSeconds,
     supportedFormats: [...SUPPORTED_FORMATS],
+    urlImportEnabled: Boolean(config.configured),
     historyStored: false
   };
 }
@@ -225,6 +226,49 @@ function createValidationError(message, statusCode = 400){
   err.code = 'LOCAL_TRANSCRIBE_VALIDATION';
   err.statusCode = statusCode;
   return err;
+}
+
+function normalizeSourceUrl(value){
+  if (typeof value !== 'string' || value.length > 2048 || /[\u0000-\u001f\u007f\\]/.test(value)) {
+    throw createValidationError('Enter a valid HTTPS YouTube video URL.');
+  }
+  let url;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    throw createValidationError('Enter a valid HTTPS YouTube video URL.');
+  }
+  if (url.protocol !== 'https:' || url.username || url.password || url.port ||
+      !['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'].includes(url.hostname)) {
+    throw createValidationError('Use an HTTPS link to an individual YouTube video.');
+  }
+  if (url.searchParams.has('list')) {
+    throw createValidationError('Playlists are not supported. Use a link to one video without a playlist.');
+  }
+  let videoId = '';
+  if (url.hostname === 'youtu.be') {
+    videoId = url.pathname.match(/^\/([a-zA-Z0-9_-]{11})\/?$/)?.[1] || '';
+  } else if (url.pathname === '/watch' && url.searchParams.getAll('v').length === 1) {
+    videoId = url.searchParams.get('v');
+  } else {
+    videoId = url.pathname.match(/^\/(?:shorts|live|embed)\/([a-zA-Z0-9_-]{11})\/?$/)?.[1] || '';
+  }
+  if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    throw createValidationError('Use a link to an individual YouTube video.');
+  }
+  return `https://www.youtube.com/watch?v=${videoId}`;
+}
+
+function validateUrlTicketInput(body, config){
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw createValidationError('A JSON object is required.');
+  }
+  return {
+    sourceKind: 'url',
+    sourceUrl: normalizeSourceUrl(body.sourceUrl),
+    maxFileBytes: config.maxFileBytes,
+    maxDurationSeconds: config.maxServiceDurationSeconds
+  };
 }
 
 function validateTicketInput(body, config){
@@ -311,17 +355,24 @@ function createTicket({ claims, input, origin, config, nowSeconds, randomBytes }
   if (!Number.isFinite(iat) || iat <= 0) throw new Error('Unable to issue a local transcription ticket.');
   const exp = iat + config.ticketTtlSeconds;
   const jobId = randomBytes(16).toString('hex');
+  const isUrl = input.sourceKind === 'url';
   const payload = {
-    v: 1,
-    type: 'local_transcribe',
+    v: isUrl ? 2 : 1,
+    type: isUrl ? 'local_transcribe_url' : 'local_transcribe',
     aud: 'local-transcribe-worker',
     sub,
     jobId,
-    filename: input.filename,
-    format: input.format,
-    contentType: input.contentType,
-    bytes: input.bytes,
-    durationSeconds: input.durationSeconds,
+    ...(isUrl ? {
+      sourceUrl: input.sourceUrl,
+      maxFileBytes: input.maxFileBytes,
+      maxDurationSeconds: input.maxDurationSeconds
+    } : {
+      filename: input.filename,
+      format: input.format,
+      contentType: input.contentType,
+      bytes: input.bytes,
+      durationSeconds: input.durationSeconds
+    }),
     origin,
     iat,
     exp
@@ -422,7 +473,7 @@ function createHandler(dependencies = {}){
       return;
     }
 
-    if (normalizedAction === 'ticket') {
+    if (normalizedAction === 'ticket' || normalizedAction === 'url-ticket') {
       if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
         sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
@@ -450,7 +501,9 @@ function createHandler(dependencies = {}){
       }
 
       try {
-        const input = validateTicketInput(body, config);
+        const input = normalizedAction === 'url-ticket'
+          ? validateUrlTicketInput(body, config)
+          : validateTicketInput(body, config);
         const origin = ticketRequestOrigin(req);
         const issued = createTicket({
           claims,
@@ -470,11 +523,7 @@ function createHandler(dependencies = {}){
           expiresAt: issued.exp * 1000,
           job: {
             id: issued.jobId,
-            filename: input.filename,
-            format: input.format,
-            contentType: input.contentType,
-            bytes: input.bytes,
-            durationSeconds: input.durationSeconds
+            ...input
           }
         });
       } catch (err) {
@@ -510,6 +559,7 @@ handleLocalTranscribe._internal = {
   isEmailVerifiedClaim,
   isLoopbackHostname,
   normalizeContentType,
+  normalizeSourceUrl,
   normalizeWorkerOrigin,
   publicLocalConfig,
   requestServerOrigin,
@@ -517,7 +567,8 @@ handleLocalTranscribe._internal = {
   signTicket,
   ticketRequestOrigin,
   upgradeLegacyEmailAdminSession,
-  validateTicketInput
+  validateTicketInput,
+  validateUrlTicketInput
 };
 
 module.exports = handleLocalTranscribe;

@@ -34,8 +34,8 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.81f47dfb.css">
-  <link rel="stylesheet" href="dist/styles-tools.e4cf1865.css">
+  <link rel="stylesheet" href="dist/styles.53b0eade.css">
+  <link rel="stylesheet" href="dist/styles-tools.c24a9973.css">
   <link rel="stylesheet" href="css/components/whisper-transcribe-monitor.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -48,10 +48,10 @@
   <meta name="author" content="Daniel Short">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.8928284a.js"></script>
+  <script defer src="dist/site-shell.42e366c2.js"></script>
 
-<link rel="stylesheet" href="dist/styles-personal-accordion.16c6538c.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:transcribe","path":"/tools/transcribe","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.81f47dfb.css","/dist/styles-tools.e4cf1865.css","/css/components/whisper-transcribe-monitor.css","/dist/styles-personal-accordion.16c6538c.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.8928284a.js","/js/tools/tool-share-link.js","/js/tools/whisper-transcribe-monitor.js","/dist/site-tools-account.384a9982.js","/dist/site-consent.ab1759e7.js"],"module":"tools:transcribe"}</script>
+<link rel="stylesheet" href="dist/styles-personal-accordion.44570ad0.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:transcribe","path":"/tools/transcribe","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.53b0eade.css","/dist/styles-tools.c24a9973.css","/css/components/whisper-transcribe-monitor.css","/dist/styles-personal-accordion.44570ad0.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.42e366c2.js","/js/tools/tool-share-link.js","/js/tools/whisper-transcribe-monitor.js","/dist/site-tools-account.384a9982.js","/dist/site-consent.ab1759e7.js"],"module":"tools:transcribe"}</script>
 </head>
 <body data-page="transcribe" class="transcribe-page tools-tool-page site-page personal-accordion-page" data-tools-layout="media" data-tools-state="empty" data-tools-autosave="false" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="transcribe" data-personal-fit="viewport" data-site-route-id="tools:transcribe" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="hard" data-personal-chrome="compact" data-site-route-module="tools:transcribe">
   <a href="/tools/transcribe#main" class="skip-link" data-navigation="hard">Skip to main content</a>
@@ -135,7 +135,7 @@
   <div class="wrapper personal-tool-header__inner">
     <div class="personal-tool-header__copy">
       <h1 id="personal-tool-title-transcribe">File Transcriber</h1>
-      <p class="personal-tool-header__summary">Drag in audio or video files, approve the estimated Amazon Transcribe cost, and download completed transcripts.</p>
+      <p class="personal-tool-header__summary">Add audio or video files, or import a YouTube video with Home GPU, and download completed transcripts.</p>
     </div>
     <div class="tools-account-dock personal-tool-header__account" data-tools-account="dock" data-personal-tool-account="true">
       <div class="tools-account-dock-inner personal-tool-header__account-inner" data-tools-account="dock-inner">
@@ -223,6 +223,20 @@
                 </div>
               </details>
 
+              <fieldset class="transcribe-source-picker" id="transcribe-source-picker" hidden>
+                <legend>Media source</legend>
+                <div class="transcribe-source-options">
+                  <label class="transcribe-source-option">
+                    <input type="radio" name="transcribe-source" value="file" checked>
+                    <span>Files</span>
+                  </label>
+                  <label class="transcribe-source-option">
+                    <input type="radio" name="transcribe-source" value="url">
+                    <span>YouTube URL</span>
+                  </label>
+                </div>
+              </fieldset>
+
               <div class="transcribe-dropzone" id="transcribe-dropzone">
                 <input id="transcribe-files" type="file" accept=".mp3,.mp4,.wav,.flac,.ogg,.webm,.m4a,.amr,audio/*,video/*" multiple hidden>
                 <span class="transcribe-dropzone-icon" aria-hidden="true">+</span>
@@ -233,11 +247,22 @@
                 <button type="button" class="btn-secondary transcribe-dropzone-button" id="transcribe-add-files">Choose files</button>
               </div>
 
+              <div class="transcribe-url-panel" id="transcribe-url-panel" hidden>
+                <label for="transcribe-url">YouTube video URL</label>
+                <div class="transcribe-url-controls">
+                  <input id="transcribe-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" placeholder="https://www.youtube.com/watch?v=..." aria-describedby="transcribe-url-help transcribe-url-availability transcribe-url-status" disabled>
+                  <button type="button" class="btn-secondary" id="transcribe-add-url" disabled>Add URL</button>
+                </div>
+                <p id="transcribe-url-help">One public video per URL. Playlists and live streams are not supported.</p>
+                <p id="transcribe-url-availability">Checking URL import availability...</p>
+                <p id="transcribe-url-status" role="status" aria-live="polite"></p>
+              </div>
+
               <div class="transcribe-batch" id="transcribe-batch-review" data-transcribe-batch>
                 <div class="transcribe-summary" id="transcribe-summary" data-transcribe-requires-files aria-live="polite" hidden></div>
 
                 <div class="transcribe-table-wrap" id="transcribe-table-wrap" hidden>
-                  <div class="transcribe-file-list" id="transcribe-file-rows" aria-label="Selected files"></div>
+                  <div class="transcribe-file-list" id="transcribe-file-rows" aria-label="Selected media"></div>
                 </div>
 
                 <div class="transcribe-cost-review" id="transcribe-cost-review" data-provider="aws" data-transcribe-requires-files hidden>

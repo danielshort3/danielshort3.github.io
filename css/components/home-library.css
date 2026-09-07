@@ -24,8 +24,16 @@
     gap: 16px;
     align-items: end;
     padding: 24px 0 16px;
-    border-bottom: 1px solid #dce3ec;
+    border-bottom: 1px solid color-mix(in srgb, var(--panel-color) 28%, #ffffff 72%);
     background: #ffffff;
+  }
+
+  .home-library__intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 16px 24px;
+    min-width: 0;
   }
 
   .home-library__back {
@@ -957,16 +965,6 @@
     position: relative;
   }
 
-  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] > .personal-library__account {
-    position: absolute;
-    top: 16px;
-    right: var(--home-library-gutter, 24px);
-    z-index: 9;
-    width: auto;
-    max-width: min(42%, 390px);
-    padding: 0;
-  }
-
   body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-dock-inner,
   body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-bar {
     width: auto;
@@ -1011,12 +1009,6 @@
     ),
     body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] {
       padding: 0 var(--home-library-gutter, var(--personal-content-gutter, 16px)) 24px;
-    }
-
-    body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] > .personal-library__account {
-      top: 12px;
-      right: var(--home-library-gutter, 16px);
-      max-width: 42%;
     }
 
     body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-bar :is(.btn-primary, .btn-secondary, .btn-ghost),
@@ -1093,15 +1085,6 @@
     line-height: 1.15;
   }
 
-  .site-frame .home-library__heading :is(h1, h2, h3)::after {
-    content: "";
-    display: block;
-    width: 72px;
-    height: 2px;
-    margin: 8px 0 0;
-    background: linear-gradient(90deg, color-mix(in srgb, var(--panel-color) 65%, transparent), transparent);
-  }
-
   .site-frame .site-frame__toolbar .home-library__back {
     gap: 8px;
     padding: 0 11px 0 8px;
@@ -1131,34 +1114,56 @@
     line-height: 1.5;
   }
 
-  body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .site-frame .personal-library-main--tools > .tools-account-dock {
-    top: var(--frame-section-gap, 24px);
-    right: max(var(--frame-content-gutter, 24px), calc((100% - var(--frame-collection-width, 1200px)) / 2));
-    max-width: min(38%, 240px);
-  }
-
-  body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .site-frame .personal-library-main--tools > .tools-account-dock .tools-account-dock-inner {
+  body:is(.personal-accordion-page, [data-page="home"]) .site-frame .home-library__intro > .personal-library__account {
+    position: relative;
+    inset: auto;
+    justify-self: start;
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
     padding: 0;
+    border: 0;
+    background: transparent;
   }
 
-  body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .site-frame .personal-library-main--tools > .tools-account-dock .tools-account-structure {
+  body:is(.personal-accordion-page, [data-page="home"]) .site-frame .home-library__intro > .personal-library__account :is(.tools-account-dock-inner, .tools-account-bar) {
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body:is(.personal-accordion-page, [data-page="home"]) .site-frame .home-library__intro > .personal-library__account .tools-account-structure {
     display: flex;
-    justify-content: flex-end;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 8px;
   }
 
-  body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .site-frame .personal-library__account + .personal-library .home-library__heading {
-    padding-right: min(38%, 240px);
+  body:is(.personal-accordion-page, [data-page="home"]) .site-frame .home-library__intro > .personal-library__account .tools-account-disclosure {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
   }
 
-  body[data-page="home"][data-audience="personal"] .site-frame .home-library[data-home-library-view="tools"] > .personal-library__account {
-    top: var(--frame-section-gap, 24px);
-    right: var(--home-library-gutter);
-    max-width: min(38%, 240px);
-  }
+  @container site-content (min-width: 760px) {
+    .site-frame .home-library__intro:has(> .personal-library__account) {
+      grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+    }
 
-  body[data-page="home"][data-audience="personal"] .site-frame .home-library[data-home-library-view="tools"] .home-library__heading {
-    padding-right: min(38%, 240px);
+    body:is(.personal-accordion-page, [data-page="home"]) .site-frame .home-library__intro > .personal-library__account {
+      justify-self: end;
+      max-width: 280px;
+    }
+
+    body:is(.personal-accordion-page, [data-page="home"]) .site-frame .home-library__intro > .personal-library__account .tools-account-disclosure {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
   }
 
   .site-frame .home-library__groups {

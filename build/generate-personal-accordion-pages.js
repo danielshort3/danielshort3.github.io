@@ -6,6 +6,7 @@ const path = require('path');
 const { loadSiteContent } = require('./lib/content-loader');
 const { buildToolsDirectoryWorkbenchData } = require('./lib/cms-renderers');
 const { versionedImageUrl } = require('./lib/versioned-image-url');
+const { preparePersonalProjectDetailHtml } = require('./generate-project-pages');
 const {
   HARD_NAVIGATION_PATHS,
   extractMainHtml,
@@ -369,7 +370,7 @@ function buildProjectPages() {
         : source;
       writeProfessionalCopy(professionalRelPath, professionalSource, audience);
     });
-    const personal = wrapPersonalAccordionHtml(source, {
+    const personal = wrapPersonalAccordionHtml(preparePersonalProjectDetailHtml(source), {
       category: 'projects',
       itemId,
       view: 'detail',

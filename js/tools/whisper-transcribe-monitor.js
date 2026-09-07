@@ -29,17 +29,21 @@
    * - GET /api/tools/transcribe/local-config
    *   { ok, enabled, configured, service, workerOrigin, chunkBytes,
    *     maxFilesPerRun, maxFileBytes, maxServiceDurationSeconds,
-   *     minDurationSeconds, supportedFormats, historyStored:false }
+   *     minDurationSeconds, supportedFormats, urlImportEnabled, historyStored:false }
    * - POST /api/tools/transcribe/local-ticket, once per file, with
    *   { filename, format, contentType, bytes, durationSeconds }
    *   => { ok, enabled, configured, workerOrigin, chunkBytes, ticket,
    *        expiresAt, job:{ id, filename, format, contentType, bytes,
    *        durationSeconds } }
+   * - POST /api/tools/transcribe/local-url-ticket with { sourceUrl }
+   *   => { ok, enabled, configured, workerOrigin, ticket, expiresAt,
+   *        job:{ id, sourceKind:'url', sourceUrl, maxFileBytes, maxDurationSeconds } }
    * - GET /v1/health is an unauthenticated readiness check. Worker job
    *   routes receive Authorization: Bearer <ticket>:
    *   POST /v1/jobs with
    *     { id, filename, format, contentType, bytes, durationSeconds,
    *       chunkBytes, chunkCount }
+   *   POST /v1/url-jobs with { id, sourceUrl } to download audio on the worker
    *   PUT /v1/jobs/{id}/chunks/{index} with Content-Range and
    *     X-Chunk-SHA256
    *   POST /v1/jobs/{id}/complete with { chunkCount }
@@ -77,8 +81,51 @@
     item?.runErrorType !== 'service' &&
     (Boolean(item?.runToken) || (Boolean(item?.quoteToken) && item?.uploadComplete === true));
 
+  const normalizeYouTubeUrl = (value) => {
+    const invalid = () => new Error('Paste a single public YouTube video URL. Playlists and other websites are not supported.');
+    if (typeof value !== 'string' || value.length > 2048 || /[\u0000-\u001f\u007f\\]/.test(value)) throw invalid();
+    let url;
+    try {
+      url = new URL(String(value || '').trim());
+    } catch {
+      throw invalid();
+    }
+    if (url.protocol !== 'https:' || url.username || url.password || url.port || url.searchParams.has('list')) throw invalid();
+    const host = url.hostname.toLowerCase();
+    let videoId = '';
+    if (host === 'youtu.be') {
+      videoId = url.pathname.match(/^\/([A-Za-z0-9_-]{11})\/?$/)?.[1] || '';
+    } else if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(host)) {
+      videoId = url.pathname === '/watch'
+        ? (url.searchParams.getAll('v').length === 1 ? url.searchParams.get('v') : '')
+        : url.pathname.match(/^\/(?:shorts|live|embed)\/([A-Za-z0-9_-]{11})\/?$/)?.[1] || '';
+    }
+    if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) throw invalid();
+    return `https://www.youtube.com/watch?v=${videoId}`;
+  };
+
+  const updateLocalSourceMetadata = (item, data) => {
+    if (item?.sourceKind !== 'url') return;
+    const title = String(data?.title || '').trim().slice(0, 180);
+    const filename = String(data?.filename || '').trim().slice(0, 180);
+    if (title || filename) item.name = title || filename;
+    if (filename) item.downloadName = filename;
+    const duration = Number(data?.durationSeconds);
+    if (Number.isFinite(duration) && duration > 0) item.durationSeconds = duration;
+    const bytes = Number(data?.bytes);
+    if (Number.isFinite(bytes) && bytes > 0) item.bytes = bytes;
+  };
+
+  const captureUrlSources = (items) => items.filter((item) => item.sourceKind === 'url').map((item) => ({
+    sourceKind: 'url',
+    sourceUrl: normalizeYouTubeUrl(item.sourceUrl),
+    title: item.name,
+    durationSeconds: item.durationSeconds || null,
+    status: item.status
+  }));
+
   if (typeof module !== 'undefined' && module.exports && typeof document === 'undefined') {
-    module.exports = { isMp4TimelineSuspicious, isRecoverableItem };
+    module.exports = { isMp4TimelineSuspicious, isRecoverableItem, normalizeYouTubeUrl, updateLocalSourceMetadata, captureUrlSources };
     return;
   }
 
@@ -92,6 +139,14 @@
   const addFilesBtn = $id('transcribe-add-files');
   const formEl = $id('transcribe-form');
   const fileEl = $id('transcribe-files');
+  const sourcePickerEl = $id('transcribe-source-picker');
+  const sourceInputs = Array.from(document.querySelectorAll('input[name="transcribe-source"]'));
+  const urlPanelEl = $id('transcribe-url-panel');
+  const urlEl = $id('transcribe-url');
+  const addUrlBtn = $id('transcribe-add-url');
+  const urlStatusEl = $id('transcribe-url-status');
+  const urlAvailabilityEl = $id('transcribe-url-availability');
+  const uploadTitleEl = $id('transcribe-upload-title');
   const summaryEl = $id('transcribe-summary');
   const tableWrapEl = $id('transcribe-table-wrap');
   const fileRowsEl = $id('transcribe-file-rows');
@@ -155,6 +210,8 @@
   const state = {
     config: { ...DEFAULT_CONFIG },
     provider: PROVIDER_AWS,
+    sourceKind: 'file',
+    localUrlImportReady: false,
     localConfig: null,
     localConfigLoading: false,
     localStatus: 'checking',
@@ -201,6 +258,9 @@
   };
 
   const isLocalProvider = () => state.provider === PROVIDER_LOCAL;
+
+  const urlImportIsReady = () => isLocalProvider() && isAdminUser() &&
+    state.localConfig?.urlImportEnabled === true && state.localUrlImportReady && state.localStatus === 'online';
 
   const activeConfig = () => isLocalProvider()
     ? (state.localConfig || {})
@@ -517,6 +577,7 @@
     id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
     fingerprint: fileFingerprint(file),
     file,
+    sourceKind: 'file',
     name: file.name || `file-${index + 1}`,
     extension: getExtension(file.name || ''),
     contentType: file.type || 'application/octet-stream',
@@ -860,6 +921,20 @@
       shellEl.dataset.transcribeHasFiles = hasFiles ? 'true' : 'false';
     }
     if (dropzoneEl) dropzoneEl.dataset.compact = hasFiles ? 'true' : 'false';
+    const urlSelected = localActive && state.sourceKind === 'url';
+    if (sourcePickerEl) sourcePickerEl.hidden = !localActive;
+    if (dropzoneEl) dropzoneEl.hidden = urlSelected;
+    if (urlPanelEl) urlPanelEl.hidden = !urlSelected;
+    sourceInputs.forEach((input) => {
+      input.checked = input.value === (urlSelected ? 'url' : 'file');
+      input.disabled = state.busy || state.analyzing || !localActive;
+    });
+    setText(uploadTitleEl, localActive ? 'Add media' : 'Upload files');
+    setText(urlAvailabilityEl, state.localConfigLoading
+      ? 'Checking URL import availability...'
+      : urlImportIsReady()
+        ? 'The home PC downloads the audio and checks its duration when you start.'
+        : 'URL import is unavailable. Start or update the Home GPU worker, then retry its connection.');
 
     providerPanels.forEach((panel) => {
       const provider = cleanText(panel.dataset.transcribeProviderPanel).toLowerCase();
@@ -874,7 +949,7 @@
       localStateEl.setAttribute('aria-atomic', 'true');
     }
     if (localRefreshBtn) {
-      localRefreshBtn.hidden = !localActive || !['offline', 'unavailable'].includes(state.localStatus);
+      localRefreshBtn.hidden = !localActive || (!['offline', 'unavailable'].includes(state.localStatus) && !(urlSelected && !urlImportIsReady()));
     }
     if (usageEl) usageEl.hidden = isLocalProvider();
     if (historyOpenBtn) {
@@ -889,7 +964,9 @@
     const minimumSeconds = Math.max(0, Number(config.minDurationSeconds) || DEFAULT_CONFIG.minDurationSeconds);
     const serviceName = cleanText(config.service) || (isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe');
     setText(detailServiceEl, serviceName);
-    setText(detailMinimumEl, minimumSeconds < 60 ? `${Math.round(minimumSeconds)} sec` : formatClock(minimumSeconds));
+    setText(detailMinimumEl, isLocalProvider() && state.sourceKind === 'url'
+      ? 'No minimum'
+      : minimumSeconds < 60 ? `${Math.round(minimumSeconds)} sec` : formatClock(minimumSeconds));
     setText(detailPriceEl, `$${Number(state.config.pricePerMinute || DEFAULT_CONFIG.pricePerMinute).toFixed(3)} / min`);
     if (summaryEl) summaryEl.hidden = !hasFiles;
     if (costReviewEl) {
@@ -917,13 +994,13 @@
       input.checked = input.value === state.provider;
     });
     if (localRefreshBtn) localRefreshBtn.disabled = !admin || state.localConfigLoading || state.busy;
-    setText(methodHelpEl, locked ? 'Remove all files to change the processing method.' : '');
+    setText(methodHelpEl, locked ? 'Remove all media to change the processing method.' : '');
 
     if (isLocalProvider()) {
       setText(providerKickerEl, 'Home GPU');
-      setText(uploadCopyEl, 'Add audio or video to process on your home PC.');
+      setText(uploadCopyEl, 'Add files or a YouTube URL to process on your home PC.');
       if (costReviewEl) costReviewEl.dataset.provider = PROVIDER_LOCAL;
-      setText(approvalCopyEl, 'Send these files securely to my home PC for temporary processing.');
+      setText(approvalCopyEl, 'Process this media temporarily on my home PC.');
     } else {
       setText(providerKickerEl, 'Amazon Transcribe');
       setText(uploadCopyEl, 'Add audio or video, then review the estimate.');
@@ -1126,9 +1203,10 @@
       const removable = canRemoveItem(item);
       const resumable = canResumeItem(item);
       const metadata = [
-        formatBytes(item.bytes),
+        item.sourceKind === 'url' ? 'YouTube' : '',
+        item.sourceKind !== 'url' || item.bytes > 0 ? formatBytes(item.bytes) : '',
         item.extension ? item.extension.toUpperCase() : '',
-        item.durationSeconds ? formatClock(item.durationSeconds) : ''
+        item.durationSeconds ? formatClock(item.durationSeconds) : item.sourceKind === 'url' ? 'Duration checked on home PC' : ''
       ].filter(Boolean).join(' · ');
       const showStatus = item.status !== 'ready';
       return `
@@ -1176,7 +1254,7 @@
       <article class="transcribe-process-card" data-tone="${escapeHtml(rowTone(item))}">
         <div>
           <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
-          <span class="transcribe-file-meta">${escapeHtml(formatClock(item.durationSeconds))}</span>
+          <span class="transcribe-file-meta">${escapeHtml(item.durationSeconds ? formatClock(item.durationSeconds) : item.sourceKind === 'url' ? 'YouTube · Checking duration' : '')}</span>
         </div>
         <span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>
       </article>
@@ -1266,13 +1344,16 @@
     const pickerDisabled = state.busy || state.analyzing || localConfigPending;
     if (fileEl) fileEl.disabled = pickerDisabled;
     if (addFilesBtn) addFilesBtn.disabled = pickerDisabled;
+    if (urlEl) urlEl.disabled = pickerDisabled || !urlImportIsReady();
+    if (addUrlBtn) addUrlBtn.disabled = pickerDisabled || !urlImportIsReady() || !String(urlEl?.value || '').trim();
     if (dropzoneEl) {
       dropzoneEl.dataset.disabled = pickerDisabled ? 'true' : 'false';
       dropzoneEl.setAttribute('aria-disabled', pickerDisabled ? 'true' : 'false');
     }
     if (approveEl) approveEl.disabled = state.busy || state.analyzing || readyCount === 0;
     if (startBtn) {
-      const ready = authIsReady() && runConfigIsValid() && approved && readyCount > 0;
+      const urlsReady = !acceptedFiles().some((item) => item.status === 'ready' && item.sourceKind === 'url') || urlImportIsReady();
+      const ready = authIsReady() && runConfigIsValid() && urlsReady && approved && readyCount > 0;
       startBtn.disabled = state.busy || state.analyzing || !ready;
       startBtn.dataset.ready = ready ? 'true' : 'false';
     }
@@ -1325,6 +1406,7 @@
   const refreshLocalWorkerStatus = async () => {
     if (!isAdminUser() || !isLocalProvider() || state.localConfigLoading) return;
     state.localConfigLoading = true;
+    state.localUrlImportReady = false;
     setLocalStatus('checking', 'Checking Home GPU...');
     updateMethodUi();
     const fallbackToAws = (message) => {
@@ -1370,6 +1452,7 @@
         if (health?.ready !== true || ['offline', 'unavailable', 'error', 'failed'].includes(healthStatus)) {
           throw new Error('Worker is not ready.');
         }
+        state.localUrlImportReady = health?.capabilities?.urlImport === true;
         setLocalStatus('online', 'Home GPU is online and ready.');
       } catch {
         setLocalStatus('offline', 'Home GPU is offline. Start the worker, then check again.');
@@ -1927,6 +2010,56 @@
     markSessionDirty();
   };
 
+  const addSourceUrl = () => {
+    if (state.busy || state.analyzing || !urlImportIsReady()) return;
+    let sourceUrl;
+    try {
+      sourceUrl = normalizeYouTubeUrl(urlEl?.value);
+    } catch (err) {
+      if (urlEl) urlEl.setAttribute('aria-invalid', 'true');
+      setStatus(urlStatusEl, err.message, 'warning');
+      return;
+    }
+    if (state.files.some((item) => item.sourceUrl === sourceUrl && item.status !== 'skipped')) {
+      setStatus(urlStatusEl, 'This video is already in the batch.', 'warning');
+      return;
+    }
+    if (countedForRunLimit() >= Number(activeConfig().maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun)) {
+      setStatus(urlStatusEl, `The batch limit is ${activeConfig().maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun} items. Remove an item before adding another.`, 'warning');
+      return;
+    }
+    const videoId = new URL(sourceUrl).searchParams.get('v');
+    state.files.push({
+      id: `${Date.now()}-url-${Math.random().toString(36).slice(2)}`,
+      sourceKind: 'url',
+      sourceUrl,
+      file: null,
+      name: `YouTube video ${videoId}`,
+      extension: '',
+      bytes: null,
+      durationSeconds: null,
+      billableSeconds: 0,
+      estimatedCostUsd: 0,
+      costUsd: 0,
+      provider: PROVIDER_LOCAL,
+      progress: 0,
+      status: 'ready',
+      skipReason: '',
+      transcript: ''
+    });
+    if (urlEl) {
+      urlEl.value = '';
+      urlEl.removeAttribute('aria-invalid');
+    }
+    if (approveEl) approveEl.checked = false;
+    setStatus(urlStatusEl, 'YouTube video added to the batch.', 'success');
+    setStatus(runStatusEl, '', '');
+    setView('upload');
+    renderTable();
+    renderResults();
+    markSessionDirty();
+  };
+
   const abortActive = () => {
     try {
       if (state.activeXhr && state.activeXhr.readyState !== 4) state.activeXhr.abort();
@@ -2285,6 +2418,7 @@
       }
 
       const status = cleanText(data?.status).toUpperCase();
+      updateLocalSourceMetadata(item, data);
       item.localStage = cleanText(data?.stage || (status === 'QUEUED' ? 'Queued on home PC' : 'Transcribing on home PC'));
       item.localProgress = normalizeLocalProgress(data?.progress);
       if (['COMPLETED', 'COMPLETE', 'SUCCEEDED', 'DONE'].includes(status)) {
@@ -2351,6 +2485,8 @@
   };
 
   const runLocalFile = async (item) => {
+    const urlSource = item.sourceKind === 'url';
+    if (urlSource && !urlImportIsReady()) throw new Error('URL import is unavailable on the Home GPU worker.');
     item.status = 'presigning';
     item.error = '';
     item.runErrorType = '';
@@ -2362,10 +2498,10 @@
     state.activeController = ticketController;
     let ticketData;
     try {
-      ticketData = await authFetchJson(`${API_BASE}/local-ticket`, {
+      ticketData = await authFetchJson(`${API_BASE}/${urlSource ? 'local-url-ticket' : 'local-ticket'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(urlSource ? { sourceUrl: normalizeYouTubeUrl(item.sourceUrl) } : {
           filename: item.name,
           format: item.extension,
           contentType: item.contentType,
@@ -2392,16 +2528,22 @@
     if (!item.localTicket || !item.localJobId) {
       throw new Error('The website did not return a complete Home GPU job ticket. The batch was not rerouted.');
     }
+    if (urlSource && (job.sourceKind !== 'url' || normalizeYouTubeUrl(job.sourceUrl) !== item.sourceUrl)) {
+      throw new Error('The website returned a ticket for a different video. Try adding the URL again.');
+    }
 
     item.status = 'starting';
     renderTable();
     const createController = new AbortController();
     state.activeController = createController;
     try {
-      await workerFetchJson(item.localWorkerOrigin, '/v1/jobs', item.localTicket, {
+      const created = await workerFetchJson(item.localWorkerOrigin, urlSource ? '/v1/url-jobs' : '/v1/jobs', item.localTicket, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(urlSource ? {
+          id: item.localJobId,
+          sourceUrl: item.sourceUrl
+        } : {
           id: item.localJobId,
           filename: cleanText(job.filename || item.name),
           format: cleanText(job.format || item.extension),
@@ -2413,8 +2555,18 @@
         }),
         signal: createController.signal
       });
+      updateLocalSourceMetadata(item, created);
     } finally {
       if (state.activeController === createController) state.activeController = null;
+    }
+    if (state.canceled) throw new Error('Canceled.');
+    if (urlSource) {
+      item.status = 'transcribing';
+      item.localStage = 'Resolving YouTube video';
+      item.localProgress = 0;
+      renderTable();
+      await pollLocalRun(item);
+      return;
     }
 
     item.status = 'uploading';
@@ -2446,6 +2598,9 @@
   };
 
   const runSelectedFile = async (item) => {
+    if (item.sourceKind === 'url' && item.provider !== PROVIDER_LOCAL) {
+      throw new Error('YouTube URLs can only be processed on Home GPU.');
+    }
     if (item.provider !== PROVIDER_LOCAL) return runFile(item);
     try {
       return await runLocalFile(item);
@@ -2572,6 +2727,11 @@
     }
 
     const queue = acceptedFiles().filter((item) => item.status === 'ready');
+    if (queue.some((item) => item.sourceKind === 'url') && !urlImportIsReady()) {
+      setStatus(runStatusEl, 'URL import is unavailable on the Home GPU worker. Check its connection and try again.', 'warning');
+      if (reportOutcome) reportRunError('validation');
+      return;
+    }
     if (!queue.length) {
       setStatus(runStatusEl, 'No eligible files to transcribe.', 'warning');
       if (reportOutcome) reportRunError('validation');
@@ -2581,7 +2741,7 @@
       setStatus(
         runStatusEl,
         isLocalProvider()
-          ? 'Confirm that these files can be sent to your home PC.'
+          ? 'Confirm that this media can be processed on your home PC.'
           : 'Review and approve the estimated charge before starting.',
         'warning'
       );
@@ -2597,7 +2757,7 @@
     setText(
       processingCopyEl,
       isLocalProvider()
-        ? `Processing ${queue.length} file${queue.length === 1 ? '' : 's'} on the home PC. Keep this tab open while files upload and transcription runs.`
+        ? `Processing ${queue.length} item${queue.length === 1 ? '' : 's'} on the home PC. Keep this tab open while media is prepared and transcription runs.`
         : `Processing ${queue.length} file${queue.length === 1 ? '' : 's'}. Amazon Transcribe continues independently, but keep this tab open so the site can collect the result, clean up the upload, and save history.`
     );
     updateProgress({ stateName: 'visible', ratio: 0, label: 'Starting batch...' });
@@ -2612,7 +2772,7 @@
         updateProgress({
           stateName: 'visible',
           ratio: (i + 1) / queue.length,
-          label: `${i + 1} of ${queue.length} files finished`
+          label: `${i + 1} of ${queue.length} items finished`
         });
       } catch (err) {
         if (state.canceled || err?.name === 'AbortError' || err?.message === 'Canceled.') {
@@ -2674,6 +2834,11 @@
     state.files = [];
     clearActiveRunRecovery();
     if (fileEl) fileEl.value = '';
+    if (urlEl) {
+      urlEl.value = '';
+      urlEl.removeAttribute('aria-invalid');
+    }
+    setStatus(urlStatusEl, '', '');
     if (approveEl) approveEl.checked = false;
     setView('upload');
     setBusy(false);
@@ -2761,6 +2926,28 @@
   if (localRefreshBtn) {
     localRefreshBtn.addEventListener('click', () => {
       void refreshLocalWorkerStatus();
+    });
+  }
+
+  sourceInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      if (!input.checked || state.busy || state.analyzing || !isLocalProvider()) return;
+      state.sourceKind = input.value === 'url' ? 'url' : 'file';
+      setStatus(urlStatusEl, '', '');
+      updateControls();
+    });
+  });
+  if (addUrlBtn) addUrlBtn.addEventListener('click', addSourceUrl);
+  if (urlEl) {
+    urlEl.addEventListener('input', () => {
+      urlEl.removeAttribute('aria-invalid');
+      setStatus(urlStatusEl, '', '');
+      updateControls();
+    });
+    urlEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      addSourceUrl();
     });
   }
 
@@ -2895,7 +3082,7 @@
         }
       }
       if (action === 'download') {
-        downloadTranscript(item.name, transcript);
+        downloadTranscript(item.downloadName || item.name, transcript);
       }
     });
   }
@@ -2927,10 +3114,12 @@
     const failed = state.files.filter((item) => item.status === 'failed');
     payload.inputs = {
       Method: isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe',
-      Files: `${state.files.length} selected`,
+      Files: `${state.files.filter((item) => item.sourceKind !== 'url').length} selected`,
       Accepted: String(accepted.length),
       Skipped: String(skipped.length)
     };
+    const urlSources = captureUrlSources(state.files);
+    if (urlSources.length) payload.inputs['YouTube URLs'] = urlSources.map((item) => item.sourceUrl).join('\n');
     if (!isLocalProvider()) payload.inputs['Estimated total'] = formatUsd(estimatedTotal());
     payload.outputSummary = completed.length || partial.length || failed.length
       ? isLocalProvider()
@@ -2939,6 +3128,12 @@
       : isLocalProvider()
         ? 'No Home GPU transcripts were produced in this browser session.'
         : 'No Amazon Transcribe results were collected in this browser session.';
+    payload.output = { summary: payload.outputSummary, sources: urlSources };
+    if (detail.snapshot && typeof detail.snapshot === 'object') {
+      if (detail.snapshot.fields) delete detail.snapshot.fields['transcribe-url'];
+      detail.snapshot.inputs = payload.inputs;
+      detail.snapshot.output = payload.output;
+    }
   });
 
   loadConfig().finally(() => {

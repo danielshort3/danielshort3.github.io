@@ -794,11 +794,12 @@
 
   function updateHomeToolbar(description) {
     if (!description.home) return;
-    // Keep the real controls with the route state when they leave their headers.
-    // Frame-level delegated clicks and restored snapshots retain the same nodes.
+    // Integrated headers retain their real parent controls through route snapshots.
+    // Older page layouts still use the separate frame toolbar.
     const back = description.view === 'library' ? description.libraryBackButtons?.get(description.category) : null;
-    toolbar.replaceChildren(...(back ? [back] : []));
-    toolbar.hidden = !back;
+    const toolbarBack = back?.hasAttribute?.('data-page-masthead-parent') ? null : back;
+    toolbar.replaceChildren(...(toolbarBack ? [toolbarBack] : []));
+    toolbar.hidden = !toolbarBack;
   }
 
   function commit(description, options = {}) {

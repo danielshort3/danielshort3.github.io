@@ -356,12 +356,12 @@
     margin-inline: var(--frame-content-gutter);
   }
   @container site-content (min-width: 1500px) {
-    .site-frame[data-frame-audience="personal"] .home-accordion__cards {
+    .site-frame[data-frame-audience="personal"] .home-accordion__item:not(.home-accordion__item--has-library) .home-accordion__cards {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: var(--frame-section-gap);
     }
-    .site-frame[data-frame-audience="personal"] .home-accordion__cards .home-accordion__card {
+    .site-frame[data-frame-audience="personal"] .home-accordion__item:not(.home-accordion__item--has-library) .home-accordion__cards .home-accordion__card {
       height: 100%;
     }
   }

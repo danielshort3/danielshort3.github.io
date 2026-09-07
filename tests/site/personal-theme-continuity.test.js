@@ -389,8 +389,27 @@ function assertCompactPersonalShell(html, sourceFile, publicUrl, themedStyleshee
   const backTags = (html.match(/<a\b[^>]*>/gi) || []).filter((tag) => (
     /(?:^|\s)personal-accordion__back(?:\s|$)/i.test(tagAttribute(tag, 'class'))
   ));
-  assert(backTags.length === 1 && tagAttribute(backTags[0], 'href'),
-    `${sourceFile} should contain exactly one linked personal accordion back control`);
+  const mastheadTags = html.match(/<[a-z][^>]*\sdata-page-masthead(?=[\s=>])[^>]*>/gi) || [];
+  const parentTags = (html.match(/<a\b[^>]*>/gi) || []).filter((tag) => (
+    /\sdata-page-masthead-parent(?=[\s=>])/i.test(tag)
+  ));
+  if (mastheadTags.length) {
+    assert(mastheadTags.length === 1 && parentTags.length === 1 && backTags.length === 0 &&
+      !/\sdata-site-route-toolbar(?=[\s=>])/i.test(html),
+    `${sourceFile} should contain one integrated masthead parent link without a duplicate toolbar back control`);
+    const parentHref = tagAttribute(parentTags[0], 'href');
+    const expectedParent = tagAttribute(body, 'data-personal-accordion-view') === 'library'
+      ? `/#${category}`
+      : { projects: '/portfolio', tools: '/tools', games: '/games' }[category];
+    const parentUrl = parentHref ? new URL(parentHref, SITE_ORIGIN) : null;
+    assert(parentUrl && parentUrl.origin === SITE_ORIGIN &&
+      `${parentUrl.pathname}${parentUrl.hash}` === expectedParent &&
+      !hasNonPersonalRealmEscape(parentUrl),
+    `${sourceFile} integrated parent link should return to its personal ${expectedParent} route`);
+  } else {
+    assert(parentTags.length === 0 && backTags.length === 1 && tagAttribute(backTags[0], 'href'),
+      `${sourceFile} should retain exactly one linked personal accordion back control until its header is adapted`);
+  }
 
   const compactFooters = (html.match(/<footer\b[^>]*>/gi) || []).filter((tag) => (
     /(?:^|\s)footer--personal-compact(?:\s|$)/i.test(tagAttribute(tag, 'class'))

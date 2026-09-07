@@ -72,10 +72,17 @@
     if (activeBinding === binding) activeBinding = null;
   };
 
+  const shouldLoadImmediately = (dock) => (
+    window.__toolsAccountBundleLoaded ||
+    document.body?.dataset?.page === 'tools' ||
+    document.body?.dataset?.toolsLayout === 'directory' ||
+    (dock.closest('[data-home-library-view="tools"]') && !dock.closest('[hidden], [inert]'))
+  );
+
   const bindCurrentDock = () => {
     const dock = document.querySelector('[data-tools-account="dock"]');
     if (activeBinding?.dock === dock && !activeBinding.released) {
-      if (window.__toolsAccountBundleLoaded) window.__toolsAccountUiController?.sync?.();
+      if (shouldLoadImmediately(dock)) activeBinding.triggerLoad();
       return;
     }
     releaseBinding();
@@ -122,9 +129,7 @@
     ).trim();
     window.SiteRoutes?.addCleanup?.(() => releaseBinding(binding), routeId);
 
-    if (window.__toolsAccountBundleLoaded ||
-        document.body?.dataset?.page === 'tools' ||
-        document.body?.dataset?.toolsLayout === 'directory') {
+    if (shouldLoadImmediately(dock)) {
       binding.triggerLoad();
       return;
     }
@@ -140,17 +145,31 @@
     }
   };
 
+  const handleRouteUnmounted = () => releaseBinding();
+  const handleLibraryChange = (event) => {
+    if (event.detail?.category === 'tools' && event.detail.expanded) bindCurrentDock();
+  };
+  const bindLifecycleListeners = () => {
+    // Route-owned scripts lose their listeners on unmount even when this controller survives.
+    document.removeEventListener('site:route-mounted', bindCurrentDock);
+    document.removeEventListener('site:route-unmounted', handleRouteUnmounted);
+    document.removeEventListener('home:library-change', handleLibraryChange);
+    document.addEventListener('site:route-mounted', bindCurrentDock);
+    document.addEventListener('site:route-unmounted', handleRouteUnmounted);
+    document.addEventListener('home:library-change', handleLibraryChange);
+  };
+
   const controller = Object.freeze({
     version: 2,
     sync: (nextSrc = '') => {
       if (String(nextSrc || '').trim()) accountBundleSrc = String(nextSrc).trim();
+      bindLifecycleListeners();
       bindCurrentDock();
     }
   });
   window.__toolsAccountLoaderController = controller;
 
-  document.addEventListener('site:route-mounted', bindCurrentDock);
-  document.addEventListener('site:route-unmounted', () => releaseBinding());
+  bindLifecycleListeners();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindCurrentDock, { once: true });

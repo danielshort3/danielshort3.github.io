@@ -10,6 +10,7 @@ const {
   SITE_ROUTE_MANIFEST_VERSION,
   finalizePersonalRouteDocument,
   preparePersonalToolDetailHtml,
+  renderPersonalLibraryHeader,
   renderPersonalLibraryMain,
   unwrapPersonalAccordionHtml,
   validatePersonalRouteDocument,
@@ -152,6 +153,13 @@ function runPersonalAccordionShellTests({ assert }) {
     'Contact detail should return to the homepage categories');
   assert(count(wrapped, /class="personal-accordion__toolbar"/g) === 1,
     'Personal shell should render one shared desktop toolbar and mobile context bar');
+  const integratedSample = sample.replace('<h1>Contact</h1>',
+    '<header data-page-masthead><a href="/#projects" data-page-masthead-parent>Projects overview</a><h1>Project library</h1></header>');
+  const integratedShell = wrapPersonalAccordionHtml(integratedSample, { category: 'projects', view: 'library' });
+  assert(integratedShell.includes('data-page-masthead-parent') &&
+    !integratedShell.includes('data-site-route-toolbar') &&
+    !integratedShell.includes('class="personal-accordion__toolbar"'),
+  'A marked masthead should supply the parent navigation while suppressing the redundant shell toolbar');
   assert(count(wrapped, /data-site-route-content/g) === 1 &&
     /<section\b[^>]*data-personal-accordion-shell[^>]*data-site-route-content/i.test(wrapped) &&
     !/<div\b[^>]*data-personal-detail-content[^>]*data-site-route-content/i.test(wrapped) &&
@@ -202,9 +210,9 @@ function runPersonalAccordionShellTests({ assert }) {
   });
   assert(projectLibrary.includes('data-personal-accordion-view="library"') &&
     projectLibrary.includes('href="/#projects"') &&
-    projectLibrary.includes('aria-label="Back to homepage"') &&
-    projectLibrary.includes('personal-accordion__back-label--mobile" aria-hidden="true">Home</span>'),
-  'Project library should include a homepage back control targeting the Projects overview');
+    projectLibrary.includes('aria-label="Back to Projects overview" data-page-masthead-parent') &&
+    !projectLibrary.includes('data-site-route-toolbar'),
+  'Project library should include its native Projects overview parent link within one integrated header');
   assert(/<body[^>]*data-personal-fit="viewport"/i.test(projectLibrary),
     'The generated project library should retain the same bounded desktop frame as its overview and detail pages');
   assert(count(projectLibrary, /<h1\b/gi) === 1 &&
@@ -224,6 +232,32 @@ function runPersonalAccordionShellTests({ assert }) {
     toolsLibrary.includes('data-personal-tool-account="true"') &&
     !toolsLibrary.includes('>All tools<'),
   'Tool library renderer should share homepage copy, avoid legacy hero semantics, and expose one compact account slot without duplicate navigation');
+
+  const toolsLibraryHeader = /<header class="home-library__header" data-page-masthead>([\s\S]*?)<\/header>/.exec(toolsLibrary)?.[1] || '';
+  assert(count(toolsLibrary, /data-tools-account="dock"/g) === 1 &&
+    count(toolsLibraryHeader, /data-tools-account="dock"/g) === 1 &&
+    count(toolsLibraryHeader, /data-tools-account="bar"/g) === 1 &&
+    toolsLibraryHeader.includes('data-page-masthead-intro') &&
+    toolsLibraryHeader.includes('data-page-masthead-copy') &&
+    toolsLibraryHeader.includes('data-page-masthead-actions') &&
+    toolsLibraryHeader.indexOf('home-library__intro') < toolsLibraryHeader.indexOf('<h1') &&
+    toolsLibraryHeader.indexOf('</h1>') < toolsLibraryHeader.indexOf('data-tools-account="dock"'),
+  'Tool library should place its title, description, and one existing account dock together before the header divider');
+  ['projects', 'tools', 'games'].forEach((category) => {
+    const inlineHeader = renderPersonalLibraryHeader({
+      category,
+      containerTag: 'header',
+      headingTag: 'h2',
+      headingFocusable: true,
+      includeBack: true
+    });
+    assert(inlineHeader.includes('data-home-library-heading tabindex="-1"') &&
+      inlineHeader.includes(`data-home-library-close="${category}" data-page-masthead-parent`) &&
+      inlineHeader.includes(`${CATEGORY_CONFIG[category].label} overview</button>`) &&
+      !inlineHeader.includes('personal-library__meta') &&
+      count(inlineHeader, /data-tools-account="dock"/g) === (category === 'tools' ? 1 : 0),
+    `${category} inline library header should preserve focus, a labelled overview control, only Tools account controls, and no count clutter`);
+  });
 
   const groupedLibrary = renderPersonalLibraryMain({
     category: 'projects',
@@ -356,10 +390,12 @@ function runPersonalAccordionShellTests({ assert }) {
     `${relativePath} should retain five stable rail slots while exposing only its active category`);
     assert(!/class="personal-accordion__rails"[^>]*aria-hidden=/i.test(html),
       `${relativePath} should expose its return rail to assistive technology`);
-    assert(count(html, /class="personal-accordion__toolbar"/g) === 1,
-      `${relativePath} should render one shared toolbar/context bar`);
+    const hasMasthead = /<[^>]+\sdata-page-masthead(?:\s|=|>)/i.test(html);
+    const toolbarCount = hasMasthead ? 0 : 1;
+    assert(count(html, /class="personal-accordion__toolbar"/g) === toolbarCount,
+      `${relativePath} should use its integrated masthead or retain one legacy toolbar`);
     assert(count(html, /data-site-route-content/g) === 1 &&
-      count(html, /data-site-route-toolbar/g) === 1 &&
+      count(html, /data-site-route-toolbar/g) === toolbarCount &&
       count(html, /data-site-route-progress/g) === 1 &&
       count(html, /data-site-route-announcer/g) === 1 &&
       count(html, /data-site-shell-header/g) === 1 &&
@@ -383,9 +419,11 @@ function runPersonalAccordionShellTests({ assert }) {
       /<body[^>]*data-personal-chrome="compact"/i.test(html),
     `${relativePath} should retain the standard bounded desktop frame with natural document flow on compact screens`);
     if (projectDetailPages.has(relativePath)) {
-      assert(html.includes('href="/portfolio" aria-label="Back to project library"') &&
-        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
-      `${relativePath} should return to the canonical project library with a compact mobile label`);
+      assert(hasMasthead
+        ? /<a\b(?=[^>]*href="\/portfolio")(?=[^>]*data-page-masthead-parent)[^>]*>/i.test(html)
+        : html.includes('href="/portfolio" aria-label="Back to project library"') &&
+          html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
+      `${relativePath} should return to the canonical project library from its integrated parent link or legacy toolbar`);
       assert(!html.includes('project-pager'), `${relativePath} should omit Previous and Next project navigation`);
     }
     const libraryBackTargets = {
@@ -394,9 +432,8 @@ function runPersonalAccordionShellTests({ assert }) {
       'pages/games.html': '/#games'
     };
     if (libraryBackTargets[relativePath]) {
-      assert(html.includes(`href="${libraryBackTargets[relativePath]}" aria-label="Back to homepage"`) &&
-        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Home</span>'),
-        `${relativePath} should return to its homepage category`);
+      assert(html.includes(`href="${libraryBackTargets[relativePath]}" aria-label="Back to ${CATEGORY_CONFIG[category].label} overview" data-page-masthead-parent`),
+        `${relativePath} should return to its named homepage overview from the integrated header`);
     }
     if (utilityPages.has(relativePath)) {
       const utility = utilityPages.get(relativePath);
@@ -406,12 +443,10 @@ function runPersonalAccordionShellTests({ assert }) {
     }
     if (['pages/portfolio.html', 'pages/tools.html', 'pages/games.html'].includes(relativePath)) {
       assert(count(html, /<h1\b/gi) === 1 &&
-        (relativePath === 'pages/games.html'
-          ? /<p class="personal-library__meta">\d+ games?<\/p>/i.test(html)
-          : !html.includes('personal-library__meta')) &&
+        !html.includes('personal-library__meta') &&
         !html.includes('home-library__page-link') &&
         !/Open the dedicated [^<]+ page/i.test(html),
-      `${relativePath} should use one scrollable title, omit Tools/Projects counts, and avoid redundant page controls`);
+      `${relativePath} should use one scrollable title, omit library counts, and avoid redundant page controls`);
     }
     if (toolDetailPages.has(relativePath)) {
       assert(html.includes('href="/tools" aria-label="Back to tool library"') &&

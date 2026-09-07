@@ -402,25 +402,24 @@ function renderPersonalLibraryHeader(options = {}) {
     options.headingFocusable ? 'data-home-library-heading tabindex="-1"' : ''
   ].filter(Boolean).join(' ');
   const headingClass = ['home-library__heading', options.wrapper ? 'wrapper' : ''].filter(Boolean).join(' ');
-  const showCount = !['projects', 'tools'].includes(presentation.categoryId);
-  const countMarkup = options.dynamicCount
-    ? `<span data-home-library-count>${presentation.count || ''}</span> ${escapeHtml(presentation.countNoun)}`
-    : escapeHtml(presentation.countLabel);
-  const countClass = [
-    'personal-library__meta',
-    options.countVisuallyHidden ? 'visually-hidden' : ''
-  ].filter(Boolean).join(' ');
+  const parentLabel = `${CATEGORY_CONFIG[presentation.categoryId].label} overview`;
+  const parentContent = `<span aria-hidden="true">${renderIcon('<path d="M19 12H5m7 7-7-7 7-7"></path>')}</span>${escapeHtml(parentLabel)}`;
   const back = options.includeBack
-    ? `  <button class="home-library__back" type="button" data-home-library-close="${escapeHtml(presentation.categoryId)}"><span aria-hidden="true">${renderIcon(ARROW_LEFT)}</span>${escapeHtml(presentation.backLabel)}</button>`
+    ? `  <button class="home-library__back" type="button" data-home-library-close="${escapeHtml(presentation.categoryId)}" data-page-masthead-parent>${parentContent}</button>`
+    : `  <a class="home-library__back" href="${escapeHtml(presentation.backHref)}" aria-label="Back to ${escapeHtml(parentLabel)}" data-page-masthead-parent>${parentContent}</a>`;
+  const account = presentation.categoryId === 'tools'
+    ? renderToolsAccountDock('tools-account-dock--directory personal-library__account', { mastheadActions: true })
     : '';
 
   return [
-    `<${containerTag} class="home-library__header">`,
+    `<${containerTag} class="home-library__header" data-page-masthead>`,
     back,
-    `  <div class="${headingClass}">`,
-    `    <${headingTag} ${headingAttributes}>${escapeHtml(presentation.title)}</${headingTag}>`,
-    presentation.summary ? `    <p>${escapeHtml(presentation.summary)}</p>` : '',
-    showCount ? `    <p class="${countClass}"${options.dynamicCount && !presentation.count ? ' hidden' : ''}>${countMarkup}</p>` : '',
+    '  <div class="home-library__intro" data-page-masthead-intro>',
+    `    <div class="${headingClass}" data-page-masthead-copy>`,
+    `      <${headingTag} ${headingAttributes}>${escapeHtml(presentation.title)}</${headingTag}>`,
+    presentation.summary ? `      <p>${escapeHtml(presentation.summary)}</p>` : '',
+    '    </div>',
+    account ? account.split('\n').map((line) => `    ${line}`).join('\n') : '',
     '  </div>',
     `</${containerTag}>`
   ].filter(Boolean).join('\n');
@@ -434,10 +433,10 @@ function renderToolsAccountBar() {
   return '<div class="tools-account-bar" data-tools-account="bar" data-personal-tool-account-bar="true"></div>';
 }
 
-function renderToolsAccountDock(className = '') {
+function renderToolsAccountDock(className = '', options = {}) {
   const classes = ['tools-account-dock', className].filter(Boolean).join(' ');
   return [
-    `<div class="${escapeHtml(classes)}" data-tools-account="dock" data-personal-tool-account="true">`,
+    `<div class="${escapeHtml(classes)}" data-tools-account="dock" data-personal-tool-account="true"${options.mastheadActions ? ' data-page-masthead-actions' : ''}>`,
     '  <div class="tools-account-dock-inner personal-tool-header__account-inner" data-tools-account="dock-inner">',
     renderToolsAccountBar().split('\n').map((line) => `    ${line}`).join('\n'),
     '  </div>',
@@ -790,7 +789,8 @@ function renderPersonalAccordionShell(fragment, options = {}) {
   const backCompactLabel = String(options.backCompactLabel || (isLibrary ? 'Categories' : 'Library')).trim();
   const backAriaLabel = String(options.backAriaLabel || backLabel).trim();
   const backHref = String(options.backHref || category.libraryHref || category.href).trim();
-  const toolbar = [
+  const hasMasthead = /<[^>]+\sdata-page-masthead(?:\s|=|>)/i.test(String(fragment || ''));
+  const toolbar = hasMasthead ? '' : [
     '<div class="personal-accordion__toolbar" data-site-route-toolbar>',
     `  <a class="personal-accordion__back" href="${escapeHtml(backHref)}" aria-label="${escapeHtml(backAriaLabel)}">`,
     `    <span class="personal-accordion__back-icon" aria-hidden="true">${renderIcon(ARROW_LEFT)}</span>`,
@@ -958,13 +958,10 @@ function renderPersonalLibraryMain(options = {}) {
   const header = renderPersonalLibraryHeader({
     category: categoryId,
     itemCount: items.length,
-    containerTag: 'div',
+    containerTag: 'header',
     headingTag: 'h1',
     wrapper: true
   });
-  const toolsDock = categoryId === 'tools'
-    ? renderToolsAccountDock('tools-account-dock--directory personal-library__account')
-    : '';
   const libraryClasses = [
     'home-library',
     'personal-library',
@@ -973,7 +970,6 @@ function renderPersonalLibraryMain(options = {}) {
 
   return [
     `<main id="main" class="personal-library-main personal-library-main--${categoryId}">`,
-    toolsDock ? toolsDock.split('\n').map((line) => `  ${line}`).join('\n') : '',
     `  <section class="${libraryClasses}" aria-labelledby="personal-library-title-${categoryId}">`,
     header.split('\n').map((line) => `    ${line}`).join('\n'),
     '    <div class="home-library__groups wrapper">',

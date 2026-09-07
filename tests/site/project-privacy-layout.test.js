@@ -2,7 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { renderProjectPage } = require('../../build/generate-project-pages');
+const { preparePersonalProjectDetailHtml, renderProjectPage } = require('../../build/generate-project-pages');
 const { wrapPersonalAccordionHtml } = require('../../build/lib/personal-accordion-shell');
 
 const ROOT = path.resolve(__dirname, '../..');
@@ -27,6 +27,27 @@ function runProjectPrivacyLayoutTests({ assert }) {
   assert(babyNames.includes('class="project-demo-shell"') && babyNames.includes('project-link-label">Notebook'),
     'Promoting two actions preserves the embedded demo and supporting resources.');
 
+  const personalBabyNames = preparePersonalProjectDetailHtml(babyNames);
+  const personalIntro = personalBabyNames.match(/<header class="project-hero project-hero--compact" data-page-masthead>([\s\S]*?)<\/header>/)?.[1] || '';
+  assert(personalIntro.includes('href="/portfolio" data-page-masthead-parent')
+    && personalIntro.includes('<span>Project library</span>')
+    && personalIntro.indexOf('data-page-masthead-parent') < personalIntro.indexOf('data-page-masthead-intro'),
+  'Personal project headers place the project-library return link above the introduction.');
+  assert(personalIntro.includes('data-page-masthead-copy') && personalIntro.includes('data-page-masthead-actions')
+    && personalIntro.includes('<h1>Baby Name Predictor</h1>')
+    && personalIntro.includes('class="project-subtitle"'),
+  'The personal masthead keeps the authored heading, subtitle, and action group in one shared introduction row.');
+  const introLinks = (value) => Array.from(value.matchAll(/<a class="project-intro-action [^>]+>[\s\S]*?<\/a>/g), (match) => match[0]);
+  assert(JSON.stringify(introLinks(personalIntro)) === JSON.stringify(introLinks(babyIntro)),
+    'Integrating the personal header preserves every resource link, click-measurement attribute, and label exactly.');
+  assert(preparePersonalProjectDetailHtml(personalBabyNames) === personalBabyNames,
+    'Repeating personal project preparation does not duplicate the header or its controls.');
+  assert(!babyNames.includes('data-page-masthead') && babyNames.includes('<section class="project-hero project-hero--compact">'),
+    'The raw project renderer keeps the existing professional presentation before personal-only preparation.');
+  assert(personalBabyNames.slice(personalBabyNames.indexOf('<section class="project-body'))
+    === babyNames.slice(babyNames.indexOf('<section class="project-body')),
+  'Integrating the header leaves the project narrative, embedded demo, resources, and scripts unchanged.');
+
   const musicIntro = intro(renderProjectPage(project('sheetMusicUpscale')));
   assert(musicIntro.includes('href="/documents/Project_10_pdf.zip"') && /Reports · ZIP · [\d.]+ (?:KB|MB)/.test(musicIntro)
     && !musicIntro.includes('href="/documents/Project_10.zip"'),
@@ -48,6 +69,9 @@ function runProjectPrivacyLayoutTests({ assert }) {
   const previewIntro = intro(renderProjectPage({ ...starContent, id: 'preview-fixture', title: 'Preview', resources: [{ label: 'Notebook', url: '/documents/example.zip' }] }));
   assert(!previewIntro.includes('project-intro-actions'),
     'Projects without an actual demo or report do not get invented or empty actions.');
+  const personalPreview = preparePersonalProjectDetailHtml(renderProjectPage({ ...starContent, id: 'preview-fixture', title: 'Preview' }));
+  assert(personalPreview.includes('data-page-masthead-copy') && !personalPreview.includes('data-page-masthead-actions'),
+    'A personal project without a demo or report gets its header without an empty action group.');
 
   const privacy = read('pages/privacy.html');
   const privacyMain = privacy.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] || '';
