@@ -273,10 +273,10 @@
       text-align:left;
       padding:.78rem 0 .72rem;
     }
-    .footer.footer-classic .footer-inner,
-    body[data-page="home"].home-pattern-page .footer.footer-classic .footer-inner,
-    body[data-page="portfolio"] .footer.footer-classic .footer-inner,
-    body.portfolio-workbench-page .footer.footer-classic .footer-inner{
+    .footer.footer-classic:not(.footer--personal-compact) .footer-inner,
+    body[data-page="home"].home-pattern-page .footer.footer-classic:not(.footer--personal-compact) .footer-inner,
+    body[data-page="portfolio"] .footer.footer-classic:not(.footer--personal-compact) .footer-inner,
+    body.portfolio-workbench-page .footer.footer-classic:not(.footer--personal-compact) .footer-inner{
       grid-template-areas:
         "identity"
         "nav"

@@ -16,6 +16,7 @@
   ]);
 
   const EVENT_PARAM_ALLOWLIST = Object.freeze({
+    virtual_page_view: ['page_location', 'page_title', 'page_referrer'],
     hero_cta_click: ['cta_label'],
     project_filter_select: ['filter_name', 'filter_value', 'selected'],
     see_more_toggle: ['expanded'],
@@ -281,6 +282,56 @@
     return ['opened', 'dismissed', 'manual', 'timeout', 'unknown'].includes(reason) ? reason : '';
   }
 
+  function readRouteUrl(value = window.location?.href) {
+    try {
+      const url = new URL(value, window.location?.href || document.baseURI);
+      return /^https?:$/.test(url.protocol) ? url : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function normalizeRouteAudience(value) {
+    const audience = safeToken(value, 32);
+    if (['data_science', 'datascience'].includes(audience)) return 'data-science';
+    if (audience === 'tourism-analytics') return 'tourism';
+    return ['personal', 'analytics', 'data-science', 'tourism'].includes(audience) ? audience : '';
+  }
+
+  function getRouteContext(url = readRouteUrl()) {
+    const bodyData = document.body?.dataset || {};
+    const currentPath = url?.pathname || window.location?.pathname || '';
+    let pathname = currentPath.replace(/\/index\.html$/i, '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+    const professionalPath = pathname.match(/^\/(?:pages\/)?professional\/(analytics|data-science|tourism)(\/.*)?$/);
+    if (professionalPath) pathname = professionalPath[2] || `/${professionalPath[1]}`;
+    pathname = pathname.replace(/^\/pages\//, '/');
+    const pathAudience = professionalPath?.[1] || pathname.match(/^\/(?:resume-)?(analytics|data-science|tourism)(?:-pdf)?$/)?.[1];
+    const queryAudience = normalizeRouteAudience(url?.searchParams.get('audience'));
+    const mode = safeToken(url?.searchParams.get('mode'));
+    const modeAudience = ['professional', 'work', 'career', 'analytics'].includes(mode) ? 'analytics' : normalizeRouteAudience(mode);
+    const audience = queryAudience || pathAudience || modeAudience || safeToken(bodyData.audience, 32) || 'personal';
+    let pageId = safeToken(bodyData.page, 64);
+    if (pathname === '/' && currentPath) pageId = 'home';
+    else if (/^\/(portfolio|tools|games|contact|search)$/.test(pathname)) pageId = pathname.slice(1);
+    else if (/^\/portfolio\//.test(pathname)) pageId = 'project';
+    else if (!pageId || pageId === 'home') pageId = safeToken(pathname.split('/').filter(Boolean).pop(), 64);
+    return { page_id: pageId || 'unknown', audience, pathname };
+  }
+
+  function safePageLocation(value) {
+    const url = readRouteUrl(value);
+    if (!url) return '';
+    let decodedPath;
+    try { decodedPath = decodeURIComponent(url.pathname); } catch (_) { return ''; }
+    if (EMAIL_PATTERN.test(decodedPath)) return '';
+    const location = safeLinkUrl(url.href);
+    if (!location) return '';
+    // Audience is a fixed site variant. Search text, tokens and campaign values
+    // must never enter manually measured locations or virtual referrers.
+    const audience = normalizeRouteAudience(url.searchParams.get('audience'));
+    return audience ? `${location}?audience=${audience}` : location;
+  }
+
   const PARAM_SANITIZERS = Object.freeze({
     action: safeToken,
     action_type: safeToken,
@@ -321,7 +372,10 @@
     method: safeToken,
     milestone_id: safeToken,
     outcome: safeToken,
+    page_location: safePageLocation,
     page_path: safePath,
+    page_referrer: safePageLocation,
+    page_title: value => safeText(value, 160),
     percent: safePercent,
     project_id: safeToken,
     query_length_bucket: safeBucket,
@@ -360,12 +414,12 @@
   });
 
   function getCommonContext(params) {
-    const bodyData = document && document.body && document.body.dataset ? document.body.dataset : {};
+    const route = getRouteContext();
     const requestedPageId = safeToken(params && params.page_id, 64);
     const requestedAudience = safeToken(params && params.audience, 32);
     return {
-      page_id: requestedPageId || safeToken(bodyData.page, 64) || 'unknown',
-      audience: requestedAudience || safeToken(bodyData.audience, 32) || 'general'
+      page_id: requestedPageId || route.page_id,
+      audience: requestedAudience || route.audience
     };
   }
 
@@ -410,6 +464,7 @@
     const value = firstActivityValue(eventData, ACTIVITY_VALUE_KEYS);
     const state = firstActivityValue(eventData, ACTIVITY_STATE_KEYS);
     if (detail !== undefined) eventData.activity_detail = detail;
+    if (eventName === 'game_milestone' && eventData.milestone_id) eventData.activity_detail = eventData.milestone_id;
     if (value !== undefined) eventData.activity_value = value;
     if (state !== undefined) eventData.activity_state = state;
   }
@@ -462,7 +517,7 @@
 
   function send(name, params = {}) {
     const eventName = String(name || '').trim();
-    if (!analyticsConsentGranted || !/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(eventName)) return false;
+    if (!analyticsConsentGranted || window.SiteAnalyticsEnvironment?.enabled === false || !/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(eventName)) return false;
     if (AUTO_COLLECTED_EVENTS.has(eventName)) return false;
 
     const eventData = {
@@ -478,6 +533,38 @@
     const state = normalizeConsentState(value);
     analyticsConsentGranted = !isEmbeddedSameOrigin() && !!(state && state.analytics);
     if (!analyticsConsentGranted) clearProjectViewState();
+    else if (window.SiteAnalyticsEnvironment?.enabled !== false) window.dataLayer.push(getCommonContext());
+  }
+
+  function routeMeasurement(value) {
+    const url = readRouteUrl(value);
+    if (!url || url.origin !== window.location?.origin) return null;
+    const context = getRouteContext(url);
+    const location = safePageLocation(url.href);
+    if (!location) return null;
+    return { key: `${context.pathname}|${context.audience}`, location, context };
+  }
+
+  // The Google tag owns the initial document view. Observe completed semantic
+  // routes even while consent is denied so granting consent never replays them.
+  let lastCompletedRoute = routeMeasurement(window.location?.href);
+
+  function handleRouteComplete(event) {
+    const detail = event?.detail || {};
+    const next = routeMeasurement(detail.url || window.location?.href);
+    if (!next) return;
+    const previous = lastCompletedRoute;
+    lastCompletedRoute = next;
+    if (analyticsConsentGranted && window.SiteAnalyticsEnvironment?.enabled !== false) window.dataLayer.push(getCommonContext());
+    if (!previous || previous.key === next.key) return;
+    sent50 = false;
+    send('virtual_page_view', {
+      page_location: next.location,
+      page_title: safeText(detail.title || document.title, 160) || next.context.page_id,
+      page_referrer: previous.location,
+      page_id: next.context.page_id,
+      audience: next.context.audience
+    });
   }
 
   function getClosest(target, selector) {
@@ -521,11 +608,33 @@
     }
   }
 
-  function handleScroll() {
+  function scrollOwner() {
+    const viewport = window.SiteFrame?.viewport?.();
+    if (viewport?.isConnected && viewport.clientHeight > 0) {
+      const overflow = window.getComputedStyle(viewport).overflowY;
+      if (/^(auto|scroll)$/.test(overflow) && viewport.scrollHeight > viewport.clientHeight) return viewport;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+
+  function handleScroll(event) {
     if (sent50 || !analyticsConsentGranted) return;
-    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    // Ignore transitions and unrelated scroll areas such as draft inputs,
+    // comparison output, dialogs, and directory result panes.
+    if (window.SiteNavigation?.isNavigating?.()) return;
+    const currentRoute = routeMeasurement(window.location?.href);
+    if (!currentRoute || currentRoute.key !== lastCompletedRoute?.key) return;
+    const owner = scrollOwner();
+    const isDocument = owner === document.scrollingElement || owner === document.documentElement;
+    const target = event?.target;
+    if (target && (isDocument
+      ? ![window, document, owner].includes(target)
+      : target !== owner)) return;
+    const visibleHeight = isDocument ? window.innerHeight : owner.clientHeight;
+    const scrollable = owner.scrollHeight - visibleHeight;
     if (scrollable <= 0) return;
-    const pct = (window.scrollY || window.pageYOffset || 0) / scrollable;
+    const offset = isDocument ? (window.scrollY || window.pageYOffset || owner.scrollTop || 0) : owner.scrollTop;
+    const pct = Math.max(0, offset) / scrollable;
     if (pct >= 0.5) sent50 = send('scroll_depth', { percent: 50 });
   }
 
@@ -533,6 +642,9 @@
     if (domListenersBound) return;
     domListenersBound = true;
     document.addEventListener('click', handleDocumentClick);
+    // Element scroll events do not bubble. Capture lets the persistent listener
+    // follow frame ownership after route changes without retaining old elements.
+    document.addEventListener('scroll', handleScroll, { passive: true, capture: true });
     window.addEventListener('scroll', handleScroll, { passive: true });
   }
 
@@ -564,6 +676,7 @@
   window.trackModalClose = id => send('modal_close', { project_id: id });
 
   window.addEventListener('consent-changed', event => updateConsent(event.detail));
+  window.addEventListener('site:route-complete', handleRouteComplete);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindDomListeners, { once: true });

@@ -3,10 +3,9 @@
   "title": "danielshort.me",
   "subtitle": "Responsive Portfolio Site",
   "image": "img/projects/website.png",
-  "imageWidth": 1464,
-  "imageHeight": 1464,
-  "videoWebm": "img/projects/website.webm",
-  "videoMp4": "img/projects/website.mp4",
+  "iconImage": "img/projects/icons/website.png",
+  "imageWidth": 1280,
+  "imageHeight": 800,
   "tools": [
     "HTML",
     "CSS",
@@ -32,6 +31,7 @@
     }
   ],
   "problem": "I needed a fast site to show my work, especially on mobile.",
+  "task": "Build a fast, mobile-friendly portfolio that makes projects easy to find, explore, and share.",
   "actions": [
     "Built a static site and rendered portfolio projects from a single data file.",
     "Added Google Analytics 4, structured data, and lazy loading for heavy assets."
@@ -46,5 +46,6 @@
     "next": "I’d add automated accessibility, broken-link, and Core Web Vitals regression checks to catch quality drift before deployment."
   },
   "order": 17,
-  "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site."
+  "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site.",
+  "imageAlt": "Current Daniel Short homepage in its light theme, with an introduction, timeline, and colored vertical tabs."
 }

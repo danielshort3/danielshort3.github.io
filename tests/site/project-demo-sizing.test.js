@@ -91,6 +91,7 @@ function createHarness({ compact = true, fit = 'content', inaccessible = false }
 }
 
 module.exports = function runProjectDemoSizingTests({ assert }) {
+  require('./project-embed-sizing.test')();
   const mobile = createHarness();
   mobile.flush();
   assert(mobile.frame.src === '/demos/example.html?model=small#draw', 'Demo sizing should preserve route query and fragment');

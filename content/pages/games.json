@@ -33,7 +33,7 @@
   ],
   "heroEyebrow": "Systems playground",
   "heroTitle": "Games and simulations",
-  "heroLead": "Six playable experiments in probability, progression, and interactive systems.",
+  "heroLead": "Five playable experiments in probability, progression, and interactive systems.",
   "brandPanel": {
     "signals": [],
     "proofPoints": []
@@ -41,6 +41,7 @@
   "games": [
     {
       "id": "stellar-dogfight",
+      "iconImage": "img/games/icons/stellar-dogfight.png",
       "title": "Stellar Dogfight",
       "href": "games/stellar-dogfight",
       "summary": "Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.",
@@ -58,6 +59,7 @@
     },
     {
       "id": "roulette",
+      "iconImage": "img/games/icons/roulette.png",
       "title": "Double-Zero Roulette",
       "href": "games/roulette",
       "summary": "Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.",
@@ -71,6 +73,7 @@
     },
     {
       "id": "probability-engine",
+      "iconImage": "img/games/icons/probability-engine.png",
       "title": "Probability Engine",
       "href": "games/probability-engine",
       "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
@@ -84,6 +87,7 @@
     },
     {
       "id": "stormbreak",
+      "iconImage": "img/games/icons/stormbreak.png",
       "title": "Stormbreak: Idle Olympus",
       "href": "games/stormbreak",
       "summary": "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.",
@@ -101,6 +105,7 @@
     },
     {
       "id": "ocean-wave-simulation",
+      "iconImage": "img/games/icons/ocean-wave-simulation.png",
       "title": "Ocean Wave Simulation",
       "href": "games/ocean-wave-simulation",
       "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",

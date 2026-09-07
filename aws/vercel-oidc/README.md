@@ -24,4 +24,9 @@ The Tools role needs `dynamodb:ConditionCheckItem` in addition to the normal
 read/write actions because its transactional session and activity writes use an
 explicit DynamoDB `ConditionCheck` deletion guard.
 
+The Short Links role also needs `dynamodb:ConditionCheckItem` on its click-history
+table because link creation checks the click baseline in the same transaction as
+the link and slug reservation writes. Keep this permission in its own statement
+scoped to that table ARN; it does not require access to indexes or other tables.
+
 Do not commit account IDs, tokens, access keys, session tokens, or environment-specific parameter files.

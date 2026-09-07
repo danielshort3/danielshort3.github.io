@@ -11,6 +11,7 @@ const runPageTransitionTests = require('./tests/site/page-transitions.test.js');
 const runPersonalAccordionShellTests = require('./tests/site/personal-accordion-shell.test.js');
 const runPersonalThemeContinuityTests = require('./tests/site/personal-theme-continuity.test.js');
 const runProjectDemoWrapperTests = require('./tests/site/project-demo-wrappers.test.js');
+const runProjectPrivacyLayoutTests = require('./tests/site/project-privacy-layout.test.js');
 const runPortfolioRecommendationTests = require('./tests/site/portfolio-recommendations.test.js');
 const runPortfolioMotionTests = require('./tests/site/portfolio-motion.test.js');
 const runAccountDisclosureMotionTests = require('./tests/site/account-disclosure-motion.test.js');
@@ -23,6 +24,7 @@ const runMobileContactTests = require('./tests/site/mobile-contact.test.js');
 const runResponsiveDensityContractTests = require('./tests/site/responsive-density-contracts.test.js');
 const runQrCodeGeneratorUtilsTests = require('./tests/tools/qr-code-generator-utils.test.js');
 const runTextCompareCoreTests = require('./tests/tools/text-compare-core.test.js');
+const runScreenRecorderSettingsTests = require('./tests/tools/screen-recorder-settings.test.js');
 const { validateProjectStarfallClassSkillData } = require('./build/validate-project-starfall-class-skills.js');
 const { validateProjectStarfallItemVisuals } = require('./build/validate-project-starfall-item-visuals.js');
 const { validateProjectStarfallMaps } = require('./build/validate-project-starfall-maps.js');
@@ -998,6 +1000,7 @@ function runCertificationsModalLifecycleTest(source) {
 function createProjectImageComparisonHarness({ width = 712, viewportLeft = 100 } = {}) {
   const domReadyHandlers = [];
   const animationFrames = new Map();
+  const pointerTypes = new Map();
   let nextAnimationFrame = 1;
 
   const makeClassList = () => {
@@ -1073,6 +1076,10 @@ function createProjectImageComparisonHarness({ width = 712, viewportLeft = 100 }
   });
 
   const viewport = makeElement();
+  const viewportCaptures = new Set();
+  viewport.setPointerCapture = pointerId => viewportCaptures.add(pointerId);
+  viewport.hasPointerCapture = pointerId => viewportCaptures.has(pointerId);
+  viewport.releasePointerCapture = pointerId => viewportCaptures.delete(pointerId);
   viewport.getBoundingClientRect = () => ({
     left: viewportLeft,
     width
@@ -1082,6 +1089,8 @@ function createProjectImageComparisonHarness({ width = 712, viewportLeft = 100 }
     dataset: {
       comparisonLeft: '33',
       comparisonRight: '67',
+      comparisonDefaultLeft: '33',
+      comparisonDefaultRight: '67',
       comparisonMinimumGap: '10'
     }
   });
@@ -1114,7 +1123,14 @@ function createProjectImageComparisonHarness({ width = 712, viewportLeft = 100 }
   domReadyHandlers.forEach(handler => handler());
 
   const dispatch = (element, type, event = {}) => {
+    const pointerId = event.pointerId ?? 1;
+    if (type === 'pointerdown') pointerTypes.set(pointerId, event.pointerType || 'mouse');
     const dispatched = {
+      type,
+      pointerId,
+      pointerType: pointerTypes.get(pointerId) || 'mouse',
+      button: 0,
+      isPrimary: true,
       target: element,
       currentTarget: element,
       defaultPrevented: false,
@@ -1124,6 +1140,7 @@ function createProjectImageComparisonHarness({ width = 712, viewportLeft = 100 }
       ...event
     };
     (element.handlers[type] || []).forEach(handler => handler(dispatched));
+    if (['pointerup', 'pointercancel', 'lostpointercapture'].includes(type)) pointerTypes.delete(pointerId);
     return dispatched;
   };
   const clientX = percent => viewportLeft + width * percent / 100;
@@ -1546,7 +1563,9 @@ try {
       'personal tools page should render the isolated-category library instead of the legacy workbench');
     const toolsAccountDockIndex = toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory');
     const toolsLibraryIndex = toolsHtml.indexOf('class="home-library personal-library personal-library--tools"');
-    const toolsLibraryEnd = toolsHtml.indexOf('</section>', toolsLibraryIndex);
+    // The library now contains one nested section/list per group. Keep the
+    // entire main region instead of stopping at the first group's closing tag.
+    const toolsLibraryEnd = toolsHtml.indexOf('</main>', toolsLibraryIndex);
     const toolsLibraryHtml = toolsLibraryIndex >= 0 && toolsLibraryEnd > toolsLibraryIndex
       ? toolsHtml.slice(toolsLibraryIndex, toolsLibraryEnd)
       : '';
@@ -1576,12 +1595,25 @@ try {
       !toolsHtml.includes('tools-rail-link') &&
       !toolsHtml.includes('tool-card-details'),
       'tools page should remove the old rail, rationale panel, and hover-card directory');
-    assert((toolsLibraryHtml.match(/class="home-library__card"/g) || []).length === publicTools.length &&
-      publicTools.every((tool) => toolsLibraryHtml.includes(`href="/${String(tool.href || '').replace(/^\/+/, '')}"`)),
-      'tools page should server-render one crawlable personal-library card for every public tool');
-    assert(!accountTools.some((tool) => toolsLibraryHtml.includes(`href="/${String(tool.href || '').replace(/^\/+/, '')}"`)) &&
-      !adminTools.some((tool) => toolsLibraryHtml.includes(`href="/${String(tool.href || '').replace(/^\/+/, '')}"`)),
-      'personal tools library should not expose account or admin launch cards');
+    const toolsLibraryLists = [...toolsLibraryHtml.matchAll(/<ul\b[^>]*class="home-library__list"[^>]*>([\s\S]*?)<\/ul>/g)];
+    assert(toolsLibraryLists.length === 6,
+      'tools page should retain four public group lists plus separate account and admin group lists');
+    const renderedToolCards = toolsLibraryLists.flatMap((list) => [...list[1].matchAll(/<li\b([^>]*)>([\s\S]*?)<\/li>/g)])
+      .filter((card) => card[2].includes('class="home-library__card"'));
+    const cardsForTool = (tool) => renderedToolCards.filter((card) =>
+      card[2].includes(`href="/${String(tool.href || '').replace(/^\/+/, '')}"`));
+    const availableTools = [...publicTools, ...accountTools, ...adminTools];
+    assert(renderedToolCards.length === availableTools.length &&
+      availableTools.every((tool) => cardsForTool(tool).length === 1),
+      'tools page should server-render exactly one personal-library card for every public, account, and admin tool');
+    assert(publicTools.every((tool) => cardsForTool(tool).every((card) =>
+      !/\bhidden\b/.test(card[1]) && !card[1].includes('data-tools-visibility='))) &&
+      renderedToolCards.filter((card) => !/\bhidden\b/.test(card[1])).length === publicTools.length,
+      'only public tool cards should be initially visible before account hydration');
+    assert([...accountTools, ...adminTools].every((tool) => cardsForTool(tool).every((card) =>
+      /\bhidden\b/.test(card[1]) && card[1].includes('aria-hidden="true"') &&
+      card[1].includes(`data-tools-visibility="${tool.visibility}"`))),
+      'account and admin cards should start hidden with their exact access rule so authorized sign-in can reveal them');
     assert(toolsDirectoryData && toolsDirectoryData.kind === 'tools' && toolsDirectoryData.itemPlural === 'tools',
       'generated tools data should declare the shared workbench contract');
     assert(toolsDirectoryData.filterGroups.map((group) => group.title).join('|') === 'Category',
@@ -1774,8 +1806,9 @@ try {
         assert(staticCard.includes(`data-content-id="${slug}"`) && staticCard.includes('data-content-type="tool"'),
           `${fileName} personal-library content identity is missing`);
       } else {
-        assert(!toolsLibraryHtml.includes(`href="/${href.replace(/^\/+/, '')}"`),
-          `${fileName} restricted route should stay out of indexable personal library`);
+        assert(cardsForTool(tool).some((card) =>
+          /\bhidden\b/.test(card[1]) && card[1].includes(`data-tools-visibility="${visibility}"`)),
+          `${fileName} restricted route should be available for authorized hydration and hidden initially`);
       }
       assert(rewrites.some((rule) => rule.source === `/tools/${slug}` && rule.destination === `/pages/${slug}`),
         `${fileName} missing clean URL rewrite`);
@@ -38679,6 +38712,10 @@ try {
     const copyPublic = readFile('build/copy-to-public.js');
     const devServer = readFile('build/dev.js');
     const generator = readFile('build/generate-ai-digests.js');
+    childProcess.execFileSync(process.execPath, ['tests/site/ai-digest-workspaces.test.js'], {
+      cwd: __dirname,
+      stdio: 'pipe'
+    });
     const robots = readFile('robots.txt');
     const vercelConfig = JSON.parse(readFile('vercel.json'));
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
@@ -38785,14 +38822,39 @@ try {
     assert(!/<header\b/i.test(homeDigest) && !/<footer\b/i.test(homeDigest) && !/Source Metadata/.test(homeDigest),
       'AI digest pages should not include visible header/footer/source metadata chrome');
     assert((homeDigest.match(/<h1\b/gi) || []).length === 1, 'AI digest pages should include exactly one rendered h1');
-    assert(homeDigest.includes('<h1>Daniel Short | Data Analytics, ML Projects &amp; Web Tools</h1>') &&
-      homeDigest.includes('Models, dashboards, and data systems') &&
-      homeDigest.includes('Small browser utilities for repeated text') &&
-      homeDigest.includes('Browser games and simulations') &&
-      homeDigest.includes('16 published projects') &&
-      homeDigest.includes('10 public tools') &&
-      homeDigest.includes('5 games'),
-      'home AI digest should reuse personal-site graph labels and counts');
+    const digestHomeProps = JSON.parse(readFile('content/audiences/personal.json')).page.sections
+      .find((section) => section.type === 'home-accordion' && section.enabled !== false).props;
+    const digestAbout = digestHomeProps.categories.find((category) => category.id === 'about');
+    const escapeDigestText = (value) => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    [digestAbout.lead, digestAbout.context, digestAbout.currentWork.text, digestAbout.aboutStory.title].forEach((text) => {
+      assert(homeDigest.includes(escapeDigestText(text)), `home AI digest should retain the authored introduction: ${text}`);
+    });
+    digestAbout.aboutStory.connections.forEach((connection) => {
+      [connection.title, connection.description, connection.project.title, connection.project.summary].filter(Boolean).forEach((text) => {
+        assert(homeDigest.includes(escapeDigestText(text)), `home AI digest should retain the personal story ${connection.id}: ${text}`);
+      });
+      assert(homeDigest.includes(`href="https://www.danielshort.me${connection.project.href}"`),
+        `home AI digest should retain the ${connection.id} story's working project link`);
+    });
+    const digestProjects = fs.readdirSync('content/projects').filter((name) => name.endsWith('.json'))
+      .map((name) => JSON.parse(readFile(`content/projects/${name}`)))
+      .filter((project) => project.id && project.published !== false && !project.hidden && !project.noindex);
+    const digestTools = fs.readdirSync('content/tools').filter((name) => name.endsWith('.json'))
+      .map((name) => JSON.parse(readFile(`content/tools/${name}`)))
+      .filter((tool) => !tool.hidden && !tool.noindex && (!tool.visibility || tool.visibility === 'public'));
+    const digestGames = JSON.parse(readFile('content/pages/games.json')).games.filter((game) => !game.hidden && !game.noindex);
+    assert(homeDigest.includes(`${digestProjects.length} published projects`) &&
+      homeDigest.includes(`${digestTools.length} public tools`) && homeDigest.includes(`${digestGames.length} games`) &&
+      !/homepage graph|interactive graph/i.test(homeDigest),
+      'home AI digest should describe current public catalogs without retired graph copy');
+    const digestCatalogPaths = [
+      ...digestProjects.map((project) => `/portfolio/${project.id}`),
+      ...digestTools.map((tool) => `/${String(tool.href || `tools/${tool.slug}`).replace(/^\/+/, '')}`),
+      ...digestGames.map((game) => `/${String(game.href || `games/${game.id}`).replace(/^\/+/, '')}`)
+    ];
+    digestCatalogPaths.forEach((url) => {
+      assert(homeDigest.includes(`href="https://www.danielshort.me${url}"`), `home AI digest should include public catalog item ${url}`);
+    });
     ['Summary', 'Key Details', 'Evidence', 'Context', 'Topics'].forEach((heading) => {
       assert(!homeDigest.includes(`>${heading}<`), `home AI digest should not add synthetic ${heading} heading`);
     });
@@ -39208,10 +39270,10 @@ try {
 
     const shortLinksStore = readFile('api/_lib/short-links-store.js');
     const shortLinksIndex = readFile('api/short-links/index.js');
-    const shortLinksSets = readFile('api/short-links/sets/[...setId].js');
+    const shortLinksSets = readFile('api/_lib/short-links-endpoints/sets.js');
     const shortLinksRedirect = readFile('api/go/[...slug].js');
-    const shortLinksClicks = readFile('api/short-links/clicks/[...slug].js');
-    const shortLinksHealth = readFile('api/short-links/health.js');
+    const shortLinksClicks = readFile('api/_lib/short-links-endpoints/clicks.js');
+    const shortLinksHealth = readFile('api/_lib/short-links-endpoints/health.js');
     const shortLinksAdmin = readFile('js/admin/short-links.js');
     const shortLinksManifest = JSON.parse(readFile('dist/shortlinks-destinations.json'));
     assert(shortLinksStore.includes("const SLUG_RESERVATION_PREFIX = '__slug_lower__/'") &&
@@ -39358,7 +39420,7 @@ try {
     const projectPageGenerator = require('./build/generate-project-pages.js');
     const publishedProjects = pdata.window.PROJECTS.filter(projectPageGenerator.isPublishedProject);
     const staticResults = projectPageGenerator.renderPortfolioStaticResults(publishedProjects);
-    assert((staticResults.match(/<article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem"/g) || []).length === publishedProjects.length,
+    assert((staticResults.match(/<article class="portfolio-result-card portfolio-project-result portfolio-project-result--static(?: portfolio-project-result--icon)?" role="listitem"/g) || []).length === publishedProjects.length,
       'no-JS portfolio results should render every published project as a listitem article');
     assert(!staticResults.includes('data-project-details') &&
       !staticResults.includes('Preview summary') &&
@@ -39513,8 +39575,16 @@ try {
   section('QR generator enhanced workflow contracts', () => {
     const qrHtml = readFile('pages/qr-code-generator.html');
     const qrScript = readFile('js/tools/qr-code-generator.js');
-    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-mode-basic"');
-    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-mode-advanced"');
+    assert(/<details\b[^>]*data-qrtool-advanced-options/.test(qrHtml) &&
+      qrScript.includes("advancedOptions.open = safeMode === 'advanced'") &&
+      qrScript.includes("advancedOptions?.addEventListener('toggle'"),
+      'QR advanced settings should remain available through a disclosure that preserves saved mode values');
+    ['generate', 'customize', 'export'].forEach((tab) => {
+      assert(qrHtml.includes(`id="qrtool-tab-${tab}"`) &&
+        qrHtml.includes(`aria-controls="qrtool-panel-${tab}"`) &&
+        qrHtml.includes(`aria-labelledby="qrtool-tab-${tab}"`),
+        `QR ${tab} workspace should keep its tab and panel accessibly connected`);
+    });
     checkFileContains('pages/qr-code-generator.html', 'id="qrtool-payload-mode"');
     checkFileContains('pages/qr-code-generator.html', 'data-qrtool-payload-pane="wifi"');
     checkFileContains('pages/qr-code-generator.html', 'data-qrtool-payload-pane="vcard"');
@@ -39862,11 +39932,96 @@ try {
     runQrCodeGeneratorUtilsTests({ assert });
   });
 
+  section('Screen Recorder settings and shared inputs', () => {
+    runScreenRecorderSettingsTests();
+    childProcess.execFileSync(process.execPath, ['tests/tools/tool-share-link.test.js'], {
+      cwd: __dirname,
+      stdio: 'pipe'
+    });
+    assert(true, 'Recorder tabs and tool sharing behavior should pass');
+  });
+
+  section('Tool workspace page contracts', () => {
+    const toolIds = [
+      'background-remover', 'image-optimizer', 'qr-code-generator',
+      'text-compare', 'word-frequency', 'point-of-view-checker',
+      'nbsp-cleaner', 'oxford-comma-checker', 'utm-batch-builder'
+    ];
+    toolIds.forEach((toolId) => {
+      const file = `pages/${toolId}.html`;
+      const html = readFile(file);
+      assert(/<section\b[^>]*class="[^"]*\btool-workspace\b/.test(html),
+        `${file} should use the shared tool workspace surface`);
+      assert(html.includes('<main id="main">') && html.includes('data-tools-account="dock"'),
+        `${file} should retain its account and main content hooks`);
+      const scripts = Array.from(html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g), (match) => match[1]);
+      const entryIndex = scripts.indexOf(`js/tools/${toolId}.js`);
+      const accountIndex = scripts.findIndex((script) => /^dist\/site-tools-account(?:\.[0-9a-f]+)?\.js$/.test(script));
+      assert(entryIndex >= 0 && accountIndex > entryIndex,
+        `${file} should register its capture and restore hooks before account initialization`);
+      const manifest = JSON.parse(html.match(/<script\b[^>]*id="site-route-manifest"[^>]*>([\s\S]*?)<\/script>/)?.[1] || '{}');
+      assert(manifest.scripts?.includes(`/js/tools/${toolId}.js`),
+        `${file} should retain its tool entry in the route manifest`);
+
+      const tabs = Array.from(html.matchAll(/<button\b[^>]*\bdata-workspace-tab(?:\s|=|>)[^>]*>/g), (match) => match[0]);
+      if (tabs.length) {
+        assert(html.includes('data-workspace-tabset') && scripts.indexOf('js/tools/tool-workspace.js') >= 0 &&
+          scripts.indexOf('js/tools/tool-workspace.js') < entryIndex &&
+          manifest.scripts?.includes('/js/tools/tool-workspace.js'),
+          `${file} should initialize its shared tabs in both direct and routed loads`);
+        const panels = Array.from(html.matchAll(/<\w+\b[^>]*\bdata-workspace-panel(?:\s|=|>)[^>]*>/g), (match) => match[0]);
+        tabs.forEach((tab) => {
+          const id = tab.match(/\bid="([^"]+)"/)?.[1];
+          const panelId = tab.match(/\baria-controls="([^"]+)"/)?.[1];
+          const panel = panels.find((item) => item.includes(`id="${panelId}"`));
+          const selected = tab.includes('aria-selected="true"');
+          assert(id && panel && tab.includes('role="tab"') && panel.includes('role="tabpanel"') &&
+            panel.includes(`aria-labelledby="${id}"`),
+            `${file} should label the ${id || 'unnamed'} tab and its panel in both directions`);
+          assert(selected !== /\bhidden(?:\s|=|>)/.test(panel),
+            `${file} should initially show only the selected panel for ${id}`);
+        });
+      }
+    });
+    const sharedStyles = readFile('css/styles-tools.css');
+    assert(sharedStyles.includes('components/tool-workspace.css'),
+      'The tools stylesheet bundle should include the shared workspace surface');
+    const utmSource = readFile('src/utm-batch-builder/app.tsx');
+    ['links', 'parameters', 'rules'].forEach((tab) => {
+      assert(utmSource.includes(`id="utmtool-panel-${tab}"`) &&
+        utmSource.includes(`aria-labelledby="utmtool-tab-${tab}"`) &&
+        utmSource.includes(`hidden={setupTab !== "${tab}"}`),
+        `UTM ${tab} workspace should keep its React-controlled panel labelled and mounted`);
+    });
+  });
+
+  section('Tool workspace interactions', () => {
+    [
+      'tests/tools/background-remover-workspace.test.js',
+      'tests/tools/background-remover-processing.test.js',
+      'tests/tools/qr-code-generator-workspace.test.js',
+      'tests/tools/short-links-management.test.js',
+      'tests/tools/short-links-client.test.js',
+      'tests/tools/tools-directory-access.test.js',
+      'tests/tools/qr-short-links-integration.test.js',
+      'tests/tools/text-tool-workspaces.test.js',
+      'tests/tools/tool-workspace.test.js'
+    ].forEach((testFile) => {
+      childProcess.execFileSync(process.execPath, [testFile], {
+        cwd: __dirname,
+        stdio: 'pipe'
+      });
+      assert(true, `${testFile} should pass`);
+    });
+  });
+
   section('Text compare core', () => {
     runTextCompareCoreTests({ assert });
   });
 
   section('Project pages and sitemap entries', () => {
+    const { assertProjectStarSummary, runProjectStarRendererTests } = require('./tests/site/project-star.test.js');
+    runProjectStarRendererTests({ assert });
     const pdata = evalScript('js/portfolio/projects-data.js');
     const projects = pdata.window.PROJECTS.filter(p => p && p.published !== false);
     const ids = projects.map(p => p.id);
@@ -39891,16 +40046,16 @@ try {
       const linksIndex = html.indexOf('id="links"');
       assert(shellIndex >= 0, `${file} should render a standard demo or preview shell`);
       assert(starIndex >= 0 && starIndex < shellIndex, `${file} should place STAR Summary before the demo/preview shell`);
-      assert(linksIndex > shellIndex, `${file} should place Links after the demo/preview shell`);
-      const starLabels = Array.from(
-        html.matchAll(/<dt class="project-star-label">([^<]+)<\/dt>/g),
-        (match) => match[1]
-      );
-      assert(JSON.stringify(starLabels) === JSON.stringify(['Situation', 'Task', 'Action', 'Result']),
-        `${file} should render exactly the four STAR fields before the demo`);
-      assert(html.includes('project-resources--flat') &&
-             (html.match(/class="project-links"/g) || []).length === 1,
-        `${file} should render one flat project Links list`);
+      assert(linksIndex < 0 || linksIndex > shellIndex, `${file} should place supporting Links after the demo/preview shell`);
+      assertProjectStarSummary({ assert, html, project, file });
+      ['analytics', 'data-science', 'tourism'].forEach((audience) => {
+        const audienceFile = `pages/professional/${audience}/portfolio/${id}.html`;
+        assert(fs.existsSync(audienceFile), `${audienceFile} missing`);
+        assertProjectStarSummary({ assert, html: fs.readFileSync(audienceFile, 'utf8'), project, file: audienceFile });
+      });
+      assert((html.match(/class="project-links"/g) || []).length <= 1 &&
+             (linksIndex < 0 || html.includes('project-resources--flat')),
+        `${file} should use at most one flat list for supporting resources`);
       assert(!html.includes('project-pager') &&
              !html.includes('project-personal-notes') &&
              !html.includes('project-evaluation') &&
@@ -39963,6 +40118,15 @@ try {
            sheetMusicHtml.includes('data-selection-zoom') && sheetMusicHtml.includes('data-selection-reset') &&
            sheetMusicHtml.includes('data-selection-retry'),
       'sheetMusicUpscale should expose selection, zoom, reset, and image recovery controls');
+    assert(sheetMusicHtml.includes('data-comparison-selection-aspect="1.3333333333333333"') &&
+           sheetMusicHtml.includes(`data-comparison-default-left="${sheetMusicComparison.initialDividers[0]}"`) &&
+           sheetMusicHtml.includes(`data-comparison-default-right="${sheetMusicComparison.initialDividers[1]}"`),
+      'sheetMusicUpscale should declare an undistorted taller selection and immutable divider reset defaults');
+    assert(!sheetMusicHtml.includes('class="project-comparison-source"') &&
+           !sheetMusicHtml.includes('class="project-comparison-credit"'),
+      'sheetMusicUpscale should omit source links and credit text from the preview');
+    assert(sheetMusicHtml.includes('<p class="visually-hidden" id="project-comparison-instructions-sheetMusicUpscale">'),
+      'sheetMusicUpscale should retain accessible divider instructions without consuming preview space');
     assert(stageFigures.length === 3, 'sheetMusicUpscale preview should render exactly three aligned stage figures');
     assert(stageFigures.every((figure) => !/\shidden(?:\s|=|>)/.test(figure)),
       'sheetMusicUpscale stage figures should all remain available in the no-JS source');
@@ -39991,8 +40155,7 @@ try {
     const comparisonJs = fs.readFileSync('js/portfolio/project-image-comparison.js', 'utf8');
     assert(comparisonJs.includes('initProjectImageComparisons') &&
            comparisonJs.includes('setPointerCapture') &&
-           comparisonJs.includes("addEventListener('pointercancel'") &&
-           comparisonJs.includes("addEventListener('lostpointercapture'") &&
+           comparisonJs.includes("['pointerup', 'pointercancel', 'lostpointercapture']") &&
            comparisonJs.includes("event.key === 'Home'") &&
            comparisonJs.includes("event.key === 'End'") &&
            comparisonJs.includes('right = Math.max(right, left + bounds.gap);') &&
@@ -40014,13 +40177,14 @@ try {
 
     const fallbackVideoProject = projects.find((project) => (
       project.id !== 'sheetMusicUpscale' && !project.embed && project.videoMp4 && !project.previewComparison
-    ));
-    assert(fallbackVideoProject, 'expected at least one non-staged video project for preview fallback coverage');
-    const fallbackVideoHtml = fs.readFileSync(`pages/portfolio/${fallbackVideoProject.id}.html`, 'utf8');
+    )) || { ...projectById.get('website'), videoMp4: 'img/projects/website.mp4', videoWebm: 'img/projects/website.webm' };
+    const fallbackVideoHtml = require('./build/generate-project-pages').renderProjectPage(fallbackVideoProject);
     assert(fallbackVideoHtml.includes('<video class="project-video-frame"'),
       'projects without preview stages should retain the existing video preview fallback');
     assert(!fallbackVideoHtml.includes('js/portfolio/project-image-comparison.js'),
       'projects without preview comparisons should not load the comparison enhancement');
+    assert(!fs.readFileSync('pages/portfolio/website.html', 'utf8').includes('<video'),
+      'The website project should show its current screenshot rather than the retired design video');
 
     assert(!ids.includes('destinationReporting'), 'destinationReporting should not be a published project');
     assert(!fs.existsSync('pages/portfolio/destinationReporting.html'), 'destinationReporting page should be removed');
@@ -40098,6 +40262,7 @@ try {
       isPrimary: true,
       clientX: desktop.clientX(67)
     });
+    closeTo(value(desktop, 'right'), 67, 'direct handle should respond immediately on pointerdown');
     desktop.dispatch(desktop.rightDivider, 'pointermove', {
       pointerId: 1,
       clientX: desktop.clientX(25)
@@ -40129,20 +40294,21 @@ try {
       pointerId: 2,
       clientX: mobile.clientX(5)
     });
-    const mobileEdge = 22 / 261 * 100;
     const mobileGap = 44 / 261 * 100;
-    closeTo(value(mobile, 'left'), mobileEdge, 'mobile left divider should stop at its hit-area edge');
-    closeTo(value(mobile, 'right'), mobileEdge + mobileGap, 'mobile right divider should retain its hit-area gap');
+    closeTo(value(mobile, 'left'), mobileGap, 'mobile left pane should retain the same minimum as the middle pane');
+    closeTo(value(mobile, 'right'), 2 * mobileGap, 'mobile right divider should retain two minimum-width panes to its left');
     assertAriaValid(mobile.leftDivider, 'mobile left divider');
     assertAriaValid(mobile.rightDivider, 'mobile right divider');
 
     const panel = createProjectImageComparisonHarness({ width: 712, viewportLeft: 100 });
-    const clickPanel = percent => panel.dispatch(panel.viewport, 'click', {
-      button: 0,
-      clientX: panel.clientX(percent),
-      offsetX: 1,
-      target: panel.slides[0]
-    });
+    const clickPanel = (percent) => {
+      const event = { pointerType: 'touch', clientX: panel.clientX(percent), offsetX: 1, target: panel.slides[0] };
+      const down = panel.dispatch(panel.viewport, 'pointerdown', event);
+      assert(!down.defaultPrevented && !panel.viewport.hasPointerCapture(down.pointerId),
+        'touching the panel should retain native page scrolling');
+      panel.dispatch(panel.viewport, 'pointerup', event);
+      return panel.dispatch(panel.viewport, 'click', event);
+    };
     clickPanel(45);
     closeTo(value(panel, 'left'), 45, 'panel click should move the nearest left divider');
     closeTo(value(panel, 'right'), 67, 'left-side panel click should leave the right divider in place');
@@ -40163,6 +40329,7 @@ try {
     const beforeGuardedClick = [value(panel, 'left'), value(panel, 'right')];
     panel.dispatch(panel.viewport, 'click', {
       button: 0,
+      pointerType: 'touch',
       clientX: panel.clientX(80),
       target: panel.rightDivider
     });
@@ -40174,8 +40341,8 @@ try {
       key: 'Home',
       shiftKey: false
     });
-    closeTo(value(keyboard, 'left'), 22 / 712 * 100, 'right Home key should push the left divider to its edge');
-    closeTo(value(keyboard, 'right'), 22 / 712 * 100 + 10, 'right Home key should retain the configured gap');
+    closeTo(value(keyboard, 'left'), 10, 'right Home key should preserve the first pane minimum');
+    closeTo(value(keyboard, 'right'), 20, 'right Home key should preserve two equal minimum-width panes');
     assert(rightHome.defaultPrevented, 'a handled right-divider key should prevent the browser default');
     assertAriaValid(keyboard.leftDivider, 'keyboard left divider');
     assertAriaValid(keyboard.rightDivider, 'keyboard right divider');
@@ -40185,12 +40352,29 @@ try {
       key: 'End',
       shiftKey: false
     });
-    closeTo(value(symmetric, 'left'), 100 - (22 / 712 * 100) - 10,
+    closeTo(value(symmetric, 'left'), 80,
       'left End key should reach its global maximum');
-    closeTo(value(symmetric, 'right'), 100 - (22 / 712 * 100),
-      'left End key should push the right divider to its edge');
+    closeTo(value(symmetric, 'right'), 90,
+      'left End key should preserve the final pane minimum');
     assertAriaValid(symmetric.leftDivider, 'symmetric left divider');
     assertAriaValid(symmetric.rightDivider, 'symmetric right divider');
+    assert(symmetric.leftDivider.attributes['aria-valuemin'] === '10' &&
+      symmetric.leftDivider.attributes['aria-valuemax'] === '80' &&
+      symmetric.rightDivider.attributes['aria-valuemin'] === '20' &&
+      symmetric.rightDivider.attributes['aria-valuemax'] === '90',
+    'both slider ranges should reflect equal minimums for all three panes');
+
+    const mousePanel = createProjectImageComparisonHarness({ width: 712 });
+    mousePanel.dispatch(mousePanel.viewport, 'pointerdown', { clientX: mousePanel.clientX(45) });
+    closeTo(value(mousePanel, 'left'), 45, 'mouse press anywhere in the panel should move its nearest divider immediately');
+    assert(mousePanel.viewport.hasPointerCapture(1), 'panel mouse drag should capture the pointer');
+    mousePanel.dispatch(mousePanel.viewport, 'pointermove', { clientX: mousePanel.clientX(95) });
+    mousePanel.dispatch(mousePanel.viewport, 'pointerup', { clientX: mousePanel.clientX(95) });
+    closeTo(value(mousePanel, 'left'), 80, 'panel mouse drag should keep moving its original selected divider');
+    closeTo(value(mousePanel, 'right'), 90, 'panel mouse drag should push the adjacent divider while preserving both minimums');
+    mousePanel.dispatch(mousePanel.viewport, 'click', { clientX: mousePanel.clientX(95) });
+    closeTo(value(mousePanel, 'left'), 80, 'the generated mouse click should not move a second divider');
+    assert(!mousePanel.viewport.hasPointerCapture(1), 'panel pointer capture should be released after pointerup');
   });
 
   section('Analytics helpers and events', () => {
@@ -41379,6 +41563,10 @@ try {
     runProjectDemoWrapperTests({ assert });
   });
 
+  section('Project actions and privacy navigation', () => {
+    runProjectPrivacyLayoutTests({ assert });
+  });
+
   section('Personal theme route continuity', () => {
     runPersonalThemeContinuityTests({ assert });
   });
@@ -41760,8 +41948,10 @@ try {
     assert(vercel.includes('Strict-Transport-Security'), 'vercel.json missing HSTS');
     assert(vercel.includes('"source": "/img/(.*)"') || vercel.includes('"source": "/img/(.*)"'.replace(/\//g,'/')), 'vercel.json missing /img cache rule');
     const vercelIgnore = fs.readFileSync('.vercelignore', 'utf8');
-    ['/api/cms/', '/api/chatbot/logs.js', '/api/short-domain.js', '/api/short-links/test/'].forEach((entry) => {
-      assert(vercelIgnore.includes(entry), `.vercelignore should exclude ${entry} from Hobby deployments`);
+    const vercelIgnoreEntries = new Set(vercelIgnore.split(/\r?\n/).map(line => line.trim()));
+    ['/api/cms', '/api/chatbot', '/api/short-domain.js', '/api/short-links/test'].forEach((entry) => {
+      assert(vercelIgnoreEntries.has(entry),
+        `.vercelignore should exclude ${entry} without a trailing slash so archive deployments omit the directory itself`);
     });
     const gitIgnore = fs.readFileSync('.gitignore', 'utf8');
     assert(gitIgnore.includes('google_maps_api_key.txt') && vercelIgnore.includes('google_maps_api_key.txt'),
@@ -42886,8 +43076,7 @@ try {
 
     [
       ['nonogram', nonogramDemo, 'async function warmUpServer()', 'async function loadPuzzle()', 'warmupJson(base, {}', 'postToEndpoint(base, {})'],
-      ['minesweeper', minesweeperDemo, 'async function warmUpServer()', 'async function loadPuzzle()', 'warmupJson(base, warmPayload', 'postToEndpoint(base, warmPayload)'],
-      ['pizza tips', pizzaDemo, 'async function warmUpServer()', 'function applyResponse', 'warmupJson(base, payload', 'postToEndpoint(base, payload)']
+      ['minesweeper', minesweeperDemo, 'async function warmUpServer()', 'async function loadPuzzle()', 'warmupJson(base, warmPayload', 'postToEndpoint(base, warmPayload)']
     ].forEach(([name, source, startNeedle, endNeedle, warmupNeedle, fallbackNeedle]) => {
       const start = source.indexOf(startNeedle);
       const end = source.indexOf(endNeedle, start);
@@ -43013,10 +43202,16 @@ try {
       rule.destination === '/api/demos/covid-outbreak%2Fstate%2F:state'),
     'Vercel should flatten multi-segment demo API paths into the deployed catch-all function');
 
+    const browserDemoIds = new Set(['pizza-tips', 'covid-outbreak', 'target-empty-package', 'retail-loss-sales']);
     Object.entries(expectedDemoRoutes).forEach(([demoId, endpoint]) => {
       const source = fs.readFileSync(demoFiles[demoId], 'utf8');
-      assert(source.includes(endpoint), `${demoId} client should use its same-origin demo proxy`);
-      assert(source.includes('allowOverrides: false'), `${demoId} client should ignore query and stored endpoint overrides`);
+      if (browserDemoIds.has(demoId)) {
+        assert(!source.includes('/api/demos/') && !source.includes('js/demos/aws-client.js') && !source.includes('DemoAws'),
+          `${demoId} client should use browser assets without the legacy AWS proxy`);
+      } else {
+        assert(source.includes(endpoint), `${demoId} client should use its same-origin demo proxy`);
+        assert(source.includes('allowOverrides: false'), `${demoId} client should ignore query and stored endpoint overrides`);
+      }
       assert(!source.includes('lambda-url.us-east-2.on.aws'), `${demoId} client should not retain a direct Lambda URL fallback`);
     });
     assert(awsClientSource.includes('allowOverrides = true') &&
@@ -43204,14 +43399,15 @@ try {
       'project demo brand theme should standardize header badges and readable light dashboard surfaces');
     awsDashboardDemoFiles.forEach((file) => {
       const source = fs.readFileSync(file, 'utf8');
-      assert(source.includes('aws-status-badge'), `${file} should place AWS status in the header badge area`);
-      assert(!source.includes('<div class="health-row"'), `${file} should not render a separate full-width AWS health row`);
+      assert(source.includes('aws-status-badge'), `${file} should place processing status in the shared header badge area`);
+      assert(!source.includes('<div class="health-row"'), `${file} should not render a separate full-width health row`);
     });
     const pizzaDemo = fs.readFileSync('demos/pizza-tips-demo.html', 'utf8');
     assert(pizzaDemo.includes('class="health-pill aws-status-badge" id="api-status"') &&
-           pizzaDemo.includes('data-state="warming" role="status" aria-live="polite">Preparing demo') &&
+           pizzaDemo.includes('role="status" aria-live="polite"') &&
+           !pizzaDemo.includes('warmUpServer') &&
            !pizzaDemo.includes('<div class="health-row" role="status"'),
-      'pizza tips demo should render preparation status as a compact live header badge');
+      'pizza tips demo should retain a compact live header badge without a server warmup');
     assert(pizzaDemo.includes('<fieldset class="scenario-segment">') &&
            pizzaDemo.includes('<legend>Delivery details</legend>') &&
            pizzaDemo.includes('<legend>Order Details</legend>') &&
@@ -43297,8 +43493,9 @@ try {
       'project generator should mark embed fit mode for natural iframe sizing');
     assert(projectCss.includes('.project-demo-panel .project-embed-chatbotlora'), 'project CSS should target the chatbot embed without affecting all demos');
     assert(projectCss.includes('.project-demo-shell:has(.project-embed-chatbotlora)') &&
-           projectCss.includes('height:var(--project-demo-height, clamp(500px, 64svh, 620px));'),
-      'chatbot embed should use a bounded mobile iframe height');
+           projectCss.includes('height:var(--project-demo-height, max(280px, calc(100svh - 260px)));') &&
+           commonJs.includes('resizeViewportProjectEmbed'),
+      'chatbot embed should use the available frame height with a viewport-aware CSS fallback');
     assert(commonJs.includes('shouldAutoResizeProjectEmbed') &&
            commonJs.includes("projectEmbedFit(ifr) === 'content'") &&
            commonJs.includes("return 'viewport';") &&
@@ -43317,7 +43514,7 @@ try {
     assert(chatbotProject.problem.includes('custom fine-tuned model') &&
            chatbotProject.problem.includes('managed model'),
       'chatbot project STAR situation should frame both custom LoRA and managed Bedrock model paths');
-    assert(chatbotProject.role.some((item) => item.includes('dual-backend demo') && item.includes('LoRA/SageMaker') && item.includes('Bedrock')),
+    assert(chatbotProject.task.includes('managed') && chatbotProject.task.includes('fine-tuned') && chatbotProject.task.includes('citations'),
       'chatbot project STAR task should describe the dual-backend model comparison');
     assert(chatbotProject.actions.some((item) => item.includes('LoRA') && item.includes('SageMaker')) &&
            chatbotProject.actions.some((item) => item.includes('Bedrock backend') && item.includes('default live path')),
@@ -43403,7 +43600,7 @@ try {
     assert(chatbotHtml.includes("if (!retry) addMessage(ctx, 'user', prompt);") &&
            chatbotHtml.includes('if (!retry || ctx.prompt.value.trim() === prompt)') &&
            chatbotHtml.includes('if (!ctx.prompt.value.trim())') &&
-           chatbotHtml.includes('boundRetryButtons.has(button)'),
+           chatbotHtml.includes('boundMessageControls.has(button)'),
       'chatbot retry should avoid duplicate user messages, preserve newer drafts, and bind cloned view controls');
 
     assert(chatbotHtml.includes("console.log('[chatbot-demo] bedrock:token', text);"), 'chatbot-demo should log Bedrock stream tokens to the console');
@@ -43462,7 +43659,7 @@ try {
     assert(chatbotHtml.includes('[...ctx.suggestions, ...ctx.followups].forEach(button =>'), 'chatbot-demo readiness updates should include shortcut and follow-up buttons');
     assert(chatbotHtml.includes('button.disabled = !serverReady;'), 'chatbot-demo shortcut buttons should be disabled until the server is ready');
     assert(chatbotHtml.includes('if (!serverReady) return;'), 'chatbot-demo shortcut click handlers should guard against cold server state');
-    assert(chatbotHtml.includes('submitSuggestedPrompt(ctx, text);'), 'chatbot-demo shortcut buttons should auto-submit through the guarded prompt flow');
+    assert(chatbotHtml.includes("submitSuggestedPrompt(ctx, button.dataset.suggestionPrompt || button.textContent || '');"), 'chatbot-demo shortcut buttons should auto-submit through the guarded prompt flow');
     assert(chatbotHtml.includes('ctx.suggestions.push(button);'), 'chatbot-demo should register generated shortcut buttons');
     assert(chatbotHtml.includes('(data?.resource_suggestions || [])'), 'chatbot-demo should include API resource suggestions in source links');
     assert(chatbotHtml.includes('function renderAssistantAnswer(container, text, links, options = {})'), 'chatbot-demo should render formatted assistant answers through one source-aware path');
@@ -43478,7 +43675,7 @@ try {
     assert(chatbotHtml.includes('width: 100%;'), 'chatbot-demo follow-up question buttons should span the response width');
     assert(chatbotHtml.includes("source: 'recommended_followup'"), 'chatbot-demo follow-up context should identify recommended follow-ups');
     assert(chatbotHtml.includes('body.followup_context = followupContext'), 'chatbot-demo should submit follow-up context to the API');
-    assert(chatbotHtml.includes('submitSuggestedPrompt(ctx, text, decodeFollowupContext(button));'), 'chatbot-demo follow-up chips should submit through the guarded prompt flow');
+    assert(/submitSuggestedPrompt\(\s*ctx,\s*button\.dataset\.followupPrompt[^;]+decodeFollowupContext\(button\)/.test(chatbotHtml), 'chatbot-demo follow-up chips should submit through the guarded prompt flow');
     assert(chatbotHtml.includes('button.dataset.suggestionPrompt = text;') &&
            chatbotHtml.includes('button.dataset.followupPrompt = text;') &&
            chatbotHtml.includes('button.dataset.followupContext = JSON.stringify') &&
@@ -43589,7 +43786,7 @@ try {
     assert(portfolioHtml.includes('data-personal-accordion-shell') &&
       portfolioHtml.includes('data-personal-category="projects"') &&
       portfolioHtml.includes('<h1 id="personal-library-title-projects">Project library</h1>') &&
-      (portfolioHtml.match(/class="home-library__card"/g) || []).length === 16,
+      (portfolioHtml.match(/class="home-library__card(?: home-library__card--icon)?"/g) || []).length === 16,
       'personal portfolio should expose the isolated-category project library with all public projects');
     ['id="portfolio-carousel"', 'id="projects"', 'id="modals"', 'id="filters"',
       'portfolio-library-section', 'portfolio-ml-hero', 'portfolio-lab-panel', 'Project signals'].forEach((marker) => {

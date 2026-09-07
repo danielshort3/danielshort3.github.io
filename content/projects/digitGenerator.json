@@ -3,6 +3,7 @@
   "title": "Synthetic Digit Generator",
   "subtitle": "Variational Autoencoder",
   "image": "img/projects/digitGenerator.png",
+  "iconImage": "img/projects/icons/digitGenerator.png",
   "imageWidth": 1470,
   "imageHeight": 1470,
   "videoWebm": "img/projects/digitGenerator.webm",
@@ -55,6 +56,7 @@
     ]
   },
   "problem": "I wanted to generate new handwritten digits, not just recognize them.",
+  "task": "Train a generative model that can produce new MNIST-style digits from a learned latent space.",
   "actions": [
     "Trained a Variational Autoencoder (VAE) on MNIST (60,000 training digits) with a 20-dim latent space for up to 100 epochs."
   ],
@@ -91,5 +93,11 @@
     }
   },
   "order": 8,
-  "notes": "Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity."
+  "notes": "Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity.",
+  "mobilePreview": {
+    "image": "img/projects/digitGenerator-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Synthetic Digit Generator showing a generated four-by-four grid of handwritten digit variations."
+  }
 }

@@ -7,11 +7,11 @@
   }
 
   body[data-page="text-compare"]{
-    --textcompare-ins-bg:#00FF00;
-    --textcompare-ins-text:#000000;
-    --textcompare-del-bg:#FF0000;
-    --textcompare-del-text:#000000;
-    --textcompare-del-strike:#000000;
+    --textcompare-ins-bg:#DDF2EC;
+    --textcompare-ins-text:#091F3B;
+    --textcompare-del-bg:#FBE4E8;
+    --textcompare-del-text:#091F3B;
+    --textcompare-del-strike:#091F3B;
   }
 
   .textcompare-top-panel{
@@ -463,5 +463,64 @@
     .textcompare-format-details > summary::before{
       transition:none !important;
     }
+  }
+}
+
+@layer overrides {
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-workspace-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px 18px; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-workspace-toolbar .tool-workspace-tabs { margin: 0; border-bottom: 0; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-workspace-toolbar .tool-workspace-actions { margin: 0; justify-self: end; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-legend { display: none; grid-column: 1 / -1; grid-row: 2; margin: 0; gap: 14px; font-size: 13px; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace:has(#textcompare-view-comparison:not([hidden])) .textcompare-legend { display: flex; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .diff-pill { padding: 0 0 3px; border: 0; border-radius: 0; background: transparent; color: var(--workspace-ink); }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .diff-pill-ins { border-bottom: 2px solid #39a677; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .diff-pill-del { border-bottom: 2px solid #d86872; text-decoration: line-through; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .diff-pill-rep { border-bottom: 2px dotted #7d77ca; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: var(--frame-section-gap, 20px); }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field { display: flex; flex-direction: column; min-width: 0; gap: 0; border: 1px solid var(--workspace-border); border-radius: 5px; overflow: hidden; background: #fff; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field-head { flex: 0 0 auto; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--workspace-border); gap: 8px; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field-actions { width: auto; justify-content: flex-end; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-label { color: var(--workspace-ink); font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-textarea { flex: 1 0 auto; width: 100%; height: 220px; min-height: 220px; margin: 0; border: 0; border-radius: 0; resize: vertical; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field-status:not(:empty) { padding: 8px 14px; margin: 0; color: var(--workspace-muted); }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field-status:empty { display: none; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace :is(.textcompare-settings, .textcompare-format-details) { margin: 20px 0 0; padding: 13px 16px; border: 1px solid var(--workspace-border); border-radius: 5px; background: #fff; box-shadow: none; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace :is(.textcompare-settings, .textcompare-format-details) summary { color: var(--workspace-ink); font-weight: 600; cursor: pointer; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-mode-switch { margin-top: 14px; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-mode-option { padding: 9px 13px; border: 1px solid var(--workspace-border); border-radius: 5px; background: #fff; color: var(--workspace-ink); box-shadow: none; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-mode-option:has(:checked) { border-color: var(--workspace-accent); background: #eef8f8; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace :is(.textcompare-settings-help, .textcompare-format-hint, .textcompare-note, .textcompare-summary, .textcompare-copy-status, .textcompare-format-label) { color: var(--workspace-muted); font-size: 13px; line-height: 1.5; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-results-card { margin: 0; padding: 0; border: 0; background: #fff; overflow: visible; max-height: none; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-output { box-sizing: border-box; flex: 1 0 auto; height: 280px; min-height: 280px; max-height: none; padding: var(--workspace-card-padding); margin-top: 20px; border: 1px solid var(--workspace-border); border-radius: 5px; background: #fff; color: var(--workspace-ink); box-shadow: none; overflow: auto; resize: vertical; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-workspace-footer { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--workspace-border); }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-workspace-status { flex: 1 1 200px; margin: 0; font-family: inherit; font-size: 14px; color: var(--workspace-muted); }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-mode-summary { display: block; margin: 4px 0 0 14px; font-size: 12px; font-weight: 400; color: var(--workspace-muted); }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-warning:empty { display: none; }
+  /* Grow the working area after the header, settings and footer take their
+     natural height. Resizing an editor or opening settings can still extend
+     the frame's scrollable content rather than clipping its controls. */
+  body[data-page="text-compare"][data-tools-layout] .site-frame[data-frame-fit="viewport"][data-frame-compact="false"] .site-frame__body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  body[data-page="text-compare"][data-tools-layout] .site-frame[data-frame-compact="false"] .personal-tool-header { flex: 0 0 auto; }
+  body[data-page="text-compare"][data-tools-layout] .site-frame[data-frame-compact="false"] :is(#main, .tool-workspace--compare, #textcompare-form, .tool-workspace-panel:not([hidden])) {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+  body[data-page="text-compare"][data-tools-layout] .site-frame[data-frame-compact="false"] .textcompare-grid { flex: 1 0 auto; }
+  body[data-page="text-compare"][data-tools-layout] .site-frame[data-frame-compact="false"] #textcompare-form > :not(.tool-workspace-panel) { flex: 0 0 auto; }
+  @container site-content (max-width: 760px) {
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-workspace-toolbar { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-grid { grid-template-columns: minmax(0, 1fr); }
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-workspace-toolbar .tool-workspace-actions { display: grid; grid-template-columns: auto auto minmax(0, 1fr); width: 100%; margin: 0; gap: 6px; }
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-workspace-toolbar .tool-workspace-actions button { padding-inline: 10px; }
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-legend { grid-row: 3; gap: 12px; }
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field-head { padding: 8px 10px; }
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field-actions { gap: 6px; }
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field-btn { padding-inline: 8px; }
   }
 }

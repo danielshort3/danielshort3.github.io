@@ -153,7 +153,8 @@ function scaffoldProject(args) {
     PROJECT_TITLE: title,
     PROJECT_SUBTITLE: '',
     PROJECT_IMAGE_ALT: `Preview image for ${title}`,
-    PROJECT_PROBLEM: ''
+    PROJECT_PROBLEM: '',
+    PROJECT_TASK: ''
   });
 
   log(snippet.trimEnd());

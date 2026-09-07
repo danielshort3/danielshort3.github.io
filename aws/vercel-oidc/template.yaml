@@ -140,6 +140,11 @@ Resources:
                   - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksTableName}/index/*'
                   - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksClicksTableName}'
                   - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksClicksTableName}/index/*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:ConditionCheckItem
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksClicksTableName}'
       Tags:
         - Key: Application
           Value: website

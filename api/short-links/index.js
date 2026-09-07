@@ -4,10 +4,13 @@
 */
 'use strict';
 
+const { serializeLink, normalizeTags, normalizeQrDesign, buildAnalyticsReport } = require('../_lib/short-links-management');
+
 const {
   isSlugConflictError,
   listLinks,
   listLinksPage,
+  listAnalyticsEvents,
   upsertLink
 } = require('../_lib/short-links-store');
 const {
@@ -15,8 +18,7 @@ const {
   MAX_RANDOM_LENGTH,
   MIN_RANDOM_LENGTH,
   generateRandomSlug,
-  getAdminToken,
-  isAdminRequest,
+  authorizeAdminRequest,
   sendJson,
   readJson,
   normalizeSlug,
@@ -27,31 +29,12 @@ const {
 
 const RANDOM_SLUG_RETRY_LIMIT = 40;
 
-function serializeLink(record, fallbackSlug, fallbackUpdatedAt){
-  return {
-    slug: typeof record?.slug === 'string' ? record.slug : fallbackSlug,
-    destination: typeof record?.destination === 'string' ? record.destination : '',
-    permanent: !!record?.permanent,
-    expiresAt: Number.isFinite(Number(record?.expiresAt)) ? Number(record.expiresAt) : 0,
-    disabled: !!record?.disabled,
-    createdAt: typeof record?.createdAt === 'string' ? record.createdAt : fallbackUpdatedAt,
-    updatedAt: typeof record?.updatedAt === 'string' ? record.updatedAt : fallbackUpdatedAt,
-    clicks: Number.isFinite(Number(record?.clicks)) ? Number(record.clicks) : 0,
-    label: typeof record?.label === 'string' ? record.label : '',
-    templateId: typeof record?.templateId === 'string' ? record.templateId : '',
-    templateTitle: typeof record?.templateTitle === 'string' ? record.templateTitle : '',
-    batchId: typeof record?.batchId === 'string' ? record.batchId : '',
-    batchTitle: typeof record?.batchTitle === 'string' ? record.batchTitle : '',
-    contextType: typeof record?.contextType === 'string' ? record.contextType : '',
-    contextEntryId: typeof record?.contextEntryId === 'string' ? record.contextEntryId : '',
-    contextCompany: typeof record?.contextCompany === 'string' ? record.contextCompany : '',
-    contextTitle: typeof record?.contextTitle === 'string' ? record.contextTitle : ''
-  };
-}
 
 function buildMetadata(body){
   return {
     label: body?.label,
+    tags: typeof body?.tags === 'undefined' ? undefined : normalizeTags(body.tags),
+    qrDesign: typeof body?.qrDesign === 'undefined' ? undefined : normalizeQrDesign(body.qrDesign),
     templateId: body?.templateId,
     templateTitle: body?.templateTitle,
     batchId: body?.batchId,
@@ -80,7 +63,8 @@ function getSlugConflict(lowerSlugMap, slug){
 }
 
 async function resolveRequestedSlug(body, lowerSlugMap){
-  const slugMode = typeof body?.slugMode === 'string' ? body.slugMode.trim().toLowerCase() : '';
+  const slugMode = typeof body?.slugMode === 'string' ? body.slugMode.trim().toLowerCase() :
+    (body?.intent === 'create' && !body?.slug ? 'random' : '');
   const randomLength = normalizeRandomLength(body?.randomLength, DEFAULT_RANDOM_LENGTH);
   const manualSlug = normalizeSlug(body?.slug);
 
@@ -107,7 +91,7 @@ async function resolveRequestedSlug(body, lowerSlugMap){
   }
 
   const conflict = getSlugConflict(lowerSlugMap, manualSlug);
-  if (conflict && String(conflict.slug || '') !== manualSlug) {
+  if (conflict && (body?.intent === 'create' || String(conflict.slug || '') !== manualSlug)) {
     const err = new Error(`Slug conflicts with existing link "${conflict.slug}"`);
     err.statusCode = 409;
     throw err;
@@ -249,19 +233,41 @@ function applyListQuery(links, params){
   };
 }
 
+async function handleAnalytics(req, res, params){
+  const days = getQueryValue(params, 'days') || '30';
+  if (!['7', '30', '90', 'all'].includes(days)) {
+    sendJson(res, 400, { ok: false, error: 'Choose 7, 30, 90, or all days' });
+    return;
+  }
+  const requestedSlug = getQueryValue(params, 'slug');
+  if (requestedSlug && !normalizeSlug(requestedSlug)) {
+    sendJson(res, 400, { ok: false, error: 'Invalid link ending' });
+    return;
+  }
+  try {
+    let links = await listLinks();
+    if (requestedSlug) links = links.filter(link => normalizeSlugLower(link.slug) === normalizeSlugLower(requestedSlug));
+    if (requestedSlug && !links.length) {
+      sendJson(res, 404, { ok: false, error: 'Link not found' });
+      return;
+    }
+    const slug = requestedSlug ? links[0].slug : '';
+    const history = await listAnalyticsEvents({ slug });
+    sendJson(res, 200, { ok: true, analytics: buildAnalyticsReport({ links, ...history, slug, days }) });
+  } catch (err) {
+    sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'Analytics history is unavailable' });
+  }
+}
+
 async function handler(req, res){
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
-    return;
-  }
+  if (!await authorizeAdminRequest(req, res)) return;
 
   if (req.method === 'GET') {
     const params = getRequestUrl(req).searchParams;
+    if (getQueryValue(params, 'view') === 'analytics') {
+      await handleAnalytics(req, res, params);
+      return;
+    }
     if (getQueryValue(params, 'pageMode').toLowerCase() === 'storage') {
       const unsupportedParam = ['q', 'status', 'sort'].find(key => getQueryValue(params, key));
       if (unsupportedParam) {
@@ -343,6 +349,7 @@ async function handler(req, res){
     let body;
     try {
       body = await readJson(req);
+      if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('Invalid body');
     } catch {
       sendJson(res, 400, { ok: false, error: 'Invalid JSON body' });
       return;
@@ -364,6 +371,13 @@ async function handler(req, res){
     }
 
     let slug = requestedSlug.slug;
+    let metadata;
+    try {
+      metadata = buildMetadata(body);
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err.message });
+      return;
+    }
     const destination = normalizeDestination(body.destination, { absolutizeInternalPath: true });
     const permanent = !!body.permanent;
     const hasExpiresAt = !!(body && Object.prototype.hasOwnProperty.call(body, 'expiresAt'));
@@ -404,7 +418,8 @@ async function handler(req, res){
           permanent,
           expiresAt: permanent ? 0 : (hasExpiresAt ? expiresAt : undefined),
           updatedAt: now,
-          metadata: buildMetadata(body)
+          metadata,
+          createOnly: body.intent === 'create' || requestedSlug.generated
         });
       } catch (err) {
         if (err.code === 'DDB_ENV_MISSING') {

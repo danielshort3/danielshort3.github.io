@@ -38,14 +38,8 @@ function createHarness() {
     return elements.get(id);
   };
   const window = {
-    DemoAws: {
-      resolveEndpoint: () => '/api/demos/pizza-tips/',
-      listCandidates: () => ['/api/demos/pizza-tips/'],
-      rememberEndpoint() {},
-      healthJson: async () => ({ ok: true }),
-      warmupJson: async () => ({ ok: true }),
-      retryRequest: (operation) => operation(),
-      postWithFallback: async (url, paths, payload) => {
+    PizzaTipsRuntime: {
+      predict: async (payload) => {
         requests.push(payload);
         if (pendingResponses.length) return pendingResponses.shift()(payload);
         return prediction(payload);
@@ -75,7 +69,7 @@ async function run() {
   const harness = createHarness();
   await flush();
   const { getElement, requests, evaluate, pendingResponses, heatRenders } = harness;
-  assert.strictEqual(requests.length, 1, 'The computed example makes one prediction request');
+  assert.strictEqual(requests.length, 1, 'The computed example makes one local prediction');
   assert(!requests[0].grid, 'The initial prediction must not compute the 576-point grid');
   assert.strictEqual(getElement('tip-amount').textContent, '$5.25');
   assert.strictEqual(getElement('tip-percent').textContent, '15.0%');

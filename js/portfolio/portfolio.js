@@ -2050,6 +2050,9 @@ function buildPortfolioWorkbench(routeRoot = document, options = {}) {
   const filteredProjects = () => sortProjects(allProjects.filter(projectMatchesFilters));
 
   const renderWorkbenchMedia = (project = {}) => {
+    if (project.iconImage) {
+      return `<span class="portfolio-result-card__icon"><img src="${escapeHtml(project.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async"></span>`;
+    }
     if (project.image) {
       if (project.imageResponsive === false) {
         const width = Number(project.imageWidth) > 0 ? ` width="${Number(project.imageWidth)}"` : '';
@@ -2064,9 +2067,6 @@ function buildPortfolioWorkbench(routeRoot = document, options = {}) {
         draggable: false,
         sizes: '(max-width: 820px) 92vw, 280px'
       });
-    }
-    if (project.iconImage) {
-      return `<span class="portfolio-result-card__icon"><img src="${escapeHtml(project.iconImage)}" alt="" loading="lazy" decoding="async"></span>`;
     }
     if (project.iconHtml) {
       return `<span class="portfolio-result-card__icon">${project.iconHtml}</span>`;
@@ -2097,8 +2097,8 @@ function buildPortfolioWorkbench(routeRoot = document, options = {}) {
       if (!isDirectoryWorkbench) {
         const selected = project.id === state.selectedId;
         return `
-          <article class="portfolio-result-card portfolio-project-result${selected ? ' is-selected' : ''}${isAudienceScopedView ? ' portfolio-project-result--professional' : ''}" role="listitem" data-project-id="${escapeHtml(project.id)}">
-            <span class="portfolio-result-card__media${project.image ? '' : ' portfolio-result-card__media--icon'}" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
+          <article class="portfolio-result-card portfolio-project-result${project.iconImage ? ' portfolio-project-result--icon' : ''}${selected ? ' is-selected' : ''}${isAudienceScopedView ? ' portfolio-project-result--professional' : ''}" role="listitem" data-project-id="${escapeHtml(project.id)}">
+            <span class="portfolio-result-card__media${project.iconImage || !project.image ? ' portfolio-result-card__media--icon' : ''}" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
             <div class="portfolio-result-card__body">
               <h2 class="portfolio-result-card__title">${escapeHtml(project.title)}</h2>
               <p class="portfolio-result-card__outcome"><span>Outcome</span>${escapeHtml(getProfessionalOutcome(project))}</p>

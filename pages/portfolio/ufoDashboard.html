@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/ufoDashboard.png">
   <meta name="twitter:image:alt" content="Preview image for UFO Sightings Dashboard">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.40f7dbbd.css">
+  <link rel="stylesheet" href="dist/styles.81f47dfb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -36,17 +36,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script id="ds-sw-register">
-  (function () {
-    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-    if (new URLSearchParams(window.location.search).has("no_sw")) return;
-    var host = window.location.hostname || "";
-    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function () {});
-    });
-  })();
-  </script>
+  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -65,12 +55,12 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.2090cb2c.js"></script>
-  <link rel="stylesheet" href="dist/styles-personal-accordion.b4b0114f.css">
+  <script defer src="dist/site-shell.8928284a.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.16c6538c.css">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/portfolio/ufoDashboard#webpage","url":"https://www.danielshort.me/portfolio/ufoDashboard","name":"UFO Sightings Dashboard | Daniel Short","description":"Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/projects/ufoDashboard.png"},"mainEntity":{"@id":"https://www.danielshort.me/portfolio/ufoDashboard#project"},"breadcrumb":{"@id":"https://www.danielshort.me/portfolio/ufoDashboard#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/portfolio/ufoDashboard#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"UFO Sightings Dashboard","item":"https://www.danielshort.me/portfolio/ufoDashboard"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:ufoDashboard","path":"/portfolio/ufoDashboard","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.40f7dbbd.css","/css/components/project-page.css","/dist/styles-personal-accordion.b4b0114f.css"],"scripts":["/js/common/no-js.js","/dist/site-shell.2090cb2c.js","/dist/site-consent.5fbd7df8.js"],"module":"page:content"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:ufoDashboard","path":"/portfolio/ufoDashboard","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.81f47dfb.css","/css/components/project-page.css","/dist/styles-personal-accordion.16c6538c.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.8928284a.js","/dist/site-consent.ab1759e7.js"],"module":"page:content"}</script>
 </head>
 <body data-page="project" class="project-page project-page--compact personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="ufoDashboard" data-personal-fit="viewport" data-site-route-id="projects:ufoDashboard" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
   <a href="/portfolio/ufoDashboard#main" class="skip-link">Skip to main content</a>
@@ -148,11 +138,14 @@
       </div>
       <div class="personal-accordion__content" data-personal-detail-content>
         <!-- personal-accordion-content:start -->
-<main id="main" class="project-main project-main--compact">
+<main id="main" class="project-main project-main--compact project-main--dashboard">
     <section class="project-hero project-hero--compact">
       <div class="wrapper">
         <h1>UFO Sightings Dashboard</h1>
         <p class="project-subtitle">Tableau Geospatial Analytics</p>
+        <nav class="project-intro-actions" aria-label="Project actions">
+        <a class="project-intro-action project-intro-action--demo" href="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:showVizHome=no&amp;:embed=y" target="_blank" rel="noopener noreferrer" data-content-open="true" data-content-id="ufoDashboard" data-content-type="project_resource" data-resource-type="demo" data-source-surface="project_intro">Open dashboard</a>
+      </nav>
       </div>
     </section>
 
@@ -167,7 +160,7 @@
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Task</dt>
-          <dd class="project-star-value">Owned the end-to-end build, from implementation through the final deliverable.</dd>
+          <dd class="project-star-value">Create a Tableau dashboard for exploring geographic, seasonal, and time-of-day patterns in reported UFO sightings.</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Action</dt>
@@ -192,7 +185,9 @@
         <section class="project-demo-shell" data-demo-fit="dashboard" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
-        <div class="project-demo-help">
+        <div class="project-demo-header-actions">
+          <a class="project-demo-open" href="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:showVizHome=no&amp;:embed=y" target="_blank" rel="noopener noreferrer">Open dashboard</a>
+          <div class="project-demo-help">
           <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-ufoDashboard-instructions">
             <span aria-hidden="true">?</span>
           </button>
@@ -206,13 +201,20 @@
       </ul>
           </div>
         </div>
+        </div>
       </div>
 
       <div class="project-demo-panels">
         <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
+            <div class="project-demo-mobile-launch">
+          <img class="project-demo-launch-image" src="img/projects/ufoDashboard-preview.webp?v=e114cab706b1" alt="UFO Sightings Dashboard showing state and city maps, sighting counts, shape trends, and a time-of-day heatmap." loading="lazy" decoding="async" width="1280" height="800">
+          <div class="project-demo-launch-copy">
+            <a class="btn-primary" href="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:showVizHome=no&amp;:embed=y" target="_blank" rel="noopener noreferrer">Open dashboard</a>
+          </div>
+        </div>
             <div class="project-media project-embed project-embed-tableau project-embed-ufodashboard" data-project-embed="ufoDashboard" data-embed-fit="dashboard">
-        <iframe class="project-embed-frame" src="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:showVizHome=no&amp;:embed=y" title="UFO Sightings Dashboard interactive dashboard" loading="lazy" allowfullscreen></iframe>
+        <iframe class="project-embed-frame" data-src="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:showVizHome=no&amp;:embed=y&amp;:device=desktop" title="UFO Sightings Dashboard interactive dashboard" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
         </section>
@@ -222,7 +224,6 @@
       <h2 class="section-title" id="ufoDashboard-links-title">Links</h2>
       <div class="project-links-groups project-links-groups--flat">
         <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&amp;:display_count=n&amp;:origin=viz_share_link" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/tableau-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Interactive Dashboard</span></a>
         <a class="project-link" role="listitem" href="https://nuforc.org/databank/" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">NUFORC Database</span></a>
       </div>
       </div>
@@ -250,6 +251,6 @@
     </div>
   </footer>
 
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>
 </html>

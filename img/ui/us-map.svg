@@ -1,25 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="959" height="593">
   <title>Blank map of the United States, territories not included</title>
-<defs>
-<style type="text/css">
-.state {fill:#D0D0D0}                        /* default color for all states not specified below */
-.borders {stroke:#FFFFFF; stroke-width:1}    /* color and width of borders between states */
-.dccircle {display:yes}                      /* set display to yes to show the circle for the District of Columbia, or none to hide it */
-.separator1 {stroke:#B0B0B0; stroke-width:2} /* color and width of lines around Alaska and Hawaii */
-
-/* Individual states can be colored as follows:
-.ks,.mt,.pa {fill:#0000FF}
-.ca,.de {fill:#FF0000}
-In this example, Kansas, Montana and Pennsylvania are colored blue, and California and Delaware are colored red.
-Place this code in the empty space below. */
-
-
-
-</style>
-</defs>
-
-<g class="state">
+<g class="state" fill="#D0D0D0">
 
 <path class="al" d="m 643,467.4 .4,-7.3 -.9,-1.2 -1.7,-.7 -2.5,-2.8 .5,-2.9 48.8,-5.1 -.7,-2.2 -1.5,-1.5 -.5,-1.4 .6,-6.3 -2.4,-5.7 .5,-2.6 .3,-3.7 2.2,-3.8 -.2,-1.1 -1.7,-1 v -3.2 l -1.8,-1.9 -2.9,-6.1 -12.9,-45.8 -45.7,4 1.3,2 -1.3,67 4.4,33.2 .9,-.5 1.3,.1 .6,.4 .8,-.1 2,-3.8 v -2.3 l 1.1,-1.1 1.4,.5 3.4,6.4 v .9 l -3.3,2.2 3.5,-.4 4.9,-1.6 z">
 <title>Alabama</title></path>
@@ -178,7 +160,7 @@ Place this code in the empty space below. */
 
 </g>
 
-<g class="borders" fill="none">
+<g class="borders" fill="none" stroke="#FFFFFF" stroke-width="1">
 <path class="al-fl" d="m 687.6,447.4 -48.8,5.1 -.5,2.9 2.5,2.8 1.7,.7 .9,1.2 -.4,7.3 -1.1,.6"/>
 <path class="al-ga" d="m 666.6,361.1 12.9,45.8 2.9,6.1 1.8,1.9 v 3.2 l 1.7,1 .2,1.1 -2.2,3.8 -.3,3.7 -.5,2.6 2.4,5.7 -.6,6.3 .5,1.4 1.5,1.5 .7,2.2"/>
 <path class="al-ms" d="m 620.9,365.1 1.3,2 -1.3,67 4.4,33.2"/>
@@ -291,6 +273,6 @@ Place this code in the empty space below. */
 <circle class="state borders dccircle dc" cx="801.6" cy="252.1" r="5">
 <title>District of Columbia</title></circle>
 
-<path class="separator1" fill="none" d="m 215,493 v 55 l 36,45 m -251,-168 h 147 l 68,68 h 85 l 54,54 v 46"/>
+<path class="separator1" fill="none" stroke="#B0B0B0" stroke-width="2" d="m 215,493 v 55 l 36,45 m -251,-168 h 147 l 68,68 h 85 l 54,54 v 46"/>
 
 </svg>

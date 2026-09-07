@@ -4,7 +4,7 @@
   "href": "tools/campaign-creative-tracker",
   "iconImage": "img/tools/icons/campaign-creative-tracker.png",
   "categoryId": "tools-marketing",
-  "privacy": "Runs in your browser. Creative previews and campaign planning data stay on this device.",
+  "privacy": "Planning runs in your browser. Saving a session uploads campaign planning data and available results to your account; local creative files are excluded.",
   "inputs": [
     "Creative families, rendition files, destinations, controlled UTM values, and testing rules"
   ],

@@ -1,0 +1,17 @@
+Asset: about-ai-network-v1.webp
+Selected concept: AI1, top-left neural-network diagram from ai-alternatives-v2.png.
+Created: 2026-09-06
+Generation: OpenAI built-in image_gen tool, precise-object edit from the selected concept sheet.
+Reference sheet: C:\Users\clopt\.codex\visualizations\2026\09\06\01a074c8-5b1d-7231-8c0d-a69a02e98840\about-interest-styles\ai-alternatives-v2.png
+Original final generated output: C:/Users/clopt/.codex/generated_images/01a07885-d9b5-7da0-bd70-b7950cc46854/exec-ff91de7a-68b2-433f-9f22-77da120d94c0.png
+Archived unchanged original: C:\Users\clopt\.codex\visualizations\2026\09\06\01a074c8-5b1d-7231-8c0d-a69a02e98840\about-interest-styles\about-ai-network-v1-original.png
+Encoding: resized to 512 x 512, WebP quality 94. No manual pixel background edits or artwork redrawing.
+Background: opaque white, matching the installed Family and French horn icon tiles.
+Approved composition: 3 blue input nodes, 2 white middle nodes, 1 orange output node, navy connectors and curved highlights.
+Prompt:
+Use case: precise-object-edit.
+Asset type: final website About interest icon on a white square background.
+Edit target: attached comparison sprite sheet. Isolate ONLY the exact TOP-LEFT selected illustration labeled AI1, and remove the label and all surrounding board content.
+Subject and strict invariants: the small layered neural-network diagram has EXACTLY SIX circular nodes arranged in three columns: THREE vivid blue nodes stacked vertically at LEFT; TWO white/light-gray nodes at MIDDLE; and ONE orange node at RIGHT. Six navy diagonal/angled connection lines link every left blue node to each of the two middle white nodes. Two navy diagonal lines link those middle nodes to the one right orange node. Nodes are in front of their connector lines. Preserve the exact selected AI1 layout, proportions, circular node shapes, dark navy outlines, blue/orange/white palette, subtle curved highlights and softly shaded edges, connector geometry, relative node size, and illustration style. No redesign or new objects.
+Primary request: extract and cleanly enlarge this approved AI1 illustration by itself. Square canvas, entire network centered with balanced empty margins; network about 82 percent of canvas width. All nodes, outlines, and connections fully uncropped.
+Background: completely uniform solid white (#ffffff), including the empty spaces between connections. No transparent request, no checkerboard, no gray card, no panel border, no labels, no AI1 text, no title, no watermark, and no other sheet icons.

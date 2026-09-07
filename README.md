@@ -64,6 +64,25 @@ Use a different port:
 npm run dev -- --port 4173
 ```
 
+The local server loads `.env.local`, then `.env`, from the repository root. Existing shell variables take precedence, and `.env.local` overrides `.env`. Restart the server after changing these files. The same loading applies to `createLocalServer()` when starting a QA server directly.
+
+Tools sign-in also requires an exact Cognito callback for the local hostname and port. See [Tools sign-in on localhost](docs/tools-local-sign-in.md) for the callback setup helper and local backend configuration.
+
+Empty-Package Shrink, Store-Level Loss & Sales, COVID Outbreak Drivers, Pizza Tips, and Baby Names run in the browser using bundled data or calculations. Sheet Music's image comparison and Delivery Tip's project presentation also use site assets. Their twelve project downloads are tracked under an explicit `documents/` allowlist and copied into `public/`; no AWS credentials are needed for these seven project experiences. The underlying Sheet Music desktop workflow and Excel analysis remain local authoring workflows.
+
+The remaining AWS-backed model demos need their `DEMO_*_FUNCTION_ARN` configured locally. For example, add the following to the ignored `.env.local`, replacing the ARN with the demo's qualified Lambda alias:
+
+```dotenv
+AWS_AUTH_MODE=auto
+DEMO_AWS_REGION=us-east-2
+DEMO_REQUIRE_DDB_RATE_LIMIT=false
+DEMO_SHAPE_FUNCTION_ARN=arn:aws:lambda:us-east-2:<account-id>:function:shape-classifier:live
+```
+
+Use your local AWS profile with permission to invoke that alias (`aws sts get-caller-identity` checks the login). Leave `DEMO_INVOKE_AWS_ROLE_ARN` unset locally so the AWS SDK uses your local credentials; that role is for Vercel OIDC. The server does not load `.vercel/.env.production.local` or other deployment environment files.
+
+The travel chatbot uses `/api/chatbot-demo/bedrock/status` and the corresponding `/api/chatbot-demo/qwen/*` routes on local hosts. The development server forwards only the chatbot's supported status, warmup, submit, and result requests to its fixed API Gateway, so changing the local port does not require an AWS CORS update. Bedrock answers stream through `/api/chatbot-stream`; set `CHATBOT_STREAM_FUNCTION_ARN` in `.env.local` to the qualified `VGJBedrockStream:live` alias, set `CHATBOT_STREAM_AWS_REGION` to the alias region (`us-east-2`), and use a local AWS profile permitted to invoke it.
+
 ### Google Maps embed
 
 The contact page location map is upgraded during `npm run build` with the Google Maps Embed API. For local builds, put the key in `google_maps_api_key.txt` at the repo root or set `GOOGLE_MAPS_API_KEY`; for Vercel, set `GOOGLE_MAPS_API_KEY` as an environment variable. Do not commit the key file.

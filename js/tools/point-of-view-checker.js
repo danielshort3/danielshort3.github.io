@@ -480,10 +480,18 @@
 
   const getCurrentMode = () => (modeAdvancedInput?.checked ? 'advanced' : 'basic');
 
+  const updateWorkspaceSummary = () => {
+    const summary = $('#povcheck-settings-summary');
+    if (!summary) return;
+    const words = textInput.value.trim() ? textInput.value.trim().split(/\s+/).length : 0;
+    summary.textContent = `${getCurrentMode() === 'advanced' ? 'Advanced rules' : 'Default rules'} · ${words ? `${formatNumber(words)} words` : 'Add text to begin'}`;
+  };
+
   const syncModeUi = () => {
     const advanced = getCurrentMode() === 'advanced';
     if (advancedPanel) advancedPanel.hidden = !advanced;
     form.dataset.mode = advanced ? 'advanced' : 'basic';
+    updateWorkspaceSummary();
   };
 
   const normalizeMultiline = (value, maxLen) => String(value || '')
@@ -973,6 +981,8 @@
   };
 
   const renderCounts = (analysis) => {
+    const stats = $('#povcheck-stats');
+    if (stats) stats.hidden = !analysis.hasText;
     firstCount.textContent = formatNumber(analysis.groups.first.total);
     secondCount.textContent = formatNumber(analysis.groups.second.total);
     thirdCount.textContent = formatNumber(analysis.groups.third.total);
@@ -995,6 +1005,7 @@
   };
 
   const renderAnalysis = (analysis) => {
+    [copyResultsBtn, exportCsvBtn, exportJsonBtn, copyHtmlBtn].forEach((button) => { if (button) button.disabled = !analysis.hasText; });
     ensureActiveTokenExists(analysis);
     renderCounts(analysis);
     renderSummary(analysis);
@@ -1006,6 +1017,10 @@
     hasRun = false;
     lastAnalysis = null;
     activeTokenFilter = null;
+    const stats = $('#povcheck-stats');
+    if (stats) stats.hidden = true;
+    [copyResultsBtn, exportCsvBtn, exportJsonBtn, copyHtmlBtn].forEach((button) => { if (button) button.disabled = true; });
+    updateWorkspaceSummary();
 
     [firstCount, secondCount, thirdCount].forEach((el) => {
       el.textContent = '0';
@@ -1029,6 +1044,7 @@
   };
 
   const runAnalysis = () => {
+    updateWorkspaceSummary();
     const input = getEffectiveInput();
     const config = getEffectiveConfig();
 
@@ -1269,6 +1285,7 @@
 
     setTokenFilter(token, pov);
     renderAnalysis(lastAnalysis);
+    window.ToolWorkspace?.selectTab('povcheck-results-highlights', { focus: false });
     markSessionDirty();
   };
 
@@ -1282,7 +1299,9 @@
 
     if (!target) return;
 
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.ToolWorkspace?.selectTab('povcheck-results-highlights', { focus: false });
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
     target.classList.add('povcheck-mark-focus');
     setTimeout(() => {
       target.classList.remove('povcheck-mark-focus');
@@ -1878,6 +1897,8 @@
     event.preventDefault();
     try {
       const analysis = runAnalysis();
+      if (inputStatusEl?.dataset.tone === 'success') setInputStatus('');
+      window.ToolWorkspace?.selectTab('povcheck-results-highlights', { focus: false });
       markSessionDirty();
       if (!analysis?.hasText) reportRunError('validation');
       else reportRunComplete(analysis.total ? 'with_findings' : 'no_findings');
@@ -1888,6 +1909,7 @@
   });
 
   form.addEventListener('input', () => {
+    updateWorkspaceSummary();
     markSessionDirty();
   });
 
@@ -1919,6 +1941,8 @@
   });
 
   clearBtn?.addEventListener('click', () => {
+    window.ToolWorkspace?.selectTab('povcheck-setup-text', { focus: false });
+    window.ToolWorkspace?.selectTab('povcheck-results-highlights', { focus: false });
     textInput.value = '';
     setInputStatus('');
     setResultsStatus('');
@@ -1955,6 +1979,7 @@
   });
 
   exampleBtn?.addEventListener('click', () => {
+    window.ToolWorkspace?.selectTab('povcheck-setup-text', { focus: false });
     textInput.value = POV_EXAMPLE;
     setInputStatus('Example loaded. Choose Check to analyze.', 'success');
     setResultsStatus('');
@@ -2047,6 +2072,10 @@
   });
 
   syncHighlightControls();
+  [copyResultsBtn, exportCsvBtn, exportJsonBtn, copyHtmlBtn].forEach((button) => button?.addEventListener('click', () => {
+    const menu = button.closest('details');
+    if (menu) menu.open = false;
+  }));
   renderPresetOptions('');
   applyConfigFromUrlIfPresent();
   syncModeUi();

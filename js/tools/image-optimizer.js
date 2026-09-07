@@ -15,6 +15,7 @@
   const qualityWrap = $('#imgopt-quality-wrap');
   const qualityInput = $('#imgopt-quality');
   const qualityValue = $('#imgopt-quality-value');
+  const keepSmallerInput = $('#imgopt-keep-smaller');
 
   const flattenWrap = $('#imgopt-flatten-wrap');
   const flattenInput = $('#imgopt-flatten');
@@ -40,6 +41,11 @@
   const resultsEl = $('#imgopt-results');
   const downloadAllBtn = $('#imgopt-download-all');
   const processBtn = $('#imgopt-process');
+  const queueEl = $('#imgopt-queue');
+  const downloadNote = $('#imgopt-download-note');
+  const settingsFormat = $('#imgopt-summary-format');
+  const settingsResize = $('#imgopt-summary-resize');
+  const settingsNaming = $('#imgopt-summary-naming');
 
   if (!fileInput || !dropzone || !fileList || !form || !formatSelect || !resultsEl) return;
 
@@ -101,6 +107,8 @@
           ? 'ready'
           : 'empty';
     if (document.body) document.body.dataset.toolsState = nextState;
+    if (queueEl) queueEl.hidden = state.items.length === 0;
+    if (downloadNote) downloadNote.hidden = state.outputs.length === 0;
   };
 
   const formatBytes = (bytes) => {
@@ -269,6 +277,33 @@
     flattenColorLabel.textContent = (flattenColor.value || '#000000').toLowerCase();
   };
 
+  const updateSettingsSummary = () => {
+    const selected = formatSelect.value || 'keep';
+    const formatLabel = selected === 'keep' ? 'Keep original' : labelForMime(selected);
+    if (settingsFormat) {
+      settingsFormat.textContent = selected === 'image/png'
+        ? formatLabel
+        : `${formatLabel} · Quality ${qualityInput?.value || '82'}`;
+    }
+    const mode = resizeMode?.value || 'none';
+    let resizeLabel = 'No resize';
+    if (responsiveInput?.checked) {
+      resizeLabel = `Responsive widths: ${responsiveWidthsInput?.value || 'none specified'}`;
+    } else if (mode === 'maxWidth') {
+      resizeLabel = `Max width ${widthInput?.value || '—'} px`;
+    } else if (mode === 'maxHeight') {
+      resizeLabel = `Max height ${heightInput?.value || '—'} px`;
+    } else if (mode === 'fit' || mode === 'exact') {
+      resizeLabel = `${mode === 'fit' ? 'Fit within' : 'Exact size'} ${widthInput?.value || '—'} × ${heightInput?.value || '—'} px`;
+    } else if (mode === 'scale') {
+      resizeLabel = `Scale ${scaleInput?.value || '—'}%`;
+    }
+    if (keepAspectInput?.checked && (mode !== 'none' || responsiveInput?.checked)) resizeLabel += ' · Keep aspect ratio';
+    if (noUpscaleInput?.checked && (mode !== 'none' || responsiveInput?.checked)) resizeLabel += ' · Prevent upscaling';
+    if (settingsResize) settingsResize.textContent = resizeLabel;
+    if (settingsNaming) settingsNaming.textContent = `Suffix: ${normalizeSuffix(suffixInput?.value) || 'none'}`;
+  };
+
   const setStatus = (msg) => {
     if (statusEl) statusEl.textContent = msg || '';
   };
@@ -286,6 +321,7 @@
     if (formatSelect) formatSelect.disabled = state.working;
     if (resizeMode) resizeMode.disabled = state.working || Boolean(responsiveInput?.checked);
     if (qualityInput) qualityInput.disabled = state.working;
+    if (keepSmallerInput) keepSmallerInput.disabled = state.working;
     if (flattenInput) flattenInput.disabled = state.working;
     if (flattenColor) flattenColor.disabled = state.working;
     if (widthInput) widthInput.disabled = state.working;
@@ -322,7 +358,7 @@
     fileList.innerHTML = '';
     updateSummary();
     revokeOutputs();
-    setStatus('Add images, choose settings, then click Optimize.');
+    setStatus('Add images, choose settings, then click Optimize images.');
     fileInput.value = '';
     markSessionDirty();
   };
@@ -332,6 +368,7 @@
     if (countEl) countEl.textContent = `${state.items.length} ${state.items.length === 1 ? 'image' : 'images'}`;
     if (totalEl) totalEl.textContent = `Total: ${state.items.length ? formatBytes(totalBytes) : '0 B'}`;
     if (processBtn) processBtn.disabled = state.working || state.items.length === 0;
+    if (queueEl && !state.outputs.length) queueEl.open = true;
     updateLayoutState();
   };
 
@@ -865,6 +902,22 @@
     };
   };
 
+  const describeSizeChange = (inputBytes, outputBytes, reference = 'original') => {
+    const difference = outputBytes - inputBytes;
+    if (!difference || inputBytes <= 0) return `Same file size as ${reference}`;
+    const percent = Math.abs(difference / inputBytes * 100);
+    const percentText = percent < 0.1 ? '<0.1' : percent.toFixed(1).replace(/\.0$/, '');
+    return `${formatBytes(Math.abs(difference))} ${difference > 0 ? 'larger' : 'smaller'} (${percentText}%) than ${reference}`;
+  };
+
+  const chooseOutput = ({ original, encoded, mime, sourceWidth, sourceHeight, width, height, keepSmaller, changesBackground }) => {
+    const reuseOriginal = Boolean(keepSmaller && !changesBackground
+      && original.type === mime && encoded.type === mime
+      && sourceWidth === width && sourceHeight === height
+      && original.size < encoded.size);
+    return { blob: reuseOriginal ? original : encoded, originalKept: reuseOriginal };
+  };
+
   const renderOutputs = ({ responsiveEnabled }) => {
     resultsEl.innerHTML = '';
     if (!state.outputs.length) {
@@ -891,6 +944,7 @@
       head.className = 'imgopt-group-head';
 
       const titleWrap = document.createElement('div');
+      titleWrap.className = 'imgopt-group-copy';
       const h3 = document.createElement('h3');
       h3.className = 'imgopt-group-title';
       h3.textContent = item?.file?.name || 'Image';
@@ -907,6 +961,13 @@
       const totalOut = outs.reduce((sum, o) => sum + (o.blob?.size || 0), 0);
       summary.textContent = `${outs.length} output${outs.length === 1 ? '' : 's'} · ${formatBytes(totalOut)}`;
 
+      if (item?.previewUrl) {
+        const thumbnail = document.createElement('img');
+        thumbnail.className = 'imgopt-thumb imgopt-result-thumb';
+        thumbnail.src = item.previewUrl;
+        thumbnail.alt = '';
+        head.appendChild(thumbnail);
+      }
       head.appendChild(titleWrap);
       head.appendChild(summary);
       group.appendChild(head);
@@ -914,7 +975,7 @@
       outs.sort((a, b) => (a.variantWidth || 0) - (b.variantWidth || 0));
       const ul = document.createElement('ul');
       ul.className = 'imgopt-output-list';
-      ul.setAttribute('aria-label', 'Optimized outputs');
+      ul.setAttribute('aria-label', 'Image outputs');
 
       outs.forEach((out) => {
         const li = document.createElement('li');
@@ -931,8 +992,16 @@
         details.className = 'imgopt-output-sub';
         details.textContent = `${labelForMime(out.mime)} · ${out.width} × ${out.height} · ${formatBytes(out.blob.size)}`;
 
+        const change = document.createElement('p');
+        change.className = 'imgopt-output-change';
+        change.dataset.sizeChange = out.blob.size > item.file.size ? 'larger' : 'smaller';
+        change.textContent = out.originalKept
+          ? 'Smaller original kept · Metadata retained'
+          : `${describeSizeChange(item.file.size, out.blob.size)} · Metadata removed`;
+
         meta.appendChild(name);
         meta.appendChild(details);
+        meta.appendChild(change);
 
         const a = document.createElement('a');
         a.className = 'btn-secondary imgopt-download';
@@ -969,6 +1038,7 @@
         const ta = document.createElement('textarea');
         ta.className = 'imgopt-srcset-text';
         ta.readOnly = true;
+        ta.setAttribute('aria-label', 'Responsive image srcset snippet');
         ta.rows = 2;
         ta.value = srcset;
 
@@ -999,6 +1069,7 @@
     });
 
     resultsEl.appendChild(frag);
+    if (queueEl) queueEl.open = false;
     if (downloadAllBtn) downloadAllBtn.disabled = false;
     markSessionDirty();
   };
@@ -1007,7 +1078,7 @@
     if (state.working) return;
     if (!state.items.length) {
       setStatus('Add at least one image first.');
-      dropzone.focus();
+      $('[data-imgopt-pick]')?.focus();
       dispatchToolRunEvent('tools:run-error', { errorType: 'validation' });
       return;
     }
@@ -1104,7 +1175,18 @@
               }
 
               ctx.drawImage(decoded, 0, 0, canvas.width, canvas.height);
-              const outBlob = await canvasToBlob(canvas, outputMime, quality);
+              const encoded = await canvasToBlob(canvas, outputMime, quality);
+              const { blob: outBlob, originalKept } = chooseOutput({
+                original: item.file,
+                encoded,
+                mime: outputMime,
+                sourceWidth: source.width,
+                sourceHeight: source.height,
+                width: variant.width,
+                height: variant.height,
+                keepSmaller: Boolean(keepSmallerInput?.checked),
+                changesBackground: outputMime === 'image/jpeg' && Boolean(flattenInput?.checked)
+              });
               throwIfCancelled(operationId);
               if (actualOutputBytes + outBlob.size > IMAGE_LIMITS.maxActualOutputBytes) {
                 throw new Error(`Encoded files would exceed the ${formatBytes(IMAGE_LIMITS.maxActualOutputBytes)} output limit. Reduce dimensions, quality, or responsive widths.`);
@@ -1122,6 +1204,7 @@
               state.outputs.push({
                 inputId: item.id,
                 blob: outBlob,
+                originalKept,
                 url: outUrl,
                 name: outName,
                 mime: outputMime,
@@ -1142,7 +1225,9 @@
       }
 
       renderOutputs({ responsiveEnabled });
-      setStatus(`Done. Generated ${state.outputs.length} optimized ${state.outputs.length === 1 ? 'image' : 'images'} (${formatBytes(actualOutputBytes)} total).`);
+      const originalBytes = state.items.reduce((sum, item) => sum + item.file.size, 0);
+      const largerCount = state.outputs.filter((out) => out.blob.size > getItemById(out.inputId).file.size).length;
+      setStatus(`Done. ${state.outputs.length} ${state.outputs.length === 1 ? 'file' : 'files'} ready (${formatBytes(actualOutputBytes)} total). Combined output: ${describeSizeChange(originalBytes, actualOutputBytes, 'the originals')}.${largerCount ? ` ${largerCount} ${largerCount === 1 ? 'output is' : 'outputs are'} larger; try a lower quality or another format if file size is your priority.` : ''}`);
       dispatchToolRunEvent('tools:run-complete', {
         resultBucket: state.outputs.length === 1 ? 'single_output' : 'multiple_outputs'
       });
@@ -1205,16 +1290,9 @@
   updateControlsVisibility();
   updateQualityLabel();
   updateFlattenLabel();
+  updateSettingsSummary();
   updateSummary();
   updateLayoutState();
-
-  dropzone.addEventListener('click', () => fileInput.click());
-  dropzone.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      fileInput.click();
-    }
-  });
 
   dropzone.addEventListener('dragover', handleDrag);
   dropzone.addEventListener('dragenter', handleDrag);
@@ -1253,6 +1331,8 @@
   responsiveInput?.addEventListener('change', updateControlsVisibility);
   qualityInput?.addEventListener('input', updateQualityLabel);
   flattenColor?.addEventListener('input', updateFlattenLabel);
+  form.addEventListener('input', updateSettingsSummary);
+  form.addEventListener('change', updateSettingsSummary);
 
   $$('[data-imgopt-pick]').forEach((btn) => {
     btn.addEventListener('click', (e) => {

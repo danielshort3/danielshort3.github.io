@@ -22,6 +22,9 @@
 
   const countEl = $('#bgtool-count');
   const totalEl = $('#bgtool-total');
+  const selectionDetails = $('[data-bgtool="selection-details"]');
+  const workspaceSummary = $('[data-bgtool="workspace-summary"]');
+  const outputSummary = $('[data-bgtool="output-summary"]');
 
   const methodSelect = $('#bgtool-method');
   const aiSettings = $('#bgtool-ai-settings');
@@ -74,6 +77,9 @@
   const downloadSelectedBtn = $('#bgtool-download-selected');
   const downloadAllBtn = $('#bgtool-download-all');
   const resetBtn = $('#bgtool-reset');
+  const reprocessBtn = $('#bgtool-reprocess');
+  const reprocessAllBtn = $('#bgtool-reprocess-all');
+  const pendingEl = $('#bgtool-pending');
 
   if (!form || !fileInput || !dropzone || !canvas || !resultsEl) return;
 
@@ -128,13 +134,16 @@
   const state = {
     runId: 0,
     working: false,
+    reprocessing: false,
+    exporting: false,
+    selecting: false,
     jobs: [],
     activeJobId: null,
     view: 'cutout',
     maskType: 'alpha',
     thresholdPct: 50,
     featherPx: 0,
-    silhouetteEnabled: true,
+    silhouetteEnabled: false,
     silhouetteWidthPx: 6,
     silhouetteSamplePx: 14,
     silhouetteColorMode: 'auto',
@@ -168,6 +177,7 @@
     drawing: false,
     rafPending: false,
     sampledBgCache: null,
+    loadedMaskBlob: null,
   };
 
   active.sourceCtx = active.sourceCanvas.getContext('2d', { alpha: false });
@@ -236,6 +246,9 @@
 
   const fileNameBase = (name) => String(name || 'image').replace(/\.[a-z0-9]+$/i, '');
   const fileNameSafe = (name) => String(name || 'image').replace(/[^a-z0-9._-]+/gi, '-').replace(/^-+|-+$/g, '') || 'image';
+  const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[character]));
 
   const extForFormat = (format) => {
     switch (format) {
@@ -285,6 +298,21 @@
     return await bgRemovalPromise;
   };
 
+  const isBusy = () => state.working || state.reprocessing || state.exporting || state.selecting;
+  const readProcessingSettings = () => ({
+    method: String(methodSelect?.value || 'ai-best'),
+    maxDim: toInt(processingSelect?.value, 1024),
+    color: normalizeHex(colorInput?.value || '#ffffff'),
+    tolerance: clamp(toInt(toleranceInput?.value, 24), 0, 255),
+  });
+  const processingSettingsKey = (settings) => JSON.stringify([
+    settings.method, settings.maxDim,
+    ...(settings.method === 'colorkey' ? [settings.color, settings.tolerance] : []),
+  ]);
+  const hasPendingSettings = (job) => job?.status === 'ready'
+    && job.appliedSettingsKey !== processingSettingsKey(readProcessingSettings());
+  const selectedJob = () => state.jobs.find((job) => job.id === state.activeJobId) || null;
+
   const createJob = (file) => ({
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     file,
@@ -293,6 +321,9 @@
     status: 'queued',
     message: '',
     approved: true,
+    requestedSettings: readProcessingSettings(),
+    appliedSettingsKey: '',
+    hasBrushEdits: false,
     original: { width: 0, height: 0, pixels: 0 },
     processing: { width: 0, height: 0, maxDim: 0, method: '' },
     // Results are stored as blobs + object URLs (small enough to keep for batch previews).
@@ -345,7 +376,21 @@
     const totalBytes = state.jobs.reduce((sum, j) => sum + (j.bytes || 0), 0);
     if (countEl) countEl.textContent = `${totalFiles} file${totalFiles === 1 ? '' : 's'}`;
     if (totalEl) totalEl.textContent = `Total: ${formatBytes(totalBytes)}`;
+    if (selectionDetails) {
+      selectionDetails.hidden = !totalFiles;
+      if (state.jobs.some((job) => job.status === 'error')) selectionDetails.open = true;
+    }
     updateLayoutState();
+  };
+
+  const updateWorkspaceSummary = () => {
+    const method = { 'ai-best': 'AI best quality', 'ai-fast': 'AI fast', colorkey: 'Solid color' }[methodSelect?.value] || 'AI best quality';
+    const edges = $('input[name="bgtool-mask-type"]:checked')?.value === 'binary' ? 'Hard edges' : 'Smooth edges';
+    if (workspaceSummary) workspaceSummary.textContent = `${method} · ${edges}`;
+    const format = String(formatSelect?.value || 'image/png');
+    const transparent = !['image/jpeg', 'image/webp-solid'].includes(format);
+    const formatName = { 'image/png': 'PNG', 'image/tiff': 'TIFF', 'image/webp': 'WebP', 'image/jpeg': 'JPEG', 'image/webp-solid': 'WebP' }[format] || 'PNG';
+    if (outputSummary) outputSummary.textContent = `${formatName} · ${transparent ? 'Transparent' : 'Solid background'}`;
   };
 
   const updateMethodVisibility = () => {
@@ -375,8 +420,7 @@
   };
 
   const updateSilhouetteControls = () => {
-    if (silhouetteEnabledInput) silhouetteEnabledInput.checked = !!state.silhouetteEnabled;
-    const enabled = !!state.silhouetteEnabled;
+    const enabled = !!state.silhouetteEnabled && !isBusy();
     if (silhouetteWidthInput) silhouetteWidthInput.disabled = !enabled;
     if (silhouetteSampleInput) silhouetteSampleInput.disabled = !enabled;
     if (silhouetteColorModeSelect) silhouetteColorModeSelect.disabled = !enabled;
@@ -386,7 +430,8 @@
   };
 
   const updateRefineControls = () => {
-    const canEdit = !!active.job && active.job.status === 'ready';
+    const canEdit = !isBusy() && !!active.job && active.job.status === 'ready';
+    if (!canEdit) active.drawing = false;
     const enabled = !!(refineEnabledInput && refineEnabledInput.checked);
     if (refineEnabledInput) refineEnabledInput.disabled = !canEdit;
     if (brushModeSelect) brushModeSelect.disabled = !canEdit || !enabled;
@@ -396,13 +441,65 @@
   };
 
   const updateActionButtons = () => {
-    const activeReady = !!active.job && active.job.status === 'ready';
-    if (downloadSelectedBtn) downloadSelectedBtn.disabled = !activeReady;
-    const anyApproved = state.jobs.some((j) => j.status === 'ready' && j.approved);
-    if (downloadAllBtn) downloadAllBtn.disabled = !anyApproved;
+    const busy = isBusy();
+    const job = selectedJob();
+    const activeReady = !!job && job.status === 'ready';
+    const multiple = state.jobs.length > 1;
+    const included = state.jobs.filter((item) => item.status === 'ready' && item.approved);
+    if (selectedLabel) selectedLabel.textContent = job?.name || 'No photo selected';
+    if (downloadSelectedBtn) {
+      downloadSelectedBtn.textContent = 'Download photo';
+      downloadSelectedBtn.disabled = busy || !activeReady || hasPendingSettings(job);
+    }
+    if (downloadAllBtn) {
+      downloadAllBtn.textContent = `Download checked (${included.length})`;
+      downloadAllBtn.hidden = !multiple;
+      downloadAllBtn.disabled = busy || !included.length || included.some(hasPendingSettings);
+    }
+    if (reprocessBtn) {
+      reprocessBtn.textContent = state.working || state.reprocessing ? 'Processing…' : 'Reprocess photo';
+      reprocessBtn.disabled = busy || !job || !['ready', 'error'].includes(job.status);
+    }
+    if (reprocessAllBtn) {
+      reprocessAllBtn.textContent = 'Reprocess all';
+      reprocessAllBtn.hidden = !multiple;
+      reprocessAllBtn.disabled = busy || !state.jobs.some((item) => ['ready', 'error'].includes(item.status));
+    }
+    if (pendingEl) {
+      const pending = state.jobs.some(hasPendingSettings);
+      pendingEl.textContent = [
+        pending ? 'Settings changed — reprocess to apply.' : '',
+        job?.hasBrushEdits ? 'Reprocessing resets brush edits.' : '',
+      ].filter(Boolean).join(' ');
+      pendingEl.hidden = busy || !pendingEl.textContent;
+    }
+    [fileInput, resetBtn, methodSelect, deviceSelect, processingSelect, colorInput, toleranceInput,
+      thresholdInput, featherInput, silhouetteEnabledInput, formatSelect, bgInput].forEach((control) => {
+      if (control) control.disabled = busy;
+    });
+    pickButtons.forEach((button) => { button.disabled = busy; });
+    $$('input[name="bgtool-mask-type"]').forEach((input) => { input.disabled = busy; });
+    if (overlay) {
+      overlay.setAttribute('aria-disabled', String(busy));
+      overlay.tabIndex = busy ? -1 : 0;
+    }
+    updateSilhouetteControls();
+    updateRefineControls();
     viewButtons.forEach((btn) => {
-      btn.disabled = !activeReady;
+      btn.disabled = busy || !activeReady;
       btn.classList.toggle('is-active', activeReady && btn.dataset.bgtoolView === state.view);
+      btn.setAttribute('aria-pressed', String(btn.dataset.bgtoolView === state.view));
+    });
+    resultsEl.querySelectorAll('.bgtool-result').forEach((card) => {
+      const selected = card.dataset.bgtoolSelect === state.activeJobId;
+      card.classList.toggle('is-selected', selected);
+      card.querySelector('.bgtool-result-select')?.setAttribute('aria-pressed', String(selected));
+      const item = state.jobs.find((entry) => entry.id === card.dataset.bgtoolSelect);
+      card.querySelectorAll('button, input').forEach((control) => {
+        control.disabled = busy || !item
+          || (control.hasAttribute('data-bgtool-approve') && item.status !== 'ready')
+          || ((control.hasAttribute('data-bgtool-select') || control.hasAttribute('data-bgtool-rerun')) && !['ready', 'error'].includes(item.status));
+      });
     });
   };
 
@@ -422,11 +519,11 @@
           : status === 'ready'
             ? 'Ready'
             : 'Error';
-      const message = job.message ? `<p class="bgtool-item-message">${job.message}</p>` : '';
+      const message = job.message ? `<p class="bgtool-item-message">${escapeHtml(job.message)}</p>` : '';
       return `
         <li class="bgtool-item ${status === 'error' ? 'is-error' : ''}" data-bgtool-id="${job.id}">
           <div class="bgtool-item-main">
-            <div class="bgtool-item-title">${job.name}</div>
+            <div class="bgtool-item-title">${escapeHtml(job.name)}</div>
             <div class="bgtool-item-meta">${meta}</div>
             ${message}
           </div>
@@ -442,38 +539,34 @@
 
   const renderResults = () => {
     const cards = state.jobs
-      .filter((job) => job.status === 'ready' || job.status === 'error')
       .map((job) => {
         const selected = job.id === state.activeJobId;
+        const unavailable = isBusy() || !['ready', 'error'].includes(job.status);
         const thumb = job.cutoutUrl
-          ? `<img class="bgtool-result-thumb" src="${job.cutoutUrl}" alt="Cutout preview for ${job.name}">`
+          ? `<img class="bgtool-result-thumb" src="${job.cutoutUrl}" alt="Cutout preview for ${escapeHtml(job.name)}">`
           : `<div class="bgtool-result-thumb bgtool-result-thumb-empty" aria-hidden="true"></div>`;
-        const rerun = `<button type="button" class="btn-secondary bgtool-result-rerun" data-bgtool-rerun="${job.id}">Run again</button>`;
+        const rerun = `<button type="button" class="btn-secondary bgtool-result-rerun" data-bgtool-rerun="${job.id}" ${unavailable ? 'disabled' : ''}>Reprocess</button>`;
         const dims = job.original.width && job.original.height ? `${job.original.width}×${job.original.height}` : '—';
-        const status = job.status === 'error' ? `<span class="bgtool-pill bgtool-pill-error">Error</span>` : `<span class="bgtool-pill bgtool-pill-ok">Ready</span>`;
         const checked = job.approved ? 'checked' : '';
-        const message = job.message ? `<p class="bgtool-result-message">${job.message}</p>` : '';
+        const message = ['queued', 'processing'].includes(job.status)
+          ? `<p class="bgtool-result-message" role="status">${job.status === 'queued' ? 'Queued' : 'Processing…'}</p>`
+          : !job.message ? '' : job.status === 'error'
+          ? `<p class="bgtool-result-message" role="status">${escapeHtml(job.message)}</p>`
+          : `<details class="bgtool-result-details"><summary>Processing details</summary><p class="bgtool-result-message">${escapeHtml(job.message)}</p></details>`;
         return `
           <article class="bgtool-result ${selected ? 'is-selected' : ''}" data-bgtool-select="${job.id}">
-            <div class="bgtool-result-media">
-              ${thumb}
-              <div class="bgtool-result-media-actions">
-                ${rerun}
-              </div>
-            </div>
+            ${thumb}
             <div class="bgtool-result-body">
-              <div class="bgtool-result-head">
-                <div>
-                  <h3 class="bgtool-result-title">${job.name}</h3>
-                  <div class="bgtool-result-meta">${dims} · ${formatBytes(job.bytes)}</div>
-                </div>
-                ${status}
-              </div>
+              <button type="button" class="bgtool-result-select" data-bgtool-select="${job.id}" aria-pressed="${selected}" ${unavailable ? 'disabled' : ''}>${escapeHtml(job.name)}</button>
+              <div class="bgtool-result-meta">${dims} · ${formatBytes(job.bytes)}</div>
               ${message}
+            </div>
+            <div class="bgtool-result-actions">
               <label class="bgtool-option bgtool-approve">
-                <input type="checkbox" data-bgtool-approve="${job.id}" ${checked} ${job.status !== 'ready' ? 'disabled' : ''}>
-                Approve for download
+                <input type="checkbox" data-bgtool-approve="${job.id}" aria-label="Include ${escapeHtml(job.name)} in batch download" ${checked} ${isBusy() || job.status !== 'ready' ? 'disabled' : ''}>
               </label>
+              ${rerun}
+              <button type="button" class="btn-ghost bgtool-result-remove" data-bgtool-remove="${job.id}" aria-label="Remove ${escapeHtml(job.name)}" ${isBusy() ? 'disabled' : ''}>Remove</button>
             </div>
           </article>
         `;
@@ -749,7 +842,7 @@
   const renderActivePreview = () => {
     if (!active.job || active.job.status !== 'ready') {
       previewCtx.clearRect(0, 0, canvas.width, canvas.height);
-      showOverlay('Click or drop photos to start');
+      showOverlay('Add photos');
       updateActionButtons();
       updateRefineControls();
       return;
@@ -767,7 +860,7 @@
     const originalW = job.original.width || 0;
     const originalH = job.original.height || 0;
     if (dimLabel && originalW && originalH) dimLabel.textContent = `Size: ${originalW} × ${originalH}`;
-    if (selectedLabel) selectedLabel.textContent = `Selected: ${job.name}`;
+    if (selectedLabel) selectedLabel.textContent = job.name;
 
     // Preview blur should be scaled down vs. the final export, because the preview canvas is smaller.
     const exportScale = Math.max(1, (originalW || w) / w, (originalH || h) / h);
@@ -852,6 +945,7 @@
     if (job.maskBlob && job.maskUrl) URL.revokeObjectURL(job.maskUrl);
     job.maskBlob = newMaskBlob;
     job.maskUrl = URL.createObjectURL(newMaskBlob);
+    active.loadedMaskBlob = newMaskBlob;
 
     // Refresh the stored cutout thumbnail so batch previews match the edited mask.
     try {
@@ -876,6 +970,7 @@
 
   const loadJobIntoActive = async (job, currentRunId) => {
     active.job = job;
+    active.loadedMaskBlob = null;
     active.dirtyMask = false;
     active.drawing = false;
     active.sampledBgCache = null;
@@ -887,7 +982,7 @@
 
     // Build a processing-size source canvas for previews and edits.
     const bitmap = await readImageBitmap(job.file);
-    if (currentRunId !== state.runId) {
+    if (currentRunId !== state.runId || active.job !== job) {
       if (bitmap && typeof bitmap.close === 'function') bitmap.close();
       return;
     }
@@ -904,7 +999,7 @@
     active.maskCtx.clearRect(0, 0, job.processing.width, job.processing.height);
     if (job.maskBlob) {
       const maskBitmap = await createImageBitmap(job.maskBlob);
-      if (currentRunId !== state.runId) {
+      if (currentRunId !== state.runId || active.job !== job) {
         if (maskBitmap && typeof maskBitmap.close === 'function') maskBitmap.close();
         return;
       }
@@ -912,17 +1007,28 @@
       if (maskBitmap && typeof maskBitmap.close === 'function') maskBitmap.close();
     }
 
+    active.loadedMaskBlob = job.maskBlob;
     schedulePreviewRender();
   };
 
-  const selectJob = async (jobId) => {
-    await commitActiveMask();
-    state.activeJobId = jobId;
+  const selectJob = async (jobId, { allowWhileWorking = false } = {}) => {
+    if (isBusy() && !allowWhileWorking) return false;
     const job = state.jobs.find((j) => j.id === jobId) || null;
-    if (!job) return;
+    if (!job || !['ready', 'error'].includes(job.status)) return false;
     const currentRunId = state.runId;
-    await loadJobIntoActive(job, currentRunId);
-    markSessionDirty();
+    state.selecting = true;
+    updateActionButtons();
+    try {
+      await commitActiveMask();
+      if (currentRunId !== state.runId || !state.jobs.includes(job)) return false;
+      state.activeJobId = jobId;
+      await loadJobIntoActive(job, currentRunId);
+      markSessionDirty();
+      return true;
+    } finally {
+      state.selecting = false;
+      updateActionButtons();
+    }
   };
 
   const ensureCanvasLimits = (width, height, label) => {
@@ -1066,7 +1172,7 @@
 
     // If exporting a job that's not currently active, load its mask into the active editor.
     // This keeps mask derivation consistent for both preview and exports.
-    if (!active.job || active.job.id !== job.id) {
+    if (!active.job || active.job.id !== job.id || active.loadedMaskBlob !== job.maskBlob) {
       await loadJobIntoActive(job, state.runId);
     }
 
@@ -1101,8 +1207,10 @@
   };
 
   const downloadSelected = async () => {
-    if (!active.job || active.job.status !== 'ready') return;
-    const job = active.job;
+    const job = selectedJob();
+    if (isBusy() || !job || job.status !== 'ready' || hasPendingSettings(job)) return;
+    state.exporting = true;
+    updateActionButtons();
     setStatus('Preparing download…');
     try {
       const blob = await exportBlobForJob(job);
@@ -1113,15 +1221,18 @@
     } catch (err) {
       setStatus(err?.message || 'Unable to export that file.');
     } finally {
+      state.exporting = false;
       updateActionButtons();
     }
   };
 
   const downloadApproved = async () => {
+    if (isBusy()) return;
     const jobs = state.jobs.filter((j) => j.status === 'ready' && j.approved);
-    if (!jobs.length) return;
+    if (!jobs.length || jobs.some(hasPendingSettings)) return;
+    const previousSelection = selectedJob();
     setStatus(`Preparing ${jobs.length} download${jobs.length === 1 ? '' : 's'}…`);
-    state.working = true;
+    state.exporting = true;
     updateLayoutState();
     updateActionButtons();
     try {
@@ -1132,33 +1243,40 @@
         triggerDownload(blob, name);
         await new Promise((r) => setTimeout(r, 180));
       }
-      setStatus('Download started. If prompted, allow multiple downloads.');
+      setStatus('Download started.');
     } catch (err) {
       setStatus(err?.message || 'Unable to export one of the approved images.');
     } finally {
-      state.working = false;
+      if (previousSelection && state.jobs.includes(previousSelection)) {
+        await loadJobIntoActive(previousSelection, state.runId).catch((err) => logAsyncError('download:restore-selection', err));
+      }
+      state.exporting = false;
       updateLayoutState();
       updateActionButtons();
     }
   };
 
   const processJobLegacy = async (job, bitmap, currentRunId) => {
-    const target = hexToRgb(colorInput?.value || '#ffffff');
-    const tolerance = clamp(toInt(toleranceInput?.value, 24), 0, 255);
+    const settings = job.requestedSettings;
+    const target = hexToRgb(settings.color);
+    const tolerance = settings.tolerance;
 
-    const maxDim = toInt(processingSelect?.value, 1024);
+    const maxDim = settings.maxDim;
     const processing = computeProcessingSize(bitmap.width, bitmap.height, maxDim);
     job.processing.width = processing.width;
     job.processing.height = processing.height;
     job.processing.maxDim = processing.maxDim;
     job.processing.method = 'colorkey';
 
-    active.sourceCanvas.width = processing.width;
-    active.sourceCanvas.height = processing.height;
-    drawContain(active.sourceCtx, bitmap, processing.width, processing.height);
+    const sourceCanvas = document.createElement('canvas');
+    sourceCanvas.width = processing.width;
+    sourceCanvas.height = processing.height;
+    const sourceCtx = sourceCanvas.getContext('2d', { alpha: false });
+    if (!sourceCtx) throw new Error('Unable to create processing canvas.');
+    drawContain(sourceCtx, bitmap, processing.width, processing.height);
 
     // Create a binary mask by measuring distance to the target background color.
-    const img = active.sourceCtx.getImageData(0, 0, processing.width, processing.height);
+    const img = sourceCtx.getImageData(0, 0, processing.width, processing.height);
     const data = img.data;
     const mask = document.createElement('canvas');
     mask.width = processing.width;
@@ -1186,6 +1304,7 @@
     if (currentRunId !== state.runId) return;
 
     const maskBlob = await canvasToBlob(mask, 'image/png');
+    if (currentRunId !== state.runId) return;
     job.baseMaskBlob = maskBlob;
     job.maskBlob = maskBlob;
     job.maskUrl = URL.createObjectURL(maskBlob);
@@ -1196,11 +1315,12 @@
     cutoutCanvas.height = processing.height;
     const cutoutCtx = cutoutCanvas.getContext('2d', { alpha: true });
     if (!cutoutCtx) throw new Error('Unable to create cutout.');
-    cutoutCtx.drawImage(active.sourceCanvas, 0, 0);
+    cutoutCtx.drawImage(sourceCanvas, 0, 0);
     cutoutCtx.globalCompositeOperation = 'destination-in';
     cutoutCtx.drawImage(mask, 0, 0);
     cutoutCtx.globalCompositeOperation = 'source-over';
     const cutoutBlob = await canvasToBlob(cutoutCanvas, 'image/png');
+    if (currentRunId !== state.runId) return;
     job.baseCutoutBlob = cutoutBlob;
     replaceJobCutout(job, cutoutBlob);
 
@@ -1208,12 +1328,13 @@
   };
 
   const processJobAi = async (job, bitmap, currentRunId) => {
-    const maxDim = toInt(processingSelect?.value, 1024);
+    const settings = job.requestedSettings;
+    const maxDim = settings.maxDim;
     const processing = computeProcessingSize(bitmap.width, bitmap.height, maxDim);
     job.processing.width = processing.width;
     job.processing.height = processing.height;
     job.processing.maxDim = processing.maxDim;
-    job.processing.method = String(methodSelect?.value || 'ai-best');
+    job.processing.method = settings.method;
 
     // Build a processing-size canvas to keep memory stable for very large uploads.
     const workCanvas = document.createElement('canvas');
@@ -1232,7 +1353,7 @@
 
     const lib = await loadBgRemoval();
     const device = 'cpu';
-    const requestedMethod = String(methodSelect?.value || 'ai-best');
+    const requestedMethod = settings.method;
     const requestedModel = requestedMethod === 'ai-fast' ? 'isnet_quint8' : 'isnet_fp16';
 
     const config = {
@@ -1245,8 +1366,8 @@
         const safeTotal = Math.max(1, Number(total) || 1);
         const ratio = clamp((Number(current) || 0) / safeTotal, 0, 1);
         const label = key.startsWith('compute:')
-          ? `Processing… (${key.replace('compute:', '')})`
-          : `Downloading ${key}…`;
+          ? 'Removing background…'
+          : 'Loading model…';
         showProgress(label, ratio);
       },
     };
@@ -1272,7 +1393,7 @@
     let qualityNote = '';
 
     if (maskLooksSuspicious(qualityStats) && modelUsed === 'isnet_quint8') {
-      setStatus(`Low-confidence mask for ${job.name}. Retrying with best model…`);
+      setStatus('Retrying with best quality…');
       modelUsed = 'isnet_fp16';
       maskBlob = await runSegmentation(modelUsed);
       if (currentRunId !== state.runId) return;
@@ -1308,6 +1429,7 @@
     if (maskBitmap && typeof maskBitmap.close === 'function') maskBitmap.close();
 
     const cutoutBlob = await canvasToBlob(cutoutCanvas, 'image/png');
+    if (currentRunId !== state.runId) return;
     job.baseCutoutBlob = cutoutBlob;
     replaceJobCutout(job, cutoutBlob);
 
@@ -1352,13 +1474,16 @@
         job.message = `Large image (${Math.round(job.original.pixels / 1_000_000)} MP). Processing may take longer.`;
       }
 
-      const method = String(methodSelect?.value || 'ai-best');
+      const method = job.requestedSettings.method;
       if (method === 'colorkey') {
         await processJobLegacy(job, bitmap, currentRunId);
       } else {
         await processJobAi(job, bitmap, currentRunId);
       }
 
+      if (currentRunId !== state.runId) return;
+      job.appliedSettingsKey = processingSettingsKey(job.requestedSettings);
+      job.hasBrushEdits = false;
       job.status = 'ready';
     } catch (err) {
       job.status = 'error';
@@ -1372,7 +1497,7 @@
   };
 
   const processQueue = async () => {
-    if (state.working) return;
+    if (state.working || state.exporting || state.selecting) return;
     if (!state.jobs.some((job) => job.status === 'queued')) return;
     state.working = true;
     updateLayoutState();
@@ -1393,19 +1518,24 @@
         renderFileList();
         renderResults();
         updateSummary();
-        setStatus(`Processing ${next.name}…`);
+        setStatus(state.reprocessing ? 'Reprocessing…' : 'Processing…');
         await processJob(next, currentRunId);
+        if (currentRunId !== state.runId) {
+          dispatchToolRunEvent('tools:run-cancel');
+          return;
+        }
         renderFileList();
         renderResults();
         updateSummary();
         await new Promise((r) => window.requestAnimationFrame(r));
 
         // Auto-select the first ready result so users see something immediately.
-        if (!state.activeJobId && next.status === 'ready') {
-          await selectJob(next.id);
+        if ((!state.activeJobId || state.activeJobId === next.id) && next.status === 'ready') {
+          if (active.job?.id === next.id) active.dirtyMask = false;
+          await selectJob(next.id, { allowWhileWorking: true });
         }
       }
-      setStatus(state.jobs.some((j) => j.status === 'ready') ? 'Done. Review results below.' : 'Add photos to begin.');
+      setStatus(state.jobs.some((j) => j.status === 'ready') ? 'Ready' : 'Unable to process photos.');
       const runJobs = state.jobs.filter((job) => runJobIds.has(job.id));
       const readyCount = runJobs.filter((job) => job.status === 'ready').length;
       const errorCount = runJobs.filter((job) => job.status === 'error').length;
@@ -1434,6 +1564,7 @@
   };
 
   const addFiles = (files) => {
+    if (isBusy()) return;
     const list = Array.from(files || []).filter((f) => f && /^image\//.test(f.type));
     if (!list.length) return;
 
@@ -1475,13 +1606,14 @@
   };
 
   const clearAll = async () => {
-    await commitActiveMask();
+    if (isBusy()) return;
     state.runId += 1;
     state.jobs.forEach(revokeJobUrls);
     state.jobs = [];
     state.activeJobId = null;
     active.job = null;
     active.dirtyMask = false;
+    active.loadedMaskBlob = null;
     active.sampledBgCache = null;
     active.sourceCanvas.width = 1;
     active.sourceCanvas.height = 1;
@@ -1490,11 +1622,11 @@
     previewCtx.clearRect(0, 0, canvas.width, canvas.height);
     canvas.width = 1;
     canvas.height = 1;
-    showOverlay('Click or drop photos to start');
+    showOverlay('Add photos');
     if (dimLabel) dimLabel.textContent = 'Size: N/A';
     if (maskLabel) maskLabel.textContent = 'Mask: N/A';
     if (selectedLabel) selectedLabel.textContent = 'Selected: None';
-    setStatus('Cleared.');
+    setStatus('Add photos');
     updateSummary();
     renderFileList();
     renderResults();
@@ -1504,23 +1636,31 @@
   };
 
   const removeJob = async (jobId) => {
-    if (state.working) return;
-    await commitActiveMask();
-    const idx = state.jobs.findIndex((j) => j.id === jobId);
-    if (idx === -1) return;
-    const [job] = state.jobs.splice(idx, 1);
-    revokeJobUrls(job);
-    if (state.activeJobId === jobId) {
-      state.activeJobId = null;
-      active.job = null;
-      schedulePreviewRender();
-    }
-    updateSummary();
-    renderFileList();
-    renderResults();
+    if (isBusy()) return;
+    state.selecting = true;
     updateActionButtons();
-    updateRefineControls();
-    markSessionDirty();
+    try {
+      await commitActiveMask();
+      const idx = state.jobs.findIndex((j) => j.id === jobId);
+      if (idx === -1) return;
+      const [job] = state.jobs.splice(idx, 1);
+      revokeJobUrls(job);
+      if (state.activeJobId === jobId) {
+        state.activeJobId = null;
+        active.job = null;
+        active.loadedMaskBlob = null;
+        schedulePreviewRender();
+      }
+      updateSummary();
+      renderFileList();
+      renderResults();
+      updateActionButtons();
+      updateRefineControls();
+      markSessionDirty();
+    } finally {
+      state.selecting = false;
+      updateActionButtons();
+    }
   };
 
   const handleDrop = (e) => {
@@ -1550,6 +1690,7 @@
   };
 
   const applyBrush = (x, y) => {
+    if (isBusy()) return;
     if (!active.maskCtx) return;
     const enabled = !!(refineEnabledInput && refineEnabledInput.checked);
     if (!enabled) return;
@@ -1578,6 +1719,8 @@
     ctx.restore();
 
     active.dirtyMask = true;
+    active.job.hasBrushEdits = true;
+    updateActionButtons();
     markSessionDirty();
     schedulePreviewRender();
   };
@@ -1590,6 +1733,7 @@
   };
 
   const sampleLegacyColor = (event) => {
+    if (isBusy()) return false;
     if (!active.job || active.job.status !== 'ready') return false;
     if (String(methodSelect?.value || 'ai-best') !== 'colorkey') return false;
     if (refineEnabledInput && refineEnabledInput.checked) return false;
@@ -1604,45 +1748,86 @@
     const hex = normalizeHex(((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1));
     if (colorInput) colorInput.value = hex.toLowerCase();
     if (colorLabel) colorLabel.textContent = hex;
-    setStatus(`Sampled ${hex}. Reprocess to apply.`);
+    updateActionButtons();
     markSessionDirty();
     return true;
   };
 
-  const reprocessSelected = async () => {
-    if (!active.job) return;
-    if (active.job.status !== 'ready' && active.job.status !== 'error') return;
-    await commitActiveMask();
-    revokeJobUrls(active.job);
-    active.job.status = 'queued';
-    active.job.message = '';
-    active.job.baseMaskBlob = null;
-    active.job.baseCutoutBlob = null;
-    active.job.maskBlob = null;
-    active.job.cutoutBlob = null;
-    active.job.maskUrl = '';
-    active.job.cutoutUrl = '';
-    active.sampledBgCache = null;
-    renderFileList();
-    renderResults();
+  const reprocessJobs = async (jobIds) => {
+    if (isBusy()) return false;
+    const ids = new Set(jobIds || []);
+    const jobs = state.jobs.filter((job) => ids.has(job.id) && ['ready', 'error'].includes(job.status));
+    if (!jobs.length) return false;
+    const settings = readProcessingSettings();
+    const currentRunId = state.runId;
+    state.reprocessing = true;
     updateActionButtons();
-    processQueue().catch((err) => logAsyncError('reprocessSelected:processQueue', err));
+    try {
+      await commitActiveMask();
+      if (currentRunId !== state.runId) return false;
+      if (jobs.length === 1) state.activeJobId = jobs[0].id;
+      jobs.forEach((job) => {
+        revokeJobUrls(job);
+        job.requestedSettings = { ...settings };
+        job.status = 'queued';
+        job.message = '';
+        job.appliedSettingsKey = '';
+        job.baseMaskBlob = null;
+        job.baseCutoutBlob = null;
+        job.maskBlob = null;
+        job.cutoutBlob = null;
+        job.hasBrushEdits = false;
+      });
+      if (active.job && ids.has(active.job.id)) {
+        active.dirtyMask = false;
+        active.loadedMaskBlob = null;
+      }
+      active.sampledBgCache = null;
+      showOverlay('Processing…');
+      renderFileList();
+      renderResults();
+      await processQueue();
+      return jobs.every((job) => job.status === 'ready');
+    } finally {
+      state.reprocessing = false;
+      updateActionButtons();
+    }
   };
 
   const clearEdits = async () => {
+    if (isBusy()) return;
     if (!active.job || active.job.status !== 'ready') return;
     if (!active.job.baseMaskBlob) return;
-    const maskBitmap = await createImageBitmap(active.job.baseMaskBlob);
-    active.maskCtx.clearRect(0, 0, active.maskCanvas.width, active.maskCanvas.height);
-    active.maskCtx.drawImage(maskBitmap, 0, 0, active.maskCanvas.width, active.maskCanvas.height);
-    if (maskBitmap && typeof maskBitmap.close === 'function') maskBitmap.close();
-    active.dirtyMask = true;
-    active.sampledBgCache = null;
-    schedulePreviewRender();
-    markSessionDirty();
+    const job = active.job;
+    state.selecting = true;
+    updateActionButtons();
+    try {
+      const maskBitmap = await createImageBitmap(job.baseMaskBlob);
+      active.maskCtx.clearRect(0, 0, active.maskCanvas.width, active.maskCanvas.height);
+      active.maskCtx.drawImage(maskBitmap, 0, 0, active.maskCanvas.width, active.maskCanvas.height);
+      if (maskBitmap && typeof maskBitmap.close === 'function') maskBitmap.close();
+      active.dirtyMask = true;
+      job.hasBrushEdits = false;
+      active.sampledBgCache = null;
+      schedulePreviewRender();
+      markSessionDirty();
+    } finally {
+      state.selecting = false;
+      updateActionButtons();
+    }
   };
 
   // --- Event wiring ---
+
+  const updateSettingsState = () => {
+    updateWorkspaceSummary();
+    updateActionButtons();
+  };
+  form.addEventListener('input', updateSettingsState);
+  form.addEventListener('change', updateSettingsState);
+  document.addEventListener('tools:session-applied', (event) => {
+    if (event?.detail?.toolId === TOOL_ID) updateSettingsState();
+  });
 
   dropzone.addEventListener('click', () => fileInput.click());
   dropzone.addEventListener('keydown', (e) => {
@@ -1693,14 +1878,20 @@
   });
 
   resultsEl.addEventListener('click', (e) => {
+    if (isBusy()) return;
+    const removeBtn = e.target.closest('[data-bgtool-remove]');
+    if (removeBtn) {
+      e.preventDefault();
+      removeJob(removeBtn.dataset.bgtoolRemove).catch((err) => logAsyncError('results:remove', err));
+      return;
+    }
     const rerunBtn = e.target.closest('[data-bgtool-rerun]');
     if (rerunBtn) {
       e.preventDefault();
       e.stopPropagation();
       const id = rerunBtn.dataset.bgtoolRerun;
       if (id) {
-        selectJob(id)
-          .then(() => reprocessSelected())
+        reprocessJobs([id])
           .catch((err) => logAsyncError('results:rerun', err));
       }
       return;
@@ -1718,6 +1909,7 @@
       return;
     }
 
+    if (e.target.closest('details, .bgtool-approve')) return;
     const card = e.target.closest('[data-bgtool-select]');
     if (!card) return;
     const id = card.dataset.bgtoolSelect;
@@ -1729,25 +1921,29 @@
   downloadAllBtn?.addEventListener('click', downloadApproved);
   resetBtn?.addEventListener('click', clearAll);
   clearEditsBtn?.addEventListener('click', clearEdits);
+  reprocessBtn?.addEventListener('click', () => {
+    reprocessJobs([state.activeJobId]).catch((err) => logAsyncError('reprocess:photo', err));
+  });
+  reprocessAllBtn?.addEventListener('click', () => {
+    reprocessJobs(state.jobs.map((job) => job.id)).catch((err) => logAsyncError('reprocess:all', err));
+  });
 
   methodSelect?.addEventListener('change', () => {
     updateMethodVisibility();
-    // Changing method affects mask generation, so prompt users by re-queueing the selected job if desired.
-    if (active.job) reprocessSelected().catch((err) => logAsyncError('settings:method-change', err));
+    updateSettingsState();
   });
   deviceSelect?.addEventListener('change', () => {
     markSessionDirty();
-    if (active.job && String(methodSelect?.value || '').startsWith('ai-')) {
-      reprocessSelected().catch((err) => logAsyncError('settings:device-change', err));
-    }
+    updateSettingsState();
   });
   processingSelect?.addEventListener('change', () => {
     markSessionDirty();
-    if (active.job) reprocessSelected().catch((err) => logAsyncError('settings:processing-change', err));
+    updateSettingsState();
   });
 
   $$('input[name="bgtool-mask-type"]').forEach((input) => {
     input.addEventListener('change', () => {
+      if (!input.checked) return;
       state.maskType = input.value === 'binary' ? 'binary' : 'alpha';
       updateMaskControls();
       schedulePreviewRender();
@@ -1808,10 +2004,12 @@
 
   colorInput?.addEventListener('input', () => {
     updateLegacyLabels();
+    updateSettingsState();
     markSessionDirty();
   });
   toleranceInput?.addEventListener('input', () => {
     updateLegacyLabels();
+    updateSettingsState();
     markSessionDirty();
   });
 
@@ -1857,15 +2055,24 @@
     try {
       canvas.releasePointerCapture(event.pointerId);
     } catch {}
-    await commitActiveMask();
-    renderResults();
+    state.selecting = true;
     updateActionButtons();
+    try {
+      await commitActiveMask();
+      renderResults();
+    } finally {
+      state.selecting = false;
+      updateActionButtons();
+    }
   });
   canvas.addEventListener('pointercancel', () => {
     active.drawing = false;
   });
 
-  form.addEventListener('submit', (e) => e.preventDefault());
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    reprocessJobs([state.activeJobId]).catch((err) => logAsyncError('reprocess:submit', err));
+  });
 
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;
@@ -1927,7 +2134,7 @@
   state.silhouetteColorMode = String(silhouetteColorModeSelect?.value || state.silhouetteColorMode) === 'manual' ? 'manual' : 'auto';
   state.silhouetteColor = normalizeHex(silhouetteColorInput?.value || state.silhouetteColor);
 
-  showOverlay('Click or drop photos to start');
+  showOverlay('Add photos');
   updateSummary();
   updateMethodVisibility();
   updateLegacyLabels();
@@ -1939,4 +2146,5 @@
   updateActionButtons();
   updateRefineControls();
   updateLayoutState();
+  updateWorkspaceSummary();
 })();

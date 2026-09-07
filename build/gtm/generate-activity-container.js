@@ -54,7 +54,7 @@ const tagGroups = [
     tagId: '35',
     triggerId: '21',
     name: 'Game Activation',
-    trigger: '^game_session_start$'
+    trigger: '^(game_session_start|game_milestone)$'
   },
   {
     tagId: '36',
@@ -98,10 +98,18 @@ const tagGroups = [
     triggerId: '28',
     name: 'Reliability',
     trigger: '^(client_error|contact_form_error)$'
+  },
+  {
+    tagId: '43',
+    triggerId: '44',
+    name: 'Virtual Page View',
+    trigger: '^virtual_page_view$',
+    eventName: 'page_view',
+    eventSettingsVariable: 'EVS - Virtual page parameters'
   }
 ];
 
-const dataLayerVariables = [
+const activityVariables = [
   ['7', 'activity_label'],
   ['9', 'activity_detail'],
   ['10', 'activity_value'],
@@ -110,6 +118,35 @@ const dataLayerVariables = [
   ['13', 'page_id'],
   ['14', 'audience']
 ];
+
+const dataLayerVariables = [
+  ...activityVariables,
+  ['45', 'page_location'],
+  ['46', 'page_title'],
+  ['47', 'page_referrer'],
+  ['48', 'analytics_debug'],
+  ['49', 'traffic_type']
+];
+
+// Undefined values stay undefined in GTM: debug_mode=false still enables GA4
+// debug collection, so the site clears analytics_debug for ordinary traffic.
+const qaParameters = [
+  ['debug_mode', 'analytics_debug'],
+  ['traffic_type', 'traffic_type']
+];
+const pageParameters = ['page_location', 'page_title', 'page_referrer', 'page_id', 'audience'];
+
+const makeSettingsTable = (key, parameters) => ({
+  type: 'LIST',
+  key,
+  list: parameters.map(([name, dataLayerName]) => ({
+    type: 'MAP',
+    map: [
+      { type: 'TEMPLATE', key: 'parameter', value: name },
+      { type: 'TEMPLATE', key: 'parameterValue', value: `{{DLV - ${dataLayerName}}}` }
+    ]
+  }))
+});
 
 const fingerprint = (offset) => String(1783739000000 + offset);
 
@@ -138,7 +175,7 @@ const makeTag = (group, index) => ({
     {
       type: 'TEMPLATE',
       key: 'eventSettingsVariable',
-      value: '{{EVS - Site activity parameters}}'
+      value: `{{${group.eventSettingsVariable || 'EVS - Site activity parameters'}}}`
     }
   ],
   fingerprint: fingerprint(100 + index),
@@ -201,35 +238,28 @@ const makeDataLayerVariable = ([variableId, dataLayerName], index) => ({
   formatValue: {}
 });
 
-const eventSettingsVariable = {
+const makeEventSettingsVariable = (variableId, name, parameters, offset) => ({
   accountId: ACCOUNT_ID,
   containerId: CONTAINER_ID,
-  variableId: '8',
-  name: 'EVS - Site activity parameters',
+  variableId,
+  name,
   type: 'gtes',
-  parameter: [
-    {
-      type: 'LIST',
-      key: 'eventSettingsTable',
-      list: dataLayerVariables.map(([, name]) => ({
-        type: 'MAP',
-        map: [
-          {
-            type: 'TEMPLATE',
-            key: 'parameter',
-            value: name
-          },
-          {
-            type: 'TEMPLATE',
-            key: 'parameterValue',
-            value: `{{DLV - ${name}}}`
-          }
-        ]
-      }))
-    }
-  ],
-  fingerprint: fingerprint(400)
-};
+  parameter: [makeSettingsTable('eventSettingsTable', parameters)],
+  fingerprint: fingerprint(offset)
+});
+
+const eventSettingsVariable = makeEventSettingsVariable(
+  '8',
+  'EVS - Site activity parameters',
+  [...activityVariables.map(([, name]) => [name, name]), ...qaParameters],
+  400
+);
+const virtualPageSettingsVariable = makeEventSettingsVariable(
+  '50',
+  'EVS - Virtual page parameters',
+  [...pageParameters.map((name) => [name, name]), ...qaParameters],
+  401
+);
 
 const containerVersion = {
   path: `accounts/${ACCOUNT_ID}/containers/${CONTAINER_ID}/versions/0`,
@@ -275,7 +305,12 @@ const containerVersion = {
           type: 'TEMPLATE',
           key: 'tagId',
           value: MEASUREMENT_ID
-        }
+        },
+        makeSettingsTable('configSettingsTable', [
+          ['page_id', 'page_id'],
+          ['audience', 'audience'],
+          ...qaParameters
+        ])
       ],
       fingerprint: '1783730399914',
       firingTriggerId: ['2147479573'],
@@ -288,7 +323,8 @@ const containerVersion = {
   trigger: tagGroups.map(makeTrigger),
   variable: [
     ...dataLayerVariables.map(makeDataLayerVariable),
-    eventSettingsVariable
+    eventSettingsVariable,
+    virtualPageSettingsVariable
   ],
   builtInVariable: [
     { accountId: ACCOUNT_ID, containerId: CONTAINER_ID, type: 'PAGE_URL', name: 'Page URL' },

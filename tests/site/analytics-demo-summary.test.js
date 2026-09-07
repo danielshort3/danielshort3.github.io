@@ -30,9 +30,11 @@ function createHarness(name, getJson = async () => ({})) {
   const context = vm.createContext({
     window: {
       addEventListener() {},
-      DemoAws: {
-        resolveEndpoint: () => '/api/demo/', joinUrl: (base, suffix) => base + suffix,
-        retryRequest: (operation) => operation(), getJson
+      DemoDashboardData: {
+        loadDashboardData: getJson,
+        loadCovidMeta: () => getJson('meta'),
+        loadCovidDate: (date) => getJson(`by-date/${date}.json`),
+        loadCovidState: (state) => getJson(`state/${state}.json`)
       }
     },
     document: {
@@ -106,13 +108,12 @@ async function run() {
     updateDrivers = () => {};
     const renderedHistories = [];
     updateTrend = (history) => renderedHistories.push(history.map((point) => point.date));
-    appState.endpoint = '/api/demo/';
     appState.activeDate = '2021-01-02';
     appState.states = new Map([
       ['CO', { id: 'CO', name: 'Colorado', prob: .1, icuUtilization: .6 }],
       ['NY', { id: 'NY', name: 'New York', prob: .2, icuUtilization: .7 }]
     ]);
-    setServerReady(true);
+    setDataReady(true);
     updateStateOptions(Array.from(appState.states.values()));
   `);
   const selector = covid.getElement('state-select');
@@ -121,12 +122,12 @@ async function run() {
   selector.emit('change');
   selector.value = 'NY';
   selector.emit('change');
-  pending.get('/api/demo/state/NY')({ history: [{ date: '2021-01-01' }, { date: '2021-01-03' }] });
+  pending.get('state/NY.json')({ history: [{ date: '2021-01-01' }, { date: '2021-01-03' }] });
   await new Promise((resolve) => setImmediate(resolve));
   assert.strictEqual(covid.getElement('state-title').textContent, 'New York');
   assert.strictEqual(covid.evaluate('JSON.stringify(renderedHistories.at(-1))'), '["2021-01-01"]',
     'Historical trend must exclude dates later than the selected summary date');
-  pending.get('/api/demo/state/CO')({ history: [{ date: '2021-01-02' }] });
+  pending.get('state/CO.json')({ history: [{ date: '2021-01-02' }] });
   await new Promise((resolve) => setImmediate(resolve));
   assert.strictEqual(covid.evaluate('JSON.stringify(renderedHistories.at(-1))'), '["2021-01-01"]',
     'A late previous-state response must not replace the current trend');

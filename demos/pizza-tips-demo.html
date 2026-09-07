@@ -536,7 +536,7 @@
       .pizza-workspace .map-meta { grid-template-columns: 1fr 1fr; }
     }
   </style>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
@@ -592,7 +592,7 @@
         <p class="subtitle">Adjust an example order and delivery location to explore the estimated tip.</p>
       </div>
       <div class="header-actions">
-        <span class="health-pill aws-status-badge" id="api-status" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
+        <span class="health-pill aws-status-badge" id="api-status" data-state="ok" role="status" aria-live="polite">Runs in your browser</span>
       </div>
     </header>
 
@@ -729,19 +729,10 @@
   <script src="js/vendor/leaflet/leaflet.js"></script>
   <script src="js/vendor/leaflet/leaflet-heat.js"></script>
   <script src="js/demos/pizza-tips-meta.js"></script>
-  <script src="js/demos/aws-client.js"></script>
+  <script src="js/demos/pizza-tips-model.js"></script>
+  <script src="js/demos/pizza-tips-predictor.js"></script>
+  <script src="js/demos/pizza-tips-runtime.js"></script>
   <script type="module">
-    const DEFAULT_FN_URL = '/api/demos/pizza-tips/';
-    const STORAGE_KEY = "demo.endpoint.pizza";
-    const {
-      resolveEndpoint,
-      listCandidates,
-      postWithFallback,
-      rememberEndpoint,
-      healthJson,
-      warmupJson,
-      retryRequest
-    } = window.DemoAws;
     const META = window.PizzaTipsMeta || {};
     const MAP_BOUNDS = META.bounds
       ? {
@@ -786,15 +777,6 @@
       minTemp: 'Min Temp'
     };
 
-    const endpointConfig = { defaultUrl: DEFAULT_FN_URL, storageKey: STORAGE_KEY, allowOverrides: false };
-    const WARM_RETRY_OPTIONS = {
-      retries: 12,
-      baseDelayMs: 1000,
-      factor: 1.8,
-      maxDelayMs: 10000
-    };
-    const candidates = () => listCandidates(endpointConfig).filter(Boolean);
-    const API_URL = resolveEndpoint(endpointConfig);
     const statusEl = document.getElementById('api-status');
     const latInput = document.getElementById('lat');
     const lonInput = document.getElementById('lon');
@@ -834,10 +816,6 @@
     let legendEl = null;
     let legendMinEl = null;
     let legendMaxEl = null;
-    let serverReady = false;
-    let activeEndpoint = API_URL;
-    let warmupTask = null;
-    let warming = false;
     let estimatePending = false;
     let estimateVersion = 0;
     let heatmapVersion = 0;
@@ -851,14 +829,9 @@
       statusEl.textContent = text;
     }
 
-    function setServerReady(ready) {
-      serverReady = ready;
-      updateActions();
-    }
-
     function updateActions() {
-      predictBtn.disabled = warming || estimatePending;
-      predictBtn.textContent = warming ? 'Preparing…' : estimatePending ? 'Estimating…' : 'Update estimate';
+      predictBtn.disabled = estimatePending;
+      predictBtn.textContent = estimatePending ? 'Estimating…' : 'Update estimate';
     }
 
     function formatCurrency(value) {
@@ -1120,9 +1093,6 @@
       updateMapMeta();
     }
 
-
-    const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['predict'], payload);
-
     function currentPayload(includeGrid = false) {
       const confidenceValue = Number(confidenceSelect.value) || DEFAULTS.confidenceLevel;
       const payload = {
@@ -1150,45 +1120,6 @@
         };
       }
       return payload;
-    }
-
-    async function warmUpServer() {
-      setServerReady(false);
-      setStatus('warming', 'Preparing demo…');
-      const endpoints = candidates();
-      if (!endpoints.length) {
-        setStatus('err', 'No endpoint');
-        return false;
-      }
-      const payload = currentPayload(false);
-      let lastErr = null;
-      for (const base of endpoints) {
-        try {
-          await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
-          await retryRequest(() => warmupJson(base, payload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
-          rememberEndpoint(base, STORAGE_KEY);
-          activeEndpoint = base;
-          setServerReady(true);
-          setStatus('ok', 'Ready');
-          return true;
-        } catch (err) {
-          lastErr = err;
-        }
-        try {
-          await retryRequest(() => postToEndpoint(base, payload), WARM_RETRY_OPTIONS);
-          rememberEndpoint(base, STORAGE_KEY);
-          activeEndpoint = base;
-          setServerReady(true);
-          setStatus('ok', 'Ready');
-          return true;
-        } catch (err) {
-          lastErr = err;
-        }
-      }
-      setServerReady(false);
-      setStatus('err', 'Unavailable');
-      if (lastErr) console.error(lastErr);
-      return false;
     }
 
     function applyResponse(result, payload) {
@@ -1248,20 +1179,6 @@
       updateActions();
     }
 
-    async function ensureServerReady() {
-      if (serverReady) return true;
-      if (!warmupTask) {
-        warming = true;
-        updateActions();
-        warmupTask = warmUpServer().finally(() => {
-          warming = false;
-          warmupTask = null;
-          updateActions();
-        });
-      }
-      return warmupTask;
-    }
-
     async function requestHeatmap() {
       if (!heatmapDetails.open || !locationDetails.open) return;
       if (lastEstimateKey !== scenarioKey() || estimateSummary.dataset.state !== 'current') {
@@ -1277,7 +1194,7 @@
         let heatmap = heatmapCache.get(key);
         if (!heatmap) {
           if (!pendingHeatmaps.has(key)) {
-            const request = postToEndpoint(activeEndpoint, payload).then((response) => {
+            const request = window.PizzaTipsRuntime.predict(payload).then((response) => {
               if (!response.heatmap || !Array.isArray(response.heatmap.points)) {
                 throw new Error('The map response was incomplete.');
               }
@@ -1321,10 +1238,7 @@
       warningsEl.textContent = '';
       updateActions();
       try {
-        const ready = await ensureServerReady();
-        if (requestVersion !== estimateVersion) return;
-        if (!ready) throw new Error('The estimator is unavailable. Select Update estimate to retry.');
-        const result = await postToEndpoint(activeEndpoint, payload);
+        const result = await window.PizzaTipsRuntime.predict(payload);
         if (requestVersion !== estimateVersion || scenarioKey(payload) !== scenarioKey()) return;
         if (!Number.isFinite(result.predictions?.tip?.value)) {
           throw new Error('The estimate was incomplete. Select Update estimate to retry.');
@@ -1336,7 +1250,7 @@
         if (payload.orderHour !== undefined) description.push(formatHour(payload.orderHour));
         resultScenario.textContent = `${example ? 'Computed example' : 'Current scenario'} · ${description.join(', ')}`;
         resultStatus.textContent = 'Estimate updated. Change the scenario below to compare.';
-        setStatus('ok', 'Ready');
+        setStatus('ok', 'Runs in your browser');
         requestHeatmap();
       } catch (err) {
         if (requestVersion !== estimateVersion) return;
@@ -1346,7 +1260,6 @@
           : 'The example could not load. Select Update estimate to retry.';
         warningsEl.textContent = String(err.message || err);
         setStatus('err', 'Retry available');
-        serverReady = false;
         console.error(err);
       } finally {
         if (requestVersion === estimateVersion) {
@@ -1361,8 +1274,8 @@
     populateHousing();
     populateConfidence();
     applyFeatureVisibility();
-    setServerReady(false);
-    setStatus(API_URL ? 'warming' : 'err', API_URL ? 'Preparing demo…' : 'Unavailable');
+    updateActions();
+    setStatus('ok', 'Runs in your browser');
     setInputs(DEFAULTS);
 
     const map = L.map('map', { zoomControl: true });

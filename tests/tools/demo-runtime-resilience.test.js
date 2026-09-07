@@ -3,6 +3,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const vm = require('vm');
 const Module = require('module');
 const { once } = require('events');
@@ -146,10 +147,186 @@ async function testShapeExportRecovery() {
   }
 }
 
+function testChatbotSyncedControls() {
+  const html = fs.readFileSync(path.join(__dirname, '../../demos/chatbot-demo.html'), 'utf8');
+  const functionRange = (start, end) => html.slice(html.indexOf('    function ' + start + '('), html.indexOf('    function ' + end + '('));
+  class Element {
+    constructor() {
+      this.dataset = {};
+      this.children = [];
+      this.listeners = [];
+      this.className = '';
+      this.textContent = '';
+      this.scrollTop = 0;
+    }
+    appendChild(child) { child.parentNode = this; this.children.push(child); return child; }
+    append(...children) { children.forEach(child => this.appendChild(child)); }
+    replaceChildren(...children) { this.children = []; this.append(...children); }
+    remove() { this.parentNode.children = this.parentNode.children.filter(child => child !== this); }
+    matches(selector) {
+      if (selector.startsWith('.')) return selector.slice(1).split('.').every(name => this.className.split(' ').includes(name));
+      const key = selector.slice(6, -1).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      return Object.hasOwn(this.dataset, key);
+    }
+    querySelectorAll(selector) {
+      return this.children.flatMap(child => [...(child.matches(selector) ? [child] : []), ...child.querySelectorAll(selector)]);
+    }
+    closest(selector) { return this.matches(selector) ? this : this.parentNode?.closest(selector); }
+    addEventListener(event, callback) { if (event === 'click') this.listeners.push(callback); }
+    click() { this.listeners.forEach(callback => callback()); }
+    serialize() {
+      return { dataset: this.dataset, className: this.className, textContent: this.textContent, children: this.children.map(child => child.serialize()) };
+    }
+    get innerHTML() { return JSON.stringify(this.children.map(child => child.serialize())); }
+    set innerHTML(value) {
+      // Like innerHTML in a browser, copying markup preserves data attributes, but never event listeners.
+      const restore = ({ children, ...attributes }) => {
+        const node = Object.assign(new Element(), attributes);
+        node.append(...children.map(restore));
+        return node;
+      };
+      this.replaceChildren(...JSON.parse(value).map(restore));
+    }
+  }
+  const submissions = [];
+  const retries = [];
+  const makeContext = (id) => {
+    const ctx = { id, messages: new Element(), prompt: { value: '' }, followupHistory: [], controller: null };
+    ctx.form = { requestSubmit: () => submissions.push({ id, prompt: ctx.prompt.value, context: ctx.pendingFollowupContext }) };
+    return ctx;
+  };
+  const regular = makeContext('regular');
+  const popup = makeContext('popup');
+  const followupContext = { previous_question: 'Plan a trip.', source_urls: ['https://example.com/travel'] };
+  const env = {
+    contexts: [regular, popup], sharedConversation: { draft: '', activeContextId: regular.id }, serverReady: true,
+    document: { createElement: () => new Element() },
+    autoResize() {}, updateSendButtons() {}, notifyResize() {},
+    followupCandidates: () => ['Find a lunch stop'], followupContext: () => followupContext,
+    normalizePrompt: text => text.toLowerCase(),
+    handleSubmit: (ctx, event, options) => retries.push({ ctx, options })
+  };
+  const declarations = html.match(/const bound\w+ = new WeakSet\(\);/g) || [];
+  vm.runInNewContext([
+    ...declarations,
+    functionRange('clearFollowups', 'scrollMessages'),
+    functionRange('retryFailedResponse', 'emptyState'),
+    functionRange('emptyState', 'clearContext')
+  ].join('\n'), env);
+
+  env.emptyState(regular);
+  check(regular.suggestions.length === 3 && popup.suggestions.length === 3, 'chatbot presets should be created and copied into both chat views');
+  for (const ctx of [regular, popup]) {
+    const before = submissions.length;
+    env.bindSyncedMessageControls(ctx);
+    env.bindSyncedMessageControls(ctx);
+    ctx.suggestions[0].click();
+    check(submissions.length === before + 1 && submissions.at(-1).id === ctx.id &&
+      submissions.at(-1).prompt === ctx.suggestions[0].dataset.suggestionPrompt,
+    'each original or copied preset should submit its own chat form exactly once after repeated binding');
+  }
+  const originalPreset = regular.suggestions[0];
+  originalPreset.dataset.syncedChatBound = 'yes';
+  env.syncMessagesFrom(regular);
+  check(popup.suggestions[0] !== originalPreset && popup.suggestions[0].dataset.syncedChatBound === 'yes',
+    'message synchronization should reproduce serialized markers on newly created button objects');
+  const beforeClonedPreset = submissions.length;
+  popup.suggestions[0].click();
+  check(submissions.length === beforeClonedPreset + 1 && submissions.at(-1).id === popup.id,
+    'a copied preset with a serialized binding marker should still submit from the popup demo');
+  env.syncMessagesFrom(popup);
+  const beforeReturn = submissions.length;
+  regular.suggestions[0].click();
+  check(regular.suggestions[0] !== originalPreset && submissions.length === beforeReturn + 1 && submissions.at(-1).id === regular.id,
+    'presets should keep working after messages are synchronized back to the regular demo');
+
+  const answer = new Element();
+  answer.className = 'message assistant';
+  regular.messages.appendChild(answer);
+  env.addFollowups(answer, regular, {}, [], 'Plan a trip.');
+  for (const ctx of [regular, popup]) {
+    const before = submissions.length;
+    env.bindSyncedMessageControls(ctx);
+    env.bindSyncedMessageControls(ctx);
+    ctx.followups[0].click();
+    check(submissions.length === before + 1 && submissions.at(-1).id === ctx.id && submissions.at(-1).prompt === 'Find a lunch stop' &&
+      JSON.stringify(submissions.at(-1).context) === JSON.stringify(followupContext),
+    'original and copied follow-ups should submit exactly once with their decoded context');
+  }
+  regular.followups[0].dataset.syncedChatBound = 'yes';
+  env.syncMessagesFrom(regular);
+  const beforeClonedFollowup = submissions.length;
+  popup.followups[0].click();
+  check(submissions.length === beforeClonedFollowup + 1 && JSON.stringify(submissions.at(-1).context) === JSON.stringify(followupContext),
+    'copied follow-ups should remain clickable when serialized markup retains an old binding marker');
+
+  const retry = new Element();
+  retry.dataset.retryPrompt = 'Retry this trip';
+  retry.dataset.followupContext = JSON.stringify(followupContext);
+  answer.appendChild(retry);
+  env.syncMessagesFrom(regular);
+  for (const ctx of [regular, popup]) {
+    env.bindSyncedMessageControls(ctx);
+    env.bindSyncedMessageControls(ctx);
+    const before = retries.length;
+    const button = ctx.messages.querySelectorAll('[data-retry-prompt]')[0];
+    button.click();
+    check(retries.length === before + 1 && retries.at(-1).ctx === ctx && retries.at(-1).options.message === button.closest('.message.assistant') &&
+      retries.at(-1).options.prompt === retry.dataset.retryPrompt && JSON.stringify(retries.at(-1).options.followupContext) === JSON.stringify(followupContext),
+    'retry controls should submit once in either view with the correct message and decoded context');
+  }
+  const beforeUnavailable = submissions.length;
+  env.serverReady = false;
+  popup.suggestions[0].click();
+  popup.followups[0].click();
+  check(submissions.length === beforeUnavailable, 'synced presets and follow-ups should still wait until the demo is ready');
+}
+
+async function testChatbotCompletedResponseScroll() {
+  const html = fs.readFileSync(path.join(__dirname, '../../demos/chatbot-demo.html'), 'utf8');
+  const source = html.slice(html.indexOf('    async function handleSubmit('), html.indexOf('    function bindContext('));
+  const scrollSource = html.slice(html.indexOf('    function scrollMessages('), html.indexOf('    function addMessage('));
+  for (const activeId of ['regular', 'popup']) {
+    const focused = [];
+    const frames = [];
+    const contexts = ['regular', 'popup'].map(id => ({
+      id,
+      controller: null,
+      transcript: [],
+      prompt: { value: 'Plan a trip.', focus: options => focused.push({ id, options }) },
+      messages: { scrollTop: 400, scrollHeight: 1000, querySelector: () => null }
+    }));
+    const env = {
+      contexts, serverReady: true,
+      window: { requestAnimationFrame: callback => frames.push(callback) },
+      activeChatContext: () => contexts.find(ctx => ctx.id === activeId),
+      clearFollowups() {}, addMessage() {}, autoResize() {}, syncPromptFrom() {},
+      addWaitingMessage: () => ({}), syncMessagesFrom() {}, updateSendButtons() {},
+      submitPrompt: async () => ({ answer: 'Your itinerary.' }),
+      answerText: data => data.answer, sourceItems: () => [],
+      renderAssistantAnswer() {},
+      addFollowups: () => contexts.forEach(ctx => { ctx.messages.scrollHeight = 1240; }),
+      // Iframe sizing can settle after the response has been rendered.
+      notifyResize: () => frames.push(() => contexts.forEach(ctx => { ctx.messages.scrollHeight = 1300; }))
+    };
+    vm.runInNewContext(scrollSource + source, env);
+    await env.handleSubmit(contexts[0], { preventDefault() {} });
+    check(contexts.every(ctx => ctx.messages.scrollTop === 1240),
+      'completed responses should scroll both views after follow-ups are appended');
+    frames.forEach(callback => callback());
+    check(contexts.every(ctx => ctx.messages.scrollTop === 1300),
+      'response scrolling should settle at the bottom after iframe layout updates');
+    check(focused.length === 1 && focused[0].id === activeId && focused[0].options?.preventScroll === true,
+      'completion should focus the active composer without hiding the final follow-ups');
+  }
+}
+
 async function testLocalStreamRoute() {
   const previousArn = process.env.CHATBOT_STREAM_FUNCTION_ARN;
   delete process.env.CHATBOT_STREAM_FUNCTION_ARN;
-  const server = createLocalServer();
+  // This case deliberately exercises missing configuration, independent of a developer's local files.
+  const envDir = fs.mkdtempSync(path.join(os.tmpdir(), 'demo-runtime-empty-env-'));
+  const server = createLocalServer({ envDir });
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const url = 'http://127.0.0.1:' + server.address().port + '/api/chatbot-stream';
@@ -201,6 +378,7 @@ async function testLocalStreamRoute() {
     console.error = originalError;
     if (typeof previousArn === 'undefined') delete process.env.CHATBOT_STREAM_FUNCTION_ARN;
     else process.env.CHATBOT_STREAM_FUNCTION_ARN = previousArn;
+    fs.rmdirSync(envDir);
     server.closeAllConnections();
     await new Promise(resolve => server.close(resolve));
   }
@@ -210,6 +388,8 @@ async function testLocalStreamRoute() {
   await testConfigurationRetries();
   await testProxyConfigurationCodes();
   await testShapeExportRecovery();
+  testChatbotSyncedControls();
+  await testChatbotCompletedResponseScroll();
   await testLocalStreamRoute();
   console.log('demo-runtime-resilience: ' + checks + ' checks passed');
 })().catch((err) => {

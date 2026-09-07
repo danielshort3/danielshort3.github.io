@@ -24,33 +24,23 @@
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#0F172A">
   <link rel="preload" href="css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="dist/styles.40f7dbbd.css">
-  <link rel="stylesheet" href="dist/styles-workbench.0e226e09.css">
+  <link rel="stylesheet" href="dist/styles.81f47dfb.css">
+  <link rel="stylesheet" href="dist/styles-workbench.e6b82ec5.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script id="ds-sw-register">
-  (function () {
-    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-    if (new URLSearchParams(window.location.search).has("no_sw")) return;
-    var host = window.location.hostname || "";
-    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function () {});
-    });
-  })();
-  </script>
+  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Daniel Short">
   <link rel="preconnect" href="https://public.tableau.com" crossorigin>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
-  <script defer src="dist/site-shell.2090cb2c.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
+  <script defer src="dist/site-shell.8928284a.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta property="og:image:type" content="image/png">
   <meta name="author" content="Daniel Short">
@@ -60,10 +50,10 @@
 
   <meta name="referrer" content="no-referrer">
 
-<link rel="stylesheet" href="dist/styles-personal-accordion.b4b0114f.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tourism:projects:portfolio","path":"/portfolio","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.40f7dbbd.css","/dist/styles-workbench.0e226e09.css","/dist/styles-personal-accordion.b4b0114f.css"],"scripts":["/dist/site-consent.5fbd7df8.js","/dist/site-shell.2090cb2c.js","/js/common/no-js.js"],"module":"portfolio:workbench"}</script>
+<link rel="stylesheet" href="dist/styles-personal-accordion.16c6538c.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tourism:projects:portfolio","path":"/portfolio","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.81f47dfb.css","/dist/styles-workbench.e6b82ec5.css","/dist/styles-personal-accordion.16c6538c.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-consent.ab1759e7.js","/dist/site-shell.8928284a.js","/js/common/no-js.js"],"module":"portfolio:workbench"}</script>
 </head>
-<body data-page="portfolio" class="site-page personal-accordion-page" data-internal-professional-copy="true" data-audience="tourism" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="portfolio" data-personal-fit="document" data-site-route-id="tourism:projects:portfolio" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="portfolio:workbench">
+<body data-page="portfolio" class="site-page personal-accordion-page" data-internal-professional-copy="true" data-audience="tourism" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="portfolio" data-personal-fit="viewport" data-site-route-id="tourism:projects:portfolio" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="portfolio:workbench">
   <a href="/portfolio?audience=tourism#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav" data-site-shell-header>
     <nav class="nav" aria-label="Site header">
@@ -201,8 +191,8 @@
             </div>
             <div class="portfolio-results-list" role="list" data-portfolio-results>
               <!-- portfolio-static-results:start -->
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="smartSentence">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/smartSentence.png" alt="Preview of Smart Sentence Retriever" width="952" height="952" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="smartSentence">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/smartSentence.png?v=7be7091370e0" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Smart Sentence Retriever</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>NLP Embeddings &amp; Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn&#39;t match exactly.</p>
@@ -212,8 +202,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="chatbotLora">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/chatbotLora.png" alt="Preview of Chatbot (LoRA + RAG)" width="1280" height="720" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="chatbotLora">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/chatbotLora.png?v=a6d123e8bd75" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Chatbot (LoRA + RAG)</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn…</p>
@@ -223,8 +213,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="shapeClassifier">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/shapeClassifier.png" alt="Preview of Shape Classifier Demo" width="926" height="926" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="shapeClassifier">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/shapeClassifier.png?v=981b96b1622f" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Shape Classifier Demo</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Handwritten Shape Recognition: I wanted a model that can tell what shape someone drew.</p>
@@ -234,8 +224,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="ufoDashboard">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/ufoDashboard.png" alt="Preview of UFO Sightings Dashboard" width="2008" height="1116" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="ufoDashboard">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/ufoDashboard.png?v=ae6e397c2406" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">UFO Sightings Dashboard</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.</p>
@@ -245,8 +235,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="covidAnalysis">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/covidAnalysis.png" alt="Preview of COVID-19 Outbreak Drivers" width="1446" height="1446" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="covidAnalysis">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/covidAnalysis.png?v=9f13fa761f39" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">COVID-19 Outbreak Drivers</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Python XGBoost &amp; SHAP: Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…</p>
@@ -256,8 +246,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="targetEmptyPackage">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/targetEmptyPackage.png" alt="Preview of Empty-Package Shrink Dashboard" width="1460" height="1460" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="targetEmptyPackage">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/targetEmptyPackage.png?v=fe4215c27311" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Empty-Package Shrink Dashboard</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Excel Forecasting &amp; BI: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and…</p>
@@ -267,8 +257,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="handwritingRating">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/handwritingRating.png" alt="Preview of Handwriting Legibility Scoring" width="1138" height="1138" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="handwritingRating">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/handwritingRating.png?v=582853161647" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Handwriting Legibility Scoring</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>PyTorch CNN Fine-Tuning: My wife says my handwriting is hard to read. I wanted an objective score.</p>
@@ -278,8 +268,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="digitGenerator">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/digitGenerator.png" alt="Preview of Synthetic Digit Generator" width="1470" height="1470" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="digitGenerator">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/digitGenerator.png?v=f26866af05d5" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Synthetic Digit Generator</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Variational Autoencoder: I wanted to generate new handwritten digits, not just recognize them.</p>
@@ -289,8 +279,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="sheetMusicUpscale">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/sheetMusicUpscale.png?v=7328193a7824" alt="Preview of Sheet Music Watermark Removal &amp; Upscale" width="1600" height="900" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="sheetMusicUpscale">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Sheet Music Watermark Removal &amp; Upscale</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>UNet &amp; VDSR Pipeline: I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.</p>
@@ -300,8 +290,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="deliveryTip">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/deliveryTip.png" alt="Preview of Delivery Tip" width="960" height="794" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="deliveryTip">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/deliveryTip.png?v=e035f25cb792" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Delivery Tip</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Excel Geo-Analytics &amp; Optimization: I wanted to know which shifts and neighborhoods lead to better tips.</p>
@@ -311,8 +301,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="retailStore">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/retailStore.png" alt="Preview of Store-Level Loss &amp; Sales ETL" width="1410" height="1410" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="retailStore">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/retailStore.png?v=8e0cf4b2dfa1" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Store-Level Loss &amp; Sales ETL</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>SQL ETL + Anomaly Detection: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together…</p>
@@ -322,8 +312,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="pizza">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/pizza.png" alt="Preview of Pizza Tips Regression Modeling" width="1398" height="1398" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="pizza">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/pizza.png?v=478ab0f3d86a" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Pizza Tips Regression Modeling</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Excel Analytics &amp; Regression Modeling: Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.</p>
@@ -333,8 +323,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="babynames">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/babynames.png" alt="Preview of Baby Name Predictor" width="1238" height="1238" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="babynames">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/babynames.png?v=7fc79e6e3331" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Baby Name Predictor</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Python ML Pipeline: My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.</p>
@@ -344,8 +334,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="pizzaDashboard">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/pizzaDashboard.png" alt="Preview of Pizza Delivery Dashboard" width="1250" height="1092" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="pizzaDashboard">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/pizzaDashboard.png?v=4e01e3d6a7f6" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Pizza Delivery Dashboard</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Tableau Analytics &amp; Forecasting: I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to…</p>
@@ -355,8 +345,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="nonogram">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/nonogram.png" alt="Preview of Nonogram Solver" width="1228" height="1228" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="nonogram">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/nonogram.png?v=d8d2122f3f7f" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">Nonogram Solver</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Reinforcement Learning (RL): I wanted to see if an RL agent could learn to solve Nonogram puzzles.</p>
@@ -366,8 +356,8 @@
                   </div>
                 </div>
               </article>
-              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="website">
-                <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/website.png" alt="Preview of danielshort.me" width="1464" height="1464" loading="lazy" decoding="async"></span>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static portfolio-project-result--icon" role="listitem" data-project-id="website">
+                <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true"><span class="portfolio-result-card__icon"><img src="img/projects/icons/website.png?v=5ee2dd9327e1" alt="" width="256" height="256" loading="lazy" decoding="async"></span></span>
                 <div class="portfolio-result-card__body">
                   <h2 class="portfolio-result-card__title">danielshort.me</h2>
                   <p class="portfolio-result-card__outcome"><span>Outcome</span>Responsive Portfolio Site: I needed a fast site to show my work, especially on mobile.</p>

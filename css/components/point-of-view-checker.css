@@ -743,3 +743,47 @@
     }
   }
 }
+
+@layer overrides {
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace-grid { grid-template-columns: minmax(330px, .8fr) minmax(0, 1.2fr); }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-card { display: block; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace :is(.povcheck-label, .povcheck-option, .povcheck-color-label) { color: var(--workspace-ink); font-size: 14px; letter-spacing: 0; text-transform: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace :is(.povcheck-help, .povcheck-summary, .povcheck-input-status, .povcheck-results-status, .povcheck-pronoun-note) { color: var(--workspace-muted); font-size: 13px; line-height: 1.5; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .tool-workspace-panel { display: grid; gap: 16px; min-width: 0; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-textarea { width: 100%; min-height: clamp(220px, calc(100dvh - 670px), 330px); }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-textarea-compact { min-height: 110px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-input-status:empty { display: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace :is(.povcheck-mode-option, .povcheck-option) { background: #fff; color: var(--workspace-ink); border: 1px solid var(--workspace-border); border-radius: 5px; box-shadow: none; padding: 10px 12px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-mode-option:has(:checked) { border-color: var(--workspace-accent); background: #eef8f8; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace :is(.povcheck-advanced-grid, .povcheck-preset-grid) { grid-template-columns: minmax(0, 1fr); }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace :is(.povcheck-advanced, .povcheck-preset-grid) { background: none; border: 0; padding: 0; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace :is(.povcheck-text, .povcheck-select) { width: 100%; padding: 10px 12px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--workspace-border); border-radius: 5px; margin: 0 0 18px; overflow: hidden; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-stat { height: auto; min-height: 80px; gap: 8px; padding: 14px 10px; border: 0; border-right: 1px solid var(--workspace-border); border-radius: 0; background: #fff; box-shadow: none; align-items: center; justify-content: center; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-stat:last-child { border-right: 0; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-stat h3 { color: var(--workspace-ink); font-size: 13px; font-weight: 500; text-align: center; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-count { color: var(--workspace-accent); font-size: 24px; line-height: 1; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-output { min-height: 230px; padding: 18px; background: #fff; color: var(--workspace-ink); border: 1px solid var(--workspace-border); border-radius: 5px; box-shadow: none; font-size: 16px; line-height: 1.85; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-output:has(.povcheck-empty) { display: grid; align-content: center; text-align: center; background: var(--workspace-pale); border-style: dashed; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-mark { color: var(--workspace-ink); }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-legend { justify-content: start; gap: 12px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-legend-pill { border: 0; border-radius: 4px; padding: 4px 8px; color: var(--workspace-ink); font-size: 12px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace :is(.povcheck-drift, .povcheck-details) { padding: 12px 0; border: 0; border-radius: 0; background: #fff; box-shadow: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-drift-list { max-height: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace :is(.povcheck-drift-item, .povcheck-token-btn) { color: var(--workspace-ink); background: #fff; border: 1px solid var(--workspace-border); border-radius: 5px; box-shadow: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-token-section { padding-bottom: 14px; border-bottom: 1px solid var(--workspace-border); }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-token-list { max-height: none; overflow: visible; padding: 0; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-badge { padding: 4px 8px; border: 0; border-radius: 4px; background: var(--workspace-pale); color: var(--workspace-muted); font-size: 12px; box-shadow: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-color-details { margin-top: 16px; border-top: 1px solid var(--workspace-border); }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-details summary { color: var(--workspace-ink); font-weight: 600; cursor: pointer; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-export-menu { position: relative; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-export-menu > summary { cursor: pointer; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-export-menu > .tool-workspace-actions { position: absolute; z-index: 5; right: 0; top: 100%; min-width: 220px; display: grid; padding: 8px; border: 1px solid var(--workspace-border); border-radius: 5px; background: #fff; box-shadow: 0 8px 24px #091f3b14; }
+  @media (max-width: 1050px) { body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace-grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 600px) {
+    body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-textarea { min-height: 260px; }
+    body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-textarea-compact { min-height: 110px; }
+    body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-stat h3 { font-size: 12px; }
+    body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-stat { padding-inline: 7px; }
+  }
+}

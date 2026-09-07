@@ -853,6 +853,7 @@ function buildGamesDirectoryWorkbenchData(page) {
       formats: [type],
       results: game.summary ? [game.summary] : [],
       actions: tags.length ? [`Focus areas: ${tags.join(', ')}`] : [],
+      iconImage: game.iconImage ? trimLeadingSlash(game.iconImage) : '',
       image: game.image ? trimLeadingSlash(game.image) : '',
       imageWidth: Number(game.imageWidth) || null,
       imageHeight: Number(game.imageHeight) || null,
@@ -1138,12 +1139,14 @@ function renderGamesDirectoryBody(page) {
   const titleId = 'games-workbench-title';
   const cards = data.items.map((game) => {
     const tags = uniqueLabels(Array.isArray(game.tags) ? game.tags : []).slice(0, 2);
-    const media = game.image
-      ? `<img src="${escapeHtml(game.image)}" alt=""${game.imageWidth ? ` width="${escapeHtml(game.imageWidth)}"` : ''}${game.imageHeight ? ` height="${escapeHtml(game.imageHeight)}"` : ''} loading="lazy" decoding="async">`
-      : `<span class="games-directory-card__icon">${game.iconHtml || ''}</span>`;
+    const media = game.iconImage
+      ? `<img src="${escapeHtml(game.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async">`
+      : game.image
+        ? `<img src="${escapeHtml(game.image)}" alt=""${game.imageWidth ? ` width="${escapeHtml(game.imageWidth)}"` : ''}${game.imageHeight ? ` height="${escapeHtml(game.imageHeight)}"` : ''} loading="lazy" decoding="async">`
+        : `<span class="games-directory-card__icon">${game.iconHtml || ''}</span>`;
     return [
       `<a class="games-directory-card" role="listitem" href="${escapeHtml(game.href)}" data-game-id="${escapeHtml(game.id)}" data-content-id="${escapeHtml(game.id)}" data-content-type="game" data-resource-type="game" data-source-surface="games_directory">`,
-      `  <span class="games-directory-card__media" aria-hidden="true">${media}</span>`,
+      `  <span class="games-directory-card__media${game.iconImage ? ' games-directory-card__media--icon' : ''}" aria-hidden="true">${media}</span>`,
       '  <div class="games-directory-card__body">',
       `    <h2 class="games-directory-card__title">${escapeHtml(game.title)}</h2>`,
       `    <p class="games-directory-card__summary">${escapeHtml(game.summary)}</p>`,

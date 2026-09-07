@@ -3,6 +3,7 @@
   "title": "Shape Classifier Demo",
   "subtitle": "Handwritten Shape Recognition",
   "image": "img/projects/shapeClassifier.png",
+  "iconImage": "img/projects/icons/shapeClassifier.png",
   "imageWidth": 926,
   "imageHeight": 926,
   "videoWebm": "img/projects/shapeClassifier.webm",
@@ -51,6 +52,7 @@
     ]
   },
   "problem": "I wanted a model that can tell what shape someone drew.",
+  "task": "Build an interactive demo that classifies browser-drawn shapes into five supported QuickDraw categories.",
   "actions": [
     "Used Google's QuickDraw sketches and built train/validation splits.",
     "Trained a small ResNet18 classifier in PyTorch.",
@@ -78,5 +80,11 @@
     }
   },
   "order": 3,
-  "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task."
+  "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task.",
+  "mobilePreview": {
+    "image": "img/projects/shapeClassifier-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Shape Classifier with a drawn square and the model’s prediction."
+  }
 }

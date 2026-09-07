@@ -4,8 +4,14 @@
   if (!main) return;
 
   const configSource = document.body || main;
+  const resolveTrackerApiBase = (configured) => {
+    const localHost = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+    return localHost && ['http:', 'https:'].includes(window.location.protocol)
+      ? '/api/job-tracker'
+      : String(configured || '').trim();
+  };
   const config = {
-    apiBase: (configSource.dataset.apiBase || '').trim(),
+    apiBase: resolveTrackerApiBase(configSource.dataset.apiBase),
     maxAttachmentBytes: parseInt(configSource.dataset.maxAttachmentBytes || '10485760', 10) || 10485760,
     maxAttachmentCount: parseInt(configSource.dataset.maxAttachmentCount || '12', 10) || 12
   };
@@ -17,6 +23,9 @@
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 	  const els = {
+    authReconnect: $('[data-jobtrack="auth-reconnect"]'),
+    authReconnectMessage: $('[data-jobtrack="auth-reconnect-message"]'),
+    authReconnectSignIn: $('[data-jobtrack="auth-reconnect-sign-in"]'),
 	    jumpEntryButtons: $$('[data-jobtrack="jump-entry"]'),
 	    jumpTabButtons: $$('[data-jobtrack-jump]'),
     entryForm: $('[data-jobtrack="entry-form"]'),
@@ -329,6 +338,8 @@
 
 	  const state = {
 	    auth: null,
+    trackerReconnectRequired: false,
+    trackerRejectedToken: '',
 	    lineChart: null,
 	    statusChart: null,
 	    range: null,
@@ -2090,17 +2101,34 @@
 
   const syncAuthState = async () => {
     state.auth = await ensureFreshAuth();
+    const token = String(state.auth?.idToken || '');
+    if (token && token !== state.trackerRejectedToken) {
+      state.trackerReconnectRequired = false;
+      state.trackerRejectedToken = '';
+    }
     return state.auth;
   };
 
-  const signOutTools = () => {
-    if (window.ToolsAuth && typeof window.ToolsAuth.signOut === 'function') {
-      window.ToolsAuth.signOut();
-    }
-    state.auth = null;
-    try {
-      document.dispatchEvent(new CustomEvent('tools:auth-changed', { detail: { source: 'job-application-tracker' } }));
-    } catch {}
+  const isTrackerReconnectError = (error) => ['TOOLS_ID_TOKEN_REQUIRED', 'TRACKER_RECONNECT_REQUIRED'].includes(error?.code);
+
+  const trackerReconnectError = () => {
+    const error = new Error('Sign in again to reconnect the job tracker.');
+    error.code = 'TRACKER_RECONNECT_REQUIRED';
+    error.status = 401;
+    return error;
+  };
+
+  const requireTrackerReconnect = () => {
+    const wasRequired = state.trackerReconnectRequired;
+    state.trackerReconnectRequired = true;
+    state.trackerRejectedToken = String(state.auth?.idToken || '');
+    setAuthMessage('Sign in again to reconnect the job tracker.', 'info');
+    if (!wasRequired) updateAuthUI();
+    return trackerReconnectError();
+  };
+
+  const reportRequestError = (message, error) => {
+    if (!isTrackerReconnectError(error)) console.error(message, error);
   };
 
   const getSignedInLabel = (auth) => {
@@ -3248,14 +3276,21 @@
   };
 
 	  const updateAuthUI = () => {
-	    const authed = authIsValid(state.auth);
+      const accountAuthed = authIsValid(state.auth);
+	    const authed = accountAuthed && !state.trackerReconnectRequired;
+      if (els.authReconnect) els.authReconnect.hidden = !state.trackerReconnectRequired;
+      if (state.trackerReconnectRequired && els.authReconnectMessage) {
+        els.authReconnectMessage.textContent = accountAuthed
+          ? 'Your Tools account is still signed in. Sign in again to reconnect this tracker.'
+          : 'Sign in again to reconnect this tracker.';
+      }
 	    if (els.signIn) {
 	      els.signIn.disabled = authed;
 	      els.signIn.setAttribute('aria-disabled', authed ? 'true' : 'false');
 	    }
 	    if (els.signOut) {
-	      els.signOut.disabled = !authed;
-	      els.signOut.setAttribute('aria-disabled', !authed ? 'true' : 'false');
+	      els.signOut.disabled = !accountAuthed;
+	      els.signOut.setAttribute('aria-disabled', !accountAuthed ? 'true' : 'false');
 	    }
 	    if (els.authStatus) {
 	      if (authed) {
@@ -3328,17 +3363,27 @@
       if (!window.ToolsAuth || typeof window.ToolsAuth.fetchWithAuth !== 'function') {
         throw new Error('Tools auth is not available.');
       }
+      if (state.trackerReconnectRequired) {
+        const token = String(window.ToolsAuth.getAuth?.()?.idToken || '');
+        if (!token || token === state.trackerRejectedToken) throw trackerReconnectError();
+        state.trackerReconnectRequired = false;
+        state.trackerRejectedToken = '';
+        state.auth = window.ToolsAuth.getAuth?.() || null;
+        updateAuthUI();
+      }
 
       let res;
       try {
         res = await window.ToolsAuth.fetchWithAuth(joinUrl(config.apiBase, path), {
           method,
+          requireIdToken: true,
           headers: { 'Content-Type': 'application/json' },
           body: body ? JSON.stringify(body) : undefined
         });
         state.auth = window.ToolsAuth.getAuth?.() || null;
       } catch (err) {
         state.auth = window.ToolsAuth.getAuth?.() || null;
+        if (isTrackerReconnectError(err) || err?.status === 401) throw requireTrackerReconnect();
         if (!authIsValid(state.auth)) {
           setAuthMessage('Sign in to continue.', 'info');
           updateAuthUI();
@@ -3355,11 +3400,7 @@
       }
     }
 	    if (!res.ok) {
-	      if (res.status === 401 || res.status === 403) {
-          signOutTools();
-	        setAuthMessage('Your session ended. Please sign in again.', 'error');
-	        updateAuthUI();
-	      }
+	      if (res.status === 401) throw requireTrackerReconnect();
 	      const error = new Error(data?.error || data?.message || text || `${res.status} ${res.statusText}`);
         error.status = res.status;
         error.payload = data;
@@ -4963,7 +5004,9 @@
     try {
       const res = await fetch(src);
       if (!res.ok) throw new Error('Unable to load map.');
-      const text = await res.text();
+      // Map colors belong to the external tracker stylesheet. Older cached SVGs
+      // contain a style block that would violate CSP during parsing itself.
+      const text = (await res.text()).replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '');
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, 'image/svg+xml');
       const svg = doc.querySelector('svg');
@@ -4979,8 +5022,6 @@
       svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       svg.removeAttribute('width');
       svg.removeAttribute('height');
-      const style = svg.querySelector('style');
-      if (style) style.remove();
       els.mapContainer.innerHTML = '';
       els.mapContainer.appendChild(svg);
       state.mapLoaded = true;
@@ -5172,7 +5213,7 @@
       setOverlay(els.statusOverlay, statusSeries.length ? '' : 'No statuses yet.');
       setStatus(els.dashboardStatus, `Loaded ${summary.totalApplications || 0} applications.`, 'success');
     } catch (err) {
-      console.error('Dashboard load failed', err);
+      reportRequestError('Dashboard load failed', err);
       setOverlay(els.lineOverlay, 'Unable to load chart.');
       setOverlay(els.statusOverlay, 'Unable to load chart.');
       if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Unable to load map.';
@@ -6310,7 +6351,7 @@
       loadSavedViews();
       refreshFollowups();
 	    } catch (err) {
-	      console.error('Entry load failed', err);
+	      reportRequestError('Entry load failed', err);
 	      storeEntries([]);
 	      state.entriesLoaded = true;
 	      updateProspectDashboard();
@@ -6583,7 +6624,7 @@
             setStatus(els.exportStatus, 'Export ready, but no download link was returned.', 'error');
           }
         } catch (err) {
-          console.error('Export failed', err);
+          reportRequestError('Export failed', err);
           setStatus(els.exportStatus, err?.message || 'Unable to export applications.', 'error');
         }
       });
@@ -6642,7 +6683,7 @@
       await Promise.all([refreshEntries(), refreshDashboard()]);
       return true;
     } catch (err) {
-      console.error('Status update failed', err);
+      reportRequestError('Status update failed', err);
       setStatus(statusTarget, err?.message || 'Unable to update status.', 'error');
       return false;
     }
@@ -6727,7 +6768,7 @@
       setStatus(els.entryListStatus, 'Entry restored.', 'success');
       await Promise.all([refreshEntries(), refreshDashboard()]);
     } catch (err) {
-      console.error('Entry restore failed', err);
+      reportRequestError('Entry restore failed', err);
       setStatus(els.entryListStatus, err?.message || 'Unable to restore entry.', 'error');
     }
   };
@@ -6767,7 +6808,7 @@
       showUndoBanner(item);
       await Promise.all([refreshEntries(), refreshDashboard()]);
     } catch (err) {
-      console.error('Entry delete failed', err);
+      reportRequestError('Entry delete failed', err);
       setStatus(els.entryListStatus, err?.message || 'Unable to delete entry.', 'error');
     }
   };
@@ -6807,7 +6848,7 @@
       link.remove();
       setStatus(statusEl, 'Download started.', 'success');
     } catch (err) {
-      console.error('Attachment download failed', err);
+      reportRequestError('Attachment download failed', err);
       setStatus(statusEl, err?.message || 'Unable to download attachment.', 'error');
     }
   };
@@ -6836,7 +6877,7 @@
       link.remove();
       setStatus(statusEl, 'Download started.', 'success');
     } catch (err) {
-      console.error('Download zip failed', err);
+      reportRequestError('Download zip failed', err);
       setStatus(statusEl, err?.message || 'Unable to download attachments zip.', 'error');
     }
   };
@@ -6884,7 +6925,7 @@
         setStatus(els.entryListStatus, `Deleted ${deleted} entries.`, 'success');
       }
     } catch (err) {
-      console.error('Bulk delete failed', err);
+      reportRequestError('Bulk delete failed', err);
       setStatus(els.entryListStatus, err?.message || 'Unable to delete entries.', 'error');
     }
   };
@@ -6946,7 +6987,7 @@
         await Promise.all([refreshEntries(), refreshDashboard()]);
       }
     } catch (err) {
-      console.error('Bulk status update failed', err);
+      reportRequestError('Bulk status update failed', err);
       setStatus(els.entryListStatus, err?.message || 'Unable to update statuses.', 'error');
     }
   };
@@ -6972,7 +7013,7 @@
       await refreshEntries();
       return true;
     } catch (err) {
-      console.error('Prospect save failed', err);
+      reportRequestError('Prospect save failed', err);
       setStatus(els.entryFormStatus, err?.message || 'Unable to save prospect.', 'error');
       return false;
     }
@@ -7029,7 +7070,7 @@
       await Promise.all([refreshEntries(), refreshDashboard()]);
       return true;
     } catch (err) {
-      console.error('Prospect conversion failed', err);
+      reportRequestError('Prospect conversion failed', err);
       setStatus(statusTarget, err?.message || 'Unable to move prospect to applications.', 'error');
       return false;
     }
@@ -7097,7 +7138,7 @@
       await Promise.all([refreshEntries(), refreshDashboard()]);
       return true;
     } catch (err) {
-      console.error('Prospect conversion failed', err);
+      reportRequestError('Prospect conversion failed', err);
       setStatus(statusTarget, err?.message || 'Unable to move prospect to applications.', 'error');
       return false;
     }
@@ -7131,7 +7172,7 @@
       setStatus(statusTarget, 'Prospect rejected.', 'success');
       await Promise.all([refreshEntries(), refreshDashboard()]);
     } catch (err) {
-      console.error('Prospect archive failed', err);
+      reportRequestError('Prospect archive failed', err);
       setStatus(statusTarget, err?.message || 'Unable to archive prospect.', 'error');
     }
   };
@@ -7284,7 +7325,7 @@
         }
       }
       if (attachmentError) {
-        console.error('Attachment upload failed', attachmentError);
+        reportRequestError('Attachment upload failed', attachmentError);
         if (pendingCapture) {
           clearEntryDraft();
           setDraftStatus('Copilot capture is held in memory until every attachment succeeds.');
@@ -7315,7 +7356,7 @@
       await Promise.all([refreshDashboard(), refreshEntries()]);
       return true;
     } catch (err) {
-      console.error('Application save failed', err);
+      reportRequestError('Application save failed', err);
       setStatus(els.entryFormStatus, err?.message || 'Unable to save application.', 'error');
       return false;
     }
@@ -7828,7 +7869,7 @@
           if (els.importFile) els.importFile.value = '';
           if (els.importAttachments) els.importAttachments.value = '';
         } catch (err) {
-          console.error('CSV import failed', err);
+          reportRequestError('CSV import failed', err);
           setStatus(els.importStatus, err?.message || 'Unable to import applications.', 'error');
         }
       });
@@ -7931,7 +7972,7 @@
           }
           if (els.prospectImportFile) els.prospectImportFile.value = '';
         } catch (err) {
-          console.error('Prospect CSV import failed', err);
+          reportRequestError('Prospect CSV import failed', err);
           setStatus(els.prospectImportStatus, err?.message || 'Unable to import prospects.', 'error');
         }
       });
@@ -8010,6 +8051,17 @@
 
 	  const initAuth = async () => {
 	    updateConfigStatus();
+      els.authReconnectSignIn?.addEventListener('click', async () => {
+        els.authReconnectSignIn.disabled = true;
+        try {
+          await window.ToolsAuth.signIn({
+            returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`
+          });
+        } catch (error) {
+          if (els.authReconnectMessage) els.authReconnectMessage.textContent = error?.message || 'Unable to start sign-in. Please try again.';
+          els.authReconnectSignIn.disabled = false;
+        }
+      });
 
       if (window.ToolsAuth && typeof window.ToolsAuth.handleRedirect === 'function') {
         try {

@@ -66,12 +66,13 @@ function setup() {
     setTimeout, clearTimeout,
     location: { href: 'https://example.test/#projects' },
     history: { state: {} },
+    dispatchEvent: event => events.push(['event', event.type, event.detail]),
     requestAnimationFrame: (callback) => callback(),
     SiteFrame: frame,
     SiteRoutes: runtime
   };
   const context = {
-    URL, AbortController, window, document: { title: 'Home' },
+    URL, AbortController, CustomEvent, window, document: { title: 'Home' },
     activeNavigation: null, navigationSequence: 0,
     preparedRoutes: new Map(), preparedStyleRefs: new Map(), routeCache: new Map(),
     committedSnapshot: { frame: { body: oldBody }, document: oldDocument, manifest: oldManifest },
@@ -119,7 +120,6 @@ function setup() {
     restoreScroll: () => {},
     focusRouteHeading: () => {},
     announce: () => {},
-    sendVirtualPageview: () => events.push(['pageview']),
     syncBody: () => assert(held),
     syncHead: () => {},
     syncSkipLink: () => {},
@@ -184,7 +184,10 @@ function setup() {
   assert.equal(await pending, true);
   assert.deepEqual(successful.events.filter(([event]) => ['hold', 'commit', 'mounted', 'release'].includes(event)),
     [['hold', 'home'], ['commit', 'viewport'], ['mounted', 'project'], ['release', 'project']]);
-  assert.equal(successful.events.filter(([event]) => event === 'pageview').length, 1);
+  const completed = successful.events.filter(([event, name]) => event === 'event' && name === 'site:route-complete');
+  assert.equal(completed.length, 1, 'successful navigation publishes one semantic route completion');
+  assert.equal(completed[0][2].url, 'https://example.test/portfolio/babynames');
+  assert.equal(completed[0][2].previousUrl, 'https://example.test/#projects');
   assert(!successful.isHeld(), 'successful navigation must release its layout hold');
 
   const failed = setup();
@@ -197,7 +200,8 @@ function setup() {
   assert.deepEqual(failed.events.filter(([event]) => ['restore', 'mounted', 'release'].includes(event)),
     [['restore', 'home'], ['mounted', 'home'], ['release', 'home']]);
   assert(failed.events.some(([event]) => event === 'retry'));
-  assert(!failed.events.some(([event]) => event === 'pageview'), 'failed destinations must not publish a pageview');
+  assert(!failed.events.some(([event, name]) => event === 'event' && name === 'site:route-complete'),
+    'failed destinations must not publish a completed route or pageview');
   assert(!failed.isHeld(), 'recovery must release layout after restoring the previous controller');
 
   const changedGeneration = setup();

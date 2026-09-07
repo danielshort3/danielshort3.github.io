@@ -1,0 +1,15 @@
+Asset: about-french-horn-isolated.webp
+Title: Yamaha Horn YHR-667V.png
+Photograph: Yamaha Corporation / Yamaha Music Europe
+Transparent background adaptation: Habitator terrae, 2018-11-18
+Source: https://commons.wikimedia.org/wiki/File:Yamaha_Horn_YHR-667V.png
+Original photograph: https://commons.wikimedia.org/wiki/File:Yamaha_Horn_YHR-667V.tif
+Downloaded PNG: https://upload.wikimedia.org/wikipedia/commons/6/6e/Yamaha_Horn_YHR-667V.png
+License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+License URL: https://creativecommons.org/licenses/by-sa/4.0/
+This optimized image is distributed under the same CC BY-SA 4.0 license.
+Verified: 2026-09-06
+Changes for this site: proportionally resized from 1589 x 1019 to 384 x 246
+and converted to WebP quality 94, retaining the source transparency.
+No additional cropping, retouching, mirroring, or generative edits.
+No endorsement by the photographer or instrument manufacturer is implied.

@@ -3,13 +3,14 @@
   "title": "COVID-19 Outbreak Drivers",
   "subtitle": "Python XGBoost & SHAP",
   "image": "img/projects/covidAnalysis.png",
+  "iconImage": "img/projects/icons/covidAnalysis.png",
   "imageWidth": 1446,
   "imageHeight": 1446,
   "videoWebm": "img/projects/covidAnalysis.webm",
   "videoMp4": "img/projects/covidAnalysis.mp4",
   "tools": [
     "Python",
-    "AWS"
+    "JavaScript"
   ],
   "concepts": [
     "Analytics"
@@ -48,13 +49,14 @@
   "demoInstructions": {
     "lead": "Start with a state's historical ICU utilization and exploratory risk score, then explore the trend and map.",
     "bullets": [
-      "Wait for the status pill to show the demo is ready (cold starts can take a moment).",
+      "Explore the bundled historical risk scores; the dashboard runs in your browser.",
       "Drag the date slider to move through time.",
       "Choose a state or territory from the menu, or select a state on the map.",
       "Expand Risk drivers and hotspots for supporting detail."
     ]
   },
   "problem": "Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
+  "task": "Develop an early-warning model that flags states at risk of exceeding 90% ICU utilization within seven days and explains the main risk drivers.",
   "actions": [
     "Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.",
     "Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split."
@@ -103,5 +105,11 @@
     }
   },
   "order": 5,
-  "notes": "The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast."
+  "notes": "The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast.",
+  "mobilePreview": {
+    "image": "img/projects/covidAnalysis-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Historical COVID outbreak risk map with state-level percentages and the risk legend."
+  }
 }

@@ -109,6 +109,18 @@ function getSlugFromRequest(req){
   }
 }
 
+function buildRedirectTarget(req, destination, base){
+  const reqUrl = new URL(req.url, base);
+  const destUrl = new URL(destination, base);
+  const channel = reqUrl.searchParams.get('__qr') === '1' ? 'qr' : 'link';
+  destUrl.searchParams.delete('__qr');
+  reqUrl.searchParams.forEach((value, key) => {
+    if (key === '__qr' || key === 'slug' || key === '...slug' || key === 'first' || key === 'rest' || key.startsWith('...')) return;
+    destUrl.searchParams.append(key, value);
+  });
+  return { finalUrl: destUrl.toString(), channel };
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.statusCode = 405;
@@ -189,14 +201,9 @@ module.exports = async (req, res) => {
 
   const base = getRequestBaseUrl(req);
   let finalUrl;
+  let channel = 'link';
   try {
-    const reqUrl = new URL(req.url, base);
-    const destUrl = new URL(destination, base);
-    reqUrl.searchParams.forEach((value, key) => {
-      if (key === 'slug' || key === '...slug' || key === 'first' || key === 'rest' || key.startsWith('...')) return;
-      destUrl.searchParams.append(key, value);
-    });
-    finalUrl = destUrl.toString();
+    ({ finalUrl, channel } = buildRedirectTarget(req, destination, base));
   } catch {
     finalUrl = destination;
   }
@@ -217,11 +224,12 @@ module.exports = async (req, res) => {
       slug: canonicalSlug,
       clickId,
       clickedAt: now.toISOString(),
+      channel,
       currentAggregateClicks: Number.isFinite(Number(link.clicks))
         ? Math.max(0, Math.floor(Number(link.clicks)))
         : 0,
       destination: getTelemetryUrl(finalUrl),
-      statusCode: link.permanent ? 301 : 302,
+      statusCode: link.permanent && channel !== 'qr' ? 301 : 302,
       host: hostHeader.split(':')[0].trim(),
       path: getRequestPath(req, base),
       refererHost: getUrlHost(referer),
@@ -244,9 +252,11 @@ module.exports = async (req, res) => {
     }
   }
 
-  res.statusCode = link.permanent ? 301 : 302;
+  res.statusCode = link.permanent && channel !== 'qr' ? 301 : 302;
   res.setHeader('Location', finalUrl);
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Robots-Tag', 'noindex');
   res.end();
 };
+
+module.exports._internal = { buildRedirectTarget };

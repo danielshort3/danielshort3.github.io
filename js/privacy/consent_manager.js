@@ -70,7 +70,7 @@
     languages: {
       en: {
         bannerTitle: 'I value your privacy.',
-        bannerDesc: 'I use optional cookies to understand traffic and improve the site. Choose the level you are comfortable with.',
+        bannerDesc: 'Optional cookies help me improve this site. You choose what to allow.',
         acceptAll: 'Allow all',
         rejectAll: 'Essential only',
         managePrefs: 'Manage settings',
@@ -379,8 +379,9 @@
         window.gtag('consent', 'update', update);
       });
     }
-    enableVendor('gtm', state.analytics);
+    // Seed consent-aware page context before GTM processes its startup event.
     window.dispatchEvent(new CustomEvent('consent-changed', { detail: state }));
+    enableVendor('gtm', state.analytics);
   }
 
   /**
@@ -389,6 +390,7 @@
   function enableVendor(vendorKey, enabled) {
     const vendor = CONFIG.vendors[vendorKey];
     if (!vendor) return;
+    if (vendorKey === 'gtm' && window.SiteAnalyticsEnvironment?.enabled === false) enabled = false;
     vendor._consentGranted = !!enabled;
     if (enabled && !vendor.enabled) {
       if (vendorKey === 'gtm') {

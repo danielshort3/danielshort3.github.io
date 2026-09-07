@@ -19,6 +19,7 @@
     "Modeling"
   ],
   problem: "__PROJECT_PROBLEM__",
+  task: "__PROJECT_TASK__",
   actions: [
     "What you did (1).",
     "What you did (2)."

@@ -34,7 +34,7 @@
     'We packed apples, bananas and cherries for the picnic.',
     'The review covers pricing, positioning, and messaging.',
     'She thanked her friends, her mentors and her family.'
-  ].join('\n');
+  ].join('\n\n');
   const vendorScriptPromises = new Map();
 
   const markSessionDirty = () => {
@@ -159,15 +159,15 @@
     counts.innerHTML = `
       <li>
         <strong>${formatNumber(total)}</strong>
-        <span>List candidates</span>
+        <span>Candidates</span>
       </li>
       <li>
         <strong>${formatNumber(present)}</strong>
-        <span>Oxford comma present</span>
+        <span>Present</span>
       </li>
       <li>
         <strong>${formatNumber(missing)}</strong>
-        <span>Oxford comma absent</span>
+        <span>Absent</span>
       </li>
     `;
   };
@@ -448,6 +448,7 @@
   };
 
   const runAnalysis = () => {
+    if (inputStatus?.dataset.tone === 'success') setInputStatus('');
     const { text } = getTextForAnalysis();
     if (!text.trim()) {
       hasRun = false;

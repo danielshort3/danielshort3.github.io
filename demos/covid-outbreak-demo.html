@@ -162,7 +162,7 @@
       border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--border) 45%);
     }
 
-    .health-pill[data-state="warming"] {
+    .health-pill[data-state="loading"] {
       color: var(--warning, #f3b550);
       border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--border) 45%);
     }
@@ -681,7 +681,7 @@
       .covid-workspace .detail-header { flex-direction: row; align-items: center; }
     }
   </style>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -698,7 +698,7 @@
           <p class="subtitle">Explore historical ICU utilization and an experimental risk score by state and date.</p>
         </div>
         <div class="header-actions">
-          <span class="health-pill aws-status-badge" id="connection-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
+          <span class="health-pill aws-status-badge" id="connection-pill" data-state="loading" role="status" aria-live="polite">Loading data…</span>
         </div>
       </header>
 
@@ -792,15 +792,12 @@
     </div>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-composite-projections@1.5.0/d3-composite-projections.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
-  <script src="js/demos/aws-client.js"></script>
+  <script src="js/demos/vendor/d3-7.9.0.min.js"></script>
+  <script src="js/demos/vendor/d3-composite-projections-1.5.0.min.js"></script>
+  <script src="js/demos/vendor/topojson-client-3.1.0.min.js"></script>
+  <script src="js/demos/dashboard-data.js"></script>
   <script type="module">
-    const DEFAULT_API_URL = "/api/demos/covid-outbreak/";
-    const STORAGE_KEY = "demo.endpoint.covid";
-    const LEGACY_KEYS = ["covid_outbreak_api"];
-    const { resolveEndpoint, getJson, joinUrl, retryRequest } = window.DemoAws;
+    const { loadCovidMeta, loadCovidDate, loadCovidState } = window.DemoDashboardData;
 
     const notifyResize = (() => {
       const CHANNEL = "covid-outbreak-demo-resize";
@@ -953,28 +950,14 @@
       activeDate: null,
       states: new Map(),
       activeState: null,
-      endpoint: null,
       meta: null
     };
-    let serverReady = false;
+    let dataReady = false;
     let dateRequestId = 0;
     let failedDateIndex = null;
 
     const numberFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
     const dateFormatter = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" });
-
-    const endpointConfig = {
-      defaultUrl: DEFAULT_API_URL,
-      storageKey: STORAGE_KEY,
-      legacyKeys: LEGACY_KEYS,
-      allowOverrides: false
-    };
-    const WARM_RETRY_OPTIONS = {
-      retries: 12,
-      baseDelayMs: 1000,
-      factor: 1.8,
-      maxDelayMs: 10000
-    };
 
     function setConnection(state, text) {
       DOM.connectionPill.dataset.state = state;
@@ -982,8 +965,8 @@
       DOM.connectionPill.textContent = text;
     }
 
-    function setServerReady(ready) {
-      serverReady = ready;
+    function setDataReady(ready) {
+      dataReady = ready;
       if (DOM.mapWrap) {
         DOM.mapWrap.dataset.ready = ready ? 'true' : 'false';
       }
@@ -991,13 +974,6 @@
         DOM.dateSlider.disabled = !ready;
       }
       DOM.stateSelect.disabled = !ready || !appState.states.size;
-    }
-
-    async function fetchJson(path) {
-      return retryRequest(
-        () => getJson(joinUrl(appState.endpoint, path), { cache: "default" }),
-        WARM_RETRY_OPTIONS
-      );
     }
 
     function formatPercent(value) {
@@ -1301,7 +1277,7 @@
       if (cache.state.has(stateId)) {
         return cache.state.get(stateId);
       }
-      const request = fetchJson(`state/${stateId}`).catch((err) => {
+      const request = loadCovidState(stateId).catch((err) => {
         cache.state.delete(stateId);
         console.warn(err);
         return null;
@@ -1316,11 +1292,11 @@
       })[character]);
       DOM.stateSelect.innerHTML = states.slice().sort((a, b) => a.name.localeCompare(b.name))
         .map((item) => `<option value="${escapeOption(item.id)}">${escapeOption(item.name)}</option>`).join("");
-      DOM.stateSelect.disabled = !serverReady || !states.length;
+      DOM.stateSelect.disabled = !dataReady || !states.length;
     }
 
     function selectState(stateId) {
-      if (!serverReady) return;
+      if (!dataReady) return;
       appState.activeState = stateId;
       DOM.stateSelect.value = stateId || "";
       const selectionDate = appState.activeDate;
@@ -1354,7 +1330,7 @@
       if (cache.byDate.has(dateStr)) {
         return cache.byDate.get(dateStr);
       }
-      const data = await fetchJson(`states?date=${dateStr}`);
+      const data = await loadCovidDate(dateStr);
       cache.byDate.set(dateStr, data);
       return data;
     }
@@ -1393,12 +1369,12 @@
     }
 
     async function handleDateChange(index) {
-      if (!serverReady) return;
+      if (!dataReady) return;
       const date = appState.dates[index];
       if (!date) return;
       const requestId = ++dateRequestId;
       failedDateIndex = null;
-      setConnection("warming", "Loading date…");
+      setConnection("loading", "Loading date…");
       DOM.connectionMeta.textContent = `Loading ${formatDateLabel(date)}.${appState.activeDate ? ` Showing ${formatDateLabel(appState.activeDate)} until ready.` : ""}`;
       try {
         const payload = await loadDate(date);
@@ -1443,9 +1419,8 @@
     }
 
     async function init() {
-      appState.endpoint = resolveEndpoint(endpointConfig);
-      setServerReady(false);
-      setConnection("warming", "Preparing demo…");
+      setDataReady(false);
+      setConnection("loading", "Loading data…");
       DOM.connectionMeta.textContent = "Loading historical data…";
       try {
         await renderMap();
@@ -1454,7 +1429,7 @@
         DOM.connectionMeta.textContent = "Map assets unavailable.";
       }
       try {
-        const meta = await fetchJson("meta");
+        const meta = await loadCovidMeta();
         appState.meta = meta;
         appState.dates = meta.dates || [];
         if (!appState.dates.length) {
@@ -1464,7 +1439,7 @@
         const latestIdx = appState.dates.length - 1;
         DOM.dateSlider.max = String(latestIdx);
         DOM.dateSlider.value = String(latestIdx);
-        setServerReady(true);
+        setDataReady(true);
         setConnection("ok", "Ready");
         DOM.connectionMeta.textContent = "Historical data ready";
         DOM.dateSlider.addEventListener("input", (event) => {
@@ -1473,9 +1448,9 @@
         await handleDateChange(latestIdx);
       } catch (err) {
         console.error(err);
-        setServerReady(false);
+        setDataReady(false);
         setConnection("err", "Unavailable");
-        DOM.connectionMeta.textContent = "Unable to load data. Retry to reconnect.";
+        DOM.connectionMeta.textContent = "Unable to load historical data. Retry to load it again.";
         DOM.dateValue.textContent = "--";
         updateMap();
       }

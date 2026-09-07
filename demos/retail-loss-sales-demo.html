@@ -193,7 +193,7 @@
       border-color: rgba(88, 208, 155, 0.6);
     }
 
-    .status-pill[data-state="warming"] {
+    .status-pill[data-state="loading"] {
       color: var(--accent);
       border-color: rgba(244, 178, 98, 0.6);
     }
@@ -525,7 +525,7 @@
       .retail-workspace .chart-wrap { height: 210px; }
     }
   </style>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -541,7 +541,7 @@
         <p class="subtitle">Explore monthly sales, compare incident hotspots, and follow shrink trends.</p>
       </div>
       <div class="header-actions">
-        <span class="status-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
+        <span class="status-pill aws-status-badge" id="status-pill" data-state="loading" role="status" aria-live="polite">Loading data…</span>
         <span class="pill" id="date-range-pill">Loading dates</span>
         <button class="btn-ghost" id="reset-filters" type="button">Reset view</button>
       </div>
@@ -704,18 +704,9 @@
   </div>
 
   <script src="js/vendor/chartjs/chart.umd.min.js"></script>
-  <script src="js/demos/aws-client.js"></script>
+  <script src="js/demos/dashboard-data.js"></script>
   <script type="module">
-    const DEFAULT_API_URL = "/api/demos/retail-loss-sales/";
-    const STORAGE_KEY = "demo.endpoint.retailLossSales";
-    const { resolveEndpoint, joinUrl, getJson, retryRequest } = window.DemoAws;
-    const WARM_RETRY_OPTIONS = {
-      retries: 12,
-      baseDelayMs: 1000,
-      factor: 1.8,
-      maxDelayMs: 10000
-    };
-    const API_URL = resolveEndpoint({ defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY, allowOverrides: false });
+    const { loadDashboardData } = window.DemoDashboardData;
 
     const state = {
       data: null,
@@ -1314,16 +1305,9 @@
     }
 
     async function loadData() {
-      if (!API_URL) {
-        setStatus("err", "Unavailable", "API endpoint missing");
-        return;
-      }
-      setStatus("warming", "Preparing demo…", "Loading anonymized data…");
+      setStatus("loading", "Loading data…", "Loading anonymized data…");
       try {
-        const data = await retryRequest(
-          () => getJson(joinUrl(API_URL, "data"), { cache: "default" }),
-          WARM_RETRY_OPTIONS
-        );
+        const data = await loadDashboardData("retail-loss-sales");
         state.data = data;
         setStatus("ok", "Ready", "Anonymized data loaded");
         updateDateRangePill();

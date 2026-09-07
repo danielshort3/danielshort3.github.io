@@ -1,0 +1,224 @@
+/* The shared tool surface, derived from the Screen Recorder workspace. */
+@layer overrides {
+  body[data-page][data-tools-layout] #main:has(.tool-workspace) {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace {
+    --workspace-ink: #091f3b;
+    --workspace-muted: #526174;
+    --workspace-accent: #087f8c;
+    --workspace-border: #dce3ec;
+    --workspace-pale: #f5f8fa;
+    --workspace-card-padding: clamp(14px, 1.6cqi, 20px);
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--frame-section-gap, 24px) var(--frame-content-gutter, 24px);
+    color: var(--workspace-ink);
+    background: #fff;
+    border: 0;
+    box-shadow: none;
+    min-width: 0;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace > .wrapper {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, .78fr) minmax(0, 1.22fr);
+    align-items: start;
+    gap: var(--frame-section-gap, 20px);
+    min-width: 0;
+    height: auto;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace-card {
+    min-width: 0;
+    min-height: 0;
+    max-height: none;
+    padding: var(--workspace-card-padding);
+    border: 1px solid var(--workspace-border);
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace h2 {
+    margin: 0;
+    color: var(--workspace-ink);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: -.015em;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace h3 {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace :is(button, input, select, textarea, summary) {
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea) {
+    min-width: 0;
+    max-width: 100%;
+    border: 1px solid var(--workspace-border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--workspace-ink);
+    box-shadow: none;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace textarea {
+    padding: 14px;
+    font-size: 15px;
+    line-height: 1.65;
+    resize: vertical;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace :is(.btn-primary, .btn-secondary, .btn-ghost) {
+    min-height: 38px;
+    padding: 8px 14px;
+    border: 1px solid #b8cdd2;
+    border-radius: 5px;
+    background: #fff;
+    color: #17636f;
+    box-shadow: none;
+    text-shadow: none;
+    font-weight: 600;
+    transform: none;
+    white-space: normal;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace .btn-primary {
+    background: var(--workspace-accent);
+    color: #fff;
+    border-color: var(--workspace-accent);
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace :is(.btn-secondary, .btn-ghost):hover:not(:disabled) {
+    background: #f1f7f8;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace .btn-primary:hover:not(:disabled) {
+    background: #006973;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace button:disabled {
+    color: #8994a0;
+    border-color: #e3e7ec;
+    background: #f3f5f8;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 1;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace :is(button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--workspace-accent);
+    outline-offset: 3px;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace-tabs {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    padding: 0;
+    margin: 0 0 18px;
+    border: 0;
+    border-bottom: 1px solid var(--workspace-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace-tabs [role="tab"] {
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 44px;
+    margin: 0 0 -1px;
+    padding: 10px 2px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--workspace-ink);
+    font-weight: 600;
+    box-shadow: none;
+    transform: none;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace-tabs [aria-selected="true"] {
+    color: var(--workspace-accent);
+    border-bottom-color: var(--workspace-accent);
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace-summary {
+    display: grid;
+    gap: 6px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--workspace-border);
+    color: var(--workspace-muted);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace-summary p { margin: 0; }
+  body[data-page][data-tools-layout] .tool-workspace-summary strong { color: var(--workspace-ink); }
+
+  body[data-page][data-tools-layout] .tool-workspace-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace [hidden] { display: none !important; }
+  body[data-page][data-tools-layout] .tool-workspace :is([role="status"], [aria-live]):empty { display: none; }
+
+  @container site-content (max-width: 900px) {
+    body[data-page][data-tools-layout] .tool-workspace-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @container site-content (max-width: 760px) {
+    body[data-page][data-tools-layout] .tool-workspace-header { gap: 10px; }
+    body[data-page][data-tools-layout] .tool-workspace-tabs { gap: 16px; }
+    body[data-page][data-tools-layout] .tool-workspace :is(.btn-primary, .btn-secondary, .btn-ghost, select) { min-height: 44px; }
+    body[data-page][data-tools-layout] .tool-workspace :is(input, select, textarea) { font-size: 16px; }
+  }
+}
+
+/* The workspace owns its outer gutter; the personal shell must not add a
+   second inset before the workspace's own card padding. */
+body.personal-accordion-page[data-personal-category="tools"][data-tools-layout]:not([data-tools-layout="directory"]) .personal-accordion__content > #main:has(.tool-workspace) {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}

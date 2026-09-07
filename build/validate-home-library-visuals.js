@@ -155,8 +155,8 @@ function validateCatalogMappings() {
 
   const projects = loadPublishedProjects();
   const projectItems = libraryData.projects?.items || [];
-  if (JSON.stringify(projectItems.map((item) => item.id)) !==
-    JSON.stringify(projects.map((project) => String(project.id)))) {
+  if (JSON.stringify(projectItems.map((item) => item.id).sort()) !==
+    JSON.stringify(projects.map((project) => String(project.id)).sort())) {
     throw new Error('Homepage projects preview catalog is out of sync with published project content');
   }
   projects.forEach((project) => {
@@ -168,6 +168,10 @@ function validateCatalogMappings() {
     const item = projectItems.find((entry) => entry.id === id);
     if (!item || item.image !== versionedImageUrl(expectedImage) || item.imageAlt !== '') {
       throw new Error(`Unexpected original project preview mapping for projects/${id}`);
+    }
+    const expectedIcon = project.iconImage ? versionedImageUrl(`/${String(project.iconImage).replace(/^\/+/, '')}`) : '';
+    if ((item.iconImage || '') !== expectedIcon) {
+      throw new Error(`Unexpected library-only project icon mapping for projects/${id}`);
     }
   });
 
@@ -274,6 +278,29 @@ async function validatePreviewAt(baseDir, category, id) {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
+async function validateProjectIconAssets(baseDir, projects) {
+  const hashes = new Map();
+  for (const project of projects.filter((entry) => entry.iconImage)) {
+    const assetPath = String(project.iconImage);
+    if (assetPath !== `img/projects/icons/${project.id}.png`) {
+      throw new Error(`Unexpected library-only project icon path for ${project.id}`);
+    }
+    const filePath = path.join(baseDir, assetPath);
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Missing project library icon: ${path.relative(root, filePath)}`);
+    }
+    const metadata = await sharp(filePath).metadata();
+    if (metadata.format !== 'png' || metadata.width !== 256 || metadata.height !== 256) {
+      throw new Error(`Project library icon must be a square 256px PNG: ${path.relative(root, filePath)}`);
+    }
+    hashes.set(assetPath, crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex'));
+  }
+  if (new Set(hashes.values()).size !== hashes.size) {
+    throw new Error('Project library icons must have unique artwork');
+  }
+  return hashes;
+}
+
 async function validatePreview(category, id) {
   return validatePreviewAt(previewRoot, category, id);
 }
@@ -313,21 +340,24 @@ async function main() {
   const validatePublic = process.argv.slice(2).includes('--public');
   const projects = validateCatalogMappings();
   const projectSourceHashes = await validateProjectAssets(root, projects);
+  const projectIconSourceHashes = await validateProjectIconAssets(root, projects);
   const toolSourceHashes = await validateToolIconAssets(root);
   const sourceHashes = await validatePreviewTree(previewRoot, 'img/home-previews');
 
   if (validatePublic) {
     const projectDeployedHashes = await validateProjectAssets(path.join(root, 'public'), projects);
+    const projectIconDeployedHashes = await validateProjectIconAssets(path.join(root, 'public'), projects);
     const toolDeployedHashes = await validateToolIconAssets(path.join(root, 'public'));
     const deployedHashes = await validatePreviewTree(publicPreviewRoot, 'public/img/home-previews');
     validateMatchingHashes(projectSourceHashes, projectDeployedHashes);
+    validateMatchingHashes(projectIconSourceHashes, projectIconDeployedHashes);
     validateMatchingHashes(toolSourceHashes, toolDeployedHashes);
     validateMatchingHashes(sourceHashes, deployedHashes);
-    process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews, ${toolSourceHashes.size} original tool icons, and ${sourceHashes.size} source and deployed generated previews.\n`);
+    process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews, ${projectIconSourceHashes.size} project library icons, ${toolSourceHashes.size} original tool icons, and ${sourceHashes.size} source and deployed generated previews.\n`);
     return;
   }
 
-  process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews, ${toolSourceHashes.size} original tool icons, and ${sourceHashes.size} generated previews.\n`);
+  process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews, ${projectIconSourceHashes.size} project library icons, ${toolSourceHashes.size} original tool icons, and ${sourceHashes.size} generated previews.\n`);
 }
 
 if (require.main === module) {
@@ -350,6 +380,7 @@ module.exports = {
   validateMatchingHashes,
   validatePreview,
   validateProjectAssets,
+  validateProjectIconAssets,
   validateToolIconAssets,
   validatePreviewTree
 };

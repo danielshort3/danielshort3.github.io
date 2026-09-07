@@ -723,6 +723,22 @@
 
   window.requestContactModal = requestContactModal;
 
+  // Category jumps stay within the active catalog without replacing its route hash.
+  document.addEventListener('click', (event) => {
+    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+    if (typeof event.button === 'number' && event.button !== 0) return;
+    const link = event.target.closest?.('a[data-home-library-jump]');
+    const library = link?.closest('.home-library');
+    if (!library) return;
+    const headingId = String(link.getAttribute('href') || '').slice(1);
+    const heading = document.getElementById(headingId);
+    if (!heading || !library.contains(heading)) return;
+    event.preventDefault();
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    heading.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'instant' : 'smooth' });
+    heading.focus({ preventScroll: true });
+  });
+
   document.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-contact-modal-link]');
     if (!trigger) return;
@@ -2115,7 +2131,6 @@
   });
 
   const PROJECT_EMBED_MIN_HEIGHT_PX = 360;
-  const PROJECT_EMBED_MAX_HEIGHT_PX = 960;
   const PROJECT_EMBED_RESIZE_TYPE_RE = /(?:^portfolio-demo:resize$|-demo-resize$)/;
 
   const projectEmbedForFrame = (ifr) => (
@@ -2139,7 +2154,9 @@
   const projectEmbedHeightLimits = (ifr) => {
     const embed = projectEmbedForFrame(ifr);
     const min = readPositiveNumber(embed?.dataset?.embedMinHeight, PROJECT_EMBED_MIN_HEIGHT_PX);
-    const max = readPositiveNumber(embed?.dataset?.embedMaxHeight, PROJECT_EMBED_MAX_HEIGHT_PX);
+    // Content demos share the page's scroll viewport unless a project explicitly
+    // opts into its own bounded workspace.
+    const max = readPositiveNumber(embed?.dataset?.embedMaxHeight, Infinity);
     return {
       min: Math.max(1, Math.floor(min)),
       max: Math.max(Math.floor(min), Math.floor(max))
@@ -2171,6 +2188,15 @@
     const body = doc.body;
     const docEl = doc.documentElement;
     if (body) {
+      const workspace = doc.querySelector('#demo-box, #demo-shell, #demo-card, main.card, .demo-root, main, #main');
+      if (workspace) {
+        const style = doc.defaultView?.getComputedStyle?.(body);
+        const bottom = workspace.getBoundingClientRect().bottom + (doc.defaultView?.scrollY || 0);
+        const measured = bottom + (Number.parseFloat(style?.paddingBottom || '0') || 0);
+        // The root is at least as tall as its iframe; measuring it after a
+        // disclosure closes would keep the previous, taller height forever.
+        if (Number.isFinite(measured) && measured > 0) return measured;
+      }
       let marginY = 0;
       try {
         const style = doc.defaultView?.getComputedStyle?.(body);
@@ -2196,7 +2222,58 @@
     );
   };
 
+  const resizeViewportProjectEmbed = (ifr) => {
+    if (projectEmbedFit(ifr) !== 'viewport') return;
+    const viewport = ifr.closest('.site-frame__viewport');
+    if (!viewport) return;
+    const shell = ifr.closest('.project-demo-shell');
+    const compact = window.matchMedia?.('(max-width: 959px), (max-height: 619px)').matches;
+    const screenHeight = window.visualViewport?.height || window.innerHeight;
+    const heightOf = (element) => element?.getBoundingClientRect().height || 0;
+    let available = viewport.clientHeight;
+    if (compact) {
+      const frame = viewport.closest('[data-site-persistent-shell]');
+      available = screenHeight
+        - heightOf(document.querySelector('.mobile-site-masthead'))
+        - heightOf(frame?.querySelector('[data-site-tab][aria-current="page"]'))
+        - heightOf(frame?.querySelector('.site-frame__toolbar'));
+    }
+    available = Math.min(available || screenHeight, screenHeight);
+    available -= heightOf(shell?.querySelector('.project-demo-header'));
+    for (let element = ifr.parentElement; element && element !== shell?.parentElement; element = element.parentElement) {
+      const style = window.getComputedStyle(element);
+      available -= ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth']
+        .reduce((total, property) => total + (Number.parseFloat(style[property]) || 0), 0);
+      if (element === shell) break;
+    }
+    try {
+      const doc = ifr.contentDocument;
+      const empty = doc?.querySelector('.chat-shell--regular .empty-state');
+      if (empty?.getBoundingClientRect().height > 0) {
+        let preferred = heightOf(empty)
+          + heightOf(doc.querySelector('.demo-toolbar'))
+          + heightOf(doc.querySelector('.chat-shell--regular .chat-composer'));
+        for (let element = empty.parentElement; element && element !== doc.body; element = element.parentElement) {
+          const style = doc.defaultView.getComputedStyle(element);
+          preferred += ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth']
+            .reduce((total, property) => total + (Number.parseFloat(style[property]) || 0), 0);
+          if (element.matches('.demo-root')) preferred += Number.parseFloat(style.rowGap) || 0;
+        }
+        available = Math.min(available, Math.ceil(preferred));
+      }
+    } catch {}
+    if (!Number.isFinite(available) || available <= 0) return;
+    const height = `${Math.max(160, Math.floor(available))}px`;
+    if (ifr.style.height === height) return;
+    ifr.style.height = height;
+    projectEmbedForFrame(ifr)?.style.setProperty('--project-demo-height', height);
+  };
+
   const resizeProjectEmbedIframe = (ifr) => {
+    if (projectEmbedFit(ifr) === 'viewport') {
+      resizeViewportProjectEmbed(ifr);
+      return;
+    }
     if (!shouldAutoResizeProjectEmbed(ifr)) return;
     try {
       const doc = ifr.contentDocument || ifr.contentWindow?.document;
@@ -2207,7 +2284,9 @@
   };
 
   const observeProjectEmbedIframe = (ifr) => {
-    if (!shouldAutoResizeProjectEmbed(ifr)) return;
+    const contentFit = shouldAutoResizeProjectEmbed(ifr);
+    const viewportFit = projectEmbedFit(ifr) === 'viewport';
+    if (!contentFit && !viewportFit) return;
     if (typeof ResizeObserver !== 'function') return;
 
     try {
@@ -2217,15 +2296,15 @@
     } catch {}
     ifr._projectEmbedResizeObserver = null;
 
-    let doc = null;
-    try {
-      doc = ifr.contentDocument || ifr.contentWindow?.document;
-    } catch {}
-    if (!doc) return;
-
-    const body = doc.body;
-    const docEl = doc.documentElement;
-    if (!body && !docEl) return;
+    let targets = [];
+    if (viewportFit) {
+      targets = [ifr.closest('.site-frame__viewport'), ifr.closest('.project-demo-shell')?.querySelector('.project-demo-header')];
+    } else {
+      let doc = null;
+      try { doc = ifr.contentDocument || ifr.contentWindow?.document; } catch {}
+      if (!doc) return;
+      targets = [doc.documentElement, doc.body];
+    }
 
     const scheduleResize = () => {
       if (ifr._projectEmbedResizeScheduled) return;
@@ -2233,13 +2312,12 @@
       ifr._projectEmbedResizeFrame = requestAnimationFrame(() => {
         ifr._projectEmbedResizeScheduled = false;
         ifr._projectEmbedResizeFrame = 0;
-        resizeProjectEmbedIframe(ifr);
+        if (ifr._resizeBound) resizeProjectEmbedIframe(ifr);
       });
     };
 
     const ro = new ResizeObserver(scheduleResize);
-    try { if (docEl) ro.observe(docEl); } catch {}
-    try { if (body) ro.observe(body); } catch {}
+    targets.filter(Boolean).forEach((target) => { try { ro.observe(target); } catch {} });
     ifr._projectEmbedResizeObserver = ro;
     scheduleResize();
   };
@@ -2248,14 +2326,15 @@
     root.querySelectorAll('.project-embed-frame').forEach((ifr) => {
       if (ifr._resizeBound) return;
       ifr._resizeBound = true;
-      if (!shouldAutoResizeProjectEmbed(ifr)) {
+      if (!shouldAutoResizeProjectEmbed(ifr) && projectEmbedFit(ifr) !== 'viewport') {
         ifr.setAttribute('scrolling', 'auto');
         ifr.style.removeProperty('overflow');
         return;
       }
-      ifr.setAttribute('scrolling', 'no');
-      ifr.style.overflow = 'hidden';
+      ifr.setAttribute('scrolling', shouldAutoResizeProjectEmbed(ifr) ? 'no' : 'auto');
+      ifr.style.overflow = shouldAutoResizeProjectEmbed(ifr) ? 'hidden' : 'auto';
       const handleLoad = () => {
+        (ifr._projectEmbedResizeTimers || []).forEach((timer) => clearTimeout(timer));
         resizeProjectEmbedIframe(ifr);
         ifr._projectEmbedResizeTimers = [50, 350, 1000].map((delay) => (
           setTimeout(() => resizeProjectEmbedIframe(ifr), delay)
@@ -2274,11 +2353,13 @@
     : null;
 
   const syncProjectEmbedLoading = (root = document) => {
-    const useLaunchCard = projectEmbedMobileMedia?.matches === true;
-    root.querySelectorAll('.project-embed[data-embed-fit="content"] .project-embed-frame').forEach((ifr) => {
+    root.querySelectorAll('.project-embed[data-embed-fit="content"] .project-embed-frame, .project-embed[data-embed-fit="dashboard"] .project-embed-frame').forEach((ifr) => {
       const currentSrc = ifr.getAttribute('src');
       const deferredSrc = ifr.getAttribute('data-src');
       const embed = projectEmbedForFrame(ifr);
+      const useLaunchCard = projectEmbedFit(ifr) === 'dashboard'
+        ? !embed || window.getComputedStyle(embed).display === 'none' || embed.getBoundingClientRect().width <= 0
+        : projectEmbedMobileMedia?.matches === true;
 
       if (useLaunchCard) {
         if (currentSrc) ifr.setAttribute('data-src', currentSrc);
@@ -2293,16 +2374,33 @@
       if (!currentSrc && deferredSrc) {
         ifr.setAttribute('src', deferredSrc);
         ifr.removeAttribute('data-src');
-        requestAnimationFrame(() => {
-          resizeProjectEmbedIframe(ifr);
-          observeProjectEmbedIframe(ifr);
-        });
+        resizeProjectEmbedIframe(ifr);
+        observeProjectEmbedIframe(ifr);
       }
+    });
+  };
+
+  const bindProjectEmbedLoading = (root = document) => {
+    root.querySelectorAll('.project-embed[data-embed-fit="dashboard"] .project-embed-frame').forEach((ifr) => {
+      if (ifr._projectEmbedLoadingBound || typeof ResizeObserver !== 'function') return;
+      const shell = ifr.closest('.project-demo-shell');
+      if (!shell) return;
+      ifr._projectEmbedLoadingBound = true;
+      const observer = new ResizeObserver(() => {
+        if (ifr._projectEmbedLoadingFrame) return;
+        ifr._projectEmbedLoadingFrame = requestAnimationFrame(() => {
+          ifr._projectEmbedLoadingFrame = 0;
+          if (ifr._projectEmbedLoadingBound) syncProjectEmbedLoading(shell);
+        });
+      });
+      observer.observe(shell);
+      ifr._projectEmbedLoadingObserver = observer;
     });
   };
 
   const initProjectEmbeds = (root = document) => {
     bindProjectEmbedResize(root);
+    bindProjectEmbedLoading(root);
     syncProjectEmbedLoading(root);
   };
 
@@ -2320,6 +2418,11 @@
       }
       ifr._projectEmbedLoadHandler = null;
       ifr._resizeBound = false;
+      try { ifr._projectEmbedLoadingObserver?.disconnect(); } catch {}
+      if (ifr._projectEmbedLoadingFrame) cancelAnimationFrame(ifr._projectEmbedLoadingFrame);
+      ifr._projectEmbedLoadingObserver = null;
+      ifr._projectEmbedLoadingFrame = 0;
+      ifr._projectEmbedLoadingBound = false;
     });
   };
 
@@ -2351,6 +2454,15 @@
       projectEmbedMobileMedia.addListener(() => syncProjectEmbedLoading());
     }
   }
+  const resizeViewportProjectEmbeds = () => {
+    document.querySelectorAll('.project-embed[data-embed-fit="viewport"] .project-embed-frame')
+      .forEach(resizeViewportProjectEmbed);
+  };
+  window.addEventListener('resize', () => {
+    syncProjectEmbedLoading();
+    resizeViewportProjectEmbeds();
+  });
+  window.visualViewport?.addEventListener('resize', resizeViewportProjectEmbeds);
   window.addEventListener('message', (event) => {
     if (event.origin && event.origin !== window.location.origin) return;
     const data = event && event.data || {};
@@ -2359,15 +2471,10 @@
     const ifrs = document.querySelectorAll('.project-embed-frame');
     for (const ifr of ifrs) {
       if (ifr.contentWindow === event.source) {
-        if (!shouldAutoResizeProjectEmbed(ifr)) break;
-        const h = typeof data.height === 'number' && isFinite(data.height)
-          ? Math.max(0, Number(data.height))
-          : null;
-        if (h) {
-          setProjectEmbedIframeHeight(ifr, h);
-        } else {
-          resizeProjectEmbedIframe(ifr);
-        }
+        if (!shouldAutoResizeProjectEmbed(ifr) && projectEmbedFit(ifr) !== 'viewport') break;
+        // The sender's root may still contain the previous iframe height.
+        // Re-measure the actual same-origin workspace after each update.
+        resizeProjectEmbedIframe(ifr);
         break;
       }
     }

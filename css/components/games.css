@@ -345,6 +345,19 @@
     object-fit: cover;
   }
 
+  .games-directory-card__media--icon {
+    isolation: isolate;
+    background: #f8fafc;
+  }
+
+  .games-directory-card__media.games-directory-card__media--icon > img {
+    width: 82%;
+    height: 8rem;
+    min-height: 0;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
   .games-directory-card__icon {
     display: grid;
     place-items: center;
@@ -461,6 +474,12 @@
     .games-directory-card__icon {
       width: 4rem;
       height: 4rem;
+    }
+
+    .games-directory-card__media.games-directory-card__media--icon > img {
+      width: 78%;
+      height: auto;
+      aspect-ratio: 1;
     }
 
     .games-directory-card__icon svg {

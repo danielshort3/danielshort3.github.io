@@ -430,9 +430,13 @@ function renderHomeAccordionCard(item, categoryId) {
   const presentation = ['featured', 'tertiary'].includes(String(item && item.presentation || '').trim())
     ? String(item.presentation).trim()
     : '';
-  const mediaType = item && item.image ? 'image' : 'glyph';
-  const media = item && item.image
-    ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${item.imageWidth ? ` width="${escapeHtml(item.imageWidth)}"` : ''}${item.imageHeight ? ` height="${escapeHtml(item.imageHeight)}"` : ''}>`
+  const iconImage = String(item && item.iconImage || '').trim();
+  const image = iconImage || String(item && item.image || '').trim();
+  const mediaType = iconImage ? 'icon' : image ? 'image' : 'glyph';
+  const imageWidth = iconImage ? 256 : item && item.imageWidth;
+  const imageHeight = iconImage ? 256 : item && item.imageHeight;
+  const media = image
+    ? `<img src="${escapeHtml(image)}" alt="${iconImage ? '' : escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${imageWidth ? ` width="${escapeHtml(imageWidth)}"` : ''}${imageHeight ? ` height="${escapeHtml(imageHeight)}"` : ''}>`
     : `<span class="home-accordion__card-glyph" data-home-icon="${escapeHtml(iconId)}" aria-hidden="true">${homeAccordionIcon(iconId)}</span>`;
   const contentType = String(item && item.contentType || '').trim();
   const contentId = String(item && item.contentId || item && item.id || '').trim();
@@ -451,7 +455,7 @@ function renderHomeAccordionCard(item, categoryId) {
   return [
     '            <li class="home-accordion__card-item">',
     `              <${tag} class="home-accordion__card${presentation ? ` home-accordion__card--${presentation}` : ''}"${linkAttrs}>`,
-    `                <span class="home-accordion__card-media home-accordion__card-media--${mediaType}">${media}</span>`,
+    `                <span class="home-accordion__card-media home-accordion__card-media--${mediaType}"${iconImage ? ' aria-hidden="true"' : ''}>${media}</span>`,
     '                <span class="home-accordion__card-copy">',
     item && item.badge ? `                  <span class="home-accordion__card-badge">${escapeHtml(item.badge)}</span>` : '',
     `                  <strong>${escapeHtml(item && item.title || 'Explore')}</strong>`,
@@ -496,7 +500,7 @@ function parseHomeTimelineDate(value) {
   return { label, value: text };
 }
 
-function renderHomeTimelineDate(item) {
+function renderHomeTimelineDate(item, options = {}) {
   if (item && item.current) {
     return '              <span class="home-timeline__current">Now</span>';
   }
@@ -504,14 +508,17 @@ function renderHomeTimelineDate(item) {
   const start = parseHomeTimelineDate(item && item.date);
   if (!start) return '';
   const end = parseHomeTimelineDate(item && item.endDate);
-  const startHtml = `<time datetime="${escapeHtml(start.value)}">${escapeHtml(start.label)}</time>`;
+  const dateLabel = (date) => options.dateDisplay === 'monthYear'
+    ? parseHomeTimelineDate(date.value.slice(0, 7)).label
+    : date.label;
+  const startHtml = `<time datetime="${escapeHtml(start.value)}">${escapeHtml(dateLabel(start))}</time>`;
   const endHtml = end
-    ? `<time datetime="${escapeHtml(end.value)}">${escapeHtml(end.label)}</time>`
+    ? `<time datetime="${escapeHtml(end.value)}">${escapeHtml(dateLabel(end))}</time>`
     : (item && item.ongoing ? '<span class="home-timeline__current">Present</span>' : '');
   return `              ${startHtml}${endHtml ? ` <span class="home-timeline__date-separator">–</span> ${endHtml}` : ''}`;
 }
 
-function renderHomeTimelineItem(item, categoryId) {
+function renderHomeTimelineItem(item, categoryId, options = {}) {
   const authoredType = String(item && item.type || '').trim();
   const type = Object.prototype.hasOwnProperty.call(HOME_TIMELINE_TYPE_LABELS, authoredType)
     ? authoredType
@@ -524,11 +531,13 @@ function renderHomeTimelineItem(item, categoryId) {
   const resourceType = String(item && item.resourceType || contentType || '').trim();
   const mediaTone = String(item && item.imageTone || '').trim() === 'dark' ? 'dark' : '';
   const title = String(item && item.title || 'Milestone');
-  const compactTitle = type === 'certification'
-    ? title.replace(/\s+(?:Professional\s+Certificate|Certification|Certificate)$/i, '')
-    : title;
+  const compactTitle = options.compactTitles
+    ? title.replace(/\s+Professional\s+Certificate$/i, ' Certificate')
+    : (type === 'certification'
+        ? title.replace(/\s+(?:Professional\s+Certificate|Certification|Certificate)$/i, '')
+        : title);
   const titleHtml = compactTitle !== title
-    ? `<span class="home-timeline__title-full">${escapeHtml(title)}</span><span class="home-timeline__title-compact" aria-hidden="true">${escapeHtml(compactTitle)}</span>`
+    ? `<span class="home-timeline__title-full${options.compactTitles ? ' visually-hidden' : ''}">${escapeHtml(title)}</span><span class="home-timeline__title-compact" aria-hidden="true">${escapeHtml(compactTitle)}</span>`
     : escapeHtml(title);
   const dateId = `home-timeline-${categoryId}-${String(item && item.id || '').replace(/[^a-z0-9_-]+/gi, '-')}-date`;
   const analytics = href && contentType && contentId
@@ -544,7 +553,7 @@ function renderHomeTimelineItem(item, categoryId) {
   return [
     `          <li class="home-timeline__item home-timeline__item--${escapeHtml(type)}" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
     `            <div class="home-timeline__date" id="${escapeHtml(dateId)}">`,
-    renderHomeTimelineDate(item),
+    renderHomeTimelineDate(item, options),
     '            </div>',
     '            <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>',
     `            <${tag} class="home-timeline__entry" aria-describedby="${escapeHtml(dateId)}"${linkAttrs}>`,
@@ -562,16 +571,101 @@ function renderHomeTimelineItem(item, categoryId) {
 }
 
 function renderHomeTimeline(timeline, categoryId) {
-  const items = Array.isArray(timeline && timeline.items) ? timeline.items : [];
+  const items = Array.isArray(timeline && timeline.items) ? [...timeline.items] : [];
   if (!items.length) return '';
+  if (timeline.newestFirst) {
+    const dateValue = (item) => timeline.sortBy === 'startDate'
+      ? String(item.date || '')
+      : String(item.endDate || item.date || '');
+    items.sort((a, b) => Number(Boolean(b.ongoing || b.current)) - Number(Boolean(a.ongoing || a.current)) ||
+      dateValue(b).localeCompare(dateValue(a)));
+  }
 
   const safeCategoryId = String(categoryId || 'about').trim().replace(/[^a-z0-9_-]+/gi, '-');
+  const title = String(timeline.title || '').trim();
+  const titleId = `home-timeline-${safeCategoryId}-title`;
+  const heading = title
+    ? `${escapeHtml(title)}<span class="home-timeline__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></span>`
+    : 'Work, education &amp; certifications <span>View my background</span>';
   return [
-    '          <section class="home-timeline" data-home-timeline aria-label="Timeline">',
+    `          <section class="home-timeline" data-home-timeline${title ? ` aria-labelledby="${escapeHtml(titleId)}"` : ' aria-label="Timeline"'}${timeline.compactTitles ? ' data-home-timeline-compact-titles="true"' : ''}>`,
+    timeline.collapsible ? `            <details class="home-timeline__details"${timeline.open ? ' open' : ''}><summary${title ? ` id="${escapeHtml(titleId)}"` : ''}>${heading}</summary>` : '',
+    !timeline.collapsible && title ? `            <h3 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h3>` : '',
     '            <ol class="home-timeline__list" data-home-timeline-scroller>',
-    items.map((item) => renderHomeTimelineItem(item, safeCategoryId)).join('\n'),
+    items.map((item) => renderHomeTimelineItem(item, safeCategoryId, timeline)).join('\n'),
     '            </ol>',
+    timeline.collapsible ? '            </details>' : '',
     '          </section>'
+  ].filter(Boolean).join('\n');
+}
+
+const HOME_ABOUT_ICONS = Object.freeze({
+  ai: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 10v6M7 23v-7h18v7"></path><circle cx="16" cy="6" r="4"></circle><circle cx="7" cy="27" r="4"></circle><circle cx="25" cy="27" r="4"></circle></svg>',
+  family: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m3 14 13-11 13 11M6 12v17h20V12"></path><path d="M16 24s-6-3.6-6-7a3.4 3.4 0 0 1 6-2.1A3.4 3.4 0 0 1 22 17c0 3.4-6 7-6 7Z"></path></svg>',
+  arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"></path></svg>',
+  code: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 6-6 6 6 6m10-12 6 6-6 6M14 3l-4 18"></path></svg>'
+});
+
+function renderHomeAboutConnection(connection) {
+  const project = connection.project || {};
+  const credit = connection.imageCredit;
+  const id = String(connection.id || '').trim();
+  const icon = connection.image
+    ? `<img src="${escapeHtml(connection.image)}" alt="" width="${escapeHtml(connection.imageWidth || 128)}" height="${escapeHtml(connection.imageHeight || 128)}" loading="eager" decoding="async">`
+    : (HOME_ABOUT_ICONS[connection.icon] || '');
+  const analytics = project.contentType && project.contentId
+    ? ` data-content-open="true" data-content-id="${escapeHtml(project.contentId)}" data-content-type="${escapeHtml(project.contentType)}" data-resource-type="${escapeHtml(project.resourceType || project.contentType)}" data-source-surface="home_about"`
+    : '';
+  return [
+    `                <li class="home-about__connection" data-home-about-connection="${escapeHtml(id)}">`,
+    `                  <span class="home-about__interest-icon" aria-hidden="true">${icon}</span>`,
+    '                  <div class="home-about__interest">',
+    `                    <h4>${escapeHtml(connection.title || '')}</h4>`,
+    connection.description ? `                    <p>${escapeHtml(connection.description)}</p>` : '',
+    credit ? `                    <p class="home-about__image-credit" title="${escapeHtml(credit.changes || '')}">Photo: <a href="${escapeHtml(normalizeHref(credit.sourceHref))}" target="_blank" rel="noopener noreferrer">${escapeHtml(credit.authors)}</a> · <a href="${escapeHtml(normalizeHref(credit.licenseHref))}" target="_blank" rel="license noopener noreferrer">${escapeHtml(credit.license)}</a></p>` : '',
+    '                  </div>',
+    `                  <span class="home-about__connector" aria-hidden="true">${HOME_ABOUT_ICONS.arrow}</span>`,
+    `                  <a class="home-about__project" href="${escapeHtml(normalizeHref(project.href))}"${analytics}>`,
+    `                    <strong>${escapeHtml(project.title || 'Explore project')}</strong>`,
+    project.summary ? `                    <span>${escapeHtml(project.summary)}</span>` : '',
+    '                  </a>',
+    '                </li>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderHomeAbout(category, timelineHtml) {
+  const story = category.aboutStory;
+  const profile = category.profile;
+  if (!story || !profile?.image) return '';
+  const connections = Array.isArray(story.connections) ? story.connections : [];
+  const currentText = String(category.currentWork?.text || '');
+  const currentPrefix = 'Currently building:';
+  const currentHtml = currentText.startsWith(currentPrefix)
+    ? `<strong>${currentPrefix}</strong>${escapeHtml(currentText.slice(currentPrefix.length))}`
+    : escapeHtml(currentText);
+  return [
+    '          <div class="home-about">',
+    '            <div class="home-about__personal">',
+    '              <header class="home-about__profile">',
+    `                <img class="home-about__portrait" src="${escapeHtml(profile.image)}" alt="${escapeHtml(profile.imageAlt || '')}" loading="eager" decoding="async"${profile.imageWidth ? ` width="${escapeHtml(profile.imageWidth)}"` : ''}${profile.imageHeight ? ` height="${escapeHtml(profile.imageHeight)}"` : ''}>`,
+    '                <div class="home-about__intro">',
+    `                  <h2>${escapeHtml(category.title || 'Hi, I’m Daniel.')}</h2>`,
+    category.context ? `                  <p class="home-about__context">${escapeHtml(category.context)}</p>` : '',
+    category.lead ? `                  <p class="home-about__lead">${escapeHtml(category.lead)}</p>` : '',
+    '                </div>',
+    '              </header>',
+    '              <div class="home-about__story">',
+    '              <section class="home-about__interests" aria-labelledby="home-about-connections-title">',
+    `                <h3 id="home-about-connections-title">${escapeHtml(story.title || 'Life shapes what I build.')}</h3>`,
+    '                <ul class="home-about__connections">',
+    connections.map(renderHomeAboutConnection).join('\n'),
+    '                </ul>',
+    '              </section>',
+    currentText ? `              <div class="home-about__current"><span class="home-about__current-icon" aria-hidden="true">${HOME_ABOUT_ICONS.code}</span><a href="${escapeHtml(normalizeHref(category.currentWork.href))}">${currentHtml}</a></div>` : '',
+    '              </div>',
+    '            </div>',
+    timelineHtml,
+    '          </div>'
   ].filter(Boolean).join('\n');
 }
 
@@ -585,7 +679,7 @@ function renderHomeLibraryView(category, categoryId) {
     category: categoryId,
     itemCount: 0,
     containerTag: 'header',
-    headingTag: 'h3',
+    headingTag: 'h2',
     headingId,
     headingFocusable: true,
     includeBack: true,
@@ -598,7 +692,7 @@ function renderHomeLibraryView(category, categoryId) {
     `          <section class="home-library" id="${escapeHtml(viewId)}" data-home-library-view="${escapeHtml(categoryId)}" aria-labelledby="${escapeHtml(headingId)}" hidden inert>`,
     header.split('\n').map((line) => `            ${line}`).join('\n'),
     account ? account.split('\n').map((line) => `            ${line}`).join('\n') : '',
-    `            <ul class="home-library__list" data-home-library-list aria-label="All ${escapeHtml(String(category.label || categoryId).toLowerCase())}"></ul>`,
+    `            <div class="home-library__groups" data-home-library-list></div>`,
     '          </section>'
   ].filter(Boolean).join('\n');
 }
@@ -626,6 +720,16 @@ function renderHomeAccordion(section) {
     const hasInlineLibrary = ['projects', 'tools', 'games'].includes(id);
     const cards = items.map((item) => renderHomeAccordionCard(item, id)).join('\n');
     const timelineHtml = renderHomeTimeline(category && category.timeline, id);
+    const featuredItems = Array.isArray(category.featuredItems) ? category.featuredItems : [];
+    const featuredHtml = featuredItems.length ? [
+      '          <section class="home-featured" aria-label="Featured projects">',
+      `            <h2>${escapeHtml(category.featuredTitle || 'Featured projects')}</h2>`,
+      '            <ul class="home-accordion__cards home-featured__list">',
+      featuredItems.map((item) => renderHomeAccordionCard(item, 'projects')).join('\n'),
+      '            </ul>',
+      '            <a class="home-featured__all" href="/portfolio">Explore all projects <span aria-hidden="true">' + HOME_ACCORDION_ICONS.arrow + '</span></a>',
+      '          </section>'
+    ].join('\n') : '';
     const libraryHtml = renderHomeLibraryView(category, id);
     const profile = category && category.profile && category.profile.image
       ? category.profile
@@ -652,6 +756,8 @@ function renderHomeAccordion(section) {
           '              </div>',
           category && category.lead ? `              <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
           context ? `              <p class="home-accordion__context home-accordion__context--profile">${escapeHtml(context)}</p>` : '',
+          category.primaryAction?.href ? `              <a class="home-accordion__panel-cta home-intro__action" href="${escapeHtml(normalizeHref(category.primaryAction.href))}">${escapeHtml(category.primaryAction.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>` : '',
+          category.currentWork?.text ? `              <p class="home-intro__current"><a href="${escapeHtml(normalizeHref(category.currentWork.href))}">${escapeHtml(category.currentWork.text)}</a></p>` : '',
           '            </div>',
           '            <figure class="home-accordion__profile-portrait">',
           `              <img src="${escapeHtml(profile.image)}" alt="${escapeHtml(profile.imageAlt || '')}" loading="eager" decoding="async"${profile.imageWidth ? ` width="${escapeHtml(profile.imageWidth)}"` : ''}${profile.imageHeight ? ` height="${escapeHtml(profile.imageHeight)}"` : ''}>`,
@@ -668,6 +774,17 @@ function renderHomeAccordion(section) {
           category && category.lead ? `            <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
           '          </header>'
         ].filter(Boolean).join('\n');
+    const aboutHtml = id === 'about' ? renderHomeAbout(category, timelineHtml) : '';
+    const panelContent = aboutHtml || [
+      panelHeader,
+      contextHtml,
+      metaHtml,
+      cards ? `          <ul class="home-accordion__cards">\n${cards}\n          </ul>` : '',
+      featuredHtml,
+      timelineHtml,
+      cta,
+      libraryHtml
+    ].filter(Boolean).join('\n');
 
     return [
       `    <article class="home-accordion__item home-accordion__item--${escapeHtml(id)}${hasInlineLibrary ? ' home-accordion__item--has-library' : ''}${isActive ? ' is-active' : ''}" data-home-accordion-item="${escapeHtml(id)}" aria-labelledby="${escapeHtml(triggerId)}" style="--panel-color: ${escapeHtml(color)}; --panel-color-end: ${escapeHtml(colorEnd)};">`,
@@ -680,13 +797,7 @@ function renderHomeAccordion(section) {
       '      </h2>',
       `      <section class="home-accordion__panel" id="${escapeHtml(panelId)}" role="region" aria-labelledby="${escapeHtml(triggerId)}" data-home-accordion-panel="${escapeHtml(id)}"${isActive ? '' : ' hidden inert'}>`,
       `        <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="${escapeHtml(label)} content">`,
-      panelHeader,
-      contextHtml,
-      metaHtml,
-      cards ? `          <ul class="home-accordion__cards">\n${cards}\n          </ul>` : '',
-      timelineHtml,
-      cta,
-      libraryHtml,
+      panelContent,
       '        </div>',
       '      </section>',
       '    </article>'

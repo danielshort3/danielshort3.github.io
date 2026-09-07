@@ -578,6 +578,9 @@
     emptyEl.textContent = reason;
     hideOccurrences();
     hideFullText();
+    [copyBtn, exportCsvBtn, exportJsonBtn].forEach((button) => { if (button) button.disabled = true; });
+    const heading = document.querySelector('.wordfreq-table-heading');
+    if (heading) heading.hidden = true;
   };
 
   const buildSummaryText = (analysis) => {
@@ -602,7 +605,7 @@
     return pieces.join(' · ');
   };
 
-  const createResultRow = (entry, index, scoreRange, selectedKey) => {
+  const createResultRow = (entry, index, scoreRange, selectedKey, showScore = false) => {
     const item = document.createElement('li');
     item.className = 'wordfreq-row';
     if (selectedKey && selectedKey === entry.key) item.classList.add('is-selected');
@@ -626,13 +629,14 @@
 
     const count = document.createElement('span');
     count.className = 'wordfreq-count';
-    count.textContent = `${formatNumber(entry.count)}×`;
+    count.textContent = formatNumber(entry.count);
 
     const score = document.createElement('span');
     score.className = 'wordfreq-score';
     score.textContent = entry.scoreLabel;
+    score.hidden = !showScore;
 
-    wrap.append(termBtn, count, score);
+    wrap.append(termBtn, count);
     meta.append(rank, wrap);
 
     const bar = document.createElement('div');
@@ -644,7 +648,10 @@
     fill.style.width = `${scoreToWidth(entry.score, scoreRange.min, scoreRange.max).toFixed(1)}%`;
     bar.appendChild(fill);
 
-    item.append(meta, bar);
+    const metric = document.createElement('div');
+    metric.className = 'wordfreq-metric';
+    metric.append(score, bar);
+    item.append(meta, metric);
     return item;
   };
 
@@ -675,7 +682,7 @@
   };
 
   const hideOccurrences = () => {
-    if (occurrencePanel) occurrencePanel.hidden = true;
+    if (occurrencePanel) occurrencePanel.hidden = false;
     if (occurrenceListEl) occurrenceListEl.innerHTML = '';
     if (occurrenceSummaryEl) {
       occurrenceSummaryEl.textContent = 'Select a term to inspect where it appears in your source text.';
@@ -683,7 +690,7 @@
   };
 
   const hideFullText = () => {
-    if (fullTextPanel) fullTextPanel.hidden = true;
+    if (fullTextPanel) fullTextPanel.hidden = false;
     if (fullTextEl) fullTextEl.innerHTML = '';
     if (fullTextSummaryEl) {
       fullTextSummaryEl.textContent = 'Select a term from results (or click a word below) to highlight it throughout the source text.';
@@ -812,10 +819,16 @@
   const renderResults = (analysis, selectedKey) => {
     resultsList.innerHTML = '';
     if (!analysis.topEntries.length) return;
+    [copyBtn, exportCsvBtn, exportJsonBtn].forEach((button) => { if (button) button.disabled = false; });
+    const heading = document.querySelector('.wordfreq-table-heading');
+    if (heading) heading.hidden = false;
+    const showScore = analysis.settings.scoreMode !== 'count' && !analysis.usesPmiFallback;
+    const scoreHeading = $('#wordfreq-score-heading');
+    if (scoreHeading) scoreHeading.textContent = showScore ? 'Score' : 'Frequency';
 
     const scoreRange = getScoreRange(analysis.topEntries);
     analysis.topEntries.forEach((entry, index) => {
-      resultsList.appendChild(createResultRow(entry, index, scoreRange, selectedKey));
+      resultsList.appendChild(createResultRow(entry, index, scoreRange, selectedKey, showScore));
     });
   };
 
@@ -1142,6 +1155,7 @@
     const settings = getSettings();
     topInput.value = String(settings.top);
     minLengthInput.value = String(settings.minLength);
+    updateWorkspaceSummary();
 
     const analysisSource = getAnalysisSourceText();
     const analysis = analyzeInput(analysisSource, settings);
@@ -1336,6 +1350,8 @@
     event.preventDefault();
     try {
       const resultBucket = runAnalysis();
+      if (inputStatusEl?.dataset.tone === 'success') setInputStatus('');
+      window.ToolWorkspace?.selectTab('wordfreq-results-terms', { focus: false });
       if (resultBucket) reportRunComplete(resultBucket);
       else reportRunError('validation');
     } catch (error) {
@@ -1345,6 +1361,7 @@
   });
 
   exampleBtn?.addEventListener('click', () => {
+    window.ToolWorkspace?.selectTab('wordfreq-setup-text', { focus: false });
     textInput.value = WORD_FREQUENCY_EXAMPLE;
     textInput.dispatchEvent(new Event('input', { bubbles: true }));
     setInputStatus('Example loaded. Click Analyze to review the terms.', 'success');
@@ -1354,6 +1371,8 @@
   });
 
   clearBtn?.addEventListener('click', () => {
+    window.ToolWorkspace?.selectTab('wordfreq-setup-text', { focus: false });
+    window.ToolWorkspace?.selectTab('wordfreq-results-terms', { focus: false });
     clearFormToDefaults();
     setCopyStatus('', '');
     setInputStatus('', '');
@@ -1363,6 +1382,7 @@
     hideOccurrences();
     hideFullText();
     renderEmpty(DEFAULT_SUMMARY, DEFAULT_EMPTY);
+    updateWorkspaceSummary();
     markSessionDirty();
     textInput.focus();
   });
@@ -1400,6 +1420,7 @@
     renderResults(lastAnalysis, selectedTermKey);
     renderOccurrences(lastAnalysis, selectedTerm);
     renderFullText(lastAnalysis, selectedTerm);
+    window.ToolWorkspace?.selectTab('wordfreq-results-occurrences', { focus: false });
   });
 
   fullTextEl?.addEventListener('click', (event) => {
@@ -1492,5 +1513,27 @@
     });
   });
 
+  const updateWorkspaceSummary = () => {
+    const summary = $('#wordfreq-settings-summary');
+    const filters = $('#wordfreq-filter-summary');
+    const settings = getSettings();
+    const sizeLabel = settings.ngramSize === 1 ? 'Single words' : `${settings.ngramSize}-word phrases`;
+    const scores = { count: 'Frequency', per1000: 'Per 1,000 words', share: 'Share (%)', pmi: 'Association (PMI)' };
+    if (summary) summary.textContent = `Top ${settings.top} · ${sizeLabel} · ${scores[settings.scoreMode] || 'Frequency'}`;
+    if (filters) {
+      const labels = { 'english-basic': 'English stopwords', 'english-aggressive': 'Aggressive stopwords', none: 'No stopwords' };
+      const details = [labels[settings.stopwordMode] || 'Custom filters'];
+      if (settings.useStemming) details.push('Word variants normalized');
+      if (settings.includeTermsRaw.trim() || settings.excludeTermsRaw.trim()) details.push('Custom terms');
+      filters.textContent = details.join(' · ');
+    }
+  };
+  form.addEventListener('input', updateWorkspaceSummary);
+  form.addEventListener('change', updateWorkspaceSummary);
+  [exportCsvBtn, exportJsonBtn].forEach((button) => button?.addEventListener('click', () => {
+    const menu = button.closest('details');
+    if (menu) menu.open = false;
+  }));
+  updateWorkspaceSummary();
   renderEmpty(DEFAULT_SUMMARY, DEFAULT_EMPTY);
 })();

@@ -41,7 +41,7 @@
     .baby-names-workspace .segment-btn,
     .baby-names-workspace .tab-btn,
     .baby-names-workspace .btn-ghost { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: .8125rem; }
-    .baby-names-workspace .segment-btn { border-color: transparent; }
+    .baby-names-workspace .segment-btn { min-width: 44px; border-color: transparent; }
     .baby-names-workspace .health-pill { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; color: var(--muted); white-space: nowrap; }
     .baby-names-workspace .health-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
     .baby-names-workspace .health-pill[data-state="ok"] { color: var(--success); }
@@ -68,6 +68,9 @@
     .baby-names-workspace .bar-row.is-active { color: var(--primary); font-weight: 700; background: var(--primary-soft); }
     .baby-names-workspace .bar-row.is-active .bar-fill { background: var(--primary); }
     .baby-names-workspace .chart-axis { margin: 6px 0 0; text-align: center; color: var(--muted); font-size: .75rem; }
+    .baby-names-workspace .mobile-rating-picker,
+    .baby-names-workspace .chart-help-mobile { display: none; }
+    .baby-names-workspace .mobile-rating-picker select { width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 1rem; }
     .baby-names-workspace .mini-list { display: grid; gap: 0; list-style: none; margin: 12px 0 0; padding: 0; }
     .baby-names-workspace .mini-list li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
     .baby-names-workspace .mini-list strong { font-weight: 600; }
@@ -95,6 +98,9 @@
       .baby-names-workspace .content { padding: 14px 16px 20px; gap: 18px; }
       .baby-names-workspace .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
       .baby-names-workspace .ratings-content { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+      .baby-names-workspace .mobile-rating-picker { display: grid; gap: 5px; margin-top: 12px; color: var(--muted); font-size: .8125rem; }
+      .baby-names-workspace .chart-help-mobile { display: inline; }
+      .baby-names-workspace .chart-help-desktop { display: none; }
       .baby-names-workspace .panel-title { align-items: flex-start; }
       .baby-names-workspace .name-list { grid-template-columns: minmax(0, 1fr); }
       .baby-names-workspace .method-grid { grid-template-columns: minmax(0, 1fr); }
@@ -106,7 +112,7 @@
       .baby-names-workspace .stat-card { padding: 10px 12px; }
     }
   </style>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -144,9 +150,12 @@
       <div class="ratings-content">
         <section class="analysis-section" aria-labelledby="distribution-title">
           <h2 id="distribution-title">Rating distribution</h2>
-          <p class="detail-meta chart-help" id="chart-help">Select a bar to explore names at that rating. Arrow keys move between bars.</p>
+          <p class="detail-meta chart-help" id="chart-help"><span class="chart-help-desktop">Select a bar to explore names at that rating. Arrow keys move between bars.</span><span class="chart-help-mobile">Use the rating filter below to explore names at a specific score.</span></p>
           <div class="bars" id="rating-bars" role="group" aria-label="Filter rated names by rating" aria-describedby="chart-help"></div>
           <p class="chart-axis">Rating out of 10 · bar labels show rating entries</p>
+          <label class="mobile-rating-picker" for="rating-select">Filter rated names
+            <select id="rating-select" disabled><option value="">All ratings</option></select>
+          </label>
         </section>
         <section class="analysis-section" aria-labelledby="favorites-title">
           <h2 id="favorites-title">Top five favorites</h2>
@@ -201,7 +210,7 @@
     const derivedCache = new Map();
     let dataReady = false;
     const DOM = Object.fromEntries([
-      "status-pill", "retry-demo", "summary-scope", "stat-rated", "stat-average", "stat-median", "stat-high-rated", "stat-high-share", "stat-initial", "stat-ending", "stat-length", "rating-bars", "top-rated", "name-list", "name-search", "sort-select", "list-description", "list-count", "rating-filter", "rating-filter-label", "pagination", "page-label", "previous-page", "next-page", "meta-source", "meta-generated"
+      "status-pill", "retry-demo", "summary-scope", "stat-rated", "stat-average", "stat-median", "stat-high-rated", "stat-high-share", "stat-initial", "stat-ending", "stat-length", "rating-bars", "rating-select", "top-rated", "name-list", "name-search", "sort-select", "list-description", "list-count", "rating-filter", "rating-filter-label", "pagination", "page-label", "previous-page", "next-page", "meta-source", "meta-generated"
     ].map((id) => [id, document.getElementById(id)]));
     const segmentButtons = Array.from(document.querySelectorAll(".segment-btn"));
     const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
@@ -231,7 +240,7 @@
     }
 
     function setControlsEnabled(enabled) {
-      [...segmentButtons, ...tabButtons, DOM["name-search"], DOM["sort-select"]].forEach((control) => { control.disabled = !enabled; });
+      [...segmentButtons, ...tabButtons, DOM["name-search"], DOM["sort-select"], DOM["rating-select"]].forEach((control) => { control.disabled = !enabled; });
     }
 
     function computeStats(ratings) {
@@ -286,6 +295,7 @@
     }
 
     function updateRatingSelection() {
+      DOM["rating-select"].value = appState.selectedRating === null ? "" : String(appState.selectedRating);
       DOM["rating-bars"].querySelectorAll("[data-rating]").forEach((button) => {
         const selected = Number(button.dataset.rating) === appState.selectedRating;
         button.classList.toggle("is-active", selected);
@@ -311,6 +321,7 @@
         const rating = index + 1;
         return `<button class="bar-row" type="button" data-rating="${rating}" aria-pressed="false" aria-label="Rated ${rating} out of 10: ${count.toLocaleString()} rating ${count === 1 ? "entry" : "entries"}. Filter names."><span class="bar-count" aria-hidden="true">${count.toLocaleString()}</span><span class="bar-track" aria-hidden="true"><span class="bar-fill" style="--bar-height:${count / maxCount * 100}%"></span></span><span aria-hidden="true">${rating}</span></button>`;
       }).join("");
+      DOM["rating-select"].innerHTML = '<option value="">All ratings</option>' + stats.distribution.map((count, index) => `<option value="${index + 1}">${index + 1}/10 · ${count.toLocaleString()} ${count === 1 ? "entry" : "entries"}</option>`).join("");
       updateRatingSelection();
       DOM["top-rated"].innerHTML = derived.ratings.score.slice(0, 5).map((row) => `<li><strong>${escapeHtml(row.name)}${appState.sex === "all" ? ` <span class="name-meta">${row.sex === "F" ? "Girl" : "Boy"}</span>` : ""}</strong><span class="favorite-score">${row.rating}/10</span></li>`).join("") || '<li class="empty-state">No ratings available.</li>';
     }
@@ -444,6 +455,19 @@
       updateRatingSelection();
       renderList();
       DOM["name-search"].focus({ preventScroll: true });
+    });
+    DOM["rating-select"].addEventListener("change", (event) => {
+      if (!dataReady) return;
+      if (event.target.value) {
+        selectRating(Number(event.target.value));
+        return;
+      }
+      appState.selectedRating = null;
+      appState.tab = "ratings";
+      appState.page = 1;
+      updateTabs();
+      updateRatingSelection();
+      renderList();
     });
     DOM["name-search"].addEventListener("input", (event) => {
       if (!dataReady) return;

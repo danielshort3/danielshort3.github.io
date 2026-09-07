@@ -373,23 +373,21 @@
     align-items: center;
     gap: clamp(22px, 3vw, 36px);
     min-height: 142px;
-    padding: 18px 14px 18px 0;
+    padding: 18px;
     border: 0;
     border-bottom: 1px solid #dce3ec;
     border-radius: 0;
     color: var(--home-ink);
     background: #ffffff;
     text-decoration: none;
-    transition: background-color .18s ease, padding-inline-start .18s ease, transform .18s ease;
+    transition: background-color .18s ease;
   }
 
   .home-accordion__card:is(a):is(:hover, :focus-visible) {
-    padding-inline-start: 8px;
     border-radius: 12px;
     background: color-mix(in srgb, var(--panel-color) 5%, #ffffff 95%);
     outline: 3px solid color-mix(in srgb, var(--panel-color) 70%, var(--home-ink) 30%);
     outline-offset: -3px;
-    transform: translateX(3px);
   }
 
   .home-accordion__card--featured {
@@ -433,14 +431,17 @@
   }
 
   .home-accordion__card-media--glyph,
+  .home-accordion__card-media--icon,
   .home-accordion__item--tools .home-accordion__card-media {
     background: #f8fafc;
   }
 
+  .home-accordion__card-media--icon,
   .home-accordion__item--tools .home-accordion__card-media {
     grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   }
 
+  .home-accordion__card-media--icon img,
   .home-accordion__item--tools .home-accordion__card-media img {
     min-width: 0;
     min-height: 0;
@@ -449,6 +450,14 @@
     padding: 0;
     background: transparent;
     object-fit: contain;
+  }
+
+  :is(.home-accordion__item--projects, .home-accordion__item--games) .home-accordion__card-media--icon {
+    isolation: isolate;
+  }
+
+  :is(.home-accordion__item--projects, .home-accordion__item--games) .home-accordion__card-media--icon img {
+    mix-blend-mode: multiply;
   }
 
   .home-accordion__card-glyph {
@@ -581,6 +590,7 @@
     .home-accordion__card {
       grid-template-columns: 94px minmax(0, 1fr) 26px;
       gap: 20px;
+      min-height: 125px;
     }
 
     .home-accordion__card-media {
@@ -792,7 +802,7 @@
       grid-template-columns: 74px minmax(0, 1fr) 22px;
       gap: 12px;
       min-height: 90px;
-      padding: 9px 4px 9px 0;
+      padding: 9px;
     }
 
     .home-accordion__card-media {
@@ -801,6 +811,7 @@
       border-radius: 10px;
     }
 
+    .home-accordion__card-media--icon img,
     .home-accordion__item--tools .home-accordion__card-media img {
       width: 78%;
       height: 78%;
@@ -877,7 +888,7 @@
       grid-template-columns: 96px minmax(0, 1fr) 26px;
       gap: 22px;
       min-height: 118px;
-      padding: 14px 8px 14px 0;
+      padding: 14px;
     }
 
     .home-accordion__card-media {

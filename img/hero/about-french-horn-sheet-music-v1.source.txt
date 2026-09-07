@@ -1,0 +1,22 @@
+Asset: about-french-horn-sheet-music-v1.webp
+Selected concept: H3 from the project/tool-style About sprite sheet.
+Created: 2026-09-06
+Generation: OpenAI built-in image_gen tool, edited from the selected concept sheet.
+Reference sheet: C:\Users\clopt\.codex\visualizations\2026\09\06\01a074c8-5b1d-7231-8c0d-a69a02e98840\about-interest-styles\project-tool-style-sprite-sheet.png
+Original final generated output: C:/Users/clopt/.codex/generated_images/01a07885-d9b5-7da0-bd70-b7950cc46854/exec-0cc1edde-1ffc-41a7-8a92-6a409bc976f3.png
+Archived unchanged original: C:\Users\clopt\.codex\visualizations\2026\09\06\01a074c8-5b1d-7231-8c0d-a69a02e98840\about-interest-styles\about-french-horn-sheet-music-v1-original.png
+Encoding: resized to 512 x 512, WebP quality 94. No pixel background removal or artwork redrawing.
+Background: opaque white. Two transparency attempts returned a painted checkerboard with no alpha; the installed version uses a pure white background to match the site icon tiles.
+Artwork: selected composition preserved as closely as possible through image edits; generated score and horn details are illustrative.
+Initial extraction prompt:
+Use case: background-extraction.
+Asset type: final transparent website interest icon.
+Edit target: the attached sprite sheet. Extract and isolate ONLY H3, the French horn row's third icon: an ivory/light brass French horn in front of a white sheet-music page with navy score marks and a blue folded upper-right corner.
+Primary request: produce this exact selected H3 illustration by itself, enlarged cleanly on a genuinely transparent RGBA background. This is extraction of approved artwork, not redesign.
+Invariants: aggressively preserve the exact approved horn geometry and anatomical configuration, proportions and topology of all tubing, one large bell facing LEFT, circular coiled body at RIGHT, upright mouthpiece at UPPER RIGHT, visible horizontal rotary valve tubing/rotors, navy contour lines and very restrained warm ivory highlights. Preserve the score paper BEHIND the horn, its angle, outline, blue folded corner, and the original existing score marks. Preserve relative placement and overlap of horn and paper. Do not invent extra tubing, change direction, replace with trumpet/tuba, add parts, or simplify the horn anatomy. Do not recolor the instrument bright blue.
+Composition: square canvas, whole composite centered and roughly 82 percent of square width, all edges uncropped. Truly transparent pixels outside the icon; retain opaque ivory/white instrument and paper surfaces. No baked-in white rectangular background, checkerboard, card, labels, H3 identifier, added text, watermark, or other sheet icons.
+
+Final white-background edit prompt:
+Use case: precise-object-edit.
+Edit the attached icon image. Change ONLY the exterior checkerboard background to a completely uniform pure white (#ffffff) background. Replace every gray checkerboard square outside the object and in empty openings with pure white. No checkerboard whatsoever anywhere in the finished image.
+Keep the approved icon itself unchanged: exact object silhouette, framing and canvas position, proportions, colors, dark outlines, highlights, interior opaque white surfaces, all existing details, and all overlapping parts. Do not redraw, zoom, restyle, simplify or rearrange the icon. The sole change is making the whole exterior backdrop pure white for a white website icon tile. No labels, added text, shadows outside the object, or other objects.

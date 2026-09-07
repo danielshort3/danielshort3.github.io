@@ -13,7 +13,7 @@ const childProcess = require('child_process');
 const crypto = require('crypto');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 const { unwrapPersonalAccordionHtml } = require('./lib/personal-accordion-shell');
-const { toRawProjectDemoUrl } = require('./lib/project-demo-routes');
+const { toRawProjectDemoUrl, toCanonicalProjectDemoUrl } = require('./lib/project-demo-routes');
 const { versionedImageUrl, versionImageContent } = require('./lib/versioned-image-url');
 
 const root = path.resolve(__dirname, '..');
@@ -403,6 +403,29 @@ function loadProjects() {
   return projects;
 }
 
+function formatResourceLabel(resource) {
+  const href = String(resource.url || '').trim();
+  const label = normalizeWhitespace(resource.label || href);
+  const filePath = href.replace(/[?#].*$/, '');
+  const extension = path.extname(filePath).slice(1).toLowerCase();
+  if (!['pdf', 'ipynb', 'zip', 'xlsx', 'csv', 'docx'].includes(extension)) return label;
+  let name = label;
+  if (/^pdfs?$/i.test(label)) name = extension === 'zip' ? 'Project reports' : 'Project report';
+  if (/^notebooks?$/i.test(label)) name = extension === 'zip' ? 'Notebooks' : 'Notebook';
+  if (/^(excel|xlsx)$/i.test(label)) name = 'Workbook';
+  const pieces = [name, extension.toUpperCase()];
+  if (!/^https?:\/\//i.test(href)) {
+    const localFile = path.resolve(root, filePath.replace(/^\//, ''));
+    if (localFile.startsWith(root + path.sep)) {
+      try {
+        const bytes = fs.statSync(localFile).size;
+        if (bytes > 0) pieces.push(bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
+      } catch (_) { /* The label still identifies the format when a local file is unavailable. */ }
+    }
+  }
+  return pieces.join(' · ');
+}
+
 function renderProjectPage(project) {
   project = versionImageContent(project);
   const id = String(project.id || '').trim();
@@ -484,7 +507,7 @@ function renderProjectPage(project) {
   const previewComparison = comparisonSource && comparisonSource.type === 'three-way' &&
     comparisonDimensionsMatch && comparisonFullDimensionsMatch && comparisonLabelsAreUnique &&
     comparisonAltsAreUnique && comparisonFullAltsAreUnique &&
-    comparisonLeft > 0 && comparisonRight < 100 && comparisonLeft + comparisonGap <= comparisonRight
+    comparisonLeft >= comparisonGap && comparisonRight <= 100 - comparisonGap && comparisonLeft + comparisonGap <= comparisonRight
     ? {
       stages: comparisonStages,
       left: comparisonLeft,
@@ -500,7 +523,6 @@ function renderProjectPage(project) {
       creditUrl: /^https:\/\//.test(String(comparisonSource.creditUrl || '')) ? String(comparisonSource.creditUrl) : ''
     }
     : null;
-  const role = project.role;
   const audiences = Array.isArray(project.audiences) ? project.audiences : [];
   const audienceTags = audiences.map((audience) => {
     const key = normalizeWhitespace(audience).toLowerCase();
@@ -523,6 +545,40 @@ function renderProjectPage(project) {
     : '';
   const comparisonScript = previewComparison
     ? '  <script defer src="js/portfolio/project-image-comparison.js"></script>\n'
+    : '';
+  const imageViewerScript = id === 'deliveryTip'
+    ? '  <script defer src="js/portfolio/project-image-viewer.js"></script>\n'
+    : '';
+  const dashboard = String(embed?.type || '').trim() === 'tableau';
+  const dashboardBase = dashboard ? String(embed.base || '').trim() : '';
+  const demoLaunchHref = dashboardBase
+    ? `${dashboardBase}${dashboardBase.includes('?') ? '&' : '?'}:showVizHome=no&:embed=y`
+    : toCanonicalProjectDemoUrl(embed?.url);
+  const demoResourceKey = (href) => {
+    try {
+      const url = new URL(toCanonicalProjectDemoUrl(href), SITE_ORIGIN);
+      return `${url.origin}${url.pathname.replace(/\.html$/, '').replace(/\/$/, '')}`;
+    } catch (_) { return ''; }
+  };
+  const supportingResources = resources.filter((resource) => (
+    !demoLaunchHref || demoResourceKey(resource.url) !== demoResourceKey(demoLaunchHref)
+  ));
+  const reportResource = supportingResources.find((resource) => {
+    const extension = path.extname(String(resource.url || '').replace(/[?#].*$/, '')).toLowerCase();
+    return extension === '.pdf' || extension === '.docx'
+      || (extension === '.zip' && /\b(?:pdfs?|reports?)\b/i.test(String(resource.label || '')));
+  });
+  const introActions = [
+    ...(demoLaunchHref ? [{ href: demoLaunchHref, label: dashboard ? 'Open dashboard' : 'Open demo', type: 'demo' }] : []),
+    ...(reportResource ? [{ href: String(reportResource.url || '').trim(), label: formatResourceLabel(reportResource).replace(/^Project reports?\b/, (label) => label.endsWith('s') ? 'Reports' : 'Report'), type: 'report' }] : [])
+  ];
+  const introActionsHtml = introActions.length
+    ? `<nav class="project-intro-actions" aria-label="Project actions">
+        ${introActions.map((action) => {
+          const externalAttrs = /^https?:\/\//i.test(action.href) ? ' target="_blank" rel="noopener noreferrer"' : '';
+          return `<a class="project-intro-action project-intro-action--${action.type}" href="${escapeHtml(action.href)}"${externalAttrs} data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project_resource" data-resource-type="${action.type}" data-source-surface="project_intro">${escapeHtml(action.label)}</a>`;
+        }).join('\n        ')}
+      </nav>`
     : '';
 
   const ogImageWidth = Number(project.imageWidth);
@@ -559,14 +615,14 @@ function renderProjectPage(project) {
   const ldJson = JSON.stringify({ '@context': 'https://schema.org', '@graph': [projectLd, breadcrumbsLd] })
     .replace(/</g, '\\u003c');
 
-  const safeProblem = normalizeWhitespace(project.problem || '');
+  const safeProblem = normalizeWhitespace(typeof project.problem === 'string' ? project.problem : '');
 
-  const hasResources = resources.length > 0;
+  const hasResources = supportingResources.length > 0;
 
   const renderResourceCards = (list) => `<div class="project-links" role="list">
         ${list.map((r) => {
           const href = String(r.url || '').trim();
-          const label = normalizeWhitespace(r.label || href);
+          const label = formatResourceLabel(r);
           const icon = String(r.icon || '').trim();
           const isExternal = /^https?:\/\//i.test(href);
           const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
@@ -581,7 +637,7 @@ function renderProjectPage(project) {
     ? `<section class="project-section project-resources project-resources--flat" id="links" aria-labelledby="${escapeHtml(toDomIdSafe(id))}-links-title">
       <h2 class="section-title" id="${escapeHtml(toDomIdSafe(id))}-links-title">Links</h2>
       <div class="project-links-groups project-links-groups--flat">
-        ${renderResourceCards(resources)}
+        ${renderResourceCards(supportingResources)}
       </div>
     </section>`
     : '';
@@ -592,20 +648,24 @@ function renderProjectPage(project) {
     return /[.!?]$/.test(s) ? s : `${s}.`;
   };
   const starSituation = ensureSentence(safeProblem);
-  const starTask = (() => {
-    if (Array.isArray(role) && role.length) return ensureSentence(role[0]);
-    if (typeof role === 'string') return ensureSentence(role);
-    return 'Owned the end-to-end build, from implementation through the final deliverable.';
-  })();
-  const starActions = actions.slice(0, 3).map((a) => normalizeWhitespace(a)).filter(Boolean);
-  const starResults = results.slice(0, 3).map((r) => normalizeWhitespace(r)).filter(Boolean);
+  const starTask = ensureSentence(typeof project.task === 'string' ? project.task : '');
+  const starActions = actions.filter((item) => typeof item === 'string').map(normalizeWhitespace).filter(Boolean);
+  const starResults = results.filter((item) => typeof item === 'string').map(normalizeWhitespace).filter(Boolean);
+  for (const [label, content] of [
+    ['Situation', starSituation],
+    ['Task', starTask],
+    ['Action', starActions],
+    ['Result', starResults]
+  ]) {
+    if (!content.length) throw new Error(`Project "${id || title}" is missing STAR ${label} content.`);
+  }
 
   const starSummary = `<section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
       <dl class="project-star-grid">
         <div class="project-star-row">
           <dt class="project-star-label">Situation</dt>
-          <dd class="project-star-value">${escapeHtml(starSituation || safeProblem)}</dd>
+          <dd class="project-star-value">${escapeHtml(starSituation)}</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Task</dt>
@@ -731,8 +791,10 @@ function renderProjectPage(project) {
             </svg>`;
     const leftValue = Math.round(previewComparison.left);
     const rightValue = Math.round(previewComparison.right);
-    const leftMax = Math.round(previewComparison.right - previewComparison.minimumGap);
-    const rightMin = Math.round(previewComparison.left + previewComparison.minimumGap);
+    const leftMin = Math.round(previewComparison.minimumGap);
+    const leftMax = Math.round(100 - 2 * previewComparison.minimumGap);
+    const rightMin = Math.round(2 * previewComparison.minimumGap);
+    const rightMax = Math.round(100 - previewComparison.minimumGap);
     const cropStyle = previewComparison.sourceCrop
       ? `;--comparison-crop-left:${Number(previewComparison.sourceCrop.left.toFixed(4))}%;--comparison-crop-top:${Number(previewComparison.sourceCrop.top.toFixed(4))}%;--comparison-crop-width:${Number(previewComparison.sourceCrop.width.toFixed(4))}%;--comparison-crop-height:${Number(previewComparison.sourceCrop.height.toFixed(4))}%`
       : '';
@@ -741,7 +803,7 @@ function renderProjectPage(project) {
       : 'Each pipeline stage is shown in full.';
 
     const selectionAttributes = previewComparison.selection
-      ? ` data-comparison-id="${escapeHtml(safeId)}" data-comparison-page-ratio="${previewComparison.fullWidth / previewComparison.fullHeight}" data-comparison-crop="${escapeHtml(JSON.stringify(previewComparison.sourceCrop))}"`
+      ? ` data-comparison-id="${escapeHtml(safeId)}" data-comparison-page-ratio="${previewComparison.fullWidth / previewComparison.fullHeight}" data-comparison-selection-aspect="${4 / 3}" data-comparison-crop="${escapeHtml(JSON.stringify(previewComparison.sourceCrop))}"`
       : '';
     const selectionControls = previewComparison.selection
       ? `<div class="project-selection-controls" data-selection-controls hidden>
@@ -756,7 +818,7 @@ function renderProjectPage(project) {
     const credit = previewComparison.credit
       ? `<p class="project-comparison-credit">${previewComparison.creditUrl ? `<a href="${escapeHtml(previewComparison.creditUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(previewComparison.credit)}</a>` : escapeHtml(previewComparison.credit)}</p>`
       : '';
-    return `<div class="project-image-comparison${previewComparison.selection ? ' project-image-comparison-selectable' : ''}" data-project-image-comparison${selectionAttributes} data-comparison-left="${previewComparison.left}" data-comparison-right="${previewComparison.right}" data-comparison-minimum-gap="${previewComparison.minimumGap}" style="--comparison-left:${previewComparison.left}%;--comparison-right:${previewComparison.right}%;--comparison-aspect:${previewComparison.width} / ${previewComparison.height};--comparison-full-aspect:${previewComparison.fullWidth} / ${previewComparison.fullHeight}${cropStyle}">
+    return `<div class="project-image-comparison${previewComparison.selection ? ' project-image-comparison-selectable' : ''}" data-project-image-comparison${selectionAttributes} data-comparison-left="${previewComparison.left}" data-comparison-right="${previewComparison.right}" data-comparison-default-left="${previewComparison.left}" data-comparison-default-right="${previewComparison.right}" data-comparison-minimum-gap="${previewComparison.minimumGap}" style="--comparison-left:${previewComparison.left}%;--comparison-right:${previewComparison.right}%;--comparison-aspect:${previewComparison.width} / ${previewComparison.height};--comparison-full-aspect:${previewComparison.fullWidth} / ${previewComparison.fullHeight}${cropStyle}">
       <section class="project-image-comparison-section project-image-comparison-full" aria-labelledby="${escapeHtml(fullHeadingId)}"${previewComparison.selection ? '' : ` aria-describedby="${escapeHtml(fullDescriptionId)}"`}>
         <div class="project-image-comparison-heading">
           <h3 id="${escapeHtml(fullHeadingId)}">${previewComparison.selection ? 'Choose an area' : 'Full images'}</h3>
@@ -775,10 +837,10 @@ function renderProjectPage(project) {
         <div class="project-image-comparison-zoom-card">
           <div class="project-image-comparison-viewport" id="${escapeHtml(viewportId)}" data-comparison-viewport>
             ${slides}
-            <div class="project-image-comparison-divider project-image-comparison-divider-left" data-comparison-divider="left" role="slider" tabindex="0" aria-label="${escapeHtml(`${stages[0].label} / ${stages[1].label} boundary`)}" aria-orientation="horizontal" aria-controls="${escapeHtml(viewportId)}" aria-describedby="${escapeHtml(instructionsId)}" aria-valuemin="0" aria-valuemax="${leftMax}" aria-valuenow="${leftValue}" aria-valuetext="${escapeHtml(`${stages[0].label} ends at ${leftValue}%; ${stages[1].label} begins at ${leftValue}%`)}" data-comparison-before="${escapeHtml(stages[0].label)}" data-comparison-after="${escapeHtml(stages[1].label)}" hidden>
+            <div class="project-image-comparison-divider project-image-comparison-divider-left" data-comparison-divider="left" role="slider" tabindex="0" aria-label="${escapeHtml(`${stages[0].label} / ${stages[1].label} boundary`)}" aria-orientation="horizontal" aria-controls="${escapeHtml(viewportId)}" aria-describedby="${escapeHtml(instructionsId)}" aria-valuemin="${leftMin}" aria-valuemax="${leftMax}" aria-valuenow="${leftValue}" aria-valuetext="${escapeHtml(`${stages[0].label} ends at ${leftValue}%; ${stages[1].label} begins at ${leftValue}%`)}" data-comparison-before="${escapeHtml(stages[0].label)}" data-comparison-after="${escapeHtml(stages[1].label)}" hidden>
               <span class="project-image-comparison-handle">${dividerIcon}</span>
             </div>
-            <div class="project-image-comparison-divider project-image-comparison-divider-right" data-comparison-divider="right" role="slider" tabindex="0" aria-label="${escapeHtml(`${stages[1].label} / ${stages[2].label} boundary`)}" aria-orientation="horizontal" aria-controls="${escapeHtml(viewportId)}" aria-describedby="${escapeHtml(instructionsId)}" aria-valuemin="${rightMin}" aria-valuemax="100" aria-valuenow="${rightValue}" aria-valuetext="${escapeHtml(`${stages[1].label} ends at ${rightValue}%; ${stages[2].label} begins at ${rightValue}%`)}" data-comparison-before="${escapeHtml(stages[1].label)}" data-comparison-after="${escapeHtml(stages[2].label)}" hidden>
+            <div class="project-image-comparison-divider project-image-comparison-divider-right" data-comparison-divider="right" role="slider" tabindex="0" aria-label="${escapeHtml(`${stages[1].label} / ${stages[2].label} boundary`)}" aria-orientation="horizontal" aria-controls="${escapeHtml(viewportId)}" aria-describedby="${escapeHtml(instructionsId)}" aria-valuemin="${rightMin}" aria-valuemax="${rightMax}" aria-valuenow="${rightValue}" aria-valuetext="${escapeHtml(`${stages[1].label} ends at ${rightValue}%; ${stages[2].label} begins at ${rightValue}%`)}" data-comparison-before="${escapeHtml(stages[1].label)}" data-comparison-after="${escapeHtml(stages[2].label)}" hidden>
               <span class="project-image-comparison-handle">${dividerIcon}</span>
             </div>
           </div>
@@ -786,23 +848,24 @@ function renderProjectPage(project) {
             <ol class="project-image-comparison-stage-rail" aria-hidden="true">
               ${stageRail}
             </ol>
-            <p class="project-image-comparison-instruction" id="${escapeHtml(instructionsId)}">Click or tap the image to move the nearest divider. Drag either divider; it pushes the other when they meet. Use the arrow keys when a divider is focused.</p>
+            <p class="${previewComparison.selection ? 'visually-hidden' : 'project-image-comparison-instruction'}" id="${escapeHtml(instructionsId)}">Click or tap the image to move the nearest divider. Drag either divider; it pushes the other when they meet. Use the arrow keys when a divider is focused.</p>
           </div>
         </div>
       </section>
-      ${previewComparison.selection ? `<div class="project-comparison-footer">${selectionControls}${credit}</div>` : ''}
+      ${previewComparison.selection ? `<div class="project-comparison-footer">${selectionControls}${previewComparison.creditUrl ? '' : credit}</div>` : ''}
     </div>`;
   };
 
   const renderDemoLaunchPreview = () => {
-    const img = String(project.image || '').trim();
+    const preview = project.mobilePreview || {};
+    const img = String(preview.image || project.image || '').trim();
     if (!img) return '';
-    const width = Number(project.imageWidth);
-    const height = Number(project.imageHeight);
+    const width = Number(preview.width || project.imageWidth);
+    const height = Number(preview.height || project.imageHeight);
     const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
       ? ` width="${width}" height="${height}"`
       : '';
-    return `<img class="project-demo-launch-image" src="${escapeHtml(img)}" alt="Preview of ${escapeHtml(title)}" loading="lazy" decoding="async"${sizeAttr}>`;
+    return `<img class="project-demo-launch-image" src="${escapeHtml(img)}" alt="${escapeHtml(preview.alt || `Preview of ${title}`)}" loading="lazy" decoding="async"${sizeAttr}>`;
   };
 
   const renderEmbeddedMedia = (options = {}) => {
@@ -822,7 +885,7 @@ function renderProjectPage(project) {
       const base = String(embed.base || '').trim();
       if (!base) return '';
       const joiner = base.includes('?') ? '&' : '?';
-      const src = `${base}${joiner}:showVizHome=no&:embed=y`;
+      const src = `${base}${joiner}:showVizHome=no&:embed=y&:device=desktop`;
       const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
       const embedMeta = renderEmbedAttrs(embed, id, 'project-embed-tableau');
       return `<div class="project-media project-embed ${embedMeta.className}" ${embedMeta.attrs}>
@@ -838,8 +901,9 @@ function renderProjectPage(project) {
     const baseId = `project-demo-${safeId}`;
     const tooltipId = `${baseId}-instructions`;
     const embedFit = resolveEmbedFit(embed);
-    const embedType = String(embed.type || '').trim();
-    const launchHref = embedType === 'iframe' ? String(embed.url || '').trim() : '';
+    const launchHref = demoLaunchHref;
+    const launchLabel = dashboard ? 'Open dashboard' : 'Launch demo';
+    const launchAttrs = /^https?:\/\//i.test(launchHref) ? ' target="_blank" rel="noopener noreferrer"' : '';
 
     const lead = normalizeWhitespace(demoInstructions?.lead || '');
     const bullets = normalizeTextArray(demoInstructions?.bullets);
@@ -861,12 +925,11 @@ function renderProjectPage(project) {
         </div>`
       : '';
 
-    const mobileLaunch = embedFit === 'content' && launchHref
+    const mobileLaunch = (embedFit === 'content' || dashboard) && launchHref
       ? `<div class="project-demo-mobile-launch">
           ${renderDemoLaunchPreview()}
           <div class="project-demo-launch-copy">
-            <p>Open the standalone demo for the full interactive workspace.</p>
-            <a class="btn-primary" href="${escapeHtml(launchHref)}">Launch demo</a>
+            <a class="btn-primary" href="${escapeHtml(launchHref)}"${launchAttrs}>${launchLabel}</a>
           </div>
         </div>`
       : '';
@@ -874,13 +937,16 @@ function renderProjectPage(project) {
     return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(embedFit)}" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
-        ${tooltip}
+        <div class="project-demo-header-actions">
+          ${launchHref ? `<a class="project-demo-open" href="${escapeHtml(launchHref)}"${launchAttrs}>${dashboard ? 'Open dashboard' : 'Open full demo'}</a>` : ''}
+          ${tooltip}
+        </div>
       </div>
 
       <div class="project-demo-panels">
         <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbeddedMedia({ lazy: embedFit === 'content' })}
+${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbeddedMedia({ lazy: embedFit === 'content' || dashboard })}
           </div>
         </section>
       </div>
@@ -893,7 +959,10 @@ ${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbedd
     if (comparison) return comparison;
     const video = renderVideoMedia();
     if (video) return video;
-    return renderImageMedia();
+    const image = renderImageMedia();
+    return id === 'deliveryTip' && image
+      ? `<a class="project-image-viewer-trigger" href="${escapeHtml(project.image)}" data-project-image-viewer data-image-viewer-title="Delivery Tip map" data-image-viewer-alt="${escapeHtml(project.imageAlt || 'Delivery tip map showing neighborhoods, delivery locations, and average tip amounts')}" aria-haspopup="dialog">${image}<span class="project-image-viewer-label">Expand map</span></a>`
+      : image;
   })();
 
   const demoTabs = embed ? renderDemoShell() : '';
@@ -901,6 +970,7 @@ ${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbedd
     ? `<section class="project-demo-shell project-preview-shell" data-demo-fit="fixed" aria-label="Project preview">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Project Preview</h2>
+        ${previewComparison?.selection && previewComparison.creditUrl ? `<a class="project-comparison-source" href="${escapeHtml(previewComparison.creditUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(previewComparison.credit || 'Sheet music source')}" title="${escapeHtml(previewComparison.credit || 'Sheet music source')}">Source</a>` : ''}
       </div>
 
       <div class="project-demo-panels">
@@ -962,11 +1032,12 @@ ${tableauPreconnect}
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
 
-  <main id="main" class="project-main project-main--compact">
+  <main id="main" class="project-main project-main--compact${dashboard ? ' project-main--dashboard' : ''}">
     <section class="project-hero project-hero--compact">
       <div class="wrapper">
         <h1>${escapeHtml(title)}</h1>
         ${subtitle ? `<p class="project-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        ${introActionsHtml}
       </div>
     </section>
 
@@ -988,7 +1059,7 @@ ${tableauPreconnect}
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
-${comparisonScript}  <script src="js/privacy/config.js"></script>
+${comparisonScript}${imageViewerScript}  <script src="js/privacy/config.js"></script>
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>
@@ -1025,13 +1096,16 @@ function renderPortfolioStaticResults(projects) {
     if (!id) return '';
     const title = normalizeWhitespace(project.title || id);
     const summary = toMetaDescription(project);
+    const iconImage = project.iconImage ? versionedImageUrl(String(project.iconImage).trim()) : '';
     const image = versionedImageUrl(String(project.image || '').trim());
     const width = Number(project.imageWidth);
     const height = Number(project.imageHeight);
     const sizeAttrs = Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0
       ? ` width="${escapeHtml(width)}" height="${escapeHtml(height)}"`
       : '';
-    const media = image
+    const media = iconImage
+      ? `<span class="portfolio-result-card__icon"><img src="${escapeHtml(iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async"></span>`
+      : image
       ? `<img src="${escapeHtml(image)}" alt="Preview of ${escapeHtml(title)}"${sizeAttrs} loading="lazy" decoding="async">`
       : `<span class="portfolio-result-card__initial">${escapeHtml(title.charAt(0) || '?')}</span>`;
     const labels = [...new Set([
@@ -1044,8 +1118,8 @@ function renderPortfolioStaticResults(projects) {
       : '';
 
     return [
-      `<article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="${escapeHtml(id)}">`,
-      `  <span class="portfolio-result-card__media" aria-hidden="true">${media}</span>`,
+      `<article class="portfolio-result-card portfolio-project-result portfolio-project-result--static${iconImage ? ' portfolio-project-result--icon' : ''}" role="listitem" data-project-id="${escapeHtml(id)}">`,
+      `  <span class="portfolio-result-card__media${iconImage ? ' portfolio-result-card__media--icon' : ''}" aria-hidden="true">${media}</span>`,
       '  <div class="portfolio-result-card__body">',
       `    <h2 class="portfolio-result-card__title">${escapeHtml(title)}</h2>`,
       summary ? `    <p class="portfolio-result-card__outcome"><span>Outcome</span>${escapeHtml(summary)}</p>` : '',
@@ -1158,6 +1232,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  formatResourceLabel,
   isPublishedProject,
   loadProjects,
   renderPortfolioStaticResults,

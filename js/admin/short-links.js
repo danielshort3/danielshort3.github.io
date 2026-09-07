@@ -1,4 +1,4 @@
-/* Short links admin dashboard (token-based). */
+/* Links & QR codes workspace. */
 (() => {
   'use strict';
 
@@ -53,6 +53,10 @@
   const modeTabEls = Array.from(document.querySelectorAll('[data-shortlinks="mode-tab"]'));
   const modePanelEls = Array.from(document.querySelectorAll('[data-shortlinks-mode-panel]'));
   const editorPanelEl = document.querySelector('[data-shortlinks-mode-panel="single"]');
+  const editorHomeParent = editorPanelEl?.parentNode || null;
+  const editorHomeSibling = editorPanelEl?.nextSibling || null;
+  let editorPortalPlaceholder = null;
+  let workspaceDisposed = false;
   const editorCloseButton = document.querySelector('[data-shortlinks="editor-close"]');
   const modeSummaryEl = document.querySelector('[data-shortlinks="mode-summary"]');
 
@@ -82,6 +86,22 @@
   const clearButton = editorForm.querySelector('[data-shortlinks="clear"]');
   const editorStatusEl = editorForm.querySelector('[data-shortlinks="editor-status"]');
   const editorMetaEl = document.querySelector('[data-shortlinks="editor-meta"]');
+  const labelInput = editorForm.querySelector('[data-shortlinks="label"]');
+  const tagsInput = editorForm.querySelector('[data-shortlinks="tags"]');
+  const expiresAtInput = editorForm.querySelector('[data-shortlinks="expires-at"]');
+  const resultEl = document.querySelector('[data-shortlinks="create-result"]');
+  const qrLibraryEl = document.querySelector('[data-shortlinks="qr-library"]');
+  const analyticsRange = document.querySelector('[data-shortlinks="analytics-range"]');
+  const analyticsContent = document.querySelector('[data-shortlinks="analytics-content"]');
+  const analyticsStatus = document.querySelector('[data-shortlinks="analytics-status"]');
+  let editingLink = null;
+  let resultLink = null;
+  let analyticsRequestId = 0;
+  let clickHistoryRequestId = 0;
+  let activeAnalyticsSlug = '';
+  let editorAudienceExplicit = false;
+  let workspaceEpoch = 0;
+  let accessRefreshPromise = null;
 
   const setsFilterInput = document.querySelector('[data-shortlinks="sets-filter"]');
   const setsRefreshButton = document.querySelector('[data-shortlinks="sets-refresh"]');
@@ -260,9 +280,10 @@
   let linkHealth = new Map();
   let clickRetentionDurable = false;
   let memorySavedViews = [];
-  let activeDetailSlug = '';
+  let pendingInitialDetailSlug = normalizeSlugInput(new URLSearchParams(window.location.search).get('link'));
+  let activeDetailSlug = pendingInitialDetailSlug;
   let detailInsightsRequestId = 0;
-  let detailSelectionDismissed = false;
+  let detailSelectionDismissed = true;
   let lastAnnouncedDetailSlug = '';
   const detailInsightsCache = new Map();
   let projectHealth = { total: 0, missing: 0, mismatched: 0, checked: false };
@@ -298,7 +319,7 @@
   }
 
   function getProjectSyncPendingCopy(){
-    const hasToken = !!getSavedToken();
+    const hasToken = hasWorkspaceAccess();
     return {
       value: hasToken ? 'Loading' : 'Locked',
       note: hasToken
@@ -324,7 +345,18 @@
     if (!editorPanelEl) return;
     editorPanelEl.hidden = true;
     editorPanelEl.classList.remove('is-active');
+    editorPanelEl.classList.remove('shortlinks-editor-portal');
     document.body.classList.remove('shortlinks-editor-open');
+    if (editorPortalPlaceholder?.parentNode) {
+      editorPortalPlaceholder.replaceWith(editorPanelEl);
+    } else if (editorPanelEl.parentNode === document.body) {
+      if (editorHomeParent) {
+        editorHomeParent.insertBefore(editorPanelEl, editorHomeSibling?.parentNode === editorHomeParent ? editorHomeSibling : null);
+      } else {
+        editorPanelEl.remove();
+      }
+    }
+    editorPortalPlaceholder = null;
     const returnFocus = editorPreviousFocus;
     editorPreviousFocus = null;
     if (options.restoreFocus && returnFocus && returnFocus.isConnected && typeof returnFocus.focus === 'function') {
@@ -333,12 +365,27 @@
   }
 
   function openEditorOverlay(){
-    if (!editorPanelEl) return;
+    if (!editorPanelEl || workspaceDisposed) return;
     if (editorPanelEl.hidden) editorPreviousFocus = document.activeElement;
+    if (editorPanelEl.parentNode !== document.body) {
+      editorPortalPlaceholder = document.createComment('shortlinks-editor-location');
+      editorPanelEl.before(editorPortalPlaceholder);
+      document.body.appendChild(editorPanelEl);
+    }
+    editorPanelEl.classList.add('shortlinks-editor-portal');
     editorPanelEl.hidden = false;
     editorPanelEl.classList.add('is-active');
     document.body.classList.add('shortlinks-editor-open');
   }
+
+  window.SiteRoutes?.addCleanup?.(() => {
+    workspaceDisposed = true;
+    workspaceEpoch += 1;
+    analyticsRequestId += 1;
+    clickHistoryRequestId += 1;
+    closeEditorOverlay();
+    window.clearTimeout(accessCardAttentionTimer);
+  });
 
   function setActiveMode(mode, options = {}){
     const requestedMode = String(mode || '').trim().toLowerCase();
@@ -358,7 +405,7 @@
       const isActive = String(tab?.dataset?.shortlinksMode || '').trim().toLowerCase() === nextMode;
       tab.classList.toggle('is-active', isActive);
       tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      tab.tabIndex = isActive ? 0 : -1;
+      tab.tabIndex = isActive || tab.closest('.shortlinks-tools-menu') ? 0 : -1;
     });
 
     modePanelEls.forEach((panel) => {
@@ -375,6 +422,8 @@
     }
     document.body.dataset.shortlinksMode = nextMode;
     if (!options.skipPersist) saveActiveMode(nextMode);
+    if (nextMode === 'qr') renderQrLibrary();
+    if (nextMode === 'analytics' && !options.skipAnalytics) void refreshAnalytics();
 
     if (options.focusTab) {
       if (activeTab && typeof activeTab.focus === 'function') activeTab.focus();
@@ -387,6 +436,8 @@
       return;
     }
 
+    const accountMenu = accessCard.closest('.shortlinks-account-menu');
+    if (accountMenu) accountMenu.open = true;
     accessCard.classList.add('is-attention');
     if ('open' in accessCard) accessCard.open = true;
     window.clearTimeout(accessCardAttentionTimer);
@@ -434,6 +485,7 @@
   }
 
   function getSavedToken(){
+    if (window.ShortLinksClient) return window.ShortLinksClient.getToken();
     const sessionToken = sessionTokenStorage ? sessionTokenStorage.getItem(STORAGE_KEY) || '' : '';
     if (sessionToken) return sessionToken;
     const localToken = localTokenStorage ? localTokenStorage.getItem(STORAGE_KEY) || '' : '';
@@ -442,6 +494,10 @@
   }
 
   function saveToken(token, remember){
+    if (window.ShortLinksClient) {
+      window.ShortLinksClient.setToken(token, remember);
+      return;
+    }
     const value = String(token || '').trim();
     if (!value) {
       if (sessionTokenStorage) sessionTokenStorage.removeItem(STORAGE_KEY);
@@ -477,6 +533,11 @@
     return !!(localTokenStorage && localTokenStorage.getItem(STORAGE_KEY));
   }
 
+  function hasWorkspaceAccess(){
+    const auth = window.ToolsAuth?.getAuth?.();
+    return !!getSavedToken() || !!(auth && window.ToolsAuth?.isAdmin?.(auth));
+  }
+
   function getSavedMode(){
     const mode = sessionTokenStorage ? String(sessionTokenStorage.getItem(MODE_STORAGE_KEY) || '').trim().toLowerCase() : '';
     return mode !== 'single' && getModePanel(mode) ? mode : '';
@@ -490,7 +551,7 @@
   }
 
   function getInitialMode(){
-    return getSavedMode() || 'links';
+    return pendingInitialDetailSlug ? 'links' : getSavedMode() || 'links';
   }
 
   function getSavedViews(){
@@ -598,11 +659,11 @@
   }
 
   function updateAccessMeta(){
-    const hasToken = !!getSavedToken();
+    const hasToken = hasWorkspaceAccess();
     if (accessMetaEl) {
       accessMetaEl.textContent = hasToken
-        ? (isTokenRemembered() ? 'Token valid · remembered' : 'Token valid')
-        : 'Token required';
+        ? (getSavedToken() ? 'Workspace access connected' : 'Signed in')
+        : 'Sign in to manage links';
     }
     if (rememberTokenInput) rememberTokenInput.checked = isTokenRemembered();
     if (accessCard && 'open' in accessCard) {
@@ -637,7 +698,8 @@
   }
 
   function getSortMode(){
-    return sortSelect ? String(sortSelect.value || 'slug').trim().toLowerCase() : 'slug';
+    const mode = sortSelect ? String(sortSelect.value || '-created').trim().toLowerCase() : '-created';
+    return mode === 'created-desc' ? '-created' : mode;
   }
 
   function getDensityMode(){
@@ -724,8 +786,8 @@
     if (filter === 'active') return getLinkStatus(link) === 'active';
     if (filter === 'disabled') return getLinkStatus(link) === 'disabled';
     if (filter === 'expired') return getLinkStatus(link) === 'expired';
-    if (filter === 'temporary') return !link?.permanent;
-    if (filter === 'permanent') return !!link?.permanent;
+    if (filter === 'temporary') return Number(link?.expiresAt) > 0;
+    if (filter === 'permanent') return !Number(link?.expiresAt);
     if (filter === 'expiring-soon') return getLinkHealth(link).key === 'expiring-soon';
     if (filter === 'warning') return ['warning', 'error'].includes(getLinkHealth(link).tone);
     if (filter === 'healthy') return getLinkHealth(link).key === 'healthy';
@@ -774,6 +836,7 @@
         link?.slug,
         link?.destination,
         link?.label,
+        ...(Array.isArray(link?.tags) ? link.tags : []),
         link?.templateTitle,
         link?.batchTitle,
         link?.contextCompany,
@@ -790,6 +853,253 @@
     const n = Number(value);
     if (!Number.isFinite(n)) return '0';
     return Math.max(0, Math.floor(n)).toLocaleString('en-US');
+  }
+
+  function getLinkTitle(link){
+    return String(link?.label || link?.contextTitle || link?.slug || 'Untitled link');
+  }
+
+  function qrEditorUrl(link, download = false){
+    const path = window.ShortLinksClient.qrEditorUrl(link.slug);
+    return download ? `${path}&download=png` : path;
+  }
+
+  function drawBasicQr(canvas, link, size = 256){
+    if (!canvas || !window.qrcode || !link?.slug) return false;
+    try {
+      const code = window.qrcode(0, 'H');
+      code.addData(window.ShortLinksClient.publicUrl(link.slug, { qr: true }));
+      code.make();
+      const count = code.getModuleCount();
+      const cell = Math.max(1, Math.floor(size / (count + 8)));
+      canvas.width = canvas.height = (count + 8) * cell;
+      const context = canvas.getContext('2d');
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = '#102c46';
+      for (let row = 0; row < count; row += 1) {
+        for (let col = 0; col < count; col += 1) {
+          if (code.isDark(row, col)) context.fillRect((col + 4) * cell, (row + 4) * cell, cell, cell);
+        }
+      }
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', `QR code for ${getLinkTitle(link)}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function makeQrPreview(link){
+    const preview = String(link?.qrDesign?.previewDataUrl || '');
+    if (/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(preview)) {
+      const image = document.createElement('img');
+      image.src = preview;
+      image.alt = `Saved QR design for ${getLinkTitle(link)}`;
+      image.className = 'shortlinks-qr-preview';
+      return image;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.className = 'shortlinks-qr-preview';
+    drawBasicQr(canvas, link);
+    return canvas;
+  }
+
+  function downloadQr(link){
+    if (link?.qrDesign) {
+      window.location.assign(qrEditorUrl(link, true));
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    if (!drawBasicQr(canvas, link, 1024)) {
+      setStatus(listStatusEl, 'QR preview is unavailable. Open Customize QR to try again.', 'error');
+      return;
+    }
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `${String(link.slug).replace(/[^a-z0-9_-]/gi, '-')}-qr.png`;
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
+  }
+
+  function makeLinkAction(label, onClick, href){
+    const button = document.createElement(href ? 'a' : 'button');
+    button.className = 'btn-secondary';
+    button.textContent = label;
+    if (href) button.href = href;
+    else {
+      button.type = 'button';
+      button.addEventListener('click', onClick);
+    }
+    return button;
+  }
+
+  function appendQuickActions(host, link){
+    const copy = makeLinkAction('Copy', () => copyTextToClipboard({
+      text: buildShortUrl(link.slug), button: copy, statusTarget: listStatusEl, successMessage: 'Link copied.'
+    }));
+    copy.setAttribute('aria-label', `Copy link for ${getLinkTitle(link)}`);
+    const qr = makeLinkAction('QR code', null, qrEditorUrl(link));
+    qr.setAttribute('aria-label', `QR code for ${getLinkTitle(link)}`);
+    host.append(copy, qr);
+  }
+
+  function showCreateResult(link, isEditing){
+    if (!resultEl || !link?.slug) return;
+    resultLink = link;
+    editorForm.hidden = true;
+    resultEl.hidden = false;
+    const url = resultEl.querySelector('[data-shortlinks="result-url"]');
+    if (url) {
+      url.textContent = buildShortUrl(link.slug);
+      url.href = buildShortUrl(link.slug);
+    }
+    const destination = resultEl.querySelector('[data-shortlinks="result-destination"]');
+    if (destination) destination.textContent = link.destination;
+    const canvas = resultEl.querySelector('[data-shortlinks="result-qr"]');
+    resultEl.querySelector('[data-shortlinks="result-saved-preview"]')?.remove();
+    if (canvas) {
+      canvas.hidden = !!link.qrDesign?.previewDataUrl;
+      if (canvas.hidden) {
+        const preview = makeQrPreview(link);
+        preview.dataset.shortlinks = 'result-saved-preview';
+        canvas.after(preview);
+      } else drawBasicQr(canvas, link);
+    }
+    const customize = resultEl.querySelector('[data-shortlinks="result-customize"]');
+    if (customize) customize.href = qrEditorUrl(link);
+    const heading = document.getElementById('shortlinks-create-title');
+    if (heading) heading.textContent = isEditing ? 'Changes saved' : 'Your link is ready';
+    resultEl.querySelector('[data-shortlinks="result-copy"]')?.focus();
+  }
+
+  function renderQrLibrary(){
+    if (!qrLibraryEl) return;
+    qrLibraryEl.replaceChildren();
+    if (!allLinks.length) {
+      const message = document.createElement('p');
+      message.className = 'shortlinks-empty-state';
+      message.textContent = linksLoaded ? 'Create a link to get your first editable QR code.' : 'Sign in or connect workspace access to see your saved links and QR codes.';
+      qrLibraryEl.appendChild(message);
+      return;
+    }
+    [...allLinks].sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)).forEach((link) => {
+      const card = document.createElement('article');
+      card.className = 'shortlinks-qr-card';
+      card.appendChild(makeQrPreview(link));
+      const copy = document.createElement('div');
+      copy.className = 'shortlinks-qr-card-copy';
+      const title = document.createElement('h3');
+      title.textContent = getLinkTitle(link);
+      const url = document.createElement('p');
+      url.textContent = buildShortUrl(link.slug);
+      const state = document.createElement('p');
+      state.textContent = link.disabled ? 'Disabled link' : isLinkExpired(link) ? 'Expired link' : link.qrDesign ? 'Saved design · Editable destination' : 'Ready to customize · Editable destination';
+      copy.append(title, url, state);
+      const actions = document.createElement('div');
+      actions.className = 'shortlinks-qr-card-actions';
+      actions.append(makeLinkAction('Download QR', () => downloadQr(link)), makeLinkAction('Customize', null, qrEditorUrl(link)));
+      const details = makeLinkAction('Link details', () => {
+        activeDetailSlug = link.slug;
+        setActiveMode('links');
+        renderDetailPanel(link);
+      });
+      actions.appendChild(details);
+      card.append(copy, actions);
+      qrLibraryEl.appendChild(card);
+    });
+  }
+
+  async function refreshAnalytics(slug = ''){
+    if (!analyticsContent) return;
+    activeAnalyticsSlug = slug;
+    const requestId = ++analyticsRequestId;
+    const days = analyticsRange?.value || '30';
+    analyticsContent.replaceChildren();
+    setStatus(analyticsStatus, 'Loading activity…');
+    try {
+      const data = await api(`/api/short-links?view=analytics&days=${encodeURIComponent(days)}${slug ? `&slug=${encodeURIComponent(slug)}` : ''}`);
+      if (requestId !== analyticsRequestId || !analyticsContent.isConnected) return;
+      const report = data.analytics;
+      if (!report) throw new Error('Activity summary is unavailable. Please refresh.');
+      const metrics = document.createElement('div');
+      metrics.className = 'shortlinks-analytics-metrics';
+      [['Link clicks', report.totals.linkClicks], ['QR visits', report.totals.qrScans], ['Combined / older activity', report.totals.unknownClicks], ['Total recorded visits', report.totals.clicks]].forEach(([label, count]) => {
+        const metric = document.createElement('div');
+        metric.className = 'shortlinks-analytics-metric';
+        const caption = document.createElement('span');
+        caption.textContent = label;
+        const value = document.createElement('strong');
+        value.textContent = formatCount(count);
+        metric.append(caption, value);
+        metrics.appendChild(metric);
+      });
+      analyticsContent.appendChild(metrics);
+      const section = document.createElement('section');
+      section.className = 'shortlinks-analytics-card';
+      const heading = document.createElement('h3');
+      heading.textContent = slug ? `Activity for ${getLinkTitle(getLinkBySlug(slug) || { slug })}` : 'Activity over time';
+      section.appendChild(heading);
+      const daily = Array.isArray(report.daily) ? report.daily : [];
+      if (!daily.some(day => day.clicks)) {
+        const empty = document.createElement('p');
+        empty.textContent = 'No recorded activity in this period. Share a link or QR code to start seeing results.';
+        section.appendChild(empty);
+      } else {
+        const chart = document.createElement('div');
+        chart.className = 'shortlinks-analytics-trend';
+        chart.setAttribute('role', 'img');
+        chart.setAttribute('aria-label', `Daily recorded visits. ${formatCount(report.totals.clicks)} in the selected period. A daily breakdown follows.`);
+        const maximum = Math.max(1, ...daily.map(day => Number(day.clicks) || 0));
+        daily.forEach(day => {
+          const column = document.createElement('div');
+          column.className = 'shortlinks-analytics-bar';
+          column.style.setProperty('--bar-height', `${Math.max(0, Number(day.clicks) || 0) / maximum * 100}%`);
+          column.title = `${day.date}: ${formatCount(day.clicks)} visits`;
+          const bar = document.createElement('span');
+          column.appendChild(bar);
+          chart.appendChild(column);
+        });
+        section.appendChild(chart);
+        const dates = document.createElement('p');
+        dates.className = 'shortlinks-analytics-dates';
+        dates.textContent = `${daily[0]?.date || ''} — ${daily[daily.length - 1]?.date || ''}`;
+        section.appendChild(dates);
+        const disclosure = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = 'Daily breakdown';
+        const table = document.createElement('table');
+        table.className = 'shortlinks-table';
+        const header = table.createTHead().insertRow();
+        ['Date', 'Link clicks', 'QR visits', 'Combined', 'Total'].forEach(label => {
+          const cell = document.createElement('th');
+          cell.scope = 'col';
+          cell.textContent = label;
+          header.appendChild(cell);
+        });
+        const body = table.createTBody();
+        daily.filter(day => day.clicks).slice().reverse().forEach(day => {
+          const row = body.insertRow();
+          [day.date, day.linkClicks, day.qrScans, day.unknownClicks, day.clicks].forEach(value => {
+            row.insertCell().textContent = typeof value === 'number' ? formatCount(value) : value;
+          });
+        });
+        disclosure.append(summary, table);
+        section.appendChild(disclosure);
+      }
+      analyticsContent.appendChild(section);
+      const note = document.createElement('p');
+      note.className = 'shortlinks-analytics-note';
+      note.textContent = `${report.completeness?.note || ''} QR visits count openings of a QR-specific address. Older visits cannot be separated into clicks and QR visits.`.trim();
+      analyticsContent.appendChild(note);
+      setStatus(analyticsStatus, report.completeness?.truncated ? 'Showing available activity; some records were outside this report.' : '', report.completeness?.truncated ? 'warning' : '');
+    } catch (error) {
+      if (requestId === analyticsRequestId) setStatus(analyticsStatus, error.message, 'error');
+    }
   }
 
   function toCsvCell(value){
@@ -1401,7 +1711,8 @@
   function renderDetailPanel(link){
     if (!detailPanelEl) return;
     detailPanelEl.replaceChildren();
-    detailPanelEl.hidden = false;
+    detailPanelEl.hidden = !link;
+    detailPanelEl.closest('.shortlinks-master-detail')?.classList.toggle('has-selection', !!link);
     detailInsightsRequestId += 1;
 
     if (!link) {
@@ -1434,7 +1745,16 @@
       const returnTrigger = getDetailTriggerForSlug(link.slug);
       detailSelectionDismissed = true;
       renderDetailPanel(null);
-      if (returnTrigger && returnTrigger.isConnected && typeof returnTrigger.focus === 'function') returnTrigger.focus();
+      const libraryHeading = document.getElementById('shortlinks-links-title');
+      if (!prefersMasterDetailLayout() && libraryHeading) {
+        listEl.scrollTop = 0;
+        libraryHeading.setAttribute('tabindex', '-1');
+        libraryHeading.focus({ preventScroll: true });
+        libraryHeading.scrollIntoView({
+          block: 'start',
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+        });
+      } else if (returnTrigger && returnTrigger.isConnected && typeof returnTrigger.focus === 'function') returnTrigger.focus();
     });
     detailPanelEl.appendChild(back);
 
@@ -1443,7 +1763,7 @@
     const titleRow = document.createElement('div');
     titleRow.className = 'shortlinks-detail-title-row';
     const title = document.createElement('h3');
-    title.textContent = buildPublicPath(link.slug);
+    title.textContent = getLinkTitle(link);
     titleRow.appendChild(title);
     titleRow.appendChild(makeHealthPill(link));
     head.appendChild(titleRow);
@@ -1495,12 +1815,12 @@
       focusDetailAction('toggle');
     });
     actions.appendChild(editButton);
-    actions.appendChild(copyButton);
-    actions.appendChild(testButton);
-    actions.appendChild(toggleButton);
+    actions.appendChild(makeLinkAction('QR code', null, qrEditorUrl(link)));
     const detailMenu = buildActionMenu([
       { label: 'Open short link', href: shortUrl },
       { label: 'Open destination', href: destinationUrl },
+      { label: 'Test destination', onSelect: () => testRedirect(link.slug, null) },
+      { label: link.disabled ? 'Enable link' : 'Disable link', onSelect: () => setLinkDisabled(link, !link.disabled, listStatusEl) },
       { label: 'View click history', onSelect: async () => openClicksModal(link.slug) },
       { label: 'Delete link', danger: true, onSelect: async () => deleteLinkEntry(link, listStatusEl) }
     ], {
@@ -1551,58 +1871,35 @@
     destinationBlock.appendChild(destination);
     detailPanelEl.appendChild(destinationBlock);
 
-    const overview = document.createElement('div');
-    overview.className = 'shortlinks-detail-overview';
-    const totalCard = document.createElement('section');
-    totalCard.className = 'shortlinks-detail-card shortlinks-detail-total';
-    const totalTitle = document.createElement('h4');
-    totalTitle.textContent = 'Total clicks';
-    const totalValue = document.createElement('strong');
-    totalValue.textContent = formatCount(link.clicks);
-    const totalMeta = document.createElement('span');
-    totalMeta.textContent = 'All-time aggregate';
-    totalCard.appendChild(totalTitle);
-    totalCard.appendChild(totalValue);
-    totalCard.appendChild(totalMeta);
+    const qrSection = document.createElement('section');
+    qrSection.className = 'shortlinks-detail-qr';
+    qrSection.appendChild(makeQrPreview(link));
+    const qrCopy = document.createElement('div');
+    const qrTitle = document.createElement('h4');
+    qrTitle.textContent = 'QR code';
+    const qrHelp = document.createElement('p');
+    qrHelp.textContent = 'The link and QR code share this destination. Update it here without reprinting your code.';
+    const qrActions = document.createElement('div');
+    qrActions.className = 'shortlinks-qr-card-actions';
+    qrActions.append(makeLinkAction('Download QR', () => downloadQr(link)), makeLinkAction('Customize QR', null, qrEditorUrl(link)));
+    qrCopy.append(qrTitle, qrHelp, qrActions);
+    qrSection.appendChild(qrCopy);
+    detailPanelEl.appendChild(qrSection);
 
-    const chartCard = document.createElement('section');
-    chartCard.className = 'shortlinks-detail-card shortlinks-detail-chart';
-    const chartTitle = document.createElement('h4');
-    chartTitle.textContent = 'Recent recorded clicks';
-    const chartHost = document.createElement('div');
-    const chartLoading = document.createElement('p');
-    chartLoading.className = 'shortlinks-detail-chart-empty';
-    chartLoading.textContent = 'Loading recent activity…';
-    chartHost.appendChild(chartLoading);
-    chartCard.appendChild(chartTitle);
-    chartCard.appendChild(chartHost);
-    overview.appendChild(totalCard);
-    overview.appendChild(chartCard);
-    detailPanelEl.appendChild(overview);
+    const activity = document.createElement('div');
+    activity.className = 'shortlinks-detail-activity-summary';
+    const total = document.createElement('p');
+    total.textContent = formatCount(link.clicks) + ' total visits';
+    const analytics = makeLinkAction('View analytics', () => {
+      setActiveMode('analytics', { skipAnalytics: true });
+      void refreshAnalytics(link.slug);
+    });
+    activity.append(total, analytics);
+    detailPanelEl.appendChild(activity);
 
-    const lower = document.createElement('div');
-    lower.className = 'shortlinks-detail-lower';
-    const activityCard = document.createElement('section');
-    activityCard.className = 'shortlinks-detail-card';
-    const activityTitle = document.createElement('h4');
-    activityTitle.textContent = 'Recent activity';
-    const activityHost = document.createElement('div');
-    const activityLoading = document.createElement('p');
-    activityLoading.className = 'shortlinks-detail-activity-empty';
-    activityLoading.textContent = 'Loading click history…';
-    activityHost.appendChild(activityLoading);
-    const historyButton = document.createElement('button');
-    historyButton.type = 'button';
-    historyButton.className = 'btn-ghost shortlinks-detail-history-button';
-    historyButton.textContent = 'View all click history';
-    historyButton.addEventListener('click', () => openClicksModal(link.slug));
-    activityCard.appendChild(activityTitle);
-    activityCard.appendChild(activityHost);
-    activityCard.appendChild(historyButton);
-
-    const metadataCard = document.createElement('section');
-    metadataCard.className = 'shortlinks-detail-card';
-    const metadataTitle = document.createElement('h4');
+    const metadata = document.createElement('details');
+    metadata.className = 'shortlinks-detail-metadata';
+    const metadataTitle = document.createElement('summary');
     metadataTitle.textContent = 'Link details';
     const grid = document.createElement('dl');
     grid.className = 'shortlinks-detail-grid';
@@ -1610,23 +1907,19 @@
       ['Created', formatTimestamp(link.createdAt) || 'Unknown'],
       ['Last updated', formatTimestamp(link.updatedAt) || 'Unknown'],
       ['Expiration', expiresAt ? new Date(expiresAt * 1000).toLocaleString() : 'Never'],
-      ['Redirect type', link.permanent ? '301 permanent' : '302 temporary'],
-      ['Campaign', link.batchTitle || link.templateTitle || link.label || 'None']
+      ['Tags', (link.tags || []).join(', ') || 'None'],
+      ['Campaign', link.batchTitle || link.templateTitle || 'None']
     ].forEach(([label, value]) => {
       const wrap = document.createElement('div');
       const dt = document.createElement('dt');
       dt.textContent = label;
       const dd = document.createElement('dd');
       dd.textContent = value;
-      wrap.appendChild(dt);
-      wrap.appendChild(dd);
+      wrap.append(dt, dd);
       grid.appendChild(wrap);
     });
-    metadataCard.appendChild(metadataTitle);
-    metadataCard.appendChild(grid);
-    lower.appendChild(activityCard);
-    lower.appendChild(metadataCard);
-    detailPanelEl.appendChild(lower);
+    metadata.append(metadataTitle, grid);
+    detailPanelEl.appendChild(metadata);
 
     if (activeDetailSlug !== lastAnnouncedDetailSlug) {
       const announcer = document.createElement('p');
@@ -1638,7 +1931,7 @@
     }
 
     syncActiveDetailRows();
-    void loadDetailInsights(link.slug, chartHost, activityHost, requestId);
+
   }
 
   function renderDashboardSummary(){
@@ -1723,10 +2016,10 @@
   }
 
   function updateAdminSummary(){
-    const hasToken = !!getSavedToken();
+    const hasToken = hasWorkspaceAccess();
     setAdminBadge(
       adminAccessSummaryEl,
-      hasToken ? 'Admin unlocked' : 'Admin locked',
+      hasToken ? 'Workspace connected' : 'Workspace access',
       hasToken ? 'success' : 'warning'
     );
 
@@ -1770,6 +2063,10 @@
 
   function getSelectedAudienceKey(){
     return normalizeAudienceKey(audienceSelect ? audienceSelect.value : FALLBACK_AUDIENCE_DEFAULT);
+  }
+
+  function getDestinationAudienceKey(){
+    return normalizeAudienceKey(destinationAudienceSelect?.value || getSelectedAudienceKey());
   }
 
   function setAudienceControlsValue(value){
@@ -2038,13 +2335,15 @@
   }
 
   function setSuggestedSlug(value){
+    // A suggested ending must never turn a paste-only action into a custom-link conflict.
+    if (!editingLink && slugInput && !slugInput.value.trim()) return;
     if (!slugInput) return;
     const suggestion = normalizeSlugInput(value);
     const current = normalizeSlugKey(slugInput.value);
     const prior = normalizeSlugKey(slugInput.dataset.autoSuggested || '');
 
     if (!current || current === prior) {
-      slugInput.value = suggestion;
+      if (!editingLink) slugInput.value = suggestion;
     }
 
     if (suggestion) slugInput.dataset.autoSuggested = suggestion;
@@ -2063,6 +2362,18 @@
     const raw = String(destinationInput.value || '').trim();
     const showAudienceField = syncAudienceFieldVisibility();
     if (!raw) return;
+
+    if (!editorAudienceExplicit) {
+      const internal = parseInternalSiteDestination(raw);
+      if (internal) {
+        const inferredAudience = internal.searchParams.get('audience') || getAudienceOrder().find(key => {
+          const config = getAudienceConfig(key);
+          return [config.homePath, config.resumePath, config.resumePreviewPath].includes(internal.pathname);
+        }) || 'personal';
+        setAudienceControlsValue(inferredAudience);
+      }
+      return;
+    }
 
     const audienceKey = getSelectedAudienceKey();
     const nextDestination = buildDisplayDestination(raw, audienceKey);
@@ -2177,7 +2488,7 @@
     const manifest = destinationsManifest;
     if (!manifest || !Array.isArray(manifest.pages)) return [];
     const query = getDestinationQuery();
-    const audienceKey = getSelectedAudienceKey();
+    const audienceKey = getDestinationAudienceKey();
     const pages = manifest.pages.filter(item => item && typeof item.path === 'string' && typeof item.label === 'string');
     if (!query) return pages;
     return pages.filter(item => {
@@ -2675,7 +2986,7 @@
 
     const pages = getFilteredDestinations();
     const query = getDestinationQuery();
-    const audienceKey = getSelectedAudienceKey();
+    const audienceKey = getDestinationAudienceKey();
     if (!pages.length) {
       const empty = document.createElement('p');
       empty.className = 'shortlinks-picker-empty';
@@ -2726,7 +3037,9 @@
 
         button.addEventListener('click', () => {
           const absolute = buildDisplayDestination(item.path, audienceKey);
+          setAudienceControlsValue(audienceKey);
           destinationInput.value = absolute;
+          editorAudienceExplicit = false;
           syncEditorAudienceState({ announce: false });
           setStatus(editorStatusEl, `Selected ${displayPath}`, 'success');
           closeDestinationPicker();
@@ -2758,6 +3071,7 @@
   }
 
   function closeClicksModal(){
+    clickHistoryRequestId += 1;
     if (!clicksModal) return;
     clicksModal.classList.remove('active');
     clicksModal.setAttribute('aria-hidden', 'true');
@@ -3004,11 +3318,14 @@
   async function refreshClickHistory(slug){
     if (!slug) return;
     if (!clicksModal) return;
+    const requestId = ++clickHistoryRequestId;
+    const epoch = workspaceEpoch;
     setStatus(clicksStatusEl, 'Loading click history…');
     if (clicksMetaEl) clicksMetaEl.textContent = '';
 
     try {
       const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}?limit=${CLICK_HISTORY_LIMIT}`, { method: 'GET' });
+      if (epoch !== workspaceEpoch || requestId !== clickHistoryRequestId || activeClicksSlug !== slug) return;
       const history = normalizeClickHistoryPayload(data);
       const events = history.events;
       renderClickHistory(history);
@@ -3037,6 +3354,7 @@
         );
       }
     } catch (err) {
+      if (epoch !== workspaceEpoch || requestId !== clickHistoryRequestId || activeClicksSlug !== slug) return;
       if (clicksListEl) clicksListEl.replaceChildren();
       setStatus(clicksStatusEl, err.message, 'error');
     }
@@ -3326,6 +3644,12 @@
   }
 
   async function api(path, options = {}){
+    if (window.ShortLinksClient) {
+      const epoch = workspaceEpoch;
+      const data = await window.ShortLinksClient.request(path, options);
+      if (epoch !== workspaceEpoch) throw new Error('Workspace access changed. Please try again.');
+      return data;
+    }
     const token = getSavedToken();
     const headers = Object.assign({}, options.headers || {});
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -3346,6 +3670,10 @@
   }
 
   async function apiInspect(path){
+    if (window.ShortLinksClient) {
+      try { return { status: 200, data: await window.ShortLinksClient.request(path) }; }
+      catch (error) { return { status: error.status || 502, data: error.data || { ok: false, error: error.message } }; }
+    }
     const token = getSavedToken();
     const headers = {};
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -3500,6 +3828,7 @@
   }
 
   function buildShortUrl(slug){
+    if (window.ShortLinksClient) return window.ShortLinksClient.publicUrl(slug);
     const origin = getPublicOrigin();
     const path = buildPublicPath(slug);
     return path ? `${origin}${path}` : origin;
@@ -3541,18 +3870,37 @@
 
   function syncCreateTimingVisibility(){
     const mode = getCreateExpirationMode();
-    if (expirationDurationFields) expirationDurationFields.hidden = mode !== 'temporary';
+    if (expirationDurationFields) expirationDurationFields.hidden = !!expiresAtInput || mode !== 'temporary';
     if (expirationDurationValueInput) expirationDurationValueInput.disabled = mode !== 'temporary';
     if (expirationDurationUnitSelect) expirationDurationUnitSelect.disabled = mode !== 'temporary';
+    if (expiresAtInput) {
+      const field = expiresAtInput.closest('[data-shortlinks="expires-at-field"]') || expiresAtInput.parentElement;
+      field.hidden = mode !== 'temporary';
+      expiresAtInput.disabled = mode !== 'temporary';
+    }
   }
 
   function getCreateExpirationConfig(){
     const mode = getCreateExpirationMode();
     if (mode !== 'temporary') {
       return {
-        permanent: true,
+        permanent: false,
         expiresAt: 0
       };
+    }
+
+    if (expiresAtInput) {
+      const selectedTime = new Date(expiresAtInput.value).getTime();
+      const prior = Number(editingLink?.expiresAt) || 0;
+      if (editingLink && expiresAtInput.value === toLocalDateInput(prior)) {
+        return { permanent: false, expiresAt: prior };
+      }
+      if (!Number.isFinite(selectedTime) || selectedTime <= Date.now()) {
+        setStatus(editorStatusEl, 'Choose an expiration date and time in the future.', 'error');
+        expiresAtInput.focus();
+        return null;
+      }
+      return { permanent: false, expiresAt: Math.floor(selectedTime / 1000) };
     }
 
     const rawValue = Number(expirationDurationValueInput?.value);
@@ -3609,14 +3957,38 @@
     }
   }
 
-  function openEditorForLink({ slug, destination, disabled, expiresAt }){
+  function toLocalDateInput(seconds){
+    if (!seconds) return '';
+    const date = new Date(seconds * 1000);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  }
+
+  function openEditorForLink(input){
+    const { slug, destination, disabled, expiresAt } = input;
+    clearEditor();
+    const existing = getLinkBySlug(slug);
+    editingLink = existing ? { ...existing, ...input } : null;
     if (slugModeSelect) slugModeSelect.value = 'custom';
     slugInput.value = slug || '';
     destinationInput.value = destination || '';
+    if (labelInput) labelInput.value = editingLink?.label || '';
+    if (tagsInput) tagsInput.value = (editingLink?.tags || []).join(', ');
+    if (expirationModeSelect) expirationModeSelect.value = expiresAt ? 'temporary' : 'permanent';
+    if (expiresAtInput) expiresAtInput.value = toLocalDateInput(expiresAt);
+    if (createLinkButton) createLinkButton.textContent = existing ? 'Save changes' : 'Create link';
+    const heading = document.getElementById('shortlinks-create-title');
+    if (heading) heading.textContent = existing ? 'Edit link' : 'Create a link';
     syncSlugModeState();
-    syncEditorAudienceState({ announce: false });
+    syncCreateTimingVisibility();
+    const internal = parseInternalSiteDestination(destination);
+    const inferredAudience = internal?.searchParams?.get('audience') || getAudienceOrder().find(key => {
+      const config = getAudienceConfig(key);
+      return internal && [config.homePath, config.resumePath, config.resumePreviewPath].includes(internal.pathname);
+    }) || 'personal';
+    setAudienceControlsValue(inferredAudience);
+    syncAudienceFieldVisibility();
     setActiveMode('single');
-    slugInput.focus();
+    destinationInput.focus();
     const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
     setEditorMeta(slug ? `Editing ${buildPublicPath(slug)}` : 'New short link');
     setStatus(
@@ -3747,9 +4119,9 @@
     const headRow = document.createElement('tr');
     [
       { key: 'select', label: '' },
-      { key: 'slug', label: 'Slug' },
+      { key: 'slug', label: 'Link' },
       { key: 'destination', label: 'Destination' },
-      { key: 'clicks', label: 'Clicks' },
+      { key: 'clicks', label: 'Visits' },
       { key: 'status', label: 'Status' },
       { key: 'actions', label: 'Actions' }
     ].forEach(col => {
@@ -3800,18 +4172,23 @@
 
       const slugCode = document.createElement('code');
       slugCode.className = 'shortlinks-table-slug-code';
-      slugCode.textContent = buildPublicPath(link.slug);
+      slugCode.textContent = getLinkTitle(link);
+      slugCode.classList.add('shortlinks-link-title');
 
       slugAnchor.appendChild(slugCode);
       slugCell.appendChild(slugAnchor);
+      const shortAddress = document.createElement('span');
+      shortAddress.className = 'shortlinks-link-url';
+      shortAddress.textContent = buildShortUrl(link.slug).replace('https://', '');
+      slugCell.appendChild(shortAddress);
 
       const meta = document.createElement('div');
       meta.className = 'shortlinks-table-meta';
 
       const statusPill = document.createElement('span');
       statusPill.className = 'tool-pill';
-      statusPill.textContent = link.permanent ? '301' : '302';
-      meta.appendChild(statusPill);
+      statusPill.textContent = link.qrDesign ? 'QR design saved' : '';
+      if (link.qrDesign) meta.appendChild(statusPill);
 
       if (expiresAt) {
         const expiresPill = document.createElement('span');
@@ -3874,6 +4251,7 @@
 
       const actions = document.createElement('div');
       actions.className = 'shortlinks-table-actions shortlinks-inline-actions';
+      appendQuickActions(actions, link);
       const rowMenu = buildActionMenu([
         {
           label: 'View details',
@@ -3984,7 +4362,8 @@
       });
       const slugCode = document.createElement('code');
       slugCode.className = 'shortlinks-slug';
-      slugCode.textContent = buildPublicPath(link.slug);
+      slugCode.textContent = getLinkTitle(link);
+      slugCode.classList.add('shortlinks-link-title');
       detailButton.appendChild(slugCode);
 
       const meta = document.createElement('div');
@@ -3992,8 +4371,8 @@
 
       const statusPill = document.createElement('span');
       statusPill.className = 'tool-pill';
-      statusPill.textContent = link.permanent ? '301' : '302';
-      meta.appendChild(statusPill);
+      statusPill.textContent = link.qrDesign ? 'QR design saved' : '';
+      if (link.qrDesign) meta.appendChild(statusPill);
       meta.appendChild(makeHealthPill(link));
 
       if (expiresAt) {
@@ -4007,7 +4386,7 @@
       const clicksPill = document.createElement('button');
       clicksPill.type = 'button';
       clicksPill.className = 'tool-pill shortlinks-pill-button';
-      clicksPill.textContent = `${Number(link.clicks) || 0} clicks`;
+      clicksPill.textContent = `${Number(link.clicks) || 0} visits`;
       clicksPill.addEventListener('click', () => {
         openClicksModal(link.slug);
       });
@@ -4061,9 +4440,7 @@
         }
       });
 
-      actions.appendChild(copyButton);
-      actions.appendChild(openButton);
-      actions.appendChild(testButton);
+      appendQuickActions(actions, link);
       const cardMenu = buildActionMenu([
         {
           label: 'View details',
@@ -4162,10 +4539,6 @@
 
   function applyFilterAndRender(){
     const filtered = getFilteredLinks();
-    if (prefersMasterDetailLayout() && !detailSelectionDismissed) {
-      const activeVisible = filtered.some((link) => normalizeSlugInput(link?.slug) === normalizeSlugInput(activeDetailSlug));
-      if (!activeVisible) activeDetailSlug = normalizeSlugInput(filtered[0]?.slug);
-    }
     visibleLinkSlugs = filtered.map(link => normalizeSlugInput(link && link.slug)).filter(Boolean);
     listEl.dataset.density = getDensityMode();
     if (prefersTableLayout()) {
@@ -4178,10 +4551,12 @@
     renderHealthStrip();
     updateSelectionControls();
     renderDetailPanel(activeDetailSlug ? getLinkBySlug(activeDetailSlug) : null);
+    renderQrLibrary();
     renderDashboardSummary();
   }
 
   async function refreshLinks(){
+    const epoch = workspaceEpoch;
     linksLoaded = false;
     setProjectsBusy(ensuringProjectLinks);
     if (Array.isArray(projectCatalog) && projectCatalog.length) renderProjectLinks();
@@ -4192,15 +4567,20 @@
       basePath = typeof data.basePath === 'string' && data.basePath.trim() ? data.basePath.trim() : DEFAULT_BASE_PATH;
       allLinks = Array.isArray(data.links) ? data.links : [];
       linksLoaded = true;
+      if (pendingInitialDetailSlug) {
+        activeDetailSlug = pendingInitialDetailSlug;
+        pendingInitialDetailSlug = '';
+      }
       detailInsightsCache.clear();
       pruneSelectedSlugs();
       applyFilterAndRender();
       setSystemHealth('Links loaded', 'Primary table available', '');
       void refreshHealth();
-      void refreshProjectsSection({ ensureMissing: true });
+      void refreshProjectsSection();
       setStatus(listStatusEl, `Loaded ${allLinks.length} link(s).`, 'success');
       markSessionDirty();
     } catch (err) {
+      if (epoch !== workspaceEpoch) return;
       linksLoaded = false;
       allLinks = [];
       visibleLinkSlugs = [];
@@ -4257,23 +4637,26 @@
   }
 
   function getSelectedSlugMode(){
-    return slugModeSelect && String(slugModeSelect.value || '').trim().toLowerCase() === 'random'
-      ? 'random'
-      : 'custom';
+    return normalizeSlugInput(slugInput?.value) ? 'custom' : 'random';
   }
 
   function syncSlugModeState(){
     const mode = getSelectedSlugMode();
-    if (slugFieldEl) slugFieldEl.hidden = mode !== 'custom';
-    if (randomLengthFieldEl) randomLengthFieldEl.hidden = mode !== 'random';
-    if (slugInput) slugInput.disabled = mode !== 'custom';
+    if (slugModeSelect) slugModeSelect.value = mode;
+    if (slugFieldEl) slugFieldEl.hidden = false;
+    if (randomLengthFieldEl) randomLengthFieldEl.hidden = true;
+    if (slugInput) {
+      slugInput.disabled = false;
+      slugInput.required = false;
+      slugInput.readOnly = !!editingLink;
+    }
     if (randomLengthInput) {
       randomLengthInput.disabled = mode !== 'random';
       randomLengthInput.value = String(clampRandomLength(randomLengthInput.value));
     }
 
     if (!String(editorStatusEl?.dataset?.tone || '').trim()) {
-      setEditorMeta(mode === 'random' ? 'Random short code' : 'New short link');
+      setEditorMeta(editingLink ? 'Editing saved link' : 'New link');
     }
   }
 
@@ -4282,10 +4665,14 @@
     const slugMode = getSelectedSlugMode();
     const slug = normalizeSlugInput(slugInput.value);
     const randomLength = clampRandomLength(randomLengthInput?.value, DEFAULT_RANDOM_LENGTH);
-    const destination = buildStoredDestination(destinationInput.value, audienceKey);
+    let rawDestination = String(destinationInput.value || '').trim();
+    if (rawDestination && !rawDestination.startsWith('/') && !/^[a-z][a-z0-9+.-]*:/i.test(rawDestination)) {
+      rawDestination = `https://${rawDestination}`;
+    }
+    let destination = editorAudienceExplicit ? buildStoredDestination(rawDestination, audienceKey) : rawDestination;
 
     if (slugMode === 'custom' && !slug) {
-      setStatus(editorStatusEl, 'Slug is required.', 'error');
+      setStatus(editorStatusEl, 'Enter a valid link ending or leave it blank for an automatic one.', 'error');
       return null;
     }
     if (!destination) {
@@ -4293,7 +4680,29 @@
       return null;
     }
 
-    return { slug, slugMode, randomLength, destination, audienceKey };
+    try {
+      const parsed = new URL(destination, 'https://www.danielshort.me');
+      if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('unsupported');
+      ['source', 'medium', 'campaign'].forEach((key) => {
+        const value = editorForm.querySelector(`[data-shortlinks="utm-${key}"]`)?.value.trim();
+        if (value) parsed.searchParams.set(`utm_${key}`, value);
+      });
+      const hasCampaignEdits = ['source', 'medium', 'campaign'].some(key => editorForm.querySelector(`[data-shortlinks="utm-${key}"]`)?.value.trim());
+      destination = editingLink && rawDestination === editingLink.destination && !editorAudienceExplicit && !hasCampaignEdits
+        ? editingLink.destination : parsed.toString();
+    } catch {
+      setStatus(editorStatusEl, 'Enter a valid website URL.', 'error');
+      return null;
+    }
+    if (!editingLink && slug && allLinks.some(link => normalizeSlugKey(link.slug) === normalizeSlugKey(slug))) {
+      setStatus(editorStatusEl, 'That link ending is already in use. Choose another or leave it blank.', 'error');
+      slugInput.focus();
+      return null;
+    }
+
+    return { slug, slugMode, randomLength, destination, audienceKey,
+      label: labelInput?.value.trim() || '',
+      tags: (tagsInput?.value || '').split(',').map(tag => tag.trim()).filter(Boolean) };
   }
 
   function setEditorBusy(isBusy){
@@ -4309,6 +4718,10 @@
       slugModeSelect,
       slugInput,
       randomLengthInput,
+      destinationInput,
+      labelInput,
+      tagsInput,
+      expiresAtInput,
       expirationModeSelect,
       expirationDurationValueInput,
       expirationDurationUnitSelect
@@ -4319,27 +4732,34 @@
     });
   }
 
-  async function createOrUpdateLink({ slug, slugMode, randomLength, destination, permanent, expiresAt, statusEl, audienceKey }){
+  async function createOrUpdateLink({ slug, slugMode, randomLength, destination, permanent, expiresAt, statusEl, audienceKey, label, tags }){
     const targetStatus = statusEl || editorStatusEl;
-    if (!getSavedToken()) {
-      setStatus(targetStatus, 'Admin token required.', 'error');
-      return null;
-    }
 
     setEditorBusy(true);
     const creatingRandom = slugMode === 'random';
-    setStatus(targetStatus, permanent ? 'Creating permanent link…' : 'Creating temporary link…');
+    const isEditing = !!editingLink;
+    setStatus(targetStatus, isEditing ? 'Saving changes…' : 'Creating your link…');
     try {
       const body = {
         destination,
         permanent: !!permanent,
+        label: typeof label === 'string' ? label : labelInput?.value.trim() || '',
+        tags: Array.isArray(tags) ? tags : [],
         slugMode: creatingRandom ? 'random' : 'custom'
       };
       if (creatingRandom) body.randomLength = clampRandomLength(randomLength, DEFAULT_RANDOM_LENGTH);
       else body.slug = slug;
       if (typeof expiresAt !== 'undefined') body.expiresAt = expiresAt;
-      const data = await api('/api/short-links', {
-        method: 'POST',
+      if (!isEditing) body.intent = 'create';
+      if (isEditing) {
+        // Changing a destination must not rename a published link or discard its settings.
+        delete body.slug;
+        delete body.slugMode;
+        if (Number(editingLink.expiresAt || 0) === Number(body.expiresAt || 0)) delete body.expiresAt;
+        if (!body.expiresAt && editingLink.permanent) delete body.permanent;
+      }
+      const data = await api(isEditing ? `/api/short-links/${encodeURIComponent(editingLink.slug)}` : '/api/short-links', {
+        method: isEditing ? 'PATCH' : 'POST',
         body: JSON.stringify(body)
       });
       const savedLink = data && data.link ? data.link : { slug, destination };
@@ -4356,9 +4776,9 @@
         copied = true;
       } catch {}
 
-      const label = permanent ? 'Permanent link' : 'Temporary link';
       setEditorMeta(`Saved ${buildPublicPath(resolvedSlug)}`);
-      setStatus(editorStatusEl, `${label}: ${shortUrl}${copied ? ' (copied)' : ''}`, 'success');
+      setStatus(editorStatusEl, `${isEditing ? 'Changes saved' : 'Link created'}${copied ? ' and copied' : ''}.`, 'success');
+      showCreateResult(savedLink, isEditing);
       markSessionDirty();
       await refreshLinks();
       return shortUrl;
@@ -4368,17 +4788,33 @@
       return null;
     } finally {
       setEditorBusy(false);
+      syncSlugModeState();
+      syncCreateTimingVisibility();
     }
   }
 
   function clearEditor(){
+    editingLink = null;
+    editorAudienceExplicit = false;
+    resultLink = null;
+    editorForm.hidden = false;
+    const moreOptions = editorForm.querySelector('[data-shortlinks="create-options"]');
+    if (moreOptions) moreOptions.open = false;
+    if (resultEl) resultEl.hidden = true;
+    if (labelInput) labelInput.value = '';
+    if (tagsInput) tagsInput.value = '';
+    if (expiresAtInput) expiresAtInput.value = '';
+    editorForm.querySelectorAll('[data-shortlinks^="utm-"]').forEach(input => { input.value = ''; });
+    if (createLinkButton) createLinkButton.textContent = 'Create link';
+    const heading = document.getElementById('shortlinks-create-title');
+    if (heading) heading.textContent = 'Create a link';
     slugInput.value = '';
     destinationInput.value = '';
     if (randomLengthInput) randomLengthInput.value = String(DEFAULT_RANDOM_LENGTH);
     if (expirationModeSelect) expirationModeSelect.value = 'permanent';
     if (expirationDurationValueInput) expirationDurationValueInput.value = String(DEFAULT_SET_DURATION_VALUE);
     if (expirationDurationUnitSelect) expirationDurationUnitSelect.value = DEFAULT_SET_DURATION_UNIT;
-    if (slugModeSelect) slugModeSelect.value = 'custom';
+    if (slugModeSelect) slugModeSelect.value = 'random';
     if (slugInput) delete slugInput.dataset.autoSuggested;
     syncSlugModeState();
     syncCreateTimingVisibility();
@@ -4786,9 +5222,10 @@
 
   async function refreshSets(options = {}){
     if (!setsListEl) return;
+    const epoch = workspaceEpoch;
     const preserveSelection = options.preserveSelection !== false;
     const preferredSetId = String(options.preferredSetId || '').trim();
-    if (!getSavedToken()) {
+    if (!hasWorkspaceAccess()) {
       allSets = [];
       renderSetLibrary();
       if (!options.silent) setStatus(setsStatusEl, 'Admin token required.', 'error');
@@ -4799,6 +5236,7 @@
     setStatus(setsStatusEl, 'Loading templates…');
     try {
       const data = await api('/api/short-links/sets', { method: 'GET' });
+      if (epoch !== workspaceEpoch) return;
       allSets = Array.isArray(data?.sets) ? data.sets.slice() : [];
       sortSetsInMemory();
 
@@ -4815,6 +5253,7 @@
       }
       setStatus(setsStatusEl, `Loaded ${allSets.length} template(s).`, 'success');
     } catch (err) {
+      if (epoch !== workspaceEpoch) return;
       allSets = [];
       renderSetLibrary();
       resetSetEditor({ keepStatus: true });
@@ -4962,7 +5401,7 @@
   });
 
   refreshButton.addEventListener('click', async () => {
-    if (!getSavedToken()) {
+    if (!hasWorkspaceAccess()) {
       setStatus(statusEl, 'Admin token required.', 'error');
       setStatus(listStatusEl, 'Admin token required.', 'error');
       revealAccessCard({ focusInput: true });
@@ -4997,7 +5436,7 @@
 
   if (healthButton) {
     healthButton.addEventListener('click', () => {
-      if (!getSavedToken()) {
+      if (!hasWorkspaceAccess()) {
         setStatus(healthStatusEl, 'Admin token required.', 'error');
         revealAccessCard({ focusInput: true });
         return;
@@ -5087,10 +5526,7 @@
 
   if (destinationAudienceSelect) {
     destinationAudienceSelect.addEventListener('change', () => {
-      setAudienceControlsValue(destinationAudienceSelect.value);
-      syncEditorAudienceState({ announce: !!String(destinationInput?.value || '').trim() });
       renderDestinations();
-      markSessionDirty();
     });
   }
 
@@ -5159,8 +5595,8 @@
   });
 
   function requireToken(target){
-    if (getSavedToken()) return true;
-    setStatus(target || editorStatusEl, 'Admin token required.', 'error');
+    if (hasWorkspaceAccess()) return true;
+    setStatus(target || editorStatusEl, 'Sign in with an authorized account or connect workspace access to create and manage links.', 'error');
     revealAccessCard({ focusInput: true });
     return false;
   }
@@ -5303,19 +5739,97 @@
   updateSelectionControls();
   void refreshProjectsSection();
   resetSetEditor({ keepStatus: true });
-  if (getSavedToken()) {
-    setStatus(statusEl, isTokenRemembered() ? 'Remembered token loaded. Loading links...' : 'Session token loaded. Loading links...', 'success');
-    refreshLinks();
-    refreshSets({ preserveSelection: true, silent: true });
+  async function refreshWorkspaceAccess(){
+    if (workspaceDisposed || !editorForm.isConnected) return;
+    if (accessRefreshPromise) return accessRefreshPromise;
+    const epoch = workspaceEpoch;
+    accessRefreshPromise = (async () => {
+      if (!window.ToolsAuth && document.readyState === 'loading') {
+        await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
+      }
+      await window.ToolsAuth?.ensureFreshAuth?.();
+      if (epoch !== workspaceEpoch || !editorForm.isConnected) return;
+      updateAccessMeta();
+      if (hasWorkspaceAccess()) {
+        await refreshLinks();
+        if (epoch !== workspaceEpoch) return;
+        await refreshSets({ preserveSelection: true, silent: true });
+      } else {
+        linksLoaded = false;
+        allLinks = [];
+        setStatus(analyticsStatus, 'Sign in with an authorized account or connect workspace access to view activity.');
+        renderDetailPanel(null);
+        renderQrLibrary();
+        clearList();
+        const introduction = document.createElement('div');
+        introduction.className = 'shortlinks-empty-state';
+        const title = document.createElement('h3');
+        title.textContent = 'Your links and QR codes, together';
+        const message = document.createElement('p');
+        message.textContent = 'Sign in with an authorized account to create links, save QR designs, and view activity.';
+        const actions = document.createElement('div');
+        actions.className = 'shortlinks-action-row';
+        actions.append(
+          makeLinkAction('Sign in', () => window.ToolsAuth?.signIn?.()),
+          makeLinkAction('Connect workspace access', () => revealAccessCard({ focusInput: true }))
+        );
+        introduction.append(title, message, actions);
+        listEl.appendChild(introduction);
+      }
+    })().finally(() => { if (epoch === workspaceEpoch) accessRefreshPromise = null; });
+    return accessRefreshPromise;
   }
+  function handleWorkspaceAccessChange(){
+    if (!editorForm.isConnected) return;
+    workspaceEpoch += 1;
+    analyticsRequestId += 1;
+    accessRefreshPromise = null;
+    analyticsContent?.replaceChildren();
+    setStatus(analyticsStatus, '');
+    linksLoaded = false;
+    allLinks = [];
+    allSets = [];
+    detailInsightsCache.clear();
+    activeDetailSlug = '';
+    renderDetailPanel(null);
+    clearList();
+    renderQrLibrary();
+    renderSetLibrary();
+    if (!hasWorkspaceAccess()) {
+      clearEditor();
+      closeEditorOverlay();
+      closeClicksModal();
+      closeTemporaryModal();
+      resetSetEditor();
+    }
+    void refreshWorkspaceAccess();
+  }
+  document.addEventListener('tools:auth-changed', handleWorkspaceAccessChange);
+  window.addEventListener('shortlinks:access-changed', handleWorkspaceAccessChange);
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY) handleWorkspaceAccessChange();
+  });
+  void refreshWorkspaceAccess();
+
+  resultEl?.querySelector('[data-shortlinks="result-copy"]')?.addEventListener('click', (event) => {
+    if (resultLink) void copyTextToClipboard({ text: buildShortUrl(resultLink.slug), button: event.currentTarget, statusTarget: resultEl.querySelector('[data-shortlinks="result-status"]'), successMessage: 'Link copied.' });
+  });
+  resultEl?.querySelector('[data-shortlinks="result-download"]')?.addEventListener('click', () => {
+    if (resultLink) downloadQr(resultLink);
+  });
+  resultEl?.querySelector('[data-shortlinks="result-new"]')?.addEventListener('click', startNewLinkFromList);
+  analyticsRange?.addEventListener('change', () => { void refreshAnalytics(activeAnalyticsSlug); });
+
 
   if (modeTabEls.length) {
     const orderedTabs = modeTabEls.slice();
+    const getTabGroup = currentTab => orderedTabs.filter(tab => tab.closest('[role="tablist"]') === currentTab.closest('[role="tablist"]'));
     const focusModeTabByOffset = (currentTab, offset) => {
-      const currentIndex = orderedTabs.indexOf(currentTab);
+      const group = getTabGroup(currentTab);
+      const currentIndex = group.indexOf(currentTab);
       if (currentIndex === -1) return;
-      const nextIndex = (currentIndex + offset + orderedTabs.length) % orderedTabs.length;
-      const nextTab = orderedTabs[nextIndex];
+      const nextIndex = (currentIndex + offset + group.length) % group.length;
+      const nextTab = group[nextIndex];
       if (!nextTab) return;
       setActiveMode(nextTab.dataset.shortlinksMode, { focusTab: true });
     };
@@ -5338,11 +5852,11 @@
             break;
           case 'Home':
             event.preventDefault();
-            setActiveMode(orderedTabs[0]?.dataset.shortlinksMode, { focusTab: true });
+            setActiveMode(getTabGroup(tab)[0]?.dataset.shortlinksMode, { focusTab: true });
             break;
           case 'End':
             event.preventDefault();
-            setActiveMode(orderedTabs[orderedTabs.length - 1]?.dataset.shortlinksMode, { focusTab: true });
+            setActiveMode(getTabGroup(tab).slice(-1)[0]?.dataset.shortlinksMode, { focusTab: true });
             break;
           case 'Enter':
           case ' ':
@@ -5431,6 +5945,7 @@
 
   if (audienceSelect) {
     audienceSelect.addEventListener('change', () => {
+      editorAudienceExplicit = true;
       setAudienceControlsValue(audienceSelect.value);
       syncEditorAudienceState({ announce: !!String(destinationInput?.value || '').trim() });
       renderDestinations();
@@ -5454,6 +5969,7 @@
 
   if (destinationInput) {
     destinationInput.addEventListener('input', () => {
+      editorAudienceExplicit = false;
       syncAudienceFieldVisibility();
       markSessionDirty();
     });

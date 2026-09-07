@@ -4,10 +4,10 @@
   "href": "tools/utm-batch-builder",
   "iconImage": "img/tools/icons/utm-batch-builder.png",
   "categoryId": "tools-marketing",
-  "privacy": "Runs in your browser. Campaign inputs stay on this device.",
+  "privacy": "Link generation runs on your device. Saving a session uploads campaign inputs, settings, and results to your account.",
   "inputs": ["Destination URLs and campaign parameters"],
   "outputs": ["Tagged URLs and CSV export"],
-  "summary": "Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.",
+  "summary": "Build campaign links in batches and export a clean CSV.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <path d=\"M6 7h12v10H6z\" class=\"icon-fill\" opacity=\".12\"></path>\n                      <path d=\"M6 7h12v10H6z\"></path>\n                      <path d=\"M8 10h8M8 13h6\"></path>\n                      <path d=\"M18 9l2 3-2 3\"></path>\n                    </svg>",
   "pills": [
     {

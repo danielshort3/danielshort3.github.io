@@ -109,9 +109,11 @@ function runProjectDemoWrapperTests({ assert }) {
   const sentenceProject = JSON.parse(read('content/projects/smartSentence.json'));
   const sentencePage = renderProjectPage(sentenceProject);
   assert(/class="project-embed-frame"(?:\s+src|\s+data-src)="\/demos\/sentence-demo\.html"/.test(sentencePage) &&
-    sentencePage.includes('href="https://www.danielshort.me/sentence-demo"') &&
+    sentencePage.includes('href="/sentence-demo"') &&
     !sentencePage.includes('href="https://www.danielshort.me/demos/sentence-demo.html"'),
-  'Project details should iframe the raw demo while Live Demo continues to target the canonical wrapper');
+  'Project details should iframe the raw demo while launch actions target the canonical wrapper');
+  assert(!sentencePage.includes('project-link-label">Live Demo</span>'),
+    'The resource list should not duplicate the primary demo launch action');
 
   assert(buildRunner.includes("generate-project-demo-wrappers.js") &&
     buildRunner.indexOf("generate-personal-accordion-pages.js") < buildRunner.indexOf("generate-project-demo-wrappers.js"),

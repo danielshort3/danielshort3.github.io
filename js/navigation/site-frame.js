@@ -3,6 +3,7 @@
   'use strict';
   if (typeof window === 'undefined' || !document.body) return;
   if (window.SiteFrame?.adopt) return;
+  const framePolicy = window.SiteFramePolicy;
   const compactQuery = window.matchMedia('(max-width: 959px), (max-height: 619px)');
   const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const colors = { about: '#091f3b', projects: '#155dfc', tools: '#087f8c', games: '#c94b0a', resume: '#087f8c', contact: '#334155' };
@@ -53,7 +54,7 @@
       audience,
       category,
       view: home ? 'overview' : (manifest.view || 'detail'),
-      fit: home ? 'viewport' : (scope.body?.dataset.personalFit || 'document'),
+      fit: framePolicy.resolveFit(home ? undefined : scope.body?.dataset.personalFit),
       home: Boolean(home),
       source,
       title: scope.title,
@@ -112,8 +113,11 @@
     if (description.home) {
       nextBody.id = 'main';
       const items = new Map();
+      const libraryBackButtons = new Map();
       source.querySelectorAll('[data-home-accordion-item]').forEach((item) => {
         const id = item.dataset.homeAccordionItem;
+        const back = item.querySelector('[data-home-library-view] [data-home-library-close]');
+        if (back) libraryBackButtons.set(id, back);
         item.querySelector('.home-accordion__heading')?.remove();
         const contentPanel = item.querySelector('[data-home-accordion-panel]');
         if (contentPanel) {
@@ -124,6 +128,9 @@
         items.set(id, item);
       });
       result.items = items;
+      result.libraryBackButtons = libraryBackButtons;
+      result.heading = source.querySelector('h1');
+      if (result.heading) nextBody.append(result.heading);
       nextBody.append(items.get(result.category) || items.values().next().value);
     } else {
       const content = source.querySelector('[data-personal-detail-content]');
@@ -135,7 +142,9 @@
   }
 
   function configure(description) {
+    description.fit = framePolicy.resolveFit(description.fit);
     frame.dataset.frameAudience = description.audience;
+    frame.dataset.frameNavigation = 'rails';
     frame.dataset.frameView = description.view;
     frame.dataset.frameHome = String(description.home);
     frame.dataset.frameFit = description.fit;
@@ -184,7 +193,7 @@
       slot.style.gridArea = `${activeIndex + 2} / 1`;
     } else if (compact) {
       stage.style.gridTemplateColumns = `repeat(${visible.length}, minmax(0, 1fr))`;
-      stage.style.gridTemplateRows = `minmax(${description.audience !== 'personal' ? 56 : (description.home ? 78 : 48)}px, auto) auto`;
+      stage.style.gridTemplateRows = `minmax(${description.audience !== 'personal' ? 56 : 48}px, auto) auto`;
       visible.forEach((id, index) => { tabs.get(id).style.gridArea = `1 / ${index + 1}`; });
       slot.style.gridArea = `2 / 1 / 3 / ${visible.length + 1}`;
     } else {
@@ -783,6 +792,15 @@
     frame.style.setProperty('--frame-clip-border-bottom', bounds.y + bounds.height > host.y + host.height + .5 ? '4px' : '0px');
   }
 
+  function updateHomeToolbar(description) {
+    if (!description.home) return;
+    // Keep the real controls with the route state when they leave their headers.
+    // Frame-level delegated clicks and restored snapshots retain the same nodes.
+    const back = description.view === 'library' ? description.libraryBackButtons?.get(description.category) : null;
+    toolbar.replaceChildren(...(back ? [back] : []));
+    toolbar.hidden = !back;
+  }
+
   function commit(description, options = {}) {
     const from = (held?.refreshing ? capture() : held?.from) || options.from || capture();
     const next = loadContent(description, Boolean(options.original));
@@ -792,6 +810,7 @@
     viewport.replaceChildren(body);
     toolbar.replaceChildren(...(description.toolbar ? [...document.importNode(description.toolbar, true).childNodes] : []));
     toolbar.hidden = !description.toolbar;
+    updateHomeToolbar(next);
     if (options.defer) prepareHeldTarget(next, from);
     else transition(next, { from, animate: options.animate !== false });
     return body;
@@ -832,6 +851,7 @@
     viewport.replaceChildren(body);
     toolbar.replaceChildren(...saved.toolbar);
     toolbar.hidden = !saved.toolbar.length;
+    updateHomeToolbar(current);
     if (options.defer) prepareHeldTarget(current, from);
     else transition(current, { from, animate: options.animate !== false });
     setLoading(false);
@@ -841,7 +861,8 @@
   function showHome(category, view, options = {}) {
     if (!current?.home || !current.items?.has(category)) return Promise.resolve(false);
     const sequence = ++localSequence;
-    const next = { ...current, category, view, manifest: { ...current.manifest, category, view } };
+    const next = { ...current, category, view, fit: framePolicy.resolveFit(),
+      manifest: { ...current.manifest, category, view } };
     desiredTarget = next;
     const mounting = Boolean(held && options.animate === false);
     if (!mounting && options.animate !== false) hold();
@@ -856,7 +877,8 @@
         child.hidden = view === 'library' ? !library : library;
         child.inert = child.hidden;
       });
-      body.replaceChildren(item);
+      body.replaceChildren(...(next.heading ? [next.heading, item] : [item]));
+      updateHomeToolbar(next);
       if (mounting) { prepareHeldTarget(next, held.refreshing ? capture() : held.from); return true; }
       const moving = release({ animate: options.animate !== false, scroll: options.scroll });
       await Promise.all([moving, options.animate !== false ? wipe(true) : Promise.resolve(true)]);
@@ -907,7 +929,8 @@
     const manifestNode = document.querySelector('[data-site-route-manifest]');
     let manifest = {};
     try { manifest = JSON.parse(manifestNode?.textContent || '{}'); } catch (_) {}
-    if (manifest.navigation === 'hard') return null;
+    // Document navigation boundaries still share the visual frame. The router
+    // retains their hard lifecycle through the unchanged route manifest.
     let description;
     try { description = describe(document, manifest); } catch (_) { return null; }
     const outlet = document.querySelector('[data-site-route-content]');

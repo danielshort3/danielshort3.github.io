@@ -3,6 +3,7 @@
   "title": "Pizza Delivery Dashboard",
   "subtitle": "Tableau Analytics & Forecasting",
   "image": "img/projects/pizzaDashboard.png",
+  "iconImage": "img/projects/icons/pizzaDashboard.png",
   "imageWidth": 1250,
   "imageHeight": 1092,
   "tools": [
@@ -40,6 +41,7 @@
     "Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting)."
   ],
   "problem": "I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.",
+  "task": "Create a Tableau dashboard that brings delivery-zone, earnings, timing, and forecast comparisons together for shift planning.",
   "actions": [
     "Reshaped about 12,000 delivery records into a Tableau-ready dataset with consistent dates, zones, housing categories, and tip KPIs.",
     "Built map, distribution, filter, and 12-month forecast views for fast zone and timing comparison.",
@@ -51,5 +53,11 @@
     "Added forecasting so the dashboard supports planning instead of only retrospective review."
   ],
   "order": 14,
-  "notes": "Built from delivery history; tip efficiency should be interpreted with zone and timing context rather than average tip alone."
+  "notes": "Built from delivery history; tip efficiency should be interpreted with zone and timing context rather than average tip alone.",
+  "mobilePreview": {
+    "image": "img/projects/pizzaDashboard-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Pizza Delivery Dashboard showing delivery maps, tip distributions, forecasts, and order breakdowns."
+  }
 }

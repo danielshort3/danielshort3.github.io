@@ -3,6 +3,7 @@
   "title": "Handwriting Legibility Scoring",
   "subtitle": "PyTorch CNN Fine-Tuning",
   "image": "img/projects/handwritingRating.png",
+  "iconImage": "img/projects/icons/handwritingRating.png",
   "imageWidth": 1138,
   "imageHeight": 1138,
   "videoWebm": "img/projects/handwritingRating.webm",
@@ -63,6 +64,7 @@
     ]
   },
   "problem": "My wife says my handwriting is hard to read. I wanted an objective score.",
+  "task": "Build a handwritten-digit recognition model and use its confidence to explore legibility scoring.",
   "actions": [
     "Built three digit-recognition models, moving from a simple baseline to a CNN.",
     "Trained on MNIST (60,000 digits) and selected the best model.",
@@ -102,5 +104,11 @@
     }
   },
   "order": 7,
-  "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark."
+  "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark.",
+  "mobilePreview": {
+    "image": "img/projects/handwritingRating-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Handwriting Legibility Scoring with a handwritten six and its measured legibility result."
+  }
 }

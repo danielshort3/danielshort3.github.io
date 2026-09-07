@@ -26,17 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/smartSentence.png">
   <meta name="twitter:image:alt" content="Preview image for Smart Sentence Retriever">
   <meta name="theme-color" content="#091F3B">
-  <script id="ds-sw-register">
-  (function () {
-    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-    if (new URLSearchParams(window.location.search).has("no_sw")) return;
-    var host = window.location.hostname || "";
-    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function () {});
-    });
-  })();
-  </script>
+  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -46,7 +36,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.40f7dbbd.css">
+  <link rel="stylesheet" href="dist/styles.81f47dfb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -69,11 +59,11 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.2090cb2c.js"></script>
-  <link rel="stylesheet" href="dist/styles-personal-accordion.b4b0114f.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"data-science:projects:smartSentence","path":"/portfolio/smartSentence","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.40f7dbbd.css","/css/components/project-page.css","/dist/styles-personal-accordion.b4b0114f.css"],"scripts":["/js/common/no-js.js","/dist/site-shell.2090cb2c.js","/dist/site-consent.5fbd7df8.js"],"module":"page:content"}</script>
+  <script defer src="dist/site-shell.8928284a.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.16c6538c.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"data-science:projects:smartSentence","path":"/portfolio/smartSentence","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.81f47dfb.css","/css/components/project-page.css","/dist/styles-personal-accordion.16c6538c.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.8928284a.js","/dist/site-consent.ab1759e7.js"],"module":"page:content"}</script>
 </head>
-<body data-page="project" class="project-page project-page--compact personal-accordion-page" data-internal-professional-copy="true" data-audience="data-science" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="smartSentence" data-personal-fit="document" data-site-route-id="data-science:projects:smartSentence" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
+<body data-page="project" class="project-page project-page--compact personal-accordion-page" data-internal-professional-copy="true" data-audience="data-science" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="smartSentence" data-personal-fit="viewport" data-site-route-id="data-science:projects:smartSentence" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
   <a href="/portfolio/smartSentence?audience=data-science#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav" data-site-shell-header>
     <nav class="nav" aria-label="Site header">
@@ -150,6 +140,10 @@
       <div class="wrapper">
         <h1>Smart Sentence Retriever</h1>
         <p class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</p>
+        <nav class="project-intro-actions" aria-label="Project actions">
+        <a class="project-intro-action project-intro-action--demo" href="/sentence-demo" data-content-open="true" data-content-id="smartSentence" data-content-type="project_resource" data-resource-type="demo" data-source-surface="project_intro">Open demo</a>
+        <a class="project-intro-action project-intro-action--report" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.pdf" target="_blank" rel="noopener noreferrer" data-content-open="true" data-content-id="smartSentence" data-content-type="project_resource" data-resource-type="report" data-source-surface="project_intro">Report · PDF</a>
+      </nav>
       </div>
     </section>
 
@@ -164,7 +158,7 @@
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Task</dt>
-          <dd class="project-star-value">Built the retrieval pipeline, Lambda API, and browser demo end to end.</dd>
+          <dd class="project-star-value">Build a semantic-search demo that retrieves and ranks relevant sentences even when a question uses different wording.</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Action</dt>
@@ -190,7 +184,9 @@
         <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
-        <div class="project-demo-help">
+        <div class="project-demo-header-actions">
+          <a class="project-demo-open" href="/sentence-demo">Open full demo</a>
+          <div class="project-demo-help">
           <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-smartSentence-instructions">
             <span aria-hidden="true">?</span>
           </button>
@@ -204,16 +200,16 @@
       </ul>
           </div>
         </div>
+        </div>
       </div>
 
       <div class="project-demo-panels">
         <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
             <div class="project-demo-mobile-launch">
-          <img class="project-demo-launch-image" src="img/projects/smartSentence.png" alt="Preview of Smart Sentence Retriever" loading="lazy" decoding="async" width="952" height="952">
+          <img class="project-demo-launch-image" src="img/projects/smartSentence-preview.webp?v=9f9e9ac1b7f2" alt="Sentence Search showing an example query and ranked matching passages from Alice in Wonderland." loading="lazy" decoding="async" width="1280" height="800">
           <div class="project-demo-launch-copy">
-            <p>Open the standalone demo for the full interactive workspace.</p>
-            <a class="btn-primary" href="sentence-demo">Launch demo</a>
+            <a class="btn-primary" href="/sentence-demo">Launch demo</a>
           </div>
         </div>
             <div class="project-media project-embed project-embed-iframe project-embed-smartsentence" data-project-embed="smartSentence" data-embed-fit="content">
@@ -228,9 +224,8 @@
       <div class="project-links-groups project-links-groups--flat">
         <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.pdf" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.ipynb" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/sentence-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.pdf" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Project report · PDF</span></a>
+        <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.ipynb" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook · IPYNB</span></a>
         <a class="project-link" role="listitem" href="https://www.gutenberg.org/ebooks/11" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Corpus (Project Gutenberg)</span></a>
       </div>
       </div>
@@ -258,6 +253,6 @@
     </div>
   </footer>
 
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>
 </html>

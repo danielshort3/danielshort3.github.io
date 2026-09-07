@@ -35,3 +35,20 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Install Chromium for rendered smoke tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Test rendered desktop and mobile flows
+        run: npm run test:browser
+        timeout-minutes: 5
+        env:
+          BROWSER_ARTIFACT_DIR: ${{ runner.temp }}/site-browser-smoke
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-smoke
+          path: ${{ runner.temp }}/site-browser-smoke
+          if-no-files-found: ignore

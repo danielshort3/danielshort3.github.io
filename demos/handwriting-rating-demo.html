@@ -800,7 +800,7 @@
             <span id="result-divider" class="result-divider" aria-hidden="true">•</span>
             <span id="result-actual" class="result-actual">Actual: --</span>
           </div>
-          <div class="confidence-track" aria-label="Confidence">
+          <div id="confidence-meter" class="confidence-track" role="meter" aria-label="Prediction confidence" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="No prediction yet">
             <div id="confidence-bar" class="confidence" style="width:0%"></div>
           </div>
           <div id="confidence-text" class="hint">Confidence: –</div>
@@ -816,7 +816,7 @@
         </div>
         <details class="demo-disclosure">
           <summary>All digit scores</summary>
-          <div id="confidence-list" class="confidence-list" aria-label="Confidence list"></div>
+          <div id="confidence-list" class="confidence-list" role="list" aria-label="Digit confidence scores"></div>
         </details>
         <details class="demo-disclosure">
           <summary>Processing details</summary>
@@ -948,6 +948,7 @@
     let bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
     const fg = '#fff';
     const STROKE_CSS_PX = 6;
+    const SCORE_IMAGE_MAX_EDGE = 256;
     let currentDPR = 1;
     let hasDrawn = false;
     let drawing = false;
@@ -1150,6 +1151,9 @@
       const pct = top ? toPercent(top.value) : null;
       confidenceBar.style.width = pct !== null ? `${Math.round(pct)}%` : '0%';
       confidenceText.textContent = pct !== null ? `Confidence: ${Math.round(pct)}%` : 'Confidence: –';
+      const meter = document.getElementById('confidence-meter');
+      meter?.setAttribute('aria-valuenow', String(pct !== null ? Math.round(pct) : 0));
+      meter?.setAttribute('aria-valuetext', pct !== null ? `${Math.round(pct)}%` : 'No prediction yet');
     }
 
     function toPercent(value) {
@@ -1189,6 +1193,7 @@
         const empty = document.createElement('span');
         empty.className = 'hint';
         empty.textContent = 'No guesses yet.';
+        empty.setAttribute('role', 'listitem');
         confidenceList.appendChild(empty);
         if (confidenceSummary) confidenceSummary.textContent = '--';
         return;
@@ -1207,6 +1212,7 @@
         const empty = document.createElement('span');
         empty.className = 'hint';
         empty.textContent = 'No entries >= 1%.';
+        empty.setAttribute('role', 'listitem');
         confidenceList.appendChild(empty);
         if (confidenceSummary) confidenceSummary.textContent = '';
         return;
@@ -1215,6 +1221,7 @@
       entries.forEach(item => {
         const row = document.createElement('div');
         row.className = 'confidence-row';
+        row.setAttribute('role', 'listitem');
 
         const digit = document.createElement('span');
         digit.className = 'confidence-digit';
@@ -1222,6 +1229,7 @@
 
         const track = document.createElement('div');
         track.className = 'confidence-track';
+        track.setAttribute('aria-hidden', 'true');
         const fill = document.createElement('div');
         fill.className = 'confidence';
         fill.style.width = `${Math.round(item.pct)}%`;
@@ -1284,7 +1292,16 @@
     }
 
     async function canvasToBase64() {
-      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      // Keep inference uploads independent of display size and pixel density.
+      // The model uses 28x28 inputs; a bounded PNG fits the 512 KiB JSON limit.
+      const scoreCanvas = document.createElement('canvas');
+      const scale = Math.min(1, SCORE_IMAGE_MAX_EDGE / Math.max(canvas.width, canvas.height));
+      scoreCanvas.width = Math.max(1, Math.round(canvas.width * scale));
+      scoreCanvas.height = Math.max(1, Math.round(canvas.height * scale));
+      const scoreContext = scoreCanvas.getContext('2d');
+      if (!scoreContext) throw new Error('Unable to prepare digit image');
+      scoreContext.drawImage(canvas, 0, 0, scoreCanvas.width, scoreCanvas.height);
+      const blob = await new Promise(res => scoreCanvas.toBlob(res, 'image/png'));
       if (!blob) throw new Error('Unable to read canvas');
       const abuf = await blob.arrayBuffer();
       const bytes = new Uint8Array(abuf);
@@ -1379,7 +1396,7 @@
         setStep('submit', 'done');
         setStep('score', 'in-progress');
 
-        const payload = { b64, image: b64 };
+        const payload = { b64 };
         const bases = candidates();
         if (!bases.length) {
           throw new Error('Demo service endpoint is unavailable.');
@@ -1457,6 +1474,6 @@
     window.addEventListener('load', () => { fitCanvasToDisplaySize(); setStroke(); });
   </script>
   <footer></footer>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>
 </html>

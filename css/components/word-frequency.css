@@ -598,3 +598,51 @@
     }
   }
 }
+
+@layer overrides {
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace-grid { grid-template-columns: minmax(340px, .9fr) minmax(0, 1.1fr); }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-subtitle, .wordfreq-note, .wordfreq-settings-note, .wordfreq-summary, .wordfreq-copy-status, .wordfreq-occurrence-summary, .wordfreq-fulltext-summary) { color: var(--workspace-muted); font-size: 13px; line-height: 1.5; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-label, .wordfreq-check) { color: var(--workspace-ink); font-size: 14px; letter-spacing: 0; text-transform: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-subtitle { margin: 6px 0 0; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.tool-workspace-panel, .wordfreq-setting) { min-width: 0; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .tool-workspace-panel { display: grid; gap: 16px; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-textarea { width: 100%; min-height: clamp(220px, calc(100dvh - 670px), 330px); font-family: inherit; font-size: 15px; line-height: 1.65; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-input-status:empty { display: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-input-head { margin: 0; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-number { max-width: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-setting, .wordfreq-number) { display: grid; gap: 7px; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-input-row { width: 100%; border: 1px solid var(--workspace-border); border-radius: 5px; background: #fff; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-input-row input { width: 100%; border: 0; padding: 9px 12px; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-input-addon { padding: 8px 12px; background: var(--workspace-pale); color: var(--workspace-muted); border: 0; font-size: 13px; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-select, .wordfreq-text) { width: 100%; padding: 9px 12px; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-check { display: flex; gap: 10px; align-items: baseline; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .tool-workspace-header .tool-workspace-actions { margin: 0; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-results { display: block; columns: auto; margin: 0; padding: 0; list-style: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-table-heading, .wordfreq-row) { display: grid; grid-template-columns: 34px minmax(0, 1.1fr) 48px minmax(72px, 1fr); gap: 12px; align-items: center; margin: 0; padding: 12px; border: 0; border-bottom: 1px solid var(--workspace-border); border-radius: 0; background: #fff; color: var(--workspace-ink); box-shadow: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-table-heading { padding-block: 10px; font-size: 12px; font-weight: 600; background: var(--workspace-pale); border-radius: 5px 5px 0 0; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-row.is-selected { background: #eef8f8; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-meta, .wordfreq-wordwrap) { display: contents; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-rank { display: block; width: auto; height: auto; border-radius: 0; font-size: 13px; font-weight: 500; color: var(--workspace-ink); background: none; box-shadow: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-term-btn { min-width: 0; overflow-wrap: anywhere; font-size: 14px; font-weight: 600; color: var(--workspace-ink); }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-count { font-size: 13px; color: var(--workspace-ink); }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-metric { display: grid; gap: 5px; min-width: 0; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-score { font-size: 11px; color: var(--workspace-muted); }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-bar { height: 6px; background: #edf1f4; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-bar span { background: var(--workspace-accent); box-shadow: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-occurrence-panel, .wordfreq-fulltext-panel) { border: 0; border-radius: 0; background: #fff; padding: 0; min-height: 220px; align-content: start; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-fulltext, .wordfreq-occurrence-list li) { background: #fff; color: var(--workspace-ink); border: 1px solid var(--workspace-border); border-radius: 5px; box-shadow: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-fulltext { max-height: none; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-fulltext-token { font: inherit; color: inherit; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-empty { min-height: 260px; display: grid; align-content: center; text-align: center; background: var(--workspace-pale); border: 1px dashed var(--workspace-border); border-radius: 5px; color: var(--workspace-muted); padding: 24px; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-export-menu { position: relative; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-export-menu > summary { cursor: pointer; }
+  body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-export-menu > .tool-workspace-actions { position: absolute; z-index: 5; right: 0; top: 100%; min-width: 150px; display: grid; padding: 8px; border: 1px solid var(--workspace-border); border-radius: 5px; background: #fff; box-shadow: 0 8px 24px #091f3b14; }
+  @media (min-width: 1051px) {
+    body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-results { max-height: clamp(260px, calc(100dvh - 570px), 480px); overflow: auto; scrollbar-gutter: stable; }
+  }
+  @media (max-width: 1050px) { body[data-page="word-frequency"][data-tools-layout] .tool-workspace-grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 600px) {
+    body[data-page="word-frequency"][data-tools-layout] .tool-workspace .wordfreq-textarea { min-height: 260px; font-size: 16px; }
+    body[data-page="word-frequency"][data-tools-layout] .tool-workspace :is(.wordfreq-table-heading, .wordfreq-row) { grid-template-columns: 25px minmax(0, 1fr) 40px minmax(40px, .6fr); gap: 8px; padding-inline: 6px; }
+  }
+}

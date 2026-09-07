@@ -3,6 +3,7 @@
   "title": "Nonogram Solver",
   "subtitle": "Reinforcement Learning (RL)",
   "image": "img/projects/nonogram.png",
+  "iconImage": "img/projects/icons/nonogram.png",
   "imageWidth": 1228,
   "imageHeight": 1228,
   "videoWebm": "img/projects/nonogram.webm",
@@ -55,6 +56,7 @@
     ]
   },
   "problem": "I wanted to see if an RL agent could learn to solve Nonogram puzzles.",
+  "task": "Train and evaluate a reinforcement-learning agent on generated 5x5 Nonogram puzzles.",
   "actions": [
     "Generated large batches of 5x5 puzzles and trained a hybrid CNN + Transformer policy network to solve them.",
     "Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration."
@@ -80,5 +82,11 @@
     }
   },
   "order": 15,
-  "notes": "The solver focuses on generated 5x5 puzzles; scaling to larger puzzles would need curriculum learning or search."
+  "notes": "The solver focuses on generated 5x5 puzzles; scaling to larger puzzles would need curriculum learning or search.",
+  "mobilePreview": {
+    "image": "img/projects/nonogram-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Nonogram Solver showing a completed five-by-five puzzle, its clues, and the solver accuracy."
+  }
 }

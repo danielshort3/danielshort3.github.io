@@ -139,6 +139,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Adaptive AI, Upgrade loops, Combat tuning"
       ],
+      "iconImage": "img/games/icons/stellar-dogfight.png?v=abbc37c45743",
       "image": "img/games/stellar-dogfight/raster/background-nebula.png",
       "imageWidth": 1600,
       "imageHeight": 900,
@@ -178,6 +179,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Probability, Distribution tracking, Table state"
       ],
+      "iconImage": "img/games/icons/roulette.png?v=01bd45e3b0e8",
       "image": "",
       "imageWidth": null,
       "imageHeight": null,
@@ -217,6 +219,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Simulation, Synergies, Prestige loops"
       ],
+      "iconImage": "img/games/icons/probability-engine.png?v=2381e29295f8",
       "image": "",
       "imageWidth": null,
       "imageHeight": null,
@@ -256,6 +259,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Idle action, Upgrade loops, Mythic farming"
       ],
+      "iconImage": "img/games/icons/stormbreak.png?v=eaa77922702c",
       "image": "img/games/stormbreak/temple-of-ash.webp",
       "imageWidth": 1536,
       "imageHeight": 1024,
@@ -295,6 +299,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Parameter sandbox, Realtime canvas, Visual systems"
       ],
+      "iconImage": "img/games/icons/ocean-wave-simulation.png?v=b17fd301cbc3",
       "image": "",
       "imageWidth": null,
       "imageHeight": null,

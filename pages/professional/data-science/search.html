@@ -24,17 +24,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#0D1117">
-  <script id="ds-sw-register">
-  (function () {
-    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-    if (new URLSearchParams(window.location.search).has("no_sw")) return;
-    var host = window.location.hostname || "";
-    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function () {});
-    });
-  })();
-  </script>
+  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -44,7 +34,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.40f7dbbd.css">
+  <link rel="stylesheet" href="dist/styles.81f47dfb.css">
   <link rel="stylesheet" href="css/components/search.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -57,13 +47,13 @@
   <meta name="author" content="Daniel Short">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.2090cb2c.js"></script>
+  <script defer src="dist/site-shell.8928284a.js"></script>
 
   <meta name="referrer" content="no-referrer">
-<link rel="stylesheet" href="dist/styles-personal-accordion.b4b0114f.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"data-science:about:search","path":"/search","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.40f7dbbd.css","/css/components/search.css","/dist/styles-personal-accordion.b4b0114f.css"],"scripts":["/js/common/no-js.js","/dist/site-shell.2090cb2c.js","/dist/site-search.609e65bd.js","/dist/site-consent.5fbd7df8.js"],"module":"search:search"}</script>
+<link rel="stylesheet" href="dist/styles-personal-accordion.16c6538c.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"data-science:about:search","path":"/search","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.81f47dfb.css","/css/components/search.css","/dist/styles-personal-accordion.16c6538c.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.8928284a.js","/dist/site-search.609e65bd.js","/dist/site-consent.ab1759e7.js"],"module":"search:search"}</script>
 </head>
-<body data-page="search" class="search-page site-page personal-accordion-page" data-internal-professional-copy="true" data-audience="data-science" data-personal-accordion-view="detail" data-personal-category="about" data-personal-item="search" data-personal-fit="document" data-site-route-id="data-science:about:search" data-site-route-category="about" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="search:search">
+<body data-page="search" class="search-page site-page personal-accordion-page" data-internal-professional-copy="true" data-audience="data-science" data-personal-accordion-view="detail" data-personal-category="about" data-personal-item="search" data-personal-fit="viewport" data-site-route-id="data-science:about:search" data-site-route-category="about" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="search:search">
   <a href="/search?audience=data-science#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav" data-site-shell-header>
     <nav class="nav" aria-label="Site header">
@@ -193,6 +183,6 @@
     </div>
   </footer>
   <script defer src="dist/site-search.609e65bd.js"></script>
-  <script defer src="dist/site-consent.5fbd7df8.js"></script>
+  <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>
 </html>

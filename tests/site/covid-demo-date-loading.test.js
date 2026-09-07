@@ -34,14 +34,10 @@ function createHarness() {
   const window = {
     addEventListener() {},
     location: { reload() { reloads += 1; } },
-    DemoAws: {
-      resolveEndpoint: () => '/api/demos/covid-outbreak/',
-      joinUrl: (base, suffix) => base + suffix,
-      retryRequest: (operation) => operation(),
-      getJson: async (url) => {
-        requests.push(url);
-        if (url.endsWith('/meta')) return { dates };
-        const date = new URL(url, 'https://example.test').searchParams.get('date');
+    DemoDashboardData: {
+      loadCovidMeta: async () => ({ dates }),
+      loadCovidDate: async (date) => {
+        requests.push(`/demos/data/covid-outbreak/by-date/${date}.json`);
         const response = responses.get(date);
         if (response instanceof Error) throw response;
         if (response) return response;
@@ -124,7 +120,7 @@ async function run() {
   assert.strictEqual(slider.value, '2');
 
   const initiallyUnavailable = createHarness();
-  initiallyUnavailable.responses.set(dates[2], new Error('Service unavailable'));
+  initiallyUnavailable.responses.set(dates[2], new Error('Dataset unavailable'));
   await initiallyUnavailable.evaluate('init()');
   assert.strictEqual(initiallyUnavailable.evaluate('appState.activeDate'), null);
   assert(initiallyUnavailable.getElement('connection-meta').textContent.includes('No date has loaded yet.'));

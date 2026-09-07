@@ -35,8 +35,13 @@
     cropPresets: $('[data-screenrec="crop-presets"]'),
     cropPresetsLabel: $('[data-screenrec="crop-presets-label"]'),
     cropPresetButtons: $$('[data-screenrec="crop-preset"]'),
-    controlsToggle: $('[data-screenrec="controls-toggle"]'),
     controlsBody: $('[data-screenrec="controls-body"]'),
+    settingsTabs: $$('[data-screenrec-tab]'),
+    settingsPanels: $$('[data-screenrec-panel]'),
+    settingsSummary: $('[data-screenrec="settings-summary"]'),
+    outputSummary: $('[data-screenrec="output-summary"]'),
+    systemAudioDetails: $('[data-screenrec="system-audio-details"]'),
+    microphoneDetails: $('[data-screenrec="microphone-details"]'),
     cropOverlay: $('[data-screenrec="crop-overlay"]'),
     cropSelection: $('[data-screenrec="crop-selection"]'),
     grid: $('[data-screenrec="grid"]'),
@@ -841,6 +846,67 @@
     return Math.min(1, Math.max(0.1, value));
   };
 
+  const updateSettingsSummary = () => {
+    if (el.settingsSummary) {
+      const fps = getSelectedFps();
+      const quality = QUALITY_PRESETS[el.qualitySelect?.value] || QUALITY_PRESETS.auto;
+      el.settingsSummary.textContent = `${fps ? `${fps} fps` : 'Auto frame rate'} · ${quality.label} quality · ${Math.round(getResolutionScale() * 100)}% scale`;
+    }
+    if (el.outputSummary) {
+      const formats = el.formatOptions
+        ? Array.from(el.formatOptions.querySelectorAll('input[name="screenrec-format"]'))
+          .filter((input) => input.checked && input.dataset.auto !== 'true')
+          .map((input) => formatLabelFromMime(input.value))
+        : [];
+      const images = getSelectedImageMimeTypes().map((mimeType) => `${mimeType === 'image/png' ? 'PNG' : 'WebP'} first frame`);
+      el.outputSummary.textContent = `Output: ${[formats.length ? formats.join(' + ') : 'Auto', ...images].join(' · ')}`;
+    }
+  };
+
+  const updateAudioDetails = () => {
+    if (el.systemAudioDetails) el.systemAudioDetails.hidden = !el.audioToggle?.checked;
+    if (el.microphoneDetails) el.microphoneDetails.hidden = !el.micToggle?.checked;
+  };
+
+  const selectSettingsTab = (name, moveFocus = false) => {
+    const selected = el.settingsTabs.find((tab) => tab.dataset.screenrecTab === name);
+    if (!selected || !el.settingsPanels.some((panel) => panel.dataset.screenrecPanel === name)) return;
+    el.settingsTabs.forEach((tab) => {
+      const active = tab === selected;
+      tab.setAttribute('aria-selected', String(active));
+      tab.setAttribute('tabindex', active ? '0' : '-1');
+    });
+    el.settingsPanels.forEach((panel) => {
+      panel.hidden = panel.dataset.screenrecPanel !== name;
+    });
+    if (moveFocus) selected.focus();
+  };
+
+  const initSettingsTabs = () => {
+    if (el.controlsBody) el.controlsBody.hidden = false;
+    selectSettingsTab('audio');
+    el.settingsTabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => selectSettingsTab(tab.dataset.screenrecTab));
+      tab.addEventListener('keydown', (event) => {
+        let nextIndex;
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % el.settingsTabs.length;
+        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + el.settingsTabs.length) % el.settingsTabs.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = el.settingsTabs.length - 1;
+        else return;
+        event.preventDefault();
+        selectSettingsTab(el.settingsTabs[nextIndex].dataset.screenrecTab, true);
+      });
+    });
+    const syncSettings = () => {
+      updateSettingsSummary();
+      updateAudioDetails();
+    };
+    el.controlsBody?.addEventListener('input', syncSettings);
+    el.controlsBody?.addEventListener('change', syncSettings);
+    syncSettings();
+  };
+
   const getSystemGain = () => {
     if (!el.audioLevel) return 1;
     const value = Number(el.audioLevel.value);
@@ -917,6 +983,7 @@
     const micAvailable = streamHasAudio(state.micStream);
     const systemRequested = Boolean(el.audioToggle?.checked);
     const micRequested = Boolean(el.micToggle?.checked);
+    el.audioStatus.hidden = false;
     if (systemAvailable || micAvailable) {
       const parts = [];
       if (systemAvailable) parts.push('System audio detected.');
@@ -949,7 +1016,10 @@
       el.audioStatus.textContent = parts.join(' ');
       return;
     }
-    el.audioStatus.textContent = 'No audio sources selected.';
+    el.audioStatus.hidden = supportsMicrophone;
+    el.audioStatus.textContent = supportsMicrophone
+      ? 'No audio sources selected.'
+      : 'Microphone capture is not supported in this browser.';
   };
 
   const setAudioMeterLevel = (value) => {
@@ -962,19 +1032,13 @@
   const updateAudioMeterState = () => {
     if (!el.audioMeter) return;
     const active = getActiveAudioStreams().length > 0;
+    el.audioMeter.hidden = !active;
     if (active) {
       el.audioMeter.dataset.active = 'true';
     } else {
       delete el.audioMeter.dataset.active;
       setAudioMeterLevel(0);
     }
-  };
-
-  const setControlsCollapsed = (collapsed) => {
-    if (!el.controlsPanel || !el.controlsToggle || !el.controlsBody) return;
-    el.controlsPanel.dataset.collapsed = collapsed ? 'true' : 'false';
-    el.controlsToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-    el.controlsBody.hidden = collapsed;
   };
 
   const updatePlaceholder = () => {
@@ -1688,6 +1752,7 @@
       const hasDownload = state.downloadUrls.length > 0;
       el.downloadAll.disabled = !hasDownload;
     }
+    updateAudioDetails();
     updateAudioMeterState();
   };
 
@@ -2832,10 +2897,7 @@
     updateDelayButtonState();
     updateCountdownDisplay();
     setView();
-    if (el.controlsPanel && el.controlsBody && el.controlsToggle) {
-      const shouldCollapse = el.controlsPanel.dataset.collapsed === 'true' || el.controlsBody.hidden;
-      setControlsCollapsed(shouldCollapse);
-    }
+    initSettingsTabs();
     updateMicDevices();
     if (!supportsMicrophone) {
       setMicHelp('Microphone capture is not supported in this browser.');
@@ -2873,11 +2935,6 @@
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape' || !state.cropPresetsOpen) return;
       setCropPresetsOpen(false);
-    });
-    el.controlsToggle?.addEventListener('click', () => {
-      if (!el.controlsPanel) return;
-      const collapsed = el.controlsPanel.dataset.collapsed === 'true';
-      setControlsCollapsed(!collapsed);
     });
     el.audioToggle?.addEventListener('change', () => {
       updateButtons();
@@ -2927,6 +2984,15 @@
     el.video?.addEventListener('emptied', updatePlaceholder);
     navigator.mediaDevices?.addEventListener('devicechange', updateMicDevices);
   };
+
+  document.addEventListener('tools:session-applied', (event) => {
+    if (event?.detail?.toolId !== TOOL_ID) return;
+    updateSettingsSummary();
+    updateAudioLevelValue();
+    updateMicLevelValue();
+    updateButtons();
+    updateAudioStatus();
+  });
 
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;

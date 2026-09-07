@@ -425,30 +425,8 @@
   }
 }
 
-/* Match the shell's unlayered document scroll rules while a compact dialog is active. */
+/* Keep document scrolling locked while a compact portfolio dialog is active. */
 body.personal-accordion-page[data-audience]:not([data-audience="personal"]).portfolio-inspector-open,
 body.personal-accordion-page[data-audience]:not([data-audience="personal"]).portfolio-filter-sheet-open {
   overflow: hidden;
-}
-
-@media print {
-  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-
-  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.personal-accordion__rails, .personal-accordion__toolbar) {
-    display: none !important;
-  }
-
-  body.personal-accordion-page[data-audience]:not([data-audience="personal"]) :is(.personal-accordion, .personal-accordion__shell, .personal-accordion__panel, .personal-accordion__content) {
-    display: block;
-    width: 100%;
-    min-height: 0;
-    height: auto;
-    border: 0;
-    overflow: visible;
-    background: #ffffff;
-  }
 }

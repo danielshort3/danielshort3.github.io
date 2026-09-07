@@ -6,6 +6,7 @@
 const MAX_JSON_BODY_BYTES = 512 * 1024;
 const KNOWN_TOOL_IDS = new Set([
   'background-remover',
+  'campaign-creative-tracker',
   'ga4-utm-performance',
   'image-optimizer',
   'job-application-tracker',

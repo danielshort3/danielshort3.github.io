@@ -475,14 +475,15 @@ function validateStreamEvent(value) {
   throw requestError('CHATBOT_STREAM_UNKNOWN_EVENT', 'Unknown chatbot stream event.', 502);
 }
 
-async function writeChunk(res, chunk) {
+async function writeChunk(res, chunk, signal) {
   if (res.destroyed || res.writableEnded) return false;
   if (res.write(chunk) !== false) return true;
-  await once(res, 'drain');
+  await once(res, 'drain', { signal });
   return !(res.destroyed || res.writableEnded);
 }
 
-async function writeEventLine(res, line) {
+async function writeEventLine(res, line, signal) {
+  signal?.throwIfAborted();
   if (!line.trim()) return { terminal: false };
   if (Buffer.byteLength(line, 'utf8') > MAX_EVENT_LINE_BYTES) {
     throw requestError('CHATBOT_STREAM_EVENT_TOO_LARGE', 'Chatbot stream event is too large.', 502);
@@ -494,7 +495,7 @@ async function writeEventLine(res, line) {
     throw requestError('CHATBOT_STREAM_INVALID_JSON', 'Invalid chatbot stream JSON.', 502);
   }
   const event = validateStreamEvent(parsed);
-  await writeChunk(res, `${JSON.stringify(event.value)}\n`);
+  await writeChunk(res, `${JSON.stringify(event.value)}\n`, signal);
   return event;
 }
 
@@ -540,6 +541,7 @@ async function forwardLambdaEventStream(res, eventStream, config, controller) {
   let invokeError = null;
 
   for await (const envelope of eventStream) {
+    controller.signal.throwIfAborted();
     if (envelope?.PayloadChunk?.Payload) {
       let payload = Buffer.from(envelope.PayloadChunk.Payload);
       totalBytes += payload.byteLength;
@@ -570,7 +572,7 @@ async function forwardLambdaEventStream(res, eventStream, config, controller) {
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
       for (const line of lines) {
-        const result = await writeEventLine(res, line);
+        const result = await writeEventLine(res, line, controller.signal);
         sawDone = sawDone || (result.terminal && !result.failed);
         sawError = sawError || Boolean(result.failed);
       }
@@ -585,7 +587,7 @@ async function forwardLambdaEventStream(res, eventStream, config, controller) {
   }
   buffer += decoder.decode();
   if (buffer.trim()) {
-    const result = await writeEventLine(res, buffer);
+    const result = await writeEventLine(res, buffer, controller.signal);
     sawDone = sawDone || (result.terminal && !result.failed);
     sawError = sawError || Boolean(result.failed);
   }
@@ -610,12 +612,13 @@ function setStreamHeaders(res, rate, response) {
   if (typeof res.flushHeaders === 'function') res.flushHeaders();
 }
 
-async function writeTerminalError(res) {
+async function writeTerminalError(res, signal) {
   if (res.destroyed || res.writableEnded) return;
+  // Queue the final error, but let cancellation release a backpressured write.
   await writeChunk(res, `${JSON.stringify({
     type: 'error',
     error: 'Chatbot stream is temporarily unavailable.'
-  })}\n`);
+  })}\n`, signal);
 }
 
 function statusForInvokeError(err) {
@@ -693,8 +696,10 @@ async function handleChatbotStream(req, res) {
     setStreamHeaders(res, rate, response);
     await forwardLambdaEventStream(res, response.EventStream, config, controller);
   } catch (err) {
+    controller.abort();
+    if (res.destroyed || res.writableEnded) return;
     if (res.headersSent) {
-      await writeTerminalError(res).catch(() => {});
+      await writeTerminalError(res, controller.signal).catch(() => {});
     } else {
       const statusCode = statusForInvokeError(err);
       const retryHeaders = statusCode === 503 ? { 'Retry-After': '10' } : {};
@@ -710,7 +715,7 @@ async function handleChatbotStream(req, res) {
     clearTimeout(timeout);
     if (typeof res.off === 'function') res.off('close', closeHandler);
   }
-  if (!res.writableEnded) res.end();
+  if (!res.destroyed && !res.writableEnded) res.end();
 }
 
 function setLambdaClientFactoryForTests(factory) {

@@ -6,6 +6,7 @@ import '../../js/common/common.js';
 import '../../js/common/modal-accessibility.js';
 import '../../js/common/certifications-modal.js';
 import '../../js/navigation/navigation.js';
+import '../../js/navigation/site-frame-policy.js';
 import '../../js/navigation/site-frame.js';
 import '../../js/navigation/page-transitions.js';
 import '../../js/navigation/header-breadcrumbs.js';

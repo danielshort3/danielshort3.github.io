@@ -3,6 +3,7 @@
   "title": "Baby Name Predictor",
   "subtitle": "Python ML Pipeline",
   "image": "img/projects/babynames.png",
+  "iconImage": "img/projects/icons/babynames.png",
   "imageWidth": 1238,
   "imageHeight": 1238,
   "videoWebm": "img/projects/babynames.webm",
@@ -30,12 +31,12 @@
     },
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_2.pdf",
+      "url": "/documents/Project_2.pdf",
       "label": "PDFs"
     },
     {
       "icon": "img/icons/jupyter-icon.png",
-      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_2.ipynb",
+      "url": "/documents/Project_2.ipynb",
       "label": "Notebook"
     },
     {
@@ -59,6 +60,7 @@
     ]
   },
   "problem": "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
+  "task": "Create personalized baby-name recommendations from recorded preferences and historical naming trends.",
   "actions": [
     "Aggregated SSA baby-name records (1880-present) and engineered trend features.",
     "Built a simple 'quiz' script to collect like/dislike labels.",
@@ -69,5 +71,11 @@
     "Helped us narrow the list when naming our child."
   ],
   "order": 13,
-  "notes": "Uses SSA baby-name data plus personal quiz labels; recommendations are preference predictions, not a population forecast."
+  "notes": "Uses SSA baby-name data plus personal quiz labels; recommendations are preference predictions, not a population forecast.",
+  "mobilePreview": {
+    "image": "img/projects/babynames-preview.webp",
+    "width": 1280,
+    "height": 800,
+    "alt": "Baby Name Predictor showing rating distribution, favorite girl names, and recommendations."
+  }
 }

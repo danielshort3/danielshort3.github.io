@@ -3,7 +3,7 @@
 
   Env vars required:
   - SHORTLINKS_DDB_TABLE
-  - AWS_REGION (or AWS_DEFAULT_REGION)
+  - SHORTLINKS_AWS_REGION (falls back to AWS_REGION or AWS_DEFAULT_REGION)
   - Prefer SHORTLINKS_AWS_ROLE_ARN for Vercel OIDC credentials
   - Prefer SHORTLINKS_AWS_ACCESS_KEY_ID / SHORTLINKS_AWS_SECRET_ACCESS_KEY to avoid conflicts
   - Falls back to AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
@@ -119,9 +119,7 @@ function getAwsCredentialEnvInfo(){
 
 function getRequiredEnv(){
   const tableName = process.env.SHORTLINKS_DDB_TABLE ? String(process.env.SHORTLINKS_DDB_TABLE).trim() : '';
-  const region =
-    (process.env.AWS_REGION ? String(process.env.AWS_REGION).trim() : '') ||
-    (process.env.AWS_DEFAULT_REGION ? String(process.env.AWS_DEFAULT_REGION).trim() : '');
+  const region = pickEnv(['SHORTLINKS_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']).raw.trim();
 
   if (!tableName) {
     const err = new Error('SHORTLINKS_DDB_TABLE is not configured');
@@ -129,7 +127,7 @@ function getRequiredEnv(){
     throw err;
   }
   if (!region) {
-    const err = new Error('AWS_REGION is not configured');
+    const err = new Error('SHORTLINKS_AWS_REGION, AWS_REGION, or AWS_DEFAULT_REGION must be configured');
     err.code = 'DDB_ENV_MISSING';
     throw err;
   }
@@ -308,11 +306,12 @@ async function putItem(item){
   return item;
 }
 
-async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, metadata }){
+async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, metadata, createOnly = false }){
   const { tableName } = getRequiredEnv();
   const client = getDocClient();
   const currentLink = await getLink(slug);
   const currentIsLink = isLinkEntity(currentLink);
+  if (createOnly && currentLink) throw createSlugConflictError(slug);
   if (currentLink && !currentIsLink) throw createSlugConflictError(slug);
   const currentClicksPresent = Boolean(
     currentIsLink && Object.prototype.hasOwnProperty.call(currentLink, 'clicks')
@@ -379,12 +378,22 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
   ];
 
   optionalTextFields.forEach(([field, maxLen]) => {
+    if (typeof metadata?.[field] === 'undefined') return;
     const cleaned = sanitizeValue(metadata && metadata[field], maxLen);
     if (cleaned) {
       setExpressions.push(`${field} = :${field}`);
       values[`:${field}`] = cleaned;
     } else {
       removeExpressions.push(field);
+    }
+  });
+
+  ['tags', 'qrDesign'].forEach(field => {
+    if (typeof metadata?.[field] === 'undefined') return;
+    if (metadata[field] === null) removeExpressions.push(field);
+    else {
+      setExpressions.push(`${field} = :${field}`);
+      values[`:${field}`] = metadata[field];
     }
   });
 
@@ -474,6 +483,39 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
   }
 
   return getLink(slug);
+}
+
+function buildLinkUpdate({ tableName, slug, patch, updatedAt, expectedUpdatedAt }){
+  const names = { '#slug': 'slug', '#entityType': 'entityType', '#updatedAt': 'updatedAt' };
+  const values = { ':linkType': 'link', ':updatedAt': updatedAt };
+  const sets = ['#updatedAt = :updatedAt'];
+  const removes = [];
+  const allowed = new Set(['destination', 'label', 'tags', 'expiresAt', 'permanent', 'disabled', 'qrDesign']);
+  Object.entries(patch).forEach(([key, value]) => {
+    if (!allowed.has(key)) return;
+    names[`#${key}`] = key;
+    if (value === null || (key === 'expiresAt' && value === 0)) removes.push(`#${key}`);
+    else {
+      sets.push(`#${key} = :${key}`);
+      values[`:${key}`] = value;
+    }
+  });
+  let condition = 'attribute_exists(#slug) AND (attribute_not_exists(#entityType) OR #entityType = :linkType)';
+  if (typeof expectedUpdatedAt === 'string' && expectedUpdatedAt) {
+    condition += ' AND #updatedAt = :expectedUpdatedAt';
+    values[':expectedUpdatedAt'] = expectedUpdatedAt;
+  }
+  return {
+    TableName: tableName, Key: { slug }, ConditionExpression: condition,
+    UpdateExpression: `SET ${sets.join(', ')}${removes.length ? ` REMOVE ${removes.join(', ')}` : ''}`,
+    ExpressionAttributeNames: names, ExpressionAttributeValues: values, ReturnValues: 'ALL_NEW'
+  };
+}
+
+async function updateLink(options){
+  const { tableName } = getRequiredEnv();
+  const result = await getDocClient().send(new UpdateCommand(buildLinkUpdate({ ...options, tableName })));
+  return result?.Attributes || null;
 }
 
 async function setLinkDisabled({ slug, disabled, updatedAt }){
@@ -650,6 +692,7 @@ function buildClickEventItem(event){
     slug,
     clickId,
     entityType: 'clickEvent',
+    channel: ['qr', 'link'].includes(event.channel) ? event.channel : 'unknown',
     clickedAt,
     destination: sanitizeValue(event.destination, 2048),
     statusCode: Number.isFinite(Number(event.statusCode)) ? Number(event.statusCode) : undefined,
@@ -801,6 +844,31 @@ async function listClickHistory({ slug, limit }){
   return result && Array.isArray(result.Items) ? result.Items : [];
 }
 
+async function listAnalyticsEvents({ slug = '', maxItems = 20000, maxPages = 40 } = {}){
+  const clicksTableName = getClicksTableName();
+  if (!clicksTableName) return { items: [], configured: false, truncated: false };
+  const client = getDocClient();
+  const items = [];
+  let cursor;
+  let page = 0;
+  do {
+    const input = {
+      TableName: clicksTableName, ExclusiveStartKey: cursor,
+      ConsistentRead: true, Limit: Math.min(500, maxItems - items.length)
+    };
+    if (slug) {
+      input.KeyConditionExpression = 'slug = :slug';
+      input.ExpressionAttributeValues = { ':slug': slug };
+      input.ScanIndexForward = false;
+    }
+    const result = await client.send(slug ? new QueryCommand(input) : new ScanCommand(input));
+    items.push(...(Array.isArray(result?.Items) ? result.Items : []));
+    cursor = result?.LastEvaluatedKey;
+    page += 1;
+  } while (cursor && items.length < maxItems && page < maxPages);
+  return { items, configured: true, truncated: Boolean(cursor) };
+}
+
 module.exports = {
   getAwsCredentialConfig,
   getAwsCredentialsFromEnv,
@@ -810,6 +878,8 @@ module.exports = {
   getLinkWithLegacyFallback,
   putItem,
   upsertLink,
+  updateLink,
+  buildLinkUpdate,
   setLinkDisabled,
   deleteLink,
   listAllItems,
@@ -828,6 +898,7 @@ module.exports = {
   buildClickTransaction,
   recordClick,
   listClickHistory,
+  listAnalyticsEvents,
   CLICK_TTL_ATTRIBUTE,
   CLICK_BASELINE_ID,
   SLUG_RESERVATION_PREFIX,

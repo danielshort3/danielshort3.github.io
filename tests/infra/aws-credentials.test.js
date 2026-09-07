@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const {
   DEFAULT_OIDC_AUDIENCE,
   resolveAwsCredentials
@@ -38,6 +40,18 @@ function expectCode(code, fn){
 }
 
 function run(){
+  const template = fs.readFileSync(path.resolve(__dirname, '../../aws/vercel-oidc/template.yaml'), 'utf8');
+  const shortLinksRole = (template.split('  ShortLinksRole:')[1] || '').split('  TranscribeRole:')[0].split('      Tags:')[0];
+  const conditionStatements = shortLinksRole.split(/^              - Effect: Allow\s*$/m)
+    .slice(1).filter(statement => statement.includes('dynamodb:ConditionCheckItem'));
+  assert.equal(conditionStatements.length, 1, 'Short Links must allow its transactional click-baseline check exactly once');
+  const conditionStatement = conditionStatements[0];
+  assert.deepEqual([...conditionStatement.matchAll(/^\s+- (dynamodb:[^\s]+)\s*$/gm)].map(match => match[1]),
+    ['dynamodb:ConditionCheckItem'], 'The click-baseline guard must have a separate permission statement');
+  assert.deepEqual([...conditionStatement.matchAll(/^\s+- !Sub '([^']+)'\s*$/gm)].map(match => match[1]),
+    ['arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksClicksTableName}'],
+    'ConditionCheckItem must be scoped only to the click-history table, without index or other-table access');
+
   const defaultConfig = resolve({});
   assert.equal(defaultConfig.source, 'default');
   assert.equal(defaultConfig.credentials, undefined);
