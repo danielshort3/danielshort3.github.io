@@ -250,6 +250,17 @@ async function runAsyncChecks() {
   check(await homeContext.showHome('tools', 'overview', { animate: false }) && homeToolbar.hidden,
     'A restored home library can close normally through the same toolbar state.');
 
+  libraryBackButtons.forEach((back) => { back.hasAttribute = (name) => name === 'data-page-masthead-parent'; });
+  check(await homeContext.showHome('tools', 'library', { animate: false }) &&
+    homeToolbar.hidden && homeToolbar.childNodes.length === 0,
+  'Integrated library parent controls remain inside their headers instead of creating a second toolbar.');
+  const integratedSnapshot = homeContext.snapshot();
+  homeContext.restore(savedDetail, { animate: false });
+  homeContext.restore(integratedSnapshot, { animate: false });
+  check(homeToolbar.hidden && homeToolbar.childNodes.length === 0 &&
+    homeContext.current.libraryBackButtons.get('tools') === libraryBackButtons.get('tools'),
+  'Restoring an integrated library preserves the original parent control and keeps the extra toolbar hidden.');
+
   const animations = [];
   const timers = new Map();
   let nextTimer = 1;

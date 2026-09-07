@@ -242,6 +242,14 @@
     background: #ffffff;
   }
 
+  .home-accordion__item--has-library .home-accordion__panel-head::after {
+    content: "";
+    display: block;
+    height: 1px;
+    margin-top: 24px;
+    background: color-mix(in srgb, var(--panel-color) 28%, #ffffff 72%);
+  }
+
   .home-accordion__panel-head--profile {
     display: grid;
     grid-template-columns: minmax(0, 1fr) clamp(112px, 14vw, 154px);
@@ -856,6 +864,12 @@
 
     .home-accordion__panel-cta--primary {
       margin-bottom: 10px;
+    }
+  }
+
+  @media (min-width: 1101px) and (min-height: 620px) {
+    .home-accordion__item--has-library .home-accordion__card {
+      min-height: clamp(142px, 17vh, 180px);
     }
   }
 

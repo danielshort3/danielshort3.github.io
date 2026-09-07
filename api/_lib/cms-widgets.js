@@ -1,8 +1,7 @@
 'use strict';
 
 const {
-  renderPersonalLibraryHeader,
-  renderToolsAccountDock
+  renderPersonalLibraryHeader
 } = require('../../build/lib/personal-accordion-shell');
 
 function escapeHtml(value) {
@@ -685,13 +684,9 @@ function renderHomeLibraryView(category, categoryId) {
     includeBack: true,
     dynamicCount: true
   });
-  const account = categoryId === 'tools'
-    ? renderToolsAccountDock('tools-account-dock--directory personal-library__account')
-    : '';
   return [
     `          <section class="home-library" id="${escapeHtml(viewId)}" data-home-library-view="${escapeHtml(categoryId)}" aria-labelledby="${escapeHtml(headingId)}" hidden inert>`,
     header.split('\n').map((line) => `            ${line}`).join('\n'),
-    account ? account.split('\n').map((line) => `            ${line}`).join('\n') : '',
     `            <div class="home-library__groups" data-home-library-list></div>`,
     '          </section>'
   ].filter(Boolean).join('\n');
@@ -745,6 +740,7 @@ function renderHomeAccordion(section) {
           ? `          <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="${escapeHtml(normalizeHref(category.cta.href))}" aria-controls="home-library-view-${escapeHtml(id)}" aria-expanded="false" data-home-library-open="${escapeHtml(id)}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`
           : `          <a class="home-accordion__panel-cta" href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`)
       : '';
+    const hasMasthead = ['projects', 'tools', 'games'].includes(id);
     const panelHeader = profile
       ? [
           '          <header class="home-accordion__panel-head home-accordion__panel-head--profile">',
@@ -765,13 +761,15 @@ function renderHomeAccordion(section) {
           '          </header>'
         ].filter(Boolean).join('\n')
       : [
-          '          <header class="home-accordion__panel-head">',
+          `          <header class="home-accordion__panel-head"${hasMasthead ? ' data-page-masthead' : ''}>`,
+          hasMasthead ? '            <div data-page-masthead-intro><div data-page-masthead-copy>' : '',
           `            <p class="home-accordion__eyebrow">${escapeHtml(label)}</p>`,
           '            <div class="home-accordion__title-row">',
           `              <span class="home-accordion__title-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
           `              <h3>${escapeHtml(category && category.title || label)}</h3>`,
           '            </div>',
           category && category.lead ? `            <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
+          hasMasthead ? '            </div></div>' : '',
           '          </header>'
         ].filter(Boolean).join('\n');
     const aboutHtml = id === 'about' ? renderHomeAbout(category, timelineHtml) : '';

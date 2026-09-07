@@ -19,7 +19,8 @@
     const path = cleanPath(manifest.id === 'home' ? url.pathname : (manifest.path || url.pathname));
     const category = state?.category || data.siteRouteCategory || data.personalCategory || manifest.category || 'about';
     const view = state?.view || data.siteRouteView || data.personalAccordionView || manifest.view;
-    const routeBody = document.querySelector('[data-site-route-body], [data-personal-detail-content]') || document;
+    const routeBody = state?.body?.isConnected ? state.body :
+      (document.querySelector('[data-site-route-body], [data-personal-detail-content]') || document);
     const heading = cleanText(routeBody.querySelector('h1')?.textContent);
     const title = cleanText(document.title).replace(/\s*[|–—-]\s*Daniel Short\s*$/i, '').trim();
     const back = document.querySelector('[data-site-route-toolbar] .personal-accordion__back');

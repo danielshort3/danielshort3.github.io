@@ -36,6 +36,14 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
   const nav = new Element('nav');
   const list = new Element('ol');
   nav.querySelector = () => list;
+  const routeBody = (options = page) => ({
+    isConnected: options.isConnected !== false,
+    querySelector(selector) {
+      if (selector === 'h1') return page.heading ? { textContent: page.heading } : null;
+      if (selector === '[data-page-masthead]') return options.integratedHeader ? new Element('header') : null;
+      return null;
+    }
+  });
   const document = {
     readyState: 'loading',
     body: { dataset: {} },
@@ -50,8 +58,9 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
       if (selector === '[data-header-breadcrumbs]') return nav;
       if (selector === '[data-site-route-manifest]') return { textContent: JSON.stringify(page.manifest) };
       if (selector === '[data-site-route-body], [data-personal-detail-content]') {
-        return { querySelector: () => page.heading ? { textContent: page.heading } : null };
+        return page.noRouteBody ? null : routeBody();
       }
+      if (selector === '[data-page-masthead]') return page.unrelatedHeader ? new Element('header') : null;
       if (selector === '[data-site-route-toolbar] .personal-accordion__back') {
         return page.back ? { getAttribute: (name) => page.back[name] || null } : null;
       }
@@ -63,7 +72,10 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
     getSiteAudienceConfig: audiences.getAudience,
     matchMedia: () => reducedMotion,
     SiteMotion: { duration: () => reducedMotion.matches ? 0 : 160 },
-    SiteFrame: { current: () => page.frame || null, root: () => null }
+    SiteFrame: {
+      current: () => page.frame ? { ...page.frame, body: page.frameBody ? routeBody(page.frameBody) : undefined } : null,
+      root: () => null
+    }
   };
   const context = vm.createContext({ window, document, URL, getComputedStyle: () => ({ opacity: '0.5', getPropertyValue: () => '' }) });
   const emit = (name) => (listeners.get(name) || []).forEach((listener) => listener({ type: name }));
@@ -189,6 +201,54 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
   setPage({ id: 'home', view: 'overview', category: 'contact', path: '/', query: '#contact' });
   emit('home:category-change');
   assert(nav.hidden && list.children.length === 0, 'returning to any inline overview tab should clear the trail');
+
+  reducedMotion.matches = false;
+  setPage({ path: '/tools/text-compare', category: 'tools', heading: 'Text Compare', hard: true });
+  emit('site:route-change');
+  expect(['Home', 'Tools', 'Text Compare'], ['/', '/tools']);
+  setPage({ path: '/tools', category: 'tools', view: 'library', heading: 'Tool Library', integratedHeader: true });
+  emit('site:route-change');
+  expect(['Home', 'Tools'], ['/']);
+  assert(!nav.hidden && !nav.inert, 'a standardized section header should retain the active global breadcrumb');
+  assert(animations.at(-1).frames.every((frame) => !('opacity' in frame)), 'changing section headers should update the trail without fading it away');
+
+  for (const options of [
+    { path: '/portfolio', category: 'projects', view: 'library', heading: 'Project Library' },
+    { path: '/games', category: 'games', view: 'library', heading: 'Game Library' },
+    { path: '/portfolio/babynames', category: 'projects', heading: 'Baby Name Predictor' },
+    { id: 'home', path: '/tools', manifestPath: '/', category: 'tools', view: 'library', frame: { category: 'tools', view: 'library' } }
+  ]) {
+    setPage({ ...options, integratedHeader: true });
+    emit(options.id === 'home' ? 'home:category-change' : 'site:route-change');
+    const categoryLabel = { projects: 'Projects', tools: 'Tools', games: 'Games' }[options.category];
+    const isDetail = options.path === '/portfolio/babynames';
+    expect(isDetail ? ['Home', categoryLabel, options.heading] : ['Home', categoryLabel], isDetail ? ['/', '/portfolio'] : ['/']);
+    assert(!nav.hidden && !nav.inert, `${options.path} should keep its global breadcrumb alongside its section header`);
+  }
+
+  setPage({ path: '/portfolio/babynames', audience: 'analytics', category: 'projects', heading: 'Baby Name Predictor', integratedHeader: true });
+  emit('site:route-change');
+  expect(['Home', 'Projects', 'Baby Name Predictor'], ['/analytics', '/portfolio?audience=analytics']);
+  setPage({ path: '/privacy', heading: 'Privacy & Analytics', unrelatedHeader: true });
+  emit('site:route-change');
+  expect(['Home', 'Privacy & Analytics'], ['/']);
+  setPage({ path: '/tools/text-compare', category: 'tools', heading: 'Text Compare', noRouteBody: true, unrelatedHeader: true, hard: true });
+  emit('site:route-change');
+  expect(['Home', 'Tools', 'Text Compare'], ['/', '/tools']);
+  assert(crumbs().slice(0, -1).every((crumb) => crumb.hard === 'hard'), 'leaving an integrated header should restore the unadapted tool navigation boundaries');
+
+  setPage({ path: '/games/stormbreak', category: 'games', heading: 'Stormbreak', integratedHeader: true,
+    frame: { category: 'games', view: 'detail' }, frameBody: { integratedHeader: false } });
+  emit('site:route-change');
+  expect(['Home', 'Games', 'Stormbreak'], ['/', '/games']);
+  setPage({ path: '/tools', category: 'tools', view: 'library', frame: { category: 'tools', view: 'library' }, frameBody: { integratedHeader: true } });
+  emit('site:route-change');
+  expect(['Home', 'Tools'], ['/']);
+  assert(!nav.hidden && !nav.inert, 'a mounted section header must not suppress global navigation');
+  setPage({ path: '/tools/text-compare', category: 'tools', heading: 'Text Compare',
+    frame: { category: 'tools', view: 'detail' }, frameBody: { integratedHeader: true, isConnected: false } });
+  emit('site:route-change');
+  expect(['Home', 'Tools', 'Text Compare'], ['/', '/tools']);
 };
 
 if (require.main === module) {

@@ -1,0 +1,187 @@
+/* One introduction and parent control for personal overviews, libraries, and projects. */
+@layer overrides {
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead],
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] {
+    box-sizing: border-box;
+    position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    width: calc(100% - 2 * var(--frame-content-gutter));
+    max-width: none;
+    min-width: 0;
+    margin: 0 var(--frame-content-gutter) 20px;
+    padding: 28px 0 22px;
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--panel-color) 28%, #ffffff 72%);
+    border-radius: 0;
+    color: #091f3b;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .home-library:has(> [data-page-masthead]) {
+    padding-top: 0;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .home-library__header[data-page-masthead] {
+    width: 100%;
+    margin: 0;
+    padding-inline: 0;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] {
+    margin-bottom: 0;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] > .wrapper {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead]::after,
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-copy] :is(h1, h2, h3)::after {
+    content: none;
+    display: none;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-page-masthead] :is(.home-accordion__eyebrow, .home-accordion__title-icon) {
+    display: none;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-intro] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 18px 28px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-copy] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead] [data-page-masthead-copy] :is(h1, h2, h3) {
+    margin: 0;
+    color: #091f3b;
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+    font-weight: 750;
+    letter-spacing: -.025em;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-copy] p {
+    max-width: 76ch;
+    margin: 0;
+    color: #405b7b;
+    font-size: 1rem;
+    line-height: 1.5;
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    justify-self: start;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 32px;
+    margin: 0;
+    padding: 2px 0;
+    border: 0;
+    border-radius: 3px;
+    color: var(--panel-color);
+    background: transparent;
+    box-shadow: none;
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    font-size: .875rem;
+    font-weight: 650;
+    line-height: 1.4;
+    text-decoration: none;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent] svg {
+    display: block;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent]:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent]:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-actions]:not([hidden]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    justify-self: start;
+    grid-column: auto;
+    gap: 8px;
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  @container site-content (min-width: 760px) {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-intro]:has(> [data-page-masthead-actions]) {
+      grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+    }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-actions]:not([hidden]) {
+      justify-self: end;
+      justify-content: flex-end;
+      max-width: 420px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead],
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] {
+      padding-block: 20px;
+    }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent] {
+      min-height: 44px;
+    }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-copy] p {
+      font-size: .9375rem;
+    }
+  }
+}

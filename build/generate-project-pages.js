@@ -1066,6 +1066,34 @@ ${comparisonScript}${imageViewerScript}  <script src="js/privacy/config.js"></sc
 `;
 }
 
+function preparePersonalProjectDetailHtml(html) {
+  const source = String(html || '');
+  if (/<header\b[^>]*\bdata-page-masthead(?:\s|=|>)/i.test(source)) return source;
+
+  return source.replace(
+    /<section class="project-hero project-hero--compact">\s*<div class="wrapper">\s*([\s\S]*?)\s*<\/div>\s*<\/section>/i,
+    (_, introHtml) => {
+      const actionsHtml = introHtml.match(/<nav class="project-intro-actions"[^>]*>[\s\S]*?<\/nav>/i)?.[0] || '';
+      const copyHtml = introHtml.replace(actionsHtml, '').trim();
+      const actions = actionsHtml.replace('<nav ', '<nav data-page-masthead-actions ');
+      return `<header class="project-hero project-hero--compact" data-page-masthead>
+      <div class="wrapper">
+        <a class="project-parent-link" href="/portfolio" data-page-masthead-parent aria-label="Back to project library">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"></path></svg>
+          <span>Project library</span>
+        </a>
+        <div data-page-masthead-intro>
+          <div data-page-masthead-copy>
+            ${copyHtml}
+          </div>
+          ${actions}
+        </div>
+      </div>
+    </header>`;
+    }
+  );
+}
+
 function writeProjectPages(projects) {
   fs.mkdirSync(outDir, { recursive: true });
   const expected = new Set(
@@ -1235,6 +1263,7 @@ module.exports = {
   formatResourceLabel,
   isPublishedProject,
   loadProjects,
+  preparePersonalProjectDetailHtml,
   renderPortfolioStaticResults,
   renderProjectPage
 };

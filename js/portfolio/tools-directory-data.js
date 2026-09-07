@@ -666,7 +666,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "transcribe",
       "title": "File Transcriber",
       "subtitle": "Cloud-backed workflows",
-      "summary": "Drag in audio or video files, approve the estimated Amazon Transcribe cost, and download completed transcripts.",
+      "summary": "Add audio or video files, or import a YouTube video with Home GPU, and download completed transcripts.",
       "href": "tools/transcribe",
       "type": "Cloud Tool",
       "availability": "Cloud",
@@ -689,12 +689,13 @@ window.DIRECTORY_WORKBENCH = {
         "Cloud Tool"
       ],
       "results": [
-        "Drag in audio or video files, approve the estimated Amazon Transcribe cost, and download completed transcripts."
+        "Add audio or video files, or import a YouTube video with Home GPU, and download completed transcripts."
       ],
       "actions": [],
-      "privacy": "Uploads approved media to the account-backed transcription workflow.",
+      "privacy": "Processes approved files with the selected service; Home GPU can also import a public YouTube video.",
       "inputs": [
-        "Audio or video file"
+        "Audio or video file",
+        "YouTube video URL (Home GPU)"
       ],
       "outputs": [
         "Completed transcript download"

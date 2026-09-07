@@ -1569,8 +1569,11 @@ try {
     const toolsLibraryHtml = toolsLibraryIndex >= 0 && toolsLibraryEnd > toolsLibraryIndex
       ? toolsHtml.slice(toolsLibraryIndex, toolsLibraryEnd)
       : '';
-    assert(toolsAccountDockIndex >= 0 && toolsAccountDockIndex < toolsLibraryIndex,
-      'tools account action should stay compact above the personal library');
+    const toolsLibraryHeaderIndex = toolsHtml.indexOf('<header class="home-library__header"', toolsLibraryIndex);
+    const toolsLibraryHeaderEnd = toolsHtml.indexOf('</header>', toolsLibraryHeaderIndex);
+    assert(toolsLibraryHeaderIndex > toolsLibraryIndex &&
+      toolsAccountDockIndex > toolsLibraryHeaderIndex && toolsAccountDockIndex < toolsLibraryHeaderEnd,
+    'tools account action should share the library header above its divider');
     assert(toolsHtml.includes('data-personal-tool-account-bar="true"') &&
       !toolsHtml.includes('>All tools<'),
       'tools library account slot should hydrate in place without duplicating library navigation');
@@ -1726,7 +1729,7 @@ try {
       bundledToolsAccountJs.includes('setAttribute("aria-hidden","true")'),
       'bundled tools account UI should include the inert modal behavior used in production pages');
     assert(!directoryJs.includes('data-tools-filter-input'), 'tools directory script should not wire removed search controls');
-    assert(!toolsHtml.includes('class="tools-resume-panel"') && toolsAccountDockIndex < toolsLibraryIndex,
+    assert(!toolsHtml.includes('class="tools-resume-panel"') && toolsAccountDockIndex > toolsLibraryHeaderIndex && toolsAccountDockIndex < toolsLibraryHeaderEnd,
       'personal tools library should use the account dock without retaining the legacy resume/workbench panel');
     const toolsCss = readFile('css/components/tools.css');
     const workbenchCss = readFile('css/components/portfolio-workbench.css');
@@ -42522,7 +42525,8 @@ try {
            toolScript.includes('state.config = { ...DEFAULT_CONFIG, configured: false }') &&
            toolScript.includes('const runConfigIsValid = () =>') &&
            toolScript.includes('state.config.configured === true') &&
-           !toolScript.includes('payload.output ='),
+           toolScript.includes('payload.output = { summary: payload.outputSummary, sources: urlSources };') &&
+           toolScript.includes('const urlSources = captureUrlSources(state.files);'),
       'Transcribe tool should preflight duration/cost and avoid saving transcript bodies in session history');
     assert(toolScript.includes('inspectMp4AudioTrack') &&
            toolScript.includes('inspectMp4Structure') &&

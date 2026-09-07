@@ -932,22 +932,13 @@
   }
 
   @media (min-width: 960px) and (min-height: 620px) {
-    body.personal-accordion-page[data-personal-category="tools"]:not([data-tools-layout="directory"]) .personal-accordion__content > .tools-account-dock,
-    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock {
+    body.personal-accordion-page[data-personal-category="tools"]:not([data-tools-layout="directory"]) .personal-accordion__content > .tools-account-dock {
       position: absolute;
       top: 6px;
       right: var(--tools-content-gutter);
       z-index: 9;
       width: auto;
       max-width: calc(48% - var(--tools-content-gutter));
-    }
-
-    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock {
-      top: 16px;
-    }
-
-    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library__account + .personal-library .home-library__heading {
-      padding-right: min(42%, 390px);
     }
 
     body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="text"] #main {
@@ -1088,25 +1079,6 @@
 
     body.personal-accordion-page[data-personal-category="tools"] .tools-account-dock-inner {
       width: 100%;
-    }
-
-    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock {
-      position: absolute;
-      top: 16px;
-      right: var(--tools-content-gutter);
-      z-index: 9;
-      width: auto;
-      max-width: min(42%, 390px);
-      padding: 0;
-    }
-
-    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock .tools-account-dock-inner {
-      width: auto;
-      max-width: 100%;
-    }
-
-    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library__account + .personal-library .home-library__heading {
-      padding-right: min(42%, 390px);
     }
 
     body.personal-accordion-page[data-personal-category="tools"] #main > .surface-band > .wrapper {

@@ -94,20 +94,21 @@ function runResponsiveDensityContractTests({ assert }) {
     backCompactLabel: 'Library',
     backAriaLabel: 'Back to game library',
   });
-  [gamesLibraryShell, gameDetailShell].forEach((html) => {
+  [[gamesLibraryShell, 0], [gameDetailShell, 1]].forEach(([html, expectedToolbarCount]) => {
     assert(
       countMatches(html, /class="personal-accordion__rail(?:\s|")/g) === 5 &&
         countMatches(html, /data-site-tab="[^"]+"[^>]*hidden inert aria-hidden="true"/g) === 4 &&
-        countMatches(html, /class="personal-accordion__toolbar(?:\s|")/g) === 1 &&
+        countMatches(html, /class="personal-accordion__toolbar(?:\s|")/g) === expectedToolbarCount &&
         !/class="personal-accordion__rails"[^>]*aria-hidden=/i.test(html) &&
         /<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b[^>]*href="\/#games"[^>]*aria-current="page"/i.test(html) &&
         html.includes('data-personal-transition="collapse"'),
-      'canonical personal shells should preserve five category rails while exposing only one active rail and one shared context toolbar',
+      'canonical personal shells should preserve five category rails and one active rail, with a toolbar only for unadapted detail headers',
     );
   });
   assert(
-    gamesLibraryShell.includes('href="/#games" aria-label="Back to homepage"') &&
-      gamesLibraryShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Home</span>') &&
+    gamesLibraryShell.includes('href="/#games" aria-label="Back to Games overview" data-page-masthead-parent') &&
+      gamesLibraryShell.includes('data-page-masthead>') &&
+      !gameDetailShell.includes('data-page-masthead>') &&
       gameDetailShell.includes('href="/games" aria-label="Back to game library"') &&
       gameDetailShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
     'canonical Games shells should return through the homepage or game library without cross-category navigation',
@@ -258,6 +259,7 @@ function runResponsiveDensityContractTests({ assert }) {
   const stormbreakCss = read('css/games/stormbreak.css');
   const toolsWorkspaceCss = read('css/components/tools-workspace.css');
   const toolsAccountCss = read('css/components/tools-account.css');
+  const homeLibraryCss = read('css/components/home-library.css');
   const personalAccordionCss = read('css/components/personal-accordion-shell.css');
   const utmBatchBuilderCss = read('css/components/utm-batch-builder.css');
   const toolsMobileCss = toolsWorkspaceCss.slice(
@@ -303,10 +305,17 @@ function runResponsiveDensityContractTests({ assert }) {
     'Stormbreak should preserve the personal shell scroll owner while clipping horizontal overflow',
   );
   assert(
-    /body\.personal-accordion-page\[data-personal-category="tools"\]\[data-tools-layout="directory"\] \.personal-library-main--tools > \.tools-account-dock\s*\{[^}]*position:\s*absolute;[^}]*top:\s*16px;[^}]*right:\s*var\(--tools-content-gutter\);[^}]*z-index:\s*9;[^}]*width:\s*auto;[^}]*max-width:\s*min\(42%,\s*390px\);[^}]*padding:\s*0;/s.test(toolsMobileCss) &&
-      /body\.personal-accordion-page\[data-personal-category="tools"\]\[data-tools-layout="directory"\] \.personal-library-main--tools > \.tools-account-dock \.tools-account-dock-inner\s*\{[^}]*width:\s*auto;[^}]*max-width:\s*100%;/s.test(toolsMobileCss) &&
-      /body\.personal-accordion-page\[data-personal-category="tools"\]\[data-tools-layout="directory"\] \.personal-library__account \+ \.personal-library \.home-library__heading\s*\{[^}]*padding-right:\s*min\(42%,\s*390px\);/s.test(toolsMobileCss),
-    'the mobile Tools directory should overlay its compact account dock while reserving heading space',
+    /\.home-library__intro\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s.test(homeLibraryCss) &&
+      /\.home-library__intro > \.personal-library__account\s*\{[^}]*position:\s*relative;[^}]*inset:\s*auto;[^}]*justify-self:\s*start;[^}]*max-width:\s*100%;/s.test(homeLibraryCss) &&
+      /@container site-content \(min-width:\s*760px\)\s*\{[^}]*\.home-library__intro:has\(> \.personal-library__account\)\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) minmax\(0,\s*max-content\);/s.test(homeLibraryCss) &&
+      !toolsWorkspaceCss.includes('.personal-library-main--tools > .tools-account-dock') &&
+      !toolsWorkspaceCss.includes('.personal-library__account + .personal-library .home-library__heading'),
+    'Tools library account controls should flow below the description in narrow content and share the header row when wide, without absolute overlay offsets',
+  );
+  assert(
+    /\.home-library__intro > \.personal-library__account \.tools-account-disclosure\s*\{[^}]*inset-inline-start:\s*0;[^}]*inset-inline-end:\s*auto;/s.test(homeLibraryCss) &&
+      /@container site-content \(min-width:\s*760px\)\s*\{[\s\S]*?\.home-library__intro > \.personal-library__account \.tools-account-disclosure\s*\{[^}]*inset-inline-start:\s*auto;[^}]*inset-inline-end:\s*0;/s.test(homeLibraryCss),
+    'library account menus should open inward from the left on stacked headers and from the right on wide headers',
   );
   assert(
     /body\.personal-accordion-page\[data-personal-item="utm-batch-builder"\] #utmtool-exclude-rules\s*\{[^}]*white-space:\s*pre-wrap;[^}]*overflow-wrap:\s*anywhere;/s.test(utmMobileCss),

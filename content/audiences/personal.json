@@ -349,16 +349,6 @@
                   "contentType": "project",
                   "contentId": "sheetMusicUpscale",
                   "resourceType": "case_study"
-                },
-                {
-                  "id": "ufoDashboard",
-                  "title": "UFO Sightings Dashboard",
-                  "summary": "I wanted to see patterns in UFO reports, so I built a dashboard to explore sightings by place, time, and shape.",
-                  "href": "/portfolio/ufoDashboard",
-                  "iconImage": "img/projects/icons/ufoDashboard.png",
-                  "contentType": "project",
-                  "contentId": "ufoDashboard",
-                  "resourceType": "case_study"
                 }
               ],
               "cta": {
@@ -408,17 +398,6 @@
                   "imageAlt": "QR Code Generator icon",
                   "contentType": "tool",
                   "contentId": "qr-code-generator",
-                  "resourceType": "tool"
-                },
-                {
-                  "id": "screen-recorder",
-                  "title": "Screen Recorder",
-                  "summary": "Capture a tab, window, or screen.",
-                  "href": "/tools/screen-recorder",
-                  "image": "img/tools/icons/screen-recorder.png",
-                  "imageAlt": "Screen Recorder icon",
-                  "contentType": "tool",
-                  "contentId": "screen-recorder",
                   "resourceType": "tool"
                 }
               ],

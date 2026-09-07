@@ -181,6 +181,7 @@ async function run(){
     maxServiceDurationSeconds: 8 * 60 * 60,
     minDurationSeconds: 15,
     supportedFormats: ['amr', 'flac', 'm4a', 'mp3', 'mp4', 'ogg', 'wav', 'webm'],
+    urlImportEnabled: true,
     historyStored: false
   });
   assert.strictEqual(configResponse.headers['cache-control'], 'no-store');
@@ -391,9 +392,98 @@ async function run(){
   assert.strictEqual(methodResponse.statusCode, 405);
   assert.strictEqual(methodResponse.headers.allow, 'GET');
 
+  const canonicalUrl = 'https://www.youtube.com/watch?v=BaW_jenozKc';
+  for (const sourceUrl of [
+    canonicalUrl,
+    ' https://youtu.be/BaW_jenozKc?si=tracking&t=12 ',
+    'https://youtube.com/watch?v=BaW_jenozKc&feature=shared#t=12',
+    'https://m.youtube.com/watch?v=BaW_jenozKc',
+    'https://www.youtube.com/shorts/BaW_jenozKc',
+    'https://www.youtube.com/live/BaW_jenozKc/',
+    'https://www.youtube.com/embed/BaW_jenozKc'
+  ]) {
+    assert.strictEqual(internal.normalizeSourceUrl(sourceUrl), canonicalUrl);
+  }
+  for (const sourceUrl of [
+    undefined, {}, '', 'ytsearch:video', 'file:///etc/passwd',
+    'http://youtube.com/watch?v=BaW_jenozKc',
+    'https://127.0.0.1/watch?v=BaW_jenozKc',
+    'https://[::1]/watch?v=BaW_jenozKc',
+    'https://youtube.com.evil.test/watch?v=BaW_jenozKc',
+    'https://youtube.com@evil.test/watch?v=BaW_jenozKc',
+    'https://user:pass@youtube.com/watch?v=BaW_jenozKc',
+    'https://youtube.com:8765/watch?v=BaW_jenozKc',
+    'https://youtube.com/playlist?list=PL123',
+    `${canonicalUrl}&list=PL123`, `${canonicalUrl}&list=`,
+    `${canonicalUrl}&v=YE7VzlLtp-4`,
+    'https://youtu.be/BaW_jenozKc/extra',
+    'https://youtube.com/watch?v=too-short',
+    'https://youtube.com/watch?v=BaW_jenozKc\n',
+    'https://youtube.com\\@127.0.0.1/watch?v=BaW_jenozKc',
+    `${canonicalUrl}&si=${'x'.repeat(2048)}`
+  ]) {
+    assert.throws(() => internal.normalizeSourceUrl(sourceUrl),
+      (error) => error?.code === 'LOCAL_TRANSCRIBE_VALIDATION', String(sourceUrl));
+  }
+  assert.throws(() => internal.validateUrlTicketInput([], defaults), /JSON object/);
+
+  const urlResponse = createResponse();
+  await handler(request('POST', {
+    sourceUrl: 'https://youtu.be/BaW_jenozKc?si=tracking',
+    maxFileBytes: Number.MAX_SAFE_INTEGER,
+    maxDurationSeconds: Number.MAX_SAFE_INTEGER,
+    sub: 'different-account'
+  }), urlResponse, 'url-ticket');
+  assert.strictEqual(urlResponse.statusCode, 200);
+  assert.strictEqual(urlResponse.headers['cache-control'], 'no-store');
+  const urlResult = json(urlResponse);
+  const [urlBody, urlSignature] = urlResult.ticket.split('.');
+  assert.strictEqual(urlSignature, crypto.createHmac('sha256', enabledEnv().LOCAL_TRANSCRIBE_SHARED_SECRET)
+    .update(urlBody, 'utf8').digest('base64url'));
+  assert.deepStrictEqual(JSON.parse(Buffer.from(urlBody, 'base64url').toString('utf8')), {
+    v: 2,
+    type: 'local_transcribe_url',
+    aud: 'local-transcribe-worker',
+    sub: adminClaims.sub,
+    jobId: 'ab'.repeat(16),
+    sourceUrl: canonicalUrl,
+    maxFileBytes: 500 * 1024 * 1024,
+    maxDurationSeconds: 8 * 60 * 60,
+    origin: 'https://www.danielshort.me',
+    iat: 2_000_000_000,
+    exp: 2_000_000_000 + 6 * 60 * 60
+  });
+  assert.deepStrictEqual(urlResult.job, {
+    id: 'ab'.repeat(16),
+    sourceKind: 'url',
+    sourceUrl: canonicalUrl,
+    maxFileBytes: 500 * 1024 * 1024,
+    maxDurationSeconds: 8 * 60 * 60
+  });
+  assert(!urlResponse.body.includes('tracking'), 'tracking parameters must not enter job metadata');
+  const lowerUrlInput = internal.validateUrlTicketInput({ sourceUrl: canonicalUrl }, lowerWorkerLimits);
+  assert.strictEqual(lowerUrlInput.maxFileBytes, 100 * 1024 * 1024);
+  assert.strictEqual(lowerUrlInput.maxDurationSeconds, 3600);
+
+  for (const [candidateHandler, candidateRequest, expectedStatus] of [
+    [nonAdminHandler, request('POST', { sourceUrl: canonicalUrl }), 403],
+    [unauthenticatedHandler, request('POST', { sourceUrl: canonicalUrl }), 401],
+    [disabledHandler, request('POST', { sourceUrl: canonicalUrl }), 503],
+    [handler, request('GET', { sourceUrl: canonicalUrl }), 405],
+    [handler, request('POST', { sourceUrl: canonicalUrl }, { headers: { origin: 'https://attacker.example' } }), 403],
+    [handler, request('POST', { sourceUrl: 'https://127.0.0.1/' }), 400],
+    [handler, request('POST', {}), 400]
+  ]) {
+    const response = createResponse();
+    await candidateHandler(candidateRequest, response, 'url-ticket');
+    assert.strictEqual(response.statusCode, expectedStatus);
+    assert(!json(response).ticket, 'rejected URL requests must never receive a ticket');
+  }
+
   const routerSource = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
   assert(routerSource.includes("action === 'local-config'"));
   assert(routerSource.includes("action === 'local-ticket'"));
+  assert(routerSource.includes("action === 'local-url-ticket'"));
 
   console.log('local-transcribe-api tests passed');
 }
