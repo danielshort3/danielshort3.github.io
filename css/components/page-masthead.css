@@ -1,7 +1,11 @@
-/* One introduction and parent control for personal overviews, libraries, and projects. */
+/* Shared introductions for personal overviews, libraries, projects, tools, and games. */
 @layer overrides {
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead],
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] {
+    --font-ui: "Inter", system-ui, sans-serif;
+    --masthead-title-size: clamp(1.75rem, 2.5vw, 2.25rem);
+    --masthead-padding-start: 28px;
+    --masthead-padding-end: 22px;
     box-sizing: border-box;
     position: static;
     display: grid;
@@ -11,11 +15,12 @@
     max-width: none;
     min-width: 0;
     margin: 0 var(--frame-content-gutter) 20px;
-    padding: 28px 0 22px;
+    padding: var(--masthead-padding-start) 0 var(--masthead-padding-end);
     border: 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--panel-color) 28%, #ffffff 72%);
+    border-bottom: 2px solid color-mix(in srgb, var(--panel-color) 28%, #ffffff 72%);
     border-radius: 0;
     color: #091f3b;
+    font-family: var(--font-ui);
     background: #ffffff;
     box-shadow: none;
   }
@@ -34,7 +39,7 @@
     margin-bottom: 0;
   }
 
-  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] > .wrapper {
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead] > .wrapper {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
@@ -77,7 +82,7 @@
     margin: 0;
     color: #091f3b;
     font-family: var(--font-ui, "Inter", system-ui, sans-serif);
-    font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+    font-size: var(--masthead-title-size);
     font-weight: 750;
     letter-spacing: -.025em;
     line-height: 1.15;
@@ -158,6 +163,22 @@
     padding: 0;
   }
 
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-page-masthead] .personal-tool-header__account {
+    position: static;
+    grid-column: auto;
+    grid-row: auto;
+    align-self: start;
+    min-width: 0;
+    width: auto;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-page-masthead] .tools-account-disclosure {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+  }
+
   @container site-content (min-width: 760px) {
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-intro]:has(> [data-page-masthead-actions]) {
       grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
@@ -168,12 +189,18 @@
       justify-content: flex-end;
       max-width: 420px;
     }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-page-masthead] .tools-account-disclosure {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
   }
 
   @media (max-width: 640px) {
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead],
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] {
-      padding-block: 20px;
+      --masthead-padding-start: 20px;
+      --masthead-padding-end: 20px;
     }
 
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent] {
@@ -183,5 +210,192 @@
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-copy] p {
       font-size: .9375rem;
     }
+  }
+}
+
+/* Games retain unlayered runtime styles. Limit these adapters to their page
+   introduction and outer gutters so the live play surfaces keep their theme. */
+body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-personal-game-header] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  align-self: start;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  order: 0;
+  grid-row: auto;
+  gap: 10px;
+  padding: var(--masthead-padding-start) 0 var(--masthead-padding-end);
+  border: 0;
+  border-bottom: 2px solid color-mix(in srgb, var(--panel-color) 28%, #ffffff 72%);
+  border-radius: 0;
+  color: #091f3b;
+  background: #ffffff;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] [data-page-masthead-copy] h1 {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  color: #091f3b;
+  font-family: var(--font-ui);
+  font-size: var(--masthead-title-size);
+  font-weight: 750;
+  letter-spacing: -.025em;
+  line-height: 1.15;
+  text-transform: none;
+  text-shadow: none;
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] [data-page-masthead-copy] p {
+  margin: 0;
+  color: #405b7b;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] .game-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  max-width: 100%;
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--panel-color) 35%, #ffffff);
+  border-radius: 6px;
+  color: #091f3b;
+  background: #ffffff;
+  box-shadow: none;
+  font-family: var(--font-ui);
+  font-size: .875rem;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: normal;
+  white-space: normal;
+  cursor: pointer;
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] .game-header-actions button.primary {
+  border-color: var(--panel-color);
+  color: #ffffff;
+  background: var(--panel-color);
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] .game-header-actions button.danger-button {
+  border-color: #e0b7b7;
+  color: #a42727;
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] .game-header-actions button:hover:not(:disabled) {
+  box-shadow: none;
+  transform: none;
+  filter: brightness(.96);
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] .game-header-actions button:focus-visible {
+  outline: 2px solid var(--panel-color);
+  outline-offset: 3px;
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] .save-status {
+  min-height: 0;
+  color: #405b7b;
+}
+
+body[data-audience="personal"] .site-frame [data-personal-game-header] .save-status:empty {
+  display: none;
+}
+
+body[data-audience="personal"] .site-frame[data-frame-category="games"] [data-site-route-body]:has([data-personal-game-header]) {
+  padding: 0;
+  background: #ffffff;
+}
+
+body[data-audience="personal"] .site-frame :is(.roulette00-shell, .app-shell, .stormbreak-main):has([data-personal-game-header]) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  background: #ffffff;
+}
+
+body[data-audience="personal"] .site-frame :is(.roulette00-shell, .app-shell, .stormbreak-main):has(> [data-personal-game-header]) > :not([data-personal-game-header]) {
+  width: auto;
+  max-width: none;
+  margin: 0 var(--frame-content-gutter) 20px;
+}
+
+body[data-audience="personal"] .site-frame .stormbreak-main:has([data-personal-game-header]) .stormbreak-topbar {
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+}
+
+body.personal-accordion-page[data-audience="personal"][data-personal-item="stellar-dogfight"] .site-frame .mission-shell:has([data-personal-game-header]) {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0;
+}
+
+body[data-audience="personal"] .site-frame .mission-session-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 0 var(--frame-content-gutter) 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #111a2a;
+  order: 1;
+}
+
+body[data-audience="personal"] .site-frame .mission-shell:has([data-personal-game-header]) > .mission-grid {
+  order: 2;
+}
+
+body[data-audience="personal"] .site-frame .mission-session-status p {
+  margin: 0;
+}
+
+body[data-audience="personal"].is-playing .site-frame :is([data-personal-game-header="stellar-dogfight"], .mission-session-status) {
+  display: none;
+}
+
+body.personal-accordion-page[data-audience="personal"][data-personal-item="stellar-dogfight"].is-playing .site-frame .mission-shell:has([data-personal-game-header]) {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  body[data-audience="personal"] .site-frame .stormbreak-main:has([data-personal-game-header]) .stormbreak-topbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 959px), (max-height: 619px) {
+  body.personal-accordion-page[data-audience="personal"][data-personal-item="stellar-dogfight"].is-hangar .site-frame .mission-shell:has([data-personal-game-header]) {
+    height: auto;
+    min-height: 0;
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  body[data-audience="personal"] .site-frame [data-personal-game-header] [data-page-masthead-copy] p {
+    font-size: .9375rem;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-audience="personal"] .site-frame .stormbreak-main:has([data-personal-game-header]) .stormbreak-rail {
+    align-items: stretch;
+  }
+
+  body[data-audience="personal"] .site-frame .stormbreak-main:has([data-personal-game-header]) .stormbreak-rail .zone-section {
+    height: auto;
   }
 }

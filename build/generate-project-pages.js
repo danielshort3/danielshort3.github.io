@@ -130,7 +130,7 @@ function loadGameEntries() {
         const pageFile = fileExists(nestedSource)
           ? nestedSource
           : (fileExists(fallbackSource) ? fallbackSource : '');
-        if (!pageFile) return;
+        if (!pageFile || hasNoindexMeta(pageFile)) return;
 
         const loc = toAbsoluteUrl(pathname);
         if (!entries.has(loc)) {

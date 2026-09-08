@@ -9,6 +9,7 @@ const runCampaignCreativeTrackerTests = require('./tests/tools/campaign-creative
 const runHomeCategoryAccordionTests = require('./tests/site/home-category-accordion.test.js');
 const runPageTransitionTests = require('./tests/site/page-transitions.test.js');
 const runPersonalAccordionShellTests = require('./tests/site/personal-accordion-shell.test.js');
+const runPersonalGameHeaderTests = require('./tests/site/personal-game-header.test.js');
 const runPersonalThemeContinuityTests = require('./tests/site/personal-theme-continuity.test.js');
 const runProjectDemoWrapperTests = require('./tests/site/project-demo-wrappers.test.js');
 const runProjectPrivacyLayoutTests = require('./tests/site/project-privacy-layout.test.js');
@@ -1196,13 +1197,20 @@ try {
     assert(contactPageHtml.includes('id="contact-options"') &&
            (contactPageHtml.match(/class="contact-card"/g) || []).length === 2 &&
            (contactPageHtml.match(/id="contact-form-toggle"/g) || []).length === 1 &&
-           contactPageHtml.includes('Grand Junction, Colorado'),
+           contactPageHtml.includes('Delta, Colorado'),
       'contact page should keep one form entry point plus email and GitHub contact options');
     assert(!/linkedin/i.test(contactPageHtml),
       'contact page should omit the disabled LinkedIn profile');
-    assert(!contactPageHtml.includes('data-google-maps-iframe') &&
-           !contactPageHtml.includes('maps/embed/v1/place?key='),
-      'contact page should omit the redundant map embed and any committed Google Maps API key');
+    const contactMapIframe = contactPageHtml.match(/<iframe\b[^>]*title="Map of Delta, CO"[^>]*>/)?.[0] || '';
+    assert(contactPageHtml.includes('id="grand-junction-location"') &&
+           contactPageHtml.includes('class="cms-map-shell" data-contact-map-slot') &&
+           /data-home-contact-map-src="https:\/\/www\.google\.com\/maps\?q=Delta%2C%20CO&amp;output=embed"[^>]*loading="lazy"/.test(contactMapIframe) &&
+           !/\ssrc\s*=|\ssrcdoc\s*=/.test(contactMapIframe) &&
+           !contactPageHtml.includes('data-google-maps-iframe') &&
+           contactPageHtml.includes('Open in Google Maps'),
+      'contact page should reserve a persistent city map without loading a duplicate iframe and keep a direct Google Maps link');
+    assert(!/maps\/embed\/v1\/place\?[^"\s]*key=/i.test(contactPageHtml),
+      'generated contact source should not commit a Google Maps API key');
 
     const retiredSocialProfilePattern = /linkedin(?:\.com)?/i;
     [
@@ -1260,8 +1268,9 @@ try {
 
     checkFileContains('pages/games.html', 'href="/games/roulette"');
     checkFileContains('pages/games.html', 'href="/games/stellar-dogfight"');
-    assert(!readFile('pages/games.html').includes('href="/games/project-starfall"'),
-      'games library should omit archived Project Starfall');
+    checkFileContains('pages/games.html', 'href="/games/project-starfall"');
+    assert(fs.existsSync('public/pages/games/project-starfall.html'),
+      'the published static output should include the enabled Project Starfall game');
     checkFileContains('pages/games.html', 'href="/games/stormbreak"');
     checkFileContains('pages/games/probability-engine.html', '<link rel="canonical" href="https://www.danielshort.me/games/probability-engine">');
     checkFileContains('pages/games/probability-engine.html', '<meta name="description"');
@@ -1373,7 +1382,9 @@ try {
       const href = String(game && game.href ? game.href : (id ? `games/${id}` : '')).trim().replace(/^\/+/, '');
       if (!/^games\/[a-z0-9][a-z0-9-]*$/i.test(href)) return;
       const loc = `<loc>https://www.danielshort.me/${href}</loc>`;
-      const shouldInclude = Boolean(game && !game.hidden && !game.noindex && visibility === 'public');
+      const pagePath = fs.existsSync(`pages/${href}.html`) ? `pages/${href}.html` : `pages/${href.slice('games/'.length)}.html`;
+      const pageIsNoindex = /<meta\b[^>]*\bname="robots"[^>]*\bcontent="[^"]*noindex/i.test(readFile(pagePath));
+      const shouldInclude = Boolean(game && !game.hidden && !game.noindex && !pageIsNoindex && visibility === 'public');
       assert(sitemap.includes(loc) === shouldInclude,
         `sitemap.xml ${shouldInclude ? 'should include' : 'should exclude'} personal game route /${href}`);
     });
@@ -2318,13 +2329,13 @@ try {
     assert(page.indexOf('js/games/project-starfall/data/asset-backup-content.js') < page.indexOf('js/games/project-starfall/data/index.js') &&
       page.indexOf('js/games/project-starfall/data/index.js') < page.indexOf('js/games/project-starfall/project-starfall-data.js'),
       'Project Starfall data index assembly module should load after data content modules and before the compatibility data bundle');
-    assert(!gamesPage.includes('href="/games/project-starfall"') && !gamesPage.includes('Project Starfall'),
-      'Games page should omit archived Project Starfall');
-    assert(!rewrites.some((rule) => rule.source === '/games/project-starfall') &&
-      !rewrites.some((rule) => rule.source === '/games/project-starfall.html') &&
-      redirects.some((rule) => rule.source === '/games/project-starfall' && rule.destination === '/games' && rule.permanent === true) &&
-      redirects.some((rule) => rule.source === '/games/project-starfall.html' && rule.destination === '/games' && rule.permanent === true),
-      'Archived Project Starfall routes should redirect to the games library');
+    assert(gamesPage.includes('href="/games/project-starfall"') && gamesPage.includes('Project Starfall'),
+      'Games page should expose the enabled Project Starfall game');
+    assert(rewrites.some((rule) => rule.source === '/games/project-starfall' && rule.destination === '/pages/games/project-starfall') &&
+      rewrites.some((rule) => rule.source === '/games/project-starfall.html' && rule.destination === '/pages/games/project-starfall') &&
+      !redirects.some((rule) => rule.source === '/games/project-starfall') &&
+      !redirects.some((rule) => rule.source === '/games/project-starfall.html'),
+      'Project Starfall routes should resolve to the playable game without archive redirects');
     assert(data && Array.isArray(data.MAPS) && data.MAPS.length >= 30 &&
       Array.isArray(data.ENEMIES) && data.ENEMIES.length >= 30 &&
       Array.isArray(data.SKILLS) && data.SKILLS.length >= 20,
@@ -9418,7 +9429,7 @@ try {
     assert(page.includes('<link rel="canonical" href="https://www.danielshort.me/games/project-starfall">'),
       'Project Starfall page should use the exact /games/project-starfall canonical URL');
     assert(page.includes('noindex, nofollow'),
-      'Archived Project Starfall source page should remain noindex');
+      'Work-in-progress Project Starfall should remain noindex');
     assert(page.includes('data-starfall-root') &&
       page.includes('id="project-starfall-canvas"') &&
       page.includes('width="1280" height="806"') &&
@@ -9457,8 +9468,8 @@ try {
       starfallCss.includes('.project-starfall-canvas-wrap.is-transition-loader-visible .project-starfall-loading') &&
       starfallCss.includes('prefers-reduced-motion: reduce'),
       'Project Starfall loading CSS should hide the game until asset progress reaches 100%, fade the loader out, and respect reduced motion');
-    assert(!gamesPage.includes('href="/games/project-starfall"') && !gamesPage.includes('Project Starfall'),
-      'Games page should omit archived Project Starfall');
+    assert(gamesPage.includes('href="/games/project-starfall"') && gamesPage.includes('Project Starfall'),
+      'Games page should expose the enabled Project Starfall game');
     assert(page.includes('js/vendor/pixi.min.js') &&
       page.includes('js/games/project-starfall/project-starfall-renderer-pixi.js') &&
       starfallRendererCode.includes('ProjectStarfallPixiRenderer') &&
@@ -9793,9 +9804,9 @@ try {
         'Project Starfall character slot pedestal should be a wide transparent PNG sized for character slots');
     }
 
-    assert(!rewrites.some((rule) => rule.source === '/games/project-starfall') &&
-      !rewrites.some((rule) => rule.source === '/games/project-starfall.html'),
-      'Archived Project Starfall should not have public rewrites');
+    assert(rewrites.some((rule) => rule.source === '/games/project-starfall') &&
+      rewrites.some((rule) => rule.source === '/games/project-starfall.html'),
+      'Enabled Project Starfall should have clean and HTML route rewrites');
     assert(Array.isArray(routeStyles['/games/project-starfall']) &&
       routeStyles['/games/project-starfall'].includes('css/games/project-starfall.css'),
       'Project Starfall route CSS manifest entry missing');
@@ -39446,8 +39457,8 @@ try {
 
     assert(gamesHtml.includes('data-games-directory') &&
       gamesHtml.includes('class="games-directory__grid" role="list"') &&
-      (gamesHtml.match(/<a class="games-directory-card" role="listitem"/g) || []).length === 5,
-      'games page should render the approved simple five-card directory');
+      (gamesHtml.match(/<a class="games-directory-card" role="listitem"/g) || []).length === 6,
+      'games page should render the six-card directory including Project Starfall');
     assert(!gamesHtml.includes('data-directory-workbench') &&
       !gamesHtml.includes('data-portfolio-search') &&
       !gamesHtml.includes('data-portfolio-sort') &&
@@ -40801,8 +40812,8 @@ try {
       ?.find((entry) => entry.id === 'project-starfall');
     assert(!starfallStartHere &&
       !aboutTimeline.some((entry) => entry.id === 'project-starfall') &&
-      !starfallHomeCard,
-      'personal content should omit Project Starfall from every homepage entry point');
+      starfallHomeCard && starfallHomeCard.href === '/games/project-starfall',
+      'personal content should expose Starfall in Games while keeping project and timeline selections separate');
     assert(!/(?:Currently building Project Starfall|Building Project Starfall|Now building|Current game)/i.test(JSON.stringify(personalAudienceContent)),
       'personal content should remove every retired Project Starfall development-status claim');
     const generatedAudienceConfig = require('./js/common/audience-config.js');
@@ -40830,8 +40841,8 @@ try {
     assert(siteRealmScript.includes('applyAudienceContact(audience)') &&
       siteRealmScript.includes("document.body.classList.add('professional-contact-page')") &&
       siteRealmScript.includes("optionsHeading.textContent = 'Direct Contact'") &&
-      siteRealmScript.includes('mapShell.hidden = true'),
-      'professional contact views should use audience-aware proof links and compact location content');
+      !siteRealmScript.includes('mapShell.hidden = true'),
+      'professional contact views should use audience-aware proof links and keep the city map visible');
     assert(!portfolioAudienceScript.includes("analytics: {\n    key: 'analytics'") &&
       !portfolioAudienceScript.includes("'data-science': {\n    key: 'data-science'") &&
       !portfolioAudienceScript.includes("tourism: {\n    key: 'tourism'"),
@@ -41560,6 +41571,7 @@ try {
 
   section('Personal accordion route shell', () => {
     runPersonalAccordionShellTests({ assert });
+    runPersonalGameHeaderTests({ assert });
   });
 
   section('Project demo wrapper continuity', () => {
@@ -41758,9 +41770,9 @@ try {
       recruiterStoryCss.includes('24-hero-analytics-light-960.avif') &&
       recruiterStoryCss.includes('24-hero-analytics-light-960.webp'),
       'analytics hero should use responsive AVIF/WebP artwork with its PNG fallback');
-    assert(!homeAccordionSource.includes('project-starfall') &&
-      !homeAccordionSource.includes('img/project-starfall/ui/start-screen.webp'),
-      'homepage source should not retain the archived Project Starfall card or image');
+    assert(homeAccordionSource.includes('project-starfall') &&
+      homeAccordionSource.includes('img/games/icons/project-starfall.png'),
+      'homepage source should expose Project Starfall with its existing star emblem');
 
     const generator = fs.readFileSync('build/generate-project-pages.js', 'utf8');
     assert(!generator.includes('project-case-study'), 'project generator should not render removed Key Decisions panel content');
@@ -42024,10 +42036,10 @@ try {
     const hasContributionsRedirect = redirects.some(r => r.source === '/contributions' && r.destination === '/tourism' && r.permanent === true);
     assert(hasDestinationAnalyticsRedirect && hasContributionsRedirect, 'legacy professional aliases should redirect permanently to tourism');
     const hasGames = rewrites.some(r => r.source === '/games' && r.destination === '/pages/games');
-    const hasProjectStarfall = rewrites.some(r => r.source === '/games/project-starfall');
-    const hasProjectStarfallHtml = rewrites.some(r => r.source === '/games/project-starfall.html');
-    const redirectsProjectStarfall = ['/games/project-starfall', '/games/project-starfall.html', '/project-starfall', '/project-starfall.html']
-      .every((source) => redirects.some((rule) => rule.source === source && rule.destination === '/games' && rule.permanent === true));
+    const hasProjectStarfall = rewrites.some(r => r.source === '/games/project-starfall' && r.destination === '/pages/games/project-starfall');
+    const hasProjectStarfallHtml = rewrites.some(r => r.source === '/games/project-starfall.html' && r.destination === '/pages/games/project-starfall');
+    const redirectsProjectStarfallAliases = ['/project-starfall', '/project-starfall.html']
+      .every((source) => redirects.some((rule) => rule.source === source && rule.destination === '/games/project-starfall' && rule.permanent === true));
     const hasGameSlot = rewrites.some(r => /slot-machine/i.test(`${r.source || ''} ${r.destination || ''}`));
     const hasGameDogfight = rewrites.some(r => r.source === '/games/stellar-dogfight' && r.destination === '/pages/games/stellar-dogfight');
     const hasGameDogfightHtml = rewrites.some(r => r.source === '/games/stellar-dogfight.html' && r.destination === '/pages/games/stellar-dogfight');
@@ -42038,8 +42050,9 @@ try {
     const hasStormbreak = rewrites.some(r => r.source === '/games/stormbreak' && r.destination === '/pages/games/stormbreak');
     const hasStormbreakHtml = rewrites.some(r => r.source === '/games/stormbreak.html' && r.destination === '/pages/games/stormbreak');
     assert(hasGames, 'games landing rewrite missing');
-    assert(!hasProjectStarfall && !hasProjectStarfallHtml && redirectsProjectStarfall,
-      'project starfall should be retired behind permanent games-library redirects');
+    assert(hasProjectStarfall && hasProjectStarfallHtml && redirectsProjectStarfallAliases &&
+      !redirects.some((rule) => ['/games/project-starfall', '/games/project-starfall.html'].includes(rule.source)),
+      'Project Starfall should resolve to its playable page and retain canonical legacy aliases');
     assert(!hasGameSlot, 'slot machine should not be publicly rewritten');
     assert(!readFile('pages/games.html').includes('games/slot-machine'), 'games page should not link to local-only slot machine');
     assert(hasGameDogfight, 'stellar dogfight games rewrite missing');
@@ -44438,10 +44451,12 @@ try {
       'stellar dogfight demo should expose target assist settings');
     assert(demoHtml.includes('data-setting="camera-mode"'),
       'stellar dogfight demo should expose camera mode settings');
-    assert(demoHtml.includes('class="mission-header mission-topbar"') &&
+    assert(demoHtml.includes('data-personal-game-header="stellar-dogfight"') &&
+           demoHtml.includes('data-page-masthead-actions') &&
            demoHtml.includes('data-role="topbar-summary"') &&
+           demoHtml.includes('data-action="launch"') &&
            demoHtml.includes('data-action="command-menu"'),
-      'stellar dogfight demo should use a compact play-first top bar');
+      'stellar dogfight should share the page masthead while retaining launch, menu, and campaign status');
     assert(demoHtml.includes('class="mission-sidebar command-drawer"') &&
            demoHtml.includes('data-role="command-menu"') &&
            demoHtml.includes('data-action="command-menu-close"'),
@@ -44879,8 +44894,8 @@ try {
            stormbreakEntry.href === 'games/stormbreak' &&
            stormbreakEntry.image === 'img/games/stormbreak/temple-of-ash.webp' &&
            stormbreakEntry.imageWidth === 1536 && stormbreakEntry.imageHeight === 1024 &&
-           stormbreakEntry.order === 4 && oceanWaveEntry && oceanWaveEntry.order === 5,
-      'Stormbreak should occupy the fourth games-directory slot with its generated Temple of Ash preview');
+           stormbreakEntry.order === 6 && oceanWaveEntry && oceanWaveEntry.order === 3,
+      'Stormbreak should retain its Temple of Ash preview after the selected games, with Ocean Wave Simulation third');
     assert(stormbreakHtml.includes('<link rel="canonical" href="https://www.danielshort.me/games/stormbreak">') &&
            stormbreakHtml.includes('class="stormbreak-game" data-stormbreak-root') &&
            stormbreakHtml.includes('id="stormbreak-canvas" width="960" height="540"') &&

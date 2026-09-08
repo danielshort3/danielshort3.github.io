@@ -107,8 +107,7 @@ function copyFile(src, dest){
 
 function shouldSkipPublicCopy(absPath) {
   const rel = path.relative(root, absPath).replace(/\\/g, '/');
-  return rel === 'pages/games/project-starfall.html'
-    || rel === 'img/project-starfall/review'
+  return rel === 'img/project-starfall/review'
     || rel.startsWith('img/project-starfall/review/')
     || (!includeStarfallBackups && (rel === 'img/project-starfall/backups' || rel.startsWith('img/project-starfall/backups/')))
     || /^img\/project-starfall\/(?:.+\/)?source(?:\/|$)/.test(rel);

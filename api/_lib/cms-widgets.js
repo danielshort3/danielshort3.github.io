@@ -162,36 +162,37 @@ function renderDocumentList(section) {
   ].join('\n');
 }
 
-function renderMap(section) {
+function renderMap(section, options = {}) {
   const props = section.props || {};
   const address = normalizeMapAddress(props.address);
   const zoom = normalizeMapZoom(props.zoom);
   const shouldEmbed = isTruthy(props.embed);
+  const persistentMap = options.deferUntilSelected || isTruthy(props.persist);
   const mapHref = googleMapsSearchUrl(address);
   const iframeTitle = String(props.iframeTitle || `Map of ${address}`).trim();
   const anchorId = String(props.anchorId || section.id || '').trim();
   const frameAttrs = {
     class: 'cms-map-iframe',
     title: iframeTitle,
-    src: googleMapsFallbackEmbedUrl(address),
+    [persistentMap ? 'data-home-contact-map-src' : 'src']: googleMapsFallbackEmbedUrl(address),
     loading: 'lazy',
     allowfullscreen: true,
     referrerpolicy: 'strict-origin-when-cross-origin',
     ...(shouldEmbed ? {
-      'data-google-maps-iframe': true,
+      'data-google-maps-iframe': !persistentMap && props.useEmbedApi !== false,
       'data-google-maps-address': address,
       'data-google-maps-zoom': zoom
     } : {})
   };
   return [
-    `<section${anchorId ? ` id="${escapeHtml(anchorId)}"` : ''}${sectionAttrs(section, 'surface-band reveal cms-location')}>`,
+    `<section${anchorId ? ` id="${escapeHtml(anchorId)}"` : ''}${sectionAttrs(section, persistentMap ? 'surface-band cms-location' : 'surface-band reveal cms-location')}>`,
     '  <div class="wrapper cms-location-inner">',
     '    <div class="cms-location-copy">',
     `      <h2 class="section-title">${escapeHtml(props.title || 'Location')}</h2>`,
     props.body ? `      <p class="section-subtitle">${escapeHtml(props.body)}</p>` : '',
     `      <p><a class="btn-secondary" href="${escapeHtml(mapHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(props.buttonLabel || 'Open map')}</a></p>`,
     '    </div>',
-    '    <div class="cms-map-shell">',
+    `    <div class="cms-map-shell"${persistentMap ? ' data-contact-map-slot' : ''}>`,
     `      <iframe${attrsToString(frameAttrs) ? ` ${attrsToString(frameAttrs)}` : ''}></iframe>`,
     '    </div>',
     '  </div>',
@@ -569,9 +570,124 @@ function renderHomeTimelineItem(item, categoryId, options = {}) {
   ].filter(Boolean).join('\n');
 }
 
+const HOME_BACKGROUND_ICONS = Object.freeze({
+  job: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a22 22 0 0 0 18 0M12 11v4"></path></svg>',
+  degree: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5-10-5ZM6 11v6c3 3 9 3 12 0v-6M22 9v8"></path></svg>',
+  certification: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M7 7h10M7 11h5"></path><circle cx="17" cy="15" r="3"></circle><path d="m15 17-1 5 3-2 3 2-1-5"></path></svg>',
+  personal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="m8 12 3 3 5-6"></path></svg>'
+});
+
+function renderHomeBackgroundItem(item, categoryId, options = {}) {
+  const type = String(item && item.type || '').trim();
+  const isCertification = type === 'certification';
+  const href = String(item && item.href || '').trim();
+  const tag = href ? 'a' : 'article';
+  const external = Boolean(item && item.external);
+  const contentType = String(item && item.contentType || '').trim();
+  const contentId = String(item && item.contentId || item && item.id || '').trim();
+  const resourceType = String(item && item.resourceType || contentType || '').trim();
+  const title = String(item && item.title || 'Milestone');
+  const compactTitle = isCertification ? String(item && item.credentialLabel || title) : title;
+  const titleHtml = compactTitle !== title
+    ? `<span class="home-background__title-full visually-hidden">${escapeHtml(title)}</span><span class="home-background__title-compact" aria-hidden="true">${escapeHtml(compactTitle)}</span>`
+    : escapeHtml(title);
+  const dateId = `home-timeline-${categoryId}-${String(item && item.id || '').replace(/[^a-z0-9_-]+/gi, '-')}-date`;
+  const analytics = href && contentType && contentId
+    ? ` data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_timeline"`
+    : '';
+  const linkAttrs = href
+    ? ` href="${escapeHtml(normalizeHref(href))}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}${analytics}`
+    : '';
+  const parsedDate = parseHomeTimelineDate(item && item.date);
+  const dateHtml = parsedDate
+    ? renderHomeTimelineDate({ ...item, current: false }, isCertification ? {} : options).trim()
+    : escapeHtml(item && item.date || 'Date not specified');
+  const icon = HOME_BACKGROUND_ICONS[type] || HOME_BACKGROUND_ICONS.personal;
+
+  if (isCertification) {
+    return [
+      `                    <li class="home-background__credential" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
+      `                      <${tag} class="home-background__credential-link" aria-describedby="${escapeHtml(dateId)}"${parsedDate ? ` title="Earned ${escapeHtml(parsedDate.label)}"` : ''}${linkAttrs}>`,
+      `                        <span class="home-background__credential-label">${titleHtml}</span>`,
+      href ? `                        <span class="home-background__arrow" aria-hidden="true">${HOME_ACCORDION_ICONS[external ? 'external-arrow' : 'arrow']}</span>` : '',
+      `                      </${tag}>`,
+      `                      <span class="home-background__credential-date visually-hidden" id="${escapeHtml(dateId)}">${parsedDate ? 'Earned ' : ''}${dateHtml}</span>`,
+      '                    </li>'
+    ].filter(Boolean).join('\n');
+  }
+
+  return [
+    `                  <li class="home-background__item" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
+    `                    <span class="home-background__icon" aria-hidden="true">${icon}</span>`,
+    `                    <${tag} class="home-background__entry" aria-describedby="${escapeHtml(dateId)}"${linkAttrs}>`,
+    `                      <strong class="home-background__title">${titleHtml}</strong>`,
+    item && item.subtitle ? `                      <span class="home-background__subtitle">${escapeHtml(item.subtitle)}</span>` : '',
+    `                    </${tag}>`,
+    `                    <div class="home-background__date" id="${escapeHtml(dateId)}">${dateHtml}</div>`,
+    '                  </li>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderHomeBackground(timeline, categoryId, items) {
+  const safeCategoryId = String(categoryId || 'about').trim().replace(/[^a-z0-9_-]+/gi, '-');
+  const title = String(timeline.title || 'Experience & learning').trim();
+  const titleId = `home-timeline-${safeCategoryId}-title`;
+  const dateValue = (item) => (parseHomeTimelineDate(item && item.date) || {}).value || '';
+  const newestFirst = (a, b) => dateValue(b).localeCompare(dateValue(a));
+  const experience = items.filter((item) => item && item.type === 'job').sort(newestFirst);
+  const education = items.filter((item) => item && item.type === 'degree').sort(newestFirst);
+  const credentials = items.filter((item) => item && item.type === 'certification');
+  const other = items.filter((item) => !item || !['job', 'degree', 'certification'].includes(item.type));
+  const issuers = new Map();
+  credentials.forEach((item) => {
+    const issuer = String(item.issuer || '').trim() || String(item.subtitle || '').split('/')[0].trim() || 'Other credentials';
+    if (!issuers.has(issuer)) issuers.set(issuer, []);
+    issuers.get(issuer).push(item);
+  });
+  const credentialOrder = (item) => typeof item.credentialOrder === 'number' && Number.isFinite(item.credentialOrder)
+    ? item.credentialOrder
+    : Number.MAX_SAFE_INTEGER;
+  const renderItems = (entries) => entries.map((item) => renderHomeBackgroundItem(item, safeCategoryId, timeline)).join('\n');
+  const renderSection = (id, label, entries) => entries.length ? [
+    `              <section class="home-background__section" data-home-background-section="${id}" aria-labelledby="home-timeline-${safeCategoryId}-${id}-title">`,
+    `                <h4 class="home-background__section-title" id="home-timeline-${safeCategoryId}-${id}-title">${label}</h4>`,
+    '                <ul class="home-background__list">',
+    renderItems(entries),
+    '                </ul>',
+    '              </section>'
+  ].join('\n') : '';
+
+  return [
+    `          <section class="home-timeline" data-home-timeline data-home-timeline-layout="resume" aria-labelledby="${escapeHtml(titleId)}">`,
+    `            <h3 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h3>`,
+    '            <div class="home-background">',
+    renderSection('experience', 'Experience', experience),
+    renderSection('education', 'Education', education),
+    credentials.length ? [
+      `              <section class="home-background__section" data-home-background-section="credentials" aria-labelledby="home-timeline-${safeCategoryId}-credentials-title">`,
+      `                <h4 class="home-background__section-title" id="home-timeline-${safeCategoryId}-credentials-title">Credentials</h4>`,
+      '                <div class="home-background__issuers">',
+      [...issuers.entries()].map(([issuer, entries], index) => [
+        `                  <section class="home-background__issuer" data-home-credential-issuer="${escapeHtml(issuer)}" aria-labelledby="home-timeline-${safeCategoryId}-issuer-${index + 1}-title">`,
+        `                    <h5 class="home-background__issuer-title" id="home-timeline-${safeCategoryId}-issuer-${index + 1}-title">${escapeHtml(issuer)}</h5>`,
+        '                    <ul class="home-background__credential-list">',
+        renderItems([...entries].sort((a, b) => credentialOrder(a) - credentialOrder(b))),
+        '                    </ul>',
+        '                  </section>'
+      ].join('\n')).join('\n'),
+      '                </div>',
+      '              </section>'
+    ].join('\n') : '',
+    renderSection('other', 'Other milestones', other),
+    '            </div>',
+    '          </section>'
+  ].filter(Boolean).join('\n');
+}
+
 function renderHomeTimeline(timeline, categoryId) {
   const items = Array.isArray(timeline && timeline.items) ? [...timeline.items] : [];
   if (!items.length) return '';
+  if (timeline.layout === 'resume') return renderHomeBackground(timeline, categoryId, items);
   if (timeline.newestFirst) {
     const dateValue = (item) => timeline.sortBy === 'startDate'
       ? String(item.date || '')
@@ -740,7 +856,7 @@ function renderHomeAccordion(section) {
           ? `          <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="${escapeHtml(normalizeHref(category.cta.href))}" aria-controls="home-library-view-${escapeHtml(id)}" aria-expanded="false" data-home-library-open="${escapeHtml(id)}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`
           : `          <a class="home-accordion__panel-cta" href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`)
       : '';
-    const hasMasthead = ['projects', 'tools', 'games'].includes(id);
+    const hasMasthead = ['projects', 'tools', 'games', 'contact'].includes(id);
     const panelHeader = profile
       ? [
           '          <header class="home-accordion__panel-head home-accordion__panel-head--profile">',
@@ -773,11 +889,21 @@ function renderHomeAccordion(section) {
           '          </header>'
         ].filter(Boolean).join('\n');
     const aboutHtml = id === 'about' ? renderHomeAbout(category, timelineHtml) : '';
+    const cardsHtml = cards ? `          <ul class="home-accordion__cards">\n${cards}\n          </ul>` : '';
+    const locationHtml = id === 'contact' && category.location
+      ? renderMap({ id: 'home-contact-location', type: 'map', props: category.location }, { deferUntilSelected: true })
+      : '';
+    const contactLayout = locationHtml ? [
+      '          <div class="home-contact-layout">',
+      cardsHtml,
+      locationHtml,
+      '          </div>'
+    ].filter(Boolean).join('\n') : '';
     const panelContent = aboutHtml || [
       panelHeader,
       contextHtml,
       metaHtml,
-      cards ? `          <ul class="home-accordion__cards">\n${cards}\n          </ul>` : '',
+      contactLayout || cardsHtml,
       featuredHtml,
       timelineHtml,
       cta,
@@ -902,13 +1028,14 @@ const WIDGETS = [
     label: 'Location Map',
     category: 'Utility',
     description: 'Location block with an optional Google Maps embed and map link.',
-    defaultProps: { title: 'Location', body: 'Add location context.', address: 'Grand Junction, CO', buttonLabel: 'Open map', embed: false, zoom: 10 },
+    defaultProps: { title: 'Location', body: 'Add location context.', address: 'Grand Junction, CO', buttonLabel: 'Open map', embed: false, useEmbedApi: true, zoom: 10 },
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'body', label: 'Body', type: 'textarea' },
       { name: 'address', label: 'Address', type: 'text' },
       { name: 'buttonLabel', label: 'Button label', type: 'text' },
       { name: 'embed', label: 'Embed map', type: 'checkbox' },
+      { name: 'useEmbedApi', label: 'Use configured Maps Embed API key', type: 'checkbox' },
       { name: 'zoom', label: 'Zoom', type: 'number' }
     ],
     render: renderMap

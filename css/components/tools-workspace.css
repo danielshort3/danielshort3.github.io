@@ -755,12 +755,12 @@
 /* Campaign Tracker retains one legacy !important hero size. Keep the shared
    personal-tool title in the same cascade layer so the compact shell wins. */
 @layer components {
-  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1 {
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header:not([data-page-masthead]) h1 {
     font-size: clamp(1.1rem, 1.55vw, 1.4rem) !important;
   }
 
   @media (max-width: 959px), (max-height: 619px) {
-    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1 {
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header:not([data-page-masthead]) h1 {
       font-size: 1.05rem !important;
     }
   }

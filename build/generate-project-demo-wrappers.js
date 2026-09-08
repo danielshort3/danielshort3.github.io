@@ -45,6 +45,14 @@ function loadProjects() {
     .map((name) => readJson(path.join(contentDir, name)));
 }
 
+function extractDemoDescriptionHtml(html) {
+  const copy = /<div\b[^>]*class="[^"]*\b(?:header-copy|demo-title)\b[^"]*"[^>]*>([\s\S]*?)<\/div>/i.exec(String(html || ''))?.[1] || '';
+  // Keep the demo's operating instructions and disclosures, including inline links.
+  return [...copy.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+    .map((paragraph) => `<p>${paragraph[1].trim()}</p>`)
+    .join('\n');
+}
+
 function loadProjectDemoDefinitions() {
   const projects = loadProjects();
   const byDemoId = new Map();
@@ -74,6 +82,7 @@ function loadProjectDemoDefinitions() {
       projectId,
       title,
       subtitle: String(project.subtitle || '').trim(),
+      descriptionHtml: extractDemoDescriptionHtml(fs.readFileSync(rawFile, 'utf8')),
       canonicalPath,
       canonicalUrl: `${SITE_ORIGIN}${canonicalPath}`,
       rawPath: toRawProjectDemoUrl(demoId),
@@ -82,7 +91,7 @@ function loadProjectDemoDefinitions() {
       wrapperFile: path.join(wrapperDir, `${demoId}.html`),
       backHref: isPublished ? `/portfolio/${encodeURIComponent(projectId)}` : '/?view=library#projects',
       backLabel: isPublished ? `Back to ${title}` : 'Back to project library',
-      backCompactLabel: isPublished ? 'Back to project' : 'Back to library'
+      backCompactLabel: isPublished ? 'Back to project' : 'Project library'
     });
   });
 }
@@ -127,6 +136,8 @@ function renderDemoWrapperPage(definition) {
   const pageTitle = /\bdemo$/i.test(definition.title)
     ? definition.title
     : `${definition.title} Demo`;
+  const descriptionHtml = definition.descriptionHtml ||
+    (definition.subtitle ? `<p>${escapeHtml(definition.subtitle)}</p>` : '');
   const frameId = `project-demo-frame-${definition.demoId}`;
   const basePage = `<!DOCTYPE html>
 <html lang="en" class="no-js">
@@ -147,6 +158,21 @@ function renderDemoWrapperPage(definition) {
 <body class="project-demo-wrapper-page" data-page="project-demo">
   <a href="#main" class="skip-link">Skip to interactive demo</a>
 ${header}
+
+  <header class="project-demo-wrapper-header" data-project-demo-masthead="${escapeHtml(definition.demoId)}" data-page-masthead>
+    <div class="wrapper">
+      <a href="${escapeHtml(definition.backHref)}" aria-label="${escapeHtml(definition.backLabel)}" data-page-masthead-parent>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"></path></svg>
+        <span>${escapeHtml(definition.backCompactLabel)}</span>
+      </a>
+      <div data-page-masthead-intro>
+        <div data-page-masthead-copy>
+          <h1>${escapeHtml(pageTitle)}</h1>
+          ${descriptionHtml}
+        </div>
+      </div>
+    </div>
+  </header>
 
   <main id="main" class="project-demo-wrapper-main" aria-label="${escapeHtml(definition.title)} interactive demo">
     <div class="project-demo-wrapper-frame">
@@ -171,6 +197,7 @@ ${footer}
     view: 'detail',
     fit: 'viewport',
     chrome: 'compact',
+    includeProjectDemoHeader: true,
     backHref: definition.backHref,
     backLabel: definition.backCompactLabel,
     backCompactLabel: definition.backCompactLabel,
@@ -216,6 +243,7 @@ if (require.main === module) main();
 module.exports = {
   GUARD_END,
   GUARD_START,
+  extractDemoDescriptionHtml,
   injectRawDemoGuard,
   loadProjectDemoDefinitions,
   renderDemoWrapperPage,

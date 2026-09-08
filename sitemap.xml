@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.danielshort.me/</loc>
-    <lastmod>2026-09-07</lastmod>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio</loc>
@@ -10,11 +10,11 @@
   </url>
   <url>
     <loc>https://www.danielshort.me/games</loc>
-    <lastmod>2026-09-06</lastmod>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/contact</loc>
-    <lastmod>2026-09-03</lastmod>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/solutions</loc>
@@ -35,23 +35,23 @@
 
   <url>
     <loc>https://www.danielshort.me/games/stellar-dogfight</loc>
-    <lastmod>2026-09-06</lastmod>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/games/roulette</loc>
-    <lastmod>2026-09-06</lastmod>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/games/probability-engine</loc>
-    <lastmod>2026-09-06</lastmod>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/games/stormbreak</loc>
-    <lastmod>2026-09-06</lastmod>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/games/ocean-wave-simulation</loc>
-    <lastmod>2026-09-06</lastmod>
+    <lastmod>2026-09-07</lastmod>
+  </url>
+  <url>
+    <loc>https://www.danielshort.me/games/roulette</loc>
+    <lastmod>2026-09-07</lastmod>
+  </url>
+  <url>
+    <loc>https://www.danielshort.me/games/probability-engine</loc>
+    <lastmod>2026-09-07</lastmod>
+  </url>
+  <url>
+    <loc>https://www.danielshort.me/games/stormbreak</loc>
+    <lastmod>2026-09-07</lastmod>
   </url>
 
   <url>

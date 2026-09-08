@@ -503,19 +503,25 @@ function renderPersonalToolHeader(options = {}) {
     extraHtml ? 'personal-tool-header--with-actions' : '',
     extraHtml && /\bshortlinks-command-actions\b/i.test(extraHtml) ? 'shortlinks-command-header' : ''
   ].filter(Boolean).join(' ');
+  const accountHtml = includeAccount && !hasEmbeddedAccount
+    ? renderToolsAccountDock('personal-tool-header__account', { mastheadActions: !extraHtml })
+    : '';
+  const actionsHtml = extraHtml
+    ? `<div class="personal-tool-header__actions" data-page-masthead-actions>${extraHtml}${accountHtml ? `\n${accountHtml}` : ''}</div>`
+    : accountHtml;
 
   return [
     PERSONAL_TOOL_HEADER_START,
-    `<header class="${headerClasses}" data-personal-tool-header="${escapeHtml(itemId)}">`,
+    `<header class="${headerClasses}" data-personal-tool-header="${escapeHtml(itemId)}" data-page-masthead>`,
     '  <div class="wrapper personal-tool-header__inner">',
-    '    <div class="personal-tool-header__copy">',
-    `      <h1 id="personal-tool-title-${escapeHtml(itemId)}">${escapeHtml(title)}</h1>`,
-    summary ? `      <p class="personal-tool-header__summary">${escapeHtml(summary)}</p>` : '',
+    `    <a class="personal-tool-header__parent" href="/tools" aria-label="Back to tool library" data-page-masthead-parent>${renderIcon('<path d="M19 12H5m7 7-7-7 7-7"></path>')}<span>Tool library</span></a>`,
+    '    <div class="personal-tool-header__intro" data-page-masthead-intro>',
+    '      <div class="personal-tool-header__copy" data-page-masthead-copy>',
+    `        <h1 id="personal-tool-title-${escapeHtml(itemId)}">${escapeHtml(title)}</h1>`,
+    summary ? `        <p class="personal-tool-header__summary">${escapeHtml(summary)}</p>` : '',
+    '      </div>',
+    actionsHtml ? `      ${actionsHtml}` : '',
     '    </div>',
-    includeAccount && !hasEmbeddedAccount
-      ? renderToolsAccountDock('personal-tool-header__account').split('\n').map((line) => `    ${line}`).join('\n')
-      : '',
-    extraHtml ? `    <div class="personal-tool-header__actions">${extraHtml}</div>` : '',
     '  </div>',
     '</header>',
     PERSONAL_TOOL_HEADER_END
@@ -735,6 +741,15 @@ function findFragmentRange(html, options = {}) {
   const main = findMainRange(html);
   let start = main.start;
   let end = main.end;
+
+  if (options.includeProjectDemoHeader) {
+    const beforeMain = html.slice(0, main.start);
+    const headerMatches = [...beforeMain.matchAll(/<header\b[^>]*\sdata-project-demo-masthead(?=[\s=>])[^>]*>[\s\S]*?<\/header>/gi)];
+    if (headerMatches.length !== 1) {
+      throw new Error('Project demo detail must contain one generated masthead before its main element.');
+    }
+    start = headerMatches[0].index;
+  }
 
   if (options.includePersonalToolHeader) {
     const beforeMain = html.slice(0, main.start);

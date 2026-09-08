@@ -13,6 +13,8 @@ const entry = read('build/entries/project-starfall.entry.js');
 const buildScript = read('build/build-js.js');
 const injector = read('build/inject-script-bundles.js');
 const page = read('pages/games/project-starfall.html');
+const scriptPaths = [...page.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g)]
+  .map((match) => new URL(match[1], 'https://example.test/').pathname);
 
 [
   'project-starfall-data.js',
@@ -29,11 +31,11 @@ assert(buildScript.includes("baseName: 'project-starfall'") && buildScript.inclu
   'shared JS build should publish the Project Starfall bundle');
 assert(injector.includes("projectStarfall: resolveHref('project-starfall.js', manifest.projectStarfall)"),
   'script injector should resolve the hashed Project Starfall bundle');
-assert((page.match(/js\/vendor\/pixi\.min\.js/g) || []).length === 1,
+assert(scriptPaths.filter((scriptPath) => scriptPath === '/js/vendor/pixi.min.js').length === 1,
   'Project Starfall page should load Pixi exactly once');
-assert((page.match(/dist\/project-starfall(?:\.[0-9a-f]{8})?\.js/g) || []).length === 1,
+assert(scriptPaths.filter((scriptPath) => /^\/dist\/project-starfall(?:\.[0-9a-f]{8})?\.js$/.test(scriptPath)).length === 1,
   'Project Starfall page should load one production game bundle');
-assert(!/src="js\/games\/project-starfall\//.test(page),
+assert(!scriptPaths.some((scriptPath) => scriptPath.startsWith('/js/games/project-starfall/')),
   'Project Starfall page should not ship the former per-module script waterfall');
 
 childProcess.execFileSync(process.execPath, ['build/build-js.js'], {

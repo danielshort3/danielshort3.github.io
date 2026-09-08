@@ -48,7 +48,7 @@
       "enabled": true,
       "variant": "default",
       "props": {
-        "html": "<section class=\"hero hero--default alt-band\">\n    <div class=\"wrapper\">\n      <h1>Let's Connect</h1>\n      <p class=\"hero-tagline\">Send a note about a project, tool, idea, or question.<br>I’ll reply when I can.</p>\n        <div class=\"cta-group\">\n          <button id=\"contact-form-toggle\" class=\"btn-primary hero-cta\">Send a Message</button>\n        </div>\n    </div>\n  </section>"
+        "html": "<section class=\"hero hero--default alt-band\" data-page-masthead>\n    <div class=\"wrapper\">\n      <a href=\"/#contact\" aria-label=\"Back to categories\" data-page-masthead-parent><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M19 12H5m7 7-7-7 7-7\"></path></svg><span>Back to categories</span></a>\n      <div data-page-masthead-intro>\n        <div data-page-masthead-copy>\n          <h1>Let's Connect</h1>\n          <p class=\"hero-tagline\">Send a note about a project, tool, idea, or question. I’ll reply when I can.</p>\n        </div>\n        <div class=\"cta-group\" data-page-masthead-actions>\n          <button id=\"contact-form-toggle\" class=\"btn-primary hero-cta\">Send a Message</button>\n        </div>\n      </div>\n    </div>\n  </section>"
       }
     },
     {
@@ -68,21 +68,23 @@
       "enabled": true,
       "variant": "default",
       "props": {
-        "html": "<section id=\"contact-options\" class=\"surface-band reveal\">\n    <div class=\"wrapper\">\n      <div class=\"contact-options-heading\">\n        <h2 class=\"section-title\">Other ways to connect</h2>\n        <p class=\"section-subtitle\">Email is fastest. I’m based in Grand Junction, Colorado.</p>\n      </div>\n      <div class=\"contact-grid contact-big\">\n        <a href=\"mailto:daniel@danielshort.me\" class=\"contact-card\">\n          <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"></rect><path d=\"M3 7l9 6 9-6\"></path></svg>\n          <span>Email</span><small>daniel@danielshort.me</small>\n        </a>\n        <a href=\"https://github.com/danielshort3\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"contact-card\">\n          <span class=\"icon icon-github\" aria-hidden=\"true\"></span>\n          <span>GitHub</span><small>@danielshort3</small>\n        </a>\n      </div>\n    </div>\n  </section>"
+        "html": "<section id=\"contact-options\" class=\"surface-band reveal\">\n    <div class=\"wrapper\">\n      <div class=\"contact-options-heading\">\n        <h2 class=\"section-title\">Other ways to connect</h2>\n        <p class=\"section-subtitle\">Email is fastest. I’m based in Delta, Colorado.</p>\n      </div>\n      <div class=\"contact-grid contact-big\">\n        <a href=\"mailto:daniel@danielshort.me\" class=\"contact-card\">\n          <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"></rect><path d=\"M3 7l9 6 9-6\"></path></svg>\n          <span>Email</span><small>daniel@danielshort.me</small>\n        </a>\n        <a href=\"https://github.com/danielshort3\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"contact-card\">\n          <span class=\"icon icon-github\" aria-hidden=\"true\"></span>\n          <span>GitHub</span><small>@danielshort3</small>\n        </a>\n      </div>\n    </div>\n  </section>"
       }
     },
     {
       "id": "grand-junction-location",
       "type": "map",
-      "label": "Grand Junction Location",
-      "enabled": false,
+      "label": "Delta Location",
+      "enabled": true,
       "variant": "default",
       "props": {
-        "title": "Based in Grand Junction, CO",
-        "body": "A western Colorado base for tourism, analytics, and practical web projects.",
-        "address": "Grand Junction, CO",
+        "title": "Delta, Colorado",
+        "body": "My home base in western Colorado.",
+        "address": "Delta, CO",
         "buttonLabel": "Open in Google Maps",
         "embed": true,
+        "useEmbedApi": false,
+        "persist": true,
         "zoom": 10
       }
     }

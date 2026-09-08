@@ -802,13 +802,23 @@
     toolbar.hidden = !toolbarBack;
   }
 
+  function replaceRouteBody(nextBody) {
+    window.ContactMap?.hide();
+    // The loaded map stays connected while route bodies are replaced.
+    [...viewport.childNodes].forEach((node) => {
+      if (node !== nextBody && !node.hasAttribute?.('data-persistent-contact-map')) node.remove();
+    });
+    if (viewport.firstChild !== nextBody) viewport.insertBefore(nextBody, viewport.firstChild);
+    window.ContactMap?.refresh();
+  }
+
   function commit(description, options = {}) {
     const from = (held?.refreshing ? capture() : held?.from) || options.from || capture();
     const next = loadContent(description, Boolean(options.original));
     current = next;
     desiredTarget = next;
     body = next.body;
-    viewport.replaceChildren(body);
+    replaceRouteBody(body);
     toolbar.replaceChildren(...(description.toolbar ? [...document.importNode(description.toolbar, true).childNodes] : []));
     toolbar.hidden = !description.toolbar;
     updateHomeToolbar(next);
@@ -849,7 +859,7 @@
     current = saved.description;
     desiredTarget = current;
     body = saved.body;
-    viewport.replaceChildren(body);
+    replaceRouteBody(body);
     toolbar.replaceChildren(...saved.toolbar);
     toolbar.hidden = !saved.toolbar.length;
     updateHomeToolbar(current);
@@ -878,7 +888,9 @@
         child.hidden = view === 'library' ? !library : library;
         child.inert = child.hidden;
       });
+      window.ContactMap?.hide();
       body.replaceChildren(...(next.heading ? [next.heading, item] : [item]));
+      window.ContactMap?.refresh();
       updateHomeToolbar(next);
       if (mounting) { prepareHeldTarget(next, held.refreshing ? capture() : held.from); return true; }
       const moving = release({ animate: options.animate !== false, scroll: options.scroll });

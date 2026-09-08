@@ -142,7 +142,7 @@ function main() {
     // 3) Branded homepage library previews (authored WebP cards)
     const homeVisualsStep = runNodeScript(path.join('build', 'validate-home-library-visuals.js'), { verbose });
     logStep('home-previews', homeVisualsStep.durationMs,
-      '16 projects + 10 tools + 5 games (1 archived game preview retained)');
+      '16 projects + 10 tools + 6 games');
 
     // 4) CSS bundle (css/ -> dist/)
     const cssStep = runNodeScript(path.join('build', 'build-css.js'), { verbose });
@@ -279,7 +279,7 @@ function main() {
       { verbose, args: ['--public'] }
     );
     logStep('public-previews', publicHomeVisualsStep.durationMs,
-      '31 public source/deploy hashes identical; archived preview tree preserved');
+      '32 public source/deploy hashes identical; retained preview tree preserved');
 
     log(`Done in ${formatDuration(Date.now() - started)}`);
   } catch (err) {

@@ -128,6 +128,8 @@
   /* Demo iframes need a definite containing height through the persistent frame.
      Other routes keep their natural document height inside the viewport. */
   body.project-demo-wrapper-page .site-frame[data-frame-fit="viewport"][data-frame-compact="false"] .site-frame__body {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     height: 100%;
   }
   body.project-demo-wrapper-page .site-frame[data-frame-fit="viewport"][data-frame-compact="false"] .site-frame__viewport {
@@ -356,12 +358,12 @@
     margin-inline: var(--frame-content-gutter);
   }
   @container site-content (min-width: 1500px) {
-    .site-frame[data-frame-audience="personal"] .home-accordion__item:not(.home-accordion__item--has-library) .home-accordion__cards {
+    .site-frame[data-frame-audience="personal"] .home-accordion__item--about .home-accordion__cards {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: var(--frame-section-gap);
     }
-    .site-frame[data-frame-audience="personal"] .home-accordion__item:not(.home-accordion__item--has-library) .home-accordion__cards .home-accordion__card {
+    .site-frame[data-frame-audience="personal"] .home-accordion__item--about .home-accordion__cards .home-accordion__card {
       height: 100%;
     }
   }

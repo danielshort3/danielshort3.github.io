@@ -1,0 +1,192 @@
+@layer overrides {
+  .site-frame[data-frame-audience="personal"] .home-about .home-timeline[data-home-timeline-layout="resume"] {
+    display: block;
+    overflow: visible;
+  }
+
+  .site-frame[data-frame-audience="personal"] .home-about .home-timeline[data-home-timeline-layout="resume"] > h3 {
+    width: 100%;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #b6c4d5;
+  }
+
+  .home-background {
+    container: home-background / inline-size;
+    min-width: 0;
+    color: #091f3b;
+    font-family: inherit;
+  }
+
+  .home-background__section,
+  .home-background__issuer {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .home-background__section + .home-background__section {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #d1dae5;
+  }
+
+  .home-background__section-title {
+    margin: 0 0 4px;
+    color: #087f8c;
+    font-size: .875rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+
+  .home-background__list,
+  .home-background__credential-list {
+    display: grid;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .home-background__item {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 5px 14px;
+    align-items: start;
+    min-width: 0;
+    margin: 0;
+    padding: 14px 0;
+    background: transparent;
+  }
+
+  .home-background__item + .home-background__item { border-top: 1px solid #dce3ec; }
+  .home-background__item:last-child { padding-bottom: 0; }
+
+  .home-background__icon {
+    display: block;
+    grid-area: 1 / 1;
+    width: 24px;
+    height: 24px;
+    color: #233d5f;
+  }
+
+  .home-background__icon svg { display: block; width: 100%; height: 100%; }
+
+  .home-background .home-background__entry {
+    display: block;
+    grid-area: 1 / 2;
+    min-width: 0;
+    margin: 0;
+    color: #091f3b;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .home-background__title {
+    display: block;
+    font-size: .9375rem;
+    font-weight: 700;
+    letter-spacing: -.015em;
+    line-height: 1.45;
+  }
+
+  .home-background__subtitle {
+    display: block;
+    margin-top: 3px;
+    color: #334b68;
+    font-size: .8125rem;
+    line-height: 1.5;
+  }
+
+  .home-background__date {
+    display: flex;
+    grid-area: 2 / 2;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 4px;
+    min-width: 0;
+    color: #526174;
+    font-size: .75rem;
+    line-height: 1.5;
+  }
+
+  .home-background__date time { white-space: nowrap; }
+
+  .home-background__issuers {
+    display: grid;
+    gap: 20px;
+    margin-top: 18px;
+  }
+
+  .home-background__issuer + .home-background__issuer {
+    padding-top: 18px;
+    border-top: 1px solid #dce3ec;
+  }
+
+  .home-background__issuer-title {
+    margin: 0 0 10px;
+    color: #091f3b;
+    font-size: .875rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+
+  .home-background__credential-list { gap: 8px; }
+  .home-background__credential { min-width: 0; margin: 0; padding: 0; }
+
+  .home-background .home-background__credential-link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-height: 24px;
+    max-width: 100%;
+    color: #155dfc;
+    font-size: .8125rem;
+    font-weight: 550;
+    line-height: 1.5;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .home-background__credential-link svg {
+    position: relative;
+    top: 1px;
+    flex: 0 0 13px;
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .home-background a.home-background__entry:hover .home-background__title,
+  .home-background a.home-background__credential-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .home-background a:focus-visible {
+    outline: 2px solid #155dfc;
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  @container home-background (min-width: 420px) {
+    .home-background__item { grid-template-columns: 24px minmax(0, 1fr) max-content; }
+    .home-background__date { grid-area: 1 / 3; align-self: center; justify-content: end; }
+  }
+
+  @container home-background (min-width: 400px) {
+    .home-background__issuers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .home-background__issuer + .home-background__issuer { padding: 0 0 0 20px; border-top: 0; border-left: 1px solid #dce3ec; }
+  }
+
+  @media print {
+    .home-background__item,
+    .home-background__issuer { break-inside: avoid; }
+  }
+}

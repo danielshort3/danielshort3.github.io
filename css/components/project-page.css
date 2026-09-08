@@ -1905,16 +1905,16 @@
   }
 
   @container site-content (min-width: 700px) {
-    body.project-page[data-page="project"] .project-main--compact .project-hero.project-hero--compact .wrapper {
+    body.project-page[data-page="project"] .project-main--compact .project-hero.project-hero--compact:not([data-page-masthead]) .wrapper {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
     }
 
-    body.project-page[data-page="project"] .project-main--compact .project-hero.project-hero--compact h1 {
+    body.project-page[data-page="project"] .project-main--compact .project-hero.project-hero--compact:not([data-page-masthead]) h1 {
       grid-column: 1 / -1;
     }
 
-    .project-main--compact .project-intro-actions {
+    .project-main--compact .project-hero:not([data-page-masthead]) .project-intro-actions {
       grid-column: 2;
       margin-top: 0;
     }

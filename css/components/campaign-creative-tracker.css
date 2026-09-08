@@ -43,7 +43,7 @@
     text-transform: uppercase;
   }
 
-  body[data-page="campaign-creative-tracker"] .tools-hero h1 {
+  body[data-page="campaign-creative-tracker"] .tools-hero:not([data-page-masthead]) h1 {
     margin: 0;
     width: auto !important;
     max-width: none !important;

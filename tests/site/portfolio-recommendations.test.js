@@ -43,9 +43,10 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   assert(
     indexHtml.includes('data-home-accordion-item="about"') &&
       indexHtml.includes('data-content-id="handwritingRating"') &&
-      !indexHtml.includes('data-content-id="project-starfall"') &&
+      indexHtml.includes('data-content-id="project-starfall"') &&
+      indexHtml.includes('Work in progress') &&
       indexHtml.includes('href="/tools"'),
-    'home accordion should keep the approved personal starting points and omit Project Starfall',
+    'home accordion should keep the selected starting points and expose the work-in-progress Project Starfall',
   );
   assert(
     !/animation[^;\n}]*\binfinite\b/.test(accordionCss),

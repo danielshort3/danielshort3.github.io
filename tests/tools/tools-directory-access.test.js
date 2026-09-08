@@ -29,10 +29,10 @@ async function run() {
   });
   const html = renderPersonalLibraryMain({ category: 'tools', items });
   const expectedGroups = {
-    Text: ['text-compare', 'nbsp-cleaner', 'oxford-comma-checker', 'point-of-view-checker', 'word-frequency'],
+    'Start here': ['text-compare', 'qr-code-generator', 'screen-recorder'],
+    Text: ['nbsp-cleaner', 'oxford-comma-checker', 'point-of-view-checker', 'word-frequency'],
     Images: ['image-optimizer', 'background-remover'],
-    Links: ['utm-batch-builder', 'qr-code-generator'],
-    Recording: ['screen-recorder'],
+    Links: ['utm-batch-builder'],
     'Account tools': ['job-application-tracker', 'transcribe'],
     'Admin tools': ['short-links', 'campaign-creative-tracker', 'ga4-utm-performance']
   };
@@ -43,7 +43,9 @@ async function run() {
       cards: [...match[2].matchAll(/<li\b([^>]*)>([\s\S]*?)<\/li>/g)]
     }));
   check(groups.map((group) => group.name).join('|') === Object.keys(expectedGroups).join('|'),
-    'Dedicated tools should group public categories first, then account and admin tools.');
+    'Dedicated tools should lead with the selected public tools, followed by subject groups, account tools, and admin tools.');
+  check(JSON.stringify(items.slice(0, 3).map((item) => item.id)) === JSON.stringify(expectedGroups['Start here']),
+    'The first three tools must be Text Compare, QR Code Generator, and Screen Recorder in that order.');
   groups.forEach((group) => {
     const cardIds = group.cards.map((match) => /data-content-id="([^"]+)"/.exec(match[2])?.[1]);
     check(JSON.stringify([...cardIds].sort()) === JSON.stringify([...expectedGroups[group.name]].sort()),

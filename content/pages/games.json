@@ -33,12 +33,30 @@
   ],
   "heroEyebrow": "Systems playground",
   "heroTitle": "Games and simulations",
-  "heroLead": "Five playable experiments in probability, progression, and interactive systems.",
+  "heroLead": "Six playable experiments in probability, progression, and interactive systems.",
   "brandPanel": {
     "signals": [],
     "proofPoints": []
   },
   "games": [
+    {
+      "id": "project-starfall",
+      "iconImage": "img/games/icons/project-starfall.png",
+      "title": "Project Starfall",
+      "href": "games/project-starfall",
+      "summary": "Choose a class, explore side-scrolling maps, and collect gear in this work-in-progress action RPG.",
+      "image": "img/home-previews/games/project-starfall.webp",
+      "imageWidth": 640,
+      "imageHeight": 360,
+      "imageAlt": "Project Starfall fantasy landscape beneath a shattered celestial ring",
+      "tags": [
+        "Work in progress",
+        "Action RPG",
+        "Character progression"
+      ],
+      "iconType": "starfall",
+      "order": 1
+    },
     {
       "id": "stellar-dogfight",
       "iconImage": "img/games/icons/stellar-dogfight.png",
@@ -55,7 +73,7 @@
         "Combat tuning"
       ],
       "iconType": "dogfight",
-      "order": 1
+      "order": 2
     },
     {
       "id": "roulette",
@@ -69,7 +87,7 @@
         "Table state"
       ],
       "iconType": "roulette",
-      "order": 2
+      "order": 4
     },
     {
       "id": "probability-engine",
@@ -83,7 +101,7 @@
         "Prestige loops"
       ],
       "iconType": "probability",
-      "order": 3
+      "order": 5
     },
     {
       "id": "stormbreak",
@@ -101,7 +119,7 @@
         "Mythic farming"
       ],
       "iconType": "stormbreak",
-      "order": 4
+      "order": 6
     },
     {
       "id": "ocean-wave-simulation",
@@ -115,7 +133,7 @@
         "Visual systems"
       ],
       "iconType": "ocean",
-      "order": 5
+      "order": 3
     }
   ]
 }

@@ -39,8 +39,11 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
   const routeBody = (options = page) => ({
     isConnected: options.isConnected !== false,
     querySelector(selector) {
-      if (selector === 'h1') return page.heading ? { textContent: page.heading } : null;
+      if (selector === 'h1') return (options.heading || page.heading) ? { textContent: options.heading || page.heading } : null;
       if (selector === '[data-page-masthead]') return options.integratedHeader ? new Element('header') : null;
+      if (selector === '[data-page-masthead-parent]') {
+        return options.mastheadParent ? { getAttribute: (name) => options.mastheadParent[name] || null } : null;
+      }
       return null;
     }
   });
@@ -123,6 +126,26 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
   page.back = { href: '/?view=library#projects', 'aria-label': 'Back to project library' };
   emit('site:route-change');
   expect(['Home', 'Projects', 'Baby Name Predictor Demo'], ['/', '/portfolio']);
+
+  setPage({ path: '/baby-names-demo', category: 'projects', page: 'project-demo', heading: 'Baby Name Predictor Demo',
+    integratedHeader: true, mastheadParent: { href: '/portfolio/babynames', 'aria-label': 'Back to Baby Name Predictor' } });
+  emit('site:route-change');
+  expect(['Home', 'Projects', 'Baby Name Predictor', 'Demo'], ['/', '/portfolio', '/portfolio/babynames']);
+  setPage({ path: '/shape-demo', category: 'projects', page: 'project-demo', heading: 'Stale demo title',
+    mastheadParent: { href: '/portfolio/babynames', 'aria-label': 'Back to Baby Name Predictor' },
+    back: { href: '/portfolio/babynames', 'aria-label': 'Back to Baby Name Predictor' },
+    frame: { category: 'projects', view: 'detail' }, frameBody: { heading: 'Shape Classifier Demo',
+      mastheadParent: { href: '/portfolio/shapeClassifier', 'aria-label': 'Back to Shape Classifier' } } });
+  emit('site:route-change');
+  expect(['Home', 'Projects', 'Shape Classifier', 'Demo'], ['/', '/portfolio', '/portfolio/shapeClassifier']);
+  page.frameBody.isConnected = false;
+  page.heading = 'Baby Name Predictor Demo';
+  emit('site:route-change');
+  expect(['Home', 'Projects', 'Baby Name Predictor', 'Demo'], ['/', '/portfolio', '/portfolio/babynames']);
+  setPage({ path: '/minesweeper-demo', category: 'projects', page: 'project-demo', heading: 'Minesweeper Demo',
+    mastheadParent: { href: '/?view=library#projects', 'aria-label': 'Back to project library' } });
+  emit('site:route-change');
+  expect(['Home', 'Projects', 'Minesweeper Demo'], ['/', '/portfolio']);
 
   setPage({ path: '/portfolio', audience: 'analytics', category: 'projects', heading: 'Project Library' });
   emit('site:route-change');

@@ -203,11 +203,25 @@ async function runAsyncChecks() {
   let mountedChildren;
   const releasedFits = [];
   const homeContext = vm.createContext({
+    window: {},
     current: { home: true, view: 'overview', fit: 'viewport', manifest: {}, heading: homeHeading,
       libraryBackButtons,
       items: new Map(order.map(category => [category, category === 'tools' ? homeItem : { querySelector: () => ({ children: [] }) }])) },
     framePolicy, localSequence: 0, desiredTarget: null, held: null,
-    toolbar: homeToolbar, viewport: { replaceChildren() {} }, capture: () => ({}), transition() {}, setLoading() {},
+    toolbar: homeToolbar, viewport: {
+      childNodes: [],
+      get firstChild() { return this.childNodes[0] || null; },
+      insertBefore(node, reference) {
+        node.remove?.();
+        const index = reference ? this.childNodes.indexOf(reference) : this.childNodes.length;
+        this.childNodes.splice(index, 0, node);
+        node.parentNode = this;
+        node.remove = () => {
+          this.childNodes.splice(this.childNodes.indexOf(node), 1);
+          node.parentNode = null;
+        };
+      }
+    }, capture: () => ({}), transition() {}, setLoading() {},
     body: { replaceChildren: (...children) => { mountedChildren = children; } },
     release: () => { releasedFits.push(homeContext.current.fit); return Promise.resolve(true); }
   });
