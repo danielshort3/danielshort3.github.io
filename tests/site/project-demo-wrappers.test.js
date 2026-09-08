@@ -5,6 +5,7 @@ const path = require('path');
 const {
   GUARD_END,
   GUARD_START,
+  extractDemoDescriptionHtml,
   injectRawDemoGuard,
   loadProjectDemoDefinitions,
   renderDemoWrapperPage
@@ -15,6 +16,7 @@ const {
   toRawProjectDemoUrl
 } = require('../../build/lib/project-demo-routes');
 const { renderProjectPage } = require('../../build/generate-project-pages');
+const { PERSONAL_CONTENT_START, PERSONAL_CONTENT_END } = require('../../build/lib/personal-accordion-shell');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 
@@ -24,6 +26,11 @@ function read(relativePath) {
 
 function count(source, pattern) {
   return (String(source || '').match(pattern) || []).length;
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function runProjectDemoWrapperTests({ assert }) {
@@ -39,6 +46,16 @@ function runProjectDemoWrapperTests({ assert }) {
     'Project demo continuity should cover all 12 raw demo documents');
   assert(new Set(definitions.map((item) => item.demoId)).size === 12,
     'Project demo wrapper definitions should have unique route ids');
+  assert(extractDemoDescriptionHtml('<div class="header-copy"><h1>Demo</h1><p class="subtitle">Read <a href="/privacy">privacy details</a>.</p><p>Keep this disclosure.</p></div>') ===
+    '<p>Read <a href="/privacy">privacy details</a>.</p>\n<p>Keep this disclosure.</p>',
+  'Standalone demo descriptions should preserve instructional links and every existing disclosure paragraph');
+  assert(extractDemoDescriptionHtml('<div class="other"><p>Unrelated copy</p></div>') === '',
+    'Unrecognized demo layouts should use the project description fallback');
+  const fallbackDefinition = { ...definitions[0], descriptionHtml: '', subtitle: 'Text & examples <inside the browser>' };
+  assert(renderDemoWrapperPage(fallbackDefinition).includes('<p>Text &amp; examples &lt;inside the browser&gt;</p>'),
+    'Project subtitles should remain safely escaped when a raw demo has no instructional description');
+  assert(definitions.find((definition) => definition.demoId === 'chatbot-demo')?.descriptionHtml.includes('Inputs and responses are saved on AWS.'),
+    'The standalone chatbot masthead should retain its existing storage disclosure');
   assert(toRawProjectDemoUrl('https://www.danielshort.me/shape-demo') === '/demos/shape-demo.html' &&
     toRawProjectDemoUrl('shape-demo.html') === '/demos/shape-demo.html' &&
     toCanonicalProjectDemoUrl('/demos/shape-demo.html') === '/shape-demo' &&
@@ -71,6 +88,23 @@ function runProjectDemoWrapperTests({ assert }) {
     `${wrapperRelativePath} should distinguish natural content from bounded chat viewports`);
     assert(wrapperFromSource.includes(`>${definition.backCompactLabel}</span>`),
       `${wrapperRelativePath} should use a concise visible return label with a descriptive accessible name`);
+    const fragment = wrapperFromSource.slice(
+      wrapperFromSource.indexOf(PERSONAL_CONTENT_START) + PERSONAL_CONTENT_START.length,
+      wrapperFromSource.indexOf(PERSONAL_CONTENT_END)
+    );
+    const masthead = /<header\b[^>]*\sdata-project-demo-masthead=[^>]*>[\s\S]*?<\/header>/i.exec(fragment)?.[0] || '';
+    const expectedTitle = /\bdemo$/i.test(definition.title) ? definition.title : `${definition.title} Demo`;
+    assert(count(fragment, /\sdata-page-masthead(?=[\s=>])/g) === 1 &&
+      masthead.includes(`data-project-demo-masthead="${definition.demoId}"`) &&
+      masthead.includes('data-page-masthead-intro') && masthead.includes('data-page-masthead-copy') &&
+      masthead.includes(`<h1>${escapeHtml(expectedTitle)}</h1>`) &&
+      definition.descriptionHtml && masthead.includes(definition.descriptionHtml),
+    `${wrapperRelativePath} should render its project title and existing demo instructions in the shared section masthead`);
+    assert(fragment.indexOf(masthead) < fragment.indexOf('<main id="main"') &&
+      !/<main\b[^>]*>[\s\S]*data-page-masthead/.test(fragment) &&
+      !/\sdata-site-route-toolbar(?=[\s=>])/.test(wrapperFromSource) &&
+      !wrapperFromSource.includes('class="personal-accordion__back"'),
+    `${wrapperRelativePath} should keep its masthead outside the measured demo main without a duplicate back toolbar`);
     assert(count(raw, new RegExp(GUARD_START, 'g')) === 1 &&
       count(raw, new RegExp(GUARD_END, 'g')) === 1 &&
       raw.includes('if (window.self === window.top)') &&
@@ -85,9 +119,13 @@ function runProjectDemoWrapperTests({ assert }) {
       wrapper.includes('data-personal-chrome="compact"') &&
       count(wrapper, /data-personal-rail-active="true"/g) === 1,
     `${wrapperRelativePath} should use one compact Projects shell`);
-    assert(wrapper.includes(`href="${definition.backHref}" aria-label="${definition.backLabel.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`) &&
+    assert(wrapper.includes(`href="${escapeHtml(definition.backHref)}" aria-label="${escapeHtml(definition.backLabel)}" data-page-masthead-parent`) &&
       wrapper.includes(`href="${definition.canonicalUrl}"`),
     `${wrapperRelativePath} should retain its project/library return path and canonical URL`);
+    assert(count(wrapper, /\sdata-page-masthead(?=[\s=>])/g) === 1 &&
+      count(wrapper, /\sdata-page-masthead-parent(?=[\s=>])/g) === 1 &&
+      !/\sdata-site-route-toolbar(?=[\s=>])/.test(wrapper),
+    `${wrapperRelativePath} should publish the shared masthead without a legacy toolbar`);
     assert(count(wrapper, /<iframe\b/gi) === 1 &&
       wrapper.includes(`class="project-demo-wrapper-iframe" src="${definition.rawPath}"`) &&
       !wrapper.includes(`class="project-demo-wrapper-iframe" src="${definition.canonicalPath}"`),
@@ -122,7 +160,8 @@ function runProjectDemoWrapperTests({ assert }) {
     css.includes('body.project-demo-wrapper-page .personal-accordion__content') &&
     css.includes('overflow: hidden !important;'),
   'The personal shell should give wrapper iframes a full, isolated content viewport');
-  assert(/body\.project-demo-wrapper-page \.site-frame\[data-frame-fit="viewport"\]\[data-frame-compact="false"\] \.site-frame__body\s*\{\s*height: 100%;/.test(frameCss),
+  const desktopDemoBody = /body\.project-demo-wrapper-page \.site-frame\[data-frame-fit="viewport"\]\[data-frame-compact="false"\] \.site-frame__body\s*\{([^}]+)\}/.exec(frameCss)?.[1] || '';
+  assert(/\bheight:\s*100%;/.test(desktopDemoBody),
     'The persistent desktop frame must preserve a definite height for demo iframe ancestors');
   require('./project-demo-sizing.test')({ assert });
   assert(css.includes('scrollbar-gutter: stable both-edges;'),

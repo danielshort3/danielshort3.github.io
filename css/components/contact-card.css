@@ -126,15 +126,6 @@
   body.professional-contact-page #grand-junction-location{
     padding-block:clamp(32px,5vw,56px);
   }
-  body.professional-contact-page #grand-junction-location .cms-location-inner{
-    display:block;
-  }
-  body.professional-contact-page #grand-junction-location .cms-location-copy{
-    max-width:720px;
-    margin-inline:auto;
-    text-align:center;
-  }
-  body.professional-contact-page #grand-junction-location .cms-map-shell[hidden],
   #contact-options .contact-card[hidden]{
     display:none !important;
   }

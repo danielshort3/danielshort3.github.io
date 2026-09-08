@@ -8,6 +8,7 @@ import '../../js/common/certifications-modal.js';
 import '../../js/navigation/navigation.js';
 import '../../js/navigation/site-frame-policy.js';
 import '../../js/navigation/site-frame.js';
+import '../../js/common/contact-map.js';
 import '../../js/navigation/page-transitions.js';
 import '../../js/navigation/header-breadcrumbs.js';
 import '../../js/animations/animations.js';

@@ -2,10 +2,13 @@
 
 const fs = require('fs');
 const path = require('path');
+const { ALL_TOOL_PAGE_IDS, GAME_PAGE_PATHS } = require('../../build/generate-personal-accordion-pages.js');
+const { loadProjectDemoDefinitions } = require('../../build/generate-project-demo-wrappers.js');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const REALM_QUERY_KEYS = new Set(['audience', 'mode']);
+const PROJECT_DEMOS = new Map(loadProjectDemoDefinitions().map((definition) => [definition.demoId, definition]));
 
 function read(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -393,17 +396,32 @@ function assertCompactPersonalShell(html, sourceFile, publicUrl, themedStyleshee
   const parentTags = (html.match(/<a\b[^>]*>/gi) || []).filter((tag) => (
     /\sdata-page-masthead-parent(?=[\s=>])/i.test(tag)
   ));
+  const itemId = tagAttribute(body, 'data-personal-item');
+  const demoDefinition = tagAttribute(body, 'data-page') === 'project-demo' ? PROJECT_DEMOS.get(itemId) : null;
+  const isManagedDetail = tagAttribute(body, 'data-personal-accordion-view') === 'detail' && (
+    (category === 'tools' && ALL_TOOL_PAGE_IDS.includes(itemId)) ||
+    (category === 'games' && Object.prototype.hasOwnProperty.call(GAME_PAGE_PATHS, itemId)) ||
+    Boolean(demoDefinition)
+  );
+  assert(!isManagedDetail || mastheadTags.length === 1,
+    `${sourceFile} should use the shared project-style masthead for its ${category} detail header`);
   if (mastheadTags.length) {
     assert(mastheadTags.length === 1 && parentTags.length === 1 && backTags.length === 0 &&
       !/\sdata-site-route-toolbar(?=[\s=>])/i.test(html),
     `${sourceFile} should contain one integrated masthead parent link without a duplicate toolbar back control`);
+    const introTags = html.match(/<[a-z][^>]*\sdata-page-masthead-intro(?=[\s=>])[^>]*>/gi) || [];
+    const copyTags = html.match(/<[a-z][^>]*\sdata-page-masthead-copy(?=[\s=>])[^>]*>/gi) || [];
+    assert(introTags.length === 1 && copyTags.length === 1,
+      `${sourceFile} should expose one shared title and description layout within its masthead`);
     const parentHref = tagAttribute(parentTags[0], 'href');
-    const expectedParent = tagAttribute(body, 'data-personal-accordion-view') === 'library'
+    const expectedParent = demoDefinition ? demoDefinition.backHref : tagAttribute(body, 'data-personal-accordion-view') === 'library'
       ? `/#${category}`
-      : { projects: '/portfolio', tools: '/tools', games: '/games' }[category];
+      : { projects: '/portfolio', tools: '/tools', games: '/games', contact: '/#contact' }[category];
     const parentUrl = parentHref ? new URL(parentHref, SITE_ORIGIN) : null;
+    const expectedParentUrl = new URL(expectedParent, SITE_ORIGIN);
     assert(parentUrl && parentUrl.origin === SITE_ORIGIN &&
-      `${parentUrl.pathname}${parentUrl.hash}` === expectedParent &&
+      parentUrl.pathname === expectedParentUrl.pathname && parentUrl.hash === expectedParentUrl.hash &&
+      (!demoDefinition || parentUrl.search === expectedParentUrl.search) &&
       !hasNonPersonalRealmEscape(parentUrl),
     `${sourceFile} integrated parent link should return to its personal ${expectedParent} route`);
   } else {

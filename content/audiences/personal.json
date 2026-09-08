@@ -45,8 +45,9 @@
   "portfolioDescription": "Machine learning, analytics, software tools, and browser experiments by Daniel Short.",
   "projectLibrary": {
     "startHereProjectIds": [
-      "babynames",
-      "handwritingRating"
+      "sheetMusicUpscale",
+      "handwritingRating",
+      "babynames"
     ]
   },
   "brandNavPrimary": "Projects, Tools, and Games",
@@ -176,7 +177,8 @@
                 "imageHeight": 384
               },
               "timeline": {
-                "title": "My journey",
+                "title": "Experience & learning",
+                "layout": "resume",
                 "newestFirst": true,
                 "sortBy": "startDate",
                 "dateDisplay": "monthYear",
@@ -200,6 +202,9 @@
                     "type": "certification",
                     "date": "2023-01-03",
                     "title": "Google Data Analytics Professional Certificate",
+                    "issuer": "Google",
+                    "credentialLabel": "Data Analytics",
+                    "credentialOrder": 2,
                     "subtitle": "Google / Coursera",
                     "href": "https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP",
                     "external": true,
@@ -213,6 +218,9 @@
                     "type": "certification",
                     "date": "2023-01-11",
                     "title": "IBM Data Analyst Professional Certificate",
+                    "issuer": "IBM",
+                    "credentialLabel": "Data Analyst",
+                    "credentialOrder": 2,
                     "subtitle": "IBM / Coursera",
                     "href": "https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA",
                     "external": true,
@@ -226,6 +234,9 @@
                     "type": "certification",
                     "date": "2023-02-12",
                     "title": "IBM Machine Learning Professional Certificate",
+                    "issuer": "IBM",
+                    "credentialLabel": "Machine Learning",
+                    "credentialOrder": 1,
                     "subtitle": "IBM / Coursera",
                     "href": "https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2",
                     "external": true,
@@ -253,6 +264,9 @@
                     "type": "certification",
                     "date": "2023-05-20",
                     "title": "Google Advanced Data Analytics Professional Certificate",
+                    "issuer": "Google",
+                    "credentialLabel": "Advanced Data Analytics",
+                    "credentialOrder": 1,
                     "subtitle": "Google / Coursera",
                     "href": "https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS",
                     "external": true,
@@ -290,6 +304,9 @@
                     "type": "certification",
                     "date": "2024-04-18",
                     "title": "Google Analytics Certification",
+                    "issuer": "Google",
+                    "credentialLabel": "Google Analytics",
+                    "credentialOrder": 3,
                     "subtitle": "Google Skillshop",
                     "href": "https://skillshop.credential.net/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a",
                     "external": true,
@@ -321,13 +338,13 @@
               "lead": "A few projects that started with a real question, curiosity, or problem I wanted to solve.",
               "items": [
                 {
-                  "id": "babynames",
-                  "title": "Baby Name Predictor",
-                  "summary": "I built a recommendation model to learn my wife’s taste and help us narrow the list when naming our child.",
-                  "href": "/portfolio/babynames",
-                  "iconImage": "img/projects/icons/babynames.png",
+                  "id": "sheetMusicUpscale",
+                  "title": "Sheet Music Watermark Removal & Upscale",
+                  "summary": "I wanted cleaner, more readable sheet music, so I built a pipeline to remove watermarks and upscale low-resolution scans.",
+                  "href": "/portfolio/sheetMusicUpscale",
+                  "iconImage": "img/projects/icons/sheetMusicUpscale.png",
                   "contentType": "project",
-                  "contentId": "babynames",
+                  "contentId": "sheetMusicUpscale",
                   "resourceType": "case_study"
                 },
                 {
@@ -341,13 +358,13 @@
                   "resourceType": "case_study"
                 },
                 {
-                  "id": "sheetMusicUpscale",
-                  "title": "Sheet Music Watermark Removal & Upscale",
-                  "summary": "I wanted cleaner, more readable sheet music, so I built a pipeline to remove watermarks and upscale low-resolution scans.",
-                  "href": "/portfolio/sheetMusicUpscale",
-                  "iconImage": "img/projects/icons/sheetMusicUpscale.png",
+                  "id": "babynames",
+                  "title": "Baby Name Predictor",
+                  "summary": "I built a recommendation model to learn my wife’s taste and help us narrow the list when naming our child.",
+                  "href": "/portfolio/babynames",
+                  "iconImage": "img/projects/icons/babynames.png",
                   "contentType": "project",
-                  "contentId": "sheetMusicUpscale",
+                  "contentId": "babynames",
                   "resourceType": "case_study"
                 }
               ],
@@ -379,17 +396,6 @@
                   "resourceType": "tool"
                 },
                 {
-                  "id": "image-optimizer",
-                  "title": "Image Optimizer",
-                  "summary": "Resize and compress images locally.",
-                  "href": "/tools/image-optimizer",
-                  "image": "img/tools/icons/image-optimizer.png",
-                  "imageAlt": "Image Optimizer icon",
-                  "contentType": "tool",
-                  "contentId": "image-optimizer",
-                  "resourceType": "tool"
-                },
-                {
                   "id": "qr-code-generator",
                   "title": "QR Code Generator",
                   "summary": "Turn a link or note into a scannable code.",
@@ -398,6 +404,17 @@
                   "imageAlt": "QR Code Generator icon",
                   "contentType": "tool",
                   "contentId": "qr-code-generator",
+                  "resourceType": "tool"
+                },
+                {
+                  "id": "screen-recorder",
+                  "title": "Screen Recorder",
+                  "summary": "Record your screen and download the clip in browser-supported formats with optional system audio.",
+                  "href": "/tools/screen-recorder",
+                  "image": "img/tools/icons/screen-recorder.png",
+                  "imageAlt": "Screen Recorder icon",
+                  "contentType": "tool",
+                  "contentId": "screen-recorder",
                   "resourceType": "tool"
                 }
               ],
@@ -418,14 +435,15 @@
               "lead": "Games and simulations where I explore progression, probability, feedback loops, and feel.",
               "items": [
                 {
-                  "id": "stormbreak",
-                  "title": "Stormbreak: Idle Olympus",
-                  "summary": "Command Zeus and turn lightning, loot, and offline gains into a compounding idle-action loop.",
-                  "href": "/games/stormbreak",
-                  "iconImage": "img/games/icons/stormbreak.png",
-                  "icon": "stormbreak",
+                  "id": "project-starfall",
+                  "title": "Project Starfall",
+                  "badge": "Work in progress",
+                  "summary": "Explore a fantasy action RPG with class skills, loot, and repeatable expeditions.",
+                  "href": "/games/project-starfall",
+                  "iconImage": "img/games/icons/project-starfall.png",
+                  "icon": "spark",
                   "contentType": "game",
-                  "contentId": "stormbreak",
+                  "contentId": "project-starfall",
                   "resourceType": "game"
                 },
                 {
@@ -440,14 +458,14 @@
                   "resourceType": "game"
                 },
                 {
-                  "id": "probability-engine",
-                  "title": "Probability Engine",
-                  "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
-                  "href": "/games/probability-engine",
-                  "iconImage": "img/games/icons/probability-engine.png",
-                  "icon": "probability",
+                  "id": "ocean-wave-simulation",
+                  "title": "Ocean Wave Simulation",
+                  "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",
+                  "href": "/games/ocean-wave-simulation",
+                  "iconImage": "img/games/icons/ocean-wave-simulation.png",
+                  "icon": "wave",
                   "contentType": "game",
-                  "contentId": "probability-engine",
+                  "contentId": "ocean-wave-simulation",
                   "resourceType": "game"
                 }
               ],
@@ -466,6 +484,15 @@
               "colorEnd": "#263648",
               "title": "Say hello",
               "lead": "Send a note about a project, tool, idea, or question. I’ll reply when I can.",
+              "location": {
+                "title": "Delta, Colorado",
+                "body": "My home base in western Colorado.",
+                "address": "Delta, CO",
+                "buttonLabel": "Open in Google Maps",
+                "embed": true,
+                "useEmbedApi": false,
+                "zoom": 10
+              },
               "items": [
                 {
                   "id": "contact-form",
@@ -490,14 +517,20 @@
                   "summary": "github.com/danielshort3",
                   "href": "https://github.com/danielshort3",
                   "icon": "github",
-                  "external": true,
-                  "presentation": "tertiary"
+                  "external": true
                 }
               ]
             }
           ]
         }
       }
+    ]
+  },
+  "toolLibrary": {
+    "startHereToolIds": [
+      "text-compare",
+      "qr-code-generator",
+      "screen-recorder"
     ]
   }
 }

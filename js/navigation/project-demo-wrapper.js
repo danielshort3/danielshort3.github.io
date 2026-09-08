@@ -88,6 +88,13 @@
     const observeFrame = () => {
       disconnectObserver();
       clearScheduledMeasurements();
+      // The wrapper owns the page introduction; keep only workspace controls
+      // in its iframe. Project-page embeds do not receive this marker.
+      try {
+        frame.contentDocument?.documentElement?.setAttribute?.('data-project-demo-standalone', 'true');
+      } catch (_) {
+        // The iframe retains its own introduction if its document is unavailable.
+      }
       if (!active || !usesContentHeight()) {
         clearMobileHeight();
         return;

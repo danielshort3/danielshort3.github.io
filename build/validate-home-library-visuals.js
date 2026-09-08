@@ -13,11 +13,12 @@ const publicPreviewRoot = path.join(root, 'public', 'img', 'home-previews');
 
 const GENERATED_HOME_LIBRARY_VISUALS = {
   games: {
+    'project-starfall': 'starfall-fantasy-key-art',
     'stellar-dogfight': 'space-combat-key-art',
+    'ocean-wave-simulation': 'wave-parameter-study',
     roulette: 'double-zero-roulette',
     'probability-engine': 'probability-branching',
-    stormbreak: 'olympian-storm-key-art',
-    'ocean-wave-simulation': 'wave-parameter-study'
+    stormbreak: 'olympian-storm-key-art'
   }
 };
 
@@ -54,9 +55,8 @@ const RETAINED_PROJECT_PREVIEW_IDS = [
   'website'
 ];
 
-// Project Starfall is no longer public, but its generated preview remains with
-// the archived source assets and must never re-enter the games catalog.
-const RETAINED_GAME_PREVIEW_IDS = ['project-starfall'];
+// All retained game previews are currently used by the public game catalog.
+const RETAINED_GAME_PREVIEW_IDS = [];
 
 function previewPath(category, id) {
   return path.join(previewRoot, category, `${id}.webp`);

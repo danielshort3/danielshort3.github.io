@@ -3651,7 +3651,7 @@
     }
 
 /* Keep the game's dark surfaces isolated from the shared light shell. */
-body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-shell :is(h1, h2, h3, h4) {
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-shell :is(h1, h2, h3, h4):not([data-page-masthead] *) {
   color: var(--text, #f5f9ff);
 }
 

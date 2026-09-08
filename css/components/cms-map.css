@@ -38,6 +38,22 @@
     border: 0;
   }
 
+  .contact-map-persistent {
+    position: absolute;
+    z-index: 1;
+    overflow: hidden;
+    border-radius: 7px;
+    background: #ffffff;
+  }
+
+  .contact-map-persistent[hidden] {
+    display: none;
+  }
+
+  .contact-map-persistent .cms-map-iframe {
+    min-height: 0;
+  }
+
   @media (max-width: 780px) {
     .cms-location-inner {
       grid-template-columns: 1fr;

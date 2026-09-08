@@ -12,6 +12,7 @@ function runResponsiveDensityContractTests({ assert }) {
   const projectGenerator = require('../../build/generate-project-pages.js');
   const personalPageGenerator = require('../../build/generate-personal-accordion-pages.js');
   const personalShell = require('../../build/lib/personal-accordion-shell.js');
+  const { preparePersonalGameDetailHtml } = require('../../build/lib/personal-game-header.js');
 
   const toolsPage = readJson('content/pages/tools.json');
   const tools = fs.readdirSync(path.join(ROOT, 'content', 'tools'))
@@ -48,18 +49,19 @@ function runResponsiveDensityContractTests({ assert }) {
   const gamesData = cmsRenderers.buildGamesDirectoryWorkbenchData(gamesPage);
   const gamesBody = cmsRenderers.renderGamesDirectoryBody(gamesPage);
   assert(
-    gamesData.items.length === 5 &&
-      !gamesData.items.some((game) => game.id === 'project-starfall') &&
-      Object.keys(personalPageGenerator.GAME_PAGE_PATHS).length === 5 &&
-      !Object.prototype.hasOwnProperty.call(personalPageGenerator.GAME_PAGE_PATHS, 'project-starfall'),
-    'Games should expose five public entries and keep Project Starfall out of generated routing',
+    gamesData.items.length === 6 &&
+      JSON.stringify(gamesData.items.slice(0, 3).map((game) => game.id)) ===
+        JSON.stringify(['project-starfall', 'stellar-dogfight', 'ocean-wave-simulation']) &&
+      Object.keys(personalPageGenerator.GAME_PAGE_PATHS).length === 6 &&
+      Object.prototype.hasOwnProperty.call(personalPageGenerator.GAME_PAGE_PATHS, 'project-starfall'),
+    'Games should expose six entries with the requested first three and include Starfall in generated routing',
   );
   assert(
     gamesBody.includes('data-games-directory') &&
       gamesBody.includes('class="games-directory__grid" role="list"') &&
-      countMatches(gamesBody, /<a class="games-directory-card" role="listitem"/g) === 5 &&
-      !gamesBody.includes('project-starfall'),
-    'Games should render a simple five-card list with native launch links',
+      countMatches(gamesBody, /<a class="games-directory-card" role="listitem"/g) === 6 &&
+      gamesBody.includes('project-starfall'),
+    'Games should render a simple six-card list with native launch links',
   );
   assert(
     !gamesBody.includes('data-directory-workbench') &&
@@ -83,9 +85,21 @@ function runResponsiveDensityContractTests({ assert }) {
       })),
     },
   });
-  const gameDetailShell = personalShell.wrapPersonalAccordionHtml(shellSample, {
+  const gameSource = [
+    '<!doctype html><html><head></head><body>',
+    '<section class="hero hero--games ocean-wave-hero"><div class="wrapper">',
+    '<h1>Ocean Wave Simulation</h1><p class="ocean-wave-lead">Explore waves in motion.</p>',
+    '</div></section><main id="main"><canvas id="ocean-surface"></canvas></main>',
+    '</body></html>',
+  ].join('');
+  const preparedGame = preparePersonalGameDetailHtml(gameSource, {
+    itemId: 'ocean-wave-simulation',
+    title: 'Ocean Wave Simulation',
+    summary: 'Explore waves in motion.',
+  });
+  const gameDetailOptions = {
     category: 'games',
-    itemId: 'probability-engine',
+    itemId: 'ocean-wave-simulation',
     view: 'detail',
     fit: 'viewport',
     chrome: 'compact',
@@ -93,8 +107,11 @@ function runResponsiveDensityContractTests({ assert }) {
     backLabel: 'Back to game library',
     backCompactLabel: 'Library',
     backAriaLabel: 'Back to game library',
-  });
-  [[gamesLibraryShell, 0], [gameDetailShell, 1]].forEach(([html, expectedToolbarCount]) => {
+    includePageHero: true,
+  };
+  const gameDetailShell = personalShell.wrapPersonalAccordionHtml(preparedGame, gameDetailOptions);
+  const unadaptedDetailShell = personalShell.wrapPersonalAccordionHtml(shellSample, gameDetailOptions);
+  [[gamesLibraryShell, 0], [gameDetailShell, 0], [unadaptedDetailShell, 1]].forEach(([html, expectedToolbarCount]) => {
     assert(
       countMatches(html, /class="personal-accordion__rail(?:\s|")/g) === 5 &&
         countMatches(html, /data-site-tab="[^"]+"[^>]*hidden inert aria-hidden="true"/g) === 4 &&
@@ -108,10 +125,19 @@ function runResponsiveDensityContractTests({ assert }) {
   assert(
     gamesLibraryShell.includes('href="/#games" aria-label="Back to Games overview" data-page-masthead-parent') &&
       gamesLibraryShell.includes('data-page-masthead>') &&
-      !gameDetailShell.includes('data-page-masthead>') &&
-      gameDetailShell.includes('href="/games" aria-label="Back to game library"') &&
-      gameDetailShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
+      /<a\b[^>]*href="\/games"[^>]*\sdata-page-masthead-parent(?=[\s=>])/.test(gameDetailShell) &&
+      gameDetailShell.includes('data-page-masthead-intro') &&
+      gameDetailShell.includes('data-page-masthead-copy') &&
+      gameDetailShell.includes('<canvas id="ocean-surface"></canvas>') &&
+      !unadaptedDetailShell.includes('data-page-masthead>') &&
+      unadaptedDetailShell.includes('href="/games" aria-label="Back to game library"') &&
+      unadaptedDetailShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
     'canonical Games shells should return through the homepage or game library without cross-category navigation',
+  );
+  const pageMastheadCss = read('css/components/page-masthead.css');
+  assert(
+    /\[data-page-masthead\][^{]*\{[^}]*border-bottom:\s*2px solid [^;]*var\(--panel-color\)/s.test(pageMastheadCss),
+    'shared overview, library, and detail header dividers should be 2px and follow the category color',
   );
   const personalGeneratorSource = read('build/generate-personal-accordion-pages.js');
   assert(

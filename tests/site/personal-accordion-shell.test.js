@@ -316,6 +316,52 @@ function runPersonalAccordionShellTests({ assert }) {
     !wrappedTool.includes('>All tools<') &&
     count(wrappedTool, /<main\b/gi) === 1,
   'Tool detail preparation should be idempotent and replace legacy chrome with one native title and stable account slot');
+  assert(/<header\b(?=[^>]*\btools-hero\b)(?=[^>]*\bdata-page-masthead>)[^>]*>/i.test(wrappedTool) &&
+    count(wrappedTool, /\sdata-page-masthead-parent(?:\s|>)/g) === 1 &&
+    wrappedTool.includes('href="/tools" aria-label="Back to tool library" data-page-masthead-parent') &&
+    wrappedTool.includes('<span>Tool library</span>') &&
+    count(wrappedTool, /\sdata-page-masthead-intro(?:\s|>)/g) === 1 &&
+    count(wrappedTool, /\sdata-page-masthead-copy(?:\s|>)/g) === 1 &&
+    count(wrappedTool, /\sdata-page-masthead-actions(?:\s|>)/g) === 1 &&
+    count(wrappedTool, /data-tools-account="dock"/g) === 1 &&
+    count(wrappedTool, /data-tools-account="bar"/g) === 1 &&
+    !wrappedTool.includes('data-site-route-toolbar'),
+  'Tool detail masthead should share the project parent/copy/actions structure with one account slot and no separate back toolbar');
+
+  const toolWithoutAccount = preparePersonalToolDetailHtml(toolSample, { ...toolMetadata, includeAccount: false });
+  assert(toolWithoutAccount.includes('data-page-masthead-parent') &&
+    toolWithoutAccount.includes('data-page-masthead-copy') &&
+    !toolWithoutAccount.includes('data-page-masthead-actions') &&
+    !toolWithoutAccount.includes('data-tools-account="dock"'),
+  'Tools without account support should retain the common header without an empty actions group or invented sign-in controls');
+
+  const shortLinksControls = '<div class="shortlinks-command-actions" aria-label="Short links controls">\n  <button id="open-links" type="button">My links</button>\n  <div class="tools-account-dock" data-tools-account="dock"><div data-tools-account="dock-inner"><div class="tools-account-bar" data-tools-account="bar"></div></div></div>\n</div>';
+  const shortLinksSample = toolSample.replace('<p class="hero-eyebrow">Old tool hero</p>', shortLinksControls);
+  const shortLinksOptions = { ...toolOptions, itemId: 'short-links' };
+  const shortLinksMetadata = { ...toolMetadata, itemId: 'short-links', title: 'Short Links' };
+  const preparedShortLinks = preparePersonalToolDetailHtml(shortLinksSample, shortLinksMetadata);
+  const wrappedShortLinks = wrapPersonalAccordionHtml(preparedShortLinks, shortLinksOptions);
+  const wrappedShortLinksAgain = wrapPersonalAccordionHtml(
+    preparePersonalToolDetailHtml(wrappedShortLinks, shortLinksMetadata), shortLinksOptions
+  );
+  assert(wrappedShortLinks === wrappedShortLinksAgain &&
+    count(wrappedShortLinks, /id="open-links"/g) === 1 &&
+    count(wrappedShortLinks, /data-tools-account="dock"/g) === 1 &&
+    count(wrappedShortLinks, /data-tools-account="bar"/g) === 1 &&
+    count(wrappedShortLinks, /\sdata-page-masthead-actions(?:\s|>)/g) === 1 &&
+    wrappedShortLinks.includes('class="personal-tool-header__actions" data-page-masthead-actions><div class="shortlinks-command-actions"') &&
+    !wrappedShortLinks.includes('data-site-route-toolbar'),
+  'Short Links should preserve its original command controls and embedded account dock together inside one idempotent masthead action group');
+
+  const hardTool = wrapPersonalAccordionHtml(
+    preparePersonalToolDetailHtml(toolSample.replace('https://www.danielshort.me/contact', 'https://www.danielshort.me/tools/transcribe'), {
+      ...toolMetadata, itemId: 'transcribe', title: 'Transcribe'
+    }),
+    { ...toolOptions, itemId: 'transcribe' }
+  );
+  assert(getRouteManifest(hardTool).navigation === 'hard' &&
+    /<a\b(?=[^>]*href="\/tools")(?=[^>]*data-page-masthead-parent)(?=[^>]*data-navigation="hard")[^>]*>/i.test(hardTool),
+  'Integrated tool parent links should retain native navigation when crossing a tool security boundary');
 
   const copilotMetadata = getToolDetailMetadata('job-application-copilot', read('pages/job-application-copilot.html'));
   assert(copilotMetadata.title === 'Job Application Copilot' &&
@@ -366,13 +412,13 @@ function runPersonalAccordionShellTests({ assert }) {
     config.relPath.replace(/\\/g, '/'),
     config
   ]));
-  assert(uniqueManagedPages.length === 50,
-    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 16 projects, 18 tools, and five games');
+  assert(uniqueManagedPages.length === 51,
+    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 16 projects, 18 tools, and six games');
   assert(INTERNAL_TOOL_PAGE_IDS.length === 8 &&
     INTERNAL_TOOL_PAGE_IDS.every((itemId) => !TOOL_PAGE_IDS.includes(itemId)),
   'Account-reachable tools should remain a distinct internal shell list instead of joining the public catalog');
-  assert(!Object.prototype.hasOwnProperty.call(GAME_PAGE_PATHS, 'project-starfall'),
-    'Project Starfall should stay out of generated personal game routing');
+  assert(Object.prototype.hasOwnProperty.call(GAME_PAGE_PATHS, 'project-starfall'),
+    'Project Starfall should participate in generated personal game routing');
   assertTransitionBootstrap(assert, 'index.html', read('index.html'));
   assertTransitionBootstrap(assert, 'public/index.html', read('public/index.html'));
   uniqueManagedPages.forEach(([relativePath, category]) => {
@@ -449,9 +495,10 @@ function runPersonalAccordionShellTests({ assert }) {
       `${relativePath} should use one scrollable title, omit library counts, and avoid redundant page controls`);
     }
     if (toolDetailPages.has(relativePath)) {
-      assert(html.includes('href="/tools" aria-label="Back to tool library"') &&
-        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
-        `${relativePath} should return to the tool library before the homepage categories`);
+      assert(hasMasthead &&
+        /<a\b(?=[^>]*href="\/tools")(?=[^>]*data-page-masthead-parent)[^>]*>/i.test(html) &&
+        html.includes('data-page-masthead-intro') && html.includes('data-page-masthead-copy'),
+        `${relativePath} should return to the tool library from its standardized detail header`);
       assert(count(html, /data-personal-tool-header=/g) === 1 &&
         count(html, /<h1\b/gi) === 1 &&
         !html.includes('class="hero hero--tools tools-hero"') &&
@@ -468,9 +515,11 @@ function runPersonalAccordionShellTests({ assert }) {
       }
     }
     if (gameDetailPages.has(relativePath)) {
-      assert(html.includes('href="/games" aria-label="Back to game library"') &&
-        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
-        `${relativePath} should return to the game library before the homepage categories`);
+      assert(hasMasthead &&
+        /<a\b(?=[^>]*href="\/games")(?=[^>]*data-page-masthead-parent)[^>]*>/i.test(html) &&
+        html.includes('data-page-masthead-intro') && html.includes('data-page-masthead-copy') &&
+        count(html, /data-personal-game-header=/g) === 1 && count(html, /<h1\b/gi) === 1,
+      `${relativePath} should use one game title and return to the game library from the standardized detail header`);
     }
     const canonical = getTagAttribute(html, /<link\b[^>]*\brel="canonical"[^>]*>/i, 'href');
     const canonicalPath = canonical ? new URL(canonical, 'https://www.danielshort.me').pathname : '';
@@ -649,8 +698,6 @@ function runPersonalAccordionShellTests({ assert }) {
   assert(shellCss.includes('[data-personal-item="probability-engine"] .personal-accordion__content') &&
     shellCss.includes('[data-personal-item="roulette"] .personal-accordion__content'),
   'Dark game adapters should preserve their authored backgrounds inside the white shell system');
-  assert(!shellCss.includes('data-personal-item="project-starfall"'),
-    'Removed Project Starfall routing should not retain dead personal-shell adapters');
 }
 
 module.exports = runPersonalAccordionShellTests;

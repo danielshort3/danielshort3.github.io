@@ -118,6 +118,10 @@ function buildHomeLibraryData(content) {
       (a.group === 'Start here' ? startHereIds.indexOf(a.id) - startHereIds.indexOf(b.id) : 0));
 
   const toolsPage = content.pagesById && content.pagesById.tools;
+  const startHereToolIds = Array.isArray(personal?.toolLibrary?.startHereToolIds)
+    ? personal.toolLibrary.startHereToolIds
+    : [];
+  const toolGroups = ['Start here', 'Text', 'Images', 'Links', 'Recording'];
   const toolCategoryIds = new Map(content.tools.map((tool) => [tool.slug, tool.categoryId]));
   const toolsDirectory = toolsPage
     ? buildToolsDirectoryWorkbenchData(toolsPage, content.tools)
@@ -137,10 +141,11 @@ function buildHomeLibraryData(content) {
       contentType: 'tool',
       contentId: tool.id,
       resourceType: 'tool',
-      group: getPersonalToolGroup({ id: tool.id, categoryId: toolCategoryIds.get(tool.id) })
+      group: startHereToolIds.includes(tool.id) ? 'Start here' :
+        getPersonalToolGroup({ id: tool.id, categoryId: toolCategoryIds.get(tool.id) })
     }))
-    .sort((a, b) => ['Text', 'Images', 'Links', 'Recording'].indexOf(a.group) -
-      ['Text', 'Images', 'Links', 'Recording'].indexOf(b.group));
+    .sort((a, b) => toolGroups.indexOf(a.group) - toolGroups.indexOf(b.group) ||
+      (a.group === 'Start here' ? startHereToolIds.indexOf(a.id) - startHereToolIds.indexOf(b.id) : 0));
 
   const gamesPage = content.pagesById && content.pagesById.games;
   const gamesDirectory = gamesPage

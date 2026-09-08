@@ -1,3 +1,27 @@
+/* Standalone wrappers provide the page title and description above the iframe.
+   Keep the same raw demos unchanged when embedded in project detail pages. */
+html[data-project-demo-standalone="true"] :is(header.card-header > .header-copy, .demo-toolbar > .demo-title) {
+  display: none !important;
+}
+
+html[data-project-demo-theme="brand"][data-project-demo-standalone="true"] .demo-toolbar {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+}
+
+html[data-project-demo-theme="brand"][data-project-demo-standalone="true"] header.card-header {
+  justify-content: flex-start !important;
+  padding-block: 8px !important;
+}
+
+html[data-project-demo-theme="brand"][data-project-demo-standalone="true"] header.card-header .header-actions {
+  justify-content: flex-start !important;
+  margin-left: 0 !important;
+}
+
+html[data-project-demo-theme="brand"][data-project-demo-standalone="true"] .demo-toolbar > .server-control {
+  justify-self: start;
+}
+
 html[data-project-demo-theme="brand"] {
   color-scheme: light;
   --bg: var(--brand-canvas, #f9f9fa);

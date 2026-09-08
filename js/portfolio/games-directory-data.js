@@ -34,8 +34,18 @@ window.DIRECTORY_WORKBENCH = {
       "title": "Tags",
       "options": [
         {
+          "value": "action-rpg",
+          "label": "Action RPG",
+          "field": "tags"
+        },
+        {
           "value": "adaptive-ai",
           "label": "Adaptive AI",
+          "field": "tags"
+        },
+        {
+          "value": "character-progression",
+          "label": "Character progression",
           "field": "tags"
         },
         {
@@ -102,11 +112,56 @@ window.DIRECTORY_WORKBENCH = {
           "value": "visual-systems",
           "label": "Visual systems",
           "field": "tags"
+        },
+        {
+          "value": "work-in-progress",
+          "label": "Work in progress",
+          "field": "tags"
         }
       ]
     }
   ],
   "items": [
+    {
+      "id": "project-starfall",
+      "title": "Project Starfall",
+      "subtitle": "Browser Game",
+      "summary": "Choose a class, explore side-scrolling maps, and collect gear in this work-in-progress action RPG.",
+      "href": "games/project-starfall",
+      "type": "Browser Game",
+      "category": "Browser Game",
+      "tags": [
+        "Work in progress",
+        "Action RPG",
+        "Character progression"
+      ],
+      "tools": [
+        "Work in progress",
+        "Action RPG",
+        "Character progression"
+      ],
+      "concepts": [
+        "Work in progress",
+        "Action RPG",
+        "Character progression"
+      ],
+      "formats": [
+        "Browser Game"
+      ],
+      "results": [
+        "Choose a class, explore side-scrolling maps, and collect gear in this work-in-progress action RPG."
+      ],
+      "actions": [
+        "Focus areas: Work in progress, Action RPG, Character progression"
+      ],
+      "iconImage": "img/games/icons/project-starfall.png?v=e1311cec95e1",
+      "image": "img/home-previews/games/project-starfall.webp",
+      "imageWidth": 640,
+      "imageHeight": 360,
+      "imageResponsive": false,
+      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\" class=\"icon-fill\" opacity=\".12\"></path>\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\"></path>\n  <path d=\"M12 7.3v6.1M9.2 10.2h5.6\"></path>\n</svg>",
+      "order": 1
+    },
     {
       "id": "stellar-dogfight",
       "title": "Stellar Dogfight",
@@ -145,127 +200,7 @@ window.DIRECTORY_WORKBENCH = {
       "imageHeight": 900,
       "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <path d=\"M12 2l4 6-4 12-4-12 4-6z\" class=\"icon-fill\" opacity=\".12\"></path>\n  <path d=\"M12 2l4 6-4 12-4-12 4-6z\"></path>\n  <path d=\"M8 14l-4 2 2-4\"></path>\n  <path d=\"M16 14l4 2-2-4\"></path>\n</svg>",
-      "order": 1
-    },
-    {
-      "id": "roulette",
-      "title": "Double-Zero Roulette",
-      "subtitle": "Simulation",
-      "summary": "Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.",
-      "href": "games/roulette",
-      "type": "Simulation",
-      "category": "Simulation",
-      "tags": [
-        "Probability",
-        "Distribution tracking",
-        "Table state"
-      ],
-      "tools": [
-        "Probability",
-        "Distribution tracking",
-        "Table state"
-      ],
-      "concepts": [
-        "Probability",
-        "Distribution tracking",
-        "Table state"
-      ],
-      "formats": [
-        "Simulation"
-      ],
-      "results": [
-        "Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time."
-      ],
-      "actions": [
-        "Focus areas: Probability, Distribution tracking, Table state"
-      ],
-      "iconImage": "img/games/icons/roulette.png?v=01bd45e3b0e8",
-      "image": "",
-      "imageWidth": null,
-      "imageHeight": null,
-      "imageResponsive": false,
-      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <circle cx=\"12\" cy=\"12\" r=\"8\" class=\"icon-fill\" opacity=\".12\"></circle>\n  <circle cx=\"12\" cy=\"12\" r=\"8\"></circle>\n  <circle cx=\"12\" cy=\"12\" r=\"2.1\"></circle>\n  <path d=\"M12 4v2.3M20 12h-2.3M12 20v-2.3M4 12h2.3\"></path>\n</svg>",
       "order": 2
-    },
-    {
-      "id": "probability-engine",
-      "title": "Probability Engine",
-      "subtitle": "Simulation",
-      "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
-      "href": "games/probability-engine",
-      "type": "Simulation",
-      "category": "Simulation",
-      "tags": [
-        "Simulation",
-        "Synergies",
-        "Prestige loops"
-      ],
-      "tools": [
-        "Simulation",
-        "Synergies",
-        "Prestige loops"
-      ],
-      "concepts": [
-        "Simulation",
-        "Synergies",
-        "Prestige loops"
-      ],
-      "formats": [
-        "Simulation"
-      ],
-      "results": [
-        "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems."
-      ],
-      "actions": [
-        "Focus areas: Simulation, Synergies, Prestige loops"
-      ],
-      "iconImage": "img/games/icons/probability-engine.png?v=2381e29295f8",
-      "image": "",
-      "imageWidth": null,
-      "imageHeight": null,
-      "imageResponsive": false,
-      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M7 9h10M7 12h10M7 15h10M9 7v10M12 7v10M15 7v10\"></path>\n</svg>",
-      "order": 3
-    },
-    {
-      "id": "stormbreak",
-      "title": "Stormbreak: Idle Olympus",
-      "subtitle": "Browser Game",
-      "summary": "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.",
-      "href": "games/stormbreak",
-      "type": "Browser Game",
-      "category": "Browser Game",
-      "tags": [
-        "Idle action",
-        "Upgrade loops",
-        "Mythic farming"
-      ],
-      "tools": [
-        "Idle action",
-        "Upgrade loops",
-        "Mythic farming"
-      ],
-      "concepts": [
-        "Idle action",
-        "Upgrade loops",
-        "Mythic farming"
-      ],
-      "formats": [
-        "Browser Game"
-      ],
-      "results": [
-        "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop."
-      ],
-      "actions": [
-        "Focus areas: Idle action, Upgrade loops, Mythic farming"
-      ],
-      "iconImage": "img/games/icons/stormbreak.png?v=eaa77922702c",
-      "image": "img/games/stormbreak/temple-of-ash.webp",
-      "imageWidth": 1536,
-      "imageHeight": 1024,
-      "imageResponsive": false,
-      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <circle cx=\"12\" cy=\"12\" r=\"9\" class=\"icon-fill\" opacity=\".12\"></circle>\n  <path d=\"M18.7 6.1A9 9 0 1 0 19.8 16\"></path>\n  <path d=\"M13.4 2.8 7.8 13h4l-1.2 8.2L17 10.6h-4.1l.5-7.8z\"></path>\n  <path d=\"m18.3 8.2 2.3-1.4M19.2 11.3l2.7.1M18.1 14.2l2.2 1.6\"></path>\n</svg>",
-      "order": 4
     },
     {
       "id": "ocean-wave-simulation",
@@ -305,7 +240,127 @@ window.DIRECTORY_WORKBENCH = {
       "imageHeight": null,
       "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n  <path d=\"M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n</svg>",
+      "order": 3
+    },
+    {
+      "id": "roulette",
+      "title": "Double-Zero Roulette",
+      "subtitle": "Simulation",
+      "summary": "Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.",
+      "href": "games/roulette",
+      "type": "Simulation",
+      "category": "Simulation",
+      "tags": [
+        "Probability",
+        "Distribution tracking",
+        "Table state"
+      ],
+      "tools": [
+        "Probability",
+        "Distribution tracking",
+        "Table state"
+      ],
+      "concepts": [
+        "Probability",
+        "Distribution tracking",
+        "Table state"
+      ],
+      "formats": [
+        "Simulation"
+      ],
+      "results": [
+        "Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time."
+      ],
+      "actions": [
+        "Focus areas: Probability, Distribution tracking, Table state"
+      ],
+      "iconImage": "img/games/icons/roulette.png?v=01bd45e3b0e8",
+      "image": "",
+      "imageWidth": null,
+      "imageHeight": null,
+      "imageResponsive": false,
+      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <circle cx=\"12\" cy=\"12\" r=\"8\" class=\"icon-fill\" opacity=\".12\"></circle>\n  <circle cx=\"12\" cy=\"12\" r=\"8\"></circle>\n  <circle cx=\"12\" cy=\"12\" r=\"2.1\"></circle>\n  <path d=\"M12 4v2.3M20 12h-2.3M12 20v-2.3M4 12h2.3\"></path>\n</svg>",
+      "order": 4
+    },
+    {
+      "id": "probability-engine",
+      "title": "Probability Engine",
+      "subtitle": "Simulation",
+      "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
+      "href": "games/probability-engine",
+      "type": "Simulation",
+      "category": "Simulation",
+      "tags": [
+        "Simulation",
+        "Synergies",
+        "Prestige loops"
+      ],
+      "tools": [
+        "Simulation",
+        "Synergies",
+        "Prestige loops"
+      ],
+      "concepts": [
+        "Simulation",
+        "Synergies",
+        "Prestige loops"
+      ],
+      "formats": [
+        "Simulation"
+      ],
+      "results": [
+        "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems."
+      ],
+      "actions": [
+        "Focus areas: Simulation, Synergies, Prestige loops"
+      ],
+      "iconImage": "img/games/icons/probability-engine.png?v=2381e29295f8",
+      "image": "",
+      "imageWidth": null,
+      "imageHeight": null,
+      "imageResponsive": false,
+      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M7 9h10M7 12h10M7 15h10M9 7v10M12 7v10M15 7v10\"></path>\n</svg>",
       "order": 5
+    },
+    {
+      "id": "stormbreak",
+      "title": "Stormbreak: Idle Olympus",
+      "subtitle": "Browser Game",
+      "summary": "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.",
+      "href": "games/stormbreak",
+      "type": "Browser Game",
+      "category": "Browser Game",
+      "tags": [
+        "Idle action",
+        "Upgrade loops",
+        "Mythic farming"
+      ],
+      "tools": [
+        "Idle action",
+        "Upgrade loops",
+        "Mythic farming"
+      ],
+      "concepts": [
+        "Idle action",
+        "Upgrade loops",
+        "Mythic farming"
+      ],
+      "formats": [
+        "Browser Game"
+      ],
+      "results": [
+        "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop."
+      ],
+      "actions": [
+        "Focus areas: Idle action, Upgrade loops, Mythic farming"
+      ],
+      "iconImage": "img/games/icons/stormbreak.png?v=eaa77922702c",
+      "image": "img/games/stormbreak/temple-of-ash.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
+      "imageResponsive": false,
+      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <circle cx=\"12\" cy=\"12\" r=\"9\" class=\"icon-fill\" opacity=\".12\"></circle>\n  <path d=\"M18.7 6.1A9 9 0 1 0 19.8 16\"></path>\n  <path d=\"M13.4 2.8 7.8 13h4l-1.2 8.2L17 10.6h-4.1l.5-7.8z\"></path>\n  <path d=\"m18.3 8.2 2.3-1.4M19.2 11.3l2.7.1M18.1 14.2l2.2 1.6\"></path>\n</svg>",
+      "order": 6
     }
   ]
 };

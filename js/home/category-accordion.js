@@ -2,6 +2,24 @@
   'use strict';
 
   let lastCompletedUrl = window.location.href;
+  function activateContactMap(item) {
+    if (window.ContactMap) {
+      window.ContactMap.refresh();
+      return;
+    }
+    if (!item?.isConnected || item.dataset.homeAccordionItem !== 'contact') return;
+    const state = window.SiteFrame?.homeState();
+    if (window.SiteFrame && (!state || state.category !== 'contact' || state.view !== 'overview' ||
+      state.items.get('contact') !== item)) return;
+    item.querySelectorAll('[data-home-contact-map-src]').forEach((map) => {
+      if (!map.isConnected || map.closest('[hidden], [inert], [aria-hidden="true"]')) return;
+      const src = map.getAttribute('data-home-contact-map-src');
+      if (!src) return;
+      map.setAttribute('src', src);
+      map.removeAttribute('data-home-contact-map-src');
+    });
+  }
+
   function appendLibraryGroups(fragment, entries, categoryId, createCard) {
     const groups = new Map();
     entries.forEach((entry) => {
@@ -165,6 +183,7 @@
         scroll: options.reveal === false ? null : { top: saved?.y, category, offset: headerBottom() }
       });
       if (!complete || !active() || sequence !== operation) return false;
+      activateContactMap(items.get(category));
       const url = new URL(view === 'library' ? routes[category] : `/#${category}`, window.location.href);
       document.title = view === 'library' ? titles[category] : initial.title;
       const canonical = document.querySelector('link[rel="canonical"]');
@@ -700,6 +719,7 @@
       }
     });
     updateLibraryViewVisibility();
+    activateContactMap(itemById.get(id));
     scheduleScrollerTabStopUpdate();
   }
 

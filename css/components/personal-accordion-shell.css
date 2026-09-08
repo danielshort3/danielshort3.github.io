@@ -1232,7 +1232,7 @@ body.personal-accordion-page[data-personal-item="probability-engine"] .personal-
 body.personal-accordion-page[data-personal-item="probability-engine"] :is(
   .app-shell,
   #offline-modal
-) :is(h1, h2, h3, h4) {
+) :is(h1, h2, h3, h4):not([data-page-masthead] *) {
   color: var(--text, #f5dfc4);
 }
 

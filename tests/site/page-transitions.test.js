@@ -66,7 +66,7 @@ module.exports = function runPageTransitionTests({ assert }) {
     assert(frame.includes(hook), 'the persistent frame must expose ' + hook);
   }
   assert(frame.includes('tabs.get(category)') && frame.includes('tabs.set(category, link)') &&
-    frame.includes('viewport.replaceChildren(body)'),
+    frame.includes('replaceRouteBody(body)') && frame.includes("node.hasAttribute?.('data-persistent-contact-map')"),
     'category nodes must be keyed and reused while the body is the replacement boundary');
   assert(!frame.includes('opacity:') && !frame.includes('scale(') &&
     frame.includes('before.frame.radius') && frame.includes('before.frame.width'),

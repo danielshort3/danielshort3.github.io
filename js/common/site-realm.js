@@ -236,9 +236,7 @@
 
     const location = document.getElementById('grand-junction-location');
     const locationBody = location?.querySelector('.section-subtitle');
-    const mapShell = location?.querySelector('.cms-map-shell');
-    if (locationBody) locationBody.textContent = 'Based in Grand Junction, Colorado and open to remote, hybrid, and Colorado-based opportunities.';
-    if (mapShell) mapShell.hidden = true;
+    if (locationBody) locationBody.textContent = 'Based in Delta, Colorado and open to remote, hybrid, and Colorado-based opportunities.';
 
     document.body.classList.add('professional-contact-page');
     document.body.dataset.contactAudience = key;

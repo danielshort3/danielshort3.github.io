@@ -23,7 +23,8 @@
       (document.querySelector('[data-site-route-body], [data-personal-detail-content]') || document);
     const heading = cleanText(routeBody.querySelector('h1')?.textContent);
     const title = cleanText(document.title).replace(/\s*[|–—-]\s*Daniel Short\s*$/i, '').trim();
-    const back = document.querySelector('[data-site-route-toolbar] .personal-accordion__back');
+    const back = routeBody.querySelector('[data-page-masthead-parent]') ||
+      document.querySelector('[data-site-route-toolbar] .personal-accordion__back');
     let parent = null;
     if (data.page === 'project-demo' && back) {
       const parentUrl = new URL(back.getAttribute('href') || '/', url);

@@ -7,6 +7,7 @@ const { loadSiteContent } = require('./lib/content-loader');
 const { buildToolsDirectoryWorkbenchData } = require('./lib/cms-renderers');
 const { versionedImageUrl } = require('./lib/versioned-image-url');
 const { preparePersonalProjectDetailHtml } = require('./generate-project-pages');
+const { preparePersonalGameDetailHtml } = require('./lib/personal-game-header');
 const {
   HARD_NAVIGATION_PATHS,
   extractMainHtml,
@@ -106,6 +107,7 @@ const UTILITY_PAGE_CONFIGS = Object.freeze([
 ]);
 
 const GAME_PAGE_PATHS = Object.freeze({
+  'project-starfall': path.join('pages', 'games', 'project-starfall.html'),
   'stellar-dogfight': path.join('pages', 'games', 'stellar-dogfight.html'),
   roulette: path.join('pages', 'games', 'roulette.html'),
   'probability-engine': path.join('pages', 'games', 'probability-engine.html'),
@@ -201,6 +203,9 @@ function loadHomeLibraryData() {
 function buildToolsLibraryItems(content) {
   const directory = buildToolsDirectoryWorkbenchData(content.pagesById?.tools || {}, content.tools);
   const sourceTools = new Map(content.tools.map((tool) => [tool.slug, tool]));
+  const personal = (content.audiences || []).find((audience) => audience.key === 'personal');
+  const startHereIds = personal?.toolLibrary?.startHereToolIds || [];
+  const groups = ['Start here', 'Text', 'Images', 'Links', 'Recording', 'Account tools', 'Admin tools'];
   return directory.items.filter((tool) => (
     tool.visibility !== 'public' || (!tool.hidden && !tool.noindex)
   )).map((tool) => ({
@@ -215,9 +220,10 @@ function buildToolsLibraryItems(content) {
     contentId: tool.id,
     resourceType: 'tool',
     visibility: tool.visibility,
-    group: getPersonalToolGroup({ ...sourceTools.get(tool.id), visibility: tool.visibility })
-  })).sort((a, b) => ['Text', 'Images', 'Links', 'Recording', 'Account tools', 'Admin tools'].indexOf(a.group) -
-    ['Text', 'Images', 'Links', 'Recording', 'Account tools', 'Admin tools'].indexOf(b.group));
+    group: startHereIds.includes(tool.id) ? 'Start here' :
+      getPersonalToolGroup({ ...sourceTools.get(tool.id), visibility: tool.visibility })
+  })).sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group) ||
+    (a.group === 'Start here' ? startHereIds.indexOf(a.id) - startHereIds.indexOf(b.id) : 0));
 }
 
 function countMainElements(html) {
@@ -429,9 +435,13 @@ function buildUtilityPages() {
 }
 
 function buildGamePages() {
+  const gameRecords = JSON.parse(read(path.join('content', 'pages', 'games.json'))).games;
   Object.entries(GAME_PAGE_PATHS).forEach(([itemId, relPath]) => {
     if (!exists(relPath)) throw new Error(`Missing game page: ${relPath}`);
-    writeWrapped(relPath, {
+    const metadata = gameRecords.find((game) => game.id === itemId);
+    if (!metadata) throw new Error(`Missing game metadata: ${itemId}`);
+    const prepared = preparePersonalGameDetailHtml(read(relPath), { ...metadata, itemId });
+    const wrapped = wrapPersonalAccordionHtml(prepared, {
       category: 'games',
       itemId,
       view: 'detail',
@@ -444,6 +454,8 @@ function buildGamePages() {
       includeProbabilityShell: itemId === 'probability-engine',
       includeUntilScripts: ['probability-engine', 'roulette'].includes(itemId)
     });
+    validateWrappedPage(wrapped, relPath, 'games');
+    write(relPath, wrapped);
   });
   return Object.keys(GAME_PAGE_PATHS).length;
 }

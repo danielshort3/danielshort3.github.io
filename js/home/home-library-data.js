@@ -16,20 +16,20 @@
     "projects": {
       "items": [
         {
-          "id": "babynames",
-          "title": "Baby Name Predictor",
-          "summary": "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
-          "href": "/portfolio/babynames",
-          "image": "/img/projects/babynames-640.webp",
+          "id": "sheetMusicUpscale",
+          "title": "Sheet Music Watermark Removal & Upscale",
+          "summary": "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
+          "href": "/portfolio/sheetMusicUpscale",
+          "image": "/img/projects/sheetMusicUpscale-640.webp?v=7328193a7824",
           "imageAlt": "",
-          "iconImage": "/img/projects/icons/babynames.png?v=7fc79e6e3331",
+          "iconImage": "/img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad",
           "iconHtml": "",
           "external": false,
           "contentType": "project",
-          "contentId": "babynames",
+          "contentId": "sheetMusicUpscale",
           "resourceType": "case_study",
           "group": "Start here",
-          "badge": "Interactive project"
+          "badge": "Case study"
         },
         {
           "id": "handwritingRating",
@@ -43,6 +43,22 @@
           "external": false,
           "contentType": "project",
           "contentId": "handwritingRating",
+          "resourceType": "case_study",
+          "group": "Start here",
+          "badge": "Interactive project"
+        },
+        {
+          "id": "babynames",
+          "title": "Baby Name Predictor",
+          "summary": "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
+          "href": "/portfolio/babynames",
+          "image": "/img/projects/babynames-640.webp",
+          "imageAlt": "",
+          "iconImage": "/img/projects/icons/babynames.png?v=7fc79e6e3331",
+          "iconHtml": "",
+          "external": false,
+          "contentType": "project",
+          "contentId": "babynames",
           "resourceType": "case_study",
           "group": "Start here",
           "badge": "Interactive project"
@@ -110,22 +126,6 @@
           "resourceType": "case_study",
           "group": "Machine learning",
           "badge": "Interactive project"
-        },
-        {
-          "id": "sheetMusicUpscale",
-          "title": "Sheet Music Watermark Removal & Upscale",
-          "summary": "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
-          "href": "/portfolio/sheetMusicUpscale",
-          "image": "/img/projects/sheetMusicUpscale-640.webp?v=7328193a7824",
-          "imageAlt": "",
-          "iconImage": "/img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad",
-          "iconHtml": "",
-          "external": false,
-          "contentType": "project",
-          "contentId": "sheetMusicUpscale",
-          "resourceType": "case_study",
-          "group": "Machine learning",
-          "badge": "Case study"
         },
         {
           "id": "nonogram",
@@ -287,7 +287,37 @@
           "contentType": "tool",
           "contentId": "text-compare",
           "resourceType": "tool",
-          "group": "Text",
+          "group": "Start here",
+          "badge": ""
+        },
+        {
+          "id": "qr-code-generator",
+          "title": "QR Code Generator",
+          "summary": "Create QR codes for links, text, Wi-Fi, and contacts.",
+          "href": "/tools/qr-code-generator",
+          "image": "/img/tools/icons/qr-code-generator.png?v=9eb436c81a29",
+          "imageAlt": "",
+          "iconHtml": "",
+          "external": false,
+          "contentType": "tool",
+          "contentId": "qr-code-generator",
+          "resourceType": "tool",
+          "group": "Start here",
+          "badge": ""
+        },
+        {
+          "id": "screen-recorder",
+          "title": "Screen Recorder",
+          "summary": "Record your screen and download the clip in browser-supported formats with optional system audio.",
+          "href": "/tools/screen-recorder",
+          "image": "/img/tools/icons/screen-recorder.png?v=1e8465d1d4cf",
+          "imageAlt": "",
+          "iconHtml": "",
+          "external": false,
+          "contentType": "tool",
+          "contentId": "screen-recorder",
+          "resourceType": "tool",
+          "group": "Start here",
           "badge": ""
         },
         {
@@ -394,41 +424,27 @@
           "resourceType": "tool",
           "group": "Links",
           "badge": ""
-        },
-        {
-          "id": "qr-code-generator",
-          "title": "QR Code Generator",
-          "summary": "Create QR codes for links, text, Wi-Fi, and contacts.",
-          "href": "/tools/qr-code-generator",
-          "image": "/img/tools/icons/qr-code-generator.png?v=9eb436c81a29",
-          "imageAlt": "",
-          "iconHtml": "",
-          "external": false,
-          "contentType": "tool",
-          "contentId": "qr-code-generator",
-          "resourceType": "tool",
-          "group": "Links",
-          "badge": ""
-        },
-        {
-          "id": "screen-recorder",
-          "title": "Screen Recorder",
-          "summary": "Record your screen and download the clip in browser-supported formats with optional system audio.",
-          "href": "/tools/screen-recorder",
-          "image": "/img/tools/icons/screen-recorder.png?v=1e8465d1d4cf",
-          "imageAlt": "",
-          "iconHtml": "",
-          "external": false,
-          "contentType": "tool",
-          "contentId": "screen-recorder",
-          "resourceType": "tool",
-          "group": "Recording",
-          "badge": ""
         }
       ]
     },
     "games": {
       "items": [
+        {
+          "id": "project-starfall",
+          "title": "Project Starfall",
+          "summary": "Choose a class, explore side-scrolling maps, and collect gear in this work-in-progress action RPG.",
+          "href": "/games/project-starfall",
+          "image": "/img/home-previews/games/project-starfall.webp",
+          "imageAlt": "",
+          "iconImage": "/img/games/icons/project-starfall.png?v=e1311cec95e1",
+          "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\" class=\"icon-fill\" opacity=\".12\"></path>\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\"></path>\n  <path d=\"M12 7.3v6.1M9.2 10.2h5.6\"></path>\n</svg>",
+          "external": false,
+          "contentType": "game",
+          "contentId": "project-starfall",
+          "resourceType": "game",
+          "group": "",
+          "badge": ""
+        },
         {
           "id": "stellar-dogfight",
           "title": "Stellar Dogfight",
@@ -441,6 +457,22 @@
           "external": false,
           "contentType": "game",
           "contentId": "stellar-dogfight",
+          "resourceType": "game",
+          "group": "",
+          "badge": ""
+        },
+        {
+          "id": "ocean-wave-simulation",
+          "title": "Ocean Wave Simulation",
+          "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",
+          "href": "/games/ocean-wave-simulation",
+          "image": "/img/home-previews/games/ocean-wave-simulation.webp",
+          "imageAlt": "",
+          "iconImage": "/img/games/icons/ocean-wave-simulation.png?v=b17fd301cbc3",
+          "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n  <path d=\"M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n</svg>",
+          "external": false,
+          "contentType": "game",
+          "contentId": "ocean-wave-simulation",
           "resourceType": "game",
           "group": "",
           "badge": ""
@@ -489,22 +521,6 @@
           "external": false,
           "contentType": "game",
           "contentId": "stormbreak",
-          "resourceType": "game",
-          "group": "",
-          "badge": ""
-        },
-        {
-          "id": "ocean-wave-simulation",
-          "title": "Ocean Wave Simulation",
-          "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",
-          "href": "/games/ocean-wave-simulation",
-          "image": "/img/home-previews/games/ocean-wave-simulation.webp",
-          "imageAlt": "",
-          "iconImage": "/img/games/icons/ocean-wave-simulation.png?v=b17fd301cbc3",
-          "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n  <path d=\"M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n</svg>",
-          "external": false,
-          "contentType": "game",
-          "contentId": "ocean-wave-simulation",
           "resourceType": "game",
           "group": "",
           "badge": ""

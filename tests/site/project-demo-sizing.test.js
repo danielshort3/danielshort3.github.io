@@ -24,6 +24,7 @@ function createHarness({ compact = true, fit = 'content', inaccessible = false }
   const cleanups = [];
   const observers = [];
   const attributes = new Map();
+  const frameAttributes = new Map();
   const element = () => ({ style: { removeProperty(name) { delete this[name]; } } });
   const main = element();
   const container = element();
@@ -52,7 +53,10 @@ function createHarness({ compact = true, fit = 'content', inaccessible = false }
   const content = { getBoundingClientRect: () => ({ bottom: height }) };
   frame.contentDocument = inaccessible ? null : {
     body: { scrollHeight: 1800 },
-    documentElement: { scrollHeight: 1800 },
+    documentElement: {
+      scrollHeight: 1800,
+      setAttribute: (key, value) => frameAttributes.set(key, value)
+    },
     querySelector: () => content
   };
   frame.contentWindow = {
@@ -86,7 +90,7 @@ function createHarness({ compact = true, fit = 'content', inaccessible = false }
     observers.filter((observer) => !observer.disconnected).forEach((observer) => observer.callback());
     flush();
   };
-  return { frame, main, container, media, attributes, observers, controller, flush, resize,
+  return { frame, main, container, media, attributes, frameAttributes, observers, controller, flush, resize,
     cleanup: () => cleanups.splice(0).reverse().forEach((callback) => callback()) };
 }
 
@@ -95,6 +99,8 @@ module.exports = function runProjectDemoSizingTests({ assert }) {
   const mobile = createHarness();
   mobile.flush();
   assert(mobile.frame.src === '/demos/example.html?model=small#draw', 'Demo sizing should preserve route query and fragment');
+  assert(mobile.frameAttributes.get('data-project-demo-standalone') === 'true',
+    'Standalone demos should suppress duplicate iframe introductions before measuring content');
   assert([mobile.frame, mobile.main, mobile.container].every((element) => element.style.height === '800px'),
     'A compact demo should size its entire iframe chain to the workspace');
   mobile.resize(1400);
@@ -121,10 +127,14 @@ module.exports = function runProjectDemoSizingTests({ assert }) {
   chat.flush();
   assert(!chat.frame.style.height && chat.observers.length === 0,
     'A bounded chat viewport must not enter a content-height feedback loop');
+  assert(chat.frameAttributes.get('data-project-demo-standalone') === 'true',
+    'Viewport demos should receive the standalone introduction treatment without autosizing');
   chat.cleanup();
   const desktop = createHarness({ compact: false });
   desktop.flush();
   assert(!desktop.frame.style.height && desktop.observers.length === 0, 'Desktop uses CSS sizing without content-height observers');
+  assert(desktop.frameAttributes.get('data-project-demo-standalone') === 'true',
+    'Desktop demos should receive the same standalone introduction treatment as mobile');
   desktop.cleanup();
   const unavailable = createHarness({ inaccessible: true });
   unavailable.flush();
