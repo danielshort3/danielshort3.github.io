@@ -17,6 +17,9 @@ const { createLocalServer } = require('../../build/dev');
 const runResponsiveSpacingChecks = require('./responsive-spacing.browser.cjs');
 
 const root = path.resolve(__dirname, '../..');
+const personalContent = require('../../content/audiences/personal.json');
+const aboutTimeline = personalContent.page.sections.find(section => section.type === 'home-accordion')
+  .props.categories.find(category => category.id === 'about').timeline;
 const artifactDir = process.env.BROWSER_ARTIFACT_DIR || path.join(os.tmpdir(), 'site-browser-smoke');
 const cases = [];
 fs.mkdirSync(artifactDir, { recursive: true });
@@ -362,27 +365,85 @@ async function runViewport(browser, base, settings) {
 
     stage = 'timeline-content';
     const timeline = page.locator('.home-about .home-timeline');
-    assert(await timeline.isVisible(), 'My journey stays mounted beside the personal stories.');
-    assert.match(await timeline.locator(':scope > h3').innerText(), /My journey/);
-    assert.equal(await timeline.locator('details, summary').count(), 0, 'My journey has no disclosure control.');
-    assert.equal(await timeline.locator('[data-home-timeline-item]').count(), 10, 'The compact timeline retains all ten milestones.');
-    assert.equal(await timeline.locator('img:visible').count(), 0, 'Organization logos do not crowd the compact timeline.');
-    assert.equal(await timeline.locator('.home-timeline__entry:visible').count(), 10,
-      'All ten journey milestones stay rendered without opening a dropdown.');
-    await assertSharedStage(page, homeStage, 'About with My journey mounted');
-    assert(await timeline.locator('[data-home-timeline-item]').first().locator('.home-timeline__current').isVisible(),
-      'Current work appears first in the mounted timeline.');
-    const timelineEntries = await timeline.locator('.home-timeline__entry').evaluateAll(nodes => nodes.map(node => {
+    assert(await timeline.isVisible(), 'Experience and learning stays mounted beside the personal stories.');
+    assert.equal(await timeline.locator(':scope > h3').innerText(), 'Experience & learning');
+    assert.equal(await timeline.getAttribute('data-home-timeline-layout'), 'resume');
+    assert.equal(await timeline.locator('details, summary, [data-home-timeline-scroller], [data-home-timeline-year]').count(), 0,
+      'The resume has no disclosure, nested scroll region, or prominent year chapters.');
+    assert.equal(await timeline.locator('[data-home-timeline-item]:visible').count(), 10,
+      'All ten milestones stay rendered without opening a dropdown.');
+    assert.equal(await timeline.locator('img:visible').count(), 0, 'Organization logos do not crowd the resume.');
+    assert.deepEqual(await timeline.locator('[data-home-background-section] > h4').allTextContents(),
+      ['Experience', 'Education', 'Credentials'], 'The resume exposes all three labelled sections.');
+    const expectedSectionItems = {
+      experience: ['visit-grand-junction', 'randall-reilly', 'target'],
+      education: ['eastern-ms-data-science', 'purdue-bs-data-analytics'],
+      credentials: ['google-advanced-data-analytics', 'google-data-analytics', 'google-analytics', 'ibm-machine-learning', 'ibm-data-analyst']
+    };
+    for (const [section, ids] of Object.entries(expectedSectionItems)) {
+      assert.deepEqual(await timeline.locator(`[data-home-background-section="${section}"] [data-home-timeline-item]`)
+        .evaluateAll(nodes => nodes.map(node => node.dataset.homeTimelineItem)), ids,
+      `${section} retains its complete milestones in the approved order.`);
+    }
+    assert.deepEqual(await timeline.locator('[data-home-credential-issuer] > h5').allTextContents(), ['Google', 'IBM'],
+      'Credentials are grouped visibly by issuer.');
+    const roleStyles = await timeline.locator('[data-home-background-section="experience"] [data-home-timeline-item]')
+      .evaluateAll(nodes => nodes.map(node => {
+        const style = getComputedStyle(node);
+        const titleStyle = getComputedStyle(node.querySelector('.home-background__title'));
+        const icon = node.querySelector('.home-background__icon').getBoundingClientRect();
+        return { className: node.className, columns: style.gridTemplateColumns.split(' ').length,
+          background: style.backgroundColor, paddingTop: style.paddingTop,
+          titleFontSize: titleStyle.fontSize, titleFontWeight: titleStyle.fontWeight,
+          iconWidth: icon.width, iconHeight: icon.height };
+      }));
+    assert(roleStyles.length === 3 && roleStyles.every(style => JSON.stringify(style) === JSON.stringify(roleStyles[0])),
+      'Current and past roles share the same row treatment.');
+    assert.match(await timeline.locator('[data-home-timeline-item="visit-grand-junction"] .home-background__date').innerText(), /Present/,
+      'Current work retains its ongoing date in the same secondary date field as past work.');
+    const linkedMilestones = aboutTimeline.items.filter(item => item.href);
+    assert.equal(await timeline.locator('a[href]').count(), linkedMilestones.length,
+      'Every authored degree and certificate link remains available.');
+    for (const item of aboutTimeline.items) {
+      const milestone = timeline.locator(`[data-home-timeline-item="${item.id}"]`);
+      assert.equal(await milestone.count(), 1, `${item.id} appears exactly once.`);
+      assert.deepEqual(await milestone.locator('time').evaluateAll(nodes => nodes.map(node => node.dateTime)),
+        [item.date, ...(item.endDate ? [item.endDate] : [])], `${item.id} preserves exact semantic dates.`);
+      const entry = milestone.locator('.home-background__entry, .home-background__credential-link');
+      const descriptionId = await entry.getAttribute('aria-describedby');
+      assert(descriptionId && await milestone.locator(`[id="${descriptionId}"]`).count() === 1,
+        `${item.id} retains its accessible date description.`);
+      if (item.href) {
+        assert.equal(await entry.getAttribute('href'), item.href, `${item.id} retains its destination.`);
+        assert.equal(await entry.getAttribute('target'), '_blank', `${item.id} opens externally.`);
+        assert.match(await entry.getAttribute('rel'), /\bnoopener\b/);
+        assert.match(await entry.getAttribute('rel'), /\bnoreferrer\b/);
+      }
+      if (item.type === 'certification') {
+        assert(await milestone.getByRole('link', { name: item.title, exact: true }).isVisible(),
+          `${item.id} retains its full accessible credential name.`);
+        assert.equal((await milestone.locator('.home-background__title-compact').innerText()).trim(), item.credentialLabel);
+        assert.equal(await milestone.locator('.home-background__credential-date.visually-hidden').count(), 1,
+          `${item.id} keeps the earned date accessible without emphasizing it visually.`);
+        assert.match(await entry.getAttribute('title'), /^Earned /, `${item.id} exposes its earned date on hover.`);
+      }
+    }
+    await assertSharedStage(page, homeStage, 'About with the resume mounted');
+    const timelineEntries = await timeline.locator('[data-home-timeline-item]').evaluateAll(nodes => nodes.map(node => {
       const box = node.getBoundingClientRect();
-      const title = node.querySelector('.home-timeline__title');
-      return { top: box.top, width: box.width, height: box.height,
+      const title = node.querySelector('.home-background__title, .home-background__credential-label');
+      return { top: box.top, left: box.left, right: box.right, bottom: box.bottom, width: box.width, height: box.height,
+        credential: node.classList.contains('home-background__credential'),
         titleHeight: title.getBoundingClientRect().height, fontSize: parseFloat(getComputedStyle(title).fontSize) };
     }));
-    assert(timelineEntries.length === 10 && timelineEntries.every((entry, index) => entry.width >= 160 && entry.fontSize >= 12
+    // Credential groups may share one row; full-width career and education rows
+    // retain the original 160px readability minimum.
+    assert(timelineEntries.length === 10 && timelineEntries.every((entry, index) => entry.width >= (entry.credential ? 100 : 160) && entry.fontSize >= 12
       && entry.height >= entry.titleHeight - 1
-      && (index === 0 || entry.top >= timelineEntries[index - 1].top + timelineEntries[index - 1].height - 1)),
-    'Compact timeline text stays readable in ten non-overlapping rows.');
-    const timelineScroll = await checkSharedScroll(page, homeStage, 'Mounted timeline', `${settings.name}-timeline-bottom.png`, { requireScroll: false });
+      && timelineEntries.slice(0, index).every(previous => entry.top >= previous.bottom - 1
+        || entry.bottom <= previous.top + 1 || entry.left >= previous.right - 1 || entry.right <= previous.left + 1)),
+    'All ten resume milestones stay readable without overlap, including side-by-side credential groups.');
+    const timelineScroll = await checkSharedScroll(page, homeStage, 'Mounted resume', `${settings.name}-timeline-bottom.png`, { requireScroll: false });
     await assertLayout(page);
 
     stage = 'personal-story-links';
@@ -396,8 +457,8 @@ async function runViewport(browser, base, settings) {
       await page.waitForURL(url => url.pathname === '/');
       await settle(page);
       await resetScroll(page);
-      assert.equal(await page.locator('.home-about .home-timeline .home-timeline__entry:visible').count(), 10,
-        'Back to About retains all ten mounted journey milestones.');
+      assert.equal(await page.locator('.home-about .home-timeline [data-home-timeline-item]:visible').count(), 10,
+        'Back to About retains all ten mounted resume milestones.');
       assert(await page.evaluate(() => smokeFrame === SiteFrame.root() && smokeTimeOrigin === performance.timeOrigin),
         `${id} story navigation preserves the frame and document.`);
     }
@@ -519,7 +580,11 @@ async function runViewport(browser, base, settings) {
     await settle(page);
     await assertSharedStage(page, homeStage, 'Inline tools library');
     assert.deepEqual(await page.locator('#main .home-library__group:visible > h3').allTextContents(),
-      ['Text', 'Images', 'Links', 'Recording'], 'The grouped public tool library remains intact.');
+      ['Start here', 'Text', 'Images', 'Links'], 'The grouped public tool library remains intact.');
+    assert.deepEqual(await page.locator('#main .home-library__group:visible').first().locator('a.home-library__card')
+      .evaluateAll(nodes => nodes.map(node => node.getAttribute('href'))),
+    ['/tools/text-compare', '/tools/qr-code-generator', '/tools/screen-recorder'],
+    'The Start here group retains the three approved featured tools, including Screen Recorder.');
     await resetScroll(page);
     const libraryScroll = await wheelToBottom(page, 'Tool library', homeLayout.compact ? 'document' : 'frame');
     await assertSharedStage(page, homeStage, 'Inline tools library after scrolling');

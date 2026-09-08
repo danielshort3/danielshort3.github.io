@@ -38,11 +38,12 @@ async function measure(page) {
       timeline: box('.home-about .home-timeline'),
       timelineMounted: Boolean(document.querySelector('.home-about .home-timeline > h3')) &&
         !document.querySelector('.home-about .home-timeline details, .home-about .home-timeline summary') &&
-        [...document.querySelectorAll('.home-about .home-timeline__entry')].every((entry) => {
+        document.querySelectorAll('.home-about .home-background__entry, .home-about .home-background__credential-link').length === 10 &&
+        [...document.querySelectorAll('.home-about .home-background__entry, .home-about .home-background__credential-link')].every((entry) => {
           const rect = entry.getBoundingClientRect();
           return rect.width > 0 && rect.height > 0 && getComputedStyle(entry).visibility === 'visible';
         }),
-      timelineItems: document.querySelectorAll('.home-timeline__item').length
+      timelineItems: document.querySelectorAll('.home-about [data-home-timeline-item]').length
     };
   });
 }
@@ -169,7 +170,7 @@ async function runResponsiveSpacingChecks({ browser, base, settle, assertLayout,
         assert(metrics.profile.bottom <= metrics.story.y + 1 && metrics.story.bottom <= metrics.timeline.y + 1,
           'The narrow layout stacks profile, connections, and journey in reading order.');
         assert.equal(await page.locator('.home-about__connection').count(), 3, 'All three personal connections remain present.');
-        assert.equal(await page.locator('.home-timeline__item:visible').count(), 10, 'All ten journey entries remain available.');
+        assert.equal(await page.locator('.home-about [data-home-timeline-item]:visible').count(), 10, 'All ten resume entries remain available.');
       }
       results.aboutSizes.push(metrics);
       await page.screenshot({ path: path.join(artifactDir, `spacing-${activeCase}.png`), fullPage: viewport.width <= 768 });
