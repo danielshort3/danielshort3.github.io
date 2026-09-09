@@ -1,0 +1,48 @@
+{
+  "description": "Self-hosted stereo field recordings for the Ocean simulator. Audio is loaded only when the listener enables Sound.",
+  "retrieved": "2026-09-09",
+  "license": "CC0 1.0 Universal",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "recordings": [
+    {
+      "file": "gentle-water.json",
+      "scene": "ocean",
+      "title": "water gently lapping beach",
+      "author": "mycompasstv",
+      "sourceUrl": "https://freesound.org/people/mycompasstv/sounds/741561/",
+      "downloadUrl": "https://cdn.freesound.org/previews/741/741561_3902754-hq.mp3",
+      "location": "Bora Bora, French Polynesia",
+      "description": "Field recording of sea water gently lapping against a rocky shore at night.",
+      "sourceSha256": "81db30554b01e973245d824c711f5a159b94c9412aa9520e3b9c7d9de8f12861",
+      "sha256": "790da3f4bd56958d0aa5161e584478b4e9f14d3d786cd9d39cd5003850ba6cd7",
+      "durationSeconds": 174.977,
+      "bytes": 2801204,
+      "audioSha256": "0c834bbf8ec224fc816a2edecd242c9bbc3c60ac9e105b52700fe28734b56fee",
+      "audioBytes": 2100860
+    },
+    {
+      "file": "quiet-beach.json",
+      "scene": "cove",
+      "title": "Gentle Waves - Quiet Beach",
+      "author": "Andrew Holman (amholma)",
+      "sourceUrl": "https://freesound.org/people/amholma/sounds/376795/",
+      "downloadUrl": "https://cdn.freesound.org/previews/376/376795_6128004-hq.mp3",
+      "location": "Destin, Florida, United States",
+      "description": "Stereo field recording of small waves washing up on a quiet sandy beach.",
+      "sourceSha256": "f77b81b66f3a5ea3dcd0ff502a3b0b76bea1b77833d47321220c15205dec2551",
+      "sha256": "656580e7e7bce4732026a869ad5147209bc4df555f06781bfd30dec6b5d1860f",
+      "durationSeconds": 97.908,
+      "bytes": 1567988,
+      "audioSha256": "d29557e79e3330070f7f6dce8f2cadabea5e3e141e4687864dc1d783a4acd2e5",
+      "audioBytes": 1175948
+    }
+  ],
+  "processing": {
+    "input": "Public high-quality MP3 preview of each CC0 recording, downloaded without authentication.",
+    "trim": "Removed the first second and selected up to 175 seconds for open water / 98 seconds for the cove.",
+    "filters": "FFmpeg highpass=f=65,lowpass=f=11500,loudnorm=I=-24:TP=-6:LRA=9",
+    "encoding": "MP3, 96 kbit/s, 32000 Hz, stereo. No synthesized audio or pitch changes.",
+    "playback": "48 to 72 second passages, varied start positions, six-second equal-power overlaps. Whole-file repeats are not used.",
+    "delivery": "MP3 bytes are delivered in an application/json base64 envelope so download managers do not hijack background audio fetches. HTTP compression can remove most base64 overhead."
+  }
+}

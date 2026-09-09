@@ -520,6 +520,13 @@ function isExcludedUrl(urlPath, noindexPathnames) {
   return excludedPathPatterns.some((pattern) => pattern.test(normalized));
 }
 
+function hasIndexableContent(title, description, text) {
+  // Titles are searchable context too, especially on concise canvas experiences.
+  // A title alone must not make an otherwise empty page eligible.
+  const searchableText = [title, description, text].filter(Boolean).join(' ');
+  return Boolean(description || text) && searchableText.length >= 160;
+}
+
 function buildKnowledge() {
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const projectMetadata = loadProjectMetadata();
@@ -547,8 +554,7 @@ function buildKnowledge() {
     if (url === '/' && text.length < 160) {
       text = [text, fallbackTextForPath(url)].filter(Boolean).join(' ');
     }
-    const searchableText = [description, text].filter(Boolean).join(' ');
-    if (!searchableText || searchableText.length < 160) return;
+    if (!hasIndexableContent(title, description, text)) return;
 
     const entry = {
       url,
@@ -603,7 +609,11 @@ async function main() {
   process.stdout.write(`[chatbot-knowledge] Wrote dist/chatbot-knowledge.json (${knowledge.pages.length} pages, ${knowledge.chunks.length} chunks${embeddingStatus})\n`);
 }
 
-main().catch((err) => {
-  console.error('[chatbot-knowledge] Failed:', err && err.stack ? err.stack : err);
-  process.exitCode = 1;
-});
+module.exports = { buildKnowledge, hasIndexableContent };
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('[chatbot-knowledge] Failed:', err && err.stack ? err.stack : err);
+    process.exitCode = 1;
+  });
+}

@@ -552,8 +552,9 @@ function copyStatic(){
   // Copy asset and content directories used by the site, including the nested
   // demos/data snapshots and the browser calculation scripts under js/demos.
   // Dist artifacts are handled separately via an explicit whitelist.
-  // Recursive img copying includes library icons in img/projects/icons and img/games/icons, plus social cards in img/social.
-  const dirs = ['img', 'js', 'css', 'pages', 'demos'];
+  // Recursive img copying includes library icons, img/games/ocean HDR skies, and img/social cards.
+  // Recorded ocean soundscapes are loaded on demand from audio/ocean.
+  const dirs = ['img', 'js', 'css', 'pages', 'demos', 'audio'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
   copyReferencedDocuments();
   copyDistArtifacts(cssManifest, jsManifest);

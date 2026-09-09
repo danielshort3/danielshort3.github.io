@@ -56,7 +56,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/games/ocean-wave-simulation#webpage","url":"https://www.danielshort.me/games/ocean-wave-simulation","name":"Ocean Wave Simulation | Daniel Short","description":"Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/game-ocean-wave-simulation.png?v=5182a0b613f4"},"mainEntity":{"@id":"https://www.danielshort.me/games/ocean-wave-simulation#game"},"breadcrumb":{"@id":"https://www.danielshort.me/games/ocean-wave-simulation#breadcrumb"}},{"@type":["VideoGame","WebApplication"],"@id":"https://www.danielshort.me/games/ocean-wave-simulation#game","name":"Ocean Wave Simulation","description":"Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.","url":"https://www.danielshort.me/games/ocean-wave-simulation","image":"https://www.danielshort.me/img/social/game-ocean-wave-simulation.png?v=5182a0b613f4","creator":{"@id":"https://www.danielshort.me/#person"},"applicationCategory":"GameApplication","operatingSystem":"Any","gamePlatform":"Web browser","playMode":"SinglePlayer","isAccessibleForFree":true,"genre":["Parameter sandbox","Realtime canvas","Visual systems"]},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/games/ocean-wave-simulation#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Games","item":"https://www.danielshort.me/games"},{"@type":"ListItem","position":3,"name":"Ocean Wave Simulation","item":"https://www.danielshort.me/games/ocean-wave-simulation"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"games:ocean-wave-simulation","path":"/games/ocean-wave-simulation","category":"games","view":"detail","navigation":"soft","styles":["/dist/styles.e90a95b8.css","/dist/styles-tools.92b66f6f.css","/css/components/games.css","/css/components/ocean-wave-simulation.css","/dist/styles-personal-accordion.6b8eedcf.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.39f491c8.js","/js/tools/ocean-wave-simulation.js","/dist/site-consent.ab1759e7.js"],"module":"games:ocean-wave-simulation"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"games:ocean-wave-simulation","path":"/games/ocean-wave-simulation","category":"games","view":"detail","navigation":"soft","styles":["/dist/styles.e90a95b8.css","/dist/styles-tools.92b66f6f.css","/css/components/games.css","/css/components/ocean-wave-simulation.css","/dist/styles-personal-accordion.6b8eedcf.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.39f491c8.js","/js/tools/ocean-wave-camera.js","/js/tools/ocean-wave-spectrum.js","/js/tools/ocean-wave-environment.js","/js/tools/ocean-wave-shaders.js","/js/tools/ocean-wave-simulation.js","/js/tools/ocean-wave-audio.js","/js/tools/ocean-wave-timer.js","/js/tools/ocean-wave-experience.js","/dist/site-consent.ab1759e7.js"],"module":"games:ocean-wave-simulation"}</script>
 </head>
 <body data-page="ocean-wave-simulation" class="ocean-wave-page site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="games" data-personal-item="ocean-wave-simulation" data-personal-fit="viewport" data-site-route-id="games:ocean-wave-simulation" data-site-route-category="games" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="games:ocean-wave-simulation">
   <a href="/games/ocean-wave-simulation#main" class="skip-link">Skip to main content</a>
@@ -123,90 +123,123 @@
     <div class="personal-accordion__panel" data-personal-detail-panel="games">
       <div class="personal-accordion__content" data-personal-detail-content>
         <!-- personal-accordion-content:start -->
-<section class="personal-game-header hero hero--games ocean-wave-hero" data-page-masthead data-personal-game-header="ocean-wave-simulation">
+<section id="ocean-wave-header" class="personal-game-header hero hero--games ocean-wave-hero" data-page-masthead data-personal-game-header="ocean-wave-simulation">
   <a href="/games" data-page-masthead-parent aria-label="Back to game library">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"></path></svg>
     <span>Game library</span>
   </a>
   <div data-page-masthead-intro>
     <div data-page-masthead-copy>
-<h1>Ocean Wave Simulation</h1>
-<p class="ocean-wave-lead">Explore how wind, swell, and sunlight reshape a procedural sea. This interactive conditions laboratory runs entirely in your browser.</p>
+<h1>Ocean</h1>
     </div>
   </div>
 </section>
 
 <main id="main">
-    <section class="surface-band ocean-wave-section">
-      <div class="wrapper">
-        <div class="ocean-wave-grid">
-          <div class="ocean-wave-card ocean-wave-stage-card">
-            <div id="ocean-wave-stage" class="ocean-wave-stage" tabindex="0" role="region" aria-label="Interactive ocean conditions view" aria-describedby="ocean-wave-note ocean-wave-summary" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home">
+    <section class="ocean-wave-section" aria-label="Ocean simulator">
+            <div id="ocean-wave-stage" class="ocean-wave-stage" tabindex="0" role="region" aria-label="Interactive ocean view" aria-describedby="ocean-wave-note" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home">
               <canvas id="ocean-wave-canvas" role="img" aria-label="Procedural ocean surface reflecting the selected wind, swell, light, and camera conditions.">Your browser does not support the HTML canvas element.</canvas>
-              <div class="ocean-wave-hud" aria-hidden="false">
-                <button id="ocean-wave-toggle" type="button" class="btn-icon ocean-wave-toggle" aria-pressed="false" aria-label="Pause animation">
+              <span id="ocean-wave-scene-name" class="visually-hidden">Calm dawn</span>
+              <div class="ocean-wave-place">
+                <label class="visually-hidden" for="ocean-wave-scene">Place</label>
+                <select id="ocean-wave-scene" aria-label="Place"><option value="ocean">Open water</option><option value="cove">Quiet cove</option></select>
+              </div>
+              <button id="ocean-wave-timer-status" type="button" class="ocean-wave-timer-badge" aria-label="Cancel fade-out timer" hidden></button>
+              <div class="ocean-wave-fade" aria-hidden="true"></div>
+              <div class="ocean-wave-hud" role="group" aria-label="Ocean controls">
+                <div class="ocean-wave-modes" role="group" aria-label="Viewing mode">
+                  <button id="ocean-wave-relax" type="button" class="ocean-wave-mode" aria-pressed="true">Relax</button>
+                  <button id="ocean-wave-camera-toggle" type="button" class="ocean-wave-mode" aria-pressed="false" aria-controls="ocean-wave-camera-pad" aria-label="Explore ocean">Explore</button>
+                  <button id="ocean-wave-reset-camera" type="button" class="ocean-wave-mode ocean-wave-recenter" hidden>Recenter</button>
+                </div>
+                <button id="ocean-wave-toggle" type="button" class="ocean-wave-icon" aria-pressed="false" aria-label="Pause animation" title="Pause animation">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path d="M8 6v12M16 6v12"></path>
                   </svg>
                 </button>
-                <span id="ocean-wave-status" class="ocean-wave-status" aria-live="polite">Loading...</span>
+                <button id="ocean-wave-sound" type="button" class="ocean-wave-icon ocean-wave-labeled" aria-pressed="false" aria-label="Enable ocean sound" title="Enable ocean sound">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"></path><path data-ocean-sound-waves d="m16 9 5 6m0-6-5 6"></path></svg>
+                  <span data-ocean-sound-label>Sound</span>
+                </button>
+                <button id="ocean-wave-fullscreen" type="button" class="ocean-wave-icon ocean-wave-labeled" aria-pressed="false" aria-label="Enter fullscreen" title="Fullscreen (F)">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"></path></svg>
+                  <span data-ocean-fullscreen-label>Full screen</span>
+                </button>
+                <button id="ocean-wave-settings-toggle" type="button" class="ocean-wave-icon" aria-expanded="false" aria-controls="ocean-wave-settings" aria-label="Open ocean settings" title="Settings">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6m4 0h8M3 12h10m4 0h4M3 18h3m4 0h11"></path><circle cx="11" cy="6" r="2"></circle><circle cx="15" cy="12" r="2"></circle><circle cx="8" cy="18" r="2"></circle></svg>
+                </button>
               </div>
-            </div>
-            <p id="ocean-wave-summary" class="ocean-wave-summary" aria-live="polite">Preparing the current ocean conditions.</p>
-            <p id="ocean-wave-note" class="ocean-wave-note">Drag to look around, or focus the ocean and use the arrow keys. Everything runs locally. If you have "Reduce motion" enabled, the animation starts paused.</p>
-          </div>
-
-          <div class="ocean-wave-card ocean-wave-controls-card">
-            <h2>Conditions laboratory</h2>
+              <div id="ocean-wave-camera-pad" class="ocean-wave-camera-pad" role="group" aria-label="Move camera" hidden>
+                <button type="button" class="ocean-wave-icon" data-ocean-move="left" aria-label="Move left" title="Move left (A)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"></path></svg></button>
+                <button type="button" class="ocean-wave-icon" data-ocean-move="forward" aria-label="Move forward" title="Move forward (W)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"></path></svg></button>
+                <button type="button" class="ocean-wave-icon" data-ocean-move="right" aria-label="Move right" title="Move right (D)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+                <button type="button" class="ocean-wave-icon" data-ocean-move="down" aria-label="Lower camera" title="Lower camera (Q)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 5 5 5-5M7 17h10"></path></svg></button>
+                <button type="button" class="ocean-wave-icon" data-ocean-move="back" aria-label="Move backward" title="Move backward (S)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m-6-6 6 6 6-6"></path></svg></button>
+                <button type="button" class="ocean-wave-icon" data-ocean-move="up" aria-label="Raise camera" title="Raise camera (E)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 17 5-5 5 5M7 7h10"></path></svg></button>
+              </div>
+              <p id="ocean-wave-camera-hint" class="ocean-wave-camera-hint" hidden><span class="ocean-wave-desktop-hint">Drag to look · WASD to move · Q / E for height</span><span class="ocean-wave-touch-hint">Drag to look · Two fingers to move</span></p>
+              <div id="ocean-wave-settings" class="ocean-wave-settings" role="region" aria-label="Ocean settings" hidden>
+                <div class="ocean-wave-settings-header"><h2>Settings</h2><button id="ocean-wave-settings-close" class="ocean-wave-icon" type="button" aria-label="Close ocean settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></div>
             <form id="ocean-wave-controls" class="ocean-wave-controls" novalidate>
-              <fieldset class="ocean-wave-presets">
-                <legend>Conditions presets</legend>
-                <div class="ocean-wave-preset-grid">
-                  <button type="button" class="ocean-wave-preset" data-ocean-preset="calm-dawn">Calm Dawn</button>
-                  <button type="button" class="ocean-wave-preset" data-ocean-preset="open-ocean-swell">Open-Ocean Swell</button>
-                  <button type="button" class="ocean-wave-preset" data-ocean-preset="golden-hour">Golden Hour</button>
-                  <button type="button" class="ocean-wave-preset" data-ocean-preset="storm-front">Storm Front</button>
+              <div class="ocean-wave-control">
+                <span class="ocean-wave-label" id="ocean-wave-time-label">Time of day</span>
+                <div class="ocean-wave-presets" role="group" aria-labelledby="ocean-wave-time-label">
+                  <button type="button" class="ocean-wave-preset is-active" data-ocean-preset="calm-dawn" aria-pressed="true">Dawn</button>
+                  <button type="button" class="ocean-wave-preset" data-ocean-preset="open-ocean-swell" aria-pressed="false">Daylight</button>
+                  <button type="button" class="ocean-wave-preset" data-ocean-preset="golden-hour" aria-pressed="false">Golden</button>
+                  <button type="button" class="ocean-wave-preset" data-ocean-preset="dusk" aria-pressed="false">Dusk</button>
                 </div>
-              </fieldset>
-
+              </div>
               <div class="ocean-wave-control">
-                <label class="ocean-wave-label" for="ocean-wave-wind">Wind speed <output id="ocean-wave-wind-value" class="ocean-wave-value" for="ocean-wave-wind">7.5 m/s</output></label>
-                <input id="ocean-wave-wind" type="range" min="0" max="20" value="7.5" step="0.1" aria-describedby="ocean-wave-wind-help">
-                <p id="ocean-wave-wind-help" class="ocean-wave-help">Higher wind increases wave speed and swell length.</p>
+                <label class="ocean-wave-label" for="ocean-wave-wind">Breeze <output id="ocean-wave-wind-value" class="ocean-wave-value" for="ocean-wave-wind">2.4 m/s</output></label>
+                <input id="ocean-wave-wind" type="range" min="0" max="20" value="2.4" step="0.1">
               </div>
 
               <div class="ocean-wave-control">
-                <label class="ocean-wave-label" for="ocean-wave-height">Wave height <output id="ocean-wave-height-value" class="ocean-wave-value" for="ocean-wave-height">1.00x</output></label>
-                <input id="ocean-wave-height" type="range" min="0" max="5.5" value="1" step="0.05" aria-describedby="ocean-wave-height-help">
-                <p id="ocean-wave-height-help" class="ocean-wave-help">Scales the overall amplitude of the wave field.</p>
+                <label class="ocean-wave-label" for="ocean-wave-height">Swell <output id="ocean-wave-height-value" class="ocean-wave-value" for="ocean-wave-height">0.65 m</output></label>
+                <input id="ocean-wave-height" type="range" min="0" max="5.5" value="0.65" step="0.05">
               </div>
 
               <div class="ocean-wave-control">
-                <label class="ocean-wave-label" for="ocean-wave-light">Sun elevation <output id="ocean-wave-light-value" class="ocean-wave-value" for="ocean-wave-light">38 degrees</output></label>
-                <input id="ocean-wave-light" type="range" min="5" max="75" value="38" step="1" aria-describedby="ocean-wave-light-help">
-                <p id="ocean-wave-light-help" class="ocean-wave-help">Lower sun adds warmer highlights; higher sun brightens the water evenly.</p>
+                <label class="ocean-wave-label" for="ocean-wave-light">Brightness <output id="ocean-wave-light-value" class="ocean-wave-value" for="ocean-wave-light">100%</output></label>
+                <input id="ocean-wave-light" type="range" min="50" max="150" value="100" step="1">
               </div>
-
               <div class="ocean-wave-control">
-                <label class="ocean-wave-label" for="ocean-wave-quality">Rendering mode</label>
-                <select id="ocean-wave-quality" class="ocean-wave-select" aria-describedby="ocean-wave-quality-help">
-                  <option value="auto">Auto</option>
-                  <option value="battery">Battery - 30 FPS</option>
-                  <option value="quality">Quality</option>
+                <label class="ocean-wave-label" for="ocean-wave-volume">Sound <output id="ocean-wave-volume-value" class="ocean-wave-value" for="ocean-wave-volume">35%</output></label>
+                <input id="ocean-wave-volume" type="range" min="0" max="100" value="35" step="1" aria-label="Ocean sound volume">
+              </div>
+              <div class="ocean-wave-control">
+                <label class="ocean-wave-label" for="ocean-wave-timer">Fade out after</label>
+                <select id="ocean-wave-timer" class="ocean-wave-select">
+                  <option value="0">Off</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">60 minutes</option>
                 </select>
-                <p id="ocean-wave-quality-help" class="ocean-wave-help">Battery mode lowers resolution and caps rendering at 30 frames per second.</p>
+              </div>
+              <div class="ocean-wave-control">
+                <label class="ocean-wave-label" for="ocean-wave-quality">Graphics quality</label>
+                <select id="ocean-wave-quality" class="ocean-wave-select">
+                  <option value="auto">Auto · Adapts to your device</option>
+                  <option value="low">Low · Save energy</option>
+                  <option value="medium">Medium · Balanced</option>
+                  <option value="high">High · Sharper detail</option>
+                  <option value="ultra">Ultra · Maximum detail</option>
+                </select>
               </div>
 
               <div class="ocean-wave-actions">
-                <button id="ocean-wave-randomize" type="button" class="btn-ghost">Randomize</button>
-                <button id="ocean-wave-reset" type="button" class="btn-ghost">Reset conditions</button>
-                <button id="ocean-wave-reset-camera" type="button" class="btn-ghost">Reset camera</button>
-                <button id="ocean-wave-copy-link" type="button" class="btn-primary">Copy scene link</button>
+                <button id="ocean-wave-randomize" type="button">Surprise me</button>
+                <button id="ocean-wave-reset" type="button">Reset scene</button>
+                <button id="ocean-wave-copy-link" type="button">Copy link</button>
               </div>
             </form>
-          </div>
-        </div>
-      </div>
+              </div>
+              <div id="ocean-wave-rest-screen" class="ocean-wave-rest-screen" role="region" aria-label="Ocean timer complete" hidden>
+                <p>Rest easy.</p>
+                <button id="ocean-wave-resume" type="button">Resume ocean</button>
+              </div>
+              <p id="ocean-wave-status" class="visually-hidden" role="status" aria-live="polite">Loading ocean...</p>
+              <p id="ocean-wave-summary" class="visually-hidden"></p>
+              <p id="ocean-wave-note" class="visually-hidden">Relax keeps the view steady. Choose Explore to drag and look around, use WASD to move, and Q or E for height. On touch screens, use two fingers to move or pinch for height. Recenter restores your view. Press F for fullscreen and Escape to leave. Reduced motion starts the ocean paused.</p>
+            </div>
     </section>
   </main>
         <!-- personal-accordion-content:end -->
@@ -227,7 +260,14 @@
     </nav>
   </div>
 </footer>
+  <script defer src="js/tools/ocean-wave-camera.js"></script>
+  <script defer src="js/tools/ocean-wave-spectrum.js"></script>
+  <script defer src="js/tools/ocean-wave-environment.js"></script>
+  <script defer src="js/tools/ocean-wave-shaders.js"></script>
   <script defer src="js/tools/ocean-wave-simulation.js"></script>
+  <script defer src="js/tools/ocean-wave-audio.js"></script>
+  <script defer src="js/tools/ocean-wave-timer.js"></script>
+  <script defer src="js/tools/ocean-wave-experience.js"></script>
 
   <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>

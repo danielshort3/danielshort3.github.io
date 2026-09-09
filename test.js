@@ -45035,20 +45035,47 @@ try {
     const oceanHtml = fs.readFileSync('pages/ocean-wave-simulation.html', 'utf8');
     const oceanCss = fs.readFileSync('css/components/ocean-wave-simulation.css', 'utf8');
     const oceanJs = fs.readFileSync('js/tools/ocean-wave-simulation.js', 'utf8');
+    const oceanScripts = Array.from(oceanHtml.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g), match => match[1]);
+    const oceanSimulationIndex = oceanScripts.indexOf('js/tools/ocean-wave-simulation.js');
+    assert(['camera', 'spectrum', 'environment', 'shaders'].every(name => {
+      const dependencyIndex = oceanScripts.indexOf(`js/tools/ocean-wave-${name}.js`);
+      return dependencyIndex >= 0 && dependencyIndex < oceanSimulationIndex;
+    }) && oceanScripts.indexOf('js/tools/ocean-wave-experience.js') > oceanSimulationIndex,
+      'Ocean Wave should load camera, spectrum, environment, and shaders before the simulator and its experience controls');
+    assert(['audio', 'timer'].every(name => {
+      const index = oceanScripts.indexOf(`js/tools/ocean-wave-${name}.js`);
+      return index >= 0 && index < oceanScripts.indexOf('js/tools/ocean-wave-experience.js');
+    }), 'Ocean Wave should load recorded sound and its timer before the experience controller');
+    assert(oceanHtml.includes('id="ocean-wave-relax"') && oceanHtml.includes('id="ocean-wave-scene"') &&
+           oceanHtml.includes('value="cove"') && oceanHtml.includes('id="ocean-wave-timer"') &&
+           /id="ocean-wave-rest-screen"[^>]*\bhidden\b/.test(oceanHtml) && oceanHtml.includes('id="ocean-wave-resume"'),
+      'Ocean Wave should offer Relax, a quiet cove, and an optional fade-out timer with a resume action');
     assert((oceanHtml.match(/data-ocean-preset=/g) || []).length === 4 &&
            oceanHtml.includes('id="ocean-wave-randomize"') &&
            oceanHtml.includes('id="ocean-wave-reset-camera"') &&
            oceanHtml.includes('id="ocean-wave-copy-link"'),
       'Ocean Wave should expose four presets plus randomize, camera reset, and sharing');
     assert(oceanHtml.includes('id="ocean-wave-quality"') &&
-           oceanHtml.includes('aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home"') &&
+           /aria-keyshortcuts="[^"]*ArrowLeft ArrowRight ArrowUp ArrowDown Home/.test(oceanHtml) &&
            oceanHtml.includes('id="ocean-wave-summary"'),
-      'Ocean Wave should expose rendering quality, keyboard camera controls, and condition summary');
+      'Ocean Wave should preserve rendering quality, keyboard camera controls, and an accessible scene summary');
+    assert(oceanHtml.includes('id="ocean-wave-fullscreen"') &&
+           oceanHtml.includes('id="ocean-wave-sound"') &&
+           oceanHtml.includes('id="ocean-wave-settings-toggle"') &&
+           /id="ocean-wave-settings"[^>]*\bhidden\b/.test(oceanHtml) &&
+           oceanHtml.includes('js/tools/ocean-wave-experience.js'),
+      'Ocean Wave should offer full screen and optional sound with detailed settings initially hidden');
     assert(oceanJs.includes("const PRESETS = {") &&
            oceanJs.includes("new URLSearchParams(window.location.search)") &&
-           oceanJs.includes("state.qualityMode === 'battery'") &&
-           oceanJs.includes("stage.addEventListener('keydown'"),
-      'Ocean Wave should restore shareable scenes, cap battery rendering, and support keyboard camera input');
+           oceanJs.includes("const QUALITY_PROFILES = {") &&
+           oceanJs.includes("powerPreference: 'high-performance'") &&
+           ['auto', 'low', 'medium', 'high', 'ultra'].every(mode => oceanHtml.includes(`option value="${mode}"`)) &&
+           oceanJs.includes('OceanWaveCamera'),
+      'Ocean Wave should restore shareable scenes, expose GPU quality presets, and support keyboard camera input');
+    assert(oceanHtml.includes('id="ocean-wave-camera-toggle"') &&
+           /id="ocean-wave-camera-pad"[^>]*\bhidden\b/.test(oceanHtml) &&
+           (oceanHtml.match(/data-ocean-move=/g) || []).length === 6,
+      'Ocean Wave should offer explicit exploration with six initially hidden movement controls');
     assert(!oceanJs.includes('tools:session-dirty') && !oceanJs.includes('tools:session-capture'),
       'Ocean Wave should not retain inactive tools-account session hooks');
     assert(oceanCss.includes('.ocean-wave-presets') &&
