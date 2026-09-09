@@ -18,9 +18,18 @@ const categories = ['about', 'projects', 'tools', 'games', 'contact'];
 async function settle(page, view, category = '') {
   await page.waitForFunction(({ view, category }) => {
     const frame = window.SiteFrame?.root();
+    const viewport = window.SiteFrame?.viewport();
+    const path = view === 'library' ? { projects: '/portfolio', tools: '/tools', games: '/games' }[category] : '/';
+    const hash = view === 'closed' ? '#closed' : view === 'overview' ? `#${category}` : '';
+    const initialAbout = view === 'overview' && category === 'about' && !location.hash;
+    // Geometry ends before the viewport reveal. select() commits its URL only
+    // after both finish, so the next action must wait for that complete state.
+    const routeCommitted = location.pathname === path && (location.hash === hash || initialAbout);
+    const revealing = viewport?.getAnimations().some(animation => animation.pending || animation.playState === 'running');
     return frame?.dataset.frameView === view && frame.dataset.frameCategory === category
       && !frame.classList.contains('site-frame--held') && !frame.classList.contains('site-frame--moving')
-      && !window.SiteNavigation?.isNavigating?.() && SiteFrame.outlet()?.getAttribute('aria-busy') !== 'true';
+      && routeCommitted && !revealing && !window.SiteNavigation?.isNavigating?.()
+      && SiteFrame.outlet()?.getAttribute('aria-busy') !== 'true';
   }, { view, category });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
