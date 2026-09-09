@@ -88,6 +88,7 @@
     };
     const positions = new Map();
     let operation = 0;
+    let requested = { category: initial.category, view: initial.view };
     let disposed = false;
     const active = () => !disposed && frame.homeState()?.items === items;
 
@@ -166,13 +167,17 @@
     }
 
     async function select(category, view = 'overview', options = {}) {
-      if (!active() || !items.has(category) || (view === 'library' && !routes[category])) return false;
-      const sequence = ++operation;
+      const closed = view === 'closed';
+      if (closed) category = '';
+      if (!active() || (!closed && !items.has(category)) || (view === 'library' && !routes[category])) return false;
       const previous = frame.homeState();
-      if (options.history !== false && previous.category === category && previous.view === view &&
+      if (!options.initial && options.history !== false && requested.category === category && requested.view === view &&
         frame.root().dataset.frameCategory === category && frame.root().dataset.frameView === view) return false;
-      if (options.history !== false && window.SiteNavigation?.isNavigating?.() && !window.SiteNavigation.cancelPending()) {
-        return window.SiteNavigation.navigate(new URL(view === 'library' ? routes[category] : `/#${category}`, window.location.href));
+      const sequence = ++operation;
+      requested = { category, view };
+      const targetUrl = view === 'library' ? routes[category] : `/#${closed ? 'closed' : category}`;
+      if (!options.initial && options.history !== false && window.SiteNavigation?.isNavigating?.() && !window.SiteNavigation.cancelPending()) {
+        return window.SiteNavigation.navigate(new URL(targetUrl, window.location.href));
       }
       const owner = frame.viewport();
       positions.set(`${previous.category}:${previous.view}`, { top: owner.scrollTop, y: window.scrollY });
@@ -180,11 +185,11 @@
       if (view === 'library') render(category);
       const complete = await frame.showHome(category, view, {
         animate: options.animate !== false,
-        scroll: options.reveal === false ? null : { top: saved?.y, category, offset: headerBottom() }
+        scroll: options.reveal === false ? null : { top: closed ? 0 : saved?.y, category, offset: headerBottom() }
       });
       if (!complete || !active() || sequence !== operation) return false;
       activateContactMap(items.get(category));
-      const url = new URL(view === 'library' ? routes[category] : `/#${category}`, window.location.href);
+      const url = new URL(targetUrl, window.location.href);
       document.title = view === 'library' ? titles[category] : initial.title;
       const canonical = document.querySelector('link[rel="canonical"]');
       if (canonical) canonical.href = view === 'library' ? new URL(routes[category], initial.canonical || window.location.origin).href : initial.canonical;
@@ -195,7 +200,8 @@
       }
       owner.scrollTop = saved?.top || 0;
       if (options.focus !== false) {
-        const target = view === 'library' ? items.get(category).querySelector('[data-home-library-heading]') : tabs.get(category);
+        const target = closed ? tabs.get(options.triggerCategory || previous.category) :
+          view === 'library' ? items.get(category).querySelector('[data-home-library-heading]') : tabs.get(category);
         target?.focus({ preventScroll: true });
       }
       frame.root().dispatchEvent(new CustomEvent('home:category-change', { bubbles: true, detail: { category, view } }));
@@ -215,8 +221,8 @@
       else if (tab) {
         event.preventDefault();
         const id = tab.dataset.siteTab;
-        const visible = frame.root().dataset;
-        select(visible.frameView === 'overview' && visible.frameCategory === id && id !== 'about' ? 'about' : id);
+        const collapse = requested.view === 'overview' && requested.category === id;
+        select(collapse ? '' : id, collapse ? 'closed' : 'overview', { triggerCategory: id });
       }
     }
 
@@ -243,7 +249,9 @@
       const library = Object.keys(routes).find((id) => routes[id] === window.location.pathname);
       let hash = window.location.hash.slice(1);
       try { hash = decodeURIComponent(hash); } catch (_) {}
-      select(library || (items.has(hash) ? hash : state?.homePanel) || 'about', library ? 'library' : 'overview', { history: false, focus: false, reveal: false });
+      const closed = !library && (hash === 'closed' || (!hash && state?.homeView === 'closed'));
+      select(closed ? '' : library || (items.has(hash) ? hash : state?.homePanel) || 'about',
+        closed ? 'closed' : library ? 'library' : 'overview', { history: false, focus: false, reveal: false });
     }
 
     frame.root().addEventListener('click', click);
@@ -260,8 +268,10 @@
     const library = Object.keys(routes).find((id) => routes[id] === window.location.pathname);
     let hash = window.location.hash.slice(1);
     try { hash = decodeURIComponent(hash); } catch (_) {}
-    select(library || (items.has(hash) ? hash : 'about'), library || window.location.search.includes('view=library') ? 'library' : 'overview', {
-      animate: false, history: false, focus: false, reveal: false, notify: false
+    const closed = !library && (hash === 'closed' || (!hash && window.history.state?.homeView === 'closed'));
+    select(closed ? '' : library || (items.has(hash) ? hash : 'about'),
+      closed ? 'closed' : library || window.location.search.includes('view=library') ? 'library' : 'overview', {
+      animate: false, history: closed ? 'replace' : false, focus: false, reveal: false, notify: false, initial: true
     });
     return;
   }

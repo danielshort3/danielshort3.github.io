@@ -954,7 +954,7 @@
 }
 
 @layer overrides {
-  body[data-page="home"].home-pattern-page #main {
+  body[data-page="home"].home-pattern-page #main:not(.site-frame__welcome) {
     display: block;
     min-height: 0;
     margin: 0;
@@ -962,7 +962,7 @@
     background: var(--home-canvas);
   }
 
-  body[data-page="home"].home-pattern-page #main > section {
+  body[data-page="home"].home-pattern-page #main:not(.site-frame__welcome) > section {
     border: 0;
     background: var(--home-canvas);
   }
