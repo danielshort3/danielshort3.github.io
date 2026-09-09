@@ -32,22 +32,43 @@ check(descriptionContext.describe({ body: { dataset: { personalFit: 'immersive' 
   querySelector: (selector) => selector === '[data-personal-accordion-shell]' ? immersiveSource : null }).fit === 'immersive',
   'Explicitly immersive route metadata remains exempt from the bounded frame.');
 
-const layoutTabs = new Map([...order, 'resume'].map(id => [id, { dataset: {}, classList: { toggle() {} },
-  style: {}, setAttribute() {}, removeAttribute() {} }]));
+const layoutTabs = new Map([...order, 'resume'].map(id => [id, { dataset: {},
+  classList: { states: new Map(), toggle(name, active) { this.states.set(name, active); } },
+  style: {}, attributes: new Map(), setAttribute(name, value) { this.attributes.set(name, value); },
+  removeAttribute(name) { this.attributes.delete(name); } }]));
 const configurationContext = vm.createContext({ framePolicy, tabs: layoutTabs, colors: {}, personalOrder: order,
   professionalOrder: ['about', 'projects', 'resume', 'contact'], compactQuery: { matches: false },
   ensureTab: id => layoutTabs.get(id), stage: { style: {} }, slot: { style: {} },
+  welcome: {}, panel: { setAttribute() {} }, body: {},
   frame: { dataset: {}, classList: { toggle() {} }, toggleAttribute() {}, style: { setProperty() {} } } });
 vm.runInContext(frameSource.slice(frameSource.indexOf('  function configure('), frameSource.indexOf('  function capture(')), configurationContext);
 const staleSnapshot = { audience: 'tourism', category: 'projects', view: 'detail', home: false, fit: 'document' };
 configurationContext.configure(staleSnapshot);
 check(staleSnapshot.fit === 'viewport' && configurationContext.frame.dataset.frameFit === 'viewport',
   'Reconfiguring a restored snapshot normalizes stale document fit in both state and rendered attributes.');
+for (const compact of [false, true]) {
+  configurationContext.compactQuery.matches = compact;
+  configurationContext.configure({ audience: 'personal', category: '', view: 'closed', home: true });
+  check(!configurationContext.welcome.hidden && !configurationContext.welcome.inert && configurationContext.welcome.id === 'main',
+    'A folded homepage exposes its welcome as the accessible main landmark.');
+  check(configurationContext.body.hidden && configurationContext.body.inert && configurationContext.panel.hidden &&
+    configurationContext.body.id !== 'main', 'A folded homepage hides its retained category body without duplicating the main landmark.');
+  check(order.every(id => !layoutTabs.get(id).hidden && layoutTabs.get(id).tabIndex === 0 &&
+    layoutTabs.get(id).attributes.get('aria-expanded') === 'false' &&
+    !layoutTabs.get(id).classList.states.get('is-active')), 'All five folded tabs stay available with no expanded or active selection.');
+  check(configurationContext.stage.style.gridTemplateColumns === (compact ? 'minmax(0, 1fr)' : 'repeat(5, minmax(0, 1fr))') &&
+    order.every((id, index) => layoutTabs.get(id).style.gridArea === (compact ? `${index + 1} / 1` : `1 / ${index + 1}`)),
+  'The folded navigation uses one seamless mobile column or five adjacent desktop rails.');
+  configurationContext.configure({ audience: 'personal', category: 'about', view: 'overview', home: true });
+  check(configurationContext.welcome.hidden && configurationContext.welcome.inert && configurationContext.body.id === 'main' &&
+    !configurationContext.body.hidden && !configurationContext.body.inert && !configurationContext.panel.hidden,
+  'Reopening About restores the retained category body and hides the resting welcome.');
+}
 
 let adoptedCommit;
 const hardManifest = { id: 'tools:transcribe', path: '/tools/transcribe', navigation: 'hard' };
 const hardContext = vm.createContext({
-  frame: null, stage: null, panel: null, slot: null, canvas: null, toolbar: null, viewport: null, loading: null, lastWidth: 0,
+  frame: null, welcome: null, stage: null, panel: null, slot: null, canvas: null, toolbar: null, viewport: null, loading: null, lastWidth: 0,
   document: { querySelector: selector => selector === '[data-site-route-manifest]' ? { textContent: JSON.stringify(hardManifest) }
     : selector === '[data-site-route-content]' ? { replaceWith: node => { node.isConnected = true; } } : null },
   describe: (scope, manifest) => ({ manifest, tabSources: [] }),
@@ -221,7 +242,7 @@ async function runAsyncChecks() {
           node.parentNode = null;
         };
       }
-    }, capture: () => ({}), transition() {}, setLoading() {},
+    }, capture: () => ({}), transition() {}, setLoading() {}, wipe: () => Promise.resolve(true),
     body: { replaceChildren: (...children) => { mountedChildren = children; } },
     release: () => { releasedFits.push(homeContext.current.fit); return Promise.resolve(true); }
   });
@@ -274,6 +295,13 @@ async function runAsyncChecks() {
   check(homeToolbar.hidden && homeToolbar.childNodes.length === 0 &&
     homeContext.current.libraryBackButtons.get('tools') === libraryBackButtons.get('tools'),
   'Restoring an integrated library preserves the original parent control and keeps the extra toolbar hidden.');
+  const retainedChildren = mountedChildren;
+  check(await homeContext.showHome('', 'closed', { animate: false }) && homeContext.current.category === '' &&
+    homeContext.current.view === 'closed' && mountedChildren === retainedChildren,
+  'Folding all categories retains the mounted content instead of replacing it with an empty body.');
+  check(homeToolbar.hidden && homeToolbar.childNodes.length === 0, 'A folded homepage has no stale library back control.');
+  check(await homeContext.showHome('tools', 'overview', { animate: false }) && mountedChildren[1] === homeItem,
+    'Reopening a folded category reuses its original content object.');
 
   const animations = [];
   const timers = new Map();
@@ -287,7 +315,7 @@ async function runAsyncChecks() {
       return animation;
     } },
     window: { setTimeout(callback) { const id = nextTimer++; timers.set(id, callback); return id; }, clearTimeout: id => timers.delete(id) },
-    geometry: null, wipeMotion: null, wipeClosed: true, compactQuery: { matches: true }, duration: () => milliseconds,
+    current: { view: 'overview' }, geometry: null, wipeMotion: null, wipeClosed: true, compactQuery: { matches: true }, duration: () => milliseconds,
     getComputedStyle: () => ({ clipPath: 'inset(0% 0% 50% 0%)' })
   });
   vm.runInContext(frameSource.slice(frameSource.indexOf('  function wipe('), frameSource.indexOf('  function setLoading(')), motionContext);
@@ -321,6 +349,10 @@ async function runAsyncChecks() {
   animations[2].complete();
   check(await revealed === true && !motionContext.viewport.inert, 'The current reveal completes with interactive content.');
   check(timers.size === 0 && motionContext.wipeMotion === null, 'Completed reveals clean up timers and ownership.');
+  motionContext.current.view = 'closed';
+  check(await motionContext.wipe(true) && motionContext.viewport.inert && motionContext.wipeClosed &&
+    motionContext.viewport.style.clipPath === 'inset(0% 0% 100% 0%)',
+  'A router reveal cannot expose or enable the retained category body while all tabs are folded.');
   console.log(`Vertical accordion geometry, compact retargeting, scroll history, and reveal cleanup: ${checks} checks passed.`);
 }
 runAsyncChecks().catch((error) => { console.error(error); process.exitCode = 1; });

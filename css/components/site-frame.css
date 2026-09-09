@@ -342,6 +342,129 @@
     .site-frame__loading-bar::after { animation: none; width: 100%; }
   }
 
+  /* Closing every section leaves an intentional welcome beside the folded rails. */
+  .site-frame__welcome {
+    min-width: 0;
+    flex: 0 0 auto;
+    background: #fff;
+    color: #091f3b;
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+  }
+  .site-frame .site-frame__welcome-eyebrow {
+    margin: 0 0 18px;
+    color: #155dfc;
+    font-size: .8125rem;
+    font-weight: 750;
+    line-height: 1.4;
+    letter-spacing: .15em;
+  }
+  .site-frame__welcome-title {
+    margin: 0 0 18px;
+    color: inherit;
+    font-family: inherit;
+    font-size: clamp(2.5rem, 4.3vw, 4rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -.04em;
+    text-wrap: balance;
+  }
+  .site-frame .site-frame__welcome-summary {
+    max-width: 30ch;
+    margin: 0;
+    color: #091f3b;
+    font-size: clamp(1.125rem, 1.75vw, 1.5rem);
+    line-height: 1.45;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+  }
+  .site-frame .site-frame__welcome-hint {
+    width: min(100%, 340px);
+    box-sizing: border-box;
+    margin: 30px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid #b8c7d9;
+    color: #526781;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .site-frame__tab-toggle { display: none; }
+  .site-frame.site-frame[data-frame-view="closed"][data-frame-compact="false"] {
+    display: grid;
+    grid-template-columns: minmax(0, 580px) minmax(280px, 360px);
+    align-items: center;
+    justify-content: center;
+    gap: clamp(40px, 6vw, 104px);
+    min-height: calc(var(--frame-available-height) + 28px);
+    padding-inline: clamp(32px, 7vw, 140px);
+  }
+  .site-frame[data-frame-view="closed"][data-frame-compact="false"] .site-frame__welcome { grid-area: 1 / 1; }
+  .site-frame.site-frame[data-frame-view="closed"][data-frame-compact="false"] .site-frame__stage {
+    grid-area: 1 / 2;
+    width: 100%;
+    max-width: 360px;
+    height: clamp(320px, 58svh, 470px);
+    min-height: 0;
+    border: 0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(9, 31, 59, .09);
+  }
+  .site-frame[data-frame-view="closed"] .site-frame__panel::before,
+  .site-frame[data-frame-view="closed"] .site-frame__slot::after { border: 0; }
+  @media (max-width: 959px), (max-height: 619px) {
+    .site-frame.site-frame[data-frame-view="closed"] {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(var(--frame-available-height) + 28px);
+      padding: 0 0 clamp(28px, 6svh, 56px);
+    }
+    .site-frame[data-frame-view="closed"] .site-frame__welcome {
+      padding: clamp(36px, 7svh, 60px) 24px 32px;
+    }
+    .site-frame .site-frame__welcome-eyebrow { margin-bottom: 14px; }
+    .site-frame__welcome-title { font-size: clamp(2rem, 9.6vw, 2.75rem); margin-bottom: 14px; }
+    .site-frame .site-frame__welcome-summary { max-width: 25ch; font-size: 1.25rem; }
+    .site-frame .site-frame__welcome-hint { margin-top: 22px; padding-top: 18px; font-size: .9375rem; }
+    .site-frame.site-frame[data-frame-view="closed"] .site-frame__stage {
+      flex: 0 0 auto;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .site-frame[data-frame-view="closed"] .site-frame__tab {
+      min-height: 58px;
+      justify-content: flex-start;
+      gap: 16px;
+      padding: 14px 24px;
+    }
+    .site-frame[data-frame-view="closed"] .site-frame__tab-label { font-size: .9375rem; }
+    .site-frame[data-frame-home="true"] .site-frame__tab-toggle {
+      position: relative;
+      display: block;
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      margin-left: auto;
+    }
+    .site-frame__tab-toggle::before,
+    .site-frame__tab-toggle::after {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 2px;
+      width: 14px;
+      height: 2px;
+      border-radius: 1px;
+      background: currentColor;
+    }
+    .site-frame__tab-toggle::after { transform: rotate(90deg); }
+    .site-frame__tab.is-active .site-frame__tab-toggle::after { display: none; }
+    .site-frame--moving .site-frame__tab-toggle,
+    .site-frame--held .site-frame__tab-toggle { visibility: hidden; }
+  }
+
   /* Keep the personal introduction and featured projects inside the original accordion. */
   .site-frame[data-frame-audience="personal"] .home-accordion__panel-head {
     position: static;

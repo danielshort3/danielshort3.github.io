@@ -15,6 +15,7 @@ const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { createLocalServer } = require('../../build/dev');
 const runResponsiveSpacingChecks = require('./responsive-spacing.browser.cjs');
+const runClosedHomeChecks = require('./home-closed.browser.cjs');
 
 const root = path.resolve(__dirname, '../..');
 const personalContent = require('../../content/audiences/personal.json');
@@ -673,7 +674,7 @@ async function runViewport(browser, base, settings) {
       await page.evaluate(() => document.fonts.ready);
       assert.equal(await page.evaluate(() => SiteFrame.root().dataset.frameAudience), audience, `${route} uses its intended audience.`);
       assert.equal(await page.evaluate(() => document.body.dataset.siteRouteNavigation), navigation, `${route} retains its route lifecycle.`);
-      if (heading) assert.match(await page.locator('.site-frame h1').innerText(), heading);
+      if (heading) assert.match(await page.locator('.site-frame h1:visible').innerText(), heading);
       if (route.startsWith('/search')) {
         await page.locator('#search-results a').first().waitFor();
         assert((await page.locator('#search-results a').count()) > 1, 'Search renders real matching results before geometry is checked.');
@@ -750,6 +751,7 @@ async function main() {
       { name: 'mobile', viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' }
     ]) await runViewport(browser, base, settings);
     await runResponsiveSpacingChecks({ browser, base, settle, assertLayout, artifactDir });
+    await runClosedHomeChecks({ browser, base, artifactDir });
     console.log(`Browser artifacts: ${artifactDir}`);
   } finally {
     await browser?.close();

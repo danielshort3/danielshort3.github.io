@@ -16,7 +16,7 @@
   const CONTENT_EVENT = 'site:content-updated';
   const NAVIGATION_EVENT = 'site:navigation-start';
   const REQUEST_HEADER = 'X-Site-Route';
-  const ROUTE_VIEWS = new Set(['overview', 'library', 'detail']);
+  const ROUTE_VIEWS = new Set(['closed', 'overview', 'library', 'detail']);
   const ROUTE_CATEGORIES = new Set(['about', 'projects', 'tools', 'games', 'resume', 'contact']);
   const PROFESSIONAL_AUDIENCES = new Set(['analytics', 'data-science', 'tourism']);
   const HARD_BOUNDARY_PATHS = new Set([
@@ -215,6 +215,7 @@
       } catch (_) {
         category = 'about';
       }
+      if (category === 'closed') return { category: '', view: 'closed' };
       if (!ROUTE_CATEGORIES.has(category)) return null;
       const library = url.searchParams.get('view') === 'library' &&
         ['projects', 'tools', 'games'].includes(category);
@@ -256,6 +257,7 @@
     if (String(state.siteRoute?.id || '').trim() !== 'home') return null;
     const category = String(state.homePanel || '').trim();
     const view = String(state.homeView || '').trim();
+    if (view === 'closed' && !category) return { category: '', view };
     if (!ROUTE_CATEGORIES.has(category) || !['overview', 'library'].includes(view)) return null;
     if (view === 'library' && !['projects', 'tools', 'games'].includes(category)) return null;
     return { category, view };
@@ -314,7 +316,8 @@
     if (!options.strict) return manifest;
     if (manifest.version !== 1 || !manifest.id) throw new Error('The route manifest has an unsupported version or no id.');
     if (manifest.navigation !== 'soft') throw new Error('The destination is not a soft-navigation route.');
-    if (!ROUTE_CATEGORIES.has(manifest.category) || !ROUTE_VIEWS.has(manifest.view)) {
+    const closedHome = manifest.id === 'home' && manifest.path === '/' && manifest.view === 'closed' && !manifest.category;
+    if ((!closedHome && !ROUTE_CATEGORIES.has(manifest.category)) || !ROUTE_VIEWS.has(manifest.view)) {
       throw new Error('The route manifest has an invalid category or view.');
     }
     if (!url || manifest.path !== normalizePathname(url.pathname)) {
@@ -995,7 +998,7 @@
         ...previous,
         siteRoute: {
           ...(previous.siteRoute || {}),
-          category: manifest?.category || previous.siteRoute?.category || '',
+          category: manifest?.category ?? previous.siteRoute?.category ?? '',
           id: manifest?.id || previous.siteRoute?.id || '',
           index: Number(previous.siteRoute?.index ?? historySequence),
           returnFocus: returnFocus || previous.siteRoute?.returnFocus || '',
@@ -1084,13 +1087,15 @@
       if (returnFocus) {
         const target = document.getElementById(returnFocus) ||
           document.querySelector(`[data-site-route-focus-key="${cssEscape(returnFocus)}"]`);
-        if (target) {
+        if (target && !target.closest('[hidden], [inert], [aria-hidden="true"]')) {
           target.focus({ preventScroll: true });
           return;
         }
       }
     }
-    const heading = getRouteOutlet(document)?.querySelector('h1, [role="heading"][aria-level="1"]');
+    const heading = window.SiteFrame?.current()?.view === 'closed'
+      ? document.querySelector('.site-frame__welcome-title')
+      : getRouteOutlet(document)?.querySelector('h1, [role="heading"][aria-level="1"]');
     if (!heading) return;
     if (!heading.matches('a[href], button, input, select, textarea, [tabindex]')) {
       heading.setAttribute('tabindex', '-1');
@@ -1189,7 +1194,7 @@
 
   function navigationDirection(previousManifest, nextManifest, navigationType) {
     if (navigationType === 'pop') return 'back';
-    const depth = { overview: 0, library: 1, detail: 2 };
+    const depth = { closed: 0, overview: 0, library: 1, detail: 2 };
     if (!previousManifest || previousManifest.category !== nextManifest.category) return 'cross';
     if (depth[nextManifest.view] < depth[previousManifest.view]) return 'back';
     return 'forward';

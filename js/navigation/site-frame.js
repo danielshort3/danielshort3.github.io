@@ -11,6 +11,7 @@
   const professionalOrder = ['about', 'projects', 'resume', 'contact'];
   const tabs = new Map();
   let frame;
+  let welcome;
   let stage;
   let panel;
   let slot;
@@ -48,12 +49,13 @@
     if (!home && !shell) throw new Error('The destination has no shared frame.');
     const audience = scope.body?.dataset.audience || 'personal';
     const source = home || shell;
-    const category = manifest.category || source.dataset.personalActiveCategory || source.dataset.activePanel || 'about';
+    const closed = Boolean(home && manifest.view === 'closed');
+    const category = closed ? '' : manifest.category || source.dataset.personalActiveCategory || source.dataset.activePanel || 'about';
     return {
       manifest,
       audience,
       category,
-      view: home ? 'overview' : (manifest.view || 'detail'),
+      view: home ? (closed ? 'closed' : 'overview') : (manifest.view || 'detail'),
       fit: framePolicy.resolveFit(home ? undefined : scope.body?.dataset.personalFit),
       home: Boolean(home),
       source,
@@ -78,7 +80,9 @@
       label.textContent = category.charAt(0).toUpperCase() + category.slice(1);
       const notch = make('span', 'site-frame__tab-notch');
       notch.setAttribute('aria-hidden', 'true');
-      link.append(icon, label, notch);
+      const toggle = make('span', 'site-frame__tab-toggle');
+      toggle.setAttribute('aria-hidden', 'true');
+      link.append(icon, label, notch, toggle);
       stage.insertBefore(link, panel);
       tabs.set(category, link);
     }
@@ -142,6 +146,7 @@
   }
 
   function configure(description) {
+    const closed = description.home && description.view === 'closed';
     description.fit = framePolicy.resolveFit(description.fit);
     frame.dataset.frameAudience = description.audience;
     frame.dataset.frameNavigation = 'rails';
@@ -157,10 +162,21 @@
     frame.dataset.activePanel = description.category;
     frame.dataset.personalActiveCategory = description.category;
     frame.style.setProperty('--panel-color', colors[description.category] || colors.about);
+    welcome.hidden = !closed;
+    welcome.inert = !closed;
+    welcome.id = closed ? 'main' : 'site-frame-welcome';
+    panel.hidden = closed;
+    panel.inert = closed;
+    panel.setAttribute('aria-hidden', String(closed));
+    if (description.home && body) {
+      body.id = closed ? 'site-frame-home-content' : 'main';
+      body.hidden = closed;
+      body.inert = closed;
+    }
     description.tabSources?.forEach((source) => ensureTab(source.dataset.siteTab || source.dataset.homeAccordionTrigger, source));
     const order = description.audience === 'personal' ? personalOrder : professionalOrder;
     const overview = description.home && description.view === 'overview';
-    const visible = overview || description.audience !== 'personal' ? order : [description.category];
+    const visible = overview || closed || description.audience !== 'personal' ? order : [description.category];
     visible.forEach((id) => ensureTab(id));
     tabs.forEach((link, id) => {
       const active = id === description.category;
@@ -184,7 +200,12 @@
     const compact = compactQuery.matches;
     frame.dataset.frameCompact = String(compact);
     const activeIndex = visible.indexOf(description.category);
-    if (compact && overview) {
+    if (closed) {
+      stage.style.gridTemplateColumns = compact ? 'minmax(0, 1fr)' : `repeat(${visible.length}, minmax(0, 1fr))`;
+      stage.style.gridTemplateRows = compact ? `repeat(${visible.length}, minmax(58px, auto))` : 'minmax(0, 1fr)';
+      visible.forEach((id, index) => { tabs.get(id).style.gridArea = compact ? `${index + 1} / 1` : `1 / ${index + 1}`; });
+      slot.style.gridArea = 'auto';
+    } else if (compact && overview) {
       stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
       stage.style.gridTemplateRows = visible.flatMap((id) => id === description.category ? ['minmax(54px, auto)', 'auto'] : ['minmax(48px, auto)']).join(' ');
       visible.forEach((id, index) => {
@@ -348,7 +369,11 @@
       height: `${from.frame.height}px`, width: `${from.frame.width}px`, minHeight: '0', maxWidth: 'none', marginInline: '0',
       borderWidth: from.frame.borderWidth, borderColor: from.frame.borderColor, borderRadius: from.frame.radius, boxShadow: from.frame.shadow
     });
-    stage.style.marginLeft = `${from.frame.x + (from.scroll?.x || 0) - frame.getBoundingClientRect().x - window.scrollX - parseFloat(from.host.paddingLeft || 0)}px`;
+    if (from.view === 'closed' || desiredTarget?.view === 'closed') {
+      Object.assign(stage.style, { position: 'absolute', gridArea: 'auto', left: `${from.frame.x - from.host.x}px`, top: `${from.frame.y - from.host.y}px`, margin: '0' });
+    } else {
+      stage.style.marginLeft = `${from.frame.x + (from.scroll?.x || 0) - frame.getBoundingClientRect().x - window.scrollX - parseFloat(from.host.paddingLeft || 0)}px`;
+    }
     const stageBox = rect(stage);
     stage.style.transform = `translateY(${from.frame.y + (from.scroll?.y || 0) - stageBox.y - window.scrollY}px)`;
     Object.assign(panel.style, { position: 'absolute', inset: '0', display: 'block', gridArea: 'auto' });
@@ -409,6 +434,7 @@
   function compactStack(before, after, description) {
     if (!before.compact || !after.compact || before.audience !== 'personal' || description.audience !== 'personal' ||
       Math.abs(before.frame.width - after.frame.width) > 1 ||
+      before.view === 'closed' || description.view === 'closed' ||
       !(before.home && before.view === 'overview' || description.home && description.view === 'overview') ||
       before.category === description.category && before.view === description.view) return null;
     const ids = personalOrder.filter((id) => before.tabs.get(id)?.height > 0 || after.tabs.get(id)?.height > 0);
@@ -556,8 +582,12 @@
     stage.style.width = `${after.frame.width}px`;
     stage.style.minHeight = '0';
     stage.style.maxWidth = 'none';
-    stage.style.marginInline = '0';
-    stage.style.marginLeft = `${after.frame.x - frame.getBoundingClientRect().x - parseFloat(getComputedStyle(frame).paddingLeft || 0)}px`;
+    if (before.view === 'closed' || description.view === 'closed') {
+      Object.assign(stage.style, { position: 'absolute', gridArea: 'auto', left: `${after.frame.x - after.host.x}px`, top: `${after.frame.y - after.host.y}px`, margin: '0' });
+    } else {
+      stage.style.marginInline = '0';
+      stage.style.marginLeft = `${after.frame.x - frame.getBoundingClientRect().x - parseFloat(getComputedStyle(frame).paddingLeft || 0)}px`;
+    }
     // The panel never retracts from the stage. Only its content slot changes,
     // leaving an uninterrupted background and border beneath crossing rails.
     Object.assign(panel.style, { position: 'absolute', inset: '0', display: 'block', gridArea: 'auto' });
@@ -588,6 +618,11 @@
     // Keep destination text at its measured width instead of reflowing it on
     // every frame. The outer slot clips to the space between the moving rails.
     const syncSlot = () => {
+      if (description.view === 'closed') {
+        pinSlot({ x: after.frame.x, y: after.frame.y, width: 0, height: 0 }, rect(panel), slotInsets);
+        updateBoundary();
+        return;
+      }
       if (stack) {
         slot.style.setProperty('--frame-slot-border-width', getComputedStyle(slot).padding);
         updateBoundary();
@@ -700,6 +735,13 @@
 
   function wipe(open, options = {}) {
     if (!viewport) return Promise.resolve(true);
+    if (open && current?.view === 'closed') {
+      wipeMotion?.finish(false);
+      viewport.inert = true;
+      viewport.style.clipPath = 'inset(0% 0% 100% 0%)';
+      wipeClosed = true;
+      return Promise.resolve(true);
+    }
     if (open && geometry?.opening && !options.geometryReady) {
       return geometry.opening.then((ready) => ready ? wipe(true, { ...options, geometryReady: true }) : false);
     }
@@ -709,7 +751,7 @@
     const last = open ? 'inset(0% 0% 0% 0%)' : (compactQuery.matches ? 'inset(0% 0% 100% 0%)' : 'inset(0% 100% 0% 0%)');
     viewport.style.clipPath = last;
     viewport.inert = !open;
-    const milliseconds = duration('--site-frame-wipe-duration', 160);
+    const milliseconds = options.animate === false ? 0 : duration('--site-frame-wipe-duration', 160);
     if (!milliseconds || !viewport.animate) return Promise.resolve(true);
     const animation = viewport.animate([{ clipPath: first === 'none' ? 'inset(0% 0% 0% 0%)' : first }, { clipPath: last }], {
       duration: milliseconds, easing: 'cubic-bezier(.4, 0, .2, 1)', fill: 'both'
@@ -870,7 +912,9 @@
   }
 
   function showHome(category, view, options = {}) {
-    if (!current?.home || !current.items?.has(category)) return Promise.resolve(false);
+    const closed = view === 'closed';
+    if (!current?.home || (!closed && !current.items?.has(category))) return Promise.resolve(false);
+    if (closed) category = '';
     const sequence = ++localSequence;
     const next = { ...current, category, view, fit: framePolicy.resolveFit(),
       manifest: { ...current.manifest, category, view } };
@@ -882,19 +926,20 @@
       if (sequence !== localSequence || !current?.home) return false;
       current = next;
       const item = next.items.get(category);
-      const scroller = item.querySelector('[data-home-accordion-scroller]');
+      const scroller = item?.querySelector('[data-home-accordion-scroller]');
       if (scroller) [...scroller.children].forEach((child) => {
         const library = child.hasAttribute('data-home-library-view');
         child.hidden = view === 'library' ? !library : library;
         child.inert = child.hidden;
       });
       window.ContactMap?.hide();
-      body.replaceChildren(...(next.heading ? [next.heading, item] : [item]));
+      // Keep the current item's DOM and any user state mounted while folded.
+      if (item) body.replaceChildren(...(next.heading ? [next.heading, item] : [item]));
       window.ContactMap?.refresh();
       updateHomeToolbar(next);
       if (mounting) { prepareHeldTarget(next, held.refreshing ? capture() : held.from); return true; }
       const moving = release({ animate: options.animate !== false, scroll: options.scroll });
-      await Promise.all([moving, options.animate !== false ? wipe(true) : Promise.resolve(true)]);
+      await Promise.all([moving, wipe(true, { animate: options.animate !== false })]);
       return sequence === localSequence;
     });
   }
@@ -949,6 +994,17 @@
     const outlet = document.querySelector('[data-site-route-content]');
     if (!outlet) return null;
     frame = make('section', 'site-frame', 'data-site-persistent-shell');
+    welcome = make('main', 'site-frame__welcome');
+    welcome.tabIndex = -1;
+    const eyebrow = make('p', 'site-frame__welcome-eyebrow');
+    eyebrow.textContent = 'WELCOME';
+    const title = make('h1', 'site-frame__welcome-title');
+    title.textContent = 'Daniel Short.';
+    const summary = make('p', 'site-frame__welcome-summary');
+    summary.textContent = 'Data, ideas, and useful things.';
+    const hint = make('p', 'site-frame__welcome-hint');
+    hint.textContent = 'Choose a tab to explore.';
+    welcome.append(eyebrow, title, summary, hint);
     stage = make('div', 'site-frame__stage', 'data-site-frame-stage');
     panel = make('div', 'site-frame__panel', 'data-site-route-panel');
     slot = make('div', 'site-frame__slot', 'data-site-frame-slot');
@@ -964,7 +1020,7 @@
     slot.append(canvas);
     panel.append(slot, loading);
     stage.append(panel);
-    frame.append(stage);
+    frame.append(welcome, stage);
     description.tabSources.forEach((source) => ensureTab(source.dataset.siteTab || source.dataset.homeAccordionTrigger, source));
     outlet.replaceWith(frame);
     commit(description, { original: true, animate: false });
