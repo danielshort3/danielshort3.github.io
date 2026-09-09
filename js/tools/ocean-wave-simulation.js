@@ -12,6 +12,7 @@
   const lightInput = $('#ocean-wave-light');
   const lightValue = $('#ocean-wave-light-value');
   const qualityInput = $('#ocean-wave-quality');
+  const sceneInput = $('#ocean-wave-scene');
   const toggleBtn = $('#ocean-wave-toggle');
   const resetBtn = $('#ocean-wave-reset');
   const resetCameraBtn = $('#ocean-wave-reset-camera');
@@ -27,10 +28,30 @@
     || !statusEl || !summaryEl
   ) return;
 
-  const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
-  if (!ctx) {
+  let gl = null;
+  let ctx = null;
+  try {
+    gl = canvas.getContext('webgl', {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: 'high-performance',
+      preserveDrawingBuffer: false,
+    });
+    if (!gl) ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+  } catch {}
+  if (!gl && !ctx) {
     statusEl.textContent = 'Canvas unavailable in this browser.';
+    stage.classList.add('has-render-error');
+    toggleBtn.disabled = true;
     return;
+  }
+  let rendererAvailable = true;
+  let bufferUnavailable = false;
+  if (!gl) {
+    const coveOption = sceneInput?.querySelector('option[value="cove"]');
+    if (coveOption) coveOption.disabled = true;
   }
 
   const TAU = Math.PI * 2;
@@ -40,22 +61,39 @@
   const WIND_DIR = 86 * DEG;
 
   const DEFAULTS = {
-    wind: 7.5,
-    waveHeight: 1,
-    sunElevationDeg: 38,
+    wind: 2.4,
+    waveHeight: 0.65,
+    sunElevationDeg: 6,
     qualityMode: 'auto',
+    mood: 'dawn',
+    sceneKind: 'ocean',
     cameraYawDeg: 0,
-    cameraPitchDeg: -11,
+    cameraPitchDeg: -6,
   };
 
   const PRESETS = {
-    'calm-dawn': { wind: 2.4, waveHeight: 0.45, sunElevationDeg: 11, yawDeg: -18, pitchDeg: -8 },
-    'open-ocean-swell': { wind: 11.5, waveHeight: 2.4, sunElevationDeg: 42, yawDeg: 12, pitchDeg: -14 },
-    'golden-hour': { wind: 6.2, waveHeight: 1.15, sunElevationDeg: 8, yawDeg: 34, pitchDeg: -7 },
-    'storm-front': { wind: 18, waveHeight: 4.6, sunElevationDeg: 17, yawDeg: -28, pitchDeg: -17 },
+    'calm-dawn': { wind: 2.4, waveHeight: 0.65, sunElevationDeg: 6, yawDeg: 0, pitchDeg: -6, mood: 'dawn' },
+    'open-ocean-swell': { wind: 4.8, waveHeight: 0.95, sunElevationDeg: 42, yawDeg: -8, pitchDeg: -8, mood: 'daylight' },
+    'golden-hour': { wind: 3.2, waveHeight: 0.8, sunElevationDeg: 7, yawDeg: 8, pitchDeg: -5, mood: 'golden' },
+    dusk: { wind: 1.8, waveHeight: 0.55, sunElevationDeg: 5, yawDeg: -30, pitchDeg: -5, mood: 'dusk' },
   };
 
-  const QUALITY_MODES = new Set(['auto', 'battery', 'quality']);
+  const QUALITY_PROFILES = {
+    low: { label: 'Low', tier: 0, fps: 30, dprMax: 1, maxPixels: 720000, scale: 0.8, maxW: 1600, maxH: 1200 },
+    medium: { label: 'Medium', tier: 1, fps: 30, dprMax: 1, maxPixels: 1500000, scale: 1, maxW: 2200, maxH: 1800 },
+    high: { label: 'High', tier: 2, fps: 60, dprMax: 2, maxPixels: 4000000, scale: 1, maxW: 3200, maxH: 2560 },
+    ultra: { label: 'Ultra', tier: 3, fps: 30, dprMax: 2, maxPixels: 8300000, scale: 1.25, maxW: 4096, maxH: 4096 },
+  };
+  const AUTO_QUALITY_PROFILE = { ...QUALITY_PROFILES.high, fps: 30 };
+  const QUALITY_MODES = new Set(['auto', ...Object.keys(QUALITY_PROFILES)]);
+  const normalizeQuality = value => {
+    const migrated = value === 'battery' ? 'low' : value === 'quality' ? 'high' : value;
+    return QUALITY_MODES.has(migrated) ? migrated : null;
+  };
+  const MOODS = ['dawn', 'daylight', 'golden', 'dusk'];
+  const SCENES = new Set(['ocean', 'cove']);
+  const PREFERENCES_KEY = 'ocean-wave-preferences-v1';
+  const LIGHT_TRANSITION_SECONDS = 6;
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -126,6 +164,9 @@
     waveHeight: DEFAULTS.waveHeight,
     sunElevationDeg: DEFAULTS.sunElevationDeg,
     qualityMode: DEFAULTS.qualityMode,
+    mood: DEFAULTS.mood,
+    sceneKind: DEFAULTS.sceneKind,
+    brightness: 1,
     paused: false,
   };
 
@@ -152,11 +193,13 @@
   let skyRowB = null;
 
   const camera = {
-    height: 6.2,
+    x: 0,
+    z: 0,
+    height: 2.2,
     yaw: DEFAULTS.cameraYawDeg * DEG,
     pitch: DEFAULTS.cameraPitchDeg * DEG,
-    minPitch: -32 * DEG,
-    maxPitch: 10 * DEG,
+    minPitch: -65 * DEG,
+    maxPitch: 65 * DEG,
     maxDistance: 260,
     fovY: 56 * DEG,
     tanHalfFovX: 1,
@@ -168,7 +211,7 @@
   };
 
   const light = {
-    azimuth: 62 * DEG,
+    azimuth: 78 * DEG,
     dirX: 0,
     dirY: 1,
     dirZ: 0,
@@ -220,17 +263,16 @@
   };
 
   const getQualityLabel = () => {
-    if (state.qualityMode === 'battery') return 'Battery 30 FPS';
-    if (state.qualityMode === 'quality') return 'Quality';
-    return 'Auto';
+    return QUALITY_PROFILES[state.qualityMode]?.label || 'Auto';
   };
 
   const updateConditionSummary = () => {
     const yawDeg = Math.round(camera.yaw / DEG);
     const pitchDeg = Math.round(camera.pitch / DEG);
-    summaryEl.textContent = `${getWindDescription()} at ${fmt(state.wind, 1)} meters per second, `
-      + `${getWaveDescription()} at ${fmt(state.waveHeight, 2)} times height, and ${getLightDescription()} `
-      + `at ${Math.round(state.sunElevationDeg)} degrees. Camera heading ${yawDeg} degrees, pitch ${pitchDeg} degrees. `
+    summaryEl.textContent = `${state.sceneKind === 'cove' ? 'Quiet cove' : 'Open ocean'}, ${state.mood}. `
+      + `${getWindDescription()} at ${fmt(state.wind, 1)} meters per second, `
+      + `${getWaveDescription()} at ${fmt(state.waveHeight, 2)} meters, ${Math.round(state.brightness * 100)} percent brightness. `
+      + `Camera height ${fmt(camera.height, 1)} meters, heading ${yawDeg} degrees, pitch ${pitchDeg} degrees. `
       + `Animation ${state.paused ? 'paused' : 'running'} in ${getQualityLabel()} mode.`;
   };
 
@@ -242,10 +284,31 @@
     url.searchParams.set('yaw', String(Math.round(camera.yaw / DEG)));
     url.searchParams.set('pitch', String(Math.round(camera.pitch / DEG)));
     url.searchParams.set('quality', state.qualityMode);
+    url.searchParams.set('mood', state.mood);
+    url.searchParams.set('scene', state.sceneKind);
+    url.searchParams.set('brightness', fmt(state.brightness, 2));
+    url.searchParams.set('cx', fmt(camera.x, 2));
+    url.searchParams.set('cz', fmt(camera.z, 2));
+    url.searchParams.set('alt', fmt(camera.height, 2));
     return url;
   };
 
+  let savedPreferences = '';
+  const savePreferences = () => {
+    const serialized = JSON.stringify({
+      mood: state.mood, scene: state.sceneKind, wind: state.wind, waves: state.waveHeight,
+      brightness: state.brightness, quality: state.qualityMode, sun: state.sunElevationDeg,
+    });
+    if (serialized === savedPreferences) return;
+    try {
+      window.localStorage.setItem(PREFERENCES_KEY, serialized);
+      savedPreferences = serialized;
+    } catch {}
+  };
+
   const replaceSceneUrl = () => {
+    if (disposed) return;
+    savePreferences();
     if (!window.history || typeof window.history.replaceState !== 'function') return;
     const url = buildSceneUrl();
     try {
@@ -253,26 +316,29 @@
     } catch {}
   };
 
-  const scheduleSceneUrlUpdate = (() => {
-    let timeoutId = 0;
-    return () => {
-      window.clearTimeout(timeoutId);
-      timeoutId = window.setTimeout(replaceSceneUrl, 180);
-    };
-  })();
+  let sceneUrlTimeout = 0;
+  const scheduleSceneUrlUpdate = () => {
+    if (disposed) return;
+    window.clearTimeout(sceneUrlTimeout);
+    sceneUrlTimeout = window.setTimeout(replaceSceneUrl, 180);
+  };
 
   const syncUI = () => {
     windValue.textContent = `${fmt(state.wind, 1)} m/s`;
-    heightValue.textContent = `${fmt(state.waveHeight, 2)}x`;
-    lightValue.textContent = `${Math.round(state.sunElevationDeg)} degrees`;
+    heightValue.textContent = `${fmt(state.waveHeight, 2)} m`;
+    lightValue.textContent = `${Math.round(state.brightness * 100)}%`;
     windInput.setAttribute('aria-valuetext', `${fmt(state.wind, 1)} meters per second, ${getWindDescription()}`);
-    heightInput.setAttribute('aria-valuetext', `${fmt(state.waveHeight, 2)} times height, ${getWaveDescription()}`);
-    lightInput.setAttribute('aria-valuetext', `${Math.round(state.sunElevationDeg)} degrees, ${getLightDescription()}`);
+    heightInput.setAttribute('aria-valuetext', `${fmt(state.waveHeight, 2)} meters, ${getWaveDescription()}`);
+    lightInput.setAttribute('aria-valuetext', `${Math.round(state.brightness * 100)} percent brightness`);
     qualityInput.value = state.qualityMode;
+    if (sceneInput) sceneInput.value = state.sceneKind;
     toggleBtn.setAttribute('aria-pressed', state.paused ? 'true' : 'false');
     toggleBtn.setAttribute('aria-label', state.paused ? 'Play animation' : 'Pause animation');
+    toggleBtn.title = state.paused ? 'Play animation' : 'Pause animation';
     setToggleIcon(state.paused);
-    setStatus(`${state.paused ? 'Paused' : 'Running'} - ${getQualityLabel()}`);
+    setStatus(rendererAvailable ? `${state.paused ? 'Paused' : 'Running'} - ${getQualityLabel()}`
+      : bufferUnavailable ? 'Graphics memory is unavailable. Choose a lower quality.' : 'Live waves are unavailable on this device.');
+    stage.dataset.oceanPaused = String(state.paused);
     updateConditionSummary();
   };
 
@@ -286,8 +352,8 @@
     const xYaw = light.dirX * camera.cosYaw - light.dirZ * camera.sinYaw;
     const zYaw = light.dirX * camera.sinYaw + light.dirZ * camera.cosYaw;
 
-    const camY = light.dirY * camera.cosPitch + zYaw * camera.sinPitch;
-    const camZ = -light.dirY * camera.sinPitch + zYaw * camera.cosPitch;
+    const camY = light.dirY * camera.cosPitch - zYaw * camera.sinPitch;
+    const camZ = light.dirY * camera.sinPitch + zYaw * camera.cosPitch;
     const camX = xYaw;
 
     if (!Number.isFinite(camX) || !Number.isFinite(camY) || !Number.isFinite(camZ) || camZ <= 0.02) {
@@ -308,7 +374,7 @@
   };
 
   const rebuildCameraRays = () => {
-    if (!width || !height || !waterMask) return;
+    if (!width || !height) return;
 
     camera.tanHalfFovY = Math.tan(camera.fovY / 2);
     camera.tanHalfFovX = camera.tanHalfFovY * (width / height);
@@ -316,6 +382,12 @@
     camera.sinPitch = Math.sin(camera.pitch);
     camera.cosYaw = Math.cos(camera.yaw);
     camera.sinYaw = Math.sin(camera.yaw);
+
+    if (gl) {
+      updateLight();
+      return;
+    }
+    if (!waterMask) return;
 
     const horizonCut = camera.maxDistance;
     const camY = camera.height;
@@ -334,8 +406,8 @@
         const dy = ry / len;
         const dz = rz / len;
 
-        const dyP = dy * camera.cosPitch - dz * camera.sinPitch;
-        const dzP = dy * camera.sinPitch + dz * camera.cosPitch;
+        const dyP = dy * camera.cosPitch + dz * camera.sinPitch;
+        const dzP = -dy * camera.sinPitch + dz * camera.cosPitch;
         const dxP = dx;
 
         const dxW = dxP * camera.cosYaw + dzP * camera.sinYaw;
@@ -353,16 +425,16 @@
           continue;
         }
 
-        const wx = dxW * t;
-        const wz = dzW * t;
+        const wx = camera.x + dxW * t;
+        const wz = camera.z + dzW * t;
         worldX[p] = wx;
         worldZ[p] = wz;
         distance[p] = t;
         waterMask[p] = 1;
 
-        let vx = -wx;
+        let vx = camera.x - wx;
         let vy = camY;
-        let vz = -wz;
+        let vz = camera.z - wz;
         const vLen = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1;
         vx /= vLen;
         vy /= vLen;
@@ -379,7 +451,7 @@
   const buildWaves = () => {
     const sea = clamp(state.wind / 20, 0, 1);
     const energy = lerp(0.2, 0.95, Math.pow(sea, 0.9));
-    const speedScale = lerp(0.76, 1.75, sea);
+    const speedScale = lerp(0.38, 0.85, sea);
     const windSpread = lerp(0.18, 0.85, sea);
     const swellSpread = lerp(0.05, 0.14, sea);
     const baseChop = lerp(0.06, 1.05, Math.pow(sea, 0.92));
@@ -451,21 +523,279 @@
     }
   };
 
+  let gpuProgram = null;
+  let gpuBuffer = null;
+  let gpuUniforms = null;
+  let contextLost = false;
+  let adaptiveScale = 1;
+  let qualityProfileMode = state.qualityMode;
+  let slowFrameCount = 0;
+  let fastFrameCount = 0;
+  let lastQualityAdjustment = 0;
+  let disposed = false;
+  let displayedScene = null;
+  let lastGpuTime = null;
+  let waveTimeSec = 0;
+  let spectrum = null;
+  let environment = null;
+  let emptyTexture = null;
+  let previousSky = null;
+  let currentSky = null;
+  let pendingSky = null;
+  let skyMix = 0;
+  let skyReady = 0;
+  let lastSpectrumTime = null;
+  let lastSpectrumWind = null;
+  let lastSpectrumHeight = null;
+
+  const skyRotation = (sky) => sky?.hasSun
+    ? Math.PI / 2 - light.azimuth - Math.atan2(sky.sunDirection[0], sky.sunDirection[2]) : 0;
+
+  const releaseOceanResources = () => {
+    environment?.dispose();
+    spectrum?.dispose();
+    if (emptyTexture) gl.deleteTexture(emptyTexture);
+    spectrum = null;
+    environment = null;
+    emptyTexture = null;
+    previousSky = null;
+    currentSky = null;
+    pendingSky = null;
+    skyMix = 0;
+    skyReady = 0;
+    lastSpectrumTime = null;
+  };
+
+  const vertexSource = `
+    attribute vec2 position;
+    void main() {
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+
+  const fragmentSource = window.OceanWaveShaders.fragment;
+
+  const setupGpu = () => {
+    if (!gl || contextLost || disposed) return false;
+    const shaders = [];
+    let program = null;
+    try {
+      const precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+      let shaderFragment = precision && precision.precision > 0
+        ? fragmentSource : fragmentSource.replace('precision highp float;', 'precision mediump float;');
+      if (gl.getExtension('EXT_shader_texture_lod')) {
+        shaderFragment = '#extension GL_EXT_shader_texture_lod : enable\n#define OCEAN_EXPLICIT_LOD\n' + shaderFragment;
+      }
+      if (gl.getExtension('OES_standard_derivatives')) {
+        shaderFragment = '#extension GL_OES_standard_derivatives : enable\n#define OCEAN_DERIVATIVES\n' + shaderFragment;
+      }
+      for (const [type, source] of [[gl.VERTEX_SHADER, vertexSource], [gl.FRAGMENT_SHADER, shaderFragment]]) {
+        const shader = gl.createShader(type);
+        if (!shader) throw new Error('Shader unavailable.');
+        shaders.push(shader);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error('Shader unavailable.');
+      }
+      program = gl.createProgram();
+      if (!program) throw new Error('Renderer unavailable.');
+      shaders.forEach((shader) => gl.attachShader(program, shader));
+      gl.bindAttribLocation(program, 0, 'position');
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error('Renderer unavailable.');
+      gpuProgram = program;
+      gpuBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, gpuBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      gl.useProgram(gpuProgram);
+      const position = gl.getAttribLocation(gpuProgram, 'position');
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      gpuUniforms = Object.fromEntries(
+        ['resolution', 'time', 'wind', 'waveHeight', 'elevation', 'cameraAngle', 'cameraPosition', 'mood', 'brightness', 'sceneKind', 'renderQuality',
+          'swellField', 'rippleField', 'spectralReady', 'spectralMipmaps', 'fieldLengths', 'environmentA', 'environmentB',
+          'environmentScale', 'environmentRotation', 'environmentMix', 'environmentReady', 'sunDirection', 'solarStrength']
+          .map((name) => [name, gl.getUniformLocation(gpuProgram, name)])
+      );
+      gl.disable(gl.DEPTH_TEST);
+      gl.disable(gl.BLEND);
+      emptyTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, emptyTexture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      spectrum = window.OceanWaveSpectrum?.create(gl, { size: 128 });
+      environment = window.OceanWaveEnvironment?.create(gl, { onChange: (sky) => {
+        if (disposed || contextLost) return;
+        if (sky === currentSky) { pendingSky = null; return; }
+        if (currentSky && skyMix < 1 && !state.paused && !prefersReducedMotion) {
+          // Finish the visible fade before changing its destination. Rapid
+          // choices therefore never replace half of the sky in one frame.
+          pendingSky = sky;
+          return;
+        }
+        previousSky = currentSky || sky;
+        currentSky = sky;
+        pendingSky = null;
+        skyMix = state.paused || prefersReducedMotion ? 1 : 0;
+        if (state.paused || prefersReducedMotion) skyReady = 1;
+        stage.dataset.oceanSky = 'photographic';
+        renderGpu(simTimeSec);
+      } });
+      environment?.select(state.mood);
+      canvas.style.opacity = '';
+      rendererAvailable = true;
+      toggleBtn.disabled = false;
+      stage.classList.remove('has-render-error');
+      stage.dataset.oceanRenderer = 'webgl';
+      stage.dispatchEvent(new CustomEvent('ocean:renderer', { detail: { renderer: 'webgl', available: true } }));
+      return true;
+    } catch {
+      releaseOceanResources();
+      if (program) gl.deleteProgram(program);
+      gpuProgram = null;
+      rendererAvailable = false;
+      toggleBtn.disabled = true;
+      stage.classList.add('has-render-error');
+      stop();
+      // The CSS horizon remains available if an older driver cannot compile.
+      canvas.style.opacity = '0';
+      setStatus('Live waves are unavailable on this device.');
+      stage.dispatchEvent(new CustomEvent('ocean:renderer', { detail: { renderer: 'webgl', available: false } }));
+      return false;
+    } finally {
+      shaders.forEach((shader) => gl.deleteShader(shader));
+    }
+  };
+
+  const renderGpu = (t) => {
+    if (!gpuProgram || !gpuUniforms || contextLost || !rendererAvailable || !width || !height) return;
+    if (!displayedScene) {
+      displayedScene = {
+        wind: state.wind,
+        waveHeight: state.waveHeight,
+        elevation: state.sunElevationDeg,
+        brightness: state.brightness,
+        mood: MOODS.map((mood) => mood === state.mood ? 1 : 0),
+      };
+    }
+    const elapsed = lastGpuTime === null ? 0 : clamp(t - lastGpuTime, 0, 0.1);
+    lastGpuTime = t;
+    const immediate = state.paused || prefersReducedMotion;
+    const blend = immediate ? 1 : 1 - Math.exp(-elapsed / 1.1);
+    const lightBlend = immediate ? 1 : 1 - Math.exp(-elapsed / (LIGHT_TRANSITION_SECONDS / 3));
+    displayedScene.wind = lerp(displayedScene.wind, state.wind, blend);
+    displayedScene.waveHeight = lerp(displayedScene.waveHeight, state.waveHeight, blend);
+    displayedScene.elevation = lerp(displayedScene.elevation, state.sunElevationDeg, lightBlend);
+    displayedScene.brightness = lerp(displayedScene.brightness, state.brightness, blend);
+    for (let index = 0; index < MOODS.length; index++) {
+      displayedScene.mood[index] = lerp(displayedScene.mood[index], MOODS[index] === state.mood ? 1 : 0, lightBlend);
+    }
+    waveTimeSec += elapsed;
+    // Rebuild the seeded spectrum only at meaningful wind changes; its height
+    // and time still evolve continuously on the GPU between these steps.
+    const spectralWind = Math.round(displayedScene.wind * 20) / 20;
+    if (spectrum && (lastSpectrumTime !== waveTimeSec || lastSpectrumWind !== spectralWind
+      || lastSpectrumHeight !== displayedScene.waveHeight)) {
+      spectrum.update(waveTimeSec, spectralWind, displayedScene.waveHeight);
+      lastSpectrumTime = waveTimeSec;
+      lastSpectrumWind = spectralWind;
+      lastSpectrumHeight = displayedScene.waveHeight;
+    }
+    if (currentSky) {
+      if (pendingSky && (immediate || skyMix >= 1)) {
+        previousSky = currentSky;
+        currentSky = pendingSky;
+        pendingSky = null;
+        skyMix = immediate ? 1 : 0;
+      }
+      skyMix = immediate ? 1 : Math.min(1, skyMix + elapsed / LIGHT_TRANSITION_SECONDS);
+      skyReady = immediate ? 1 : Math.min(1, skyReady + elapsed / LIGHT_TRANSITION_SECONDS);
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, width, height);
+    gl.useProgram(gpuProgram);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gpuBuffer);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    const textures = [spectrum?.fields[0].texture, spectrum?.fields[1].texture, previousSky?.texture, currentSky?.texture];
+    textures.forEach((texture, unit) => {
+      gl.activeTexture(gl.TEXTURE0 + unit);
+      gl.bindTexture(gl.TEXTURE_2D, texture || emptyTexture);
+    });
+    gl.uniform1i(gpuUniforms.swellField, 0);
+    gl.uniform1i(gpuUniforms.rippleField, 1);
+    gl.uniform1i(gpuUniforms.environmentA, 2);
+    gl.uniform1i(gpuUniforms.environmentB, 3);
+    gl.uniform1f(gpuUniforms.spectralReady, spectrum ? 1 : 0);
+    gl.uniform1f(gpuUniforms.spectralMipmaps, spectrum?.mipmapped ? 1 : 0);
+    gl.uniform2f(gpuUniforms.fieldLengths, spectrum?.fields[0].length || 180, spectrum?.fields[1].length || 18);
+    gl.uniform2f(gpuUniforms.environmentScale, previousSky?.textureScale || 1, currentSky?.textureScale || 1);
+    gl.uniform2f(gpuUniforms.environmentRotation, skyRotation(previousSky), skyRotation(currentSky));
+    const skyBlend = smoothstep(0, 1, skyMix);
+    gl.uniform1f(gpuUniforms.environmentMix, skyBlend);
+    gl.uniform1f(gpuUniforms.environmentReady, skyReady);
+    const fallbackSolarHeight = Math.sin(displayedScene.elevation * DEG);
+    const solarHeight = lerp(previousSky?.hasSun ? previousSky.sunDirection[1] : fallbackSolarHeight,
+      currentSky?.hasSun ? currentSky.sunDirection[1] : fallbackSolarHeight, skyBlend);
+    const solarHorizontal = Math.sqrt(1 - solarHeight * solarHeight);
+    gl.uniform3f(gpuUniforms.sunDirection, Math.cos(light.azimuth) * solarHorizontal, solarHeight, Math.sin(light.azimuth) * solarHorizontal);
+    gl.uniform1f(gpuUniforms.solarStrength, lerp(previousSky ? Number(previousSky.hasSun) : 1,
+      currentSky ? Number(currentSky.hasSun) : 1, skyBlend));
+    gl.uniform1f(gpuUniforms.sceneKind, state.sceneKind === 'cove' ? 1 : 0);
+    gl.uniform1f(gpuUniforms.renderQuality, getQualityProfile().tier);
+    gl.uniform1f(gpuUniforms.brightness, displayedScene.brightness);
+    gl.uniform2f(gpuUniforms.resolution, width, height);
+    gl.uniform1f(gpuUniforms.time, waveTimeSec);
+    gl.uniform1f(gpuUniforms.wind, displayedScene.wind);
+    gl.uniform1f(gpuUniforms.waveHeight, displayedScene.waveHeight);
+    gl.uniform1f(gpuUniforms.elevation, displayedScene.elevation);
+    gl.uniform2f(gpuUniforms.cameraAngle, camera.yaw, camera.pitch);
+    gl.uniform3f(gpuUniforms.cameraPosition, camera.x, camera.height, camera.z);
+    gl.uniform4f(gpuUniforms.mood, displayedScene.mood[0], displayedScene.mood[1], displayedScene.mood[2], displayedScene.mood[3]);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  };
+
+  canvas.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+    contextLost = true;
+    releaseOceanResources();
+    rendererAvailable = false;
+    toggleBtn.disabled = true;
+    stage.classList.add('has-render-error');
+    stop();
+    canvas.style.opacity = '0';
+    setStatus('Live waves are resting.');
+    stage.dispatchEvent(new CustomEvent('ocean:renderer', { detail: { renderer: 'webgl', available: false } }));
+  });
+
+  canvas.addEventListener('webglcontextrestored', () => {
+    contextLost = false;
+    gpuProgram = null;
+    gpuBuffer = null;
+    gpuUniforms = null;
+    if (setupGpu()) {
+      renderGpu(simTimeSec);
+      syncUI();
+      start();
+    }
+  });
+
   const getQualityProfile = () => {
-    if (state.qualityMode === 'battery') {
-      return { dprMax: 1.5, maxPixels: 115000, scale: 0.68, maxW: 720, maxH: 520 };
+    if (qualityProfileMode !== state.qualityMode) {
+      qualityProfileMode = state.qualityMode;
+      adaptiveScale = 1;
+      slowFrameCount = 0;
+      fastFrameCount = 0;
     }
-    if (state.qualityMode === 'quality') {
-      return { dprMax: 2.5, maxPixels: 280000, scale: 1, maxW: 1080, maxH: 760 };
+    if (gl) {
+      // Manual choices remain fixed. Auto begins with crisp, high-DPI detail
+      // and alone may trade resolution for smooth animation.
+      return state.qualityMode === 'auto'
+        ? AUTO_QUALITY_PROFILE : QUALITY_PROFILES[state.qualityMode];
     }
-    const cores = typeof navigator !== 'undefined' && Number.isFinite(navigator.hardwareConcurrency)
-      ? navigator.hardwareConcurrency
-      : 4;
-    return cores >= 8
-      ? { dprMax: 2.25, maxPixels: 210000, scale: 0.9, maxW: 920, maxH: 700 }
-      : cores >= 6
-        ? { dprMax: 2.1, maxPixels: 185000, scale: 0.84, maxW: 860, maxH: 660 }
-        : { dprMax: 2, maxPixels: 160000, scale: 0.78, maxW: 820, maxH: 620 };
+    // Keep the compatibility renderer usable on devices without WebGL.
+    return { tier: 0, fps: 30, dprMax: 1, maxPixels: ['high', 'ultra'].includes(state.qualityMode) ? 75000 : 48000, scale: 0.5, maxW: 500, maxH: 500 };
   };
 
   const resize = () => {
@@ -478,16 +808,23 @@
     const targetW = rect.width * dpr;
     const targetH = rect.height * dpr;
 
-    let nextW = Math.round(clamp(targetW * quality.scale, 320, quality.maxW));
-    let nextH = Math.round(nextW * (targetH / targetW));
-    nextH = Math.round(clamp(nextH, 220, quality.maxH));
-
-    const pix = nextW * nextH;
-    if (pix > quality.maxPixels) {
-      const scale = Math.sqrt(quality.maxPixels / pix);
-      nextW = Math.max(240, Math.round(nextW * scale));
-      nextH = Math.max(180, Math.round(nextH * scale));
-    }
+    const renderScale = quality.scale;
+    const viewportLimit = gl?.getParameter(gl.MAX_VIEWPORT_DIMS);
+    const bufferLimit = gl?.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+    const maxBuffer = Number.isFinite(bufferLimit) && bufferLimit > 0 ? bufferLimit : Infinity;
+    const maxW = Math.min(maxBuffer, viewportLimit?.[0] > 0 ? Math.min(quality.maxW, viewportLimit[0]) : quality.maxW);
+    const maxH = Math.min(maxBuffer, viewportLimit?.[1] > 0 ? Math.min(quality.maxH, viewportLimit[1]) : quality.maxH);
+    const aspectScale = Math.min(
+      1,
+      maxW / (targetW * renderScale),
+      maxH / (targetH * renderScale),
+      Math.sqrt(quality.maxPixels / (targetW * targetH * renderScale * renderScale))
+    );
+    const autoScale = state.qualityMode === 'auto' ? adaptiveScale : 1;
+    const nextW = Math.max(1, Math.round(targetW * renderScale * aspectScale * autoScale));
+    const nextH = Math.max(1, Math.round(targetH * renderScale * aspectScale * autoScale));
+    stage.dataset.oceanQuality = state.qualityMode;
+    stage.dataset.oceanResolution = `${nextW}x${nextH}`;
 
     if (nextW === width && nextH === height) return;
 
@@ -495,6 +832,36 @@
     height = nextH;
     canvas.width = width;
     canvas.height = height;
+
+    if (gl) {
+      // Drivers may allocate a smaller buffer than requested under memory
+      // pressure. Shader coordinates must always match the actual GPU target.
+      if (Number.isFinite(gl.drawingBufferWidth)) width = gl.drawingBufferWidth;
+      if (Number.isFinite(gl.drawingBufferHeight)) height = gl.drawingBufferHeight;
+      stage.dataset.oceanResolution = `${width}x${height}`;
+      if (!width || !height) {
+        rendererAvailable = false;
+        bufferUnavailable = true;
+        stage.classList.add('has-buffer-error');
+        toggleBtn.disabled = true;
+        canvas.style.opacity = '0';
+        stop();
+        setStatus('Graphics memory is unavailable. Choose a lower quality.');
+        return;
+      }
+      const wasUnavailable = !rendererAvailable;
+      if (!gpuProgram && !setupGpu()) return;
+      bufferUnavailable = false;
+      stage.classList.remove('has-buffer-error');
+      rendererAvailable = true;
+      toggleBtn.disabled = false;
+      canvas.style.opacity = '';
+      rebuildCameraRays();
+      renderGpu(simTimeSec);
+      if (wasUnavailable) start();
+      return;
+    }
+    stage.dataset.oceanRenderer = 'canvas';
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -537,87 +904,20 @@
   };
 
   let cameraDirty = false;
-  let draggingPointerId = null;
-  let dragStartX = 0;
-  let dragStartY = 0;
-  let dragStartYaw = 0;
-  let dragStartPitch = 0;
-
+  let cameraController = null;
   const markCameraDirty = () => {
     cameraDirty = true;
     if (state.paused) {
+      cameraDirty = false;
       rebuildCameraRays();
       renderFrame(simTimeSec);
     }
   };
-
-  stage.addEventListener('pointerdown', (event) => {
-    if (event.target && event.target.closest && event.target.closest('button')) return;
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
-    stage.focus({ preventScroll: true });
-    draggingPointerId = event.pointerId;
-    dragStartX = event.clientX;
-    dragStartY = event.clientY;
-    dragStartYaw = camera.yaw;
-    dragStartPitch = camera.pitch;
-    stage.classList.add('ocean-wave-dragging');
-    stage.setPointerCapture(event.pointerId);
-    event.preventDefault();
-  });
-
-  stage.addEventListener('pointermove', (event) => {
-    if (draggingPointerId === null || event.pointerId !== draggingPointerId) return;
-    const dx = event.clientX - dragStartX;
-    const dy = event.clientY - dragStartY;
-    const sensitivity = 0.0055;
-    camera.yaw = wrapAngle(dragStartYaw + dx * sensitivity);
-    camera.pitch = clamp(dragStartPitch + dy * sensitivity, camera.minPitch, camera.maxPitch);
-    markCameraDirty();
-    event.preventDefault();
-  });
-
-  const endDrag = (event) => {
-    if (draggingPointerId === null || event.pointerId !== draggingPointerId) return;
-    draggingPointerId = null;
-    stage.classList.remove('ocean-wave-dragging');
-    if (stage.hasPointerCapture && stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
-    updateConditionSummary();
-    scheduleSceneUrlUpdate();
-  };
-
-  stage.addEventListener('pointerup', endDrag);
-  stage.addEventListener('pointercancel', endDrag);
-  stage.addEventListener('lostpointercapture', () => {
-    if (draggingPointerId === null) return;
-    draggingPointerId = null;
-    stage.classList.remove('ocean-wave-dragging');
-    updateConditionSummary();
-    scheduleSceneUrlUpdate();
-  });
-
-  stage.addEventListener('keydown', (event) => {
-    if (event.target !== stage) return;
-    const yawStep = (event.shiftKey ? 12 : 5) * DEG;
-    const pitchStep = (event.shiftKey ? 7 : 3) * DEG;
-    let handled = true;
-
-    if (event.key === 'ArrowLeft') camera.yaw = wrapAngle(camera.yaw - yawStep);
-    else if (event.key === 'ArrowRight') camera.yaw = wrapAngle(camera.yaw + yawStep);
-    else if (event.key === 'ArrowUp') camera.pitch = clamp(camera.pitch - pitchStep, camera.minPitch, camera.maxPitch);
-    else if (event.key === 'ArrowDown') camera.pitch = clamp(camera.pitch + pitchStep, camera.minPitch, camera.maxPitch);
-    else if (event.key === 'Home') {
-      camera.yaw = DEFAULTS.cameraYawDeg * DEG;
-      camera.pitch = DEFAULTS.cameraPitchDeg * DEG;
-    } else handled = false;
-
-    if (!handled) return;
-    event.preventDefault();
-    markCameraDirty();
-    updateConditionSummary();
-    scheduleSceneUrlUpdate();
-  });
-
   const renderFrame = (t) => {
+    if (gl) {
+      renderGpu(t);
+      return;
+    }
     if (!imageData || !pixels) return;
 
     const sea = clamp(state.wind / 20, 0, 1);
@@ -627,9 +927,11 @@
     const warmth = Math.pow(1 - elevNorm, 1.35);
     const sunIntensity = lerp(0.88, 1.3, 1 - elevNorm) * lerp(0.95, 1.08, sea);
 
-    const skyTopR = lerp(6, 22, elevNorm);
-    const skyTopG = lerp(14, 70, elevNorm);
-    const skyTopB = lerp(48, 140, elevNorm);
+    const dusk = state.mood === 'dusk';
+    const golden = state.mood === 'golden';
+    const skyTopR = dusk ? 69 : lerp(97, 87, elevNorm);
+    const skyTopG = dusk ? 92 : lerp(166, 158, elevNorm);
+    const skyTopB = dusk ? 135 : lerp(204, 199, elevNorm);
 
     let skyHorizonR = lerp(70, 174, elevNorm);
     let skyHorizonG = lerp(94, 208, elevNorm);
@@ -639,6 +941,15 @@
     skyHorizonR = lerp(skyHorizonR, 222, hazeBlend);
     skyHorizonG = lerp(skyHorizonG, 168, hazeBlend * 0.9);
     skyHorizonB = lerp(skyHorizonB, 124, hazeBlend * 0.7);
+    if (dusk) {
+      skyHorizonR = 150;
+      skyHorizonG = 145;
+      skyHorizonB = 184;
+    } else if (!golden) {
+      skyHorizonR = lerp(skyHorizonR, 190, 0.55);
+      skyHorizonG = lerp(skyHorizonG, 212, 0.55);
+      skyHorizonB = lerp(skyHorizonB, 220, 0.55);
+    }
 
     const sunR = lerp(250, 255, 0.5) * (1 - warmth * 0.35);
     const sunG = lerp(244, 214, warmth);
@@ -662,9 +973,9 @@
     const windX = Math.cos(WIND_DIR);
     const windZ = Math.sin(WIND_DIR);
 
-    const baseWaterNearR = lerp(4, 8, sea);
-    const baseWaterNearG = lerp(30, 38, sea);
-    const baseWaterNearB = lerp(58, 72, sea);
+    const baseWaterNearR = lerp(14, 18, sea);
+    const baseWaterNearG = lerp(68, 76, sea);
+    const baseWaterNearB = lerp(83, 91, sea);
     const baseWaterFarR = lerp(6, 12, sea);
     const baseWaterFarG = lerp(64, 94, sea);
     const baseWaterFarB = lerp(96, 126, sea);
@@ -679,13 +990,13 @@
     const ampScale = heightScale;
     const chopBoost = lerp(0.78, 1.35, heightNorm);
     const rippleScale = lerp(0.55, 1.05, sea);
-    const rippleAmp = lerp(0.04, 0.16, sea) * (0.35 + 0.65 * heightNorm);
+    const rippleAmp = lerp(0.015, 0.07, sea) * (0.35 + 0.65 * heightNorm);
     const rippleDrift = t * lerp(0.06, 0.18, sea);
     const foamScale = lerp(0.03, 0.075, sea) * lerp(0.9, 1.08, heightNorm);
     const foamDrift = t * lerp(0.04, 0.12, sea);
 
-    const vignetteStrength = 0.12;
-    const glowStrength = 1.05;
+    const vignetteStrength = 0.035;
+    const glowStrength = 0.55;
     const discR2 = 0.00055;
     const glowR2 = 0.028;
 
@@ -732,9 +1043,9 @@
             b += sun * sunB * glowStrength;
           }
 
-          pixels[o] = clamp(r * vignette + dither, 0, 255);
-          pixels[o + 1] = clamp(g * vignette + dither, 0, 255);
-          pixels[o + 2] = clamp(b * vignette + dither, 0, 255);
+          pixels[o] = clamp(r * vignette * state.brightness + dither, 0, 255);
+          pixels[o + 1] = clamp(g * vignette * state.brightness + dither, 0, 255);
+          pixels[o + 2] = clamp(b * vignette * state.brightness + dither, 0, 255);
           pixels[o + 3] = 255;
           continue;
         }
@@ -798,7 +1109,7 @@
         const ndotv = clamp(ndv, 0.001, 1);
         const ndotl = clamp(nx * lx + ny * ly + nz * lz, 0, 1);
 
-        const fresnel = 0.02 + (1 - 0.02) * Math.pow(1 - ndotv, 5);
+        const fresnel = 0.14 + 0.86 * Math.pow(1 - ndotv, 4);
 
         const reflX = 2 * ndv * nx - vx;
         const reflY = 2 * ndv * ny - vy;
@@ -821,7 +1132,7 @@
         );
 
         const sunFocus = Math.pow(sunAlign, lerp(50, 230, 1 - rough));
-        const sunBoost = sunFocus * sunIntensity;
+        const sunBoost = sunFocus * sunIntensity * 0.22;
         reflSkyR += sunBoost * sunR;
         reflSkyG += sunBoost * sunG;
         reflSkyB += sunBoost * sunB;
@@ -851,7 +1162,7 @@
         const glint = Math.pow(sunAlign, lerp(70, 240, 1 - rough))
           * smoothstep(0.2, 1, ndotl)
           * (0.4 + 0.6 * heightNorm);
-        spec *= (1 + sparkle * 1.6 + glint * 0.9) * (1 - foamHint * 0.5);
+        spec = Math.min(0.15, spec * (1 + sparkle * 0.2 + glint * 0.1)) * (1 - foamHint * 0.5);
 
         const d = clamp(distance[p] / maxD, 0, 1);
         const depthMix = smoothstep(0.04, 0.98, d);
@@ -877,7 +1188,7 @@
         baseG = lerp(baseG * 0.92, baseG * 1.06, tint);
         baseB = lerp(baseB * 0.92, baseB * 1.06, tint);
 
-        const ambient = lerp(0.08, 0.2, elevNorm) + sea * 0.02;
+        const ambient = lerp(0.48, 0.55, elevNorm) + sea * 0.02;
         const diffuse = ambient + ndotl * lerp(0.32, 0.7, elevNorm);
         const refractR = baseR * diffuse;
         const refractG = baseG * diffuse;
@@ -913,9 +1224,9 @@
           b = lerp(b, foamB, foam);
         }
 
-        pixels[o] = clamp(r * vignette + dither, 0, 255);
-        pixels[o + 1] = clamp(g * vignette + dither, 0, 255);
-        pixels[o + 2] = clamp(b * vignette + dither, 0, 255);
+        pixels[o] = clamp(r * vignette * state.brightness + dither, 0, 255);
+        pixels[o + 1] = clamp(g * vignette * state.brightness + dither, 0, 255);
+        pixels[o + 2] = clamp(b * vignette * state.brightness + dither, 0, 255);
         pixels[o + 3] = 255;
       }
     }
@@ -924,7 +1235,8 @@
   };
 
   const start = () => {
-    if (rafId) return;
+    if (rafId || disposed || !rendererAvailable || state.paused || document.hidden || stage.dataset.oceanVisible === 'false'
+      || contextLost || (gl && !gpuProgram)) return;
     lastFrame = null;
     lastRenderedAt = null;
     rafId = window.requestAnimationFrame(tick);
@@ -939,19 +1251,41 @@
   };
 
   const tick = (ts) => {
-    const minimumFrameInterval = state.qualityMode === 'battery' ? 1000 / 30 : 0;
+    if (state.paused || document.hidden || stage.dataset.oceanVisible === 'false' || contextLost) {
+      stop();
+      return;
+    }
+    const minimumFrameInterval = 1000 / getQualityProfile().fps;
     if (lastRenderedAt !== null && ts - lastRenderedAt < minimumFrameInterval - 1) {
       rafId = window.requestAnimationFrame(tick);
       return;
     }
-    if (!lastFrame) lastFrame = ts;
-    const dt = clamp((ts - lastFrame) / 1000, 0, 0.05);
+    if (lastFrame === null) lastFrame = ts;
+    const elapsed = ts - lastFrame;
+    const dt = clamp(elapsed / 1000, 0, 0.05);
     lastFrame = ts;
     lastRenderedAt = ts;
     simTimeSec += dt;
     if (cameraDirty) {
       cameraDirty = false;
       rebuildCameraRays();
+    }
+    if (gl && state.qualityMode === 'auto') {
+      const slow = elapsed > minimumFrameInterval * 1.35;
+      slowFrameCount = slow ? slowFrameCount + 1 : Math.max(0, slowFrameCount - 1);
+      fastFrameCount = elapsed > 0 && elapsed <= minimumFrameInterval * 1.14 ? fastFrameCount + 1 : 0;
+      if (slowFrameCount >= 24 && adaptiveScale > 0.7 && ts - lastQualityAdjustment > 4000) {
+        adaptiveScale = Math.max(0.7, adaptiveScale * 0.85);
+        slowFrameCount = 0;
+        fastFrameCount = 0;
+        lastQualityAdjustment = ts;
+        resize();
+      } else if (fastFrameCount >= 180 && adaptiveScale < 1 && ts - lastQualityAdjustment > 8000) {
+        adaptiveScale = Math.min(1, adaptiveScale / 0.85);
+        fastFrameCount = 0;
+        lastQualityAdjustment = ts;
+        resize();
+      }
     }
     renderFrame(simTimeSec);
     rafId = window.requestAnimationFrame(tick);
@@ -968,8 +1302,8 @@
   const syncFromInputs = () => {
     state.wind = clamp(parseFloat(windInput.value || DEFAULTS.wind), 0, 20);
     state.waveHeight = clamp(parseFloat(heightInput.value || DEFAULTS.waveHeight), 0, MAX_WAVE_HEIGHT);
-    state.sunElevationDeg = clamp(parseFloat(lightInput.value || DEFAULTS.sunElevationDeg), 5, 75);
-    state.qualityMode = QUALITY_MODES.has(qualityInput.value) ? qualityInput.value : DEFAULTS.qualityMode;
+    state.brightness = clamp(parseFloat(lightInput.value || 100) / 100, 0.5, 1.5);
+    state.qualityMode = normalizeQuality(qualityInput.value) || DEFAULTS.qualityMode;
     buildWaves();
     updateLight();
     syncUI();
@@ -977,8 +1311,12 @@
 
   let activePreset = '';
 
-  const setActivePreset = (presetName = '') => {
+  const setActivePreset = (presetName = Object.keys(PRESETS).find((name) => PRESETS[name].mood === state.mood) || '') => {
     activePreset = presetName;
+    const sceneName = $('#ocean-wave-scene-name');
+    if (sceneName) {
+      sceneName.textContent = state.sceneKind === 'cove' ? 'Quiet cove' : 'Open ocean';
+    }
     presetButtons.forEach((button) => {
       const active = button.dataset.oceanPreset === activePreset;
       button.classList.toggle('is-active', active);
@@ -989,45 +1327,101 @@
   const syncInputsFromState = () => {
     windInput.value = fmt(state.wind, 1);
     heightInput.value = fmt(state.waveHeight, 2);
-    lightInput.value = String(Math.round(state.sunElevationDeg));
+    lightInput.value = String(Math.round(state.brightness * 100));
     qualityInput.value = state.qualityMode;
+    if (sceneInput) sceneInput.value = state.sceneKind;
   };
 
-  const applyConditions = (conditions, presetName = '') => {
-    state.wind = clamp(Number(conditions.wind), 0, 20);
-    state.waveHeight = clamp(Number(conditions.waveHeight), 0, MAX_WAVE_HEIGHT);
-    state.sunElevationDeg = clamp(Number(conditions.sunElevationDeg), 5, 75);
-    if (Number.isFinite(conditions.yawDeg)) camera.yaw = wrapAngle(conditions.yawDeg * DEG);
-    if (Number.isFinite(conditions.pitchDeg)) {
-      camera.pitch = clamp(conditions.pitchDeg * DEG, camera.minPitch, camera.maxPitch);
-    }
-    syncInputsFromState();
-    buildWaves();
-    rebuildCameraRays();
+  const homePose = () => ({
+    x: 0, z: 0, height: Math.max(2.2, state.waveHeight * 1.3),
+    yaw: DEFAULTS.cameraYawDeg * DEG, pitch: DEFAULTS.cameraPitchDeg * DEG,
+  });
+
+  const constrainCameraPose = (pose) => {
+    if (state.sceneKind === 'cove') window.OceanWaveShaders.constrainCoveCamera?.(pose);
+  };
+
+  const applyLighting = (preset, presetName) => {
+    state.mood = preset.mood;
+    state.sunElevationDeg = preset.sunElevationDeg;
+    environment?.select(state.mood);
+    updateLight();
     syncUI();
     setActivePreset(presetName);
     renderFrame(simTimeSec);
     scheduleSceneUrlUpdate();
   };
 
+  const applyScene = (scene, resetView = true) => {
+    state.sceneKind = gl && SCENES.has(scene) ? scene : DEFAULTS.sceneKind;
+    stage.dataset.oceanScene = state.sceneKind;
+    if (resetView) {
+      Object.assign(camera, homePose());
+      cameraController?.setHomePose(homePose());
+      cameraController?.sync();
+      rebuildCameraRays();
+    }
+    stage.dispatchEvent(new CustomEvent('ocean:scene-change', { detail: { scene: state.sceneKind } }));
+    syncUI();
+    setActivePreset();
+  };
+
+  const applyConditions = (conditions, presetName = '') => {
+    state.wind = clamp(Number(conditions.wind), 0, 20);
+    state.waveHeight = clamp(Number(conditions.waveHeight), 0, MAX_WAVE_HEIGHT);
+    state.sunElevationDeg = clamp(Number(conditions.sunElevationDeg), 5, 75);
+    state.brightness = 1;
+    if (MOODS.includes(conditions.mood)) state.mood = conditions.mood;
+    environment?.select(state.mood);
+    camera.height = Math.max(camera.height, state.waveHeight * 1.3);
+    cameraController?.sync();
+    cameraController?.setHomePose(homePose());
+    syncInputsFromState();
+    buildWaves();
+    rebuildCameraRays();
+    syncUI();
+    setActivePreset(presetName || undefined);
+    renderFrame(simTimeSec);
+    scheduleSceneUrlUpdate();
+  };
+
   const restoreSceneFromUrl = () => {
     const params = new URLSearchParams(window.location.search);
+    let preferences = {};
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(PREFERENCES_KEY));
+      if (saved && typeof saved === 'object' && !Array.isArray(saved)) preferences = saved;
+    } catch {}
     const readNumber = (key, fallback) => {
-      const value = Number(params.get(key));
-      return params.has(key) && Number.isFinite(value) ? value : fallback;
+      const saved = preferences[key];
+      const baseline = typeof saved === 'number' && Number.isFinite(saved) ? saved : fallback;
+      const value = params.has(key) && params.get(key).trim() !== '' ? Number(params.get(key)) : NaN;
+      return Number.isFinite(value) ? value : baseline;
+    };
+    const readChoice = (key, allowed, fallback) => allowed.has(params.get(key)) ? params.get(key)
+      : allowed.has(preferences[key]) ? preferences[key] : fallback;
+    const readCamera = (key, fallback) => {
+      const value = params.has(key) && params.get(key).trim() !== '' ? Number(params.get(key)) : NaN;
+      return Number.isFinite(value) ? value : fallback;
     };
 
     state.wind = clamp(readNumber('wind', DEFAULTS.wind), 0, 20);
     state.waveHeight = clamp(readNumber('waves', DEFAULTS.waveHeight), 0, MAX_WAVE_HEIGHT);
     state.sunElevationDeg = clamp(readNumber('sun', DEFAULTS.sunElevationDeg), 5, 75);
-    const qualityMode = params.get('quality');
-    state.qualityMode = QUALITY_MODES.has(qualityMode) ? qualityMode : DEFAULTS.qualityMode;
-    camera.yaw = wrapAngle(readNumber('yaw', DEFAULTS.cameraYawDeg) * DEG);
+    state.brightness = clamp(readNumber('brightness', 1), 0.5, 1.5);
+    camera.x = clamp(readCamera('cx', 0), -100000, 100000);
+    camera.z = clamp(readCamera('cz', 0), -100000, 100000);
+    camera.height = clamp(readCamera('alt', 2.2), Math.max(1.4, state.waveHeight * 1.3), 24);
+    state.mood = readChoice('mood', new Set(MOODS), DEFAULTS.mood);
+    state.sceneKind = gl ? readChoice('scene', SCENES, DEFAULTS.sceneKind) : DEFAULTS.sceneKind;
+    state.qualityMode = normalizeQuality(params.get('quality')) || normalizeQuality(preferences.quality) || DEFAULTS.qualityMode;
+    camera.yaw = wrapAngle(readCamera('yaw', DEFAULTS.cameraYawDeg) * DEG);
     camera.pitch = clamp(
-      readNumber('pitch', DEFAULTS.cameraPitchDeg) * DEG,
+      readCamera('pitch', DEFAULTS.cameraPitchDeg) * DEG,
       camera.minPitch,
       camera.maxPitch
     );
+    constrainCameraPose(camera);
     syncInputsFromState();
   };
 
@@ -1048,14 +1442,6 @@
     if (!copied) throw new Error('Copy command was unavailable.');
   };
 
-  const debounce = (fn, ms) => {
-    let t = 0;
-    return (...args) => {
-      window.clearTimeout(t);
-      t = window.setTimeout(() => fn(...args), ms);
-    };
-  };
-
   windInput.addEventListener('input', () => {
     state.wind = clamp(parseFloat(windInput.value), 0, 20);
     buildWaves();
@@ -1067,6 +1453,10 @@
 
   heightInput.addEventListener('input', () => {
     state.waveHeight = clamp(parseFloat(heightInput.value), 0, MAX_WAVE_HEIGHT);
+    camera.height = Math.max(camera.height, state.waveHeight * 1.3);
+    cameraController?.sync();
+    cameraController?.setHomePose(homePose());
+    rebuildCameraRays();
     syncUI();
     setActivePreset();
     renderFrame(simTimeSec);
@@ -1074,8 +1464,7 @@
   });
 
   lightInput.addEventListener('input', () => {
-    state.sunElevationDeg = clamp(parseFloat(lightInput.value), 5, 75);
-    updateLight();
+    state.brightness = clamp(parseFloat(lightInput.value) / 100, 0.5, 1.5);
     syncUI();
     setActivePreset();
     renderFrame(simTimeSec);
@@ -1083,40 +1472,51 @@
   });
 
   qualityInput.addEventListener('change', () => {
-    state.qualityMode = QUALITY_MODES.has(qualityInput.value) ? qualityInput.value : DEFAULTS.qualityMode;
+    state.qualityMode = normalizeQuality(qualityInput.value) || DEFAULTS.qualityMode;
     lastFrame = null;
     lastRenderedAt = null;
     resize();
+    renderFrame(simTimeSec);
     syncUI();
     scheduleSceneUrlUpdate();
   });
+
+  sceneInput?.addEventListener('change', () => {
+    if (sceneInput.value === state.sceneKind) return;
+    applyScene(sceneInput.value);
+    renderFrame(simTimeSec);
+    scheduleSceneUrlUpdate();
+  });
+
+  const onRest = () => {
+    cameraController?.setEnabled(false);
+    setPaused(true);
+  };
+  const onResume = () => { setPaused(false); };
+  stage.addEventListener('ocean:rest', onRest);
+  stage.addEventListener('ocean:resume', onResume);
 
   toggleBtn.addEventListener('click', () => {
     setPaused(!state.paused);
   });
 
   resetBtn.addEventListener('click', () => {
-    applyConditions(DEFAULTS);
+    applyConditions(PRESETS['calm-dawn'], 'calm-dawn');
   });
 
   resetCameraBtn.addEventListener('click', () => {
-    camera.yaw = DEFAULTS.cameraYawDeg * DEG;
-    camera.pitch = clamp(DEFAULTS.cameraPitchDeg * DEG, camera.minPitch, camera.maxPitch);
-    cameraDirty = false;
-    rebuildCameraRays();
-    syncUI();
-    renderFrame(simTimeSec);
-    scheduleSceneUrlUpdate();
+    cameraController?.reset();
     stage.focus({ preventScroll: true });
   });
 
   randomizeBtn.addEventListener('click', () => {
     applyConditions({
-      wind: 1.5 + Math.random() * 17.5,
-      waveHeight: 0.25 + Math.random() * 4.9,
-      sunElevationDeg: 6 + Math.random() * 66,
-      yawDeg: -60 + Math.random() * 120,
-      pitchDeg: -22 + Math.random() * 22,
+      wind: 1 + Math.random() * 6,
+      waveHeight: 0.25 + Math.random() * 1.15,
+      sunElevationDeg: 6 + Math.random() * 49,
+      yawDeg: -20 + Math.random() * 40,
+      pitchDeg: -5 - Math.random() * 4,
+      mood: MOODS[Math.floor(Math.random() * MOODS.length)],
     });
   });
 
@@ -1125,34 +1525,101 @@
     button.addEventListener('click', () => {
       const presetName = button.dataset.oceanPreset;
       const preset = PRESETS[presetName];
-      if (preset) applyConditions(preset, presetName);
+      if (preset) applyLighting(preset, presetName);
     });
   });
 
+  let copyLinkTimeout = 0;
   copyLinkBtn.addEventListener('click', async () => {
     const url = buildSceneUrl();
     replaceSceneUrl();
     try {
       await copyText(url.toString());
+      if (disposed) return;
       setStatus('Scene link copied');
+      copyLinkBtn.textContent = 'Link copied';
     } catch {
+      if (disposed) return;
       setStatus('Copy unavailable - use the URL in the address bar');
+      copyLinkBtn.textContent = 'Copy unavailable';
     }
+    window.clearTimeout(copyLinkTimeout);
+    copyLinkTimeout = window.setTimeout(() => { if (!disposed) copyLinkBtn.textContent = 'Copy link'; }, 2600);
   });
 
-  const onResize = debounce(() => {
-    resize();
-  }, 160);
+  let resizeTimeout = 0;
+  const onResize = () => {
+    window.clearTimeout(resizeTimeout);
+    resizeTimeout = window.setTimeout(() => {
+      if (!disposed) resize();
+    }, 100);
+  };
   window.addEventListener('resize', onResize);
 
-  document.addEventListener('visibilitychange', () => {
+  const onVisibilityChange = () => {
     if (document.hidden) stop();
     else if (!state.paused) start();
+  };
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('pagehide', savePreferences);
+
+  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(onResize) : null;
+  resizeObserver?.observe(stage);
+  const intersectionObserver = typeof IntersectionObserver === 'function' ? new IntersectionObserver((entries) => {
+    const visible = entries.some((entry) => entry.isIntersecting);
+    const changed = stage.dataset.oceanVisible !== String(visible);
+    stage.dataset.oceanVisible = String(visible);
+    if (changed) stage.dispatchEvent(new CustomEvent('ocean:visibility', { detail: { visible } }));
+    if (visible) start();
+    else stop();
+  }, { threshold: 0.01 }) : null;
+  intersectionObserver?.observe(stage);
+
+  window.SiteRoutes?.addCleanup?.(() => {
+    savePreferences();
+    disposed = true;
+    stop();
+    window.clearTimeout(resizeTimeout);
+    window.clearTimeout(sceneUrlTimeout);
+    window.clearTimeout(copyLinkTimeout);
+    resizeObserver?.disconnect();
+    intersectionObserver?.disconnect();
+    window.removeEventListener('resize', onResize);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('pagehide', savePreferences);
+    stage.removeEventListener('ocean:rest', onRest);
+    stage.removeEventListener('ocean:resume', onResume);
+    cameraController?.dispose();
+    if (gl) releaseOceanResources();
+    if (gl && !contextLost) {
+      if (gpuBuffer) gl.deleteBuffer(gpuBuffer);
+      if (gpuProgram) gl.deleteProgram(gpuProgram);
+    }
+    gpuBuffer = null;
+    gpuProgram = null;
+    gpuUniforms = null;
   });
 
   restoreSceneFromUrl();
+  cameraController = window.OceanWaveCamera.create({
+    stage, camera,
+    toggleButton: $('#ocean-wave-camera-toggle'),
+    relaxButton: $('#ocean-wave-relax'),
+    resetButton: resetCameraBtn,
+    pad: $('#ocean-wave-camera-pad'),
+    hint: $('#ocean-wave-camera-hint'),
+    constrainPose: constrainCameraPose,
+    minHeight: () => Math.max(1.4, state.waveHeight * 1.3),
+    maxHeight: 24,
+    speed: 2.4,
+    onChange: markCameraDirty,
+    onCommit: () => { updateConditionSummary(); scheduleSceneUrlUpdate(); },
+    onReset: () => { syncUI(); scheduleSceneUrlUpdate(); },
+  });
+  cameraController.setHomePose(homePose());
   buildNoise();
   syncFromInputs();
+  applyScene(state.sceneKind, false);
   resize();
 
   if (prefersReducedMotion) {

@@ -1,0 +1,35 @@
+{
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "provider": "Poly Haven",
+  "description": "Original 1K Radiance HDR sky panoramas. Loaded locally, normalized to linear radiance at runtime, and used for both the visible sky and ocean reflections.",
+  "assets": [
+    {
+      "file": "kloppenheim_06_puresky_1k.hdr",
+      "name": "Kloppenheim 06 (Pure Sky)",
+      "page": "https://polyhaven.com/a/kloppenheim_06_puresky",
+      "download": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloppenheim_06_puresky_1k.hdr",
+      "authors": { "Greg Zaal": "Original", "Jarod Guest": "Sky edits" },
+      "bytes": 1173154,
+      "sha256": "206c67e3a1b992282821cf06662bdd69bbb4915c1c4444a66338a40d6a7d4e34"
+    },
+    {
+      "file": "kloofendal_48d_partly_cloudy_puresky_1k.hdr",
+      "name": "Kloofendal 48d Partly Cloudy (Pure Sky)",
+      "page": "https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky",
+      "download": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr",
+      "authors": { "Greg Zaal": "Original", "Jarod Guest": "Sky edits" },
+      "bytes": 1435119,
+      "sha256": "fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798"
+    },
+    {
+      "file": "qwantani_dusk_1_puresky_1k.hdr",
+      "name": "Qwantani Dusk 1 (Pure Sky)",
+      "page": "https://polyhaven.com/a/qwantani_dusk_1_puresky",
+      "download": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/qwantani_dusk_1_puresky_1k.hdr",
+      "authors": { "Greg Zaal": "Photography", "Jarod Guest": "Processing" },
+      "bytes": 952192,
+      "sha256": "0eadb9f1293864bb48680ae8012dff8f22b55228ac30eafd7d63a32a374a61eb"
+    }
+  ]
+}
