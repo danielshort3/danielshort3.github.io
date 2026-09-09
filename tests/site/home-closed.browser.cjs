@@ -214,6 +214,21 @@ async function runViewport({ browser, base, artifactDir }, settings) {
 
     stage = 'library-boundary';
     await openCategory(page, 'projects');
+    const projectCard = page.locator('[data-home-accordion-item="projects"] .home-accordion__card').first();
+    await page.mouse.move(0, 0);
+    await projectCard.scrollIntoViewIfNeeded();
+    const cardBeforeHover = await projectCard.boundingBox();
+    await projectCard.hover();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const cardAfterHover = await projectCard.boundingBox();
+    const cardDimensions = {
+      before: cardBeforeHover && { width: cardBeforeHover.width, height: cardBeforeHover.height },
+      after: cardAfterHover && { width: cardAfterHover.width, height: cardAfterHover.height }
+    };
+    assert(cardBeforeHover && cardAfterHover && Math.abs(cardBeforeHover.width - cardAfterHover.width) <= 1 &&
+      Math.abs(cardBeforeHover.height - cardAfterHover.height) <= 1,
+    `Hovering a project card keeps its dimensions stable so mobile scroll anchoring cannot move the tabs: ${JSON.stringify(cardDimensions)}`);
+    await page.mouse.move(0, 0);
     await page.locator('[data-home-library-open="projects"]').click();
     await settle(page, 'library', 'projects');
     await page.locator('[data-site-tab="projects"]').click();

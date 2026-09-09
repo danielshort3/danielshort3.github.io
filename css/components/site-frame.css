@@ -321,9 +321,8 @@
     .site-frame[data-frame-audience="personal"] .site-frame__tab-label { transform: rotate(0deg); font-size: .78rem; letter-spacing: .02em; }
     .site-frame[data-frame-view="overview"] .site-frame__tab { justify-content: flex-start; padding-inline: 18px; }
     .site-frame[data-frame-view="overview"] .site-frame__tab-label { font-size: .98rem; }
-    /* Moving accordion tabs must not leave touch-hover padding that rewraps content. */
+    /* Hover keeps each card's own padding so narrow text columns do not rewrap. */
     .site-frame .home-accordion__card:is(a):is(:hover, :focus-visible) {
-      padding-inline-start: 0;
       transform: none;
     }
     .site-frame:not([data-frame-audience="personal"]) .site-frame__tab { flex-direction: column; gap: 4px; padding: 6px 3px; }
