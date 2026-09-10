@@ -1,7 +1,7 @@
 {
   "id": "nonogram",
   "title": "Nonogram Solver",
-  "subtitle": "Reinforcement Learning (RL)",
+  "subtitle": "Watch a trained agent work through a five-by-five picture puzzle.",
   "image": "img/projects/nonogram.png",
   "iconImage": "img/projects/icons/nonogram.png",
   "imageWidth": 1228,

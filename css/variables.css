@@ -86,6 +86,8 @@
     --danger:var(--brand-risk);   /* errors, destructive */
 
     /* sizing */
+    --site-shell-width:1500px;
+    --page-content-gap:24px;
     --nav-height:72px;      /* default, JS may overwrite */
     --container-max:1068px;
     --modal-max:1100px;                 /* typical dialog width on desktop */
@@ -110,6 +112,13 @@
     /* radii */
     --radius-6:6px; --radius-8:8px; --radius-10:10px;
     --radius-12:12px; --radius-14:14px; --radius-16:16px;
+
+    /* Existing content illustrations share a well and optical scale. */
+    --illustration-surface:#F8FAFC;
+    --illustration-border:#DCE3EC;
+    --illustration-radius:10px;
+    --illustration-fill:82%;
+    --illustration-fill-compact:78%;
 
     /* shadows */
     --shadow-sm:0 2px 8px rgba(9,31,59,.08);

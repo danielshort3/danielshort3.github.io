@@ -1,7 +1,7 @@
 {
   "id": "pizza",
   "title": "Pizza Tips Regression Modeling",
-  "subtitle": "Excel Analytics & Regression Modeling",
+  "subtitle": "Explore which delivery and weather factors are associated with larger tips.",
   "image": "img/projects/pizza.png",
   "iconImage": "img/projects/icons/pizza.png",
   "imageWidth": 1398,

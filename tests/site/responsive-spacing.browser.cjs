@@ -16,6 +16,7 @@ async function measure(page) {
       viewport: { width: innerWidth, height: innerHeight },
       document: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
       header: box('[data-site-shell-header] .nav'),
+      headerInner: box('[data-site-shell-header] .nav .wrapper'),
       stage: box('[data-site-frame-stage]'),
       contentWidth: parseFloat(getComputedStyle(SiteFrame.viewport()).width),
       libraryLists: [...document.querySelectorAll('.home-library__list')].filter((list) => list.getBoundingClientRect().width > 0).map((list) => {
@@ -26,6 +27,7 @@ async function measure(page) {
         };
       }),
       footer: box('[data-site-shell-footer]'),
+      footerInner: box('[data-site-shell-footer] .footer-inner'),
       footerVisible: (() => {
         const footer = document.querySelector('[data-site-shell-footer]');
         if (!footer) return false;
@@ -50,8 +52,12 @@ async function measure(page) {
 
 function assertDesktopFrame(metrics, label) {
   const { viewport, document, header, stage, footer, footerVisible } = metrics;
-  assert.equal(stage.width, Math.min(1900, viewport.width - 28), `${label} uses the wider shared frame within its outer gutters.`);
+  assert.equal(stage.width, Math.min(1500, viewport.width - 28), `${label} caps the shared frame at a readable desktop width.`);
   assert(Math.abs(stage.x - (viewport.width - stage.width) / 2) <= 1, `${label} centers the frame horizontally.`);
+  for (const region of [metrics.headerInner, metrics.footerInner]) {
+    assert(region && Math.abs(region.x - stage.x) <= 1 && Math.abs(region.width - stage.width) <= 1,
+      `${label} aligns the masthead, frame, and footer to one desktop width.`);
+  }
   assert(header && Math.abs(stage.y - header.bottom - 14) <= 1, `${label} retains its 14px gap below navigation.`);
   assert(footerVisible && footer && footer.height >= 40 && Math.abs(footer.bottom - viewport.height) <= 1,
     `${label} keeps the footer visible at the bottom of the screen.`);

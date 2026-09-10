@@ -853,7 +853,7 @@
   #combined-header-nav[data-site-shell-header] .nav .wrapper {
     box-sizing: border-box;
     width: 100%;
-    max-width: min(1500px, calc(100vw - 28px));
+    max-width: min(var(--site-shell-width), calc(100vw - 28px));
     min-height: 60px;
     margin-inline: auto;
     padding: 8px 28px;

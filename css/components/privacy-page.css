@@ -235,7 +235,7 @@
 }
 
 @layer overrides {
-  body.policy-page .personal-accordion .policy-list a {
+  body.policy-page .personal-accordion .privacy-article a {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
@@ -248,7 +248,7 @@
     justify-items: stretch;
     width: min(100%, calc(var(--frame-collection-width, 1200px) + var(--frame-content-gutter, 24px) + var(--frame-content-gutter, 24px)));
     margin-inline: auto;
-    padding: var(--frame-section-gap, 24px) var(--frame-content-gutter, 24px);
+    padding: 0 var(--frame-content-gutter, 24px) var(--frame-section-gap, 24px);
     box-sizing: border-box;
   }
 
@@ -256,16 +256,12 @@
     min-width: 0;
   }
 
-  .privacy-layout .privacy-intro h1 {
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .privacy-layout .privacy-intro[data-page-masthead] {
+    width: 100%;
     margin: 0;
-    font-size: clamp(1.75rem, 3.4cqi, 2.4rem);
-    line-height: 1.15;
-    text-align: left;
   }
 
   .privacy-layout .privacy-intro .policy-lead {
-    max-width: var(--frame-reading-width, 72ch);
-    margin: 12px 0;
     text-align: left;
   }
 
@@ -295,10 +291,24 @@
 
   .privacy-layout .privacy-article > .policy-section:first-child {
     margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
   }
 
   .privacy-layout .policy-section {
     scroll-margin-top: 20px;
+  }
+
+  .privacy-layout .privacy-tool-details {
+    margin-block: 12px;
+  }
+
+  .privacy-layout .privacy-tool-details summary {
+    width: fit-content;
+    padding-block: 8px;
+    color: var(--brand-midnight);
+    font-weight: 600;
+    cursor: pointer;
   }
 
   .privacy-layout .privacy-rail {

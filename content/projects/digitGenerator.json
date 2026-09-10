@@ -1,7 +1,7 @@
 {
   "id": "digitGenerator",
   "title": "Synthetic Digit Generator",
-  "subtitle": "Variational Autoencoder",
+  "subtitle": "Generate new handwritten-style digits and explore how a model learns their shapes.",
   "image": "img/projects/digitGenerator.png",
   "iconImage": "img/projects/icons/digitGenerator.png",
   "imageWidth": 1470,

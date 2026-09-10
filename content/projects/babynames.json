@@ -1,7 +1,7 @@
 {
   "id": "babynames",
   "title": "Baby Name Predictor",
-  "subtitle": "Python ML Pipeline",
+  "subtitle": "Personalized name recommendations from family preferences and naming trends.",
   "image": "img/projects/babynames.png",
   "iconImage": "img/projects/icons/babynames.png",
   "imageWidth": 1238,

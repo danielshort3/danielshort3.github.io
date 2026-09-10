@@ -112,6 +112,9 @@ const makeHarness = ({ audioAvailable = true, nativeFullscreen = false, rejectFu
   elements.fullscreen.setAttribute('aria-pressed', 'false');
   elements.sound.setAttribute('aria-pressed', 'false');
   elements.volume.value = '35';
+  elements.wind.value = '2.4';
+  elements.height.value = '0.65';
+  elements.stage.dataset.oceanShore = '0.3';
   elements.stage.append(...Object.values(elements).filter(element => element !== elements.stage));
   const hud = new Element();
   hud.append(elements.fullscreen, elements.sound, elements['settings-toggle'], elements.toggle);
@@ -130,6 +133,7 @@ const makeHarness = ({ audioAvailable = true, nativeFullscreen = false, rejectFu
   let timerSequence = 0;
   const cleanups = [];
   const contexts = [];
+  const audioConditions = [];
   const window = new Element('window');
   let nowMs = 1000;
   const saved = new Map();
@@ -184,6 +188,7 @@ const makeHarness = ({ audioAvailable = true, nativeFullscreen = false, rejectFu
         return enabled;
       },
       setVisible(value) { visible = value; if (audio) { if (enabled && visible) audio.resume(); else audio.suspend(); } },
+      setConditions(value) { audioConditions.push(value); },
       setVolume() {}, setScene() {}, setFade() {}, dispose() { audio?.close(); },
     };
   } };
@@ -211,7 +216,7 @@ const makeHarness = ({ audioAvailable = true, nativeFullscreen = false, rejectFu
     await flush();
   };
   return {
-    document, window, elements, contexts, timers, cleanups, fire, saved,
+    document, window, elements, contexts, timers, cleanups, fire, saved, audioConditions,
     advance: milliseconds => { nowMs += milliseconds; },
     finishFullscreen: async () => { finishFullscreen?.(); await flush(); },
     click: id => fire(elements[id], 'click'),
@@ -232,6 +237,11 @@ const run = async () => {
   {
     const app = makeHarness();
     assert.equal(app.contexts.length, 0, 'Opening the ocean must not create an audio context or autoplay sound.');
+    assert.equal(JSON.stringify(app.audioConditions[0]), JSON.stringify({ wind: '2.4', waveHeight: '0.65', shore: '0.3' }), 'Initial conditions survive simulation setup before the experience listener is mounted.');
+    const conditions = { wind: 12, waveHeight: 2.3, shore: 0.8 };
+    await app.fire(app.elements.stage, 'ocean:conditions', { detail: conditions });
+    assert.equal(app.audioConditions.at(-1), conditions, 'Live sea and camera conditions reach the audio mixer.');
+    assert.equal(app.contexts.length, 0, 'Condition events cannot opt the user into sound.');
     await app.click('settings-toggle');
     assert.equal(app.elements.settings.hidden, false, 'Settings must open on request.');
     assert.equal(app.elements['settings-toggle'].getAttribute('aria-expanded'), 'true');
@@ -239,6 +249,9 @@ const run = async () => {
     assert.equal(app.elements.settings.hidden, true, 'Settings must collapse without leaving the experience.');
     assert.equal(app.contexts.length, 0, 'Changing settings must not implicitly start audio.');
     await app.cleanup();
+    const count = app.audioConditions.length;
+    await app.fire(app.elements.stage, 'ocean:conditions', { detail: conditions });
+    assert.equal(app.audioConditions.length, count, 'Route cleanup removes the condition listener.');
   }
 
   for (const options of [{}, { nativeFullscreen: true }, { rejectFullscreen: true }]) {
