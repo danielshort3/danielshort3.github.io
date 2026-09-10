@@ -68,6 +68,12 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
   let draws = 0;
   let camera;
   let skyChange;
+  let visibilityChange;
+  const conditions = [];
+  const spectrumUpdates = [];
+  const spectrumViews = [];
+  const motionPreference = new Element();
+  motionPreference.matches = reduced;
   const storage = new Map([[PREFERENCES_KEY, typeof stored === 'string' ? stored : JSON.stringify(stored)]]);
   window.localStorage = {
     getItem: key => { if (blockedStorage) throw Error('Storage blocked'); return storage.get(key) || null; },
@@ -75,7 +81,7 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
   };
   window.location = { href: `https://example.test/games/ocean-wave-simulation${search}`, search };
   window.history = { replaceState: (_state, _title, url) => { window.location.href = new URL(url, window.location.href).href; } };
-  window.matchMedia = () => ({ matches: reduced });
+  window.matchMedia = () => motionPreference;
   window.devicePixelRatio = dpr;
   window.performance = { now: () => timestamp };
   window.requestAnimationFrame = callback => { const id = ++sequence; queue.set(id, callback); return id; };
@@ -83,7 +89,14 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
   window.setTimeout = callback => { const id = ++sequence; timers.set(id, callback); return id; };
   window.clearTimeout = id => timers.delete(id);
   window.SiteRoutes = { addCleanup: callback => cleanups.push(callback) };
-  window.OceanWaveShaders = { fragment: '' };
+  window.OceanWaveSpectrum = {
+    create: () => ({
+      fields: [{ texture: {}, length: 180 }, { texture: {}, length: 18 }],
+      update: (...values) => spectrumUpdates.push(values),
+      setView: (...values) => spectrumViews.push(values),
+      dispose() {},
+    }),
+  };
   window.OceanWaveEnvironment = {
     create: (_gl, options) => {
       skyChange = options.onChange;
@@ -115,10 +128,17 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
     return type === 'webgl' ? (webgl ? gl : null) : canvas2d;
   };
   get('stage').getBoundingClientRect = () => webgl ? viewport : { width: 24, height: 24 };
+  get('stage').addEventListener('ocean:conditions', event => conditions.push({ ...event.detail }));
   const context = vm.createContext({
     window, document, navigator: {}, URL, URLSearchParams, performance: window.performance,
     CustomEvent: class { constructor(type, options) { this.type = type; Object.assign(this, options); } },
+    IntersectionObserver: class {
+      constructor(callback) { visibilityChange = callback; }
+      observe() {}
+      disconnect() {}
+    },
   });
+  vm.runInContext(script('ocean-wave-shaders.js'), context);
   vm.runInContext(script('ocean-wave-camera.js'), context);
   const createCamera = window.OceanWaveCamera.create;
   window.OceanWaveCamera.create = options => { camera = options.camera; return createCamera(options); };
@@ -131,6 +151,7 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
   };
   return {
     window, document, get, camera, uniforms, queue, contextRequests, gpuViewports, frame,
+    conditions, spectrumUpdates, spectrumViews, motionPreference,
     setDrawingBuffer: value => { bufferAllocation = value; },
     get drawCount() { return draws; },
     dimensions: () => [get('canvas').width, get('canvas').height],
@@ -139,6 +160,9 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
     preset: name => presets.find(button => button.dataset.oceanPreset === name).dispatchEvent({ type: 'click' }),
     selectedPreset: () => presets.find(button => button.getAttribute('aria-pressed') === 'true')?.dataset.oceanPreset,
     input: (name, value, type = 'input') => { get(name).value = String(value); get(name).dispatchEvent({ type }); },
+    check: (name, checked) => { get(name).checked = checked; get(name).dispatchEvent({ type: 'change' }); },
+    reduceMotion: value => { motionPreference.matches = value; motionPreference.dispatchEvent({ type: 'change' }); },
+    visible: value => visibilityChange([{ isIntersecting: value }]),
     flush: () => { const pending = [...timers.values()]; timers.clear(); pending.forEach(callback => callback()); },
     sky: (name, height = .3) => skyChange({ texture: { name }, textureScale: 1, hasSun: true, sunDirection: [0, height, .8] }),
     step: (seconds, milliseconds = 1000 / 60) => {
@@ -431,4 +455,200 @@ for (const failAtStartup of [true, false]) {
   app.dispose();
 }
 
-console.log('Ocean preferences, quality tiers, adaptive rendering, stable lighting, composed camera views, and rest lifecycle checks passed.');
+{
+  const app = harness({ stored: { swell: 'long', mood: 'dusk', wind: 3.7, waves: .85 },
+    search: '?cx=14&cz=-6&alt=4&yaw=20&pitch=-8' });
+  const originalPose = cameraPose(app);
+  assert.equal(app.get('swell').value, 'long', 'Swell style must restore independently from saved lighting and wind.');
+  assert.equal(app.spectrumUpdates.at(-1)[3], 'long', 'The restored style must reach the wave spectrum.');
+  for (const style of ['chop', 'balanced', 'long']) {
+    app.input('swell', style, 'change');
+    assert.equal(app.get('stage').dataset.oceanSwell, style);
+    assert.equal(app.spectrumUpdates.at(-1)[3], style, 'Each selection must update the spectrum immediately.');
+    assert.deepEqual(cameraPose(app), originalPose, 'Changing swell style must preserve the exploration viewpoint.');
+    assert.equal(app.get('wind').value, '3.7');
+    assert.equal(app.get('height').value, '0.85');
+    assert.equal(app.selectedPreset(), 'dusk');
+    app.flush();
+    assert.equal(app.preferences().swell, style);
+    assert.equal(new URL(app.window.location.href).searchParams.get('swell'), style);
+  }
+  const shared = harness({ stored: { swell: 'balanced', mood: 'dawn', wind: 8 }, search: new URL(app.window.location.href).search });
+  assert.equal(shared.get('swell').value, 'long', 'Explicit shared swell must override the local preference.');
+  assert.deepEqual(cameraPose(shared), originalPose, 'A complete scene link must reproduce the canonical viewpoint.');
+  assert.equal(shared.get('wind').value, '3.7');
+  assert.equal(shared.selectedPreset(), 'dusk');
+  app.input('swell', 'invalid', 'change');
+  assert.equal(app.get('swell').value, 'balanced', 'An invalid selection must recover to natural swell.');
+  shared.dispose();
+  app.dispose();
+}
+
+{
+  const app = harness({ search: '?alt=4&yaw=20&pitch=-8' });
+  const canonical = cameraPose(app);
+  assert.equal(app.get('float').checked, false);
+  assert.equal(app.get('stage').dataset.oceanFloating, 'false', 'A new scene must keep its viewpoint stationary by default.');
+  app.step(2);
+  assert.equal(app.uniforms.cameraPosition[1], app.camera.height);
+  assert.equal(app.uniforms.cameraAngle[1], app.camera.pitch);
+  app.check('float', true);
+  app.flush();
+  assert.equal(app.get('stage').dataset.oceanFloating, 'true');
+  assert.equal(app.preferences().floating, true);
+  assert.equal(new URL(app.window.location.href).searchParams.get('float'), '1');
+  let maximumRise = 0;
+  let maximumPitch = 0;
+  for (let frame = 0; frame < 600; frame++) {
+    app.frame(1000 / 30);
+    maximumRise = Math.max(maximumRise, Math.abs(app.uniforms.cameraPosition[1] - app.camera.height));
+    maximumPitch = Math.max(maximumPitch, Math.abs(app.uniforms.cameraAngle[1] - app.camera.pitch));
+  }
+  assert.ok(maximumRise > .015 && maximumRise <= .065, 'The checked control must produce gentle rise and fall in actual render uniforms.');
+  assert.ok(maximumPitch > .0003 && maximumPitch <= .001625, 'The checked control must produce a subtle rendered pitch.');
+  assert.deepEqual(cameraPose(app), canonical, 'Rendered floating must never alter the canonical camera.');
+  app.input('swell', 'long', 'change');
+  app.flush();
+  const sharedUrl = new URL(app.window.location.href);
+  assert.equal(sharedUrl.searchParams.get('alt'), '4.00', 'Sharing during floating must preserve the user-selected height.');
+  assert.equal(sharedUrl.searchParams.get('yaw'), '20');
+  assert.equal(sharedUrl.searchParams.get('pitch'), '-8');
+  const shared = harness({ search: sharedUrl.search });
+  assert.equal(shared.get('float').checked, true, 'A shared scene may explicitly opt into floating.');
+  assert.deepEqual(cameraPose(shared), canonical);
+  const stored = harness({ stored: { floating: true } });
+  assert.equal(stored.get('float').checked, true, 'A saved opt in must restore on a motion-capable device.');
+  app.click('reset');
+  app.flush();
+  assert.equal(app.get('float').checked, false, 'Reset scene must disable floating.');
+  assert.equal(app.get('swell').value, 'balanced');
+  assert.equal(app.preferences().floating, false);
+  assert.equal(new URL(app.window.location.href).searchParams.get('float'), '0');
+  stored.dispose();
+  shared.dispose();
+  app.dispose();
+}
+
+{
+  const app = harness({ stored: { floating: true }, search: '?float=1', reduced: true });
+  assert.equal(app.get('float').checked, false, 'Reduced motion must override both saved and shared floating settings.');
+  assert.equal(app.get('float').disabled, true);
+  assert.match(app.get('float').title, /reduced motion/i);
+  assert.equal(app.get('stage').dataset.oceanFloating, 'false');
+  assert.equal(app.queue.size, 0);
+  assert.equal(app.uniforms.cameraPosition[1], app.camera.height);
+  app.click('toggle');
+  app.step(5);
+  assert.equal(app.uniforms.cameraPosition[1], app.camera.height, 'Explicitly playing waves must still honor reduced camera motion.');
+  app.dispose();
+}
+
+{
+  const app = harness({ stored: { floating: true } });
+  app.step(3);
+  assert.ok(Math.abs(app.uniforms.cameraPosition[1] - app.camera.height) > .01);
+  app.click('toggle');
+  const pausedTime = app.uniforms.time;
+  const pausedPosition = [...app.uniforms.cameraPosition];
+  app.step(10);
+  assert.equal(app.uniforms.time, pausedTime);
+  assert.deepEqual(app.uniforms.cameraPosition, pausedPosition, 'Pause must also freeze the rendered floating pose.');
+  app.reduceMotion(true);
+  assert.equal(app.get('float').disabled, true);
+  assert.equal(app.get('float').checked, false);
+  assert.equal(app.get('stage').dataset.oceanFloating, 'false');
+  assert.equal(app.uniforms.cameraPosition[1], app.camera.height, 'Live reduced motion must redraw the canonical view even while paused.');
+  assert.equal(app.uniforms.cameraAngle[1], app.camera.pitch);
+  assert.equal(app.queue.size, 0);
+  app.flush();
+  assert.equal(app.preferences().floating, false);
+  app.reduceMotion(false);
+  assert.equal(app.get('float').disabled, false);
+  assert.equal(app.get('float').checked, false, 'Ending reduced motion must leave camera movement opted out.');
+  app.dispose();
+  assert.equal([...app.motionPreference.listeners.values()].every(listeners => listeners.size === 0), true,
+    'Scene cleanup must remove both floating and UI media-query listeners.');
+}
+
+for (const interruption of ['hidden', 'paused', 'offscreen']) {
+  const app = harness({ search: '?quality=medium' });
+  app.frame(100);
+  const start = app.uniforms.time;
+  app.step(10, 100);
+  assert.ok(Math.abs(app.uniforms.time - start - 10) < .000001, 'Sustained 10 FPS must advance ten simulation seconds in ten real seconds.');
+  assert.ok(Math.abs(app.spectrumUpdates.at(-1)[0] - app.uniforms.time) < .000001, 'The spectrum and shading must receive the same elapsed sea time.');
+  if (interruption === 'hidden') { app.document.hidden = true; app.document.dispatchEvent({ type: 'visibilitychange' }); }
+  if (interruption === 'paused') app.click('toggle');
+  if (interruption === 'offscreen') app.visible(false);
+  const suspendedAt = app.uniforms.time;
+  const draws = app.drawCount;
+  app.frame(60000);
+  assert.equal(app.uniforms.time, suspendedAt, `${interruption} must not advance sea time.`);
+  assert.equal(app.drawCount, draws, `${interruption} must release the renderer animation loop.`);
+  if (interruption === 'hidden') { app.document.hidden = false; app.document.dispatchEvent({ type: 'visibilitychange' }); }
+  if (interruption === 'paused') app.click('toggle');
+  if (interruption === 'offscreen') app.visible(true);
+  app.frame(100);
+  assert.equal(app.uniforms.time, suspendedAt, `Resuming from ${interruption} must not catch up the suspended minute.`);
+  app.frame(100);
+  assert.ok(Math.abs(app.uniforms.time - suspendedAt - .1) < .000001, 'Normal sea time must resume after establishing the new frame clock.');
+  app.dispose();
+}
+
+{
+  const app = harness({ search: '?quality=auto', viewport: { width: 1920, height: 1080 }, dpr: 2 });
+  const initialDimensions = app.dimensions();
+  const originalPose = cameraPose(app);
+  app.step(14, 100);
+  const floorDimensions = app.dimensions();
+  assert.equal(app.uniforms.renderQuality, 2, 'Auto must exhaust its resolution adjustment before lowering reflection detail.');
+  assert.ok(pixelCount(floorDimensions) < pixelCount(initialDimensions) * .51);
+  app.step(12, 100);
+  assert.deepEqual(app.dimensions(), floorDimensions, 'Auto must keep its established resolution floor when lowering shader detail.');
+  assert.equal(app.uniforms.renderQuality, 0, 'Sustained slow frames at the resolution floor must reach the lowest reflection tier.');
+  assert.equal(app.get('stage').dataset.oceanDetail, '0');
+  app.step(18);
+  assert.equal(app.uniforms.renderQuality, 2, 'Smooth frames must restore reflection detail before increasing resolution.');
+  assert.deepEqual(app.dimensions(), floorDimensions);
+  app.step(30);
+  assert.deepEqual(app.dimensions(), initialDimensions, 'Continued smooth rendering must recover the original Auto pixel budget.');
+  assert.deepEqual(cameraPose(app), originalPose);
+  assert.equal(app.get('quality').value, 'auto', 'Internal adaptation must not rewrite the selected quality preference.');
+  app.dispose();
+}
+
+{
+  const app = harness();
+  assert.deepEqual(app.conditions.at(-1), { wind: 2.4, waveHeight: .65, shore: 0 }, 'Initial sound conditions must describe the visible open ocean.');
+  app.input('wind', 7.1);
+  assert.equal(app.conditions.at(-1).wind, 7.1);
+  app.input('height', 1.25);
+  assert.equal(app.conditions.at(-1).waveHeight, 1.25);
+  app.input('scene', 'cove', 'change');
+  const cove = app.conditions.at(-1);
+  assert.equal(cove.wind, 7.1);
+  assert.equal(cove.waveHeight, 1.25);
+  assert.ok(cove.shore > 0 && cove.shore < 1, 'Moving into the cove must expose its shoreline proximity to audio.');
+  assert.equal(Number(app.get('stage').dataset.oceanShore), cove.shore);
+  const eventCount = app.conditions.length;
+  app.click('camera-toggle');
+  app.get('stage').dispatchEvent({ type: 'keydown', code: 'KeyA', key: 'a' });
+  app.step(3);
+  app.window.dispatchEvent({ type: 'keyup', code: 'KeyA' });
+  app.step(3);
+  const approaching = app.conditions.at(-1);
+  assert.ok(app.conditions.length > eventCount, 'Exploration must update sound conditions as the camera approaches shore.');
+  assert.ok(approaching.shore > cove.shore + .04);
+  assert.ok(approaching.shore <= 1 && approaching.shore >= 0);
+  assert.ok(Math.abs(Number(app.get('stage').dataset.oceanShore) - approaching.shore) < .02,
+    'Throttled condition events must stay close to the current shoreline proximity.');
+  const stationaryEvents = app.conditions.length;
+  app.step(10);
+  assert.equal(app.conditions.length, stationaryEvents, 'A stationary scene must not emit redundant condition events each frame.');
+  app.input('scene', 'ocean', 'change');
+  assert.equal(app.conditions.at(-1).shore, 0);
+  assert.equal(app.conditions.at(-1).wind, 7.1);
+  app.dispose();
+}
+
+console.log('Ocean preferences, swell, floating, real-time clocks, quality adaptation, condition events, and scene lifecycle checks passed.');

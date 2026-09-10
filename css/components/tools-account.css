@@ -1,3 +1,32 @@
+/* Personal headers reserve this account slot in the shared masthead CSS.
+   Keep signed-in and signed-out controls the same size when auth resolves. */
+@layer overrides {
+  .tools-account-bar[data-personal-tool-account-bar] .tools-account-structure {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .tools-account-bar[data-personal-tool-account-bar] .tools-account-actions {
+    min-inline-size: 104px;
+  }
+
+  .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="toggle-account"]) {
+    inline-size: 104px;
+    min-inline-size: 104px;
+    border-color: #c5d1df;
+    color: #405b7b;
+    background: #ffffff;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="toggle-account"]):hover {
+    border-color: var(--panel-color, #087f8c);
+    color: #091f3b;
+    background: #f5f8fa;
+  }
+}
+
 @layer components {
   .tools-account-dock{
     position:relative;

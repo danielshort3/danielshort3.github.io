@@ -815,7 +815,7 @@
             <a class="tools-account-tools-link" href="/tools"><span aria-hidden="true">←</span><span>All tools</span></a>
           </nav>`}
           <div class="tools-account-actions" data-tools-account="actions" role="group" aria-label="Account actions">
-            <button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>
+            <button type="button" class="btn-secondary" data-tools-action="sign-in">Sign in</button>
             <div class="tools-account-disclosure-root" data-tools-account="disclosure-root" hidden>
               <button type="button" class="btn-secondary tools-account-trigger" data-tools-action="toggle-account" aria-expanded="false" aria-controls="tools-account-disclosure">
                 <span>Account</span>

@@ -1,7 +1,7 @@
 {
   "id": "chatbotLora",
   "title": "Chatbot (LoRA + RAG)",
-  "subtitle": "RAG Chatbot Fine-Tuned with LoRA",
+  "subtitle": "Explore Grand Junction with answers grounded in local sources.",
   "image": "img/projects/chatbotLora.png",
   "iconImage": "img/projects/icons/chatbotLora.png",
   "imageWidth": 1280,

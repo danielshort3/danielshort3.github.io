@@ -84,7 +84,7 @@
     body[data-tools-layout="media"],
     body[data-tools-layout="admin"],
     body[data-tools-layout="directory"]
-  ) .tools-account-dock:has(.tools-account-bar:empty){
+  ) .tools-account-dock:not([data-personal-tool-account]):has(.tools-account-bar:empty){
     display:none;
   }
 
@@ -1081,7 +1081,7 @@
       width: 100%;
     }
 
-    body.personal-accordion-page[data-personal-category="tools"] #main > .surface-band > .wrapper {
+    body.personal-accordion-page[data-personal-category="tools"] #main > .surface-band:not(.tool-workspace) > .wrapper {
       padding-right: var(--tools-content-gutter);
       padding-left: var(--tools-content-gutter);
     }

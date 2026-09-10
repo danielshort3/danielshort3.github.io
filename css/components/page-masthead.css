@@ -14,7 +14,7 @@
     width: calc(100% - 2 * var(--frame-content-gutter));
     max-width: none;
     min-width: 0;
-    margin: 0 var(--frame-content-gutter) 20px;
+    margin: 0 var(--frame-content-gutter) var(--page-content-gap);
     padding: var(--masthead-padding-start) 0 var(--masthead-padding-end);
     border: 0;
     border-bottom: 2px solid color-mix(in srgb, var(--panel-color) 28%, #ffffff 72%);
@@ -37,6 +37,27 @@
 
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] {
     margin-bottom: 0;
+  }
+
+  /* Each template contributes the section gap once, immediately after its divider. */
+  body[data-audience="personal"] .site-frame [data-page-masthead] + .project-body {
+    padding-top: var(--page-content-gap);
+  }
+
+  body[data-audience="personal"] .site-frame .personal-tool-header[data-page-masthead] + #main,
+  body[data-audience="personal"] .site-frame .personal-tool-header[data-page-masthead] + #main > .surface-band:first-child {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  body[data-audience="personal"] .site-frame [data-page-masthead] [data-personal-tool-account-bar] {
+    min-block-size: 44px;
+    min-inline-size: 104px;
+  }
+
+  body.project-demo-wrapper-page[data-audience="personal"] .site-frame #main.project-demo-wrapper-main {
+    width: auto;
+    margin-inline: var(--frame-content-gutter);
   }
 
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead] > .wrapper {
@@ -197,6 +218,10 @@
   }
 
   @media (max-width: 640px) {
+    body[data-audience="personal"] {
+      --page-content-gap: 20px;
+    }
+
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead],
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-hero[data-page-masthead] {
       --masthead-padding-start: 20px;

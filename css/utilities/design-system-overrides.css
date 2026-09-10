@@ -690,6 +690,15 @@
     max-width: min(1120px, calc(100vw - 32px));
   }
 
+  @media (min-width: 960px) {
+    body[data-audience="personal"] [data-site-shell-footer] .footer-inner {
+      width: min(var(--site-shell-width), calc(100% - 28px));
+      max-width: none;
+      margin-inline: auto;
+      padding-inline: 28px;
+    }
+  }
+
   .nav {
     background: rgba(255, 255, 255, .92);
     border-bottom: 1px solid color-mix(in srgb, var(--brand-midnight) 12%, transparent);

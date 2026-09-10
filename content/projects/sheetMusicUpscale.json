@@ -1,7 +1,7 @@
 {
   "id": "sheetMusicUpscale",
   "title": "Sheet Music Watermark Removal & Upscale",
-  "subtitle": "UNet & VDSR Pipeline",
+  "subtitle": "Restore sheet-music scans and make small notation easier to read.",
   "image": "img/projects/sheetMusicUpscale.png",
   "iconImage": "img/projects/icons/sheetMusicUpscale.png",
   "imageWidth": 1600,

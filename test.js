@@ -42600,7 +42600,7 @@ try {
            toolsWorkspaceCss.includes('body[data-tools-layout="directory"]') &&
            toolsWorkspaceCss.includes('.tools-account-dock{\n    position:relative;') &&
            toolsWorkspaceCss.includes('top:auto;') &&
-           toolsWorkspaceCss.includes('.tools-account-dock:has(.tools-account-bar:empty)'),
+           toolsWorkspaceCss.includes('.tools-account-dock:not([data-personal-tool-account]):has(.tools-account-bar:empty)'),
       'Tools account sign-in panel should sit in normal page flow near the top across tool layouts');
     assert(toolsAuth.includes("options.mode === 'popup'") &&
            toolsAuth.includes('window.open') &&
@@ -44294,9 +44294,9 @@ try {
       consentCode.includes('if (tcfConfig.enabled !== true) return null;') &&
       consentCode.includes('tcModel.cmpId = tcfConfig.cmpId;'),
     'TCF generation should require explicit enabled configuration and registered CMP metadata');
-    assert(privacyHtml.includes('uses Google Tag Manager to load Google Analytics 4') &&
-      privacyHtml.includes('Do Not Track signal') &&
-      privacyHtml.includes('analytics and advertising remain disabled'),
+    assert(privacyHtml.includes('Google Analytics 4, loaded through Google Tag Manager') &&
+      privacyHtml.includes('Do Not Track disables analytics and advertising') &&
+      privacyHtml.includes('Global Privacy Control disables advertising'),
     'privacy policy should accurately describe GTM loading and the enforced Do Not Track override');
     assert(consentCode.includes("window.gtag('consent', 'default'") &&
       consentCode.includes("analytics_storage: 'denied'") &&

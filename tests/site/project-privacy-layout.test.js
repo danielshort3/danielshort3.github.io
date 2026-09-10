@@ -84,7 +84,7 @@ function runProjectPrivacyLayoutTests({ assert }) {
   for (const match of privacyMain.matchAll(/\bid="([^"]+)"/g)) idCounts.set(match[1], (idCounts.get(match[1]) || 0) + 1);
   assert([...idCounts.values()].every((count) => count === 1), 'Moving preferences creates no duplicate IDs.');
   const shortcuts = [...privacyMain.matchAll(/href="(\/privacy#[^"]+)"/g)].map((match) => match[1]);
-  assert(shortcuts.length === 8, 'Privacy has an early preferences jump and seven section shortcuts.');
+  assert(shortcuts.length === 7, 'Privacy has an early preferences jump and six section shortcuts.');
   for (const href of shortcuts) {
     const url = new URL(href, 'https://www.danielshort.me/');
     assert(url.pathname === '/privacy' && idCounts.get(url.hash.slice(1)) === 1,

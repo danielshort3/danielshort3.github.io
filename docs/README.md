@@ -17,6 +17,7 @@ developers, designers, and future contributors.
 | `project-starfall-ui-visual-iteration-audit.md` | UI/visual iteration audit |
 | `aws-data-migrations.md` | AWS/backfill data-migration notes |
 | `tool-icon-generation-prompts.md` | Icon generation prompts |
+| `visual-style.md` | Shared glyph, illustration, and icon-well conventions |
 | `tools-audit-and-hardening-plan-2026-07-11.md` | Tools account audit & hardening plan |
 | `tools-local-sign-in.md` | Local Cognito callbacks and tools sign-in setup |
 

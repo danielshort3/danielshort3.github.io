@@ -42,7 +42,7 @@
     "website"
   ],
   "portfolioTitle": "Project Library",
-  "portfolioDescription": "Machine learning, analytics, software tools, and browser experiments by Daniel Short.",
+  "portfolioDescription": "AI and analytics projects that explore real-world questions and solve everyday problems.",
   "projectLibrary": {
     "startHereProjectIds": [
       "sheetMusicUpscale",
@@ -110,7 +110,7 @@
               "colorEnd": "#032b57",
               "title": "Hi, I’m Daniel.",
               "lead": "I enjoy solving everyday inefficiencies with AI and machine learning. Family is important to me, and I’ve played French horn for 20 years.",
-              "context": "Based in Grand Junction, Colorado.",
+              "context": "Based in western Colorado.",
               "currentWork": {
                 "text": "Currently building: this website and its practical browser tools.",
                 "href": "/portfolio/website"
