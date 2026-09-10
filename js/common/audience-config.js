@@ -87,7 +87,7 @@
         'website'
       ],
       portfolioTitle: 'Project Library',
-      portfolioDescription: 'Machine learning, analytics, software tools, and browser experiments by Daniel Short.',
+      portfolioDescription: 'AI and analytics projects that explore real-world questions and solve everyday problems.',
       resumeNavTitle: null,
       resumeNavSubtitle: null,
       resumePreviewSubtitle: null,

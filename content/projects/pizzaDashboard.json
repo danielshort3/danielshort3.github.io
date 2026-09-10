@@ -1,7 +1,7 @@
 {
   "id": "pizzaDashboard",
   "title": "Pizza Delivery Dashboard",
-  "subtitle": "Tableau Analytics & Forecasting",
+  "subtitle": "Compare delivery zones, earnings, and timing to inform shift planning.",
   "image": "img/projects/pizzaDashboard.png",
   "iconImage": "img/projects/icons/pizzaDashboard.png",
   "imageWidth": 1250,

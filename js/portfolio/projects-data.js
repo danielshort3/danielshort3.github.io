@@ -3,7 +3,7 @@ window.PROJECTS = [
   {
     "id": "smartSentence",
     "title": "Smart Sentence Retriever",
-    "subtitle": "NLP Embeddings & Serverless Retrieval",
+    "subtitle": "Find relevant sentences by meaning, even when the wording differs.",
     "image": "img/projects/smartSentence.png",
     "iconImage": "img/projects/icons/smartSentence.png?v=7be7091370e0",
     "imageWidth": 952,
@@ -112,7 +112,7 @@ window.PROJECTS = [
   {
     "id": "chatbotLora",
     "title": "Chatbot (LoRA + RAG)",
-    "subtitle": "RAG Chatbot Fine-Tuned with LoRA",
+    "subtitle": "Explore Grand Junction with answers grounded in local sources.",
     "image": "img/projects/chatbotLora.png",
     "iconImage": "img/projects/icons/chatbotLora.png?v=a6d123e8bd75",
     "imageWidth": 1280,
@@ -205,7 +205,7 @@ window.PROJECTS = [
   {
     "id": "shapeClassifier",
     "title": "Shape Classifier Demo",
-    "subtitle": "Handwritten Shape Recognition",
+    "subtitle": "Draw a shape and see how a model classifies it.",
     "image": "img/projects/shapeClassifier.png",
     "iconImage": "img/projects/icons/shapeClassifier.png?v=981b96b1622f",
     "imageWidth": 926,
@@ -295,7 +295,7 @@ window.PROJECTS = [
   {
     "id": "ufoDashboard",
     "title": "UFO Sightings Dashboard",
-    "subtitle": "Tableau Geospatial Analytics",
+    "subtitle": "Explore where and when UFO sightings have been reported.",
     "image": "img/projects/ufoDashboard.png",
     "iconImage": "img/projects/icons/ufoDashboard.png?v=ae6e397c2406",
     "imageWidth": 2008,
@@ -358,7 +358,7 @@ window.PROJECTS = [
   {
     "id": "covidAnalysis",
     "title": "COVID-19 Outbreak Drivers",
-    "subtitle": "Python XGBoost & SHAP",
+    "subtitle": "Explore early warning signals for ICU strain and the factors behind them.",
     "image": "img/projects/covidAnalysis.png",
     "iconImage": "img/projects/icons/covidAnalysis.png?v=9f13fa761f39",
     "imageWidth": 1446,
@@ -473,7 +473,7 @@ window.PROJECTS = [
   {
     "id": "targetEmptyPackage",
     "title": "Empty-Package Shrink Dashboard",
-    "subtitle": "Excel Forecasting & BI",
+    "subtitle": "Locate retail shrink hotspots and compare trends over time.",
     "image": "img/projects/targetEmptyPackage.png",
     "iconImage": "img/projects/icons/targetEmptyPackage.png?v=fe4215c27311",
     "imageWidth": 1460,
@@ -549,7 +549,7 @@ window.PROJECTS = [
   {
     "id": "handwritingRating",
     "title": "Handwriting Legibility Scoring",
-    "subtitle": "PyTorch CNN Fine-Tuning",
+    "subtitle": "Explore how confidently a model recognizes your handwritten digits.",
     "image": "img/projects/handwritingRating.png",
     "iconImage": "img/projects/icons/handwritingRating.png?v=582853161647",
     "imageWidth": 1138,
@@ -663,7 +663,7 @@ window.PROJECTS = [
   {
     "id": "digitGenerator",
     "title": "Synthetic Digit Generator",
-    "subtitle": "Variational Autoencoder",
+    "subtitle": "Generate new handwritten-style digits and explore how a model learns their shapes.",
     "image": "img/projects/digitGenerator.png",
     "iconImage": "img/projects/icons/digitGenerator.png?v=f26866af05d5",
     "imageWidth": 1470,
@@ -766,7 +766,7 @@ window.PROJECTS = [
   {
     "id": "sheetMusicUpscale",
     "title": "Sheet Music Watermark Removal & Upscale",
-    "subtitle": "UNet & VDSR Pipeline",
+    "subtitle": "Restore sheet-music scans and make small notation easier to read.",
     "image": "img/projects/sheetMusicUpscale.png?v=7328193a7824",
     "iconImage": "img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad",
     "imageWidth": 1600,
@@ -915,7 +915,7 @@ window.PROJECTS = [
   {
     "id": "deliveryTip",
     "title": "Delivery Tip",
-    "subtitle": "Excel Geo-Analytics & Optimization",
+    "subtitle": "Compare delivery shifts and neighborhoods to plan where and when to work.",
     "image": "img/projects/deliveryTip.png",
     "iconImage": "img/projects/icons/deliveryTip.png?v=e035f25cb792",
     "imageWidth": 960,
@@ -959,7 +959,7 @@ window.PROJECTS = [
   {
     "id": "retailStore",
     "title": "Store-Level Loss & Sales ETL",
-    "subtitle": "SQL ETL + Anomaly Detection",
+    "subtitle": "Bring store data together to spot unusual loss and sales patterns.",
     "image": "img/projects/retailStore.png",
     "iconImage": "img/projects/icons/retailStore.png?v=8e0cf4b2dfa1",
     "imageWidth": 1410,
@@ -1047,7 +1047,7 @@ window.PROJECTS = [
   {
     "id": "pizza",
     "title": "Pizza Tips Regression Modeling",
-    "subtitle": "Excel Analytics & Regression Modeling",
+    "subtitle": "Explore which delivery and weather factors are associated with larger tips.",
     "image": "img/projects/pizza.png",
     "iconImage": "img/projects/icons/pizza.png?v=478ab0f3d86a",
     "imageWidth": 1398,
@@ -1118,7 +1118,7 @@ window.PROJECTS = [
   {
     "id": "babynames",
     "title": "Baby Name Predictor",
-    "subtitle": "Python ML Pipeline",
+    "subtitle": "Personalized name recommendations from family preferences and naming trends.",
     "image": "img/projects/babynames.png",
     "iconImage": "img/projects/icons/babynames.png?v=7fc79e6e3331",
     "imageWidth": 1238,
@@ -1199,7 +1199,7 @@ window.PROJECTS = [
   {
     "id": "pizzaDashboard",
     "title": "Pizza Delivery Dashboard",
-    "subtitle": "Tableau Analytics & Forecasting",
+    "subtitle": "Compare delivery zones, earnings, and timing to inform shift planning.",
     "image": "img/projects/pizzaDashboard.png",
     "iconImage": "img/projects/icons/pizzaDashboard.png?v=4e01e3d6a7f6",
     "imageWidth": 1250,
@@ -1262,7 +1262,7 @@ window.PROJECTS = [
   {
     "id": "nonogram",
     "title": "Nonogram Solver",
-    "subtitle": "Reinforcement Learning (RL)",
+    "subtitle": "Watch a trained agent work through a five-by-five picture puzzle.",
     "image": "img/projects/nonogram.png",
     "iconImage": "img/projects/icons/nonogram.png?v=d8d2122f3f7f",
     "imageWidth": 1228,
@@ -1410,7 +1410,7 @@ window.PROJECTS = [
   {
     "id": "website",
     "title": "danielshort.me",
-    "subtitle": "Responsive Portfolio Site",
+    "subtitle": "A home for practical tools, personal projects, and browser experiments.",
     "image": "img/projects/website.png?v=e005645fec7c",
     "iconImage": "img/projects/icons/website.png?v=5ee2dd9327e1",
     "imageWidth": 1280,

@@ -416,7 +416,7 @@ function assertCompactPersonalShell(html, sourceFile, publicUrl, themedStyleshee
     const parentHref = tagAttribute(parentTags[0], 'href');
     const expectedParent = demoDefinition ? demoDefinition.backHref : tagAttribute(body, 'data-personal-accordion-view') === 'library'
       ? `/#${category}`
-      : { projects: '/portfolio', tools: '/tools', games: '/games', contact: '/#contact' }[category];
+      : { about: '/#about', projects: '/portfolio', tools: '/tools', games: '/games', contact: '/#contact' }[category];
     const parentUrl = parentHref ? new URL(parentHref, SITE_ORIGIN) : null;
     const expectedParentUrl = new URL(expectedParent, SITE_ORIGIN);
     assert(parentUrl && parentUrl.origin === SITE_ORIGIN &&

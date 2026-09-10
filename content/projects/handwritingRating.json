@@ -1,7 +1,7 @@
 {
   "id": "handwritingRating",
   "title": "Handwriting Legibility Scoring",
-  "subtitle": "PyTorch CNN Fine-Tuning",
+  "subtitle": "Explore how confidently a model recognizes your handwritten digits.",
   "image": "img/projects/handwritingRating.png",
   "iconImage": "img/projects/icons/handwritingRating.png",
   "imageWidth": 1138,

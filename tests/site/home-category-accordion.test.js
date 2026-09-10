@@ -534,7 +534,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const about = categories.find((category) => category.id === 'about');
   const games = categories.find((category) => category.id === 'games');
   const contact = categories.find((category) => category.id === 'contact');
-  assert(!about.meta && !about.cta && /Based in Grand Junction/.test(about.context || '') &&
+  assert(!about.meta && !about.cta && /Based in western Colorado/.test(about.context || '') &&
     about.profile?.image === 'img/hero/head-avatar-384.jpg' &&
     about.profile?.imageAlt === 'Daniel Short' &&
     about.profile?.imageWidth === 384 &&

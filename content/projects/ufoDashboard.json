@@ -1,7 +1,7 @@
 {
   "id": "ufoDashboard",
   "title": "UFO Sightings Dashboard",
-  "subtitle": "Tableau Geospatial Analytics",
+  "subtitle": "Explore where and when UFO sightings have been reported.",
   "image": "img/projects/ufoDashboard.png",
   "iconImage": "img/projects/icons/ufoDashboard.png",
   "imageWidth": 2008,

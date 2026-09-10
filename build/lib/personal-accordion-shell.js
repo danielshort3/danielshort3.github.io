@@ -88,7 +88,7 @@ function getShellCategory(categoryId, audience = 'personal') {
 const LIBRARY_PRESENTATION = Object.freeze({
   projects: Object.freeze({
     title: 'Project library',
-    summary: 'A collection of machine learning projects, practical tools, and playful experiments.'
+    summary: 'AI and analytics projects that explore real-world questions and solve everyday problems.'
   }),
   tools: Object.freeze({
     title: 'Tool library',

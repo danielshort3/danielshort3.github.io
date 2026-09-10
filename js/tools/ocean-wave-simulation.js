@@ -13,6 +13,8 @@
   const lightValue = $('#ocean-wave-light-value');
   const qualityInput = $('#ocean-wave-quality');
   const sceneInput = $('#ocean-wave-scene');
+  const swellInput = $('#ocean-wave-swell');
+  const floatInput = $('#ocean-wave-float');
   const toggleBtn = $('#ocean-wave-toggle');
   const resetBtn = $('#ocean-wave-reset');
   const resetCameraBtn = $('#ocean-wave-reset-camera');
@@ -67,6 +69,7 @@
     qualityMode: 'auto',
     mood: 'dawn',
     sceneKind: 'ocean',
+    swell: 'balanced',
     cameraYawDeg: 0,
     cameraPitchDeg: -6,
   };
@@ -85,6 +88,8 @@
     ultra: { label: 'Ultra', tier: 3, fps: 30, dprMax: 2, maxPixels: 8300000, scale: 1.25, maxW: 4096, maxH: 4096 },
   };
   const AUTO_QUALITY_PROFILE = { ...QUALITY_PROFILES.high, fps: 30 };
+  const AUTO_DETAIL_PROFILES = [AUTO_QUALITY_PROFILE,
+    { ...AUTO_QUALITY_PROFILE, tier: 1 }, { ...AUTO_QUALITY_PROFILE, tier: 0 }];
   const QUALITY_MODES = new Set(['auto', ...Object.keys(QUALITY_PROFILES)]);
   const normalizeQuality = value => {
     const migrated = value === 'battery' ? 'low' : value === 'quality' ? 'high' : value;
@@ -92,6 +97,8 @@
   };
   const MOODS = ['dawn', 'daylight', 'golden', 'dusk'];
   const SCENES = new Set(['ocean', 'cove']);
+  const SWELL_STYLES = new Set(['balanced', 'long', 'chop']);
+  const SWELL_PERIODS = { balanced: 9, long: 13, chop: 6 };
   const PREFERENCES_KEY = 'ocean-wave-preferences-v1';
   const LIGHT_TRANSITION_SECONDS = 6;
 
@@ -166,11 +173,14 @@
     qualityMode: DEFAULTS.qualityMode,
     mood: DEFAULTS.mood,
     sceneKind: DEFAULTS.sceneKind,
+    swell: DEFAULTS.swell,
+    floating: false,
     brightness: 1,
     paused: false,
   };
 
-  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const prefersReducedMotion = motionPreference?.matches;
   if (prefersReducedMotion) state.paused = true;
 
   let imageData = null;
@@ -272,6 +282,8 @@
     summaryEl.textContent = `${state.sceneKind === 'cove' ? 'Quiet cove' : 'Open ocean'}, ${state.mood}. `
       + `${getWindDescription()} at ${fmt(state.wind, 1)} meters per second, `
       + `${getWaveDescription()} at ${fmt(state.waveHeight, 2)} meters, ${Math.round(state.brightness * 100)} percent brightness. `
+      + `${state.swell === 'long' ? 'Long rollers' : state.swell === 'chop' ? 'Short chop' : 'Natural swell'}. `
+      + `${state.floating ? 'Gentle floating enabled. ' : ''}`
       + `Camera height ${fmt(camera.height, 1)} meters, heading ${yawDeg} degrees, pitch ${pitchDeg} degrees. `
       + `Animation ${state.paused ? 'paused' : 'running'} in ${getQualityLabel()} mode.`;
   };
@@ -286,6 +298,8 @@
     url.searchParams.set('quality', state.qualityMode);
     url.searchParams.set('mood', state.mood);
     url.searchParams.set('scene', state.sceneKind);
+    url.searchParams.set('swell', state.swell);
+    url.searchParams.set('float', state.floating ? '1' : '0');
     url.searchParams.set('brightness', fmt(state.brightness, 2));
     url.searchParams.set('cx', fmt(camera.x, 2));
     url.searchParams.set('cz', fmt(camera.z, 2));
@@ -298,6 +312,7 @@
     const serialized = JSON.stringify({
       mood: state.mood, scene: state.sceneKind, wind: state.wind, waves: state.waveHeight,
       brightness: state.brightness, quality: state.qualityMode, sun: state.sunElevationDeg,
+      swell: state.swell, floating: state.floating,
     });
     if (serialized === savedPreferences) return;
     try {
@@ -332,6 +347,10 @@
     lightInput.setAttribute('aria-valuetext', `${Math.round(state.brightness * 100)} percent brightness`);
     qualityInput.value = state.qualityMode;
     if (sceneInput) sceneInput.value = state.sceneKind;
+    if (swellInput) swellInput.value = state.swell;
+    if (floatInput) floatInput.checked = state.floating;
+    stage.dataset.oceanSwell = state.swell;
+    stage.dataset.oceanFloating = String(state.floating);
     toggleBtn.setAttribute('aria-pressed', state.paused ? 'true' : 'false');
     toggleBtn.setAttribute('aria-label', state.paused ? 'Play animation' : 'Pause animation');
     toggleBtn.title = state.paused ? 'Play animation' : 'Pause animation';
@@ -340,20 +359,33 @@
       : bufferUnavailable ? 'Graphics memory is unavailable. Choose a lower quality.' : 'Live waves are unavailable on this device.');
     stage.dataset.oceanPaused = String(state.paused);
     updateConditionSummary();
+    publishConditions();
   };
 
-  const updateLight = () => {
+  let lastAudioConditions = '';
+  const publishConditions = () => {
+    const shore = state.sceneKind === 'cove'
+      ? window.OceanWaveShaders.getShoreProximity?.(camera.x, camera.z) ?? 0.45 : 0;
+    stage.dataset.oceanShore = String(shore);
+    // Camera movement can render at 60 Hz; send audio only meaningful changes.
+    const signature = `${state.wind}:${state.waveHeight}:${Math.round(shore * 50)}`;
+    if (signature === lastAudioConditions) return;
+    lastAudioConditions = signature;
+    stage.dispatchEvent(new CustomEvent('ocean:conditions', { detail: { wind: state.wind, waveHeight: state.waveHeight, shore } }));
+  };
+
+  const updateLight = (renderCamera = camera) => {
     const elev = clamp(state.sunElevationDeg, 5, 85) * DEG;
     const cosElev = Math.cos(elev);
     light.dirX = Math.cos(light.azimuth) * cosElev;
     light.dirY = Math.sin(elev);
     light.dirZ = Math.sin(light.azimuth) * cosElev;
 
-    const xYaw = light.dirX * camera.cosYaw - light.dirZ * camera.sinYaw;
-    const zYaw = light.dirX * camera.sinYaw + light.dirZ * camera.cosYaw;
+    const xYaw = light.dirX * renderCamera.cosYaw - light.dirZ * renderCamera.sinYaw;
+    const zYaw = light.dirX * renderCamera.sinYaw + light.dirZ * renderCamera.cosYaw;
 
-    const camY = light.dirY * camera.cosPitch - zYaw * camera.sinPitch;
-    const camZ = light.dirY * camera.sinPitch + zYaw * camera.cosPitch;
+    const camY = light.dirY * renderCamera.cosPitch - zYaw * renderCamera.sinPitch;
+    const camZ = light.dirY * renderCamera.sinPitch + zYaw * renderCamera.cosPitch;
     const camX = xYaw;
 
     if (!Number.isFinite(camX) || !Number.isFinite(camY) || !Number.isFinite(camZ) || camZ <= 0.02) {
@@ -361,8 +393,8 @@
       return;
     }
 
-    const ndcX = (camX / camZ) / camera.tanHalfFovX;
-    const ndcY = (camY / camZ) / camera.tanHalfFovY;
+    const ndcX = (camX / camZ) / renderCamera.tanHalfFovX;
+    const ndcY = (camY / camZ) / renderCamera.tanHalfFovY;
     light.sunU = ndcX * 0.5 + 0.5;
     light.sunV = -ndcY * 0.5 + 0.5;
     light.sunVisible = light.sunU > -0.2 && light.sunU < 1.2 && light.sunV > -0.2 && light.sunV < 1.2;
@@ -373,45 +405,45 @@
     return (wrapped < 0 ? wrapped + TAU : wrapped) - Math.PI;
   };
 
-  const rebuildCameraRays = () => {
+  const rebuildCameraRays = (renderCamera = camera) => {
     if (!width || !height) return;
 
-    camera.tanHalfFovY = Math.tan(camera.fovY / 2);
-    camera.tanHalfFovX = camera.tanHalfFovY * (width / height);
-    camera.cosPitch = Math.cos(camera.pitch);
-    camera.sinPitch = Math.sin(camera.pitch);
-    camera.cosYaw = Math.cos(camera.yaw);
-    camera.sinYaw = Math.sin(camera.yaw);
+    renderCamera.tanHalfFovY = Math.tan(renderCamera.fovY / 2);
+    renderCamera.tanHalfFovX = renderCamera.tanHalfFovY * (width / height);
+    renderCamera.cosPitch = Math.cos(renderCamera.pitch);
+    renderCamera.sinPitch = Math.sin(renderCamera.pitch);
+    renderCamera.cosYaw = Math.cos(renderCamera.yaw);
+    renderCamera.sinYaw = Math.sin(renderCamera.yaw);
 
     if (gl) {
-      updateLight();
+      updateLight(renderCamera);
       return;
     }
     if (!waterMask) return;
 
-    const horizonCut = camera.maxDistance;
-    const camY = camera.height;
+    const horizonCut = renderCamera.maxDistance;
+    const camY = renderCamera.height;
     const eps = 1e-4;
 
     let p = 0;
     for (let y = 0; y < height; y++) {
       const ndcY = 1 - (2 * (y + 0.5)) / height;
-      const ry = ndcY * camera.tanHalfFovY;
+      const ry = ndcY * renderCamera.tanHalfFovY;
       for (let x = 0; x < width; x++, p++) {
         const ndcX = (2 * (x + 0.5)) / width - 1;
-        const rx = ndcX * camera.tanHalfFovX;
+        const rx = ndcX * renderCamera.tanHalfFovX;
         const rz = 1;
         const len = Math.sqrt(rx * rx + ry * ry + rz * rz) || 1;
         const dx = rx / len;
         const dy = ry / len;
         const dz = rz / len;
 
-        const dyP = dy * camera.cosPitch + dz * camera.sinPitch;
-        const dzP = -dy * camera.sinPitch + dz * camera.cosPitch;
+        const dyP = dy * renderCamera.cosPitch + dz * renderCamera.sinPitch;
+        const dzP = -dy * renderCamera.sinPitch + dz * renderCamera.cosPitch;
         const dxP = dx;
 
-        const dxW = dxP * camera.cosYaw + dzP * camera.sinYaw;
-        const dzW = -dxP * camera.sinYaw + dzP * camera.cosYaw;
+        const dxW = dxP * renderCamera.cosYaw + dzP * renderCamera.sinYaw;
+        const dzW = -dxP * renderCamera.sinYaw + dzP * renderCamera.cosYaw;
         const dyW = dyP;
 
         if (dyW >= -eps) {
@@ -425,16 +457,16 @@
           continue;
         }
 
-        const wx = camera.x + dxW * t;
-        const wz = camera.z + dzW * t;
+        const wx = renderCamera.x + dxW * t;
+        const wz = renderCamera.z + dzW * t;
         worldX[p] = wx;
         worldZ[p] = wz;
         distance[p] = t;
         waterMask[p] = 1;
 
-        let vx = camera.x - wx;
+        let vx = renderCamera.x - wx;
         let vy = camY;
-        let vz = camera.z - wz;
+        let vz = renderCamera.z - wz;
         const vLen = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1;
         vx /= vLen;
         vy /= vLen;
@@ -445,7 +477,7 @@
       }
     }
 
-    updateLight();
+    updateLight(renderCamera);
   };
 
   const buildWaves = () => {
@@ -455,7 +487,7 @@
     const windSpread = lerp(0.18, 0.85, sea);
     const swellSpread = lerp(0.05, 0.14, sea);
     const baseChop = lerp(0.06, 1.05, Math.pow(sea, 0.92));
-    const peakLength = lerp(70, 180, Math.pow(sea, 1.1));
+    const peakLength = state.swell === 'long' ? 180 : state.swell === 'chop' ? 42 : lerp(70, 180, Math.pow(sea, 1.1));
     const maxLength = peakLength * 2.6;
     const minLength = peakLength * 0.12;
     const swellDir = WIND_DIR - lerp(0.55, 0.25, sea);
@@ -528,6 +560,7 @@
   let gpuUniforms = null;
   let contextLost = false;
   let adaptiveScale = 1;
+  let adaptiveDetail = 0;
   let qualityProfileMode = state.qualityMode;
   let slowFrameCount = 0;
   let fastFrameCount = 0;
@@ -547,6 +580,10 @@
   let lastSpectrumTime = null;
   let lastSpectrumWind = null;
   let lastSpectrumHeight = null;
+  let lastSpectrumSwell = null;
+  let lastSpectrumScene = null;
+  let lastSpectrumX = null;
+  let lastSpectrumZ = null;
 
   const skyRotation = (sky) => sky?.hasSun
     ? Math.PI / 2 - light.azimuth - Math.atan2(sky.sunDirection[0], sky.sunDirection[2]) : 0;
@@ -614,7 +651,8 @@
       gpuUniforms = Object.fromEntries(
         ['resolution', 'time', 'wind', 'waveHeight', 'elevation', 'cameraAngle', 'cameraPosition', 'mood', 'brightness', 'sceneKind', 'renderQuality',
           'swellField', 'rippleField', 'spectralReady', 'spectralMipmaps', 'fieldLengths', 'environmentA', 'environmentB',
-          'environmentScale', 'environmentRotation', 'environmentMix', 'environmentReady', 'sunDirection', 'solarStrength']
+          'environmentScale', 'environmentRotation', 'environmentMix', 'environmentReady', 'sunDirection', 'solarStrength',
+          'foamField', 'foamReady', 'foamMapping', 'swellStyle']
           .map((name) => [name, gl.getUniformLocation(gpuProgram, name)])
       );
       gl.disable(gl.DEPTH_TEST);
@@ -679,7 +717,7 @@
         mood: MOODS.map((mood) => mood === state.mood ? 1 : 0),
       };
     }
-    const elapsed = lastGpuTime === null ? 0 : clamp(t - lastGpuTime, 0, 0.1);
+    const elapsed = lastGpuTime === null ? 0 : Math.max(0, t - lastGpuTime);
     lastGpuTime = t;
     const immediate = state.paused || prefersReducedMotion;
     const blend = immediate ? 1 : 1 - Math.exp(-elapsed / 1.1);
@@ -695,12 +733,20 @@
     // Rebuild the seeded spectrum only at meaningful wind changes; its height
     // and time still evolve continuously on the GPU between these steps.
     const spectralWind = Math.round(displayedScene.wind * 20) / 20;
-    if (spectrum && (lastSpectrumTime !== waveTimeSec || lastSpectrumWind !== spectralWind
-      || lastSpectrumHeight !== displayedScene.waveHeight)) {
-      spectrum.update(waveTimeSec, spectralWind, displayedScene.waveHeight);
+    spectrum?.setView?.(state.sceneKind, camera.x, camera.z);
+    const spectrumInterval = state.qualityMode === 'auto' && adaptiveDetail === 2 ? 1 / 20 : 0;
+    if (spectrum && (lastSpectrumTime === null || (waveTimeSec - lastSpectrumTime >= spectrumInterval
+      && lastSpectrumTime !== waveTimeSec) || lastSpectrumWind !== spectralWind
+      || Math.abs(lastSpectrumHeight - displayedScene.waveHeight) > 0.005 || lastSpectrumSwell !== state.swell
+      || lastSpectrumScene !== state.sceneKind || lastSpectrumX !== camera.x || lastSpectrumZ !== camera.z)) {
+      spectrum.update(waveTimeSec, spectralWind, displayedScene.waveHeight, state.swell);
       lastSpectrumTime = waveTimeSec;
       lastSpectrumWind = spectralWind;
       lastSpectrumHeight = displayedScene.waveHeight;
+      lastSpectrumSwell = state.swell;
+      lastSpectrumScene = state.sceneKind;
+      lastSpectrumX = camera.x;
+      lastSpectrumZ = camera.z;
     }
     if (currentSky) {
       if (pendingSky && (immediate || skyMix >= 1)) {
@@ -718,7 +764,7 @@
     gl.bindBuffer(gl.ARRAY_BUFFER, gpuBuffer);
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-    const textures = [spectrum?.fields[0].texture, spectrum?.fields[1].texture, previousSky?.texture, currentSky?.texture];
+    const textures = [spectrum?.fields[0].texture, spectrum?.fields[1].texture, previousSky?.texture, currentSky?.texture, spectrum?.foam?.texture];
     textures.forEach((texture, unit) => {
       gl.activeTexture(gl.TEXTURE0 + unit);
       gl.bindTexture(gl.TEXTURE_2D, texture || emptyTexture);
@@ -727,6 +773,9 @@
     gl.uniform1i(gpuUniforms.rippleField, 1);
     gl.uniform1i(gpuUniforms.environmentA, 2);
     gl.uniform1i(gpuUniforms.environmentB, 3);
+    gl.uniform1i(gpuUniforms.foamField, 4);
+    gl.uniform1f(gpuUniforms.foamReady, spectrum?.foam?.texture ? 1 : 0);
+    gl.uniform3f(gpuUniforms.foamMapping, spectrum?.foam?.originX || 0, spectrum?.foam?.originZ || 0, spectrum?.foam?.length || 180);
     gl.uniform1f(gpuUniforms.spectralReady, spectrum ? 1 : 0);
     gl.uniform1f(gpuUniforms.spectralMipmaps, spectrum?.mipmapped ? 1 : 0);
     gl.uniform2f(gpuUniforms.fieldLengths, spectrum?.fields[0].length || 180, spectrum?.fields[1].length || 18);
@@ -749,9 +798,11 @@
     gl.uniform1f(gpuUniforms.time, waveTimeSec);
     gl.uniform1f(gpuUniforms.wind, displayedScene.wind);
     gl.uniform1f(gpuUniforms.waveHeight, displayedScene.waveHeight);
+    gl.uniform1f(gpuUniforms.swellStyle, state.swell === 'long' ? 1 : state.swell === 'chop' ? 2 : 0);
     gl.uniform1f(gpuUniforms.elevation, displayedScene.elevation);
-    gl.uniform2f(gpuUniforms.cameraAngle, camera.yaw, camera.pitch);
-    gl.uniform3f(gpuUniforms.cameraPosition, camera.x, camera.height, camera.z);
+    const renderCamera = getRenderCamera(t);
+    gl.uniform2f(gpuUniforms.cameraAngle, renderCamera.yaw, renderCamera.pitch);
+    gl.uniform3f(gpuUniforms.cameraPosition, renderCamera.x, renderCamera.height, renderCamera.z);
     gl.uniform4f(gpuUniforms.mood, displayedScene.mood[0], displayedScene.mood[1], displayedScene.mood[2], displayedScene.mood[3]);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
@@ -785,14 +836,15 @@
     if (qualityProfileMode !== state.qualityMode) {
       qualityProfileMode = state.qualityMode;
       adaptiveScale = 1;
+      adaptiveDetail = 0;
       slowFrameCount = 0;
       fastFrameCount = 0;
     }
     if (gl) {
-      // Manual choices remain fixed. Auto begins with crisp, high-DPI detail
-      // and alone may trade resolution for smooth animation.
+      // Manual choices remain fixed. Auto can reduce costly reflection detail
+      // after resolution alone has proved insufficient.
       return state.qualityMode === 'auto'
-        ? AUTO_QUALITY_PROFILE : QUALITY_PROFILES[state.qualityMode];
+        ? AUTO_DETAIL_PROFILES[adaptiveDetail] : QUALITY_PROFILES[state.qualityMode];
     }
     // Keep the compatibility renderer usable on devices without WebGL.
     return { tier: 0, fps: 30, dprMax: 1, maxPixels: ['high', 'ultra'].includes(state.qualityMode) ? 75000 : 48000, scale: 0.5, maxW: 500, maxH: 500 };
@@ -824,6 +876,7 @@
     const nextW = Math.max(1, Math.round(targetW * renderScale * aspectScale * autoScale));
     const nextH = Math.max(1, Math.round(targetH * renderScale * aspectScale * autoScale));
     stage.dataset.oceanQuality = state.qualityMode;
+    stage.dataset.oceanDetail = String(quality.tier);
     stage.dataset.oceanResolution = `${nextW}x${nextH}`;
 
     if (nextW === width && nextH === height) return;
@@ -905,8 +958,16 @@
 
   let cameraDirty = false;
   let cameraController = null;
+  const floatConditions = { waveHeight: state.waveHeight, period: 9, direction: WIND_DIR };
+  let compatibilityFloatApplied = false;
+  const getRenderCamera = (time) => {
+    floatConditions.waveHeight = state.waveHeight;
+    floatConditions.period = SWELL_PERIODS[state.swell];
+    return cameraController?.getRenderPose?.(time, floatConditions) || camera;
+  };
   const markCameraDirty = () => {
     cameraDirty = true;
+    publishConditions();
     if (state.paused) {
       cameraDirty = false;
       rebuildCameraRays();
@@ -919,6 +980,12 @@
       return;
     }
     if (!imageData || !pixels) return;
+    const renderCamera = getRenderCamera(t);
+    // The compatibility canvas uses the same temporary pose without altering
+    // the navigation camera or the position stored in a shared scene link.
+    const floatApplied = renderCamera.height !== camera.height || renderCamera.pitch !== camera.pitch;
+    if (floatApplied || compatibilityFloatApplied) rebuildCameraRays(renderCamera);
+    compatibilityFloatApplied = floatApplied;
 
     const sea = clamp(state.wind / 20, 0, 1);
     const heightScale = clamp(state.waveHeight, 0, MAX_WAVE_HEIGHT);
@@ -1262,26 +1329,31 @@
     }
     if (lastFrame === null) lastFrame = ts;
     const elapsed = ts - lastFrame;
-    const dt = clamp(elapsed / 1000, 0, 0.05);
+    // Visible simulation time follows elapsed time even below 20 FPS. Hidden
+    // tabs and pauses reset lastFrame, so resuming never catches up a long gap.
+    const dt = Math.max(0, elapsed / 1000);
     lastFrame = ts;
     lastRenderedAt = ts;
     simTimeSec += dt;
     if (cameraDirty) {
       cameraDirty = false;
       rebuildCameraRays();
+      publishConditions();
     }
     if (gl && state.qualityMode === 'auto') {
       const slow = elapsed > minimumFrameInterval * 1.35;
       slowFrameCount = slow ? slowFrameCount + 1 : Math.max(0, slowFrameCount - 1);
       fastFrameCount = elapsed > 0 && elapsed <= minimumFrameInterval * 1.14 ? fastFrameCount + 1 : 0;
-      if (slowFrameCount >= 24 && adaptiveScale > 0.7 && ts - lastQualityAdjustment > 4000) {
-        adaptiveScale = Math.max(0.7, adaptiveScale * 0.85);
+      if (slowFrameCount >= 24 && (adaptiveScale > 0.7 || adaptiveDetail < 2) && ts - lastQualityAdjustment > 4000) {
+        if (adaptiveScale > 0.7) adaptiveScale = Math.max(0.7, adaptiveScale * 0.85);
+        else adaptiveDetail++;
         slowFrameCount = 0;
         fastFrameCount = 0;
         lastQualityAdjustment = ts;
         resize();
-      } else if (fastFrameCount >= 180 && adaptiveScale < 1 && ts - lastQualityAdjustment > 8000) {
-        adaptiveScale = Math.min(1, adaptiveScale / 0.85);
+      } else if (fastFrameCount >= 180 && (adaptiveScale < 1 || adaptiveDetail > 0) && ts - lastQualityAdjustment > 8000) {
+        if (adaptiveDetail > 0) adaptiveDetail--;
+        else adaptiveScale = Math.min(1, adaptiveScale / 0.85);
         fastFrameCount = 0;
         lastQualityAdjustment = ts;
         resize();
@@ -1330,6 +1402,8 @@
     lightInput.value = String(Math.round(state.brightness * 100));
     qualityInput.value = state.qualityMode;
     if (sceneInput) sceneInput.value = state.sceneKind;
+    if (swellInput) swellInput.value = state.swell;
+    if (floatInput) floatInput.checked = state.floating;
   };
 
   const homePose = () => ({
@@ -1415,6 +1489,9 @@
     state.mood = readChoice('mood', new Set(MOODS), DEFAULTS.mood);
     state.sceneKind = gl ? readChoice('scene', SCENES, DEFAULTS.sceneKind) : DEFAULTS.sceneKind;
     state.qualityMode = normalizeQuality(params.get('quality')) || normalizeQuality(preferences.quality) || DEFAULTS.qualityMode;
+    state.swell = readChoice('swell', SWELL_STYLES, DEFAULTS.swell);
+    state.floating = !prefersReducedMotion && (params.has('float')
+      ? params.get('float') === '1' : preferences.floating === true);
     camera.yaw = wrapAngle(readCamera('yaw', DEFAULTS.cameraYawDeg) * DEG);
     camera.pitch = clamp(
       readCamera('pitch', DEFAULTS.cameraPitchDeg) * DEG,
@@ -1481,6 +1558,23 @@
     scheduleSceneUrlUpdate();
   });
 
+  swellInput?.addEventListener('change', () => {
+    state.swell = SWELL_STYLES.has(swellInput.value) ? swellInput.value : DEFAULTS.swell;
+    buildWaves();
+    syncUI();
+    renderFrame(simTimeSec);
+    scheduleSceneUrlUpdate();
+  });
+  floatInput?.addEventListener('change', () => {
+    cameraController?.setFloatEnabled?.(floatInput.checked);
+  });
+  const updateFloatAvailability = () => {
+    if (!floatInput) return;
+    floatInput.disabled = Boolean(motionPreference?.matches);
+    floatInput.title = floatInput.disabled ? 'Gentle floating is disabled while reduced motion is enabled.' : '';
+  };
+  motionPreference?.addEventListener?.('change', updateFloatAvailability);
+
   sceneInput?.addEventListener('change', () => {
     if (sceneInput.value === state.sceneKind) return;
     applyScene(sceneInput.value);
@@ -1501,6 +1595,8 @@
   });
 
   resetBtn.addEventListener('click', () => {
+    state.swell = DEFAULTS.swell;
+    cameraController?.setFloatEnabled?.(false);
     applyConditions(PRESETS['calm-dawn'], 'calm-dawn');
   });
 
@@ -1587,6 +1683,7 @@
     window.removeEventListener('resize', onResize);
     document.removeEventListener('visibilitychange', onVisibilityChange);
     window.removeEventListener('pagehide', savePreferences);
+    motionPreference?.removeEventListener?.('change', updateFloatAvailability);
     stage.removeEventListener('ocean:rest', onRest);
     stage.removeEventListener('ocean:resume', onResume);
     cameraController?.dispose();
@@ -1612,10 +1709,18 @@
     minHeight: () => Math.max(1.4, state.waveHeight * 1.3),
     maxHeight: 24,
     speed: 2.4,
+    onFloatChange: (enabled) => {
+      state.floating = enabled;
+      syncUI();
+      renderFrame(simTimeSec);
+      scheduleSceneUrlUpdate();
+    },
     onChange: markCameraDirty,
     onCommit: () => { updateConditionSummary(); scheduleSceneUrlUpdate(); },
     onReset: () => { syncUI(); scheduleSceneUrlUpdate(); },
   });
+  cameraController.setFloatEnabled?.(state.floating);
+  updateFloatAvailability();
   cameraController.setHomePose(homePose());
   buildNoise();
   syncFromInputs();

@@ -1,7 +1,7 @@
 {
   "id": "retailStore",
   "title": "Store-Level Loss & Sales ETL",
-  "subtitle": "SQL ETL + Anomaly Detection",
+  "subtitle": "Bring store data together to spot unusual loss and sales patterns.",
   "image": "img/projects/retailStore.png",
   "iconImage": "img/projects/icons/retailStore.png",
   "imageWidth": 1410,

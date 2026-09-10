@@ -8,6 +8,9 @@
   const CROSSFADE = 6;
   const clamp = (value, fallback = 0) => Number.isFinite(Number(value))
     ? Math.max(0, Math.min(1, Number(value))) : fallback;
+  const condition = (value, maximum, fallback) => value !== null && value !== ''
+    && typeof value !== 'boolean' && Number.isFinite(Number(value))
+    ? Math.max(0, Math.min(maximum, Number(value))) : fallback;
 
   const create = ({ onStatus = () => {}, onError = () => {} } = {}) => {
     let context = null;
@@ -18,10 +21,12 @@
     let volume = 0.35;
     let fade = 1;
     let scene = 'ocean';
+    const conditions = { wind: 2.4, waveHeight: 0.65, shore: 0 };
     let epoch = 0;
     let scheduler = 0;
     let suspendTimer = 0;
-    let currentLayer = null;
+    let windLayer = null;
+    let windBuffer = null;
     const layers = new Set();
     const buffers = new Map();
     const requests = new Map();
@@ -46,6 +51,26 @@
       hold(master.gain, now);
       master.gain.linearRampToValueAtTime(shouldPlay() ? Math.pow(volume, 1.35) * fade : 0, now + seconds);
     };
+    const updateMix = () => {
+      if (!context || disposed) return;
+      const swell = Math.sqrt(conditions.waveHeight / 5);
+      const breeze = conditions.wind / 20;
+      const shore = scene === 'cove' ? conditions.shore : 0;
+      // Keep the field recordings at their original speed. Swell brings surf
+      // forward; approaching the beach gently trades open water for shore wash.
+      const energy = 0.5 + 0.25 * swell;
+      const surf = 0.025 + 0.25 * swell + shore * (0.4 + 0.18 * swell);
+      const targets = { ocean: energy * (1 - surf), cove: energy * surf };
+      const smooth = (parameter, target) => {
+        hold(parameter, context.currentTime);
+        parameter.setTargetAtTime(target, context.currentTime, 0.85);
+      };
+      for (const layer of layers) smooth(layer.gain.gain, targets[layer.name]);
+      if (windLayer) {
+        smooth(windLayer.gain.gain, 0.12 * Math.pow(breeze, 1.5) * (1 - shore * 0.2));
+        smooth(windLayer.filter.frequency, 280 + 850 * breeze);
+      }
+    };
     const stopLayer = (layer) => {
       if (!layers.has(layer)) return;
       for (const clip of layer.clips) {
@@ -57,19 +82,16 @@
       layer.clips.clear();
       disconnect(layer.gain);
       layers.delete(layer);
-      if (currentLayer === layer) currentLayer = null;
     };
     const stopLayers = () => {
       window.clearInterval(scheduler);
       scheduler = 0;
       [...layers].forEach(stopLayer);
-    };
-    const retireLayer = (layer) => {
-      if (!layer || layer.retireAt) return;
-      const now = context.currentTime;
-      hold(layer.gain.gain, now);
-      layer.gain.gain.linearRampToValueAtTime(0, now + CROSSFADE);
-      layer.retireAt = now + CROSSFADE + 0.1;
+      if (windLayer) {
+        try { windLayer.source.stop(); } catch (_) {}
+        Object.values(windLayer).forEach(disconnect);
+        windLayer = null;
+      }
     };
 
     const load = (name) => {
@@ -149,25 +171,64 @@
       if (!shouldPlay() || !context || context.state !== 'running') return;
       const now = context.currentTime;
       for (const layer of layers) {
-        if (layer.retireAt && now >= layer.retireAt) stopLayer(layer);
-      }
-      if (currentLayer && currentLayer.nextAt <= now + 2) {
-        // Timers can be throttled without notice. Do not schedule in the past.
-        scheduleClip(currentLayer, Math.max(now + 0.025, currentLayer.nextAt));
+        if (layer.nextAt <= now + 2) {
+          // Timers can be throttled without notice. Do not schedule in the past.
+          scheduleClip(layer, Math.max(now + 0.025, layer.nextAt));
+        }
       }
     };
 
     const beginLayer = (name, buffer) => {
-      if (currentLayer && currentLayer.name === name) return;
-      retireLayer(currentLayer);
+      if ([...layers].some(layer => layer.name === name)) return;
       const gain = context.createGain();
       gain.connect(master);
-      gain.gain.value = 1;
-      const layer = { name, buffer, gain, clips: new Set(), nextAt: 0, retireAt: 0, lastOffset: -100 };
+      gain.gain.value = 0;
+      const layer = { name, buffer, gain, clips: new Set(), nextAt: 0, lastOffset: -100 };
       layers.add(layer);
-      currentLayer = layer;
       scheduleClip(layer, context.currentTime + 0.04);
       if (!scheduler) scheduler = window.setInterval(pump, 1000);
+    };
+
+    const beginWind = () => {
+      if (windLayer) return;
+      if (!windBuffer) {
+        const length = Math.round(context.sampleRate * 16);
+        const overlap = Math.round(context.sampleRate * 0.25);
+        windBuffer = context.createBuffer(1, length, context.sampleRate);
+        const samples = windBuffer.getChannelData(0);
+        const noise = new Float32Array(length + overlap);
+        let previous = 0;
+        for (let index = 0; index < noise.length; index += 1) {
+          previous = previous * 0.96 + (Math.random() * 2 - 1) * 0.12;
+          const phase = index / length * Math.PI * 2;
+          noise[index] = previous * (0.72 + 0.16 * Math.sin(phase) + 0.12 * Math.sin(phase * 3 + 0.7));
+        }
+        samples.set(noise.subarray(0, length));
+        // Join the tail to the beginning without an audible loop seam.
+        for (let index = 0; index < overlap; index += 1) {
+          const blend = index / overlap;
+          samples[index] = noise[length + index] * (1 - blend) + noise[index] * blend;
+        }
+      }
+      const source = context.createBufferSource();
+      const filter = context.createBiquadFilter();
+      const highpass = context.createBiquadFilter();
+      const gain = context.createGain();
+      source.buffer = windBuffer;
+      source.loop = true;
+      filter.type = 'lowpass';
+      filter.frequency.value = 280;
+      filter.Q.value = 0.5;
+      highpass.type = 'highpass';
+      highpass.frequency.value = 90;
+      highpass.Q.value = 0.5;
+      gain.gain.value = 0;
+      source.connect(filter);
+      filter.connect(highpass);
+      highpass.connect(gain);
+      gain.connect(master);
+      windLayer = { source, filter, highpass, gain };
+      source.start(context.currentTime + 0.04);
     };
 
     const activate = async () => {
@@ -183,19 +244,22 @@
           master.gain.value = 0;
           master.connect(context.destination);
         }
-        const requestedScene = scene;
         // Resume immediately inside the sound-button gesture, before fetching.
         const resumed = context.resume();
-        if (!buffers.has(requestedScene)) notify('loading');
-        const [buffer] = await Promise.all([load(requestedScene), resumed]);
+        if (buffers.size < Object.keys(RECORDINGS).length) notify('loading');
+        const [ocean, cove] = await Promise.all([load('ocean'), load('cove'), resumed]);
         if (token !== epoch || !shouldPlay()) return false;
-        beginLayer(requestedScene, buffer);
+        beginLayer('ocean', ocean);
+        beginLayer('cove', cove);
+        beginWind();
+        updateMix();
         updateGain(2);
         notify('playing');
         return true;
       } catch (error) {
         if (disposed || token !== epoch) return false;
         enabled = false;
+        controllers.forEach(controller => controller.abort());
         stopLayers();
         if (context && context.state !== 'closed') context.suspend().catch(() => {});
         notify('error');
@@ -234,7 +298,19 @@
         const next = Object.prototype.hasOwnProperty.call(RECORDINGS, value) ? value : 'ocean';
         if (disposed || next === scene) return;
         scene = next;
-        if (shouldPlay()) void activate();
+        conditions.shore = next === 'cove' ? 0.45 : 0;
+        updateMix();
+      },
+      setConditions(value = {}) {
+        if (disposed || !value || typeof value !== 'object') return;
+        const next = {
+          wind: condition(value.wind, 20, conditions.wind),
+          waveHeight: condition(value.waveHeight, 5, conditions.waveHeight),
+          shore: condition(value.shore, 1, conditions.shore),
+        };
+        if (Object.keys(next).every(key => next[key] === conditions[key])) return;
+        Object.assign(conditions, next);
+        updateMix();
       },
       setFade(value) {
         const wasPlaying = shouldPlay();
@@ -265,6 +341,7 @@
         stopLayers();
         buffers.clear();
         requests.clear();
+        windBuffer = null;
         if (master) disconnect(master);
         if (context && context.state !== 'closed') context.close().catch(() => {});
         master = null;

@@ -1,7 +1,7 @@
 {
   "id": "covidAnalysis",
   "title": "COVID-19 Outbreak Drivers",
-  "subtitle": "Python XGBoost & SHAP",
+  "subtitle": "Explore early warning signals for ICU strain and the factors behind them.",
   "image": "img/projects/covidAnalysis.png",
   "iconImage": "img/projects/icons/covidAnalysis.png",
   "imageWidth": 1446,

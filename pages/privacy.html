@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.e90a95b8.css">
+  <link rel="stylesheet" href="dist/styles.1ca28218.css">
   <link rel="stylesheet" href="css/components/privacy-page.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
@@ -49,13 +49,13 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.39f491c8.js"></script>
+  <script defer src="dist/site-shell.d55c91c4.js"></script>
 
-<link rel="stylesheet" href="dist/styles-personal-accordion.6b8eedcf.css">
+<link rel="stylesheet" href="dist/styles-personal-accordion.1bd202ab.css">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/privacy#webpage","url":"https://www.danielshort.me/privacy","name":"Privacy & Your Data | Daniel Short","description":"How Daniel Short's website handles analytics, local tools, saved sessions, contact messages, and your data choices.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/07-website-hero-light-version.png"},"breadcrumb":{"@id":"https://www.danielshort.me/privacy#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/privacy#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Privacy & Your Data","item":"https://www.danielshort.me/privacy"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"about:privacy","path":"/privacy","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.e90a95b8.css","/css/components/privacy-page.css","/dist/styles-personal-accordion.6b8eedcf.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.39f491c8.js","/dist/site-consent.ab1759e7.js","/dist/site-privacy.e394a51f.js"],"module":"about:privacy"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"about:privacy","path":"/privacy","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.1ca28218.css","/css/components/privacy-page.css","/dist/styles-personal-accordion.1bd202ab.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.d55c91c4.js","/dist/site-consent.ab1759e7.js","/dist/site-privacy.e394a51f.js"],"module":"about:privacy"}</script>
 </head>
 <body data-page="privacy" class="policy-page privacy-page site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="about" data-personal-item="privacy" data-personal-fit="viewport" data-site-route-id="about:privacy" data-site-route-category="about" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="about:privacy">
   <a href="/privacy#main" class="skip-link">Skip to main content</a>
@@ -120,93 +120,58 @@
       </a>
     </div>
     <div class="personal-accordion__panel" data-personal-detail-panel="about">
-      <div class="personal-accordion__toolbar" data-site-route-toolbar>
-        <a class="personal-accordion__back" href="/#about" aria-label="Back to categories">
-          <span class="personal-accordion__back-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></span>
-          <span class="personal-accordion__back-label personal-accordion__back-label--desktop" aria-hidden="true">Back to categories</span>
-          <span class="personal-accordion__back-label personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>
-        </a>
-        <div class="personal-accordion__context" aria-hidden="true">
-          <span class="personal-accordion__context-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg></span>
-          <span class="personal-accordion__context-label">About</span>
-        </div>
-      </div>
       <div class="personal-accordion__content" data-personal-detail-content>
         <!-- personal-accordion-content:start -->
 <main id="main" class="privacy-layout" role="main">
-    <header class="privacy-intro">
-      <h1 id="policy-title">Privacy &amp; Your Data</h1>
-      <p class="policy-lead">
-        Browsing, running a local tool, saving work to an account, and sending a message involve different data.
-        This page explains those differences and the controls available to you.
-      </p>
-      <a class="privacy-preferences-jump" href="/privacy#prefs-title">Manage privacy preferences <span aria-hidden="true">↓</span></a>
+    <header class="privacy-intro" data-page-masthead>
+      <a href="/#about" aria-label="Back to About" data-page-masthead-parent><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"></path></svg><span>About</span></a>
+      <div data-page-masthead-intro>
+        <div data-page-masthead-copy>
+          <h1 id="policy-title">Privacy &amp; Your Data</h1>
+          <p class="policy-lead">What stays in your browser, what is shared, and how to manage your data.</p>
+        </div>
+        <div data-page-masthead-actions>
+          <a class="privacy-preferences-jump" href="/privacy#prefs-title">Manage preferences <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
     </header>
 
     <section class="policy-card privacy-article" aria-label="Privacy details">
       <div class="policy-section" id="optional-analytics">
-        <h2>Optional Analytics</h2>
-        <p>With your permission, this site uses Google Tag Manager to load Google Analytics 4 to help me understand usage and improve the site. Analytics includes:</p>
-        <ul class="policy-list">
-          <li>Clicks on key calls-to-action, such as hero buttons.</li>
-          <li>Resume downloads and outbound link clicks.</li>
-          <li>Navigation link clicks.</li>
-          <li>Tool runs, exports, game milestones, project views, and navigation interactions.</li>
-          <li>Search length and result-count ranges, rather than the words you searched for.</li>
-          <li>Basic engagement signals, including time on page and 50% scroll depth.</li>
-        </ul>
-      </div>
-
-      <div class="policy-section" id="analytics-exclusions">
-        <h2>What Analytics Excludes</h2>
-        <ul class="policy-list">
-          <li>The site's analytics events do not include your name, email address, contact message, tool input text, or uploaded file contents.</li>
-          <li>Analytics is separate from the information you choose to send through a form or save to an account.</li>
-        </ul>
+        <h2>Analytics</h2>
+        <p>With your permission, Google Analytics 4, loaded through Google Tag Manager, uses cookies and usage data to measure visits and interactions. <a href="https://policies.google.com/technologies/partner-sites">How Google uses this data</a>.</p>
+        <p id="analytics-exclusions">Site analytics events exclude your name, email, messages, search text, tool inputs, and file contents.</p>
       </div>
 
       <div class="policy-section" id="local-tools">
-        <h2>Local Tools and Optional Saved Work</h2>
-        <p>Text comparison and cleanup, image processing, QR generation, and screen recording run in your browser. Using these local processing features does not require uploading your source content.</p>
-        <p>If you sign in and select Save, the tool sends a session snapshot to your account. What is saved depends on the tool:</p>
-        <ul class="policy-list">
-          <li>Text tools save input text, settings, and available results. Campaign tools can save campaign URLs and planning data.</li>
-          <li>Image Optimizer and Screen Recorder save settings, file names, and result summaries; they do not save the source image files or recorded video.</li>
-          <li>Background Remover can save a small processed-image preview. QR Code Generator can save QR content and a preview; Wi-Fi passwords and the corresponding QR preview are excluded from saved sessions.</li>
-        </ul>
-        <p>Password fields and file-upload fields are excluded from the shared session snapshot. Text you enter into ordinary fields can be saved, so review it before choosing Save.</p>
-        <p>“Copy link to my inputs” places supported inputs in the link itself. Anyone with that link can restore them, and opening the link sends its URL to the site's hosting service. Avoid putting private information in a shareable link.</p>
+        <h2>Tools &amp; saved work</h2>
+        <p>Text and image utilities, QR generation, and screen recording process content in your browser. Saving signed-in work uploads a session snapshot; password and file-upload fields are excluded.</p>
+        <details class="privacy-tool-details">
+          <summary>What can a saved session contain?</summary>
+          <ul class="policy-list">
+            <li>Text, campaign data, settings, and results entered in ordinary fields.</li>
+            <li>Image Optimizer and Screen Recorder: file names, settings, and summaries, but no source images or recordings.</li>
+            <li>Background Remover: a processed-image preview. QR Generator: content and a preview, excluding Wi-Fi passwords and their QR preview.</li>
+          </ul>
+        </details>
+        <p>Shared input links contain your data. Recipients can read it, and opening a link sends its URL to the host. Keep private information out of these links.</p>
       </div>
 
       <div class="policy-section" id="accounts-and-messages">
-        <h2>Accounts, Cloud Features, and Messages</h2>
-        <ul class="policy-list">
-          <li>Signing in uses Amazon Cognito. Account data can include your email, name, account identifier, saved sessions, and tool activity.</li>
-          <li>Cloud features send the information needed to perform the requested action. For example, transcription uploads approved media for Amazon Transcribe, and the application tracker stores application records and attachments.</li>
-          <li>Submitting the contact form sends your name, email address, and message through the site's contact service and Amazon SES to my inbox so I can reply.</li>
-          <li>Hosting and service providers, including Vercel and AWS, process requests and operational information needed to deliver and protect these features.</li>
-        </ul>
+        <h2>Accounts, uploads &amp; messages</h2>
+        <p>Amazon Cognito handles sign-in; accounts can store your name, email, account ID, saved work, and activity. Cloud features send required inputs or files to their processing service. The application tracker also stores records and attachments.</p>
+        <p>Contact forms send your name, email, and message through Amazon SES to my inbox. Providers including Vercel and AWS process requests and operational data to run and protect the site.</p>
       </div>
 
       <div class="policy-section" id="stored-data">
-        <h2>Storage, Retention, and Deletion</h2>
-        <ul class="policy-list">
-          <li>Your browser can store privacy preferences, sign-in state, tool settings, and game progress. Clear this site's data in your browser to remove local storage; this can also sign you out or erase local game progress.</li>
-          <li>Open Account → Saved work &amp; account to export or delete saved sessions. Delete account data removes the saved tool sessions and activity managed by that account panel.</li>
-          <li>That action does not delete your Cognito sign-in identity, contact emails, or records managed by separate cloud tools. Use the relevant tool's deletion controls, or email me for help with those records.</li>
-          <li>Saved sessions are not a permanent backup: retention limits vary by service. Download anything you want to keep, and use the deletion controls when you no longer need a saved session. Contact me for details about a specific record.</li>
-          <li>For questions about stored data, contact-message deletion, or closing your sign-in account, email <a href="mailto:daniel@danielshort.me">daniel@danielshort.me</a>.</li>
-        </ul>
+        <h2>Storage &amp; deletion</h2>
+        <p>Clear this site's browser data to remove local preferences, sign-in state, tool settings, and game progress. Saved-work retention varies by service; download anything you need to keep.</p>
+        <p>Use <strong>Account → Saved work &amp; account</strong> to export or delete saved sessions. <strong>Delete account data</strong> removes that panel's sessions and activity, but not your Cognito login, contact emails, or separate cloud-tool records. Use those tools' deletion controls or email <a href="mailto:daniel@danielshort.me">daniel@danielshort.me</a> for account closure, retention details, or other data requests.</p>
       </div>
 
       <div class="policy-section" id="your-choices">
-        <h2>Your Choices</h2>
-        <ul class="policy-list">
-          <li>You can adjust cookie preferences on this page using the Manage Your Privacy Settings form below to opt out of optional cookies.</li>
-          <li>If your browser sends a Do Not Track signal, analytics and advertising remain disabled even if a saved preference says otherwise. Global Privacy Control disables advertising.</li>
-          <li>Turning off analytics does not delete saved sessions or stop a contact submission or cloud action that you request.</li>
-          <li>Blocking Google Tag Manager or Google Analytics with a content blocker will also prevent analytics from loading.</li>
-        </ul>
+        <h2>Your choices</h2>
+        <p>Change optional cookies here or through <strong>Cookie settings</strong>. Do Not Track disables analytics and advertising; Global Privacy Control disables advertising. Cookie choices do not delete saved data or stop actions you request.</p>
       </div>
 
       <p class="policy-meta">Last updated: September 2026</p>
@@ -214,11 +179,8 @@
 
     <aside class="privacy-rail" aria-label="Privacy navigation and preferences">
       <section class="policy-card privacy-preferences" aria-labelledby="prefs-title">
-        <h2 id="prefs-title">Manage Your Privacy Settings</h2>
-        <p class="policy-lead">
-          Adjust your preferences below and click Save preferences to apply the changes. These settings control optional cookies
-          such as analytics, functional, and advertising cookies. Necessary cookies are always enabled.
-        </p>
+        <h2 id="prefs-title">Cookie preferences</h2>
+        <p class="policy-lead">Choose optional cookies and save. Necessary cookies stay on.</p>
         <form id="privacy-preferences-form">
           <div class="pref-grid" role="list">
             <div class="pref-option" data-pref="necessary" role="listitem">
@@ -231,7 +193,7 @@
                 <span class="visually-hidden">Read what Strictly necessary cookies do</span>
               </button>
               <p id="pref-desc-necessary" class="pref-description" hidden>
-                These cookies are required for the site to run: navigation, basic interactions, and honoring your privacy choices. They cannot be disabled.
+                Required for core site features and remembering your privacy choices.
               </p>
             </div>
 
@@ -245,7 +207,7 @@
                 <span class="visually-hidden">Read what Analytics cookies do</span>
               </button>
               <p id="pref-desc-analytics" class="pref-description" hidden>
-                Analytics cookies help me understand which pages are viewed most often and how visitors move around the site so I can improve the experience.
+                Measure visits and interactions to help improve the site.
               </p>
             </div>
 
@@ -259,7 +221,7 @@
                 <span class="visually-hidden">Read what Functional cookies do</span>
               </button>
               <p id="pref-desc-functional" class="pref-description" hidden>
-                Functional cookies remember your settings, such as language or filters, so features feel more tailored to you.
+                Remember optional settings, such as filters, where supported.
               </p>
             </div>
 
@@ -273,7 +235,7 @@
                 <span class="visually-hidden">Read what Advertising cookies do</span>
               </button>
               <p id="pref-desc-advertising" class="pref-description" hidden>
-                Advertising cookies make it possible to personalize or measure marketing efforts. They are only used if you opt in.
+                Allow advertising measurement or personalization where used.
               </p>
             </div>
           </div>
@@ -284,10 +246,9 @@
       <nav class="privacy-contents" aria-labelledby="privacy-contents-title">
         <h2 id="privacy-contents-title">On this page</h2>
         <ul>
-          <li><a href="/privacy#optional-analytics">Optional analytics</a></li>
-          <li><a href="/privacy#analytics-exclusions">What analytics excludes</a></li>
-          <li><a href="/privacy#local-tools">Local tools and saved work</a></li>
-          <li><a href="/privacy#accounts-and-messages">Accounts and messages</a></li>
+          <li><a href="/privacy#optional-analytics">Analytics</a></li>
+          <li><a href="/privacy#local-tools">Tools and saved work</a></li>
+          <li><a href="/privacy#accounts-and-messages">Accounts, uploads and messages</a></li>
           <li><a href="/privacy#stored-data">Storage and deletion</a></li>
           <li><a href="/privacy#your-choices">Your choices</a></li>
           <li><a href="/privacy#prefs-title">Manage preferences</a></li>

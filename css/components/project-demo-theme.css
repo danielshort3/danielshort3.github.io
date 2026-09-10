@@ -22,6 +22,19 @@ html[data-project-demo-theme="brand"][data-project-demo-standalone="true"] .demo
   justify-self: start;
 }
 
+/* The standalone page owns its outer gutters and divider-to-workspace spacing. */
+html[data-project-demo-theme="brand"][data-project-demo-standalone="true"] body:is(.demo-summary-workspace, .demo-compact-workspace) {
+  --demo-gutter: 0px;
+}
+
+html[data-project-demo-theme="brand"][data-project-demo-standalone="true"] body header.card-header {
+  padding-top: 0 !important;
+}
+
+html[data-project-demo-theme="brand"][data-project-demo-standalone="true"] :is(.demo-summary-workspace, .demo-compact-workspace) :is(.content, .sentence-workspace) {
+  padding-top: 0;
+}
+
 html[data-project-demo-theme="brand"] {
   color-scheme: light;
   --bg: var(--brand-canvas, #f9f9fa);
