@@ -483,8 +483,10 @@ function runPersonalAccordionShellTests({ assert }) {
     }
     if (utilityPages.has(relativePath)) {
       const utility = utilityPages.get(relativePath);
-      assert(html.includes(`href="${utility.backHref}" aria-label="Back to categories"`) &&
-        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
+      assert(hasMasthead
+        ? getTagAttribute(html, /<a\b[^>]*\bdata-page-masthead-parent[^>]*>/i, 'href') === utility.backHref
+        : html.includes(`href="${utility.backHref}" aria-label="Back to categories"`) &&
+          html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
       `${relativePath} should return to its matching homepage category context`);
     }
     if (['pages/portfolio.html', 'pages/tools.html', 'pages/games.html'].includes(relativePath)) {

@@ -1,6 +1,70 @@
 (() => {
   'use strict';
 
+  // Shared by the surface and persistent-foam pass so breakers, wet sand and
+  // foam occupy the same shoreline. Depth is signed: dry land is negative.
+  const shoreSource = `
+    vec2 shoreDistances(vec2 p) {
+      float headland = exp(-pow((p.y - 245.0) / 138.0,2.0));
+      float left = -25.0 - p.y * .18 + headland * 79.0
+        + sin(p.y * .025) * 4.5 + sin(p.y * .083) * 1.25;
+      float right = 215.0 + p.y * .17 + sin(p.y * .012 + 1.8) * 28.0;
+      return vec2(left - p.x,p.x - right);
+    }
+
+    vec3 shoreGeometry(vec2 p) {
+      vec2 coast = shoreDistances(p);
+      float headland = exp(-pow((p.y - 245.0) / 138.0,2.0));
+      float leftSlope = -.18 - headland * 158.0 * (p.y - 245.0) / 19044.0
+        + cos(p.y * .025) * .1125 + cos(p.y * .083) * .10375;
+      float rightSlope = .17 + cos(p.y * .012 + 1.8) * .336;
+      return coast.x > coast.y ? vec3(-coast.x * .085,.085,-leftSlope * .085)
+        : vec3(-coast.y * .085,-.085,rightSlope * .085);
+    }
+
+    vec3 shoreWashGeometry(vec2 p, vec3 shore, float seconds, float height) {
+      float depth = max(shore.x,-.35);
+      // Integrating k proportional to 1/sqrt(depth) compresses incoming crests
+      // toward the beach; phase moves landward, then the same front recedes.
+      float root = sqrt(depth + .4);
+      float phase = root * 2.8 + seconds * .85 + p.y * .021;
+      float s = sin(phase), c = cos(phase);
+      float profile = s + .22 * (s * s - .5);
+      float profileSlope = c * (1.0 + .44 * s);
+      float beach = smoothstep(-.35,-.08,shore.x);
+      float beachT = clamp((shore.x + .35) / .27,0.0,1.0);
+      float beachSlope = 6.0 * beachT * (1.0 - beachT) / .27;
+      float decay = exp(-max(0.0,depth) * .26);
+      float strength = (.015 + min(height,3.0) * .14) * smoothstep(0.0,.12,height);
+      float amplitude = strength * decay * beach;
+      float amplitudeSlope = strength * decay * (beachSlope - .26 * beach * step(0.0,depth));
+      float slope = amplitudeSlope * profile + amplitude * profileSlope * 1.4 / root;
+      return vec3(amplitude * profile,shore.yz * slope + vec2(0.0,amplitude * profileSlope * .021));
+    }
+
+    vec3 shoreWash(vec2 p, float seconds, float height) {
+      return shoreWashGeometry(p,shoreGeometry(p),seconds,height);
+    }
+
+    vec3 nearshoreSurfaceGeometry(vec2 p, vec3 shore, vec3 wave, float seconds, float height) {
+      float depth = max(0.0,shore.x);
+      float t = clamp(depth / 3.0,0.0,1.0);
+      float shelter = mix(.10,.72,t * t * (3.0 - 2.0 * t));
+      float shelterSlope = .62 * 6.0 * t * (1.0 - t) / 3.0;
+      float shoal = exp(-pow((depth - 1.4) / .85,2.0));
+      float scale = shelter * (1.0 + .18 * shoal);
+      float scaleSlope = shelterSlope * (1.0 + .18 * shoal)
+        - shelter * .36 * shoal * (depth - 1.4) / (.85 * .85);
+      wave.yz = wave.yz * scale + shore.yz * wave.x * scaleSlope * step(0.0,shore.x);
+      wave.x *= scale;
+      return wave + shoreWashGeometry(p,shore,seconds,height);
+    }
+
+    vec3 nearshoreSurface(vec2 p, vec3 wave, float seconds, float height) {
+      return nearshoreSurfaceGeometry(p,shoreGeometry(p),wave,seconds,height);
+    }
+  `;
+
   // Linear radiance throughout; tone mapping happens once at the display edge.
   // Water IOR 1.333 gives F0 = ((1 - 1.333) / (1 + 1.333))^2 = 0.0204.
   const fragment = `
@@ -9,6 +73,7 @@
     uniform float time;
     uniform float wind;
     uniform float waveHeight;
+    uniform float swellStyle;
     uniform float elevation;
     uniform vec2 cameraAngle;
     uniform vec3 cameraPosition;
@@ -19,6 +84,9 @@
     uniform float spectralReady;
     uniform float spectralMipmaps;
     uniform vec2 fieldLengths;
+    uniform sampler2D foamField;
+    uniform float foamReady;
+    uniform vec3 foamMapping;
     uniform sampler2D environmentA;
     uniform sampler2D environmentB;
     uniform vec2 environmentScale;
@@ -38,6 +106,7 @@
     }
 
     vec3 fallbackWave(vec2 p, vec2 direction, float k, float amp, float phase) {
+      if (spectralReady < .5) k *= swellStyle < .5 ? 1.0 : swellStyle < 1.5 ? .65 : 1.55;
       float angle = dot(p, direction) * k - time * sqrt(9.81 * k) * 0.6 + phase;
       return vec3(sin(angle), cos(angle) * direction * k) * amp;
     }
@@ -68,15 +137,7 @@
       return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
     }
 
-    vec2 shoreDistances(vec2 p) {
-      // A sheltered beach bends around the left headland. The farther right
-      // shore gives the bay scale without closing off the open horizon.
-      float headland = exp(-pow((p.y - 245.0) / 138.0,2.0));
-      float left = -25.0 - p.y * .18 + headland * 79.0
-        + sin(p.y * .025) * 4.5 + sin(p.y * .083) * 1.25;
-      float right = 215.0 + p.y * .17 + sin(p.y * .012 + 1.8) * 28.0;
-      return vec2(left - p.x,p.x - right);
-    }
+    ${shoreSource}
 
     float terrain(vec2 p) {
       vec2 coast = shoreDistances(p);
@@ -92,11 +153,6 @@
       float hill = rise * (9.0 + 27.0 * promontory) * (.35 + texture * 1.12);
       float cliff = smoothstep(5.0,28.0,d) * promontory * (2.0 + texture * 9.0);
       return beach + hill + cliff + smoothstep(4.0,17.0,d) * (texture - .5) * 2.5;
-    }
-
-    float shoreWaterDepth(vec2 p) {
-      vec2 coast = shoreDistances(p);
-      return max(.01,-max(coast.x,coast.y) * .085);
     }
 
     vec3 surface(vec2 p, float travel, float detail) {
@@ -122,10 +178,7 @@
           + fallbackWave(p,vec2(-.38,.925),31.0,.00065,.7)
           + fallbackWave(p,vec2(.15,.989),47.0,.00032,4.1)) * capillary;
         if (sceneKind > .5) {
-          float depth = shoreWaterDepth(p);
-          wave *= mix(.12,.72,smoothstep(.0,3.0,depth));
-          float wash = sin(time * .47 + p.y * .023) * .065 + sin(time * .29 - p.y * .031) * .028;
-          wave.x += wash * exp(-depth * .7);
+          wave = nearshoreSurface(p,wave,time,waveHeight);
         }
         return wave;
       }
@@ -136,7 +189,8 @@
       wave += fallbackWave(p, vec2(.13,.991), 2.41,.027,3.6);
       wave += fallbackWave(p, vec2(.94,.341), 3.86,.018,5.2);
       wave += fallbackWave(p, vec2(-.48,.877), 5.96,.008,.8);
-      return wave * waveHeight * mix(.7,1.2,wind / 20.0);
+      wave *= waveHeight * mix(.7,1.2,wind / 20.0);
+      return sceneKind > .5 ? nearshoreSurface(p,wave,time,waveHeight) : wave;
     }
 
     vec3 analyticSky(vec3 ray) {
@@ -211,8 +265,8 @@
       return noise(p.yz) * weights.x + noise(p.zx) * weights.y + noise(p.xy) * weights.z;
     }
 
-    vec3 landRadiance(vec3 p, vec3 direction, float travel) {
-      float epsilon = max(mix(.12,.025,clamp(renderQuality / 3.0,0.0,1.0)),travel / resolution.y * .3);
+    vec3 landRadiance(vec3 p, vec3 direction, float travel, float reflectionBlur) {
+      float epsilon = max(max(mix(.12,.025,clamp(renderQuality / 3.0,0.0,1.0)),travel / resolution.y * .3),reflectionBlur * .18);
       float h = terrain(p.xz);
       vec3 n = normalize(vec3(terrain(p.xz - vec2(epsilon,0.0)) - terrain(p.xz + vec2(epsilon,0.0)),
         2.0 * epsilon,terrain(p.xz - vec2(0.0,epsilon)) - terrain(p.xz + vec2(0.0,epsilon))));
@@ -225,6 +279,9 @@
       #ifdef OCEAN_DERIVATIVES
         footprint = clamp(max(length(dFdx(p)),length(dFdy(p))),geometricFootprint * .35,geometricFootprint * 2.0);
       #endif
+      // Reflected terrain covers the water's roughness lobe, not a pin-sharp
+      // mirror texel. Filter soil and bump detail over that wider footprint.
+      footprint = max(footprint,reflectionBlur);
       float patch = noise(rotate(p.xz,.67) * .058 + vec2(7.1,3.4)) * .63 + noise(p.xz * .17) * .37;
       float stone = stoneTexture(p * .72,weights);
       float baseStone = stone;
@@ -239,8 +296,8 @@
       }
       float sandGrain = mix(.5,noise(p.xz * 8.0),exp(-footprint * 9.0));
       vec3 sand = mix(vec3(.27,.219,.147),vec3(.48,.411,.30),patch * .7 + sandGrain * .3);
-      float wash = sin(time * .47 + p.z * .023) * .065 + sin(time * .29 - p.z * .031) * .028;
-      float wet = 1.0 - smoothstep(.03 + wash,.55,h);
+      float wash = shoreWash(p.xz,time,waveHeight).x;
+      float wet = 1.0 - smoothstep(.03 + wash,.42 + min(waveHeight,3.0) * .10,h);
       sand *= mix(1.0,.52,wet);
       vec3 rock = mix(vec3(.072,.079,.065),vec3(.34,.298,.226),smoothstep(.12,.86,grain));
       rock = mix(rock,vec3(.39,.371,.309),smoothstep(.57,.79,stone) * (.22 + patch * .38));
@@ -261,11 +318,18 @@
       float bumpB = stoneTexture(materialPoint + bitangent * bumpEpsilon,weights) - baseStone;
       float bump = mix(.22,.48,rocky) * mix(1.0,.65,grass) * exp(-footprint * .85);
       n = normalize(n - (tangent * bumpT + bitangent * bumpB) * bump / bumpEpsilon);
-      vec3 ambient = clamp(sky(vec3(0.0,1.0,0.0),3.0),vec3(.12),vec3(1.3));
+      vec3 ambient = clamp(sky(vec3(n.x * .45,.55 + n.y * .45,n.z * .45),3.0),vec3(.12),vec3(1.3));
       vec3 sunColor = mix(vec3(1.0,.73,.49),vec3(1.0,.97,.9),mood.y);
       float diffuse = max(0.0,dot(n,sunDirection));
+      float terrainLight = 1.0;
+      if (renderQuality > .5 && diffuse > .0) {
+        float obstruction = terrain(p.xz + sunDirection.xz * 6.0) - h - sunDirection.y * 6.0;
+        if (renderQuality > 1.5) obstruction = max(obstruction,
+          (terrain(p.xz + sunDirection.xz * 18.0) - h - sunDirection.y * 18.0) * .5);
+        terrainLight = 1.0 - smoothstep(.1,2.4,obstruction) * .7;
+      }
       float occlusion = mix(.78,1.0,smoothstep(.15,.67,grain));
-      vec3 color = albedo * (ambient * .68 * occlusion + sunColor * diffuse * (.32 + solarStrength * .18));
+      vec3 color = albedo * (ambient * .68 * occlusion + sunColor * diffuse * terrainLight * (.32 + solarStrength * .18));
       float foamEdge = (1.0 - smoothstep(.015,.095,abs(h - wash)))
         * smoothstep(.28,.68,noise(p.xz * 2.8 + vec2(time * .027,0.0))) * .5;
       color = mix(color,ambient * .66,foamEdge);
@@ -334,12 +398,14 @@
         float distanceRoughness = smoothstep(20.0,300.0,travel) * .13;
         float roughness = .11 + wind / 20.0 * .085 + distanceRoughness;
         vec3 reflectedLight = reflectedSky(reflected,roughness);
-        if (sceneKind > .5 && reflected.y < .42) {
+        if (sceneKind > .5 && renderQuality > .5 && reflected.y < .42) {
           vec3 reflectionOrigin = vec3(position.x,wave.x + .045,position.y);
           float landReflection = traceTerrain(reflectionOrigin,reflected,1200.0);
           if (landReflection < 1200.0) {
-            vec3 reflectedLand = landRadiance(reflectionOrigin + reflected * landReflection,reflected,landReflection);
-            reflectedLight = mix(reflectedLand,reflectedLight,clamp(roughness * 2.4,.3,.7));
+            float reflectionBlur = max(.03,landReflection * roughness * roughness * .55);
+            vec3 reflectedLand = landRadiance(reflectionOrigin + reflected * landReflection,reflected,landReflection,reflectionBlur);
+            float scatter = clamp(roughness * 2.4 + smoothstep(80.0,600.0,landReflection) * .12,.3,.75);
+            reflectedLight = mix(reflectedLand,reflectedLight,scatter);
           }
         }
         // Diffuse sky irradiance must not accidentally sample the solar disk.
@@ -376,12 +442,22 @@
         // Calm seas have little foam; only steep, energetic crests catch it.
         float slope = length(wave.yz);
         float foam = smoothstep(.55,.95,slope) * smoothstep(5.0,15.0,wind) * .16;
+        if (foamReady > .5) {
+          vec2 foamUv = (position - foamMapping.xy) / max(1.0,foamMapping.z);
+          vec2 edge = smoothstep(vec2(0.0),vec2(.06),foamUv)
+            * (1.0 - smoothstep(vec2(.94),vec2(1.0),foamUv));
+          float history = texture2D(foamField,clamp(foamUv,vec2(0.0),vec2(1.0))).r;
+          vec2 drift = vec2(.436,.900) * time * (.035 + wind * .013);
+          float lace = smoothstep(.18,.78,noise((position - drift) * 2.4));
+          foam = max(foam,history * edge.x * edge.y * (.4 + lace * .6) * .72);
+        }
         if (sceneKind > .5) {
           float depth = wave.x - terrain(position);
-          float front = exp(-pow((depth - .025) / .08,2.0));
+          float front = exp(-pow((depth - .035) / .14,2.0));
           float lace = smoothstep(.22,.67,noise(position * 2.8 + vec2(time * .027,0.0)));
-          float lingering = exp(-pow((depth - .15) / .2,2.0)) * .15;
-          foam = max(foam,(front * .65 + lingering) * lace * smoothstep(-.08,.0,depth));
+          float wash = shoreWash(position,time,waveHeight).x;
+          float advancing = smoothstep(-.025,.07,wash);
+          foam = max(foam,front * (.18 + advancing * .4) * lace * smoothstep(-.08,.0,depth));
         }
         color = mix(color,ambient * .75,foam);
         vec3 haze = sky(normalize(vec3(ray.x,.007,ray.z)),1.5);
@@ -389,7 +465,7 @@
         color = mix(color,haze,smoothstep(-.0008,-.0002,ray.y));
       }
       if (sceneKind > .5 && terrainTravel < min(waterTravel,1600.0)) {
-        color = landRadiance(cameraPosition + ray * terrainTravel,ray,terrainTravel);
+        color = landRadiance(cameraPosition + ray * terrainTravel,ray,terrainTravel,0.0);
       }
       float sceneExposure = dot(mood,vec4(.95,1.0,.85,.38));
       color = pow(filmic(max(color,vec3(0.0)) * brightness * sceneExposure * .85),vec3(1.0/2.2));
@@ -406,5 +482,12 @@
     const right = 215 + z * 0.17 + Math.sin(z * 0.012 + 1.8) * 28;
     camera.x = Math.max(left + 2.5, Math.min(right - 2.5, camera.x));
   };
-  window.OceanWaveShaders = Object.freeze({ fragment, constrainCoveCamera });
+  const getWaterDepth = (x, z) => {
+    const headland = Math.exp(-(((z - 245) / 138) ** 2));
+    const left = -25 - z * .18 + headland * 79 + Math.sin(z * .025) * 4.5 + Math.sin(z * .083) * 1.25;
+    const right = 215 + z * .17 + Math.sin(z * .012 + 1.8) * 28;
+    return Math.min(x - left,right - x) * .085;
+  };
+  const getShoreProximity = (x, z) => Math.exp(-Math.max(0,getWaterDepth(x,z)) / 2.5);
+  window.OceanWaveShaders = Object.freeze({ fragment, shoreSource, constrainCoveCamera, getWaterDepth, getShoreProximity });
 })();

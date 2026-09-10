@@ -16,13 +16,13 @@ The public canonical HTML is authoritative. Optional /ai/ summaries contain the 
 ## Projects
 
 - [Portfolio](https://www.danielshort.me/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
-- [Store-Level Loss & Sales ETL](https://www.danielshort.me/portfolio/retailStore): SQL ETL + Anomaly Detection: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.
-- [Empty-Package Shrink Dashboard](https://www.danielshort.me/portfolio/targetEmptyPackage): Excel Forecasting & BI: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.
-- [Pizza Delivery Dashboard](https://www.danielshort.me/portfolio/pizzaDashboard): Tableau Analytics & Forecasting: I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.
-- [Delivery Tip](https://www.danielshort.me/portfolio/deliveryTip): Excel Geo-Analytics & Optimization: I wanted to know which shifts and neighborhoods lead to better tips.
-- [UFO Sightings Dashboard](https://www.danielshort.me/portfolio/ufoDashboard): Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.
-- [Chatbot (LoRA + RAG)](https://www.danielshort.me/portfolio/chatbotLora): RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model that could answer quickly.
-- [Smart Sentence Retriever](https://www.danielshort.me/portfolio/smartSentence): NLP Embeddings & Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.
+- [Store-Level Loss & Sales ETL](https://www.danielshort.me/portfolio/retailStore): Bring store data together to spot unusual loss and sales patterns.: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.
+- [Empty-Package Shrink Dashboard](https://www.danielshort.me/portfolio/targetEmptyPackage): Locate retail shrink hotspots and compare trends over time.: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.
+- [Pizza Delivery Dashboard](https://www.danielshort.me/portfolio/pizzaDashboard): Compare delivery zones, earnings, and timing to inform shift planning.: I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.
+- [Delivery Tip](https://www.danielshort.me/portfolio/deliveryTip): Compare delivery shifts and neighborhoods to plan where and when to work.: I wanted to know which shifts and neighborhoods lead to better tips.
+- [UFO Sightings Dashboard](https://www.danielshort.me/portfolio/ufoDashboard): Explore where and when UFO sightings have been reported.: I wanted to see patterns in UFO sighting reports across the U.S.
+- [Chatbot (LoRA + RAG)](https://www.danielshort.me/portfolio/chatbotLora): Explore Grand Junction with answers grounded in local sources.: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model.
+- [Smart Sentence Retriever](https://www.danielshort.me/portfolio/smartSentence): Find relevant sentences by meaning, even when the wording differs.: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.
 
 ## Tools
 

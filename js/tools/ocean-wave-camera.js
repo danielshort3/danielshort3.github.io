@@ -8,9 +8,9 @@
     KeyQ: 'down', KeyE: 'up', ArrowLeft: 'lookLeft', ArrowRight: 'lookRight',
     ArrowUp: 'lookUp', ArrowDown: 'lookDown',
   };
-  const INTERACTIVE = 'button, input, select, textarea, a, label, [contenteditable], .ocean-wave-settings';
+  const INTERACTIVE = 'button, input, select, textarea, a, label, [contenteditable], .ocean-wave-settings, .ocean-wave-hud, .ocean-wave-camera-pad, .ocean-wave-place, .ocean-wave-rest-screen';
 
-  const create = ({ stage, camera, toggleButton, relaxButton, resetButton, pad, hint, onChange = () => {}, onCommit = () => {},
+  const create = ({ stage, camera, toggleButton, relaxButton, resetButton, pad, hint, onChange = () => {}, onCommit = () => {}, onFloatChange = () => {},
     onReset = () => {}, constrainPose = () => {}, minHeight = 1.8, maxHeight = 24, speed = 2.4 } = {}) => {
     if (!stage || !camera) throw new Error('An ocean stage and camera are required.');
     const minimumHeight = () => typeof minHeight === 'function' ? minHeight() : minHeight;
@@ -26,6 +26,11 @@
     const pointers = new Map();
     const padPointers = new Map();
     const listeners = [];
+    const motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const floatOffset = { height: 0, pitch: 0 };
+    const renderPose = { ...camera };
+    let floatEnabled = false;
+    let lastFloatTime = null;
     let enabled = false;
     let disposed = false;
     let rafId = 0;
@@ -39,6 +44,54 @@
     };
     const angleDifference = (a, b) => wrap(a - b);
     const pitchBounds = () => [camera.minPitch ?? -Math.PI * .4, camera.maxPitch ?? Math.PI * .3];
+    const resetFloat = () => {
+      floatOffset.height = 0;
+      floatOffset.pitch = 0;
+      lastFloatTime = null;
+    };
+    const setFloatEnabled = (value) => {
+      if (disposed) return false;
+      const next = Boolean(value) && !motionPreference?.matches;
+      const notify = next !== floatEnabled || (Boolean(value) && !next)
+        || (motionPreference?.matches && (floatOffset.height !== 0 || floatOffset.pitch !== 0));
+      floatEnabled = next;
+      if (motionPreference?.matches) resetFloat();
+      if (notify) onFloatChange(floatEnabled);
+      return floatEnabled;
+    };
+    // The renderer owns this clock, so pausing the sea also freezes floating.
+    // Offsets never feed back into the user pose or its navigation targets.
+    const getRenderPose = (time, { waveHeight = 0, period = 10, direction = 0 } = {}) => {
+      Object.assign(renderPose, camera);
+      if (disposed || motionPreference?.matches) {
+        resetFloat();
+        return renderPose;
+      }
+      const now = Number.isFinite(time) ? time : 0;
+      const dt = lastFloatTime === null ? 0 : clamp(now - lastFloatTime, 0, .1);
+      lastFloatTime = now;
+      if (document.hidden || stage.dataset.oceanVisible === 'false') {
+        lastFloatTime = null;
+      } else if (dt > 0) {
+        const seconds = clamp(Number(period) || 10, 7, 18);
+        const heading = Number.isFinite(direction) ? direction : 0;
+        const wavelength = 9.81 * seconds * seconds / (Math.PI * 2);
+        const position = camera.x * Math.cos(heading) + camera.z * Math.sin(heading);
+        const phase = now * Math.PI * 2 / seconds - position * Math.PI * 2 / wavelength;
+        const amplitude = floatEnabled ? clamp(Number(waveHeight) || 0, 0, 2.2) * .1 : 0;
+        const height = amplitude * (.88 * Math.sin(phase) + .12 * Math.sin(phase * .63 + .8));
+        // Pitch follows the broad swell only; there is deliberately no roll.
+        const alongView = Math.sin(camera.yaw) * Math.cos(heading) + Math.cos(camera.yaw) * Math.sin(heading);
+        const pitch = -amplitude * .025 * Math.cos(phase) * alongView;
+        const blend = 1 - Math.exp(-dt / 1.25);
+        floatOffset.height += (height - floatOffset.height) * blend;
+        floatOffset.pitch += (pitch - floatOffset.pitch) * blend;
+        if (!floatEnabled && Math.abs(floatOffset.height) + Math.abs(floatOffset.pitch) < .00001) resetFloat();
+      }
+      renderPose.height = clamp(camera.height + floatOffset.height, minimumHeight(), maxHeight);
+      renderPose.pitch = clamp(camera.pitch + floatOffset.pitch, ...pitchBounds());
+      return renderPose;
+    };
     const hasAction = (action) => [...pressed.values()].includes(action);
     const commit = () => {
       if (!changed) return;
@@ -133,6 +186,7 @@
     const reset = () => {
       if (disposed) return;
       clear();
+      resetFloat();
       Object.assign(camera, initial);
       camera.height = clamp(camera.height, minimumHeight(), maxHeight);
       constrainPose(camera);
@@ -177,29 +231,38 @@
     on(document, 'visibilitychange', () => { if (document.hidden) clear(); });
     on(stage, 'ocean:visibility', (event) => { if (!event.detail?.visible) clear(); });
     on(window, 'pagehide', clear);
+    const onMotionPreference = () => {
+      if (motionPreference.matches) setFloatEnabled(false);
+    };
+    if (motionPreference?.addEventListener) on(motionPreference, 'change', onMotionPreference);
+    else if (motionPreference?.addListener) {
+      motionPreference.addListener(onMotionPreference);
+      listeners.push(() => motionPreference.removeListener(onMotionPreference));
+    }
 
     const measureGesture = () => {
       const points = [...pointers.values()];
       const a = points[0];
       if (!a) { gesture = null; return; }
-      const b = enabled ? points[1] : null;
+      const b = points[1];
       gesture = {
         x: b ? (a.x + b.x) / 2 : a.x, y: b ? (a.y + b.y) / 2 : a.y,
         distance: b ? Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)) : 0,
         yaw: target.yaw, pitch: target.pitch, height: target.height,
-        worldX: target.x, worldZ: target.z, touch: a.type === 'touch',
+        worldX: target.x, worldZ: target.z,
       };
     };
     on(stage, 'pointerdown', (event) => {
       if (!enabled) return;
       if (event.target?.closest?.(INTERACTIVE) || (event.pointerType === 'mouse' && event.button !== 0)) return;
-      if (!enabled && pointers.size) return;
+      // Extra fingers must not reset an in-progress pan or pinch.
+      if (pointers.size >= 2) return;
       stage.focus({ preventScroll: true });
-      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, type: event.pointerType });
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
       measureGesture();
       stage.classList.add('ocean-wave-dragging');
       try { stage.setPointerCapture(event.pointerId); } catch {}
-      if (event.pointerType !== 'touch' || enabled) event.preventDefault();
+      event.preventDefault();
     });
     on(stage, 'pointermove', (event) => {
       const point = pointers.get(event.pointerId);
@@ -208,14 +271,9 @@
       point.y = event.clientY;
       const points = [...pointers.values()];
       const a = points[0];
-      const b = enabled ? points[1] : null;
+      const b = points[1];
       const dx = (b ? (a.x + b.x) / 2 : a.x) - gesture.x;
       const dy = (b ? (a.y + b.y) / 2 : a.y) - gesture.y;
-      const fullscreen = document.fullscreenElement === stage || stage.classList.contains('is-fullscreen');
-      if (!enabled && !fullscreen && gesture.touch && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) {
-        clear();
-        return;
-      }
       if (b) {
         const panScale = .022;
         target.x = gesture.worldX + (Math.cos(gesture.yaw) * -dx + Math.sin(gesture.yaw) * dy) * panScale;
@@ -236,8 +294,9 @@
       if (!pointers.size) stage.classList.remove('ocean-wave-dragging');
       wake();
     };
+    const cancelGesture = (event) => { if (pointers.has(event.pointerId)) clear(); };
     on(stage, 'pointerup', endGesture);
-    on(stage, 'pointercancel', (event) => { if (pointers.has(event.pointerId)) clear(); });
+    on(stage, 'pointercancel', cancelGesture);
     on(stage, 'lostpointercapture', endGesture);
     on(stage, 'wheel', (event) => {
       if (!enabled || event.ctrlKey || event.metaKey || event.target?.closest?.(INTERACTIVE)) return;
@@ -247,6 +306,14 @@
       wake();
     }, { passive: false });
 
+    const releasePad = (event) => {
+      const button = padPointers.get(event.pointerId);
+      if (!button) return;
+      padPointers.delete(event.pointerId);
+      pressed.delete(`pad-${event.pointerId}`);
+      releaseCapture(button, event.pointerId);
+      wake();
+    };
     for (const button of pad?.querySelectorAll('[data-ocean-move]') || []) {
       const action = button.dataset.oceanMove;
       if (!['forward', 'back', 'left', 'right', 'up', 'down'].includes(action)) continue;
@@ -258,15 +325,9 @@
         try { button.setPointerCapture(event.pointerId); } catch {}
         wake();
       });
-      const release = (event) => {
-        if (!padPointers.delete(event.pointerId)) return;
-        pressed.delete(`pad-${event.pointerId}`);
-        releaseCapture(button, event.pointerId);
-        wake();
-      };
-      on(button, 'pointerup', release);
-      on(button, 'pointercancel', release);
-      on(button, 'lostpointercapture', release);
+      on(button, 'pointerup', releasePad);
+      on(button, 'pointercancel', releasePad);
+      on(button, 'lostpointercapture', releasePad);
       on(button, 'click', (event) => {
         // Keyboard and assistive-technology activation is a small, predictable step.
         if (!enabled || event.detail) return;
@@ -278,15 +339,22 @@
         wake();
       });
     }
+    // Also release outside the stage when a browser cannot capture the pointer.
+    on(window, 'pointerup', (event) => { endGesture(event); releasePad(event); }, { capture: true });
+    on(window, 'pointercancel', (event) => { cancelGesture(event); releasePad(event); }, { capture: true });
     const dispose = () => {
       if (disposed) return;
       clear();
       setEnabled(false);
+      resetFloat();
       disposed = true;
       listeners.splice(0).forEach(remove => remove());
     };
     setEnabled(false);
-    return { update, reset, sync, setHomePose, setEnabled, isEnabled: () => enabled, isMoving, dispose };
+    return {
+      update, reset, sync, setHomePose, setEnabled, isEnabled: () => enabled, isMoving,
+      setFloatEnabled, isFloatEnabled: () => floatEnabled, getRenderPose, dispose,
+    };
   };
 
   window.OceanWaveCamera = { create };

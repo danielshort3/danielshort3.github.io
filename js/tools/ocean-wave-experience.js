@@ -198,6 +198,11 @@
   } catch {}
   syncVolume();
   audio.setScene(stage.dataset.oceanScene === 'cove' ? 'cove' : 'ocean');
+  audio.setConditions({
+    wind: find('wind').value,
+    waveHeight: find('height').value,
+    shore: stage.dataset.oceanShore,
+  });
   syncAudioVisibility();
   on(soundButton, 'click', () => { setSound(!soundEnabled).catch(() => {}); });
   on(volume, 'input', () => {
@@ -205,6 +210,7 @@
     try { window.localStorage.setItem('ds-ocean-volume-v1', volume.value); } catch {}
   });
   on(stage, 'ocean:scene-change', event => audio.setScene(event.detail.scene));
+  on(stage, 'ocean:conditions', event => audio.setConditions(event.detail));
   on(document, 'visibilitychange', syncAudioVisibility);
   on(stage, 'ocean:visibility', syncAudioVisibility);
 

@@ -1,7 +1,7 @@
 {
   "id": "smartSentence",
   "title": "Smart Sentence Retriever",
-  "subtitle": "NLP Embeddings & Serverless Retrieval",
+  "subtitle": "Find relevant sentences by meaning, even when the wording differs.",
   "image": "img/projects/smartSentence.png",
   "iconImage": "img/projects/icons/smartSentence.png",
   "imageWidth": 952,

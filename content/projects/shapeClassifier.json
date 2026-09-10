@@ -1,7 +1,7 @@
 {
   "id": "shapeClassifier",
   "title": "Shape Classifier Demo",
-  "subtitle": "Handwritten Shape Recognition",
+  "subtitle": "Draw a shape and see how a model classifies it.",
   "image": "img/projects/shapeClassifier.png",
   "iconImage": "img/projects/icons/shapeClassifier.png",
   "imageWidth": 926,

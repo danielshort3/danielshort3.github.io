@@ -258,8 +258,8 @@
   :is(.home-library[data-home-library-view="tools"], .personal-library--tools) {
     --tool-tile-width: 112px;
     --tool-tile-height: 104px;
-    --tool-tile-radius: 14px;
-    --tool-tile-inset: 82%;
+    --tool-tile-radius: var(--illustration-radius, 10px);
+    --tool-tile-inset: var(--illustration-fill, 82%);
   }
 
   :is(.home-library[data-home-library-view="tools"], .personal-library--tools) .home-library__card {
@@ -273,9 +273,9 @@
     width: var(--tool-tile-width);
     height: var(--tool-tile-height);
     padding: 0;
-    border: 1px solid #dce3ec;
+    border: 1px solid var(--illustration-border, #dce3ec);
     border-radius: var(--tool-tile-radius);
-    background: #f8fafc;
+    background: var(--illustration-surface, #f8fafc);
   }
 
   :is(.home-library[data-home-library-view="tools"], .personal-library--tools) .home-library__media img {
@@ -299,8 +299,8 @@
     :is(.home-library[data-home-library-view="tools"], .personal-library--tools) {
       --tool-tile-width: 74px;
       --tool-tile-height: 74px;
-      --tool-tile-radius: 10px;
-      --tool-tile-inset: 78%;
+      --tool-tile-radius: var(--illustration-radius, 10px);
+      --tool-tile-inset: var(--illustration-fill-compact, 78%);
     }
   }
 
@@ -308,7 +308,7 @@
     :is(.home-library[data-home-library-view="tools"], .personal-library--tools) {
       --tool-tile-width: 96px;
       --tool-tile-height: 90px;
-      --tool-tile-radius: 12px;
+      --tool-tile-radius: var(--illustration-radius, 10px);
     }
   }
 
@@ -338,8 +338,8 @@
   .home-library__card.home-library__card--icon {
     --project-tile-width: 112px;
     --project-tile-height: 104px;
-    --project-tile-radius: 14px;
-    --project-tile-inset: 82%;
+    --project-tile-radius: var(--illustration-radius, 10px);
+    --project-tile-inset: var(--illustration-fill, 82%);
     grid-template-columns: var(--project-tile-width) minmax(0, 1fr) 20px;
     grid-template-rows: auto;
     min-height: calc(var(--project-tile-height) + 26px);
@@ -350,9 +350,9 @@
     width: var(--project-tile-width);
     height: var(--project-tile-height);
     padding: 0;
-    border: 1px solid #dce3ec;
+    border: 1px solid var(--illustration-border, #dce3ec);
     border-radius: var(--project-tile-radius);
-    background: #f8fafc;
+    background: var(--illustration-surface, #f8fafc);
     isolation: isolate;
   }
 
@@ -378,8 +378,8 @@
     .home-library__card.home-library__card--icon {
       --project-tile-width: 74px;
       --project-tile-height: 74px;
-      --project-tile-radius: 10px;
-      --project-tile-inset: 78%;
+      --project-tile-radius: var(--illustration-radius, 10px);
+      --project-tile-inset: var(--illustration-fill-compact, 78%);
     }
   }
 
@@ -387,7 +387,7 @@
     .home-library__card.home-library__card--icon {
       --project-tile-width: 96px;
       --project-tile-height: 90px;
-      --project-tile-radius: 12px;
+      --project-tile-radius: var(--illustration-radius, 10px);
     }
   }
 
@@ -1190,10 +1190,10 @@
   body:is(.personal-accordion-page, [data-page="home"]) .site-frame .home-library .home-library__card {
     --tool-tile-width: 80px;
     --tool-tile-height: 80px;
-    --tool-tile-radius: 10px;
+    --tool-tile-radius: var(--illustration-radius, 10px);
     --project-tile-width: 80px;
     --project-tile-height: 80px;
-    --project-tile-radius: 10px;
+    --project-tile-radius: var(--illustration-radius, 10px);
     grid-template-columns: 112px minmax(0, 1fr) 18px;
     grid-template-rows: auto;
     gap: 12px;
