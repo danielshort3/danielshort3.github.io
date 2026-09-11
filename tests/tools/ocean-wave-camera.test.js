@@ -216,7 +216,7 @@ for (const stop of ['blur', 'hidden', 'focusout', 'offscreen', 'Escape', 'disabl
   app.pointer('pointermove', { clientX: 250, clientY: 120 });
   app.pointer('pointerup');
   app.step(120);
-  assert.ok(app.camera.yaw > .4 && app.camera.yaw < .5, 'Explore must allow dragging to look around.');
+  assert.ok(app.camera.yaw < -.4 && app.camera.yaw > -.5, 'Dragging right in Explore must turn the camera left.');
   app.relaxButton.fire('click');
   assert.equal(app.controller.isEnabled(), false);
   assert.equal(app.resetButton.hidden, true);
@@ -450,7 +450,7 @@ for (const camera of [{ height: 1.8, pitch: -1.2 }, { height: 24, pitch: .5 }]) 
   app.step(120);
   assert.equal(down.defaultPrevented, true);
   assert.equal(move.defaultPrevented, true);
-  assert.ok(Math.abs(app.camera.yaw - .24) < .0001, 'A one-finger canvas drag must change heading in Explore.');
+  assert.ok(Math.abs(app.camera.yaw + .24) < .0001, 'A one-finger drag right must turn the camera left in Explore.');
   assert.ok(Math.abs(app.camera.pitch + .025) < .0001, 'A one-finger canvas drag must change pitch.');
   assert.equal(app.camera.x, 0, 'One-finger looking must preserve camera position.');
   assert.equal(app.camera.z, 0);
@@ -460,7 +460,7 @@ for (const camera of [{ height: 1.8, pitch: -1.2 }, { height: 24, pitch: .5 }]) 
   app.pointer('pointermove', { pointerType: 'touch', pointerId: 7, clientX: 100, clientY: 160 });
   app.pointer('pointerup', { pointerType: 'touch', pointerId: 7 });
   app.step(120);
-  assert.ok(Math.abs(app.camera.yaw - .12) < .0001, 'A new touch drag must start from the previous heading.');
+  assert.ok(Math.abs(app.camera.yaw + .12) < .0001, 'A new touch drag left must turn right from the previous heading.');
   assert.ok(Math.abs(app.camera.pitch - .025) < .0001, 'A new touch drag must use its own gesture origin.');
   assert.equal(app.queue.size, 0);
   app.controller.dispose();
@@ -482,7 +482,7 @@ for (const camera of [{ height: 1.8, pitch: -1.2 }, { height: 24, pitch: .5 }]) 
   assert.equal(app.camera.pitch, translated.pitch);
   app.pointer('pointermove', { pointerType: 'touch', pointerId: 2, clientX: 280, clientY: 170 });
   app.step(120);
-  assert.ok(Math.abs(app.camera.yaw - translated.yaw - .24) < .0001, 'The remaining finger must continue as a fresh look gesture.');
+  assert.ok(Math.abs(app.camera.yaw - translated.yaw + .24) < .0001, 'The remaining finger must continue as a fresh look gesture.');
   assert.ok(Math.abs(app.camera.pitch - translated.pitch - .05) < .0001);
   assert.equal(app.camera.x, translated.x);
   assert.equal(app.camera.z, translated.z, 'Switching from two fingers to one must not continue translation.');
@@ -506,7 +506,7 @@ for (const camera of [{ height: 1.8, pitch: -1.2 }, { height: 24, pitch: .5 }]) 
   app.pointer('pointerup', { pointerType: 'touch', pointerId: 1 });
   app.pointer('pointermove', { pointerType: 'touch', pointerId: 2, clientX: 300, clientY: 100 });
   app.step(120);
-  assert.ok(Math.abs(app.camera.yaw - .3) < .0001, 'An ignored third finger must not replace the released gesture finger.');
+  assert.ok(Math.abs(app.camera.yaw + .3) < .0001, 'An ignored third finger must not replace the released gesture finger.');
   assert.equal(app.camera.x, 0);
   assert.equal(app.camera.z, 0);
   app.pointer('pointerup', { pointerType: 'touch', pointerId: 3 });

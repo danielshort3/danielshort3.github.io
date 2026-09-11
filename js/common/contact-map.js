@@ -10,9 +10,10 @@
   const resizeObserver = new ResizeObserver(() => refresh());
   const frameObserver = new MutationObserver(() => refresh());
 
-  function hide() {
+  function hide(except) {
     maps.forEach(({ host }) => {
-      host.hidden = true;
+      if (host === except) return;
+      delete host.dataset.mapActive;
       host.inert = true;
     });
   }
@@ -31,8 +32,9 @@
     const slot = state?.body?.isConnected && state.category === 'contact' &&
       (!state.home || state.view === 'overview')
       ? state.body.querySelector('[data-contact-map-slot]') : null;
-    if (!slot || slot.closest('[hidden], [inert], [aria-hidden="true"]') ||
-      site.root().classList.contains('site-frame--moving')) {
+    // The viewport becomes inert during its closing wipe. Keep the loaded map
+    // painted under that same clip, and throughout the incoming geometry.
+    if (!slot || slot.closest('[hidden], [aria-hidden="true"]')) {
       hide();
       return;
     }
@@ -49,7 +51,6 @@
       const host = document.createElement('div');
       host.className = 'contact-map-persistent';
       host.setAttribute('data-persistent-contact-map', '');
-      host.hidden = true;
       host.inert = true;
       pending.removeAttribute('data-home-contact-map-src');
       // Move the still-blank iframe once, before assigning its URL. Moving a
@@ -71,15 +72,15 @@
 
     const bounds = slot.getBoundingClientRect();
     const owner = viewport.getBoundingClientRect();
-    hide();
+    hide(map.host);
     Object.assign(map.host.style, {
       left: `${bounds.left - owner.left + viewport.scrollLeft + slot.clientLeft}px`,
       top: `${bounds.top - owner.top + viewport.scrollTop + slot.clientTop}px`,
       width: `${slot.clientWidth}px`,
       height: `${slot.clientHeight}px`
     });
-    map.host.hidden = false;
-    map.host.inert = false;
+    map.host.dataset.mapActive = 'true';
+    map.host.inert = viewport.inert;
     if (!map.loaded) {
       map.loaded = true;
       map.iframe.setAttribute('src', src);
@@ -94,7 +95,7 @@
   ['home:category-change', 'site:route-mounted', 'site:route-change', 'navheightchange'].forEach((event) => {
     document.addEventListener(event, refresh);
   });
-  document.addEventListener('site:route-unmounted', hide);
+  document.addEventListener('site:route-unmounted', () => hide());
   window.addEventListener('resize', refresh, { passive: true });
   window.visualViewport?.addEventListener('resize', refresh, { passive: true });
   document.fonts?.ready.then(refresh);

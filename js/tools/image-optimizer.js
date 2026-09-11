@@ -41,6 +41,7 @@
   const resultsEl = $('#imgopt-results');
   const downloadAllBtn = $('#imgopt-download-all');
   const processBtn = $('#imgopt-process');
+  const sampleBtn = $('#imgopt-sample');
   const queueEl = $('#imgopt-queue');
   const downloadNote = $('#imgopt-download-note');
   const settingsFormat = $('#imgopt-summary-format');
@@ -318,6 +319,7 @@
     }
     if (downloadAllBtn) downloadAllBtn.disabled = state.working || state.outputs.length === 0;
     if (fileInput) fileInput.disabled = state.working;
+    if (sampleBtn) sampleBtn.disabled = state.working;
     if (formatSelect) formatSelect.disabled = state.working;
     if (resizeMode) resizeMode.disabled = state.working || Boolean(responsiveInput?.checked);
     if (qualityInput) qualityInput.disabled = state.working;
@@ -358,7 +360,7 @@
     fileList.innerHTML = '';
     updateSummary();
     revokeOutputs();
-    setStatus('Add images, choose settings, then click Optimize images.');
+    setStatus('Your optimized images will appear here.');
     fileInput.value = '';
     markSessionDirty();
   };
@@ -628,6 +630,7 @@
   };
 
   const addFiles = (list) => {
+    if (state.working) return;
     const files = Array.from(list || []);
     const accepted = files.filter((file) => {
       if (!file) return false;
@@ -709,6 +712,53 @@
     }).catch(() => {
       setStatus('Image checks failed. Remove the affected files and try again.');
     });
+  };
+
+  // A local, generated sample exercises the same pipeline as an uploaded file.
+  // It needs no network request and leaves the user's settings intact.
+  const addSample = async () => {
+    if (state.working || sampleBtn?.disabled) return;
+    const selectionVersion = state.selectionVersion;
+    if (sampleBtn) sampleBtn.disabled = true;
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 800;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas is unavailable');
+      const sky = context.createLinearGradient(0, 0, 1200, 800);
+      sky.addColorStop(0, '#d9eff7');
+      sky.addColorStop(0.6, '#9fc9d5');
+      sky.addColorStop(1, '#f3dfba');
+      context.fillStyle = sky;
+      context.fillRect(0, 0, 1200, 800);
+      context.fillStyle = '#fff5d8';
+      context.beginPath();
+      context.arc(920, 190, 75, 0, Math.PI * 2);
+      context.fill();
+      const ridges = [
+        { color: '#497b91', points: [[0, 470], [260, 210], [570, 510], [850, 330], [1200, 570]] },
+        { color: '#176a78', points: [[0, 630], [340, 400], [740, 660], [1060, 440], [1200, 560]] },
+        { color: '#091f3b', points: [[0, 710], [400, 590], [790, 730], [1200, 610]] }
+      ];
+      ridges.forEach(({ color, points }) => {
+        context.fillStyle = color;
+        context.beginPath();
+        context.moveTo(0, 800);
+        points.forEach(([x, y]) => context.lineTo(x, y));
+        context.lineTo(1200, 800);
+        context.closePath();
+        context.fill();
+      });
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('Sample creation failed');
+      if (selectionVersion !== state.selectionVersion || state.working) return;
+      addFiles([new File([blob], 'sample-landscape.png', { type: 'image/png' })]);
+    } catch (_) {
+      setStatus('The sample could not be created. You can still add your own images.');
+    } finally {
+      if (sampleBtn) sampleBtn.disabled = state.working;
+    }
   };
 
   const parseResponsiveWidths = (raw) => {
@@ -1325,6 +1375,7 @@
     clearAll();
   });
   downloadAllBtn?.addEventListener('click', downloadAll);
+  sampleBtn?.addEventListener('click', addSample);
 
   formatSelect.addEventListener('change', updateControlsVisibility);
   resizeMode?.addEventListener('change', updateControlsVisibility);

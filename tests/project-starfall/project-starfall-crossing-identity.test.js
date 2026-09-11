@@ -1,21 +1,18 @@
 'use strict';
 
 const assert = require('assert');
-const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const Data = require('../../js/games/project-starfall/project-starfall-data.js');
 const Environment = require('../../js/games/project-starfall/data/environment.js');
-const MapBackgrounds = require('../../build/process-project-starfall-map-backgrounds.js');
-const CrossingStructures = require('../../build/process-project-starfall-crossing-structures.js');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 
 async function main() {
   const map = Data.MAPS.find((candidate) => candidate.id === 'starfallCrossing');
   assert(map && map.safeZone, 'Starfall Crossing should remain the public safe-zone hub');
-  assert.strictEqual(map.backgroundMode, 'panorama');
-  assert.deepStrictEqual(map.palette, ['#101827', '#3d6575', '#d38b4c']);
+  assert.notStrictEqual(map.backgroundMode, 'panorama');
+  assert.deepStrictEqual(map.palette, ['#f7d28a', '#7ec8d8', '#f8f0dc']);
 
   assert.strictEqual(map.platforms.length, 17,
     'the Crossing identity pass should preserve the authoritative 17-platform collision graph');
@@ -67,19 +64,19 @@ async function main() {
 
   assert.strictEqual(map.environment.terrain, 'starfall-crossing');
   assert.strictEqual(map.environment.props, 'starfall-crossing');
-  assert.strictEqual(map.environment.ramps, 'starfall-crossing');
-  assert(!map.environment.propKinds.some((kind) => ['grass', 'bush', 'flower'].includes(kind)));
+  assert.strictEqual(map.environment.ramps || map.environment.terrain, 'starfall-crossing');
+  assert(map.environment.propKinds.includes('flower'), 'the Crossing should reuse its original village prop palette');
   assert.strictEqual(
     Environment.ENVIRONMENT_ASSETS.terrain['starfall-crossing'].path,
-    'img/project-starfall/environment/terrain/astral-observatory.png'
+    'img/project-starfall/environment/terrain/starfall-crossing.png'
   );
   assert.strictEqual(
     Environment.ENVIRONMENT_ASSETS.props['starfall-crossing'].path,
-    'img/project-starfall/environment/props/rustcoil-outpost.png'
+    'img/project-starfall/environment/props/starfall-crossing.png'
   );
   assert.strictEqual(
     Environment.ENVIRONMENT_ASSETS.ramps['starfall-crossing'].path,
-    'img/project-starfall/environment/ramps/astral-observatory.png'
+    'img/project-starfall/environment/ramps/starfall-crossing.png'
   );
   assert.deepStrictEqual({
     fracturedObservatoryCore: Environment.ENVIRONMENT_STRUCTURE_CELLS.fracturedObservatoryCore,
@@ -87,10 +84,10 @@ async function main() {
     lensWorkshop: Environment.ENVIRONMENT_STRUCTURE_CELLS.lensWorkshop,
     frontierGate: Environment.ENVIRONMENT_STRUCTURE_CELLS.frontierGate
   }, {
-    fracturedObservatoryCore: 8,
-    expeditionDepot: 9,
-    lensWorkshop: 10,
-    frontierGate: 11
+    fracturedObservatoryCore: 0,
+    expeditionDepot: 6,
+    lensWorkshop: 1,
+    frontierGate: 7
   });
 
   const shopDoors = map.portals.filter((portal) => portal.shopDoor);
@@ -101,10 +98,10 @@ async function main() {
     platformIndex: portal.platformIndex,
     facadeCell: portal.facadeCell
   })), [
-    { id: 'starfallCrossing_weapon_shop_door', destinationMapId: 'starfallCrossingWeaponShop', x: 360, platformIndex: 1, facadeCell: 'lensWorkshop' },
-    { id: 'starfallCrossing_armor_shop_door', destinationMapId: 'starfallCrossingArmorShop', x: 700, platformIndex: 1, facadeCell: 'expeditionDepot' },
-    { id: 'starfallCrossing_supply_shop_door', destinationMapId: 'starfallCrossingSupplyShop', x: 1260, platformIndex: 2, facadeCell: 'frontierGate' },
-    { id: 'starfallCrossing_special_shop_door', destinationMapId: 'starfallCrossingSpecialShop', x: 1600, platformIndex: 2, facadeCell: 'fracturedObservatoryCore' }
+    { id: 'starfallCrossing_weapon_shop_door', destinationMapId: 'starfallCrossingWeaponShop', x: 360, platformIndex: 1, facadeCell: 'cinderForge' },
+    { id: 'starfallCrossing_armor_shop_door', destinationMapId: 'starfallCrossingArmorShop', x: 700, platformIndex: 1, facadeCell: 'rustcoilWorkshop' },
+    { id: 'starfallCrossing_supply_shop_door', destinationMapId: 'starfallCrossingSupplyShop', x: 1260, platformIndex: 2, facadeCell: 'marketAwning' },
+    { id: 'starfallCrossing_special_shop_door', destinationMapId: 'starfallCrossingSpecialShop', x: 1600, platformIndex: 2, facadeCell: 'astralObservatory' }
   ], 'Crossing shop doors should retain stable routes while occupying two readable service shelves');
   shopDoors.forEach((portal) => {
     const platform = map.platforms[portal.platformIndex];
@@ -118,25 +115,20 @@ async function main() {
   assert(frontierGate && Math.abs(frontierGate.x + frontierGate.w / 2 - (frontierPortal.x + 29)) <= 36,
     'the decorative frontier gate should frame the real Greenroot portal coordinate');
 
-  assert(MapBackgrounds.PANORAMA_OUTPUTS.has('starfall-crossing.webp'),
-    'the Crossing processor output should be registered as a panorama');
-  assert(MapBackgrounds.SOURCE_BACKED_MAPS.some(([outputName, sourceName]) =>
-    outputName === 'starfall-crossing.webp' && sourceName === 'starfall-crossing-fractured-observatory-v1.png'));
-  const backgroundPath = path.join(ROOT, map.asset);
-  const metadata = await sharp(backgroundPath).metadata();
-  assert.strictEqual(metadata.width, 2560);
+  const metadata = await sharp(path.join(ROOT, map.asset)).metadata();
+  assert.strictEqual(metadata.width, 1280);
   assert.strictEqual(metadata.height, 640);
-  assert.deepStrictEqual(await CrossingStructures.validateAtlas(), {
-    width: 1024,
-    height: 768,
-    cells: 12
+  const structures = Environment.ENVIRONMENT_STRUCTURE_ASSETS.townLandmarks;
+  const structureMetadata = await sharp(path.join(ROOT, structures.path)).metadata();
+  assert.strictEqual(structureMetadata.width, 1024);
+  assert.strictEqual(structureMetadata.height, 512);
+  assert(structureMetadata.hasAlpha, 'the restored town landmark atlas should retain transparency');
+  const cellCount = structureMetadata.width / structures.cellSize * structureMetadata.height / structures.cellSize;
+  sceneCells.concat(shopDoors.map((portal) => portal.facadeCell)).forEach((cell) => {
+    const index = Environment.ENVIRONMENT_STRUCTURE_CELLS[cell];
+    assert(Number.isInteger(index) && index >= 0 && index < cellCount,
+      cell + ' should resolve inside the restored eight-cell atlas');
   });
-
-  const promptLedger = fs.readFileSync(path.join(ROOT, 'img/project-starfall/asset-prompts.md'), 'utf8');
-  assert(promptLedger.includes('Fractured Starfront Sci-Fantasy'));
-  assert(promptLedger.includes('starfall-crossing-fractured-observatory-v1.png'));
-  assert(!/maple\s*story/i.test(promptLedger),
-    'the forward asset ledger should describe Project Starfall directly instead of another game');
 
   process.stdout.write('Project Starfall Crossing identity tests passed.\n');
 }

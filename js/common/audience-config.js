@@ -60,7 +60,7 @@
           id: 'handwritingRating',
           label: 'Featured project',
           title: 'Handwriting Legibility Scoring',
-          description: 'See how a CNN-based handwriting demo turns digit recognition into a practical legibility score.',
+          description: 'Try a handwriting demo and explore how confidently a model recognizes handwritten digits.',
           href: '/portfolio/handwritingRating',
           icon: 'pencil',
           accent: '#155dfc',

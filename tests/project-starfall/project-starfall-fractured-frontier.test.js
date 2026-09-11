@@ -21,8 +21,8 @@ async function main() {
   assert.strictEqual(map.designIntent.priorityRedesign, false);
   assert.strictEqual(map.environment.terrain, 'greenroot-meadow');
   assert.strictEqual(map.environment.props, 'greenroot-meadow');
-  assert.strictEqual(map.environment.ramps, 'greenroot-meadow');
-  assert.strictEqual(map.environment.tint, '#66788b');
+  assert.strictEqual(map.environment.ramps || map.environment.terrain, 'greenroot-meadow');
+  assert.strictEqual(map.environment.tint, undefined, 'the restored meadow should use its authored colors');
 
   const ramps = map.platforms.filter((platform) => platform.shape === 'slope');
   const solidWidths = map.platforms

@@ -91,6 +91,21 @@
     line-height: 1.45;
   }
 
+  .home-background a.home-background__entry {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .home-background a.home-background__entry .home-background__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 100%;
+    color: #155dfc;
+  }
+
+  .home-background a.home-background__entry .home-background__arrow { display: inline-flex; flex-shrink: 0; }
+
   .home-background__subtitle {
     display: block;
     margin-top: 3px;
@@ -150,7 +165,7 @@
     overflow-wrap: anywhere;
   }
 
-  .home-background__credential-link svg {
+  .home-background__arrow svg {
     position: relative;
     top: 1px;
     flex: 0 0 13px;

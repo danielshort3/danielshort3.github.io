@@ -1,5 +1,7 @@
 # Project Starfall Asset Generation Guide
 
+Restored on 2026-09-10 to the classic art from `eb8de4e1` (before the July 22 visual rework). Active player art uses the shared compact adventurer and unversioned runtime filenames; equipment uses the original `*-atlas.png` files. The later Fracture Runner v4/v5 sources and v2 equipment atlases remain historical references and are not refresh targets. Gameplay changes are retained.
+
 This guide is the asset-generation contract for Project Starfall. It is based on the current GDD, Starfall asset prompt notes, runtime data modules, build processors, CSS/UI tokens, and the existing asset folders.
 
 Assumptions are marked with `[Assumption]`. Everything else should be treated as a current project requirement.

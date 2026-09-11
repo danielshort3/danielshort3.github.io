@@ -32,14 +32,31 @@ check(descriptionContext.describe({ body: { dataset: { personalFit: 'immersive' 
   querySelector: (selector) => selector === '[data-personal-accordion-shell]' ? immersiveSource : null }).fit === 'immersive',
   'Explicitly immersive route metadata remains exempt from the bounded frame.');
 
-const layoutTabs = new Map([...order, 'resume'].map(id => [id, { dataset: {},
+const layoutDocument = { activeElement: null };
+const layoutPanel = { id: 'content', setAttribute() {} };
+const layoutStage = { style: {}, children: [], insertBefore(node, reference) {
+  assert.notEqual(node, layoutPanel, 'Reordering navigation must never detach the panel containing the loaded map.');
+  const previous = this.children.indexOf(node);
+  if (previous !== -1) this.children.splice(previous, 1);
+  if (layoutDocument.activeElement === node) layoutDocument.activeElement = null;
+  const index = reference ? this.children.indexOf(reference) : this.children.length;
+  assert(index >= 0, 'A moved rail must retain a connected sibling as its insertion anchor.');
+  this.children.splice(index, 0, node);
+} };
+const layoutTabs = new Map([...order, 'resume'].map(id => [id, { id, dataset: {}, isConnected: true,
+  closest: selector => selector === '.site-frame__tab' ? layoutTabs.get(id) : null,
+  focus() { layoutDocument.activeElement = this; },
   classList: { states: new Map(), toggle(name, active) { this.states.set(name, active); } },
   style: {}, attributes: new Map(), setAttribute(name, value) { this.attributes.set(name, value); },
   removeAttribute(name) { this.attributes.delete(name); } }]));
+layoutStage.children = [...layoutTabs.values(), layoutPanel];
+for (const node of layoutStage.children) {
+  Object.defineProperty(node, 'nextSibling', { get() { return layoutStage.children[layoutStage.children.indexOf(this) + 1] || null; } });
+}
 const configurationContext = vm.createContext({ framePolicy, tabs: layoutTabs, colors: {}, personalOrder: order,
   professionalOrder: ['about', 'projects', 'resume', 'contact'], compactQuery: { matches: false },
-  ensureTab: id => layoutTabs.get(id), stage: { style: {} }, slot: { style: {} },
-  welcome: {}, panel: { setAttribute() {} }, body: {},
+  document: layoutDocument, ensureTab: id => layoutTabs.get(id), stage: layoutStage, slot: { style: {} },
+  welcome: {}, panel: layoutPanel, body: {},
   frame: { dataset: {}, classList: { toggle() {} }, toggleAttribute() {}, style: { setProperty() {} } } });
 vm.runInContext(frameSource.slice(frameSource.indexOf('  function configure('), frameSource.indexOf('  function capture(')), configurationContext);
 const staleSnapshot = { audience: 'tourism', category: 'projects', view: 'detail', home: false, fit: 'document' };
@@ -63,7 +80,16 @@ for (const compact of [false, true]) {
   check(configurationContext.welcome.hidden && configurationContext.welcome.inert && configurationContext.body.id === 'main' &&
     !configurationContext.body.hidden && !configurationContext.body.inert && !configurationContext.panel.hidden,
   'Reopening About restores the retained category body and hides the resting welcome.');
+  check(JSON.stringify(layoutStage.children.filter(node => !node.hidden).map(node => node.id)) ===
+    JSON.stringify(compact ? ['about', 'content', ...order.slice(1)] : [...order, 'content']),
+  'Compact keyboard order places the active content directly after its rail while desktop keeps its navigation grouping.');
 }
+layoutTabs.get('projects').focus();
+configurationContext.configure({ audience: 'personal', category: 'projects', view: 'overview', home: true });
+check(layoutDocument.activeElement === layoutTabs.get('projects'), 'Moving a focused rail preserves focus without moving the panel.');
+check(JSON.stringify(layoutStage.children.filter(node => !node.hidden).map(node => node.id)) ===
+  JSON.stringify(['about', 'projects', 'content', 'tools', 'games', 'contact']),
+'Changing compact categories updates the DOM reading order around the connected panel.');
 
 let adoptedCommit;
 const hardManifest = { id: 'tools:transcribe', path: '/tools/transcribe', navigation: 'hard' };

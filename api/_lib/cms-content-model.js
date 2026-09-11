@@ -180,6 +180,9 @@ function validateCmsDocumentShape({ collection, id, document }) {
     ['title', 'subtitle', 'image'].forEach((field) => {
       assertStringField(document, field, label);
     });
+    ['metaDescription', 'relatedProjectId'].forEach((field) => {
+      if (document[field] !== undefined) assertStringField(document, field, label);
+    });
     validateProjectPersonalStory(document.personalStory, label);
     validateProjectEvaluation(document.evaluation, label);
     return;

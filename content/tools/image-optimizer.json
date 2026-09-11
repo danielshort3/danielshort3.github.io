@@ -4,7 +4,7 @@
   "href": "tools/image-optimizer",
   "iconImage": "img/tools/icons/image-optimizer.png",
   "categoryId": "tools-media",
-  "privacy": "Images are processed on your device. Saving a session uploads settings, file names, and result summaries, without the image files.",
+  "privacy": "Images are processed on your device. When signed in, settings, file names, and result summaries save automatically to your account, without the image files.",
   "inputs": ["PNG, JPEG, WebP, or AVIF images"],
   "outputs": ["Resized, compressed, or converted images"],
   "summary": "Resize, compress, and convert images on your device.",

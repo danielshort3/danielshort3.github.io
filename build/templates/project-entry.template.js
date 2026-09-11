@@ -2,6 +2,7 @@
   id: "__PROJECT_ID__",
   title: "__PROJECT_TITLE__",
   subtitle: "__PROJECT_SUBTITLE__",
+  metaDescription: "__PROJECT_SUBTITLE__",
   published: true,
   image: "img/projects/__PROJECT_ID__.png",
   imageAlt: "__PROJECT_IMAGE_ALT__",

@@ -14,6 +14,12 @@
     chop: Object.freeze({ lengthScale: .62, cutoff: 1.05, ripple: 1.6, spread: .7 }),
   });
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+  const QUALITY_RESOLUTIONS = Object.freeze({
+    low: Object.freeze({ size: 64, foamSize: 128 }),
+    medium: Object.freeze({ size: 128, foamSize: 256 }),
+    high: Object.freeze({ size: 256, foamSize: 512 }),
+    ultra: Object.freeze({ size: 512, foamSize: 1024 }),
+  });
 
   const VERTEX_SOURCE = `
     attribute vec2 aPosition;
@@ -98,10 +104,13 @@
     uniform sampler2D uSwell;
     uniform sampler2D uRipple;
     uniform vec2 uLengths;
+    uniform vec2 uFieldSizes;
+    uniform float uLinear;
     uniform vec2 uOrigin;
     uniform vec2 uPreviousOrigin;
     uniform float uLength;
     uniform float uSize;
+    uniform float uPreviousSize;
     uniform float uDelta;
     uniform float uTime;
     uniform float uWind;
@@ -114,22 +123,33 @@
       float c = cos(angle), s = sin(angle);
       return vec2(c * p.x - s * p.y,s * p.x + c * p.y);
     }
+    vec3 sampleWave(sampler2D field, vec2 uv, float size) {
+      if (uLinear > .5) return texture2D(field,uv,-16.0).rgb;
+      vec2 pixel = uv * size - .5;
+      vec2 base = (floor(pixel) + .5) / size;
+      vec2 f = fract(pixel);
+      vec3 a = texture2D(field,base).rgb;
+      vec3 b = texture2D(field,base + vec2(1.0 / size,0.0)).rgb;
+      vec3 c = texture2D(field,base + vec2(0.0,1.0 / size)).rgb;
+      vec3 d = texture2D(field,base + vec2(1.0 / size)).rgb;
+      return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
+    }
     float previousDensity(vec2 uv) {
       // Explicit bilinear advection also works on devices without float-linear
       // textures. Otherwise sub-texel drift would stick or disappear in steps.
-      vec2 pixel = uv * uSize - .5;
-      vec2 base = (floor(pixel) + .5) / uSize;
+      vec2 pixel = uv * uPreviousSize - .5;
+      vec2 base = (floor(pixel) + .5) / uPreviousSize;
       vec2 f = fract(pixel);
       float a = texture2D(uPrevious,base).r;
-      float b = texture2D(uPrevious,base + vec2(1.0 / uSize,0.0)).r;
-      float c = texture2D(uPrevious,base + vec2(0.0,1.0 / uSize)).r;
-      float d = texture2D(uPrevious,base + vec2(1.0 / uSize)).r;
+      float b = texture2D(uPrevious,base + vec2(1.0 / uPreviousSize,0.0)).r;
+      float c = texture2D(uPrevious,base + vec2(0.0,1.0 / uPreviousSize)).r;
+      float d = texture2D(uPrevious,base + vec2(1.0 / uPreviousSize)).r;
       return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
     }
     void main() {
       vec2 world = uOrigin + vUv * uLength;
-      vec3 wave = texture2D(uSwell,world / uLengths.x).rgb;
-      vec3 ripple = texture2D(uRipple,rotate(world,.42) / uLengths.y + vec2(.173,.387)).rgb;
+      vec3 wave = sampleWave(uSwell,world / uLengths.x,uFieldSizes.x);
+      vec3 ripple = sampleWave(uRipple,rotate(world,.42) / uLengths.y + vec2(.173,.387),uFieldSizes.y);
       ripple.yz = rotate(ripple.yz,-.42);
       wave += ripple;
       float sigma = max(.08,uHeight * .25);
@@ -164,29 +184,39 @@
 
   const makeGaussian = (size, seed) => {
     const values = new Float32Array(size * size * 2);
-    let state = seed >>> 0;
-    const random = () => {
-      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-      return (state + 0.5) / 4294967296;
-    };
-    for (let i = 0; i < values.length; i += 2) {
-      const radius = Math.sqrt(-2 * Math.log(random()));
-      const angle = TAU * random();
-      values[i] = radius * Math.cos(angle);
-      values[i + 1] = radius * Math.sin(angle);
+    // Seed by signed wave number rather than texture offset, preserving the
+    // existing long waves when quality adds or removes high-frequency bins.
+    for (let y = 0; y < size; y++) {
+      const ky = y < size / 2 ? y : y - size;
+      for (let x = 0; x < size; x++) {
+        const kx = x < size / 2 ? x : x - size;
+        let state = (seed ^ Math.imul(kx, 374761393) ^ Math.imul(ky, 668265263)) >>> 0;
+        state = Math.imul(state ^ (state >>> 13), 1274126177) >>> 0;
+        state = (state ^ (state >>> 16)) >>> 0;
+        const a = (state + .5) / 4294967296;
+        state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+        const b = (state + .5) / 4294967296;
+        const radius = Math.sqrt(-2 * Math.log(a));
+        const angle = TAU * b;
+        const index = (y * size + x) * 2;
+        values[index] = radius * Math.cos(angle);
+        values[index + 1] = radius * Math.sin(angle);
+      }
     }
     return values;
   };
 
-  const create = (gl, options = {}) => {
+  const createFieldSet = (gl, options) => {
     if (!gl || gl.isContextLost()) return null;
     const precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
     if (!precision || precision.precision < 16 || !gl.getExtension('OES_texture_float')) return null;
     gl.getExtension('WEBGL_color_buffer_float');
     const linear = Boolean(gl.getExtension('OES_texture_float_linear'));
     let mipmapped = linear;
-    const size = options.size === 256 ? 256 : 128;
+    let validateUpdatedMipmaps = true;
+    const { size, foamSize } = options;
     const resources = { textures: [], programs: [], shaders: [], buffers: [], framebuffers: [] };
+    const mipTextures = [];
     let disposed = false;
     const previous = {
       framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING),
@@ -232,7 +262,14 @@
       return { program, uniforms };
     };
 
-    const makeTexture = (filtered, withMipmaps = true, repeat = true) => {
+    const disableMipmaps = () => {
+      mipmapped = false;
+      for (const texture of mipTextures) {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, linear ? gl.LINEAR : gl.NEAREST);
+      }
+    };
+    const makeTexture = (filtered, withMipmaps = true, repeat = true, dimension = size) => {
       const texture = gl.createTexture();
       if (!texture) throw new Error('Unable to allocate ocean spectrum texture.');
       resources.textures.push(texture);
@@ -242,11 +279,17 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, repeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, repeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.FLOAT, null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, dimension, dimension, 0, gl.RGBA, gl.FLOAT, null);
+      if (gl.getError() !== gl.NO_ERROR) throw new Error('Ocean spectrum texture allocation failed.');
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+        throw new Error('Ocean spectrum target is unsupported.');
+      }
       if (filtered && withMipmaps && mipmapped) {
+        mipTextures.push(texture);
         gl.generateMipmap(gl.TEXTURE_2D);
-        mipmapped = gl.getError() === gl.NO_ERROR;
-        if (mipmapped) gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        if (gl.getError() === gl.NO_ERROR) gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        else disableMipmaps();
       }
       return texture;
     };
@@ -283,14 +326,14 @@
         vec3 nearshoreSurfaceGeometry(vec2 p, vec3 shore, vec3 wave, float seconds, float height) { return wave; }
       `;
       const foamProgram = makeProgram(FOAM_SOURCE.replace('/* OCEAN_SHORE */', shoreSource), [
-        'uPrevious', 'uSwell', 'uRipple', 'uLengths', 'uOrigin', 'uPreviousOrigin', 'uLength',
-        'uSize', 'uDelta', 'uTime', 'uWind', 'uHeight', 'uScene', 'uReset',
+        'uPrevious', 'uSwell', 'uRipple', 'uLengths', 'uFieldSizes', 'uLinear', 'uOrigin', 'uPreviousOrigin', 'uLength',
+        'uSize', 'uPreviousSize', 'uDelta', 'uTime', 'uWind', 'uHeight', 'uScene', 'uReset',
       ]);
-      let foamPrevious = makeTexture(true, false, false);
-      let foamTarget = makeTexture(true, false, false);
+      let foamPrevious = makeTexture(true, false, false, foamSize);
+      let foamTarget = makeTexture(true, false, false, foamSize);
       // Stable descriptor; texture swaps after update. World mapping is
       // uv = (worldXZ - vec2(originX, originZ)) / length, with no rotation.
-      const foam = { texture: foamPrevious, size, length: 180, originX: -90, originZ: -90 };
+      const foam = { texture: foamPrevious, size: foamSize, length: 180, originX: -90, originZ: -90 };
       let viewX = -90;
       let viewZ = -90;
       let scene = 'ocean';
@@ -306,6 +349,14 @@
       let previousTime = NaN;
       let previousHeight = NaN;
       let previousSwell = '';
+      let inheritedFoam = null;
+      const inheritFoam = (history, seconds) => {
+        inheritedFoam = { ...history };
+        foam.originX = history.originX;
+        foam.originZ = history.originZ;
+        previousTime = Number.isFinite(seconds) ? seconds : 0;
+        previousScene = scene;
+      };
 
       const initialize = (cascade, wind, profile) => {
         const effectiveWind = cascade.swell ? 7.6 + wind * 0.25 : Math.max(0.8, wind);
@@ -362,15 +413,16 @@
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       };
 
-      // Call before the scene draw. For efficiency there are no synchronous
-      // state queries per frame: this binds its framebuffer, program, ARRAY_BUFFER,
+      // Call before the scene draw. After the first field update validates
+      // mipmap support, animation has no synchronous state queries. This binds
+      // its framebuffer, program, ARRAY_BUFFER,
       // attribute 0 and texture units 0-2, and disables blend/depth/scissor/cull.
       // The caller must bind its framebuffer, viewport, program and vertex data
       // after update(), then bind fields[].texture and foam.texture for its
       // own rendering pass. Call setView(scene, cameraX, cameraZ) beforehand.
       const setView = (value = 'ocean', x = 0, z = 0) => {
         const nextScene = value === 'cove' ? 'cove' : 'ocean';
-        const texel = foam.length / size;
+        const texel = foam.length / foamSize;
         const nextX = Math.floor((Number.isFinite(x) ? x : 0) / texel) * texel - foam.length * .5;
         const nextZ = Math.floor((Number.isFinite(z) ? z : 0) / texel) * texel - foam.length * .5;
         if (nextScene !== scene || nextX !== viewX || nextZ !== viewZ) viewVersion += 1;
@@ -437,8 +489,10 @@
           if (mipmapped) {
             gl.bindTexture(gl.TEXTURE_2D, cascade.texture);
             gl.generateMipmap(gl.TEXTURE_2D);
+            if (validateUpdatedMipmaps && gl.getError() !== gl.NO_ERROR) disableMipmaps();
           }
         }
+        validateUpdatedMipmaps = false;
         const resetFoam = !Number.isFinite(previousTime) || time < previousTime || scene !== previousScene;
         // Advection is a backtrace and decay is exponential, so a slower frame
         // can consume its full elapsed time without Euler-integration drift.
@@ -449,10 +503,13 @@
         gl.uniform1i(uniforms.uSwell, 1);
         gl.uniform1i(uniforms.uRipple, 2);
         gl.uniform2f(uniforms.uLengths, fields[0].length, fields[1].length);
+        gl.uniform2f(uniforms.uFieldSizes, fields[0].size, fields[1].size);
+        gl.uniform1f(uniforms.uLinear, linear ? 1 : 0);
         gl.uniform2f(uniforms.uOrigin, viewX, viewZ);
         gl.uniform2f(uniforms.uPreviousOrigin, foam.originX, foam.originZ);
         gl.uniform1f(uniforms.uLength, foam.length);
-        gl.uniform1f(uniforms.uSize, size);
+        gl.uniform1f(uniforms.uSize, foamSize);
+        gl.uniform1f(uniforms.uPreviousSize, inheritedFoam?.size || foamSize);
         gl.uniform1f(uniforms.uDelta, delta);
         gl.uniform1f(uniforms.uTime, time);
         gl.uniform1f(uniforms.uWind, wind);
@@ -460,11 +517,12 @@
         gl.uniform1f(uniforms.uScene, scene === 'cove' ? 1 : 0);
         gl.uniform1f(uniforms.uReset, resetFoam ? 1 : 0);
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, foamPrevious);
+        gl.bindTexture(gl.TEXTURE_2D, inheritedFoam?.texture || foamPrevious);
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, fields[0].texture);
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, fields[1].texture);
+        gl.viewport(0, 0, foamSize, foamSize);
         drawTo(foamTarget);
         const completedFoam = foamTarget;
         foamTarget = foamPrevious;
@@ -472,6 +530,7 @@
         foam.texture = completedFoam;
         foam.originX = viewX;
         foam.originZ = viewZ;
+        inheritedFoam = null;
         previousWind = wind;
         previousTime = time;
         previousHeight = waveHeight;
@@ -481,7 +540,7 @@
         return true;
       };
 
-      return { fields, foam, linear, mipmapped, setView, update, dispose };
+      return { fields, foam, linear, get mipmapped() { return mipmapped; }, inheritFoam, setView, update, dispose };
     } catch {
       dispose();
       return null;
@@ -491,6 +550,97 @@
       gl.activeTexture(previous.activeTexture);
       gl.bindTexture(gl.TEXTURE_2D, previous.texture);
     }
+  };
+
+  const create = (gl, options = {}) => {
+    if (!gl || gl.isContextLost()) return null;
+    const maximum = Math.min(...[gl.MAX_TEXTURE_SIZE, gl.MAX_RENDERBUFFER_SIZE].map(name => {
+      const value = Number(gl.getParameter(name));
+      return Number.isFinite(value) && value > 0 ? value : 2048;
+    }));
+    const dimension = (value, fallback, maximumSize) => {
+      const requested = Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : fallback;
+      return 2 ** Math.floor(Math.log2(Math.min(maximum, clamp(requested, 64, maximumSize))));
+    };
+    const resolve = (configuration) => ({
+      size: dimension(configuration.size, 128, 512),
+      foamSize: dimension(configuration.foamSize, configuration.size || 128, 1024),
+    });
+    const profile = (quality) => QUALITY_RESOLUTIONS[quality === 'auto' ? 'high' : quality];
+    const initial = resolve(profile(options.quality) || options);
+    const key = configuration => `${configuration.size}:${configuration.foamSize}`;
+    const allocate = (configuration) => {
+      let { size, foamSize } = configuration;
+      for (;;) {
+        const candidate = createFieldSet(gl, { size, foamSize });
+        if (candidate) return candidate;
+        if (size <= 64 && foamSize <= 128) return null;
+        size = Math.max(64, size / 2);
+        foamSize = Math.max(128, foamSize / 2);
+      }
+    };
+    let current = allocate(initial);
+    if (!current) return null;
+    let requestedKey = key(initial);
+    let disposed = false;
+    let view = ['ocean', 0, 0];
+    let lastUpdate = null;
+    let renderedScene = 'ocean';
+    // These descriptors stay stable across quality changes and foam swaps so
+    // callers can retain them while all replaced GPU allocations are released.
+    const fields = current.fields.map(field => ({ ...field }));
+    const foam = { ...current.foam };
+    const syncDescriptors = () => {
+      current.fields.forEach((field, index) => Object.assign(fields[index], field));
+      Object.assign(foam, current.foam);
+    };
+    const setView = (...values) => {
+      if (disposed) return;
+      view = values;
+      current.setView(...values);
+    };
+    const update = (...values) => {
+      if (disposed) return false;
+      const updated = current.update(...values);
+      if (updated) {
+        lastUpdate = values;
+        renderedScene = view[0] === 'cove' ? 'cove' : 'ocean';
+        syncDescriptors();
+      }
+      return updated;
+    };
+    const setQuality = (quality) => {
+      if (disposed || !profile(quality) || gl.isContextLost()) return false;
+      const configuration = resolve(profile(quality));
+      const nextKey = key(configuration);
+      if (nextKey === requestedKey) return false;
+      requestedKey = nextKey;
+      if (configuration.size === fields[0].size && configuration.foamSize === foam.size) return false;
+      const replacement = allocate(configuration);
+      if (!replacement) return false;
+      replacement.setView(...view);
+      if (lastUpdate && renderedScene === (view[0] === 'cove' ? 'cove' : 'ocean')) {
+        replacement.inheritFoam(current.foam, lastUpdate[0]);
+      }
+      if (lastUpdate && !replacement.update(...lastUpdate)) {
+        replacement.dispose();
+        return false;
+      }
+      const previous = current;
+      current = replacement;
+      syncDescriptors();
+      previous.dispose();
+      return true;
+    };
+    const dispose = () => {
+      if (disposed) return;
+      disposed = true;
+      current.dispose();
+    };
+    return {
+      fields, foam, get linear() { return current.linear; }, get mipmapped() { return current.mipmapped; },
+      setQuality, setView, update, dispose,
+    };
   };
 
   window.OceanWaveSpectrum = { create };

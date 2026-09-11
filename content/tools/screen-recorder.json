@@ -4,7 +4,7 @@
   "href": "tools/screen-recorder",
   "iconImage": "img/tools/icons/screen-recorder.png",
   "categoryId": "tools-media",
-  "privacy": "Recordings stay on your device. Saving a session uploads recording settings, file names, and result summaries, without the recorded video.",
+  "privacy": "Recordings stay on your device. When signed in, recording settings, file names, and result summaries save automatically to your account, without the recorded video.",
   "inputs": ["Screen or window and optional system audio"],
   "outputs": ["Browser-supported video file"],
   "summary": "Record your screen and download the clip in browser-supported formats with optional system audio.",

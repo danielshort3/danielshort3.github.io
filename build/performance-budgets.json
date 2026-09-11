@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "rationale": "Initial document plus directly declared first-party CSS/JS. Limits allow roughly 15-25% above the September 10, 2026 local baseline; games have their own budgets. These are regression limits, not Core Web Vitals targets or measured network transfers.",
+  "routes": [
+    { "route": "/", "file": "index.html", "category": "home", "maxGzipBytes": 200000 },
+    { "route": "/portfolio", "file": "pages/portfolio.html", "category": "library", "maxGzipBytes": 195000 },
+    { "route": "/tools", "file": "pages/tools.html", "category": "library", "maxGzipBytes": 210000 },
+    { "route": "/games", "file": "pages/games.html", "category": "library", "maxGzipBytes": 195000 },
+    { "route": "/portfolio/babynames", "file": "pages/portfolio/babynames.html", "category": "project", "maxGzipBytes": 195000 },
+    { "route": "/tools/text-compare", "file": "pages/text-compare.html", "category": "utility", "maxGzipBytes": 265000 },
+    { "route": "/tools/image-optimizer", "file": "pages/image-optimizer.html", "category": "utility", "maxGzipBytes": 255000 },
+    { "route": "/privacy", "file": "pages/privacy.html", "category": "information", "maxGzipBytes": 185000 },
+    { "route": "/games/project-starfall", "file": "pages/games/project-starfall.html", "category": "heavy-game", "maxGzipBytes": 1700000 },
+    { "route": "/games/stellar-dogfight", "file": "pages/games/stellar-dogfight.html", "category": "heavy-game", "maxGzipBytes": 375000 },
+    { "route": "/games/ocean-wave-simulation", "file": "pages/ocean-wave-simulation.html", "category": "simulation", "maxGzipBytes": 285000 }
+  ],
+  "catalogs": [
+    { "directory": "img/projects/icons", "maxWebpBytes": 125000 },
+    { "directory": "img/tools/icons", "maxWebpBytes": 155000 },
+    { "directory": "img/games/icons", "maxWebpBytes": 65000 }
+  ]
+}

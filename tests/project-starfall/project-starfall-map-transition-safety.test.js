@@ -80,8 +80,8 @@ engine.queueCurrentAssetPreload = (label) => {
 assert.strictEqual(engine.enterBossEncounter('eclipseSovereign', { admin: true }), true,
   'the Eclipse Sovereign encounter should open from a normal map state');
 assert.strictEqual(engine.state.mapId, 'eclipseThrone');
-assert(engine.runtime.asset.endsWith('/maps/eclipse-throne-v2.webp'),
-  'boss entry should switch to the authored Eclipse panorama');
+assert(engine.runtime.asset.endsWith('/maps/eclipse-throne.webp'),
+  'boss entry should switch to the restored Eclipse background');
 assert(bossEntryTransitions.includes('prune:starfallCrossing'),
   'boss entry should prune stale map-derived renderer textures');
 assert(bossEntryTransitions.includes('prewarm:true'),

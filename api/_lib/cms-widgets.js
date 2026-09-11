@@ -1,5 +1,7 @@
 'use strict';
 
+const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
+
 const {
   renderPersonalLibraryHeader
 } = require('../../build/lib/personal-accordion-shell');
@@ -436,7 +438,7 @@ function renderHomeAccordionCard(item, categoryId) {
   const imageWidth = iconImage ? 256 : item && item.imageWidth;
   const imageHeight = iconImage ? 256 : item && item.imageHeight;
   const media = image
-    ? `<img src="${escapeHtml(image)}" alt="${iconImage ? '' : escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${imageWidth ? ` width="${escapeHtml(imageWidth)}"` : ''}${imageHeight ? ` height="${escapeHtml(imageHeight)}"` : ''}>`
+    ? renderCatalogIcon(`<img src="${escapeHtml(image)}" alt="${iconImage ? '' : escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${imageWidth ? ` width="${escapeHtml(imageWidth)}"` : ''}${imageHeight ? ` height="${escapeHtml(imageHeight)}"` : ''}>`)
     : `<span class="home-accordion__card-glyph" data-home-icon="${escapeHtml(iconId)}" aria-hidden="true">${homeAccordionIcon(iconId)}</span>`;
   const contentType = String(item && item.contentType || '').trim();
   const contentId = String(item && item.contentId || item && item.id || '').trim();
@@ -547,7 +549,7 @@ function renderHomeTimelineItem(item, categoryId, options = {}) {
     ? ` href="${escapeHtml(normalizeHref(href))}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}${analytics}`
     : '';
   const media = item && item.image
-    ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${item.imageWidth ? ` width="${escapeHtml(item.imageWidth)}"` : ''}${item.imageHeight ? ` height="${escapeHtml(item.imageHeight)}"` : ''}>`
+    ? renderCatalogIcon(`<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${item.imageWidth ? ` width="${escapeHtml(item.imageWidth)}"` : ''}${item.imageHeight ? ` height="${escapeHtml(item.imageHeight)}"` : ''}>`)
     : '<span class="home-timeline__marker" aria-hidden="true"></span>';
 
   return [
@@ -620,7 +622,7 @@ function renderHomeBackgroundItem(item, categoryId, options = {}) {
     `                  <li class="home-background__item" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
     `                    <span class="home-background__icon" aria-hidden="true">${icon}</span>`,
     `                    <${tag} class="home-background__entry" aria-describedby="${escapeHtml(dateId)}"${linkAttrs}>`,
-    `                      <strong class="home-background__title">${titleHtml}</strong>`,
+    `                      <strong class="home-background__title">${href ? `<span>${titleHtml}</span><span class="home-background__arrow" aria-hidden="true">${HOME_ACCORDION_ICONS[external ? 'external-arrow' : 'arrow']}</span>` : titleHtml}</strong>`,
     item && item.subtitle ? `                      <span class="home-background__subtitle">${escapeHtml(item.subtitle)}</span>` : '',
     `                    </${tag}>`,
     `                    <div class="home-background__date" id="${escapeHtml(dateId)}">${dateHtml}</div>`,

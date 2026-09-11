@@ -56,11 +56,11 @@ function main() {
   assert(map, 'Eclipse Throne should remain in the published map catalog');
   assert.strictEqual(Environment.ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID, 'totality-observatory');
   assert.strictEqual(Data.ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID, 'totality-observatory');
-  assert.strictEqual(map.environment.platformTreatment, 'totality-observatory');
+  assert.strictEqual(map.environment.platformTreatment, undefined, 'the restored map should use its original terrain art');
   assert.strictEqual(map.environment.terrain, 'eclipse-throne');
   assert.strictEqual(map.environment.props, 'eclipse-throne');
-  assert.strictEqual(map.environment.ramps, 'eclipse-throne');
-  assert(map.environment.terrainStyle.bodyAlpha <= 0.68);
+  assert.strictEqual(map.environment.ramps || map.environment.terrain, 'eclipse-throne');
+  assert.strictEqual(map.environment.terrainStyle.bodyAlpha, 0.84);
   assert(map.environment.terrainStyle.platformBodyDepth <= 24);
 
   assert.strictEqual(
@@ -107,12 +107,18 @@ function main() {
   const flat = map.platforms.find((platform) => platform.terrainVisual && platform.terrainVisual.kind === 'solidLane');
   assert(slope && flat);
 
+  const treatmentMap = Object.assign({}, map, {
+    environment: Object.assign({}, map.environment, { platformTreatment: 'totality-observatory' })
+  });
+  assert.strictEqual(engine.drawEclipseObservatoryDeckTreatment(createCanvasRecorder().context, map, flat, 2), false,
+    'restored terrain should not activate the later procedural observatory treatment');
+
   const canvasRamp = createCanvasRecorder();
-  assert.strictEqual(engine.drawRampPlatformTerrain(canvasRamp.context, map, slope, 1, {}, 'test'), true);
+  assert.strictEqual(engine.drawRampPlatformTerrain(canvasRamp.context, treatmentMap, slope, 1, {}, 'test'), true);
   assert(canvasRamp.operations.some((operation) => operation[0] === 'arc'));
   assert(canvasRamp.operations.filter((operation) => operation[0] === 'stroke').length >= 3);
   const canvasFlat = createCanvasRecorder();
-  assert.strictEqual(engine.drawEclipseObservatoryDeckTreatment(canvasFlat.context, map, flat, 2), true);
+  assert.strictEqual(engine.drawEclipseObservatoryDeckTreatment(canvasFlat.context, treatmentMap, flat, 2), true);
   assert(canvasFlat.operations.some((operation) => operation[0] === 'fillRect'));
 
   const ordinaryMap = Data.MAPS.find((candidate) => candidate.id !== map.id && candidate.environment);
@@ -123,7 +129,7 @@ function main() {
 
   const pixi = PixiRenderer.createRenderer({ data: Data });
   pixi.mapGraphics = createPixiGraphicsRecorder();
-  assert.strictEqual(pixi.drawRampPlatformTerrain({}, map, slope, 1, map.environment, {}, 'test'), true);
+  assert.strictEqual(pixi.drawRampPlatformTerrain({}, treatmentMap, slope, 1, treatmentMap.environment, {}, 'test'), true);
   assert(pixi.mapGraphics.operations.some((operation) => operation[0] === 'circle'));
   assert(pixi.mapGraphics.operations.filter((operation) => operation[0] === 'stroke').length >= 3);
 

@@ -4,7 +4,7 @@
   "href": "tools/nbsp-cleaner",
   "iconImage": "img/tools/icons/nbsp-cleaner.png",
   "categoryId": "tools-writing",
-  "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
+  "privacy": "Processing runs on your device. When signed in, text, settings, and results save automatically to your account; shared input links contain your text.",
   "inputs": ["Pasted text"],
   "outputs": ["Cleaned text and replacement count"],
   "summary": "Find hard spaces and copy clean text.",

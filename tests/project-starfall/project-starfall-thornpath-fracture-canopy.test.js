@@ -126,9 +126,9 @@ function main() {
   assert.strictEqual(map.platforms[outgoingPortals[1].platformIndex].id, 'thornpath_fork_observatory_branch');
 
   const environment = Data.MAP_ENVIRONMENT_PROFILES.thornpathThicket;
-  ['crystal', 'glow', 'sign'].forEach((kind) => assert(environment.propKinds.includes(kind)));
-  ['grass', 'bush', 'flower'].forEach((kind) => assert(!environment.propKinds.includes(kind)));
-  assert.strictEqual(environment.ramps, 'thornpath-thicket');
+  assert.deepStrictEqual(environment.propKinds, ['grass', 'bush', 'tree', 'flower', 'vine', 'rock'],
+    'the current canopy route should use the restored woodland prop art');
+  assert.strictEqual(environment.ramps || environment.terrain, 'thornpath-thicket');
 
   const validation = validateMap(map);
   assert.deepStrictEqual(validation.issues, [], `map validation failed: ${validation.issues.join('; ')}`);

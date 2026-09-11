@@ -28,7 +28,6 @@
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
     captureActions: $('[data-screenrec="capture-actions"]'),
-    testCapture: $('[data-screenrec="test-capture"]'),
     cropToggle: $('[data-screenrec="crop-toggle"]'),
     cropLabel: $('[data-screenrec="crop-label"]'),
     cropPresetsToggle: $('[data-screenrec="crop-presets-toggle"]'),
@@ -51,13 +50,13 @@
     video: $('[data-screenrec="video"]'),
     placeholder: $('[data-screenrec="placeholder"]'),
     status: $('[data-screenrec="status"]'),
+    notice: $('[data-screenrec="notice"]'),
+    recordingLimits: $('[data-screenrec="recording-limits"]'),
     captureMeta: $('[data-screenrec="capture-meta"]'),
     timer: $('[data-screenrec="timer"]'),
     startRecord: $('[data-screenrec="start-record"]'),
-    delayRecord: $('[data-screenrec="delay-record"]'),
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
-    countdown: $('[data-screenrec="countdown"]'),
     downloadAll: $('[data-screenrec="download-all"]'),
     downloadNote: $('[data-screenrec="download-note"]'),
     downloadItems: $('[data-screenrec="download-items"]'),
@@ -109,12 +108,6 @@
     recordedBytes: 0,
     limitStopReason: '',
     recordingStopRequested: false,
-    countdownId: null,
-    countdownRemaining: 0,
-    countdownActive: false,
-    countdownPrevStatus: null,
-    statusText: '',
-    statusTone: '',
     firstFrameJobId: 0,
     downloadUrls: [],
     downloadFiles: [],
@@ -128,8 +121,6 @@
     stopReason: '',
     recordingStream: null,
     recordingCleanup: null,
-    testMode: false,
-    testTimerId: null,
     cropRegion: null,
     cropSelecting: false,
     cropStart: null,
@@ -204,17 +195,18 @@
     medium: { label: 'Balanced', video: 4000000, audio: 128000 },
     high: { label: 'High', video: 8000000, audio: 192000 }
   };
-  const RECORD_DELAY_SECONDS = 5;
 
-  const setStatus = (text, tone) => {
+  const setStatus = (text, tone, notice = '') => {
     if (!el.status) return;
     el.status.textContent = text;
-    state.statusText = text;
-    state.statusTone = tone || '';
     if (tone) {
       el.status.dataset.tone = tone;
     } else {
       delete el.status.dataset.tone;
+    }
+    if (el.notice) {
+      el.notice.textContent = notice;
+      el.notice.hidden = !notice;
     }
   };
 
@@ -236,8 +228,6 @@
     const value = bytes / (1024 ** idx);
     return `${value.toFixed(value >= 10 || idx === 0 ? 0 : 1)} ${units[idx]}`;
   };
-
-  const getRecordingLimitSummary = () => `${formatDuration(RECORDING_LIMITS.maxDurationMs)} or ${formatBytes(RECORDING_LIMITS.maxAggregateBytes)} total`;
 
   const extensionFromMime = (mimeType) => {
     if (!mimeType) return 'webm';
@@ -300,9 +290,8 @@
 
     if (el.formatHelp) {
       if (!supported.length) {
-        el.formatHelp.textContent = `No explicit formats detected. Auto will use one browser-default format. Recordings stop at ${getRecordingLimitSummary()}.`;
+        el.formatHelp.textContent = 'Auto uses your browser’s default recording format.';
       } else {
-        const labels = supported.map((opt) => opt.label).join(', ');
         const mp4Supported = supported.some((opt) => opt.mimeType.includes('mp4'));
         const mp4AacSupported = supported.some((opt) => opt.mimeType === MP4_AAC_MIME);
         let mp4Note = 'MP4 recording is not supported here.';
@@ -311,7 +300,7 @@
             ? 'MP4 with AAC audio is supported in this browser.'
             : 'MP4 audio may be limited; MP4 exports may be video-only for compatibility.';
         }
-        el.formatHelp.textContent = `Auto records one format by default. You can select up to ${RECORDING_LIMITS.maxSimultaneousRecorders} explicit formats. Recordings stop at ${getRecordingLimitSummary()}. Supported: ${labels}. ${mp4Note}`;
+        el.formatHelp.textContent = `Choose Auto or up to ${RECORDING_LIMITS.maxSimultaneousRecorders} formats. ${mp4Note}`;
       }
     }
 
@@ -332,7 +321,7 @@
         const selectedExplicitInputs = formatInputs.filter((item) => item.dataset.auto !== 'true' && item.checked);
         if (selectedExplicitInputs.length > RECORDING_LIMITS.maxSimultaneousRecorders) {
           input.checked = false;
-          setStatus(`Choose no more than ${RECORDING_LIMITS.maxSimultaneousRecorders} recording formats to keep memory bounded.`, 'warn');
+          setStatus('Format limit', 'warn', `Choose up to ${RECORDING_LIMITS.maxSimultaneousRecorders} recording formats.`);
           return;
         }
         const anyExplicitChecked = formatInputs.some((item) => item.dataset.auto !== 'true' && item.checked);
@@ -772,14 +761,14 @@
     if (state.downloadFiles.length === 1) {
       const file = state.downloadFiles[0];
       triggerFileDownload(file);
-      setStatus('Download started.', 'ready');
+      setStatus('Clip ready', 'ready');
       return;
     }
 
     const aggregateBytes = state.downloadFiles.reduce((total, file) => total + Math.max(0, Number(file.blob?.size) || 0), 0);
     if (aggregateBytes > RECORDING_LIMITS.maxZipAggregateBytes) {
       state.downloadFiles.forEach(triggerFileDownload);
-      setStatus(`Zip skipped above ${formatBytes(RECORDING_LIMITS.maxZipAggregateBytes)}. Individual downloads started; your browser may ask permission for multiple files.`, 'ready');
+      setStatus('Clip ready', 'ready', 'Large clips download individually. Allow multiple downloads if your browser asks.');
       return;
     }
 
@@ -789,7 +778,7 @@
       button.disabled = true;
       button.textContent = 'Preparing zip...';
     }
-    setStatus('Preparing zip...', 'pending');
+    setStatus('Preparing download', 'pending');
 
     try {
       if (!state.downloadZipUrl) {
@@ -805,9 +794,9 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      setStatus('Zip download started.', 'ready');
+      setStatus('Clip ready', 'ready');
     } catch (_) {
-      setStatus('Zip creation failed.', 'error');
+      setStatus('Download failed', 'error', 'Try downloading the formats individually.');
     } finally {
       if (button) {
         button.textContent = originalText || 'Download formats';
@@ -1626,7 +1615,7 @@
         el.micToggle.checked = false;
       }
       setMicHelp('Microphone access denied or unavailable.');
-      setStatus('Microphone access denied or unavailable.', 'warn');
+      setStatus('Microphone unavailable', 'warn', 'Allow microphone access or turn it off in Audio settings.');
       updateAudioStatus();
       startAudioMeter();
       updateButtons();
@@ -1680,10 +1669,7 @@
       el.stopCapture.disabled = !captureLive || state.recording;
     }
     if (el.startRecord) {
-      el.startRecord.disabled = !captureLive || state.recording || state.countdownActive;
-    }
-    if (el.delayRecord) {
-      el.delayRecord.disabled = !captureLive || state.recording;
+      el.startRecord.disabled = !captureLive || state.recording;
     }
     if (el.pauseRecord) {
       el.pauseRecord.disabled = !state.recording;
@@ -1730,9 +1716,6 @@
         input.disabled = state.recording || !supported;
       });
     }
-    if (el.testCapture) {
-      el.testCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || state.recording;
-    }
     if (el.cropToggle) {
       el.cropToggle.disabled = !captureLive || state.recording;
       const label = state.cropSelecting || state.cropRegion ? 'Cancel crop' : 'Crop';
@@ -1754,97 +1737,6 @@
     }
     updateAudioDetails();
     updateAudioMeterState();
-  };
-
-  const updateDelayButtonState = () => {
-    if (!el.delayRecord) return;
-    if (state.countdownActive) {
-      el.delayRecord.textContent = 'Cancel';
-      el.delayRecord.setAttribute('aria-pressed', 'true');
-      el.delayRecord.title = 'Cancel delayed start';
-      el.delayRecord.dataset.countdown = 'true';
-      return;
-    }
-    el.delayRecord.textContent = `Start in ${RECORD_DELAY_SECONDS}s`;
-    el.delayRecord.setAttribute('aria-pressed', 'false');
-    el.delayRecord.title = `Start recording after a ${RECORD_DELAY_SECONDS}-second countdown`;
-    delete el.delayRecord.dataset.countdown;
-  };
-
-  const updateCountdownDisplay = () => {
-    if (!el.countdown) return;
-    if (!state.countdownActive || state.countdownRemaining <= 0) {
-      el.countdown.hidden = true;
-      el.countdown.textContent = '';
-      return;
-    }
-    el.countdown.textContent = `Recording starts in ${state.countdownRemaining}s`;
-    el.countdown.hidden = false;
-  };
-
-  const cancelCountdown = (restoreStatus = true) => {
-    if (state.countdownId) {
-      clearInterval(state.countdownId);
-      state.countdownId = null;
-    }
-    if (!state.countdownActive && state.countdownRemaining === 0) return;
-    const previousStatus = state.countdownPrevStatus;
-    state.countdownActive = false;
-    state.countdownRemaining = 0;
-    state.countdownPrevStatus = null;
-    updateCountdownDisplay();
-    updateDelayButtonState();
-    if (restoreStatus && previousStatus && previousStatus.text) {
-      setStatus(previousStatus.text, previousStatus.tone);
-    }
-    updateButtons();
-  };
-
-  const startCountdown = () => {
-    if (!isCaptureLive() || state.recording || state.countdownActive) return;
-    const currentText = state.statusText || el.status?.textContent || '';
-    const currentTone = state.statusTone || el.status?.dataset?.tone || '';
-    state.countdownPrevStatus = { text: currentText, tone: currentTone };
-    state.countdownActive = true;
-    state.countdownRemaining = RECORD_DELAY_SECONDS;
-    updateDelayButtonState();
-    updateCountdownDisplay();
-    setStatus(`Recording starts in ${state.countdownRemaining}s...`, 'pending');
-    updateButtons();
-    if (state.countdownId) {
-      clearInterval(state.countdownId);
-    }
-    state.countdownId = setInterval(() => {
-      if (!isCaptureLive() || state.recording) {
-        cancelCountdown();
-        return;
-      }
-      state.countdownRemaining -= 1;
-      if (state.countdownRemaining <= 0) {
-        if (state.countdownId) {
-          clearInterval(state.countdownId);
-          state.countdownId = null;
-        }
-        state.countdownActive = false;
-        state.countdownPrevStatus = null;
-        updateDelayButtonState();
-        updateCountdownDisplay();
-        updateButtons();
-        setStatus('Starting recording...', 'pending');
-        startRecording();
-        return;
-      }
-      updateCountdownDisplay();
-      setStatus(`Recording starts in ${state.countdownRemaining}s...`, 'pending');
-    }, 1000);
-  };
-
-  const toggleDelayedRecording = () => {
-    if (state.countdownActive) {
-      cancelCountdown();
-      return;
-    }
-    startCountdown();
   };
 
   const getActiveElapsedMs = (now = performance.now()) => {
@@ -1955,7 +1847,7 @@
       : [{ blob, mimeType: state.recordedMimeType, label: formatLabelFromMime(state.recordedMimeType) }];
     if (skipDownloads) return;
     setDownloads(downloadFiles);
-    setStatus(statusMessage || 'Clip ready to download. Stop capture when you are done.', 'ready');
+    setStatus(statusMessage || 'Clip ready', 'ready');
     markSessionDirty();
   };
 
@@ -1964,7 +1856,7 @@
       stopCapture('Capture ended by the browser.');
     }
     if (!supportsCapture || !supportsRecorder || state.captureActive || state.recording) return false;
-    setStatus('Requesting capture permission...', 'pending');
+    setStatus('Choose a source', 'pending');
 
     const includeAudio = Boolean(el.audioToggle?.checked);
     const fps = getSelectedFps();
@@ -1974,23 +1866,27 @@
     let audioFallback = false;
     try {
       stream = await navigator.mediaDevices.getDisplayMedia(constraints);
-    } catch (_) {
+    } catch (error) {
+      if (error.name === 'NotAllowedError' || error.name === 'AbortError') {
+        setStatus('Capture cancelled', 'idle');
+        return false;
+      }
       if (includeAudio) {
         try {
           stream = await navigator.mediaDevices.getDisplayMedia({ video: videoConstraints, audio: false });
           audioFallback = true;
         } catch (err) {
-          setStatus('Capture request failed. Check permissions.', 'error');
+          setStatus('Capture unavailable', 'error', 'Check your browser’s screen-sharing permissions and try again.');
           return false;
         }
       } else {
-        setStatus('Capture request failed. Check permissions.', 'error');
+        setStatus('Capture unavailable', 'error', 'Check your browser’s screen-sharing permissions and try again.');
         return false;
       }
     }
 
     if (!stream) {
-      setStatus('Capture did not start.', 'error');
+      setStatus('Capture unavailable', 'error');
       return false;
     }
 
@@ -2025,13 +1921,12 @@
       }
     }, { once: true });
 
-    const limitNote = ` Recordings stop automatically at ${getRecordingLimitSummary()}.`;
     if (audioFallback) {
-      setStatus(`Audio capture is not available. Capturing without audio.${limitNote}`, 'warn');
+      setStatus('Ready', 'warn', 'This capture has no system audio.');
     } else if (includeAudio && !streamHasAudio(stream)) {
-      setStatus(`System audio not detected. Enable "Share audio" in the browser prompt.${limitNote}`, 'warn');
+      setStatus('Ready', 'warn', 'System audio is missing. Select “Share audio” when choosing a source.');
     } else {
-      setStatus(`Capture ready. Start recording when you are ready.${limitNote}`, 'ready');
+      setStatus('Ready', 'ready');
     }
     updateCropOverlay();
     return true;
@@ -2039,15 +1934,9 @@
 
   const stopCapture = (reason) => {
     if (!state.captureActive) return;
-    cancelCountdown(false);
     stopTracks(state.stream);
     state.stream = null;
     state.captureActive = false;
-    if (state.testTimerId) {
-      clearTimeout(state.testTimerId);
-      state.testTimerId = null;
-    }
-    state.testMode = false;
     cleanupRecordingPipeline();
     updateCaptureMeta();
     updateButtons();
@@ -2056,30 +1945,12 @@
       el.video.srcObject = null;
     }
     resetTimer(state.recordedDuration ? state.recordedDuration * 1000 : 0);
-    const message = reason || state.stopReason || (state.recordedUrl ? 'Capture stopped. Clip ready to download.' : 'Capture stopped.');
+    const message = state.recordedUrl ? 'Clip ready' : reason || state.stopReason ? 'Capture ended' : 'Capture stopped';
     setStatus(message, state.recordedUrl ? 'ready' : 'idle');
     state.stopReason = '';
     clearCrop();
     updatePlaceholder();
     startAudioMeter();
-  };
-
-  const startTestCapture = async () => {
-    if (state.captureActive || state.recording) return;
-    state.testMode = true;
-    const started = await startCapture();
-    if (!started) {
-      state.testMode = false;
-      return;
-    }
-    await startRecording();
-    if (state.recording) {
-      state.testTimerId = setTimeout(() => {
-        stopRecording();
-      }, 5000);
-    } else {
-      state.testMode = false;
-    }
   };
 
   const createRecorder = (stream, mimeType, allowFallback = true, fallbackStream = stream, baseOptions = null) => {
@@ -2094,7 +1965,7 @@
         const fallbackOptions = { ...(baseOptions || {}) };
         recorder = new MediaRecorder(fallbackStream, fallbackOptions);
         finalMime = '';
-        setStatus('Selected format not supported. Using browser default.', 'warn');
+        setStatus('Using default format', 'warn', 'The selected format is not supported by this browser.');
       } else {
         throw err;
       }
@@ -2326,7 +2197,7 @@
         cleanupTasks.push(cropped.cleanup);
         scaleApplied = cropScale < 1;
       } else {
-        setStatus('Crop preview unavailable. Recording full frame.', 'warn');
+        setStatus('Using full frame', 'warn', 'Cropping is unavailable for this capture.');
       }
     }
 
@@ -2336,7 +2207,7 @@
         videoTrack = scaled.stream.getVideoTracks()[0];
         cleanupTasks.push(scaled.cleanup);
       } else {
-        setStatus('Resolution scaling unavailable. Recording full size.', 'warn');
+        setStatus('Using full size', 'warn', 'Resolution scaling is unavailable for this capture.');
       }
     }
 
@@ -2380,7 +2251,6 @@
 
   const startRecording = async () => {
     if (!isCaptureLive() || state.recording || !state.stream) return;
-    cancelCountdown(false);
     clearRecordedClip();
 
     let runTerminalDispatched = false;
@@ -2399,19 +2269,13 @@
     try {
       recordingStreamInfo = buildRecordingStream();
     } catch (_) {
-      setStatus('Recording failed to initialize in this browser.', 'error');
+      setStatus('Recording unavailable', 'error', 'Try another output format or browser.');
       dispatchRunTerminal('tools:run-error', { errorType: 'runtime' });
-      if (state.testMode) {
-        state.testMode = false;
-      }
       return;
     }
     if (!recordingStreamInfo || !recordingStreamInfo.stream) {
-      setStatus('Recording failed to initialize in this browser.', 'error');
+      setStatus('Recording unavailable', 'error', 'Try another output format or browser.');
       dispatchRunTerminal('tools:run-error', { errorType: 'unsupported' });
-      if (state.testMode) {
-        state.testMode = false;
-      }
       return;
     }
     state.recordingStream = recordingStreamInfo.stream;
@@ -2421,21 +2285,15 @@
     try {
       recorderSet = buildRecorderSet(recordingStreamInfo.stream);
     } catch (_) {
-      setStatus('Recording failed to initialize in this browser.', 'error');
+      setStatus('Recording unavailable', 'error', 'Try another output format or browser.');
       cleanupRecordingPipeline();
       dispatchRunTerminal('tools:run-error', { errorType: 'runtime' });
-      if (state.testMode) {
-        state.testMode = false;
-      }
       return;
     }
     if (!recorderSet.recorders.length) {
-      setStatus('Recording failed to initialize in this browser.', 'error');
+      setStatus('Recording unavailable', 'error', 'Try another output format or browser.');
       cleanupRecordingPipeline();
       dispatchRunTerminal('tools:run-error', { errorType: 'unsupported' });
-      if (state.testMode) {
-        state.testMode = false;
-      }
       return;
     }
 
@@ -2454,11 +2312,7 @@
       state.recording = false;
       state.paused = false;
       stopTimer();
-      const readyStatusMessage = state.limitStopReason === 'duration'
-        ? `Stopped at the ${formatDuration(RECORDING_LIMITS.maxDurationMs)} duration limit. Clip ready to download.`
-        : state.limitStopReason === 'bytes'
-          ? `Stopped at the ${formatBytes(RECORDING_LIMITS.maxAggregateBytes)} memory limit. Clip ready to download.`
-          : 'Clip ready to download. Stop capture when you are done.';
+      const readyStatusMessage = state.limitStopReason ? 'Clip ready · limit reached' : 'Clip ready';
       const files = state.recorders
         .map((entry) => entry.file)
         .filter(Boolean);
@@ -2472,7 +2326,7 @@
           const jobId = state.firstFrameJobId + 1;
           state.firstFrameJobId = jobId;
           setDownloadPending('Preparing first-frame images...');
-          setStatus('Preparing first-frame images...', 'pending');
+          setStatus('Preparing images', 'pending');
           buildFirstFrameImages(primaryFile.blob, imageTypes).then((imageFiles) => {
             if (state.firstFrameJobId !== jobId || state.recordedBlob !== primaryFile.blob) return;
             if (imageFiles.length) {
@@ -2480,7 +2334,7 @@
               setStatus(readyStatusMessage, 'ready');
             } else {
               setDownloads(files);
-              setStatus(`${readyStatusMessage} First-frame image export failed.`, 'warn');
+              setStatus(readyStatusMessage, 'warn', 'The clip is ready, but first-frame images could not be exported.');
             }
             updateButtons();
             dispatchRunTerminal('tools:run-complete', {
@@ -2489,7 +2343,7 @@
           }).catch(() => {
             if (state.firstFrameJobId !== jobId || state.recordedBlob !== primaryFile.blob) return;
             setDownloads(files);
-            setStatus(`${readyStatusMessage} First-frame image export failed.`, 'warn');
+            setStatus(readyStatusMessage, 'warn', 'The clip is ready, but first-frame images could not be exported.');
             updateButtons();
             dispatchRunTerminal('tools:run-complete', {
               resultBucket: files.length > 1 ? 'multiple_files' : 'single_file'
@@ -2505,21 +2359,12 @@
         const reason = state.limitStopReason
           ? `The ${state.limitStopReason === 'bytes' ? 'memory' : 'duration'} limit stopped recording, but no usable data was captured.`
           : 'Recording stopped. No data captured.';
-        setStatus(reason, 'warn');
+        setStatus('No clip recorded', 'warn', reason);
         dispatchRunTerminal('tools:run-error', { errorType: 'processing' });
       }
       cleanupRecordingPipeline();
       state.recorders = [];
       state.primaryRecorder = null;
-      if (state.testTimerId) {
-        clearTimeout(state.testTimerId);
-        state.testTimerId = null;
-      }
-      if (state.testMode) {
-        state.testMode = false;
-        stopCapture('Test capture complete. Clip ready to download.');
-        return;
-      }
       if (state.captureActive && state.stream && !state.stream.active) {
         stopCapture(state.stopReason || 'Capture ended by the browser.');
         return;
@@ -2587,32 +2432,27 @@
 
       const primaryMissing = !state.recorders.some((entry) => entry.isPrimary);
       const formatsSkipped = recorderSet.failed.length > 0 || failedStarts.length > 0;
-      let statusMessage = state.testMode
-        ? 'Recording 5-second test...'
-        : `Recording... Auto-stops at ${getRecordingLimitSummary()}.`;
+      let recordingNotice = '';
       if (primaryMissing && formatsSkipped) {
-        statusMessage = `${statusMessage} Primary format unavailable; some formats skipped.`;
+        recordingNotice = `${recordingNotice} Primary format unavailable; some formats skipped.`;
       } else if (primaryMissing) {
-        statusMessage = `${statusMessage} Primary format unavailable.`;
+        recordingNotice = `${recordingNotice} Primary format unavailable.`;
       } else if (formatsSkipped) {
-        statusMessage = `${statusMessage} Some formats skipped.`;
+        recordingNotice = `${recordingNotice} Some formats skipped.`;
       }
       if (mp4AudioStripped) {
-        statusMessage = `${statusMessage} MP4 audio isn't supported here; MP4 will be video-only.`;
+        recordingNotice = `${recordingNotice} MP4 audio isn't supported here; MP4 will be video-only.`;
       }
-      setStatus(statusMessage, 'recording');
+      setStatus('Recording', 'recording', recordingNotice.trim());
       updateButtons();
       dispatchToolRunEvent('tools:run-start');
     } catch (err) {
       state.recording = false;
       stopTimer();
-      setStatus('Recording failed to start.', 'error');
+      setStatus('Recording failed', 'error', 'Try another output format or start a new capture.');
       cleanupRecordingPipeline();
       state.recorders = [];
       state.primaryRecorder = null;
-      if (state.testMode) {
-        state.testMode = false;
-      }
       updateButtons();
       dispatchRunTerminal('tools:run-error', { errorType: 'runtime' });
     }
@@ -2630,7 +2470,7 @@
       });
       state.paused = true;
       pauseTimer();
-      setStatus(`Recording paused at ${formatBytes(state.recordedBytes)}. Limit: ${getRecordingLimitSummary()}.`, 'warn');
+      setStatus('Paused', 'warn');
     } else if (state.primaryRecorder && state.primaryRecorder.state === 'paused') {
       state.recorders.forEach((entry) => {
         if (entry.recorder.state === 'paused') {
@@ -2641,7 +2481,7 @@
       });
       state.paused = false;
       resumeTimer();
-      setStatus(`Recording... Auto-stops at ${getRecordingLimitSummary()}.`, 'recording');
+      setStatus('Recording', 'recording');
     }
     updateButtons();
   };
@@ -2653,7 +2493,7 @@
       const label = reason === 'duration'
         ? `${formatDuration(RECORDING_LIMITS.maxDurationMs)} duration`
         : `${formatBytes(RECORDING_LIMITS.maxAggregateBytes)} memory`;
-      setStatus(`${label} limit reached. Finalizing the clip...`, 'pending');
+      setStatus('Finalizing clip', 'pending', `The ${label} limit was reached.`);
     }
     if (state.recordingStopRequested) return;
     state.recordingStopRequested = true;
@@ -2694,7 +2534,7 @@
     if (event.button && event.button !== 0) return;
     const frame = getVideoFrameRect();
     if (!frame) {
-      setStatus('Preview not ready for cropping.', 'warn');
+      setStatus('Preview not ready', 'warn');
       return;
     }
     const point = {
@@ -2887,6 +2727,9 @@
   };
 
   const init = () => {
+    if (el.recordingLimits) {
+      el.recordingLimits.textContent = `Automatic stop: ${Math.round(RECORDING_LIMITS.maxDurationMs / 60000)} min or ${formatBytes(RECORDING_LIMITS.maxAggregateBytes)}.`;
+    }
     setFormatOptions();
     setImageOptions();
     updateAudioLevelValue();
@@ -2894,8 +2737,6 @@
     updateCropPresetUI();
     updateCaptureMeta();
     updateButtons();
-    updateDelayButtonState();
-    updateCountdownDisplay();
     setView();
     initSettingsTabs();
     updateMicDevices();
@@ -2906,10 +2747,8 @@
     el.startCapture?.addEventListener('click', startCapture);
     el.stopCapture?.addEventListener('click', () => stopCapture());
     el.startRecord?.addEventListener('click', startRecording);
-    el.delayRecord?.addEventListener('click', toggleDelayedRecording);
     el.pauseRecord?.addEventListener('click', togglePause);
     el.stopRecord?.addEventListener('click', stopRecording);
-    el.testCapture?.addEventListener('click', startTestCapture);
     el.cropToggle?.addEventListener('click', toggleCropSelection);
     el.cropPresetsToggle?.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -2967,7 +2806,7 @@
     window.addEventListener('resize', syncCropSelection);
     el.downloadAll?.addEventListener('click', () => {
       if (!state.downloadUrls.length) {
-        setStatus('Record a clip before downloading.', 'warn');
+        setStatus('No clip recorded', 'warn');
         return;
       }
       triggerDownloads();
@@ -3075,7 +2914,7 @@
     };
   });
 
-  const hasActiveRecording = () => state.recording || state.countdownActive || state.recorders.some((entry) => (
+  const hasActiveRecording = () => state.recording || state.recorders.some((entry) => (
     entry?.recorder?.state === 'recording' || entry?.recorder?.state === 'paused'
   ));
 
@@ -3087,12 +2926,7 @@
   });
 
   window.SiteRoutes?.addCleanup?.(() => {
-    cancelCountdown(false);
     stopTimer();
-    if (state.testTimerId) {
-      clearTimeout(state.testTimerId);
-      state.testTimerId = null;
-    }
     const activeRecorders = state.recorders.slice();
     state.recorders = [];
     state.primaryRecorder = null;

@@ -16,6 +16,13 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { createLocalServer } = require('../../build/dev');
 const runResponsiveSpacingChecks = require('./responsive-spacing.browser.cjs');
 const runClosedHomeChecks = require('./home-closed.browser.cjs');
+const runHomeTabTransitionChecks = require('./home-tab-transitions.browser.cjs');
+const runImageOptimizerChecks = require('./image-optimizer-onboarding.browser.cjs');
+const runMobileExploreChecks = require('./mobile-explore.browser.cjs');
+const runProjectContentClarityChecks = require('./project-content-clarity.browser.cjs');
+const runCatalogIconChecks = require('./catalog-icons.browser.cjs');
+const runScreenRecorderSimpleChecks = require('./screen-recorder-simple.browser.cjs');
+const runAccountSaveChecks = require('./account-save.browser.cjs');
 
 const root = path.resolve(__dirname, '../..');
 const personalContent = require('../../content/audiences/personal.json');
@@ -752,6 +759,13 @@ async function main() {
     ]) await runViewport(browser, base, settings);
     await runResponsiveSpacingChecks({ browser, base, settle, assertLayout, artifactDir });
     await runClosedHomeChecks({ browser, base, artifactDir });
+    await runHomeTabTransitionChecks({ browser, base, artifactDir });
+    await runImageOptimizerChecks({ browser, base, artifactDir });
+    await runMobileExploreChecks({ browser, base, artifactDir });
+    await runProjectContentClarityChecks({ browser, base, artifactDir });
+    await runCatalogIconChecks({ browser, base });
+    await runScreenRecorderSimpleChecks({ browser, base, artifactDir });
+    await runAccountSaveChecks({ browser, base, artifactDir });
     console.log(`Browser artifacts: ${artifactDir}`);
   } finally {
     await browser?.close();

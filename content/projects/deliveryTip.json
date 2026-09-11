@@ -2,6 +2,7 @@
   "id": "deliveryTip",
   "title": "Delivery Tip",
   "subtitle": "Compare delivery shifts and neighborhoods to plan where and when to work.",
+  "metaDescription": "Explore an Excel analysis of delivery shifts and neighborhoods built from personal delivery records to inform where and when to work.",
   "image": "img/projects/deliveryTip.png",
   "iconImage": "img/projects/icons/deliveryTip.png",
   "imageWidth": 960,
@@ -40,5 +41,6 @@
     "Used the dashboard to make better shift and zone choices over time."
   ],
   "order": 10,
-  "notes": "The Excel workflow is built from personal delivery-ticket history, so the findings are useful for shift planning but not intended as a universal tipping model."
+  "notes": "The Excel workflow is built from personal delivery-ticket history, so the findings are useful for shift planning but not intended as a universal tipping model.",
+  "relatedProjectId": "pizza"
 }

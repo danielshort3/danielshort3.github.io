@@ -187,7 +187,7 @@ async function draftTests() {
     }
   });
   const context = vm.createContext({
-    window, document, CustomEvent, console, AUTO_SAVE_MS: 10000,
+    window, document, CustomEvent, console, AUTO_SAVE_MS: 10000, AUTO_SAVE_DEBOUNCE_MS: 1000,
     getSessionParam: () => sessionParam, getActiveSessionId: () => '', setActiveSessionId() {}, setSessionParam() {},
     buildSnapshot: ({ root }) => ({ fields: { text: root.value } }),
     captureToolPayload: () => ({}),

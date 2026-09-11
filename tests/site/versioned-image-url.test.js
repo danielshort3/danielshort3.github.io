@@ -12,6 +12,7 @@ const { renderToolsDirectoryBody, renderGamesDirectoryBody, renderProjectsDataJs
 const { renderVisualPageBody } = require('../../api/_lib/cms-widgets');
 const { renderProjectPage, renderPortfolioStaticResults } = require('../../build/generate-project-pages');
 const { renderPersonalLibraryMain } = require('../../build/lib/personal-accordion-shell');
+const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
 
 const root = path.resolve(__dirname, '../..');
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'site-image-version-'));
@@ -85,7 +86,7 @@ for (const featured of homeProjects) {
   const libraryItem = library.projects.items.find(item => item.id === featured.contentId);
   assert.strictEqual(featured.iconImage, project.iconImage, 'homepage featured cards use the canonical project icon');
   assert.strictEqual(`/${featured.iconImage}`, libraryItem.iconImage, 'homepage and full library share the same versioned artwork');
-  assert(homeHtml.includes(`home-accordion__card-media--icon" aria-hidden="true"><img src="${featured.iconImage}" alt="" loading="lazy" decoding="async" width="256" height="256">`), 'homepage renders a decorative, intrinsically sized icon tile');
+  assert(homeHtml.includes(`home-accordion__card-media--icon" aria-hidden="true">${renderCatalogIcon(`<img src="${featured.iconImage}" alt="" loading="lazy" decoding="async" width="256" height="256">`)}`), 'homepage renders a decorative, intrinsically sized icon tile with a native PNG fallback');
   assert(!homeHtml.includes(`img/projects/${project.id}-640.webp`), 'homepage featured cards do not fall back to old screenshots');
 }
 for (const original of iconProjects) {

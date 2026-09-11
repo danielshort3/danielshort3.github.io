@@ -2,6 +2,7 @@
   'use strict';
 
   const CoreAssets = (typeof require === 'function' ? require('../core/assets.js') : null) || global.ProjectStarfallCore || {};
+  const getAssetRequestUrl = CoreAssets.getAssetRequestUrl || ((assetPath) => assetPath);
   const ASSET_IMAGE_MARKUP_CACHE_LIMIT = 1024;
   const assetImageMarkupCache = new Map();
   const parseAssetFrameFallback = CoreAssets.parseAssetFrame || function parseAssetFrameFallback(assetPath) {
@@ -39,7 +40,7 @@
     const posX = frame.sheetWidth > frame.sw ? frame.sx / (frame.sheetWidth - frame.sw) * 100 : 0;
     const posY = frame.sheetHeight > frame.sh ? frame.sy / (frame.sheetHeight - frame.sh) * 100 : 0;
     return [
-      `background-image:url('${escapeHtml(frame.path).replace(/'/g, '%27')}')`,
+      `background-image:url('${escapeHtml(getAssetRequestUrl(frame.path)).replace(/'/g, '%27')}')`,
       `background-size:${sizeX}% ${sizeY}%`,
       `background-position:${posX}% ${posY}%`
     ].join(';');
@@ -61,7 +62,7 @@
       const classes = [className || '', 'project-starfall-sprite-art'].filter(Boolean).join(' ');
       markup = `<span class="${escapeHtml(classes)}" role="img" aria-label="${escapeHtml(alt || '')}" style="${getAssetFrameStyle(frame, settings)}"></span>`;
     } else {
-      markup = `<img class="${escapeHtml(className)}" src="${escapeHtml(frame && frame.path || path)}" alt="${escapeHtml(alt || '')}" loading="lazy" decoding="async">`;
+      markup = `<img class="${escapeHtml(className)}" src="${escapeHtml(getAssetRequestUrl(frame && frame.path || path))}" alt="${escapeHtml(alt || '')}" loading="lazy" decoding="async">`;
     }
     if (cache) {
       if (cache.size > cacheLimit) cache.clear();

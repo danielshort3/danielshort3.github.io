@@ -4,7 +4,7 @@
   "href": "tools/utm-batch-builder",
   "iconImage": "img/tools/icons/utm-batch-builder.png",
   "categoryId": "tools-marketing",
-  "privacy": "Link generation runs on your device. Saving a session uploads campaign inputs, settings, and results to your account.",
+  "privacy": "Link generation runs on your device. When signed in, campaign inputs, settings, and results save automatically to your account.",
   "inputs": ["Destination URLs and campaign parameters"],
   "outputs": ["Tagged URLs and CSV export"],
   "summary": "Build campaign links in batches and export a clean CSV.",

@@ -4,7 +4,7 @@
   "href": "tools/point-of-view-checker",
   "iconImage": "img/tools/icons/point-of-view-checker.png",
   "categoryId": "tools-writing",
-  "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
+  "privacy": "Processing runs on your device. When signed in, text, settings, and results save automatically to your account; shared input links contain your text.",
   "inputs": ["Pasted text"],
   "outputs": ["Point-of-view and pronoun breakdown"],
   "summary": "Find mixed point of view and review it in context.",

@@ -69,6 +69,7 @@
     box-sizing: border-box;
     border: 4px solid var(--panel-color);
     border-left: 0;
+    border-radius: var(--frame-inner-radius, 11px);
     pointer-events: none;
   }
   .site-frame .site-frame__slot {
