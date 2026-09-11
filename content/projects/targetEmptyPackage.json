@@ -2,6 +2,7 @@
   "id": "targetEmptyPackage",
   "title": "Empty-Package Shrink Dashboard",
   "subtitle": "Locate retail shrink hotspots and compare trends over time.",
+  "metaDescription": "Explore an anonymized retail shrink dashboard that compares empty-package incident counts, retail value, locations, and trends over time.",
   "image": "img/projects/targetEmptyPackage.png",
   "iconImage": "img/projects/icons/targetEmptyPackage.png",
   "imageWidth": 1460,
@@ -72,5 +73,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Empty-package recoveries dashboard showing the quarterly trend and recorded retail value by location."
-  }
+  },
+  "relatedProjectId": "retailStore"
 }

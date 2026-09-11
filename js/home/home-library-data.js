@@ -18,7 +18,7 @@
         {
           "id": "sheetMusicUpscale",
           "title": "Sheet Music Watermark Removal & Upscale",
-          "summary": "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
+          "summary": "Restore sheet-music scans and make small notation easier to read.",
           "href": "/portfolio/sheetMusicUpscale",
           "image": "/img/projects/sheetMusicUpscale-640.webp?v=7328193a7824",
           "imageAlt": "",
@@ -34,7 +34,7 @@
         {
           "id": "handwritingRating",
           "title": "Handwriting Legibility Scoring",
-          "summary": "My wife says my handwriting is hard to read. I wanted an objective score.",
+          "summary": "Explore how confidently a model recognizes your handwritten digits.",
           "href": "/portfolio/handwritingRating",
           "image": "/img/projects/handwritingRating-640.webp",
           "imageAlt": "",
@@ -50,7 +50,7 @@
         {
           "id": "babynames",
           "title": "Baby Name Predictor",
-          "summary": "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
+          "summary": "Personalized name recommendations from family preferences and naming trends.",
           "href": "/portfolio/babynames",
           "image": "/img/projects/babynames-640.webp",
           "imageAlt": "",
@@ -66,7 +66,7 @@
         {
           "id": "smartSentence",
           "title": "Smart Sentence Retriever",
-          "summary": "I wanted to find sentences by meaning when the query and source use different words.",
+          "summary": "Find relevant sentences by meaning, even when the wording differs.",
           "href": "/portfolio/smartSentence",
           "image": "/img/projects/smartSentence-640.webp",
           "imageAlt": "",
@@ -82,7 +82,7 @@
         {
           "id": "chatbotLora",
           "title": "Chatbot (LoRA + RAG)",
-          "summary": "I wanted to compare a custom LoRA deployment with a managed model without giving up grounded answers and citations.",
+          "summary": "Explore Grand Junction with answers grounded in local sources.",
           "href": "/portfolio/chatbotLora",
           "image": "/img/projects/chatbotLora-640.webp",
           "imageAlt": "",
@@ -98,7 +98,7 @@
         {
           "id": "shapeClassifier",
           "title": "Shape Classifier Demo",
-          "summary": "I wanted a model that can tell what shape someone drew.",
+          "summary": "Draw a shape and see how a model classifies it.",
           "href": "/portfolio/shapeClassifier",
           "image": "/img/projects/shapeClassifier-640.webp",
           "imageAlt": "",
@@ -114,7 +114,7 @@
         {
           "id": "digitGenerator",
           "title": "Synthetic Digit Generator",
-          "summary": "I wanted to generate new handwritten digits instead of only recognizing them.",
+          "summary": "Generate new handwritten-style digits and explore how a model learns their shapes.",
           "href": "/portfolio/digitGenerator",
           "image": "/img/projects/digitGenerator-640.webp",
           "imageAlt": "",
@@ -130,7 +130,7 @@
         {
           "id": "nonogram",
           "title": "Nonogram Solver",
-          "summary": "I wanted to see if an RL agent could learn to solve Nonogram puzzles.",
+          "summary": "Watch a trained agent work through a five-by-five picture puzzle.",
           "href": "/portfolio/nonogram",
           "image": "/img/projects/nonogram-640.webp",
           "imageAlt": "",
@@ -146,7 +146,7 @@
         {
           "id": "ufoDashboard",
           "title": "UFO Sightings Dashboard",
-          "summary": "I wanted to see patterns in UFO sighting reports across the U.S.",
+          "summary": "Explore where and when UFO sightings have been reported.",
           "href": "/portfolio/ufoDashboard",
           "image": "/img/projects/ufoDashboard-640.webp",
           "imageAlt": "",
@@ -162,7 +162,7 @@
         {
           "id": "covidAnalysis",
           "title": "COVID-19 Outbreak Drivers",
-          "summary": "Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
+          "summary": "Explore early warning signals for ICU strain and the factors behind them.",
           "href": "/portfolio/covidAnalysis",
           "image": "/img/projects/covidAnalysis-640.webp",
           "imageAlt": "",
@@ -178,7 +178,7 @@
         {
           "id": "targetEmptyPackage",
           "title": "Empty-Package Shrink Dashboard",
-          "summary": "Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.",
+          "summary": "Locate retail shrink hotspots and compare trends over time.",
           "href": "/portfolio/targetEmptyPackage",
           "image": "/img/projects/targetEmptyPackage-640.webp",
           "imageAlt": "",
@@ -194,7 +194,7 @@
         {
           "id": "deliveryTip",
           "title": "Delivery Tip",
-          "summary": "I wanted to know which shifts and neighborhoods lead to better tips.",
+          "summary": "Compare delivery shifts and neighborhoods to plan where and when to work.",
           "href": "/portfolio/deliveryTip",
           "image": "/img/projects/deliveryTip-640.webp",
           "imageAlt": "",
@@ -210,7 +210,7 @@
         {
           "id": "retailStore",
           "title": "Store-Level Loss & Sales ETL",
-          "summary": "I wanted to turn scattered incident and sales data into a short, explainable list of stores worth investigating.",
+          "summary": "Bring store data together to spot unusual loss and sales patterns.",
           "href": "/portfolio/retailStore",
           "image": "/img/projects/retailStore-640.webp",
           "imageAlt": "",
@@ -226,7 +226,7 @@
         {
           "id": "pizza",
           "title": "Pizza Tips Regression Modeling",
-          "summary": "Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.",
+          "summary": "Explore which delivery and weather factors are associated with larger tips.",
           "href": "/portfolio/pizza",
           "image": "/img/projects/pizza-640.webp",
           "imageAlt": "",
@@ -242,7 +242,7 @@
         {
           "id": "pizzaDashboard",
           "title": "Pizza Delivery Dashboard",
-          "summary": "I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.",
+          "summary": "Compare delivery zones, earnings, and timing to inform shift planning.",
           "href": "/portfolio/pizzaDashboard",
           "image": "/img/projects/pizzaDashboard-640.webp",
           "imageAlt": "",
@@ -258,7 +258,7 @@
         {
           "id": "website",
           "title": "danielshort.me",
-          "summary": "I wanted one fast, mobile-friendly place where projects, tools, games, and professional work were easy to understand and share.",
+          "summary": "A home for practical tools, personal projects, and browser experiments.",
           "href": "/portfolio/website",
           "image": "/img/projects/website-640.webp?v=e005645fec7c",
           "imageAlt": "",

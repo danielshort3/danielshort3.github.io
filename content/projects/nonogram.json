@@ -2,6 +2,7 @@
   "id": "nonogram",
   "title": "Nonogram Solver",
   "subtitle": "Watch a trained agent work through a five-by-five picture puzzle.",
+  "metaDescription": "Watch a trained agent solve five-by-five Nonogram puzzles and explore the reinforcement-learning approach, demo, and evaluation limitations.",
   "image": "img/projects/nonogram.png",
   "iconImage": "img/projects/icons/nonogram.png",
   "imageWidth": 1228,
@@ -88,5 +89,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Nonogram Solver showing a completed five-by-five puzzle, its clues, and the solver accuracy."
-  }
+  },
+  "relatedProjectId": "digitGenerator"
 }

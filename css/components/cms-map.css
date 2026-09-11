@@ -46,8 +46,14 @@
     background: #ffffff;
   }
 
-  .contact-map-persistent[hidden] {
-    display: none;
+  .contact-map-persistent:not([data-map-active]) {
+    /* Retain the iframe's layout while parked, without adding scrollable
+       content to the next tab or the collapsed frame. */
+    position: fixed;
+    top: 0 !important;
+    left: 0 !important;
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .contact-map-persistent .cms-map-iframe {

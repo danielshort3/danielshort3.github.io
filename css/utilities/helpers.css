@@ -67,3 +67,9 @@ html.no-js .reveal{
   }
 
 }
+/* Preserve the existing icon-well layout while <picture> selects lighter artwork. */
+@layer utilities {
+  .catalog-icon { display: contents; }
+  /* <source> must not become an empty grid item through display: contents. */
+  .catalog-icon > source { display: none; }
+}

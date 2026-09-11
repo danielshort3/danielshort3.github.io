@@ -9,6 +9,7 @@ const readJson = (relativePath) => JSON.parse(read(relativePath));
 const countMatches = (value, pattern) => (String(value || '').match(pattern) || []).length;
 
 module.exports = function runPortfolioRecommendationTests({ assert }) {
+  require('./project-content-clarity.test.js').runProjectContentClarityTests({ assert });
   const personal = readJson('content/audiences/personal.json');
   const startHere = Array.isArray(personal.startHere) ? personal.startHere : [];
   assert(
@@ -168,8 +169,9 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   assert(
     !projectGenerator.includes('project-pager') &&
       !projectGenerator.includes('project-personal-notes') &&
-      !projectGenerator.includes('project-evaluation'),
-    'generated project details should omit pager, personal-notes, and evaluation sections',
+      projectGenerator.includes('project-evidence-details') &&
+      projectGenerator.includes('project-next-steps'),
+    'generated project details should keep evidence compact and provide a curated next step without a pager or repeated personal-notes section',
   );
   storyIds.forEach((id) => {
     const project = readJson(`content/projects/${id}.json`);
@@ -178,11 +180,11 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   Object.keys(evaluationStatuses).forEach((id) => {
     const page = read(`pages/portfolio/${id}.html`);
     const starIndex = page.indexOf('STAR Summary');
-    const evaluationIndex = page.indexOf('Evaluation &amp; tradeoffs');
+    const evaluationIndex = page.indexOf('Evidence &amp; limitations');
     const demoIndex = page.indexOf('project-demo-shell');
     assert(
-      starIndex >= 0 && evaluationIndex === -1 && demoIndex > starIndex,
-      `${id} should render STAR directly before the demo or preview without evaluation metadata`,
+      starIndex >= 0 && evaluationIndex > starIndex && demoIndex > evaluationIndex,
+      `${id} should make supporting evidence available between STAR and the demo in a compact disclosure`,
     );
   });
   storyIds.forEach((id) => {

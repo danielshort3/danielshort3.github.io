@@ -1,7 +1,6 @@
 'use strict';
 
 const assert = require('assert');
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
@@ -30,10 +29,6 @@ const CLASS_FAMILIES = Object.freeze({
 
 function fullPath(repoPath) {
   return path.join(ROOT, repoPath);
-}
-
-function fileHash(repoPath) {
-  return crypto.createHash('sha256').update(fs.readFileSync(fullPath(repoPath))).digest('hex');
 }
 
 function getFrameRaw(sheetRaw, rowId, frameIndex) {
@@ -74,55 +69,6 @@ function getNearestVisiblePixelDistance(frameRaw, point) {
     }
   }
   return minimum;
-}
-
-function countAlphaMaskDiff(first, second) {
-  let count = 0;
-  for (let pixel = 0; pixel < FRAME_SIZE * FRAME_SIZE; pixel += 1) {
-    if ((first[pixel * 4 + 3] > 20) !== (second[pixel * 4 + 3] > 20)) count += 1;
-  }
-  return count;
-}
-
-function isVisiblePixelNearTransparency(raw, width, height, x, y) {
-  for (let offsetY = -2; offsetY <= 2; offsetY += 1) {
-    for (let offsetX = -2; offsetX <= 2; offsetX += 1) {
-      if (!offsetX && !offsetY) continue;
-      const neighborX = x + offsetX;
-      const neighborY = y + offsetY;
-      if (neighborX < 0 || neighborY < 0 || neighborX >= width || neighborY >= height) return true;
-      if (raw[(neighborY * width + neighborX) * 4 + 3] <= 12) return true;
-    }
-  }
-  return false;
-}
-
-function countVisibleGreenEdgeSpill(raw, width, height) {
-  let count = 0;
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      const offset = (y * width + x) * 4;
-      if (raw[offset + 3] <= 20) continue;
-      const r = raw[offset];
-      const g = raw[offset + 1];
-      const b = raw[offset + 2];
-      if (g <= 24 || g - Math.max(r, b) <= 8 || g - r <= 12 || g - b <= 12) continue;
-      if (isVisiblePixelNearTransparency(raw, width, height, x, y)) count += 1;
-    }
-  }
-  return count;
-}
-
-function countCyanHardwarePixels(raw, width, height) {
-  let count = 0;
-  for (let pixel = 0; pixel < width * height; pixel += 1) {
-    const offset = pixel * 4;
-    const r = raw[offset];
-    const g = raw[offset + 1];
-    const b = raw[offset + 2];
-    if (raw[offset + 3] > 20 && b > 70 && g > 55 && b - r > 25 && Math.abs(b - g) < 55) count += 1;
-  }
-  return count;
 }
 
 function findEquipmentVisual(fileId) {
@@ -171,102 +117,56 @@ async function validateEquipmentParts(sheetRaw, familyId) {
 }
 
 async function main() {
-  assert.strictEqual(Data.PLAYER_ART_VERSION, 'v5');
+  assert.strictEqual(Data.PLAYER_ART_VERSION, 'classic');
   assert.deepStrictEqual(Data.CLASS_FAMILY_IDS, FAMILY_IDS);
   assert.deepStrictEqual(Data.CLASS_BODY_FAMILIES, CLASS_FAMILIES);
-
-  const portraitPaths = FAMILY_IDS.map((familyId) => Data.CLASS_ASSETS[familyId]);
-  const animationPaths = FAMILY_IDS.map((familyId) => Data.PLAYER_ANIMATION_ASSETS[familyId].sheet);
-  assert.strictEqual(new Set(portraitPaths).size, FAMILY_IDS.length,
-    'base classes should expose three cache-safe family portraits');
-  assert.strictEqual(new Set(animationPaths).size, FAMILY_IDS.length,
-    'base classes should expose three cache-safe family animation sheets');
-  assert.strictEqual(new Set(portraitPaths.map(fileHash)).size, FAMILY_IDS.length,
-    'family portraits should not be byte-identical aliases');
-  assert.strictEqual(new Set(animationPaths.map(fileHash)).size, FAMILY_IDS.length,
-    'family animation sheets should not be byte-identical aliases');
+  assert.strictEqual(Data.GENERIC_PLAYER_ASSET, 'img/project-starfall/characters/generic-player.png');
+  assert.strictEqual(Data.GENERIC_PLAYER_ANIMATION_ASSET.sheet,
+    'img/project-starfall/animations/players/generic-player-sheet.png');
 
   for (const [classId, familyId] of Object.entries(CLASS_FAMILIES)) {
-    assert.strictEqual(Data.CLASS_ASSETS[classId], Data.CLASS_ASSETS[familyId],
-      `${classId} portrait should reuse the ${familyId} family`);
-    assert.strictEqual(Data.PLAYER_ANIMATION_ASSETS[classId], Data.PLAYER_ANIMATION_ASSETS[familyId],
-      `${classId} animation should reuse the ${familyId} family object`);
-    assert.strictEqual(Data.getClassBodyFamilyId(classId), familyId);
+    assert.strictEqual(Data.CLASS_ASSETS[classId], Data.GENERIC_PLAYER_ASSET,
+      classId + ' should reuse the restored shared player portrait');
+    assert.strictEqual(Data.PLAYER_ANIMATION_ASSETS[classId], Data.GENERIC_PLAYER_ANIMATION_ASSET,
+      classId + ' should reuse the restored shared player animation object');
+    assert.strictEqual(Data.getClassBodyFamilyId(classId), familyId,
+      classId + ' should preserve its gameplay family');
   }
-  assert(!Object.values(Data.CLASS_ASSETS).includes(Data.GENERIC_PLAYER_ASSET),
-    'registered classes should not alias the generic recovery portrait');
-  assert(!Object.values(Data.PLAYER_ANIMATION_ASSETS).includes(Data.GENERIC_PLAYER_ANIMATION_ASSET),
-    'registered classes should not alias the generic recovery sheet');
 
-  const familySheets = {};
-  for (const familyId of FAMILY_IDS) {
-    const portraitDecoded = await sharp(fullPath(Data.CLASS_ASSETS[familyId]))
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-    assert.strictEqual(portraitDecoded.info.width, 320);
-    assert.strictEqual(portraitDecoded.info.height, 320);
-    assert.strictEqual(
-      countVisibleGreenEdgeSpill(portraitDecoded.data, portraitDecoded.info.width, portraitDecoded.info.height),
-      0,
-      `${familyId} portrait should not retain green-dominant chroma fringe`
-    );
-    assert(countCyanHardwarePixels(portraitDecoded.data, portraitDecoded.info.width, portraitDecoded.info.height) >= 12,
-      `${familyId} portrait despill should preserve cyan star-tech hardware`);
-    const decoded = await sharp(fullPath(Data.PLAYER_ANIMATION_ASSETS[familyId].sheet))
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-    assert.strictEqual(decoded.info.width, 960);
-    assert.strictEqual(decoded.info.height, 1600);
-    assert.strictEqual(
-      countVisibleGreenEdgeSpill(decoded.data, decoded.info.width, decoded.info.height),
-      0,
-      `${familyId} animation sheet should not retain green-dominant chroma fringe`
-    );
-    familySheets[familyId] = decoded.data;
+  const portrait = await sharp(fullPath(Data.GENERIC_PLAYER_ASSET)).metadata();
+  assert.strictEqual(portrait.width, 320);
+  assert.strictEqual(portrait.height, 320);
+  assert(portrait.hasAlpha, 'the restored player portrait should retain transparency');
+  const decoded = await sharp(fullPath(Data.GENERIC_PLAYER_ANIMATION_ASSET.sheet))
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  assert.strictEqual(decoded.info.width, SHEET_WIDTH);
+  assert.strictEqual(decoded.info.height, Data.PLAYER_ANIMATION_ROWS.length * FRAME_SIZE);
 
-    for (const rowId of ['idle', 'run']) {
-      for (let frameIndex = 0; frameIndex < 6; frameIndex += 1) {
-        const frameRaw = getFrameRaw(decoded.data, rowId, frameIndex);
-        const bounds = getAlphaBounds(frameRaw);
-        const registration = EquipmentAttachments.getPlayerSpriteRegistration(rowId, frameIndex);
-        assert(bounds, `${familyId} ${rowId} frame ${frameIndex} should contain visible art`);
+  for (const rowId of Data.PLAYER_ANIMATION_ROWS) {
+    const state = Data.GENERIC_PLAYER_ANIMATION_ASSET.states[rowId];
+    assert(state && state.frames > 0, rowId + ' should retain an animation definition');
+    for (let frameIndex = 0; frameIndex < state.frames; frameIndex += 1) {
+      const frameRaw = getFrameRaw(decoded.data, rowId, frameIndex);
+      const bounds = getAlphaBounds(frameRaw);
+      const registration = EquipmentAttachments.getPlayerSpriteRegistration(rowId, frameIndex);
+      assert(bounds, rowId + ' frame ' + frameIndex + ' should contain visible art');
+      assert(bounds.minX > 0 && bounds.maxX < FRAME_SIZE - 1 && bounds.minY > 0 && bounds.maxY < FRAME_SIZE - 1,
+        rowId + ' frame ' + frameIndex + ' should fit inside its transparent cell');
+      if (rowId === 'idle' || rowId === 'run') {
         assert(Math.abs(bounds.maxY - registration.groundY) <= 2,
-          `${familyId} ${rowId} frame ${frameIndex} should preserve registered ground contact`);
+          rowId + ' frame ' + frameIndex + ' should preserve registered ground contact');
         assert(registration.originX >= bounds.minX && registration.originX <= bounds.maxX,
-          `${familyId} ${rowId} frame ${frameIndex} should preserve its registered origin`);
-      }
-    }
-    await validateEquipmentParts(decoded.data, familyId);
-  }
-
-  const silhouetteSamples = [
-    ['idle', 0],
-    ['run', 2],
-    ['basic', 2],
-    ['skill', 3]
-  ];
-  for (let firstIndex = 0; firstIndex < FAMILY_IDS.length; firstIndex += 1) {
-    for (let secondIndex = firstIndex + 1; secondIndex < FAMILY_IDS.length; secondIndex += 1) {
-      const firstId = FAMILY_IDS[firstIndex];
-      const secondId = FAMILY_IDS[secondIndex];
-      for (const [rowId, frameIndex] of silhouetteSamples) {
-        const diff = countAlphaMaskDiff(
-          getFrameRaw(familySheets[firstId], rowId, frameIndex),
-          getFrameRaw(familySheets[secondId], rowId, frameIndex)
-        );
-        assert(diff >= 225,
-          `${firstId} and ${secondId} should keep distinct ${rowId} silhouettes (${diff}px)`);
+          rowId + ' frame ' + frameIndex + ' should preserve its registered origin');
       }
     }
   }
+  for (const familyId of FAMILY_IDS) await validateEquipmentParts(decoded.data, familyId);
 
   const engineSource = fs.readFileSync(fullPath('js/games/project-starfall/project-starfall-engine.js'), 'utf8');
   assert(engineSource.includes('getClassPlayerAsset(classId)'),
-    'the runtime should resolve class-family portrait fallbacks explicitly');
-  assert(!engineSource.includes("asset: Data.GENERIC_PLAYER_ASSET || ''"),
-    'renderer snapshots should not publish the generic portrait for every class');
+    'the runtime should retain class-aware portrait lookup with shared restored art');
 
   process.stdout.write('Project Starfall class identity tests passed.\n');
 }

@@ -3,6 +3,23 @@
 
   const DEFAULT_ASSET_FRAME_CACHE_LIMIT = 512;
   const defaultAssetFrameCache = new Map();
+  const CLASSIC_ASSET_REQUEST_VERSION = 'classic-eb8de4e1';
+  const CLASSIC_ASSET_REQUEST_PATH = /^\/?img\/project-starfall\/(?:characters\/(?:generic-player|fighter|guardian|berserker|duelist|mage|fire-mage|rune-mage|storm-mage|archer|sniper|trapper|beast-archer)\.png|animations\/players\/(?:generic-player|fighter|guardian|berserker|duelist|mage|fire-mage|rune-mage|storm-mage|archer|sniper|trapper|beast-archer)-sheet\.png|equipment-atlases\/[^/]+-atlas\.png|environment\/structures\/town-landmarks\.png|maps\/(?:starfall-crossing|greenroot-meadow|eclipse-throne)\.webp|ui\/start-screen\.(?:png|webp|avif))$/;
+
+  function getAssetRequestUrl(assetPath) {
+    const value = String(assetPath || '').trim();
+    const hashIndex = value.indexOf('#');
+    const fragment = hashIndex < 0 ? '' : value.slice(hashIndex);
+    const source = hashIndex < 0 ? value : value.slice(0, hashIndex);
+    const queryIndex = source.indexOf('?');
+    const path = queryIndex < 0 ? source : source.slice(0, queryIndex);
+    if (!CLASSIC_ASSET_REQUEST_PATH.test(path)) return value;
+    // Keep canonical paths and frame fragments intact; revise only network URLs.
+    const parameters = queryIndex < 0 ? [] : source.slice(queryIndex + 1).split('&')
+      .filter((parameter) => parameter && parameter.split('=')[0] !== 'v');
+    parameters.push(`v=${CLASSIC_ASSET_REQUEST_VERSION}`);
+    return `${path}?${parameters.join('&')}${fragment}`;
+  }
 
   function getAssetFrameCacheKey(value, includeSheetSize) {
     return includeSheetSize ? value : `basic:${value}`;
@@ -95,6 +112,8 @@
 
   const api = {
     DEFAULT_ASSET_FRAME_CACHE_LIMIT,
+    CLASSIC_ASSET_REQUEST_VERSION,
+    getAssetRequestUrl,
     parseAssetFrame,
     createAssetFrameParser,
     getAssetSourcePath,

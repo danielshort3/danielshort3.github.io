@@ -200,6 +200,25 @@
     const compact = compactQuery.matches;
     frame.dataset.frameCompact = String(compact);
     const activeIndex = visible.indexOf(description.category);
+    // Reorder only the lightweight rails. Moving the panel or one of its
+    // ancestors would recreate the loaded Contact map's browsing context.
+    const focusedTab = document.activeElement?.closest?.('.site-frame__tab');
+    const contentIndex = compact && overview ? activeIndex + 1 : visible.length;
+    let anchor = panel;
+    visible.slice(0, contentIndex).reverse().forEach((id) => {
+      const link = tabs.get(id);
+      if (link.nextSibling !== anchor) stage.insertBefore(link, anchor);
+      anchor = link;
+    });
+    anchor = panel;
+    visible.slice(contentIndex).forEach((id) => {
+      const link = tabs.get(id);
+      if (anchor.nextSibling !== link) stage.insertBefore(link, anchor.nextSibling);
+      anchor = link;
+    });
+    if (focusedTab?.isConnected && !focusedTab.hidden && document.activeElement !== focusedTab) {
+      focusedTab.focus({ preventScroll: true });
+    }
     if (closed) {
       stage.style.gridTemplateColumns = compact ? 'minmax(0, 1fr)' : `repeat(${visible.length}, minmax(0, 1fr))`;
       stage.style.gridTemplateRows = compact ? `repeat(${visible.length}, minmax(58px, auto))` : 'minmax(0, 1fr)';
@@ -355,6 +374,7 @@
   function holdFrame(options) {
     if (!frame) return null;
     const from = options.from || capture();
+    const contentScroll = { top: viewport.scrollTop, left: viewport.scrollLeft };
     const scroll = reserveFlow();
     geometry?.finish(false, true);
     clearHold();
@@ -399,6 +419,10 @@
     pinSlot(from.slot, origin);
     held = { from, records, scroll };
     frame.classList.add('site-frame--held');
+    // Switching from grid to pinned geometry briefly expands the viewport and
+    // clamps its scroll offset. Keep the departing content still until folded.
+    viewport.scrollTop = contentScroll.top;
+    viewport.scrollLeft = contentScroll.left;
     updateBoundary();
     updateLoadingPosition();
     return from;
@@ -813,6 +837,7 @@
     const content = rect(slot);
     const style = getComputedStyle(stage);
     const border = parseFloat(style.borderTopWidth || 0);
+    frame.style.setProperty('--frame-inner-radius', `${Math.max(0, parseFloat(style.borderTopRightRadius || 0) - border)}px`);
     const rightGap = Math.max(0, bounds.x + bounds.width - border - content.x - content.width);
     const topGap = Math.max(0, content.y - bounds.y - border);
     const bottomGap = Math.max(0, bounds.y + bounds.height - border - content.y - content.height);
@@ -935,6 +960,10 @@
       window.ContactMap?.hide();
       // Keep the current item's DOM and any user state mounted while folded.
       if (item) body.replaceChildren(...(next.heading ? [next.heading, item] : [item]));
+      // Reset beneath the closed wipe so the first revealed frame is already
+      // at the top. Restoring a saved offset after release produces a jump.
+      viewport.scrollTop = 0;
+      viewport.scrollLeft = 0;
       window.ContactMap?.refresh();
       updateHomeToolbar(next);
       if (mounting) { prepareHeldTarget(next, held.refreshing ? capture() : held.from); return true; }

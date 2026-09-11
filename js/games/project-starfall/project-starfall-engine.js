@@ -11,6 +11,7 @@
   const CoreFormat = (typeof require === 'function' ? require('./core/format.js') : null) || global.ProjectStarfallCore || {};
   const CoreSettings = (typeof require === 'function' ? require('./core/settings.js') : null) || global.ProjectStarfallCore || {};
   const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
+  const getAssetRequestUrl = CoreAssets.getAssetRequestUrl || ((assetPath) => assetPath);
   const EngineModules = global.ProjectStarfallEngineModules || {};
   const EquipmentAttachments = (typeof require === 'function' ? require('./engine/equipment-attachments.js') : null) || EngineModules.equipmentAttachments || {};
   const resolveEquipmentAtlasParts = typeof EquipmentAttachments.resolveEquipmentAtlasParts === 'function'
@@ -334,7 +335,7 @@
     groundY: 154,
     authoredBodyHeight: 143
   }));
-  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION, pixelated: false });
+  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION, pixelated: true });
 
   function getPlayerSpriteDrawOptions(animationState, frameDef) {
     const registration = resolvePlayerSpriteRegistration(
@@ -342,7 +343,7 @@
       frameDef && frameDef.frameIndex,
       PLAYER_SPRITE_REGISTRATION
     );
-    return { registration, pixelated: false };
+    return { registration, pixelated: true };
   }
   const ENEMY_SPRITE_REGISTRATION = getEngineVisualValue('ENEMY_SPRITE_REGISTRATION', Object.freeze({
     originX: 64,
@@ -10805,7 +10806,7 @@
           this.recordAssetLoadResult(assetPath, false);
           this.scheduleAssetRefresh();
         };
-        image.src = assetPath;
+        image.src = getAssetRequestUrl(assetPath);
         this.assets[assetPath] = image;
       });
     }
@@ -11005,7 +11006,7 @@
             finish(false);
           };
         }
-        if (needsSource) image.src = path;
+        if (needsSource) image.src = getAssetRequestUrl(path);
         if (image.complete) finish(!(typeof image.naturalWidth === 'number') || image.naturalWidth > 0);
       });
     }
@@ -12262,7 +12263,7 @@
       if (!frame || !image) return false;
       return this.drawAnimationFrame(ctx, image, frame, x, y, width, height, facing, {
         registration: registration || PLAYER_SPRITE_REGISTRATION,
-        pixelated: false
+        pixelated: true
       });
     }
 

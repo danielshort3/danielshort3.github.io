@@ -10,15 +10,15 @@
 
   const TOWN_SHOP_PORTAL_LAYOUTS = Object.freeze({
     starfallCrossing: Object.freeze({
-      weapon: Object.freeze({ x: 360, platformIndex: 1, facadeCell: 'lensWorkshop', facadeWidth: 174, facadeHeight: 154 }),
-      armor: Object.freeze({ x: 700, platformIndex: 1, facadeCell: 'expeditionDepot', facadeWidth: 174, facadeHeight: 154 }),
-      supply: Object.freeze({ x: 1260, platformIndex: 2, facadeCell: 'frontierGate', facadeWidth: 174, facadeHeight: 154 }),
-      special: Object.freeze({ x: 1600, platformIndex: 2, facadeCell: 'fracturedObservatoryCore', facadeWidth: 174, facadeHeight: 154 })
+      weapon: Object.freeze({ x: 360, platformIndex: 1, facadeCell: 'cinderForge', facadeWidth: 154, facadeHeight: 142 }),
+      armor: Object.freeze({ x: 700, platformIndex: 1, facadeCell: 'rustcoilWorkshop', facadeWidth: 154, facadeHeight: 142 }),
+      supply: Object.freeze({ x: 1260, platformIndex: 2, facadeCell: 'marketAwning', facadeWidth: 154, facadeHeight: 142 }),
+      special: Object.freeze({ x: 1600, platformIndex: 2, facadeCell: 'astralObservatory', facadeWidth: 154, facadeHeight: 142 })
     })
   });
 
   const TOWN_SHOP_THEME_BY_TOWN = Object.freeze({
-    starfallCrossing: Object.freeze({ prefix: 'Crossing', specialName: 'Fracture Relics', vendorAccent: '#75e3f0', vendorColor: '#455e73' }),
+    starfallCrossing: Object.freeze({ prefix: 'Crossing', specialName: 'Fracture Relics', vendorAccent: '#ffd166', vendorColor: '#5e7d9f' }),
     rustcoilOutpost: Object.freeze({ prefix: 'Rustcoil', specialName: 'Scrap Exchange', vendorAccent: '#29b3ad', vendorColor: '#7a8592' }),
     cinderRefuge: Object.freeze({ prefix: 'Cinder', specialName: 'Ember Counter', vendorAccent: '#ffcf70', vendorColor: '#9b4835' }),
     frostfenCamp: Object.freeze({ prefix: 'Frostfen', specialName: 'Frost Cache', vendorAccent: '#b7f2ff', vendorColor: '#6386a8' }),

@@ -2,6 +2,7 @@
   "id": "pizzaDashboard",
   "title": "Pizza Delivery Dashboard",
   "subtitle": "Compare delivery zones, earnings, and timing to inform shift planning.",
+  "metaDescription": "Compare pizza delivery zones, earnings, and timing in an interactive dashboard built from delivery history to inform shift planning.",
   "image": "img/projects/pizzaDashboard.png",
   "iconImage": "img/projects/icons/pizzaDashboard.png",
   "imageWidth": 1250,
@@ -59,5 +60,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Pizza Delivery Dashboard showing delivery maps, tip distributions, forecasts, and order breakdowns."
-  }
+  },
+  "relatedProjectId": "deliveryTip"
 }

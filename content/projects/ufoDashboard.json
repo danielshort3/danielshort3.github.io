@@ -2,6 +2,7 @@
   "id": "ufoDashboard",
   "title": "UFO Sightings Dashboard",
   "subtitle": "Explore where and when UFO sightings have been reported.",
+  "metaDescription": "Explore a Tableau dashboard of reported UFO sightings by place and time, with project findings and context for interpreting report counts.",
   "image": "img/projects/ufoDashboard.png",
   "iconImage": "img/projects/icons/ufoDashboard.png",
   "imageWidth": 2008,
@@ -59,5 +60,6 @@
     "width": 1280,
     "height": 800,
     "alt": "UFO Sightings Dashboard showing state and city maps, sighting counts, shape trends, and a time-of-day heatmap."
-  }
+  },
+  "relatedProjectId": "covidAnalysis"
 }

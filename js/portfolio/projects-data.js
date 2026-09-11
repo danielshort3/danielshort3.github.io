@@ -4,6 +4,7 @@ window.PROJECTS = [
     "id": "smartSentence",
     "title": "Smart Sentence Retriever",
     "subtitle": "Find relevant sentences by meaning, even when the wording differs.",
+    "metaDescription": "Find relevant sentences by meaning in an interactive semantic-search demo. Explore the NLP workflow, deployment, and evaluation limitations.",
     "image": "img/projects/smartSentence.png",
     "iconImage": "img/projects/icons/smartSentence.png?v=7be7091370e0",
     "imageWidth": 952,
@@ -107,12 +108,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Sentence Search showing an example query and ranked matching passages from Alice in Wonderland."
-    }
+    },
+    "relatedProjectId": "chatbotLora"
   },
   {
     "id": "chatbotLora",
     "title": "Chatbot (LoRA + RAG)",
     "subtitle": "Explore Grand Junction with answers grounded in local sources.",
+    "metaDescription": "Explore a Grand Junction chatbot combining retrieval and LoRA tuning, with source-linked answers, an interactive demo, and evaluation limitations.",
     "image": "img/projects/chatbotLora.png",
     "iconImage": "img/projects/icons/chatbotLora.png?v=a6d123e8bd75",
     "imageWidth": 1280,
@@ -200,12 +203,14 @@ window.PROJECTS = [
         "url": "https://github.com/danielshort3/Chatbot-LoRA-RAG"
       }
     },
-    "order": 2
+    "order": 2,
+    "relatedProjectId": "smartSentence"
   },
   {
     "id": "shapeClassifier",
     "title": "Shape Classifier Demo",
     "subtitle": "Draw a shape and see how a model classifies it.",
+    "metaDescription": "Draw one of five shapes and try a serverless classifier trained on Quick, Draw! sketches. Explore the model, deployment, and limitations.",
     "image": "img/projects/shapeClassifier.png",
     "iconImage": "img/projects/icons/shapeClassifier.png?v=981b96b1622f",
     "imageWidth": 926,
@@ -290,12 +295,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Shape Classifier with a drawn square and the model’s prediction."
-    }
+    },
+    "relatedProjectId": "digitGenerator"
   },
   {
     "id": "ufoDashboard",
     "title": "UFO Sightings Dashboard",
     "subtitle": "Explore where and when UFO sightings have been reported.",
+    "metaDescription": "Explore a Tableau dashboard of reported UFO sightings by place and time, with project findings and context for interpreting report counts.",
     "image": "img/projects/ufoDashboard.png",
     "iconImage": "img/projects/icons/ufoDashboard.png?v=ae6e397c2406",
     "imageWidth": 2008,
@@ -353,12 +360,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "UFO Sightings Dashboard showing state and city maps, sighting counts, shape trends, and a time-of-day heatmap."
-    }
+    },
+    "relatedProjectId": "covidAnalysis"
   },
   {
     "id": "covidAnalysis",
     "title": "COVID-19 Outbreak Drivers",
     "subtitle": "Explore early warning signals for ICU strain and the factors behind them.",
+    "metaDescription": "Explore historical ICU strain signals in HHS data with an interactive state-level risk demo, XGBoost methods, and documented evaluation limitations.",
     "image": "img/projects/covidAnalysis.png",
     "iconImage": "img/projects/icons/covidAnalysis.png?v=9f13fa761f39",
     "imageWidth": 1446,
@@ -468,12 +477,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Historical COVID outbreak risk map with state-level percentages and the risk legend."
-    }
+    },
+    "relatedProjectId": "retailStore"
   },
   {
     "id": "targetEmptyPackage",
     "title": "Empty-Package Shrink Dashboard",
     "subtitle": "Locate retail shrink hotspots and compare trends over time.",
+    "metaDescription": "Explore an anonymized retail shrink dashboard that compares empty-package incident counts, retail value, locations, and trends over time.",
     "image": "img/projects/targetEmptyPackage.png",
     "iconImage": "img/projects/icons/targetEmptyPackage.png?v=fe4215c27311",
     "imageWidth": 1460,
@@ -544,12 +555,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Empty-package recoveries dashboard showing the quarterly trend and recorded retail value by location."
-    }
+    },
+    "relatedProjectId": "retailStore"
   },
   {
     "id": "handwritingRating",
     "title": "Handwriting Legibility Scoring",
     "subtitle": "Explore how confidently a model recognizes your handwritten digits.",
+    "metaDescription": "Try a handwritten-digit recognition demo and compare MNIST results with a small personal handwriting sample. Review the methods and limitations.",
     "image": "img/projects/handwritingRating.png",
     "iconImage": "img/projects/icons/handwritingRating.png?v=582853161647",
     "imageWidth": 1138,
@@ -603,12 +616,12 @@ window.PROJECTS = [
       "url": "handwriting-rating-demo.html"
     },
     "demoInstructions": {
-      "lead": "Draw a digit (0-9) or load a sample, then score how legible it is.",
+      "lead": "Draw a digit (0-9) or load a sample, then compare the model's guesses.",
       "bullets": [
-        "Pick a sample from “Daniel’s Handwritten Numbers”, or draw a digit on the canvas.",
+        "Draw on the canvas, or use the sample buttons to try Daniel’s handwriting.",
         "Click “Rate digit” to submit.",
-        "Use the eraser to clear the canvas and try another digit.",
-        "Review the predicted digit, confidence, and legibility score breakdown."
+        "Compare all ten digit scores, ranked from highest to lowest.",
+        "Select Clear, or press C, to draw another digit."
       ]
     },
     "problem": "My wife says my handwriting is hard to read. I wanted an objective score.",
@@ -658,12 +671,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Handwriting Legibility Scoring with a handwritten six and its measured legibility result."
-    }
+    },
+    "relatedProjectId": "shapeClassifier"
   },
   {
     "id": "digitGenerator",
     "title": "Synthetic Digit Generator",
     "subtitle": "Generate new handwritten-style digits and explore how a model learns their shapes.",
+    "metaDescription": "Generate MNIST-style handwritten digits with a variational autoencoder. Explore the live demo, training approach, and model limitations.",
     "image": "img/projects/digitGenerator.png",
     "iconImage": "img/projects/icons/digitGenerator.png?v=f26866af05d5",
     "imageWidth": 1470,
@@ -761,12 +776,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Synthetic Digit Generator showing a generated four-by-four grid of handwritten digit variations."
-    }
+    },
+    "relatedProjectId": "handwritingRating"
   },
   {
     "id": "sheetMusicUpscale",
     "title": "Sheet Music Watermark Removal & Upscale",
     "subtitle": "Restore sheet-music scans and make small notation easier to read.",
+    "metaDescription": "Compare original, restored, and upscaled sheet-music scans. Explore the U-Net and VDSR workflow, project code, and evaluation limitations.",
     "image": "img/projects/sheetMusicUpscale.png?v=7328193a7824",
     "iconImage": "img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad",
     "imageWidth": 1600,
@@ -910,12 +927,14 @@ window.PROJECTS = [
       }
     },
     "order": 9,
-    "notes": "Designed for low-resolution, watermarked page images; output quality depends on scan quality and staff-line preservation."
+    "notes": "Designed for low-resolution, watermarked page images; output quality depends on scan quality and staff-line preservation.",
+    "relatedProjectId": "handwritingRating"
   },
   {
     "id": "deliveryTip",
     "title": "Delivery Tip",
     "subtitle": "Compare delivery shifts and neighborhoods to plan where and when to work.",
+    "metaDescription": "Explore an Excel analysis of delivery shifts and neighborhoods built from personal delivery records to inform where and when to work.",
     "image": "img/projects/deliveryTip.png",
     "iconImage": "img/projects/icons/deliveryTip.png?v=e035f25cb792",
     "imageWidth": 960,
@@ -954,12 +973,14 @@ window.PROJECTS = [
       "Used the dashboard to make better shift and zone choices over time."
     ],
     "order": 10,
-    "notes": "The Excel workflow is built from personal delivery-ticket history, so the findings are useful for shift planning but not intended as a universal tipping model."
+    "notes": "The Excel workflow is built from personal delivery-ticket history, so the findings are useful for shift planning but not intended as a universal tipping model.",
+    "relatedProjectId": "pizza"
   },
   {
     "id": "retailStore",
     "title": "Store-Level Loss & Sales ETL",
     "subtitle": "Bring store data together to spot unusual loss and sales patterns.",
+    "metaDescription": "Explore a retail loss and sales data pipeline with an interactive dashboard for comparing stores, spotting unusual patterns, and planning investigations.",
     "image": "img/projects/retailStore.png",
     "iconImage": "img/projects/icons/retailStore.png?v=8e0cf4b2dfa1",
     "imageWidth": 1410,
@@ -1042,12 +1063,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Store loss and sales dashboard showing summary metrics and its monthly sales trend."
-    }
+    },
+    "relatedProjectId": "targetEmptyPackage"
   },
   {
     "id": "pizza",
     "title": "Pizza Tips Regression Modeling",
     "subtitle": "Explore which delivery and weather factors are associated with larger tips.",
+    "metaDescription": "Explore regression models of delivery tips using delivery records and weather data, with methods, findings, and limits on interpretation.",
     "image": "img/projects/pizza.png",
     "iconImage": "img/projects/icons/pizza.png?v=478ab0f3d86a",
     "imageWidth": 1398,
@@ -1113,12 +1136,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Pizza Tip Estimator showing an example order, estimated tip, and delivery controls."
-    }
+    },
+    "relatedProjectId": "pizzaDashboard"
   },
   {
     "id": "babynames",
     "title": "Baby Name Predictor",
     "subtitle": "Personalized name recommendations from family preferences and naming trends.",
+    "metaDescription": "Explore a baby-name recommendation model built from family preferences and historical naming trends, with an interactive demo and project notes.",
     "image": "img/projects/babynames.png",
     "iconImage": "img/projects/icons/babynames.png?v=7fc79e6e3331",
     "imageWidth": 1238,
@@ -1194,12 +1219,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Baby Name Predictor showing rating distribution, favorite girl names, and recommendations."
-    }
+    },
+    "relatedProjectId": "sheetMusicUpscale"
   },
   {
     "id": "pizzaDashboard",
     "title": "Pizza Delivery Dashboard",
     "subtitle": "Compare delivery zones, earnings, and timing to inform shift planning.",
+    "metaDescription": "Compare pizza delivery zones, earnings, and timing in an interactive dashboard built from delivery history to inform shift planning.",
     "image": "img/projects/pizzaDashboard.png",
     "iconImage": "img/projects/icons/pizzaDashboard.png?v=4e01e3d6a7f6",
     "imageWidth": 1250,
@@ -1257,12 +1284,14 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Pizza Delivery Dashboard showing delivery maps, tip distributions, forecasts, and order breakdowns."
-    }
+    },
+    "relatedProjectId": "deliveryTip"
   },
   {
     "id": "nonogram",
     "title": "Nonogram Solver",
     "subtitle": "Watch a trained agent work through a five-by-five picture puzzle.",
+    "metaDescription": "Watch a trained agent solve five-by-five Nonogram puzzles and explore the reinforcement-learning approach, demo, and evaluation limitations.",
     "image": "img/projects/nonogram.png",
     "iconImage": "img/projects/icons/nonogram.png?v=d8d2122f3f7f",
     "imageWidth": 1228,
@@ -1349,7 +1378,8 @@ window.PROJECTS = [
       "width": 1280,
       "height": 800,
       "alt": "Nonogram Solver showing a completed five-by-five puzzle, its clues, and the solver accuracy."
-    }
+    },
+    "relatedProjectId": "digitGenerator"
   },
   {
     "id": "minesweeper",
@@ -1411,6 +1441,7 @@ window.PROJECTS = [
     "id": "website",
     "title": "danielshort.me",
     "subtitle": "A home for practical tools, personal projects, and browser experiments.",
+    "metaDescription": "Explore how Daniel Short built this portfolio with practical browser tools, a searchable project library, shared navigation, and generated pages.",
     "image": "img/projects/website.png?v=e005645fec7c",
     "iconImage": "img/projects/icons/website.png?v=5ee2dd9327e1",
     "imageWidth": 1280,
@@ -1456,7 +1487,8 @@ window.PROJECTS = [
     },
     "order": 17,
     "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site.",
-    "imageAlt": "Current Daniel Short homepage in its light theme, with an introduction, timeline, and colored vertical tabs."
+    "imageAlt": "Current Daniel Short homepage in its light theme, with an introduction, timeline, and colored vertical tabs.",
+    "relatedProjectId": "smartSentence"
   }
 ];
 

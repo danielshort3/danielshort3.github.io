@@ -22,6 +22,9 @@ Parameters:
   CognitoDomainPrefix:
     Type: String
     Default: job-tracker-auth
+  CognitoIdentityProviders:
+    Type: CommaDelimitedList
+    Description: Required explicit provider list. Use COGNITO for a new pool, or preserve the live list (for example COGNITO,Google) after configuring external providers separately.
   CallbackUrls:
     Type: CommaDelimitedList
     Default: "https://www.danielshort.me/tools/job-application-tracker,https://www.danielshort.me/tools/dashboard"
@@ -43,6 +46,15 @@ Parameters:
     Default: 'false'
     AllowedValues: ['true', 'false']
     Description: Temporary migration-canary switch; keep false outside a controlled validation window.
+
+Rules:
+  KeepCognitoEmailSignIn:
+    Assertions:
+      - Assert:
+          Fn::Contains:
+            - !Ref CognitoIdentityProviders
+            - COGNITO
+        AssertDescription: CognitoIdentityProviders must retain COGNITO email sign-in.
 
 Conditions:
   HasAlertTopic: !Not [!Equals [!Ref AlertTopicArn, '']]
@@ -153,8 +165,8 @@ Resources:
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_CUSTOM_AUTH
         - !If [CanaryAdminPasswordAuthEnabled, ALLOW_ADMIN_USER_PASSWORD_AUTH, !Ref 'AWS::NoValue']
-      SupportedIdentityProviders:
-        - COGNITO
+      # External providers and their secrets are provisioned separately; never create a duplicate here.
+      SupportedIdentityProviders: !Ref CognitoIdentityProviders
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows:
         - code

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-// Cognito updates reset omitted settings. Preserve the described client and change only CallbackURLs.
+// Cognito updates reset omitted settings. Preserve the described client and add local sign-in/sign-out URLs.
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -69,17 +69,22 @@ function buildUpdateInput(current, skeleton, urls, options) {
   const unsupported = Object.keys(current).filter(key => !READ_ONLY_FIELDS.has(key) && !Object.hasOwn(skeleton, key));
   if (unsupported.length) throw new Error(`Update AWS CLI before proceeding; unsupported client fields: ${unsupported.join(', ')}`);
   const input = Object.fromEntries(Object.entries(current).filter(([key]) => !READ_ONLY_FIELDS.has(key)));
-  input.CallbackURLs = [...new Set([...(current.CallbackURLs || []), ...urls])];
-  if (input.CallbackURLs.length > 100) throw new Error('The merged callback list exceeds Cognito\'s 100-URL limit.');
+  for (const field of ['CallbackURLs', 'LogoutURLs']) {
+    if (urls.length) {
+      if (!Object.hasOwn(skeleton, field)) throw new Error(`Update AWS CLI before proceeding; unsupported client field: ${field}`);
+      input[field] = [...new Set([...(current[field] || []), ...urls])];
+    }
+    if (input[field]?.length > 100) throw new Error(`The merged ${field} list exceeds Cognito's 100-URL limit.`);
+  }
   return input;
 }
 
-function main(args, runCommand = execFileSync) {
+function main(args, runCommand = execFileSync, log = console.log) {
   const options = parseOptions(args);
   if (options.help) {
-    console.log('Usage: node scripts/setup-tools-local-auth.js [--apply] [--ports 3000,4173,4181] [--profile NAME]');
-    console.log('Optional: --region REGION --user-pool-id POOL --client-id CLIENT --expected-account ACCOUNT --aws-cli PATH');
-    console.log('Without --apply, reads AWS configuration and prints callback additions only.');
+    log('Usage: node scripts/setup-tools-local-auth.js [--apply] [--ports 3000,4173,4181] [--profile NAME]');
+    log('Optional: --region REGION --user-pool-id POOL --client-id CLIENT --expected-account ACCOUNT --aws-cli PATH');
+    log('Without --apply, reads AWS configuration and prints local callback and sign-out URL additions only.');
     return;
   }
   const windowsAws = 'C:\\Program Files\\Amazon\\AWSCLIV2\\aws.exe';
@@ -106,21 +111,26 @@ function main(args, runCommand = execFileSync) {
   const current = aws('cognito-idp', 'describe-user-pool-client', identifiers).UserPoolClient;
   const skeleton = aws('cognito-idp', 'update-user-pool-client', ['--generate-cli-skeleton', 'input']);
   const input = buildUpdateInput(current, skeleton, callbackUrls(options.ports), options);
-  const additions = input.CallbackURLs.filter(url => !(current.CallbackURLs || []).includes(url));
-  console.log(JSON.stringify({
+  const callbackAdditions = input.CallbackURLs.filter(url => !(current.CallbackURLs || []).includes(url));
+  const logoutAdditions = input.LogoutURLs.filter(url => !(current.LogoutURLs || []).includes(url));
+  const hasAdditions = callbackAdditions.length > 0 || logoutAdditions.length > 0;
+  log(JSON.stringify({
     mode: options.apply ? 'apply' : 'preview', account: identity.Account,
     region: options.region, userPoolId: options.userPoolId, clientId: options.clientId,
-    callbackAdditions: additions, existingCallbackCount: (current.CallbackURLs || []).length,
-    preservedSettings: Object.keys(input).filter(key => key !== 'CallbackURLs')
+    callbackAdditions, logoutAdditions,
+    existingCallbackCount: (current.CallbackURLs || []).length,
+    existingLogoutCount: (current.LogoutURLs || []).length,
+    preservedSettings: Object.keys(input).filter(key => !['CallbackURLs', 'LogoutURLs'].includes(key))
   }, null, 2));
-  if (!options.apply || !additions.length) {
-    console.log(additions.length ? 'Preview only. Add --apply to register these exact callbacks.' : 'All requested callbacks are already registered. No update needed.');
+  if (!options.apply || !hasAdditions) {
+    log(hasAdditions ? 'Preview only. Add --apply to register these exact callback and sign-out URLs.' : 'All requested callback and sign-out URLs are already registered. No update needed.');
     return;
   }
   // Re-read immediately before writing so a concurrent settings edit is never silently overwritten.
   const latest = aws('cognito-idp', 'describe-user-pool-client', identifiers).UserPoolClient;
-  const latestInput = buildUpdateInput(latest, skeleton, callbackUrls(options.ports), options);
-  if (!sameSettings(input, latestInput)) throw new Error('The Cognito client changed during preview. Run this command again to use its current settings.');
+  const latestInput = buildUpdateInput(latest, skeleton, [], options);
+  const originalInput = buildUpdateInput(current, skeleton, [], options);
+  if (!sameSettings(originalInput, latestInput)) throw new Error('The Cognito client changed during preview. Run this command again to use its current settings.');
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tools-local-auth-'));
   const inputPath = path.join(tempDir, 'update-client.json');
   try {
@@ -135,7 +145,7 @@ function main(args, runCommand = execFileSync) {
   if (!sameSettings(input, verifiedInput)) {
     throw new Error('Cognito accepted the update, but verification found a settings difference. Review the app client before continuing.');
   }
-  console.log('Local callbacks registered. Existing callback URLs and all other supported client settings verified unchanged.');
+  log('Local callback and sign-out URLs registered. Existing URLs and all other supported client settings verified unchanged.');
 }
 
 module.exports = { DEFAULTS, parseOptions, callbackUrls, buildUpdateInput, sameSettings, main };

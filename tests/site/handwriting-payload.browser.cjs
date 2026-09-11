@@ -35,7 +35,43 @@ async function assertScoringImage(frame, request, label) {
     return result;
   }, b64);
   assert(dimensions.width > 0 && dimensions.height > 0, `${label} decodes to a nonempty image.`);
+  assert(dimensions.width <= 256 && dimensions.height <= 256, `${label} keeps the inference image within 256 pixels.`);
   return b64;
+}
+
+async function assertWorkspaceLayout(page, frame, label) {
+  const pad = await frame.locator('#pad').boundingBox();
+  const rate = await frame.locator('#rate').boundingBox();
+  assert(pad && rate, `${label} shows the drawing pad and Rate digit button.`);
+  assert(Math.abs((pad.x + pad.width / 2) - (rate.x + rate.width / 2)) <= 1, `${label} centers Rate digit below the drawing pad.`);
+  assert(rate.y >= pad.y + pad.height, `${label} places Rate digit below the drawing pad.`);
+  for (const [name, surface] of [['wrapper', page], ['demo', frame]]) {
+    const overflow = await surface.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    assert(overflow <= 1, `${label} ${name} has no horizontal overflow (${overflow}px).`);
+  }
+}
+
+async function assertRankedScores(frame, expectedScores, label) {
+  const rows = await frame.locator('#confidence-list .confidence-row').evaluateAll(elements => elements.map(row => ({
+    digit: Number(row.dataset.digit),
+    score: Number(row.dataset.score),
+    digitLabel: row.querySelector('.confidence-digit')?.textContent.trim(),
+    percentage: row.querySelector('.confidence-pct')?.textContent.trim(),
+    barWidth: parseFloat(row.querySelector('.confidence')?.style.width)
+  })));
+  const expected = Object.entries(expectedScores)
+    .map(([digit, score]) => ({ digit: Number(digit), score: score * 100 }))
+    .sort((left, right) => right.score - left.score || left.digit - right.digit);
+  assert.equal(rows.length, 10, `${label} renders all ten digit scores, including zeroes.`);
+  assert.deepEqual(rows.map(row => row.digit), expected.map(row => row.digit), `${label} ranks guesses by score with digit order breaking ties.`);
+  rows.forEach((row, index) => {
+    const { digit, score } = expected[index];
+    assert.equal(row.digitLabel, String(digit), `${label} labels digit ${digit}.`);
+    assert(Math.abs(row.score - score) < 0.0001, `${label} preserves digit ${digit}'s numerical score.`);
+    assert(Math.abs(row.barWidth - score) < 0.0001, `${label} draws digit ${digit}'s bar on the same 0–100 scale.`);
+    const percentage = score > 0 && score < 0.1 ? '<0.1%' : `${score.toFixed(1)}%`;
+    assert.equal(row.percentage, percentage, `${label} distinguishes tiny positive scores from zero.`);
+  });
 }
 
 async function drawDigit(page, frame) {
@@ -74,8 +110,10 @@ async function runViewport(browser, base, settings) {
     } else if (action === 'score' && request.method() === 'POST') {
       const raw = request.postDataBuffer();
       const prediction = requests.length % 10;
-      requests.push({ body: raw.toString('utf8'), bytes: raw.length, prediction, label: activeLabel });
-      body = { digit_confidences: Object.fromEntries(Array.from({ length: 10 }, (_, digit) => [digit, digit === prediction ? 0.91 : 0.01])) };
+      const probabilities = [0.91, 0.04, 0.04, 0.0094, 0.0005, 0.0001, 0, 0, 0, 0];
+      const scores = Object.fromEntries(probabilities.map((probability, index) => [(prediction + index) % 10, probability]));
+      requests.push({ body: raw.toString('utf8'), bytes: raw.length, prediction, scores, label: activeLabel });
+      body = { digit_confidences: scores };
     } else {
       errors.push(`Unexpected handwriting request: ${request.method()} ${request.url()}`);
       await route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'Unexpected test request.' }) });
@@ -92,12 +130,16 @@ async function runViewport(browser, base, settings) {
     await iframe.waitFor({ state: 'visible' });
     const frame = await (await iframe.elementHandle()).contentFrame();
     await frame.locator('#health-pill[data-state="ok"]').waitFor({ state: 'visible' });
-    await frame.locator('#rate:not([disabled])').waitFor();
+    assert(await frame.locator('#rate').isDisabled(), 'Rate digit waits for drawing or sample input.');
+    assert(await frame.locator('#prediction-output').isHidden(), 'Scores stay hidden until a prediction is available.');
     assert.match(frame.url(), /\/demos\/handwriting-rating-demo\.html/);
     assert.equal(await frame.title(), 'Handwriting Rating Demo');
-    assert.equal(await frame.locator('#sample-select option').count(), 11);
+    const sampleButtons = frame.locator('button[data-sample-digit]');
+    assert.deepEqual(await sampleButtons.evaluateAll(buttons => buttons.map(button => button.dataset.sampleDigit)), Array.from({ length: 10 }, (_, digit) => String(digit)));
+    assert.equal(await frame.locator('select').count(), 0, 'All sample choices are visible without a dropdown.');
     if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
     await frame.evaluate(() => document.fonts.ready);
+    await assertWorkspaceLayout(page, frame, `${settings.name} initial`);
 
     const score = async (label, actualDigit) => {
       activeLabel = label;
@@ -108,13 +150,14 @@ async function runViewport(browser, base, settings) {
       await frame.locator('#rate:not([disabled])').waitFor();
       assert.equal(requests.length, before + 1, `${label} submits once.`);
       const request = requests.at(-1);
-      await frame.waitForFunction(prediction => document.getElementById('result-digit')?.textContent === `Prediction: ${prediction}`, request.prediction);
-      assert.equal(await frame.locator('.confidence-row').count(), 10, `${label} renders all digit scores.`);
-      assert.equal(await frame.locator('#confidence-text').textContent(), 'Confidence: 91%');
+      await frame.waitForFunction(prediction => document.getElementById('result-digit')?.textContent === String(prediction), request.prediction);
+      assert(await frame.locator('#prediction-output').isVisible(), `${label} reveals the prediction.`);
+      await assertRankedScores(frame, request.scores, label);
+      assert.equal(await frame.locator('#confidence-text').textContent(), '91.0% confidence');
       if (actualDigit === null) {
         assert(await frame.locator('#result-actual').isHidden(), `${label} clears the sample's actual digit.`);
       } else {
-        assert.equal(await frame.locator('#result-actual').textContent(), `Actual: ${actualDigit}`);
+        assert.equal(await frame.locator('#result-actual').textContent(), `Sample ${actualDigit}`);
         assert(await frame.locator('#result-actual').isVisible());
       }
       return assertScoringImage(frame, request, `${settings.name} ${label}`);
@@ -122,18 +165,30 @@ async function runViewport(browser, base, settings) {
 
     const sampleImages = [];
     for (let digit = 0; digit < 10; digit += 1) {
-      await frame.locator('#sample-select').selectOption(String(digit));
-      await frame.waitForFunction(value => document.getElementById('sample-status')?.textContent.startsWith(`Loaded sample ${value}.`), digit);
+      await frame.locator(`button[data-sample-digit="${digit}"]`).click();
+      await frame.waitForFunction(value => document.getElementById('sample-status')?.textContent.startsWith(`Sample ${value} loaded.`), digit);
+      assert.equal(await frame.locator('button[data-sample-digit][aria-pressed="true"]').count(), 1, `Sample ${digit} is the only selected sample.`);
+      assert.equal(await frame.locator(`button[data-sample-digit="${digit}"]`).getAttribute('aria-pressed'), 'true');
       sampleImages.push(await score(`sample-${digit}`, digit));
     }
     assert.equal(new Set(sampleImages).size, 10, 'Every selected sample sends its own distinct image.');
+    await assertWorkspaceLayout(page, frame, `${settings.name} scored`);
 
+    await frame.locator('#erase').click();
+    assert(await frame.locator('#prediction-output').isHidden(), 'Clear hides a scored sample result.');
+    assert(await frame.locator('#rate').isDisabled(), 'Clear disables Rate digit until new input.');
+    assert.equal(await frame.locator('button[data-sample-digit][aria-pressed="true"]').count(), 0, 'Clear deselects the active sample button.');
+    await frame.locator('button[data-sample-digit="9"]').click();
+    await frame.waitForFunction(() => document.getElementById('sample-status')?.textContent.startsWith('Sample 9 loaded.'));
     await drawDigit(page, frame);
-    assert.equal(await frame.locator('#sample-select').inputValue(), '', 'Drawing replaces the selected sample.');
+    assert.equal(await frame.locator('button[data-sample-digit][aria-pressed="true"]').count(), 0, 'Drawing replaces the selected sample.');
     const drawing = await score('draw-after-sample', null);
     assert(!sampleImages.includes(drawing), 'Drawing submits newly drawn content.');
 
     await frame.locator('#erase').click();
+    assert(await frame.locator('#prediction-output').isHidden(), 'Clear hides the previous result.');
+    assert(await frame.locator('#rate').isDisabled(), 'Clear disables Rate digit until new input.');
+    assert.equal(await frame.locator('button[data-sample-digit][aria-pressed="true"]').count(), 0, 'Clear deselects sample buttons.');
     await drawDigit(page, frame);
     await score('draw-after-clear', null);
     assert.deepEqual(errors, [], 'The wrapper and handwriting flow produce no page or local HTTP errors.');

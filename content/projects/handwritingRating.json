@@ -2,6 +2,7 @@
   "id": "handwritingRating",
   "title": "Handwriting Legibility Scoring",
   "subtitle": "Explore how confidently a model recognizes your handwritten digits.",
+  "metaDescription": "Try a handwritten-digit recognition demo and compare MNIST results with a small personal handwriting sample. Review the methods and limitations.",
   "image": "img/projects/handwritingRating.png",
   "iconImage": "img/projects/icons/handwritingRating.png",
   "imageWidth": 1138,
@@ -55,12 +56,12 @@
     "url": "handwriting-rating-demo.html"
   },
   "demoInstructions": {
-    "lead": "Draw a digit (0-9) or load a sample, then score how legible it is.",
+    "lead": "Draw a digit (0-9) or load a sample, then compare the model's guesses.",
     "bullets": [
-      "Pick a sample from “Daniel’s Handwritten Numbers”, or draw a digit on the canvas.",
+      "Draw on the canvas, or use the sample buttons to try Daniel’s handwriting.",
       "Click “Rate digit” to submit.",
-      "Use the eraser to clear the canvas and try another digit.",
-      "Review the predicted digit, confidence, and legibility score breakdown."
+      "Compare all ten digit scores, ranked from highest to lowest.",
+      "Select Clear, or press C, to draw another digit."
     ]
   },
   "problem": "My wife says my handwriting is hard to read. I wanted an objective score.",
@@ -110,5 +111,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Handwriting Legibility Scoring with a handwritten six and its measured legibility result."
-  }
+  },
+  "relatedProjectId": "shapeClassifier"
 }

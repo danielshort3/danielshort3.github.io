@@ -40,7 +40,8 @@ class Element {
 
 const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = false, webgl = true,
   viewport = { width: 600, height: 400 }, dpr = 1, maxViewport = null, maxRenderbuffer = null,
-  drawingBuffer = null } = {}) => {
+  drawingBuffer = null, parallelCompile = false, shaderLinkSuccess = true, floatLinear = false,
+  failShaderAllocation = false, failFirstDraw = false } = {}) => {
   const elements = new Map();
   const get = name => {
     if (!elements.has(name)) elements.set(name, new Element());
@@ -72,6 +73,16 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
   const conditions = [];
   const spectrumUpdates = [];
   const spectrumViews = [];
+  const spectrumAllocations = [];
+  const skySelections = [];
+  let retainedSkies = [];
+  const gpuResources = new Set();
+  const deletedGpuResources = new Set();
+  const shaderSources = [];
+  const statusQueries = [];
+  let compilationComplete = !parallelCompile;
+  let prematureResourceQueries = 0;
+  const allocateGpu = kind => { const resource = { kind }; gpuResources.add(resource); return resource; };
   const motionPreference = new Element();
   motionPreference.matches = reduced;
   const storage = new Map([[PREFERENCES_KEY, typeof stored === 'string' ? stored : JSON.stringify(stored)]]);
@@ -90,36 +101,75 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
   window.clearTimeout = id => timers.delete(id);
   window.SiteRoutes = { addCleanup: callback => cleanups.push(callback) };
   window.OceanWaveSpectrum = {
-    create: () => ({
-      fields: [{ texture: {}, length: 180 }, { texture: {}, length: 18 }],
-      update: (...values) => spectrumUpdates.push(values),
-      setView: (...values) => spectrumViews.push(values),
-      dispose() {},
-    }),
+    create: (_gl, options) => {
+      let mode;
+      const fields = [{ texture: {}, length: 180 }, { texture: {}, length: 18 }];
+      const foam = { texture: {}, size: 128 };
+      const setQuality = value => {
+        if (value === mode) return false;
+        mode = value;
+        spectrumAllocations.push(value);
+        const size = { low: 64, medium: 128, high: 256, ultra: 512 }[value];
+        fields.forEach(field => { field.size = size; });
+        foam.size = size * 2;
+        return true;
+      };
+      setQuality(options.quality);
+      return {
+        fields, foam, linear: true, mipmapped: true, setQuality,
+        update: (...values) => spectrumUpdates.push(values),
+        setView: (...values) => spectrumViews.push(values),
+        dispose() {},
+      };
+    },
   };
   window.OceanWaveEnvironment = {
     create: (_gl, options) => {
       skyChange = options.onChange;
-      return { select() {}, dispose() {} };
+      return { select: (mood, quality) => {
+        const selection = `${mood}:${quality}`;
+        if (skySelections.at(-1) !== selection) skySelections.push(selection);
+      }, releaseUnused: skies => { retainedSkies = [...skies]; }, dispose() {} };
     },
   };
   const gl = new Proxy({
     MAX_VIEWPORT_DIMS: 0x0D3A,
     MAX_RENDERBUFFER_SIZE: 0x84E8,
+    LINK_STATUS: 0x8B82,
+    COMPILE_STATUS: 0x8B81,
     getParameter: name => name === 0x0D3A && maxViewport ? new Int32Array(maxViewport)
       : name === 0x84E8 ? maxRenderbuffer : null,
     get drawingBufferWidth() { return bufferAllocation?.[0] ?? get('canvas').width; },
     get drawingBufferHeight() { return bufferAllocation?.[1] ?? get('canvas').height; },
     viewport: (...values) => { gpuViewports.push(values); },
     getShaderPrecisionFormat: () => ({ precision: 23 }),
-    getShaderParameter: () => true, getProgramParameter: () => true,
-    getUniformLocation: (_program, name) => name,
-    getAttribLocation: () => 0, getExtension: () => null,
+    createShader: () => failShaderAllocation ? null : allocateGpu('shader'),
+    createProgram: () => allocateGpu('program'),
+    createBuffer: () => allocateGpu('buffer'),
+    createTexture: () => allocateGpu('texture'),
+    deleteShader: resource => deletedGpuResources.add(resource),
+    deleteProgram: resource => deletedGpuResources.add(resource),
+    deleteBuffer: resource => deletedGpuResources.add(resource),
+    deleteTexture: resource => deletedGpuResources.add(resource),
+    shaderSource: (_shader, source) => shaderSources.push(source),
+    getShaderParameter: () => { statusQueries.push({ type: 'shader', complete: compilationComplete }); return shaderLinkSuccess; },
+    getProgramParameter: (_program, name) => {
+      const completion = name === 0x91B1;
+      statusQueries.push({ type: completion ? 'completion' : 'link', complete: compilationComplete });
+      return completion ? compilationComplete : shaderLinkSuccess;
+    },
+    getUniformLocation: (_program, name) => { if (!compilationComplete) prematureResourceQueries++; return name; },
+    getAttribLocation: () => { if (!compilationComplete) prematureResourceQueries++; return 0; },
+    getExtension: name => name === 'KHR_parallel_shader_compile' && parallelCompile ? { COMPLETION_STATUS_KHR: 0x91B1 }
+      : name === 'OES_texture_float_linear' && floatLinear ? {} : null,
     uniform1f: (name, value) => { uniforms[name] = value; },
     uniform2f: (name, ...value) => { uniforms[name] = value; },
     uniform3f: (name, ...value) => { uniforms[name] = value; },
     uniform4f: (name, ...value) => { uniforms[name] = value; },
-    drawArrays: () => { draws++; },
+    drawArrays: () => {
+      if (failFirstDraw && draws === 0) throw new Error('Initial GPU draw failed.');
+      draws++;
+    },
   }, { get: (target, name) => name in target ? target[name] : (() => ({})) });
   get('scene').querySelector = selector => selector === 'option[value="cove"]' ? get('cove-option') : null;
   const canvas2d = { createImageData: (width, height) => ({ data: new Uint8ClampedArray(width * height * 4) }), putImageData() {} };
@@ -151,7 +201,12 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
   };
   return {
     window, document, get, camera, uniforms, queue, contextRequests, gpuViewports, frame,
-    conditions, spectrumUpdates, spectrumViews, motionPreference,
+    conditions, spectrumUpdates, spectrumViews, spectrumAllocations, skySelections, motionPreference,
+    gpuResources, deletedGpuResources, shaderSources, statusQueries,
+    get retainedSkies() { return retainedSkies.filter(Boolean); },
+    finishCompilation: () => { compilationComplete = true; },
+    restartCompilation: () => { compilationComplete = false; },
+    get prematureResourceQueries() { return prematureResourceQueries; },
     setDrawingBuffer: value => { bufferAllocation = value; },
     get drawCount() { return draws; },
     dimensions: () => [get('canvas').width, get('canvas').height],
@@ -164,7 +219,7 @@ const harness = ({ stored = {}, search = '', reduced = false, blockedStorage = f
     reduceMotion: value => { motionPreference.matches = value; motionPreference.dispatchEvent({ type: 'change' }); },
     visible: value => visibilityChange([{ isIntersecting: value }]),
     flush: () => { const pending = [...timers.values()]; timers.clear(); pending.forEach(callback => callback()); },
-    sky: (name, height = .3) => skyChange({ texture: { name }, textureScale: 1, hasSun: true, sunDirection: [0, height, .8] }),
+    sky: (name, height = .3, metadata = {}) => skyChange({ texture: { name }, textureScale: 1, hasSun: true, sunDirection: [0, height, .8], ...metadata }),
     step: (seconds, milliseconds = 1000 / 60) => {
       for (let i = 0; i < seconds * 1000 / milliseconds; i++) frame(milliseconds);
     },
@@ -300,7 +355,7 @@ const qualityTiers = [
   { name: 'low', shader: 0, budget: 720000, smallDimensions: [640, 480] },
   { name: 'medium', shader: 1, budget: 1500000, smallDimensions: [800, 600] },
   { name: 'high', shader: 2, budget: 4000000, smallDimensions: [1600, 1200] },
-  { name: 'ultra', shader: 3, budget: 8300000, smallDimensions: [2000, 1500] },
+  { name: 'ultra', shader: 3, budget: 8300000, smallDimensions: [2400, 1800] },
 ];
 const pixelCount = dimensions => dimensions[0] * dimensions[1];
 const cameraPose = app => ['x', 'z', 'height', 'yaw', 'pitch'].map(axis => app.camera[axis]);
@@ -335,11 +390,35 @@ for (const { stored, search, expected } of [
     assert.equal(app.get('quality').value, tier.name);
     assert.equal(app.uniforms.renderQuality, tier.shader, `${tier.name} must select the corresponding shader detail tier immediately.`);
     assert.deepEqual(app.dimensions(), tier.smallDimensions, `${tier.name} must honor its device-pixel ratio and supersampling settings.`);
+    const fieldSize = [64, 128, 256, 512][tier.shader];
+    assert.deepEqual(app.uniforms.fieldSizes, [fieldSize, fieldSize], 'Shader filtering must follow the allocated FFT resolution.');
+    assert.equal(app.uniforms.foamSize, fieldSize * 2, 'Foam filtering must use its independent texture resolution.');
+    assert.equal(app.spectrumAllocations.at(-1), tier.name, 'Changing visual quality must update the wave simulation too.');
+    assert.equal(app.skySelections.at(-1), `dawn:${tier.name}`, 'Ultra must request the higher resolution environment.');
     assert.deepEqual(cameraPose(app), originalPose, 'Quality changes must preserve the exploration viewpoint.');
     app.flush();
     assert.equal(app.preferences().quality, tier.name);
     assert.equal(new URL(app.window.location.href).searchParams.get('quality'), tier.name);
   }
+  app.dispose();
+}
+
+{
+  const app = harness({ search: '?quality=high&mood=golden' });
+  app.click('toggle');
+  const pose = cameraPose(app);
+  const clock = app.uniforms.time;
+  app.sky('golden', .12, { textureEncoding: 1, sunRadiance: [45, 24, 6] });
+  assert.deepEqual(app.uniforms.environmentEncoding, [1, 1]);
+  assert.deepEqual(app.uniforms.solarRadiance, [45, 24, 6], 'The renderer must use decoded solar energy rather than a clipped highlight.');
+  app.input('quality', 'ultra', 'change');
+  const allocations = app.spectrumAllocations.length;
+  app.input('light', 110);
+  assert.equal(app.spectrumAllocations.length, allocations, 'Lighting changes must not reallocate the simulation.');
+  assert.equal(app.uniforms.time, clock, 'Quality changes while paused must keep the same sea clock.');
+  assert.deepEqual(cameraPose(app), pose);
+  assert.equal(app.get('stage').dataset.oceanSpectrum, '512');
+  assert.equal(app.get('stage').dataset.oceanFoamResolution, '1024');
   app.dispose();
 }
 
@@ -353,12 +432,102 @@ for (const { stored, search, expected } of [
     assert.ok(pixels <= tier.budget * 1.002, `${tier.name} must respect its pixel budget, allowing only integer dimension rounding.`);
     assert.ok(pixels >= tier.budget * .97, `${tier.name} should use its available pixel budget at a large viewport.`);
     app.step(30, 100);
-    assert.deepEqual(app.dimensions(), dimensions, `Manual ${tier.name} quality must not silently lower resolution during slow frames.`);
+    if (tier.name === 'ultra') {
+      assert.ok(pixelCount(app.dimensions()) <= pixels * .26, 'Ultra must shed excess pixels after sustained slow frames.');
+      assert.ok(pixelCount(app.dimensions()) >= pixels * .24, 'Ultra must retain its bounded resolution floor.');
+    } else {
+      assert.deepEqual(app.dimensions(), dimensions, `Manual ${tier.name} quality retains its requested resolution.`);
+    }
     assert.equal(app.uniforms.renderQuality, tier.shader, `Manual ${tier.name} must retain shader detail during slow frames.`);
     app.dispose();
   }
   assert.ok(sizes.every((pixels, index) => index === 0 || pixels > sizes[index - 1] * 1.5),
     'The four manual tiers must provide materially distinct render resolutions.');
+}
+
+{
+  const app = harness({ search: '?quality=ultra&cx=14&cz=-6&yaw=20', viewport: { width: 1920, height: 1080 }, dpr: 2 });
+  const initialDimensions = app.dimensions();
+  const originalPose = cameraPose(app);
+  app.step(3, 100);
+  assert.deepEqual(app.dimensions(), initialDimensions, 'A brief slowdown must not immediately resize Ultra.');
+  app.step(30, 100);
+  const reducedPixels = pixelCount(app.dimensions());
+  assert.ok(reducedPixels < pixelCount(initialDimensions) * .3);
+  assert.equal(app.uniforms.renderQuality, 3, 'Ultra adaptation preserves its rendering features.');
+  assert.equal(app.get('stage').dataset.oceanSpectrum, '512');
+  assert.equal(app.get('stage').dataset.oceanFoamResolution, '1024');
+  assert.equal(app.get('quality').value, 'ultra');
+  assert.deepEqual(cameraPose(app), originalPose);
+  app.step(2);
+  assert.equal(pixelCount(app.dimensions()), reducedPixels, 'A brief recovery must not immediately raise GPU load again.');
+  app.step(50);
+  assert.deepEqual(app.dimensions(), initialDimensions, 'Sustained smooth frames recover Ultra within its original pixel budget.');
+  app.step(30, 100);
+  app.input('quality', 'medium', 'change');
+  app.input('quality', 'ultra', 'change');
+  assert.deepEqual(app.dimensions(), initialDimensions, 'A new quality selection resets previous adaptation.');
+  app.step(3, 100);
+  assert.deepEqual(app.dimensions(), initialDimensions, 'Reselecting Ultra starts a fresh observation period.');
+  app.dispose();
+}
+
+for (const interruption of ['hidden', 'paused', 'offscreen']) {
+  const app = harness({ search: '?quality=ultra' });
+  const initialDimensions = app.dimensions();
+  app.step(3, 100);
+  if (interruption === 'hidden') { app.document.hidden = true; app.document.dispatchEvent({ type: 'visibilitychange' }); }
+  if (interruption === 'paused') app.click('toggle');
+  if (interruption === 'offscreen') app.visible(false);
+  app.frame(60000);
+  if (interruption === 'hidden') { app.document.hidden = false; app.document.dispatchEvent({ type: 'visibilitychange' }); }
+  if (interruption === 'paused') app.click('toggle');
+  if (interruption === 'offscreen') app.visible(true);
+  app.step(3, 100);
+  assert.deepEqual(app.dimensions(), initialDimensions, `Ultra must not count ${interruption} time as evidence of overload.`);
+  app.dispose();
+}
+
+for (const refreshRate of [60, 75, 100, 120, 144]) {
+  const app = harness({ search: '?quality=ultra' });
+  const initialDimensions = app.dimensions();
+  app.step(30, 100);
+  assert.ok(pixelCount(app.dimensions()) < pixelCount(initialDimensions) * .3);
+  app.step(90, 1000 / refreshRate);
+  assert.deepEqual(app.dimensions(), initialDimensions,
+    `Ultra must recover at a smooth ${refreshRate} Hz display cadence despite frame-cap rounding.`);
+  app.dispose();
+}
+
+{
+  const app = harness({ search: '?quality=ultra' });
+  app.sky('golden-4k', .1, { assetId: 'golden', resolution: '4k' });
+  app.step(7);
+  app.sky('daylight-2k', .8, { assetId: 'daylight', resolution: '2k' });
+  app.step(3);
+  assert.deepEqual([...new Set(app.retainedSkies.map(sky => sky.texture.name))], ['golden-4k', 'daylight-2k'],
+    'The cache must retain both visible textures during a lighting crossfade.');
+  app.step(3.2);
+  assert.ok(app.retainedSkies.every(sky => sky.texture.name === 'daylight-2k'),
+    'Completing a crossfade releases the former high-resolution sky.');
+  app.click('toggle');
+  app.input('quality', 'low', 'change');
+  app.sky('daylight-1k', .8, { assetId: 'daylight', resolution: '1k' });
+  assert.equal(app.get('stage').dataset.oceanSkyResolution, '1k');
+  assert.ok(app.retainedSkies.every(sky => sky.texture.name === 'daylight-1k'),
+    'A quality downgrade releases the larger same-photo sky even while paused.');
+  assert.equal(app.queue.size, 0);
+  app.dispose();
+}
+
+{
+  const app = harness();
+  const staleFrame = [...app.queue.values()][0];
+  app.dispose();
+  const draws = app.drawCount;
+  staleFrame(1000);
+  assert.equal(app.queue.size, 0, 'A callback already queued during teardown must not revive a disposed render loop.');
+  assert.equal(app.drawCount, draws);
 }
 
 {
@@ -651,4 +820,164 @@ for (const interruption of ['hidden', 'paused', 'offscreen']) {
   app.dispose();
 }
 
-console.log('Ocean preferences, swell, floating, real-time clocks, quality adaptation, condition events, and scene lifecycle checks passed.');
+{
+  const app = harness({ parallelCompile: true, search: '?quality=ultra' });
+  assert.equal(app.drawCount, 0, 'Background compilation must not try to render before linking completes.');
+  assert.equal(app.get('canvas').style.opacity, '0', 'The CSS horizon must remain visible while preparing the GPU scene.');
+  assert.equal(app.get('stage').getAttribute('aria-busy'), 'true');
+  assert.equal(app.get('stage').dataset.oceanRenderer, 'loading');
+  assert.match(app.get('status').textContent, /preparing/i);
+  assert.equal(app.get('toggle').disabled, false, 'Playback preference must remain editable during compilation.');
+  assert.equal(app.statusQueries.length, 0, 'Startup must yield before querying even non-blocking completion.');
+  assert.equal(app.spectrumAllocations.length, 0, 'Dependent GPU resources must wait for the main program to link.');
+  const allocations = app.gpuResources.size;
+  app.step(30, 100);
+  assert.equal(app.drawCount, 0);
+  assert.ok(app.statusQueries.every(query => query.type === 'completion'), 'Pending jobs may only query the non-blocking completion status.');
+  assert.equal(app.prematureResourceQueries, 0, 'Uniform and attribute queries must not block unfinished compilation.');
+  app.input('quality', 'high', 'change');
+  app.input('wind', 5.7);
+  app.preset('dusk');
+  app.click('toggle');
+  assert.equal(app.gpuResources.size, allocations, 'Changing controls and resizing must reuse the pending compilation.');
+  assert.equal(app.get('stage').dataset.oceanPaused, 'true');
+  app.finishCompilation();
+  app.frame();
+  assert.ok(app.drawCount > 0, 'Completion must draw a first frame even when the user paused during setup.');
+  assert.equal(app.uniforms.renderQuality, 2, 'The first frame must use the latest quality selection.');
+  assert.equal(app.uniforms.wind, 5.7);
+  assert.equal(app.uniforms.mood[3], 1);
+  assert.equal(app.uniforms.time, 0, 'Preparing the shader must not advance the sea by the loading delay.');
+  assert.equal(app.get('stage').getAttribute('aria-busy'), 'false');
+  assert.equal(app.get('stage').dataset.oceanRenderer, 'webgl');
+  assert.equal(app.queue.size, 0, 'Completing a paused scene must release the compilation loop without starting animation.');
+  assert.ok(app.statusQueries.filter(query => query.type === 'link').every(query => query.complete));
+  assert.equal(app.prematureResourceQueries, 0);
+  assert.equal([...app.deletedGpuResources].filter(resource => resource.kind === 'shader').length, 2,
+    'Completed shader objects must be freed once the linked program owns their executable.');
+  app.dispose();
+  assert.equal(app.deletedGpuResources.size, app.gpuResources.size);
+}
+
+{
+  const app = harness({ parallelCompile: true });
+  app.finishCompilation();
+  app.frame(100);
+  assert.ok(app.drawCount > 0);
+  assert.equal(app.queue.size, 1, 'A completed running scene must transfer from compilation to one animation loop.');
+  app.frame(100);
+  app.frame(100);
+  assert.ok(Math.abs(app.uniforms.time - .1) < .000001, 'Animation should begin with a fresh clock after shader readiness.');
+  app.dispose();
+}
+
+{
+  const app = harness({ parallelCompile: true, reduced: true });
+  app.finishCompilation();
+  app.frame();
+  assert.ok(app.drawCount > 0, 'Reduced motion still needs a complete initial still frame.');
+  assert.equal(app.queue.size, 0);
+  assert.equal(app.get('stage').dataset.oceanPaused, 'true');
+  app.dispose();
+}
+
+{
+  const app = harness({ parallelCompile: true });
+  const stalePoll = [...app.queue.values()][0];
+  app.dispose();
+  assert.equal(app.queue.size, 0, 'Navigation cleanup must cancel an unfinished compilation poll.');
+  assert.equal(app.deletedGpuResources.size, app.gpuResources.size, 'Navigation cleanup must free the pending program and both shaders.');
+  assert.equal(app.get('stage').getAttribute('aria-busy'), 'false');
+  app.finishCompilation();
+  stalePoll(1000);
+  app.get('canvas').dispatchEvent({ type: 'webglcontextrestored' });
+  assert.equal(app.queue.size, 0, 'Stale completion and restore events must not revive a disposed scene.');
+  assert.equal(app.drawCount, 0);
+  assert.equal(app.spectrumAllocations.length, 0);
+}
+
+{
+  const app = harness({ parallelCompile: true, search: '?quality=ultra' });
+  const firstJob = [...app.gpuResources];
+  const stalePoll = [...app.queue.values()][0];
+  app.get('canvas').dispatchEvent({ type: 'webglcontextlost' });
+  assert.equal(app.queue.size, 0, 'Context loss must cancel the pending completion poll.');
+  assert.ok(firstJob.every(resource => app.deletedGpuResources.has(resource)));
+  app.restartCompilation();
+  app.get('canvas').dispatchEvent({ type: 'webglcontextrestored' });
+  assert.equal(app.get('stage').dataset.oceanRenderer, 'loading');
+  assert.equal(app.queue.size, 1, 'A restored context must start exactly one fresh compilation.');
+  stalePoll(1000);
+  assert.equal(app.queue.size, 1, 'An old context completion must not replace or duplicate the new job.');
+  app.finishCompilation();
+  app.frame();
+  assert.equal(app.get('stage').dataset.oceanRenderer, 'webgl');
+  assert.equal(app.uniforms.renderQuality, 3);
+  assert.ok(app.drawCount > 0);
+  app.dispose();
+  assert.equal(app.deletedGpuResources.size, app.gpuResources.size);
+}
+
+for (const parallelCompile of [false, true]) {
+  const app = harness({ parallelCompile, shaderLinkSuccess: false });
+  if (parallelCompile) { app.finishCompilation(); app.frame(); }
+  assert.equal(app.drawCount, 0);
+  assert.equal(app.queue.size, 0);
+  assert.equal(app.get('toggle').disabled, true);
+  assert.equal(app.get('canvas').style.opacity, '0', 'A failed link must preserve the CSS fallback view.');
+  assert.equal(app.get('stage').classList.contains('has-render-error'), true);
+  assert.match(app.get('status').textContent, /unavailable/i);
+  assert.equal(app.deletedGpuResources.size, app.gpuResources.size, 'Failed linking must release every partially created resource.');
+  app.dispose();
+}
+
+{
+  const app = harness({ parallelCompile: true, search: '?quality=high' });
+  app.setDrawingBuffer([0, 0]);
+  app.input('quality', 'ultra', 'change');
+  app.finishCompilation();
+  app.frame();
+  assert.equal(app.drawCount, 0, 'Compilation completion must not draw into a zero-size buffer.');
+  assert.equal(app.get('toggle').disabled, true);
+  assert.equal(app.queue.size, 0);
+  app.setDrawingBuffer(null);
+  app.input('quality', 'low', 'change');
+  assert.ok(app.drawCount > 0, 'A lower quality must recover an allocation failure that occurred during compilation.');
+  assert.equal(app.get('toggle').disabled, false);
+  assert.equal([...app.gpuResources].filter(resource => resource.kind === 'program').length, 1,
+    'Buffer recovery must reuse the already linked program.');
+  app.dispose();
+}
+
+{
+  const app = harness({ parallelCompile: true, failShaderAllocation: true });
+  assert.equal(app.drawCount, 0);
+  assert.equal(app.queue.size, 0);
+  assert.equal(app.statusQueries.length, 0, 'An allocation failure must not query a missing program.');
+  assert.equal(app.get('toggle').disabled, true);
+  app.dispose();
+}
+
+{
+  const app = harness({ parallelCompile: true, failFirstDraw: true });
+  app.finishCompilation();
+  app.frame();
+  assert.equal(app.get('stage').dataset.oceanRenderer, 'unavailable', 'A failure during the first ready frame must restore the fallback state.');
+  assert.equal(app.get('canvas').style.opacity, '0');
+  assert.equal(app.get('toggle').disabled, true);
+  assert.equal(app.queue.size, 0, 'A failed first frame must not leave a render loop running.');
+  assert.equal(app.deletedGpuResources.size, app.gpuResources.size,
+    'The ready-state transition must retain cleanup ownership until its first frame succeeds.');
+  app.dispose();
+}
+
+for (const floatLinear of [false, true]) {
+  const app = harness({ floatLinear });
+  const fragment = app.shaderSources.find(source => source.includes('precision highp float;'));
+  assert.equal(/^#define OCEAN_FLOAT_LINEAR$/m.test(fragment), floatLinear,
+    'Only a float-linear-capable context may compile out manual field reconstruction.');
+  assert.ok(app.drawCount > 0, 'Browsers without parallel compilation must retain the synchronous rendering fallback.');
+  app.dispose();
+}
+
+console.log('Ocean preferences, swell, floating, real-time clocks, quality adaptation, shader compilation, and scene lifecycle checks passed.');

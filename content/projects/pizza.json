@@ -2,6 +2,7 @@
   "id": "pizza",
   "title": "Pizza Tips Regression Modeling",
   "subtitle": "Explore which delivery and weather factors are associated with larger tips.",
+  "metaDescription": "Explore regression models of delivery tips using delivery records and weather data, with methods, findings, and limits on interpretation.",
   "image": "img/projects/pizza.png",
   "iconImage": "img/projects/icons/pizza.png",
   "imageWidth": 1398,
@@ -67,5 +68,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Pizza Tip Estimator showing an example order, estimated tip, and delivery controls."
-  }
+  },
+  "relatedProjectId": "pizzaDashboard"
 }

@@ -26,8 +26,8 @@ assert.strictEqual(largeViewport.hudScale, 1.1, 'HUD content scale should remain
 const shopDoors = shopVendors.createTownShopDoorPortals('starfallCrossing');
 assert.deepStrictEqual(
   shopDoors.map((portal) => portal.facadeCell),
-  ['lensWorkshop', 'expeditionDepot', 'frontierGate', 'fracturedObservatoryCore'],
-  'each Starfall Crossing shop should publish a Crossing-specific structure-atlas facade'
+  ['cinderForge', 'rustcoilWorkshop', 'marketAwning', 'astralObservatory'],
+  'each Starfall Crossing shop should publish its restored structure-atlas facade'
 );
 
 const publication = mapPublication.createMapPublicationData({
@@ -54,7 +54,7 @@ const publishedMap = publication.attachMapAssets({
 });
 assert.strictEqual(
   publishedMap.questNpcs[0].asset,
-  'img/project-starfall/characters/generic-player-v4.png',
+  'img/project-starfall/characters/generic-player.png',
   'published quest NPCs should use polished existing character art by default'
 );
 

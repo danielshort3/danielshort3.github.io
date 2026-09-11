@@ -7,9 +7,6 @@
     const EQUIPMENT_ATLAS_ROOT = settings.EQUIPMENT_ATLAS_ROOT || `${ASSET_ROOT}/equipment-atlases`;
     const CLASS_FILE_IDS = settings.CLASS_FILE_IDS || {};
     const CLASS_FAMILY_IDS = settings.CLASS_FAMILY_IDS || ['fighter', 'mage', 'archer'];
-    const CLASS_BODY_FAMILIES = settings.CLASS_BODY_FAMILIES || {};
-    const CLASS_FAMILY_FILE_IDS = settings.CLASS_FAMILY_FILE_IDS || {};
-    const PLAYER_ART_VERSION = settings.PLAYER_ART_VERSION || 'v5';
     const createEquipmentVisualData = settings.createEquipmentVisualData;
 
     const ANIMATION_ROOT = `${ASSET_ROOT}/animations`;
@@ -126,10 +123,8 @@
       });
     }
 
-    function makePlayerAnimationAsset(fileId, version) {
-      const versionId = String(version || PLAYER_ART_VERSION).trim();
-      const versionSuffix = versionId ? `-${versionId}` : '';
-      return makeSheetAnimation(`${ANIMATION_ROOT}/players/${fileId}-sheet${versionSuffix}.png`, PLAYER_ANIMATION_ROWS, PLAYER_ANIMATION_CONFIG);
+    function makePlayerAnimationAsset(fileId) {
+      return makeSheetAnimation(`${ANIMATION_ROOT}/players/${fileId}-sheet.png`, PLAYER_ANIMATION_ROWS, PLAYER_ANIMATION_CONFIG);
     }
 
     const EQUIPMENT_ATLAS_ANGLE_SETS = Object.freeze({
@@ -173,7 +168,7 @@
         ? Object.freeze(['rest', 'draw', 'release'])
         : Object.freeze(['default']);
       return Object.freeze({
-        sheet: `${EQUIPMENT_ATLAS_ROOT}/${fileId}-atlas-v2.png`,
+        sheet: `${EQUIPMENT_ATLAS_ROOT}/${fileId}-atlas.png`,
         frameWidth: 128,
         frameHeight: 128,
         pivotX: 64,
@@ -266,17 +261,15 @@
       return makeSheetAnimation(`${ANIMATION_ROOT}/portals/${fileId}-sheet.png`, ['idle'], PORTAL_ANIMATION_CONFIG);
     }
 
-    const GENERIC_PLAYER_ANIMATION_ASSET = makePlayerAnimationAsset('generic-player', 'v4');
+    const GENERIC_PLAYER_ANIMATION_ASSET = makePlayerAnimationAsset('generic-player');
 
     const PLAYER_FAMILY_ANIMATION_ASSETS = Object.freeze(CLASS_FAMILY_IDS.reduce((assets, familyId) => {
-      const fileId = CLASS_FAMILY_FILE_IDS[familyId] || familyId;
-      assets[familyId] = makePlayerAnimationAsset(fileId, PLAYER_ART_VERSION);
+      assets[familyId] = GENERIC_PLAYER_ANIMATION_ASSET;
       return assets;
     }, {}));
 
     const PLAYER_ANIMATION_ASSETS = Object.freeze(Object.keys(CLASS_FILE_IDS).reduce((assets, classId) => {
-      const familyId = CLASS_BODY_FAMILIES[classId] || classId;
-      assets[classId] = PLAYER_FAMILY_ANIMATION_ASSETS[familyId] || GENERIC_PLAYER_ANIMATION_ASSET;
+      assets[classId] = GENERIC_PLAYER_ANIMATION_ASSET;
       return assets;
     }, {}));
 

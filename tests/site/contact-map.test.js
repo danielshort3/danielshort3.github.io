@@ -92,9 +92,13 @@ function element(tagName = 'div') {
       }
       return null;
     },
-    closest() {
+    closest(selector) {
+      const selectors = selector.split(',').map((value) => value.trim());
       for (let current = this; current; current = current.parentNode) {
-        if (current.hidden || current.inert || current.getAttribute('aria-hidden') === 'true') return current;
+        if (selectors.some((value) =>
+          (value === '[hidden]' && current.hidden) ||
+          (value === '[inert]' && current.inert) ||
+          (value === '[aria-hidden="true"]' && current.getAttribute('aria-hidden') === 'true'))) return current;
       }
       return null;
     },
@@ -190,26 +194,66 @@ module.exports = function runContactMapTests({ assert }) {
   map.setState({ category: 'contact' });
   map.viewport.inert = true;
   map.refresh();
-  assert(map.iframe.srcWrites.length === 0,
-    'Selecting Contact during a closed transition should keep the map deferred until the content is interactive');
+  const host = map.host();
+  assert(host?.isConnected && host.dataset.mapActive === 'true' && !host.hidden && host.inert &&
+    map.iframe.srcWrites.length === 1 && map.iframe.srcConnections[0],
+  'Selecting Contact during an incoming transition should prepare the connected map behind the clip while keeping it unfocusable');
   map.viewport.inert = false;
   map.refresh();
-  const host = map.host();
   assert(host?.isConnected && host.childNodes[0] === map.iframe && map.iframe.srcWrites.length === 1 &&
-    map.iframe.srcWrites[0] === MAP_SOURCE && map.iframe.srcConnections[0] && !host.hidden && !host.inert,
+    map.iframe.srcWrites[0] === MAP_SOURCE && map.iframe.srcConnections[0] &&
+    host.dataset.mapActive === 'true' && !host.hidden && !host.inert,
   'The first active Contact view should connect the original blank iframe before assigning its single map URL');
   assert(host.style.left === '201px' && host.style.top === '541px' &&
     host.style.width === '940px' && host.style.height === '300px',
   'The retained map should align with the map slot content box inside a scrolled viewport');
 
+  const activeGeometry = JSON.stringify(host.style);
+  map.viewport.inert = true;
+  map.refresh();
+  assert(host.dataset.mapActive === 'true' && !host.hidden && host.inert &&
+    JSON.stringify(host.style) === activeGeometry && map.iframe.srcWrites.length === 1,
+  'Closing Contact should preserve its painted map and dimensions under the viewport clip while disabling interaction');
+  map.root.classList.add('site-frame--moving');
+  map.slot.clientWidth = 600;
+  map.slot.clientHeight = 240;
+  map.resize();
+  assert(host.dataset.mapActive === 'true' && !host.hidden && host.inert &&
+    host.style.width === '600px' && host.style.height === '240px' &&
+    host.style.left === '201px' && host.style.top === '541px' && map.iframe.loadedDetachments === 0,
+  'Moving frame geometry should keep the existing map painted and aligned to its changing slot dimensions');
+  map.viewport.inert = false;
+  map.refresh();
+  assert(host.dataset.mapActive === 'true' && !host.hidden && !host.inert,
+    'The moving-frame class alone should not hide the map or keep an interactive viewport map inert');
+  map.root.classList.remove('site-frame--moving');
+  map.slot.clientWidth = 940;
+  map.slot.clientHeight = 300;
+  map.resize();
+
   map.setState({ category: 'tools' });
   map.refresh();
-  assert(host.hidden && host.inert && map.iframe.isConnected && map.iframe.loadedDetachments === 0,
-    'Leaving Contact should hide the map and remove it from interaction without detaching its browsing context');
+  assert(!host.dataset.mapActive && !host.hidden && host.inert &&
+    JSON.stringify(host.style) === activeGeometry && map.iframe.isConnected && map.iframe.loadedDetachments === 0,
+  'Leaving Contact should park the map without interaction, layout collapse, or detachment of its browsing context');
   map.setState({ category: 'contact' });
   map.refresh();
-  assert(map.host() === host && !host.hidden && map.iframe.srcWrites.length === 1,
+  assert(map.host() === host && host.dataset.mapActive === 'true' && !host.hidden && map.iframe.srcWrites.length === 1,
     'Returning to the Contact tab should reveal the same iframe without assigning src again');
+
+  map.slot.hidden = true;
+  map.refresh();
+  assert(!host.dataset.mapActive && host.inert && !host.hidden,
+    'An explicitly hidden Contact slot should park the map even when the active category is Contact');
+  map.slot.hidden = false;
+  map.body.setAttribute('aria-hidden', 'true');
+  map.refresh();
+  assert(!host.dataset.mapActive && host.inert && !host.hidden,
+    'An aria-hidden Contact ancestor should park the map without collapsing the iframe layout');
+  map.body.removeAttribute('aria-hidden');
+  map.refresh();
+  assert(host.dataset.mapActive === 'true' && !host.inert && map.iframe.srcWrites.length === 1,
+    'Revealing Contact after an explicit hidden state should restore the existing map without a new load');
 
   map.viewport.scrollTop = 300;
   map.slot.bounds.top = 320;
@@ -226,11 +270,12 @@ module.exports = function runContactMapTests({ assert }) {
   standalone.slot.bounds = { left: 92, top: 260 };
   map.setState({ body: standalone.body, home: false, view: 'detail' });
   map.replaceRouteBody(standalone.body);
-  assert(map.viewport.childNodes.includes(host) && map.iframe.isConnected && host.hidden && host.inert,
+  assert(map.viewport.childNodes.includes(host) && map.iframe.isConnected && !host.dataset.mapActive && !host.hidden && host.inert,
     'Replacing a route body should retain the connected map host and hide it until the new Contact slot is ready');
   map.flush();
   assert(map.host() === host && host.childNodes[0] === map.iframe && standalone.iframe.parentNode === null &&
-    standalone.iframe.srcWrites.length === 0 && !host.hidden && host.style.left === '33px' && host.style.top === '481px',
+    standalone.iframe.srcWrites.length === 0 && host.dataset.mapActive === 'true' && !host.hidden &&
+    host.style.left === '33px' && host.style.top === '481px',
   'A fresh standalone Contact route should discard its blank duplicate and reuse the first map in its new slot');
   assert(map.viewport.firstChild === standalone.body && map.viewport.childNodes.indexOf(host) > 0,
     'New route content should remain before the persistent iframe in DOM reading and keyboard order');
@@ -239,14 +284,14 @@ module.exports = function runContactMapTests({ assert }) {
   map.setState({ category: 'projects', body: otherBody });
   map.replaceRouteBody(otherBody);
   map.flush();
-  assert(host.hidden && host.inert && map.iframe.isConnected,
+  assert(!host.dataset.mapActive && !host.hidden && host.inert && map.iframe.isConnected,
     'Navigating from Contact to an individual project should retain an inactive connected map');
 
   const returningHome = createContactBody();
   map.setState({ category: 'contact', body: returningHome.body, home: true, view: 'overview' });
   map.replaceRouteBody(returningHome.body);
   map.flush();
-  assert(!host.hidden && map.iframe.srcWrites.length === 1 && map.iframe.loadedDetachments === 0 &&
+  assert(host.dataset.mapActive === 'true' && !host.hidden && map.iframe.srcWrites.length === 1 && map.iframe.loadedDetachments === 0 &&
     returningHome.iframe.srcWrites.length === 0 && returningHome.iframe.parentNode === null,
   'Returning to Contact through a newly rendered homepage should preserve the original loaded iframe across route replacements');
 
@@ -255,25 +300,30 @@ module.exports = function runContactMapTests({ assert }) {
   map.setState({ body: incompleteContact.body });
   map.replaceRouteBody(incompleteContact.body);
   map.flush();
-  assert(host.hidden && host.inert && map.iframe.isConnected,
+  assert(!host.dataset.mapActive && !host.hidden && host.inert && map.iframe.isConnected,
     'A Contact placeholder without a map source should keep the previous map hidden instead of showing stale map content');
   map.setState({ body: returningHome.body });
   map.replaceRouteBody(returningHome.body);
   map.flush();
-  assert(!host.hidden && map.viewport.firstChild === returningHome.body && map.iframe.srcWrites.length === 1,
+  assert(host.dataset.mapActive === 'true' && !host.hidden && map.viewport.firstChild === returningHome.body && map.iframe.srcWrites.length === 1,
     'Restoring a valid Contact body should restore map visibility and reading order without reloading it');
 
   map.document.emit('site:route-unmounted');
-  assert(host.hidden && host.inert,
+  assert(!host.dataset.mapActive && !host.hidden && host.inert,
     'Route cleanup should immediately make the retained map hidden and unfocusable');
   map.root.classList.add('site-frame--moving');
+  map.viewport.inert = true;
   map.refresh();
-  assert(host.hidden && host.inert, 'The map should remain hidden while frame geometry is changing');
+  assert(host.dataset.mapActive === 'true' && !host.hidden && host.inert &&
+    host.style.width === '940px' && host.style.height === '300px',
+  'Refreshing a valid Contact slot during the next transition should restore its paint and dimensions while leaving interaction disabled');
   map.root.classList.remove('site-frame--moving');
+  map.viewport.inert = false;
   map.refresh();
   map.rerun();
   map.refresh();
-  assert(!host.hidden && map.iframe.srcWrites.length === 1 && map.iframe.loadedDetachments === 0 &&
+  assert(host.dataset.mapActive === 'true' && !host.hidden && !host.inert &&
+    map.iframe.srcWrites.length === 1 && map.iframe.loadedDetachments === 0 &&
     map.viewport.childNodes.filter((node) => node.hasAttribute('data-persistent-contact-map')).length === 1,
   'Repeated runtime initialization and transition completion should preserve exactly one loaded map browsing context');
 };

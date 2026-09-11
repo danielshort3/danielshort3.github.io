@@ -67,10 +67,23 @@ async function run() {
   check(/\.home-library__group:not\(:has\(\.home-library__item:not\(\[hidden\]\)\)\)\s*\{[^}]*display:\s*none\s*;/
     .test(read('css/components/home-library.css')),
   'A group whose cards are all hidden must stay hidden until account visibility reveals a child.');
-  const restrictedCards = [...html.matchAll(/<li\b([^>]*)>([\s\S]*?)<\/li>/g)]
-    .filter((match) => /data-tools-visibility=/.test(match[1]));
+  const libraryCards = [...html.matchAll(/<li\b([^>]*)>([\s\S]*?)<\/li>/g)];
+  const restrictedCards = libraryCards.filter((match) => /data-tools-visibility=/.test(match[1]));
   check(restrictedCards.length === restricted.length, 'Restricted cards must exist in generated HTML so hydration can reveal them.');
   check(restrictedCards.every((match) => /\bhidden\b/.test(match[1]) && /aria-hidden="true"/.test(match[1])), 'Restricted cards must be hidden before authentication, including without JavaScript.');
+  items.forEach((item) => {
+    const card = libraryCards.find((match) => match[2].includes(`data-content-id="${item.id}"`));
+    const accessLabels = [...card[2].matchAll(/<span class="home-library__access">([\s\S]*?)<\/span>/g)];
+    if (item.visibility === 'admin') {
+      check(accessLabels.length === 1 && accessLabels[0][1].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() === 'Admin access',
+        `${item.title} must show one clear Admin access label on its card.`);
+      check(/<svg\b[^>]*aria-hidden="true"/.test(accessLabels[0][1]),
+        `${item.title} must keep its key icon decorative so the text names the access level.`);
+    } else {
+      check(accessLabels.length === 0 && !card[2].includes('Admin access'),
+        `${item.title} must not imply administrator access for a ${item.visibility} tool.`);
+    }
+  });
   check(restricted.every((item) => !require('../../js/home/home-library-data').tools.items.some((publicItem) => publicItem.id === item.id)), 'The homepage showcase must remain public-only.');
   const fixtureItems = buildToolsLibraryItems({ tools: [
     { slug: 'listed', href: 'tools/listed', visibility: 'public' },
@@ -105,11 +118,11 @@ async function run() {
     removeEventListener: (name, callback) => listeners.get(name)?.delete(callback),
     dispatchEvent: (event) => [...(listeners.get(event.type) || [])].forEach((callback) => callback(event))
   };
-  const window = { location: { origin: 'http://127.0.0.1:4173' }, addEventListener: () => {} };
+  const window = { location: { origin: 'http://127.0.0.1:4173', pathname: '/tools', search: '', hash: '', assign() {} }, addEventListener: () => {} };
   const cleanups = [];
   const context = {
     window, document, localStorage: storage, sessionStorage: storage, console,
-    URL, Date, Set, Map, atob,
+    URL, URLSearchParams, Date, Set, Map, atob,
     CustomEvent: class { constructor(type) { this.type = type; } },
     cleanText: (value) => String(value || '').trim(),
     disposed: false,

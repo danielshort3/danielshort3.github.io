@@ -4,7 +4,7 @@
   "href": "tools/background-remover",
   "iconImage": "img/tools/icons/background-remover.png",
   "categoryId": "tools-media",
-  "privacy": "Images are processed on your device. Saving a session uploads settings, file names, and a small processed-image preview to your account.",
+  "privacy": "Images are processed on your device. When signed in, settings, file names, and a small processed-image preview save automatically to your account.",
   "inputs": ["Image file and optional edge refinements"],
   "outputs": ["Transparent or solid-background image"],
   "summary": "Remove backgrounds from your photos.",

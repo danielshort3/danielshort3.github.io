@@ -4,7 +4,7 @@
   "href": "tools/oxford-comma-checker",
   "iconImage": "img/tools/icons/oxford-comma-checker.png",
   "categoryId": "tools-writing",
-  "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
+  "privacy": "Processing runs on your device. When signed in, text, settings, and results save automatically to your account; shared input links contain your text.",
   "inputs": ["Pasted draft"],
   "outputs": ["Serial-list suggestions"],
   "summary": "Find candidate lists and review comma usage in context.",

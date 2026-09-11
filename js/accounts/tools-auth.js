@@ -6,6 +6,8 @@
   const STATE_KEY = 'toolsAuthState';
   const VERIFIER_KEY = 'toolsAuthCodeVerifier';
   const RETURN_TO_KEY = 'toolsAuthReturnTo';
+  const LOGOUT_RETURN_TO_KEY = 'toolsAuthLogoutReturnTo';
+  const DEFAULT_RETURN_TO = '/#tools';
   const POPUP_STATE_PREFIX = 'toolsAuthPopupState:';
   const AUTH_BROADCAST_KEY = 'toolsAuthBroadcast';
   const POPUP_STATE_TTL_MS = 10 * 60 * 1000;
@@ -19,6 +21,9 @@
   let authRenewal = null;
   let sessionRestoreBlocked = false;
   let logoutPromise = null;
+  try {
+    sessionRestoreBlocked = Boolean(sessionStorage.getItem(LOGOUT_RETURN_TO_KEY));
+  } catch {}
 
   const cancelAuthRenewal = () => {
     authGeneration += 1;
@@ -252,6 +257,7 @@
   const buildAuthorizeUrl = async (config, options = {}) => {
     const verifier = randomBase64Url(48);
     const challengeBytes = await sha256(verifier);
+    checkAuthOperation(options.operation);
     const challenge = btoa(String.fromCharCode(...challengeBytes))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
@@ -419,13 +425,26 @@
     return persistAuthForSessionMode(config, next, operation);
   };
 
+  const isAccountCallbackPath = (pathname) => /^\/(?:tools\/dashboard|pages\/tools-dashboard|tools-dashboard)(?:\.html)?\/?$/.test(pathname);
+
   const normalizeReturnTo = (value) => {
     const raw = String(value || '').trim();
     if (!raw) return '';
     try {
       const url = new URL(raw, window.location.origin);
       if (url.origin !== window.location.origin) return '';
+      // Keep the registered callback as plumbing, never a dashboard destination.
+      if (isAccountCallbackPath(url.pathname)) return DEFAULT_RETURN_TO;
       return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return '';
+    }
+  };
+
+  const getLogoutReturnTo = () => {
+    try {
+      const stored = sessionStorage.getItem(LOGOUT_RETURN_TO_KEY);
+      return stored ? (normalizeReturnTo(stored) || DEFAULT_RETURN_TO) : '';
     } catch {
       return '';
     }
@@ -436,11 +455,17 @@
     if (!config.cognitoDomain || !config.cognitoClientId || !config.cognitoRedirect) {
       throw new Error('Cognito settings are missing.');
     }
+    // Let the browser finish its hosted logout before starting another login.
+    // A late website logout response must never clear a newly established cookie.
+    if (logoutPromise || getLogoutReturnTo()) {
+      await (logoutPromise || signOut());
+      return { mode: 'redirect' };
+    }
     cancelAuthRenewal();
     sessionRestoreBlocked = false;
-    logoutPromise = null;
+    const operation = { generation: authGeneration };
 
-    const returnTo = normalizeReturnTo(options.returnTo || `${window.location.pathname}${window.location.search}${window.location.hash}`);
+    const returnTo = normalizeReturnTo(options.returnTo || `${window.location.pathname}${window.location.search}${window.location.hash}`) || DEFAULT_RETURN_TO;
     const mode = options.mode === 'popup' ? 'popup' : 'redirect';
     let popup = null;
     if (mode === 'popup') {
@@ -462,7 +487,8 @@
 
     let url;
     try {
-      url = await buildAuthorizeUrl(config, { mode, returnTo });
+      url = await buildAuthorizeUrl(config, { mode, returnTo, operation });
+      checkAuthOperation(operation);
     } catch (err) {
       if (mode === 'popup') {
         try { popup.close(); } catch {}
@@ -487,6 +513,17 @@
   const handleRedirect = async () => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
+    const logoutReturnTo = getLogoutReturnTo();
+    const callback = new URL(getConfig().cognitoRedirect, window.location.origin);
+    if (!code && logoutReturnTo && callback.origin === window.location.origin && callback.pathname === window.location.pathname) {
+      cancelAuthRenewal();
+      sessionRestoreBlocked = true;
+      clearAllAuth();
+      sessionStorage.removeItem(LOGOUT_RETURN_TO_KEY);
+      // Logout returns signed out; it must not immediately start authorization.
+      window.location.replace(logoutReturnTo);
+      return { handled: true, redirected: true, signedOut: true };
+    }
     const returnedState = params.get('state') || '';
     const storedState = sessionStorage.getItem(STATE_KEY) || '';
     const popupState = returnedState ? loadPopupState(returnedState) : null;
@@ -516,7 +553,8 @@
       return { handled: true, redirected: false, popup: true };
     }
 
-    const returnTo = normalizeReturnTo(sessionStorage.getItem(RETURN_TO_KEY) || '');
+    const returnTo = normalizeReturnTo(sessionStorage.getItem(RETURN_TO_KEY) || '')
+      || (isAccountCallbackPath(window.location.pathname) ? DEFAULT_RETURN_TO : '');
     try {
       sessionStorage.removeItem(RETURN_TO_KEY);
     } catch {}
@@ -532,6 +570,7 @@
   window.addEventListener('message', (event) => {
     if (event.origin !== window.location.origin) return;
     if (event.data?.type !== 'tools-auth:complete') return;
+    if (logoutPromise || getLogoutReturnTo()) return;
     cancelAuthRenewal();
     sessionRestoreBlocked = false;
     logoutPromise = null;
@@ -541,7 +580,7 @@
   window.addEventListener('storage', (event) => {
     if (event.key === STORAGE_KEY || LEGACY_STORAGE_KEYS.includes(event.key) || event.key === null) {
       cancelAuthRenewal();
-      sessionRestoreBlocked = !loadAuth() && !loadRefreshCandidate();
+      sessionRestoreBlocked = Boolean(logoutPromise || getLogoutReturnTo()) || (!loadAuth() && !loadRefreshCandidate());
       if (!sessionRestoreBlocked) logoutPromise = null;
     }
     if (event.key !== AUTH_BROADCAST_KEY || !event.newValue) return;
@@ -702,15 +741,44 @@
   };
 
   const signOut = () => {
-    if (sessionRestoreBlocked && logoutPromise) return logoutPromise;
+    if (logoutPromise) return logoutPromise;
     sessionRestoreBlocked = true;
     cancelAuthRenewal();
     clearAllAuth();
+    const config = getConfig();
+    const previousPage = getLogoutReturnTo()
+      || normalizeReturnTo(`${window.location.pathname}${window.location.search}${window.location.hash}`)
+      || DEFAULT_RETURN_TO;
+    const returnPage = new URL(previousPage, window.location.origin);
+    // A saved-session selector belongs to the old account. The next account
+    // should resume its own work instead of requesting that account's session.
+    returnPage.searchParams.delete('session');
+    const returnTo = `${returnPage.pathname}${returnPage.search}${returnPage.hash}`;
+    try {
+      sessionStorage.setItem(LOGOUT_RETURN_TO_KEY, returnTo);
+    } catch {}
     logoutPromise = fetch(SESSION_API.logout, {
       method: 'POST',
       credentials: 'same-origin',
       keepalive: true
-    }).catch(() => null);
+    }).then((res) => {
+      if (!res.ok) throw new Error('Unable to finish signing out. Please try again.');
+      if (!config.cognitoDomain || !config.cognitoClientId) {
+        sessionStorage.removeItem(LOGOUT_RETURN_TO_KEY);
+        return { redirected: false };
+      }
+      // Cognito has its own browser cookie, separate from the website session.
+      // Use an exact registered logout URI, then restore the original page there.
+      const params = new URLSearchParams({
+        client_id: config.cognitoClientId,
+        logout_uri: config.cognitoRedirect
+      });
+      window.location.assign(`https://${config.cognitoDomain}/logout?${params.toString()}`);
+      return { redirected: true };
+    }).catch(() => {
+      logoutPromise = null;
+      throw new Error('Unable to finish signing out. Please try again.');
+    });
     return logoutPromise;
   };
 

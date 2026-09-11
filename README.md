@@ -122,6 +122,8 @@ This repo includes an optional account layer for tools under `/tools`:
 - **Auth:** Amazon Cognito Hosted UI (PKCE) configured in `js/accounts/tools-config.js`; sign-in requests `select_account` by default so Google prompts for the intended account. In the default `dual` migration mode, a verified ID token is also exchanged for an AES-256-GCM authenticated, Secure, HttpOnly, `SameSite=Lax`, same-origin `__Host-` session cookie.
 - **Storage:** AWS DynamoDB (see `.env.example`).
 
+Signed-in tools automatically save supported inputs, settings, and results to the account as work changes. Browser tools remain local while signed out unless a user shares their work or invokes a cloud feature. Account snapshots exclude password and file-upload fields; tool-specific capture hooks can include file names, result summaries, or processed previews as disclosed on each tool and the privacy page. File downloads and cloud-tool record submissions keep their own controls.
+
 Required configuration:
 
 - Update your Cognito app client **Allowed callback URLs** to include `https://www.danielshort.me/tools/dashboard`.
@@ -189,4 +191,3 @@ The custom `/admin` editor is a local-only content editor for managed JSON files
 ## Shape Classifier Demo
 
 The interactive demo calls an AWS Lambda function for real-time predictions. Ensure your Lambda code includes CORS headers so the browser can access it. See [documents/lambda-cors.md](documents/lambda-cors.md) for a minimal example.
-
