@@ -6,9 +6,9 @@ Run the repository server on a registered port, for example:
 npm run dev -- --port 4181
 ```
 
-Tools sign-in returns to the current origin plus `/tools/dashboard`. Cognito must allow that exact URL, including scheme, hostname, port, and path. `localhost` and `127.0.0.1` are separate origins; use the same one throughout sign-in. If the server chooses another port because the requested port is busy, register the actual port printed by the server.
+Tools sign-in and sign-out return to the current origin plus `/tools/dashboard`. Cognito must allow that exact URL in both `CallbackURLs` and `LogoutURLs`, including scheme, hostname, port, and path. `localhost` and `127.0.0.1` are separate origins; use the same one throughout sign-in. If the server chooses another port because the requested port is busy, register the actual port printed by the server.
 
-## Register local callbacks
+## Register local callbacks and sign-out URLs
 
 Use the installed AWS CLI with a profile permitted to describe and update the existing Cognito app client. Preview the additions first:
 
@@ -16,7 +16,7 @@ Use the installed AWS CLI with a profile permitted to describe and update the ex
 node scripts/setup-tools-local-auth.js
 ```
 
-The defaults come from this site's public configuration: account `886623862678`, region `us-east-2`, pool `us-east-2_y80EG3pKd`, and client `78oo663obb0t28u63u9bqn00o9`. The helper adds `/tools/dashboard` callbacks for both `http://localhost` and `http://127.0.0.1` on ports `3000`, `4173`, and `4181`.
+The defaults come from this site's public configuration: account `886623862678`, region `us-east-2`, pool `us-east-2_y80EG3pKd`, and client `78oo663obb0t28u63u9bqn00o9`. The helper adds `/tools/dashboard` callback and sign-out URLs for both `http://localhost` and `http://127.0.0.1` on ports `3000`, `4173`, and `4181`. Run it again if you used the older callback-only helper; it will add the missing sign-out URLs.
 
 Apply the reviewed additions:
 
@@ -31,7 +31,9 @@ node scripts/setup-tools-local-auth.js --profile your-profile --ports 4182
 node scripts/setup-tools-local-auth.js --profile your-profile --ports 4182 --apply
 ```
 
-`--ports` controls which local URLs to add; existing callbacks remain in the merged list. The helper checks the AWS account before writing, reads the full current client, checks its mutable fields against the installed CLI's input schema, and changes only `CallbackURLs`. It checks again for configuration drift before the update, verifies the result afterward, and never prints the client secret or full AWS response. Repeating an already-applied command performs no update.
+`--ports` controls which local URLs to add; existing callbacks and sign-out URLs remain in their respective merged lists. The helper checks the AWS account before writing, reads the full current client, checks its mutable fields against the installed CLI's input schema, and changes only `CallbackURLs` and `LogoutURLs`. It checks again for configuration drift before the update, verifies the result afterward, and never prints the client secret or full AWS response. Repeating an already-applied command performs no update.
+
+When updating the CloudFormation stack, preserve the full live callback and sign-out lists in its `CallbackUrls` and `LogoutUrls` parameters, including any local URLs you still use. The template accepts both lists explicitly; its defaults do not register local origins.
 
 Do not replace this with a partial `update-user-pool-client` command containing only callback URLs. Cognito resets omitted settings to defaults, including settings needed for OAuth. The update must carry the existing client configuration. [AWS UpdateUserPoolClient documentation](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UpdateUserPoolClient.html)
 
@@ -67,6 +69,8 @@ The tracker attachment bucket separately permits `http://localhost` and `http://
 ## Check the result
 
 Open `/tools/dashboard` on the same local origin, choose Sign in, and complete account selection. The browser should return to that local dashboard, then restore the requested tool. A `redirect_mismatch` page indicates that the exact callback is still missing. An API configuration error after returning indicates missing backend variables. An access-denied response from link management requires an authorized account; registering callbacks does not grant administrator access.
+
+Then sign out and sign in again. Sign-out must pass through Cognito's `/logout` endpoint to clear its hosted UI session cookie, and the next sign-in should show the Google/email choices. Cognito validates `logout_uri` against `LogoutURLs` independently of the callback list. [AWS logout documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html)
 
 ## Transcription on localhost
 

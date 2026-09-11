@@ -2,6 +2,7 @@
   "id": "babynames",
   "title": "Baby Name Predictor",
   "subtitle": "Personalized name recommendations from family preferences and naming trends.",
+  "metaDescription": "Explore a baby-name recommendation model built from family preferences and historical naming trends, with an interactive demo and project notes.",
   "image": "img/projects/babynames.png",
   "iconImage": "img/projects/icons/babynames.png",
   "imageWidth": 1238,
@@ -77,5 +78,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Baby Name Predictor showing rating distribution, favorite girl names, and recommendations."
-  }
+  },
+  "relatedProjectId": "sheetMusicUpscale"
 }

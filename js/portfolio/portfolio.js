@@ -2051,7 +2051,9 @@ function buildPortfolioWorkbench(routeRoot = document, options = {}) {
 
   const renderWorkbenchMedia = (project = {}) => {
     if (project.iconImage) {
-      return `<span class="portfolio-result-card__icon"><img src="${escapeHtml(project.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async"></span>`;
+      const image = `<img src="${escapeHtml(project.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async">`;
+      const media = typeof window !== 'undefined' && window.SiteCatalogIcons ? window.SiteCatalogIcons.render(image) : image;
+      return `<span class="portfolio-result-card__icon">${media}</span>`;
     }
     if (project.image) {
       if (project.imageResponsive === false) {

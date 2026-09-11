@@ -1,0 +1,309 @@
+/* Scoped to the handwriting demo; other project demos retain their layouts. */
+html[data-project-demo-theme="brand"] body.handwriting-rating-workspace {
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  height: auto;
+}
+
+.handwriting-rating-workspace * { box-sizing: border-box; }
+
+.handwriting-rating-workspace #main {
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+html[data-project-demo-theme="brand"] .handwriting-rating-workspace #demo-box {
+  width: 100%;
+  max-width: 720px !important;
+  margin: 0 auto;
+  padding: 24px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.handwriting-demo .handwriting-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.handwriting-demo .title {
+  margin: 0 0 7px;
+  font-size: 1.55rem;
+  line-height: 1.2;
+  letter-spacing: -.035em;
+}
+
+.handwriting-demo .subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: .875rem;
+  line-height: 1.5;
+}
+
+html[data-project-demo-standalone="true"] .handwriting-heading { display: none; }
+html[data-project-demo-standalone="true"] .handwriting-header { justify-content: flex-end; margin-bottom: 0; }
+
+.handwriting-demo .handwriting-health {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 6px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: .75rem;
+  cursor: pointer;
+}
+
+.handwriting-health::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.handwriting-demo .handwriting-health[data-state="ok"] { color: var(--success); }
+.handwriting-demo .handwriting-health[data-state="err"] { color: var(--danger); }
+
+.handwriting-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 44px;
+  max-width: 636px;
+  margin-inline: auto;
+}
+
+.handwriting-workspace > * { min-width: 0; }
+
+.handwriting-input-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 6px;
+}
+
+.handwriting-demo h2 {
+  margin: 0;
+  font-size: .8125rem;
+  line-height: 1.5;
+  font-weight: 550;
+  letter-spacing: 0;
+}
+
+.handwriting-demo .handwriting-clear {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 3px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: .8125rem;
+  cursor: pointer;
+}
+
+.handwriting-pad-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.handwriting-demo #pad {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.handwriting-demo #pad[aria-disabled="true"] { cursor: wait; }
+
+#drawing-prompt {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: .875rem;
+  pointer-events: none;
+}
+
+.handwriting-toolbar {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.handwriting-demo .handwriting-rate {
+  min-width: 164px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 11px 25px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: var(--primary);
+  color: #ffffff;
+  font: inherit;
+  font-size: .875rem;
+  line-height: 1.4;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.handwriting-demo .handwriting-rate:hover:not(:disabled) { background: var(--accent-strong); }
+.handwriting-demo button:disabled { opacity: .55; cursor: default; }
+
+.handwriting-demo .handwriting-status {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: .8125rem;
+  line-height: 1.5;
+}
+
+.handwriting-demo .handwriting-status[data-state="error"] { color: var(--danger); }
+.handwriting-results {
+  position: relative;
+  align-self: stretch;
+  padding-top: 12px;
+}
+
+.handwriting-results::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -23px;
+  width: 1px;
+  background: rgba(9, 31, 59, .12);
+  pointer-events: none;
+}
+
+.handwriting-prediction {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  margin-bottom: 20px;
+}
+
+.handwriting-demo #result-digit {
+  font-size: 3.875rem;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -.055em;
+}
+
+.handwriting-demo .handwriting-result-label,
+.handwriting-demo #result-actual {
+  margin: 0;
+  color: var(--muted);
+  font-size: .8125rem;
+  line-height: 1.5;
+}
+
+.handwriting-demo #result-actual { margin-top: 4px; font-size: .75rem; }
+.handwriting-demo #confidence-text { margin: 0; font-size: .8125rem; line-height: 1.5; font-weight: 600; }
+
+.handwriting-chart-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.handwriting-chart-header > span { color: var(--muted); font-size: .6875rem; }
+.handwriting-demo #confidence-list { list-style: none; margin: 0; padding: 0; }
+
+.handwriting-demo .confidence-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 51px;
+  align-items: center;
+  gap: 9px;
+  min-height: 25px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.handwriting-demo .confidence-digit { font-size: .8125rem; line-height: 1; }
+
+html[data-project-demo-theme="brand"] .handwriting-demo .confidence-track {
+  display: block;
+  height: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: #edf1f7;
+  overflow: hidden;
+}
+
+html[data-project-demo-theme="brand"] .handwriting-demo .confidence {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border: 0;
+  background: #9cacc2;
+}
+
+html[data-project-demo-theme="brand"] .handwriting-demo .confidence-row:first-child .confidence { background: var(--primary); }
+.handwriting-demo .confidence-row:first-child :is(.confidence-digit, .confidence-pct) { font-weight: 600; }
+.handwriting-demo .confidence-pct { font-size: .75rem; line-height: 1; text-align: right; font-variant-numeric: tabular-nums; }
+.handwriting-demo #result-empty { margin: 25px 0; max-width: 20ch; font-size: 1.0625rem; line-height: 1.45; color: var(--muted); }
+
+.handwriting-samples { max-width: 636px; margin: 23px auto 0; padding-top: 16px; border-top: 1px solid var(--border); }
+.handwriting-samples-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
+.handwriting-samples-header > span { color: var(--muted); font-size: .75rem; }
+.handwriting-sample-buttons { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+
+.handwriting-demo [data-sample-digit] {
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.handwriting-demo [data-sample-digit]:hover:not(:disabled) { background: #f1f5fc; }
+.handwriting-demo [data-sample-digit][aria-pressed="true"] { background: #edf3ff; border-color: var(--primary); color: var(--accent-strong); font-weight: 600; }
+.handwriting-demo .handwriting-note { max-width: 636px; margin: 15px auto 0; color: var(--muted); font-size: .6875rem; line-height: 1.5; }
+
+@media (max-width: 600px) {
+  html[data-project-demo-theme="brand"] .handwriting-rating-workspace #demo-box { padding: 16px 12px; }
+  .handwriting-demo .handwriting-header { flex-wrap: wrap; gap: 6px 12px; }
+  .handwriting-workspace { grid-template-columns: 1fr; gap: 40px; }
+  .handwriting-results { padding: 0; }
+  .handwriting-results::before { inset: -21px 0 auto; width: auto; height: 1px; }
+  .handwriting-demo #result-empty { margin: 0; }
+  .handwriting-sample-buttons { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .handwriting-demo .handwriting-rate { transition: background-color .15s ease; }
+}

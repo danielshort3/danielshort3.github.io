@@ -4,6 +4,7 @@
   const CoreMath = (typeof require === 'function' ? require('./core/math.js') : null) || global.ProjectStarfallCore || {};
   const CoreGeometry = (typeof require === 'function' ? require('./core/geometry.js') : null) || global.ProjectStarfallCore || {};
   const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
+  const getAssetRequestUrl = CoreAssets.getAssetRequestUrl || ((assetPath) => assetPath);
   const EngineVisuals = (typeof require === 'function' ? require('./engine/visuals.js') : null) || global.ProjectStarfallEngineModules && global.ProjectStarfallEngineModules.visuals || {};
   const hashString = CoreMath.hashString || function hashStringFallback(value) {
     const text = String(value || '');
@@ -353,7 +354,7 @@
       const assets = this.PIXI && this.PIXI.Assets;
       if (assets && typeof assets.unload === 'function') {
         try {
-          const result = assets.unload(src);
+          const result = assets.unload(getAssetRequestUrl(src));
           if (result && typeof result.catch === 'function') result.catch(() => undefined);
           return true;
         } catch {
@@ -876,8 +877,9 @@
       if (this.loadingTextures.has(src)) return this.loadingTextures.get(src);
       const promise = Promise.resolve()
         .then(() => {
-          if (this.PIXI.Assets && typeof this.PIXI.Assets.load === 'function') return this.PIXI.Assets.load(src);
-          return this.PIXI.Texture.from(src);
+          const requestUrl = getAssetRequestUrl(src);
+          if (this.PIXI.Assets && typeof this.PIXI.Assets.load === 'function') return this.PIXI.Assets.load(requestUrl);
+          return this.PIXI.Texture.from(requestUrl);
         })
         .then((texture) => {
           if (texture) this.setBaseTextureValue(src, this.applyPixelArtTextureSettings(texture));

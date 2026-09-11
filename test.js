@@ -1171,7 +1171,7 @@ try {
     const expectedTitles = {
       'pages/contact.html': 'Contact | Daniel Short',
       'pages/tools.html': 'Browser Tools for Writing, Images &amp; Campaigns | Daniel Short',
-      'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
+      'pages/tools-dashboard.html': 'Account | Daniel Short',
       'pages/games.html': 'Browser Games &amp; Interactive Simulations | Daniel Short',
       'pages/games/project-starfall.html': 'Project Starfall | Daniel Short',
       'pages/sitemap.html': 'Sitemap | Daniel Short',
@@ -1192,6 +1192,15 @@ try {
     Object.entries(expectedTitles).forEach(([file, title]) => {
       checkFileContains(file, `<title>${title}</title>`);
     });
+
+    const accountFallbackHtml = readFile('pages/tools-dashboard.html');
+    assert(accountFallbackHtml.includes('data-tools-account="dock"') &&
+           accountFallbackHtml.includes('data-tools-account="status"') &&
+           accountFallbackHtml.includes('content="noindex, nofollow"'),
+      'legacy account callback page should retain sign-in, error feedback, and private indexing controls');
+    assert(!accountFallbackHtml.includes('data-tools-dashboard=') &&
+           !/Tools Dashboard|Recent sessions|Pinned sessions/.test(accountFallbackHtml),
+      'legacy account callback page should not expose a tools dashboard or session overview');
 
     const contactPageHtml = readFile('pages/contact.html');
     assert(contactPageHtml.includes('id="contact-options"') &&
@@ -1665,19 +1674,18 @@ try {
       !directoryJs.includes('renderResumeSignedOut') &&
       directoryJs.includes('!window.ToolsAuth.authIsValid(auth)'),
       'tools directory resume panel should stay hidden until the visitor is signed in');
-    assert(catalogJs.includes('data-tools-action="toggle-account"') &&
-      catalogJs.includes('aria-expanded="false"') &&
-      catalogJs.includes('aria-controls="tools-account-disclosure"') &&
-      catalogJs.includes('id="tools-account-disclosure"') &&
-      catalogJs.includes('hidden inert') &&
-      catalogJs.includes('data-tools-action="open-account">Saved work &amp; account</button>') &&
+    assert(catalogJs.includes('data-tools-account="signed-in-actions" hidden') &&
+      catalogJs.includes('data-tools-action="open-account" aria-haspopup="dialog">Account</button>') &&
+      catalogJs.includes('data-tools-action="sign-out">Sign out</button>') &&
+      !catalogJs.includes('data-tools-action="toggle-account"') &&
+      !catalogJs.includes('aria-controls="tools-account-disclosure"') &&
       !catalogJs.includes('data-tools-account="saved-work" href="/tools/dashboard"') &&
       !catalogJs.includes('role="menu"') &&
       !catalogJs.includes('role="menuitem"'),
-      'tools account bar should consolidate saved work and account controls in an accessible disclosure with native Tab navigation');
-    const accountDisclosureCode = catalogJs.slice(
-      catalogJs.indexOf('const createDisclosureController'),
-      catalogJs.indexOf('const initSessionsPanel')
+      'tools account bar should expose direct native Account and Sign out buttons without a disclosure or dashboard link');
+    const accountBarClickCode = catalogJs.slice(
+      catalogJs.indexOf('const handleBarClick = '),
+      catalogJs.indexOf('const handleAuthChanged = ', catalogJs.indexOf('const handleBarClick = '))
     );
     const accountStatusCode = catalogJs.slice(
       catalogJs.indexOf('const setStatus = (nextStatus, nextSessionId)'),
@@ -1687,27 +1695,29 @@ try {
       catalogJs.indexOf('const syncAccountBarState'),
       catalogJs.indexOf('const getSignInOptions')
     );
-    assert(accountDisclosureCode.includes("setAttribute('aria-expanded', String(nextExpanded))") &&
-      accountDisclosureCode.includes("toggleAttribute('hidden', !nextExpanded)") &&
-      accountDisclosureCode.includes("toggleAttribute('inert', !nextExpanded)") &&
-      accountDisclosureCode.includes("event.key !== 'Escape'") &&
-      accountDisclosureCode.includes("document.addEventListener('pointerdown'") &&
-      accountDisclosureCode.includes("addEventListener('focusout'") &&
-      accountDisclosureCode.includes('focus({ preventScroll: true })'),
-      'account disclosure should close on Escape, outside interaction, and focus exit while restoring focus when appropriate');
+    assert(accountBarClickCode.includes("button.getAttribute('aria-disabled') === 'true'") &&
+      accountBarClickCode.includes("action === 'open-account'") &&
+      accountBarClickCode.includes('onOpenAccount()') &&
+      accountBarClickCode.includes("action === 'sign-out'") &&
+      accountBarClickCode.includes('onSignOut()') &&
+      !accountBarClickCode.includes("action === 'save-session'"),
+      'direct account actions should open the dialog and delegate guarded sign-out without a Save action');
     assert(accountStatusCode.includes('statusText = String(nextStatus || \'\').trim();') &&
       !accountStatusCode.includes('innerHTML') &&
       !catalogJs.includes('data-tools-action="new-session"') &&
       !catalogJs.includes('tools-account-pill'),
       'account status changes should preserve stable controls and the bar should omit permanent identity pills and New session');
-    assert(accountSyncCode.indexOf("refs.extensionsEl?.toggleAttribute('hidden', !hasExtensions)") <
-      accountSyncCode.indexOf("refs.statusEl.textContent = statusText || ''"),
-      'account status should enter the accessibility tree before its live text changes');
+    assert(catalogJs.includes('data-tools-account="status" role="status" aria-live="polite" aria-atomic="true"') &&
+      accountSyncCode.includes("refs.statusEl.textContent = statusText || ''") &&
+      accountSyncCode.includes("refs.statusEl.toggleAttribute('hidden', !statusText)"),
+      'account feedback should retain a polite live status region and hide empty messages');
     assert(catalogJs.includes('await window.ToolsAuth.ensureFreshAuth();') &&
       catalogJs.includes("source: 'tools-account-bootstrap'") &&
-      catalogJs.includes("refs.embeddedActionsEl?.querySelector('a:not([hidden]),button:not([hidden])')") &&
-      catalogJs.includes("disclosureController.close({ restoreFocus: !capabilities.embedded })"),
-      'account bootstrap and auth transitions should restore dual-mode sessions, resync tool UI, and preserve focus in standard and embedded bars');
+      accountSyncCode.includes("refs.signInButton?.toggleAttribute('hidden', authed)") &&
+      accountSyncCode.includes("refs.signedInActionsEl?.toggleAttribute('hidden', !authed)") &&
+      accountSyncCode.includes('refs.signInButton.focus({ preventScroll: true })') &&
+      accountSyncCode.includes('refs.accountTrigger?.focus({ preventScroll: true })'),
+      'account bootstrap and auth transitions should restore sessions, swap signed-in controls, and preserve keyboard focus');
     assert(catalogJs.includes('const initToolsAccountServices = () =>') &&
       catalogJs.includes("document.addEventListener('site:route-mounted', handleRouteMounted)") &&
       catalogJs.includes("document.addEventListener('site:route-unmounted', handleRouteUnmounted)") &&
@@ -1717,7 +1727,7 @@ try {
       catalogJs.includes('const persistence = initToolAutoSave({') &&
       catalogJs.includes('registerCleanup(persistence)') &&
       catalogJs.includes('routeMount.beforeLeave = persistence?.beforeLeave'),
-    'tools account services should remain shared while route-owned bars, dashboards, restoration, and autosave remount with lifecycle cleanup');
+    'tools account services should remain shared while route-owned bars, restoration, and autosave remount with lifecycle cleanup');
     assert(toolsAccountLoaderJs.includes("dock.dataset.toolsAccountLoaderReady === 'true'") &&
       toolsAccountLoaderJs.includes('delete binding.dock.dataset.toolsAccountLoaderReady') &&
       toolsAccountLoaderJs.includes('window.SiteRoutes?.addCleanup?.(() => releaseBinding(binding), routeId)') &&
@@ -1743,12 +1753,14 @@ try {
     assert(!toolsHtml.includes('class="tools-resume-panel"') && toolsAccountDockIndex > toolsLibraryHeaderIndex && toolsAccountDockIndex < toolsLibraryHeaderEnd,
       'personal tools library should use the account dock without retaining the legacy resume/workbench panel');
     const toolsCss = readFile('css/components/tools.css');
+    const toolsAccountCss = readFile('css/components/tools-account.css');
     const workbenchCss = readFile('css/components/portfolio-workbench.css');
-    assert(toolsCss.includes('.portfolio-brand-panel {\n    overflow:visible;') &&
-      toolsCss.includes('.portfolio-brand-panel:has(.tools-account-disclosure-root.is-open)') &&
-      toolsCss.includes('.portfolio-brand-panel__main {\n    z-index:2;') &&
-      toolsCss.includes('.portfolio-brand-panel .tools-account-disclosure {'),
-      'Tools directory account options should escape the branded panel without falling behind later content');
+    const signOutStyles = toolsAccountCss.match(/\.tools-account-bar \.tools-account-signout\s*\{([^}]+)\}/)?.[1] || '';
+    assert(signOutStyles.includes('background: #b42318;') &&
+      signOutStyles.includes('color: #fff;') &&
+      toolsAccountCss.includes('.tools-account-signed-in-actions') &&
+      toolsAccountCss.includes('.tools-account-continue-item .btn-secondary'),
+      'account controls should keep Sign out visibly red and support direct signed-in actions and saved-work continuation links');
     assert(!toolsCss.includes('tools-workbench-header') &&
       toolsCss.includes('grid-template-columns:minmax(210px,248px) minmax(420px,1fr);') &&
       !toolsCss.includes('.portfolio-workbench[data-directory-workbench="tools"] .portfolio-inspector') &&
@@ -8838,7 +8850,7 @@ try {
         `${visualId} should expose explicit slot/kind metadata and use only modular atlas rendering`);
       const expectedAngles = equipmentAttachments.getEquipmentAngleSet(visual.kind);
       const expectedVariants = visual.kind === 'bow' ? ['rest', 'draw', 'release'] : ['default'];
-      assert(atlas.sheet === `${data.EQUIPMENT_ATLAS_ROOT}/${visual.fileId}-atlas-v2.png` &&
+      assert(atlas.sheet === `${data.EQUIPMENT_ATLAS_ROOT}/${visual.fileId}-atlas.png` &&
         atlas.frameWidth === 128 && atlas.frameHeight === 128 &&
         atlas.pivotX === 64 && atlas.pivotY === 64 &&
         Array.isArray(atlas.angles) && atlas.angles.length === 8 &&
@@ -8915,42 +8927,6 @@ try {
     const runEndWeapon = equipmentAttachments.resolveEquipmentAtlasParts(trainingSwordVisual, 'run', 5)[0];
     assert(runStartWeapon.orientationAngle === runEndWeapon.orientationAngle,
       'Project Starfall run should not snap the held weapon to a different atlas angle at the loop seam');
-
-    const starfrontVisualIds = [
-      'training_sword', 'training_wand', 'training_bow',
-      'copper_sword', 'birch_wand', 'simple_bow',
-      'stitched_vest', 'traveler_boots', 'fieldguard_helm', 'trailwoven_gloves',
-      'iron_sword', 'iron_axe', 'apprentice_staff', 'oak_longbow',
-      'adventurer_cutlass', 'balanced_focus'
-    ];
-    const equipmentStyles = data.PLAYER_RIGS.fighter.equipmentVisuals;
-    const generatedDefinitions = new Map(equipmentAtlasGenerator.EQUIPMENT.map((item) => [item.id, item]));
-    assert(equipmentAtlasGenerator.ATLAS_VERSION === 'v2' &&
-      equipmentAtlasGenerator.STARFRONT_PROFILE_ID === 'fractured-starfront' &&
-      starfrontVisualIds.every((visualId) => {
-        const style = equipmentStyles[visualId];
-        const definition = generatedDefinitions.get(visualId);
-        return style && definition && style.profile === equipmentAtlasGenerator.STARFRONT_PROFILE_ID &&
-          definition.profile === equipmentAtlasGenerator.STARFRONT_PROFILE_ID &&
-          /^#[0-9a-f]{6}$/i.test(style.darkMetal) && /^#[0-9a-f]{6}$/i.test(style.metal) &&
-          /^#[0-9a-f]{6}$/i.test(style.accent) && /^#[0-9a-f]{6}$/i.test(style.ember) &&
-          Number(style.minNeutralExtent) > 0 && Number(style.maxNeutralExtent) > Number(style.minNeutralExtent);
-      }),
-    'Project Starfall starter and early class equipment should share the Fractured Starfront material profile and explicit silhouette budgets');
-
-    ['training_sword', 'training_wand', 'training_bow', 'stitched_vest', 'traveler_boots', 'fieldguard_helm', 'trailwoven_gloves'].forEach((visualId) => {
-      const visual = data.EQUIPMENT_VISUALS[visualId];
-      const style = equipmentStyles[visualId];
-      const neutralColumn = visual.atlas.angles.reduce((bestIndex, angle, index) => (
-        Math.abs(Number(angle || 0)) < Math.abs(Number(visual.atlas.angles[bestIndex] || 0)) ? index : bestIndex
-      ), 0);
-      const png = decodePngRgba(path.join(__dirname, visual.atlas.sheet));
-      const stats = getPngFrameAlphaStats(png, neutralColumn * visual.atlas.frameWidth, 0,
-        visual.atlas.frameWidth, visual.atlas.frameHeight, 8);
-      const extent = stats && Math.max(stats.bounds.width, stats.bounds.height);
-      assert(stats && extent >= style.minNeutralExtent && extent <= style.maxNeutralExtent,
-        `${visualId} neutral atlas silhouette should fit its professional scale budget (${style.minNeutralExtent}-${style.maxNeutralExtent}px, got ${extent || 0}px)`);
-    });
 
     const resolvedCatalogVisuals = catalogItems.map((item) => engine.getEquipmentVisual(item));
     const aliasedCatalogItems = catalogItems.filter((item) => item.visualId && item.visualId !== item.id);
@@ -10781,11 +10757,11 @@ try {
     }
     assert(Object.keys(data.PLAYER_ANIMATION_ASSETS || {}).length === Object.keys(data.BASE_CLASSES).length + Object.keys(data.ADVANCED_CLASSES).length,
       'Project Starfall should define animation sheets for all base and advanced classes');
-    assert(data.GENERIC_PLAYER_ASSET === 'img/project-starfall/characters/generic-player-v4.png',
-      'Project Starfall should retain the v4 generic player portrait as an explicit recovery fallback');
+    assert(data.GENERIC_PLAYER_ASSET === 'img/project-starfall/characters/generic-player.png',
+      'Project Starfall should expose the shared generic player portrait');
     assert(data.GENERIC_PLAYER_ANIMATION_ASSET &&
-      data.GENERIC_PLAYER_ANIMATION_ASSET.sheet === 'img/project-starfall/animations/players/generic-player-sheet-v4.png',
-      'Project Starfall should retain one generic recovery animation sheet');
+      data.GENERIC_PLAYER_ANIMATION_ASSET.sheet === 'img/project-starfall/animations/players/generic-player-sheet.png',
+      'Project Starfall should expose one shared generic player animation sheet');
     assert(data.EQUIPMENT_ATLAS_ROOT === 'img/project-starfall/equipment-atlases',
       'Project Starfall modular equipment visuals should stay in the equipment-atlases asset folder');
     const playableClasses = [
@@ -10803,26 +10779,17 @@ try {
       'Project Starfall skill icon roots should separate base and advanced generated icons');
     assert(Object.keys(data.CLASS_FILE_IDS || {}).length === playableClasses.length,
       'Project Starfall should define a file id for every playable class');
-    assert(data.PLAYER_ART_VERSION === 'v5' &&
-      Array.isArray(data.CLASS_FAMILY_IDS) &&
-      data.CLASS_FAMILY_IDS.join(',') === 'fighter,mage,archer',
-      'Project Starfall should expose the three versioned v5 class-body families');
-    assert(classAssets.size === 3 && data.CLASS_FAMILY_IDS.every((familyId) => classAssets.has(data.CLASS_ASSETS[familyId])),
-      'Project Starfall playable classes should resolve to three distinct family portraits');
-    assert(classAnimationSheets.size === 3 && data.CLASS_FAMILY_IDS.every((familyId) =>
-      classAnimationSheets.has(data.PLAYER_ANIMATION_ASSETS[familyId].sheet)),
-    'Project Starfall playable classes should resolve to three distinct family animation sheets');
+    assert(classAssets.size === 1 && classAssets.has(data.GENERIC_PLAYER_ASSET),
+      'Project Starfall byte-identical class portraits should resolve to one shared generic asset');
+    assert(classAnimationSheets.size === 1 && classAnimationSheets.has(data.GENERIC_PLAYER_ANIMATION_ASSET.sheet),
+      'Project Starfall byte-identical class animations should resolve to one shared generic sheet');
     playableClasses.forEach((classData) => {
       const fileId = data.CLASS_FILE_IDS[classData.id];
-      const familyId = data.getClassBodyFamilyId(classData.id);
       assert(fileId, `${classData.id} should have a generated class file id`);
-      assert(familyId && data.CLASS_FAMILY_IDS.includes(familyId),
-        `${classData.id} should resolve to a registered class-body family`);
-      assert(classData.asset === data.CLASS_ASSETS[familyId] && classData.asset !== data.GENERIC_PLAYER_ASSET,
-        `${classData.id} should use its ${familyId} family portrait`);
-      assert(classData.animation === data.PLAYER_ANIMATION_ASSETS[familyId] &&
-        classData.animation !== data.GENERIC_PLAYER_ANIMATION_ASSET,
-      `${classData.id} should use its ${familyId} family animation definition`);
+      assert(classData.asset === data.GENERIC_PLAYER_ASSET,
+        `${classData.id} should reuse the generic portrait until unique class art exists`);
+      assert(classData.animation === data.GENERIC_PLAYER_ANIMATION_ASSET,
+        `${classData.id} should reuse the generic animation definition until unique class art exists`);
     });
     assert(Object.keys(data.ENEMY_ANIMATION_ASSETS || {}).length === data.ENEMIES.length,
       'Project Starfall should define one enemy animation sheet per enemy');
@@ -29111,7 +29078,7 @@ try {
       ['rimewardenVault', 'rimewarden-vault.webp', 'rimewardenSanctum'],
       ['stormbreakAerie', 'stormbreak-aerie.webp', 'stormbreakCliffs'],
       ['astralStacks', 'astral-stacks.webp', 'astralArchive'],
-      ['eclipseThrone', 'eclipse-throne-v2.webp', 'eclipseFrontier']
+      ['eclipseThrone', 'eclipse-throne.webp', 'eclipseFrontier']
     ].forEach(([mapId, fileName, sourceId]) => {
       const map = data.MAPS.find((candidate) => candidate.id === mapId);
       assert(map && map.asset.endsWith(`/maps/${fileName}`) && map.asset !== data.MAP_ASSETS[sourceId],
@@ -29202,10 +29169,10 @@ try {
       structureAsset.cellSize === 256 &&
       structureAsset.columns === 4 &&
       Object.keys(data.ENVIRONMENT_STRUCTURE_CELLS || {}).length === 12,
-      'Project Starfall should define a generated town landmark structure atlas with dedicated Crossing frontier cells');
+      'Project Starfall should define a generated town landmark structure atlas with compatible Crossing cell aliases');
     const structureDimensions = readPngDimensions(path.join(__dirname, structureAsset.path));
-    assert(structureDimensions.width === 1024 && structureDimensions.height === 768,
-      'Project Starfall town landmark structure atlas should be a 4x3 256px PNG');
+    assert(structureDimensions.width === 1024 && structureDimensions.height === 512,
+      'Project Starfall town landmark structure atlas should be a 4x2 256px PNG');
     const backupPaths = data.ASSET_BACKUP_PATHS || {};
     [
       data.GENERIC_PLAYER_ASSET,
@@ -29775,7 +29742,7 @@ try {
 	    assert(directDropVisualItems.every((item) => item.visualId === item.id &&
 	      data.EQUIPMENT_VISUALS[item.id] &&
 	      data.EQUIPMENT_VISUALS[item.id].atlas &&
-	      data.EQUIPMENT_VISUALS[item.id].atlas.sheet.endsWith(`${item.id.replace(/_/g, '-')}-atlas-v2.png`)),
+	      data.EQUIPMENT_VISUALS[item.id].atlas.sheet.endsWith(`${item.id.replace(/_/g, '-')}-atlas.png`)),
 	      'Project Starfall random and boss gear should resolve item-specific paper-doll visuals before shared visual fallbacks');
 	    const restorativeConsumableIds = [
 	      'minor_health_potion',
@@ -30682,8 +30649,8 @@ try {
       ['structure cell atlas indexes', data.ENVIRONMENT_STRUCTURE_CELLS &&
         data.ENVIRONMENT_STRUCTURE_CELLS.starfallGuildHall === 0 &&
         data.ENVIRONMENT_STRUCTURE_CELLS.astralObservatory === 5 &&
-        data.ENVIRONMENT_STRUCTURE_CELLS.fracturedObservatoryCore === 8 &&
-        data.ENVIRONMENT_STRUCTURE_CELLS.frontierGate === 11],
+        data.ENVIRONMENT_STRUCTURE_CELLS.fracturedObservatoryCore === 0 &&
+        data.ENVIRONMENT_STRUCTURE_CELLS.frontierGate === 7],
       ['environment prop layer kind lists', Array.isArray(data.ENVIRONMENT_REAR_PROP_KINDS) &&
         data.ENVIRONMENT_REAR_PROP_KINDS.includes('tree') &&
         Array.isArray(data.ENVIRONMENT_FRONT_PROP_KINDS) &&
@@ -37443,7 +37410,8 @@ try {
       aiEnemySheetProcessorCode.includes('processEnemy(enemy, sourceDir)') &&
       aiEnemySheetProcessorCode.includes('validateEnemy(enemy)') &&
       aiEnemySheetProcessorCode.includes('buildPromptManifest()') &&
-	      spriteGeneratorCode.includes('generic-player-sheet-v4.png') &&
+	      spriteGeneratorCode.includes('GENERIC_SHEET_BACKUP_PATH') &&
+	      spriteGeneratorCode.includes('await playerAssetProcessor.generateAll()') &&
 	      !spriteGeneratorCode.includes('function makePixelFighterCharacter'),
 	      'Project Starfall sprite tooling should generate actors and maps, delegate equipment to modular atlas generation, and keep item icons on authored transparent assets');
     assert(skillIconProcessorCode.includes('const SHEETS = Object.freeze') &&
@@ -38119,7 +38087,7 @@ try {
     });
     if (data.ENVIRONMENT_STRUCTURE_ASSETS && data.ENVIRONMENT_STRUCTURE_ASSETS.townLandmarks) {
       const structure = data.ENVIRONMENT_STRUCTURE_ASSETS.townLandmarks;
-      const png = assertResolvedPng(structure.path, 1024, 768, 'Project Starfall town landmark structure atlas');
+      const png = assertResolvedPng(structure.path, 1024, 512, 'Project Starfall town landmark structure atlas');
       assertTransparentPngCorners(png, 'Project Starfall town landmark structure atlas');
     }
 
@@ -38254,24 +38222,16 @@ try {
     const genericPng = assertResolvedPng(data.GENERIC_PLAYER_ASSET, 320, 320, 'Project Starfall generic player portrait');
     const genericBounds = getPngAlphaBounds(genericPng, 20);
     const playerAssetPromptNotes = readFile('img/project-starfall/asset-prompts.md');
-    const playerClassFamilyPromptNotes = readFile('asset-sources/project-starfall/prompts/player-class-family-v5-prompts.md');
     assertTransparentPngCorners(genericPng, 'Project Starfall generic player portrait');
     assert(genericBounds &&
       genericBounds.maxX - genericBounds.minX >= 70 &&
       genericBounds.maxY - genericBounds.minY >= 90 &&
       Math.abs(genericBounds.centerX - genericPng.width / 2) <= 24,
       'Project Starfall generic player portrait should remain centered source-backed character art');
-    assert(['fighter', 'mage', 'archer'].every((familyId) =>
-      fs.existsSync(path.join(__dirname, `asset-sources/project-starfall/players/class-families/${familyId}-v5-generated-chroma.png`)) &&
-      fs.existsSync(path.join(__dirname, `asset-sources/project-starfall/players/class-families/${familyId}-v5-source.png`)) &&
-      data.CLASS_ASSETS[familyId] &&
-      data.PLAYER_ANIMATION_ASSETS[familyId]) &&
-      fs.existsSync(path.join(__dirname, 'asset-sources/project-starfall/players/fracture-runner-v4-generated-chroma.png')) &&
-      playerAssetPromptNotes.includes('v5 Fighter, Mage, and Archer') &&
-      playerClassFamilyPromptNotes.includes('Mode: built-in ImageGen.') &&
-      ['fighter', 'mage', 'archer'].every((familyId) =>
-        playerClassFamilyPromptNotes.includes(`${familyId}-v5-generated-chroma.png`)),
-      'Project Starfall player portraits should follow the source-backed v5 class-family contract while retaining the v4 recovery asset');
+    assert(fs.existsSync(path.join(__dirname, 'asset-sources/project-starfall/players/plain-adventurer-base.png')) &&
+      playerAssetPromptNotes.includes('not from procedural block shapes') &&
+      playerAssetPromptNotes.includes('plain-adventurer-base.png'),
+      'Project Starfall generic player portrait should follow the source-backed plain adventurer contract');
   }, { suite: 'starfall-assets' });
 
   section('Website chatbot contracts', () => {
@@ -39632,28 +39592,27 @@ try {
     const ddbStore = readFile('api/_lib/tools-store-ddb.js');
     const stateClient = readFile('js/accounts/tools-state.js');
     const envExample = readFile('.env.example');
-    assert(accountUi.includes('data-tools-action="save-session" hidden>Save') &&
-      accountUi.includes("const manualSaveVisible = capabilities.persistence === 'manual'") &&
-      accountUi.includes("updatePersistence('dirty')") &&
-      !accountUi.includes('Save to account') &&
-      !accountUi.includes('Manual account save only.'),
-      'manual cloud saving should appear only after a tool becomes dirty');
-    assert(accountUi.includes("['true', 'on', '1'].includes(normalizedMode)") &&
-      accountUi.includes("persistenceMode === 'autosave'") &&
-      accountUi.includes('if (autosaveEnabled) {') &&
-      accountUi.includes('timer = window.setInterval(tick, AUTO_SAVE_MS);'),
-      'tool cloud autosave should require an explicit page opt-in');
-    assert(accountUi.includes("'ga4-utm-performance': { persistence: 'none' }") &&
-      accountUi.includes("'job-application-tracker': { persistence: 'custom' }") &&
+    assert(!/<button[^>]*data-tools-action="save-session"/.test(accountUi) &&
+      !accountUi.includes('data-tools-account="save-privacy"') &&
+      accountUi.includes('data-tools-action="open-account"') &&
+      accountUi.includes('data-tools-action="sign-out"'),
+      'account controls should expose Account and Sign out without manual Save or Retry save buttons');
+    assert(accountUi.includes("configured.persistence || 'autosave'") &&
+      accountUi.includes("persistenceMode = 'autosave'") &&
+      accountUi.includes('AUTO_SAVE_DEBOUNCE_MS') &&
+      accountUi.includes("'online'") && accountUi.includes("'pagehide'"),
+      'ordinary tool accounts should autosave by default with debouncing, connectivity retry, and page-exit flushing');
+    assert(accountUi.includes("'job-application-tracker': { persistence: 'custom' }") &&
       accountUi.includes("'short-links': { persistence: 'none', embedded: true }") &&
       accountUi.includes("'transcribe': { persistence: 'custom', signInMode: 'popup' }") &&
       accountUi.includes('if (!configured.persistence &&') &&
-      accountUi.includes('let dirtyGeneration = 0;') &&
+      accountUi.includes('let dirty = hasExistingInput;') &&
+      accountUi.includes('let dirtyGeneration = dirty ? 1 : 0;') &&
       accountUi.includes('dirtyGeneration !== saveGeneration') &&
       accountUi.includes('const loadGeneration = dirtyGeneration;') &&
       accountUi.includes('dirtyGeneration !== loadGeneration') &&
       accountUi.includes("logAsyncError('tool-autosave:log-save', err)"),
-      'tool capability policy should protect custom persistence and preserve edits made during in-flight loads and saves');
+      'tool capability policy should protect custom persistence and preserve existing drafts and edits made during in-flight loads and saves');
     assert(stateApi.includes('normalizeKnownToolId') && activityApi.includes('normalizeKnownToolId') &&
       stateApi.includes('const toolId = normalizeToolId(rawToolId);') &&
       activityApi.includes('const toolId = normalizeToolId(rawToolId);'),
@@ -39674,11 +39633,14 @@ try {
       ddbStore.includes('function decodeCursor(value, expectedPk, expectedPrefix)') &&
       stateApi.includes('nextCursor: sessions.nextCursor ||') &&
       activityApi.includes('nextCursor: events.nextCursor ||') &&
-      stateClient.includes("search.set('cursor', params.cursor)") &&
-      accountUi.includes('data-tools-sessions-action="load-more"') &&
-      accountUi.includes('onLoadMore(nextCursorState)') &&
-      accountUi.includes("onLoadMore: (cursor) => window.ToolsState.listSessions({ limit: 50, cursor })"),
-      'tools history should use partition-scoped opaque cursor pagination end to end');
+      stateClient.includes("search.set('cursor', params.cursor)"),
+      'tools storage APIs and the shared client should retain partition-scoped opaque cursor pagination');
+    assert(accountUi.includes('const getLatestSavedWork = (sessions) =>') &&
+      accountUi.includes('updatedAt > current.updatedAt') &&
+      accountUi.includes('window.ToolsState.listSessions({ toolId: entry.toolId, limit: 1 })') &&
+      accountUi.includes('const resumeLatestSession = async () =>') &&
+      accountUi.includes('if (disposed || owner !== draftOwner() || loadDataGeneration !== dataGeneration || dirty || dirtyGeneration !== loadGeneration || sessionId) return;'),
+      'account continuation should find the latest work for older tools and restore it only into a pristine current-account workspace');
     assert(ddbStore.includes("throw createStoreError('VERSION_CONFLICT'") &&
       ddbStore.includes("ConditionExpression: 'attribute_exists(sessionId) AND (attribute_not_exists(#version) OR #version = :currentVersion)'") &&
       stateApi.includes("sendJson(res, 428, { ok: false, error: 'expectedVersion is required.") &&
@@ -41550,6 +41512,13 @@ try {
 
   section('Page transition behavior', () => {
     runPageTransitionTests({ assert });
+  });
+
+  section('Account continuation', () => {
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/tools/tools-auth-return.test.js')]);
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/site/account-continuation.test.js')]);
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/tools/text-compare-continuation.test.js')]);
+    childProcess.execFileSync(process.execPath, ['--test', path.join(__dirname, 'tests/infra/setup-tools-local-auth.test.js')]);
   });
 
   section('Shared motion lifecycle', () => {

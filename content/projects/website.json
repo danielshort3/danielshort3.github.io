@@ -2,6 +2,7 @@
   "id": "website",
   "title": "danielshort.me",
   "subtitle": "A home for practical tools, personal projects, and browser experiments.",
+  "metaDescription": "Explore how Daniel Short built this portfolio with practical browser tools, a searchable project library, shared navigation, and generated pages.",
   "image": "img/projects/website.png",
   "iconImage": "img/projects/icons/website.png",
   "imageWidth": 1280,
@@ -47,5 +48,6 @@
   },
   "order": 17,
   "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site.",
-  "imageAlt": "Current Daniel Short homepage in its light theme, with an introduction, timeline, and colored vertical tabs."
+  "imageAlt": "Current Daniel Short homepage in its light theme, with an introduction, timeline, and colored vertical tabs.",
+  "relatedProjectId": "smartSentence"
 }

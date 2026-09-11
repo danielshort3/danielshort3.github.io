@@ -2,6 +2,7 @@
   "id": "retailStore",
   "title": "Store-Level Loss & Sales ETL",
   "subtitle": "Bring store data together to spot unusual loss and sales patterns.",
+  "metaDescription": "Explore a retail loss and sales data pipeline with an interactive dashboard for comparing stores, spotting unusual patterns, and planning investigations.",
   "image": "img/projects/retailStore.png",
   "iconImage": "img/projects/icons/retailStore.png",
   "imageWidth": 1410,
@@ -84,5 +85,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Store loss and sales dashboard showing summary metrics and its monthly sales trend."
-  }
+  },
+  "relatedProjectId": "targetEmptyPackage"
 }

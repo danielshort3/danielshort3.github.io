@@ -101,7 +101,7 @@ function buildHomeLibraryData(content) {
     .map((project) => homeLibraryItem({
       id: String(project.id).trim(),
       title: String(project.title || 'Project').trim(),
-      summary: String(project.personalStory && project.personalStory.why || project.problem || project.subtitle || '').trim(),
+      summary: String(project.subtitle || project.personalStory && project.personalStory.why || project.problem || '').trim(),
       href: `/portfolio/${encodeURIComponent(String(project.id).trim())}`,
       image: projectLibraryPreviewAsset(project.image),
       imageAlt: '',

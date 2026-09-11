@@ -281,7 +281,7 @@
         const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
         target.height = clamp(gesture.height * gesture.distance / distance, minimumHeight(), maxHeight);
       } else {
-        target.yaw = gesture.yaw + dx * .003;
+        target.yaw = gesture.yaw - dx * .003;
         target.pitch = clamp(gesture.pitch + dy * .0025, ...pitchBounds());
       }
       event.preventDefault();

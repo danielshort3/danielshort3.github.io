@@ -1074,6 +1074,26 @@
     return { text: text.slice(0, maxChars), truncated: true };
   };
 
+  const hasSavedComparison = (output) => {
+    if (output?.kind === 'html') {
+      const html = String(output.html || '').trim();
+      return Boolean(html) && !/class\s*=\s*["'][^"']*\btextcompare-empty\b/.test(html);
+    }
+    if (output?.kind !== 'text') return false;
+    const text = String(output.text || '').trim();
+    return Boolean(text) && ![
+      'Waiting for input.', 'Ready to compare.', 'No output.',
+      'Paste text in both boxes, then click Compare.', 'Comparing…',
+      'Input too large.', 'Comparison failed. Please try smaller sections.'
+    ].includes(text);
+  };
+
+  document.addEventListener('tool:tab-change', (event) => {
+    if (['textcompare-view-drafts', 'textcompare-view-comparison'].includes(event?.detail?.panelId)) {
+      markSessionDirty();
+    }
+  });
+
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
@@ -1082,6 +1102,12 @@
 
     const summary = String(summaryEl?.textContent || '').trim();
     payload.outputSummary = summary;
+    payload.inputs = {
+      ...payload.inputs,
+      view: $('#textcompare-view-tab-comparison')?.getAttribute('aria-selected') === 'true'
+        ? 'comparison'
+        : 'drafts'
+    };
 
     const html = String(outputEl?.innerHTML || '').trim();
     if (html && html.length <= MAX_SAVED_OUTPUT_HTML_CHARS) {
@@ -1099,9 +1125,13 @@
     if (detail?.toolId !== TOOL_ID) return;
     const snapshot = detail?.snapshot;
     const output = snapshot?.output;
-    if (!output || typeof output !== 'object') return;
     updateWorkspaceSummary();
-    window.ToolWorkspace?.selectTab('textcompare-view-comparison', { focus: false });
+    const savedView = snapshot?.inputs?.view;
+    const view = ['drafts', 'comparison'].includes(savedView)
+      ? savedView
+      : hasSavedComparison(output) ? 'comparison' : 'drafts';
+    window.ToolWorkspace?.selectTab(`textcompare-view-${view}`, { focus: false, notify: false });
+    if (!output || typeof output !== 'object') return;
 
     const summary = String(output.summary || '').trim();
     if (summary) summaryEl.textContent = summary;

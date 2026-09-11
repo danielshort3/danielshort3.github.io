@@ -4,7 +4,7 @@
   "href": "tools/qr-code-generator",
   "iconImage": "img/tools/icons/qr-code-generator.png",
   "categoryId": "tools-marketing",
-  "privacy": "QR generation runs on your device. Saving uploads QR content and a preview, excluding Wi-Fi passwords and their QR preview. Managed short links use a cloud service.",
+  "privacy": "QR generation runs on your device. When signed in, QR content and a preview save automatically to your account, excluding Wi-Fi passwords and their QR preview. Managed short links use a cloud service.",
   "inputs": ["URL or text, styling, and optional logo"],
   "outputs": ["High-resolution QR image"],
   "summary": "Create QR codes for links, text, Wi-Fi, and contacts.",

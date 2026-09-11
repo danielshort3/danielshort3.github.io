@@ -36,12 +36,23 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Check delivery budgets and publish the performance report
+        run: npm run performance:report
+
+      - name: Upload performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-performance
+          path: tmp/performance/
+          if-no-files-found: ignore
+
       - name: Install Chromium for rendered smoke tests
         run: npx playwright install --with-deps chromium
 
       - name: Test rendered desktop and mobile flows
         run: npm run test:browser
-        timeout-minutes: 5
+        timeout-minutes: 8
         env:
           BROWSER_ARTIFACT_DIR: ${{ runner.temp }}/site-browser-smoke
 

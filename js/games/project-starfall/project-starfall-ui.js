@@ -9,6 +9,7 @@
   const CoreFormat = (typeof require === 'function' ? require('./core/format.js') : null) || global.ProjectStarfallCore || {};
   const CoreSettings = (typeof require === 'function' ? require('./core/settings.js') : null) || global.ProjectStarfallCore || {};
   const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
+  const getAssetRequestUrl = CoreAssets.getAssetRequestUrl || ((assetPath) => assetPath);
   const CoreGeometry = (typeof require === 'function' ? require('./core/geometry.js') : null) || global.ProjectStarfallCore || {};
   const UiModules = global.ProjectStarfallUiModules || {};
 
@@ -3448,7 +3449,7 @@
     const posX = frame.sheetWidth > frame.sw ? frame.sx / (frame.sheetWidth - frame.sw) * 100 : 0;
     const posY = frame.sheetHeight > frame.sh ? frame.sy / (frame.sheetHeight - frame.sh) * 100 : 0;
     return [
-      `background-image:url('${escapeHtml(frame.path).replace(/'/g, '%27')}')`,
+      `background-image:url('${escapeHtml(getAssetRequestUrl(frame.path)).replace(/'/g, '%27')}')`,
       `background-size:${sizeX}% ${sizeY}%`,
       `background-position:${posX}% ${posY}%`
     ].join(';');
@@ -3474,7 +3475,7 @@
       const classes = [className || '', 'project-starfall-sprite-art'].filter(Boolean).join(' ');
       markup = `<span class="${escapeHtml(classes)}" role="img" aria-label="${escapeHtml(alt || '')}" style="${getAssetFrameStyle(frame)}"></span>`;
     } else {
-      markup = `<img class="${escapeHtml(className)}" src="${escapeHtml(frame && frame.path || path)}" alt="${escapeHtml(alt || '')}" loading="lazy" decoding="async">`;
+      markup = `<img class="${escapeHtml(className)}" src="${escapeHtml(getAssetRequestUrl(frame && frame.path || path))}" alt="${escapeHtml(alt || '')}" loading="lazy" decoding="async">`;
     }
     if (assetImageMarkupCache.size > ASSET_IMAGE_MARKUP_CACHE_LIMIT) assetImageMarkupCache.clear();
     assetImageMarkupCache.set(cacheKey, markup);
@@ -21595,7 +21596,7 @@
       const rowOffset = -Math.max(0, Number(state.row || 0)) * frameHeight;
       const endOffset = -frameWidth * frameCount;
       const duration = Math.max(0.1, frameCount / fps + Math.max(0, Number(state.loopDelay || 0) || 0));
-      return `--asset-sheet:url(&quot;${escapeHtml(entry.path)}&quot;); --asset-frame-width:${frameWidth}px; --asset-frame-height:${frameHeight}px; --asset-row-offset:${rowOffset}px; --asset-end-offset:${endOffset}px; --asset-frames:${frameCount}; --asset-duration:${duration}s;`;
+      return `--asset-sheet:url(&quot;${escapeHtml(getAssetRequestUrl(entry.path))}&quot;); --asset-frame-width:${frameWidth}px; --asset-frame-height:${frameHeight}px; --asset-row-offset:${rowOffset}px; --asset-end-offset:${endOffset}px; --asset-frames:${frameCount}; --asset-duration:${duration}s;`;
     }
 
     renderAssetPreviewArt(entry, className, options) {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto" data-project-demo-theme="brand">
+<html lang="en" data-project-demo-theme="brand">
 <head>
 <!-- project-demo-wrapper-guard:start -->
 <script>
@@ -17,816 +17,81 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@600&display=swap">
-  <style>
-    :root {
-      --radius: 12px;
-      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
-      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
-      --surface-2: var(--surface-light);
-      --text: var(--text-light);
-      --link: var(--primary);
-      --canvas-dark: #000000;
-      --canvas-light: #ffffff;
-      --page-pad: clamp(12px, 3vw, 24px);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      height: 100%;
-    }
-
-    html[data-embedded="true"],
-    html[data-embedded="true"] body {
-      height: auto !important;
-      min-height: 0 !important;
-    }
-    html[data-embedded="true"] {
-      --page-pad: clamp(8px, 2vw, 16px);
-    }
-
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-      color: var(--text);
-      background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
-      display: grid;
-      place-items: start center;
-      padding: var(--page-pad);
-      overflow-x: hidden;
-    }
-
-    #demo-box {
-      width: min(100%, 900px);
-      background: var(--surface);
-      border: 1px solid var(--surface-accent);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-2);
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: auto auto auto 1fr;
-      height: calc(100vh - var(--page-pad) * 2);
-    }
-
-    @supports (height: 100dvh) {
-      #demo-box {
-        height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      }
-    }
-
-    html[data-embedded="true"] #demo-box {
-      height: auto !important;
-      min-height: 0;
-    }
-
-    header.card-header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 16px 18px;
-      background: linear-gradient(0deg, var(--surface), var(--surface-2));
-      border-bottom: 1px solid var(--surface-accent);
-    }
-
-    .header-copy {
-      min-width: 0;
-      display: grid;
-      gap: 6px;
-    }
-
-    .title {
-      font-family: Inter, Inter, system-ui, sans-serif;
-      font-weight: 600;
-      margin: 0;
-      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
-    }
-
-    .subtitle {
-      margin: 0;
-      color: var(--text-muted);
-      font-size: .9rem;
-      max-width: 60ch;
-      overflow-wrap: anywhere;
-    }
-
-    .icon-btn {
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-      border-radius: 8px;
-      padding: 8px 10px;
-      cursor: pointer;
-      color: var(--text);
-      touch-action: manipulation;
-    }
-
-    .icon-btn:focus-visible {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
-    }
-
-    .health-row {
-      display: flex;
-      justify-content: flex-start;
-      padding: 8px 16px 0;
-    }
-
-    .health-pill {
-      appearance: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface-2);
-      font-size: .7rem;
-      font-family: inherit;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: border-color .2s ease, color .2s ease, background-color .2s ease;
-    }
-
-    .health-pill::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    .health-pill[data-state="ok"] {
-      color: var(--success, #38b37e);
-      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
-    }
-
-    .health-pill[data-state="err"] {
-      color: var(--danger, #e05757);
-      border-color: color-mix(in srgb, var(--danger, #e05757) 55%, var(--surface-accent) 45%);
-    }
-
-    .health-pill[data-state="warming"] {
-      color: var(--warning, #f3b550);
-      border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
-    }
-
-    .health-pill:focus-visible {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
-    }
-
-    .health-pill:disabled {
-      cursor: progress;
-    }
-
-    #status {
-      padding: 10px 16px 0;
-      min-height: 34px;
-    }
-
-    .stepper {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      align-items: center;
-      font-size: .85rem;
-      color: var(--text-muted);
-      margin: 0 0 8px 0;
-      list-style: none;
-      padding: 0;
-    }
-
-    .step {
-      display: grid;
-      grid-template-columns: 28px minmax(0, 1fr);
-      gap: 8px;
-      align-items: center;
-      background: var(--surface-2);
-      border: 1px solid var(--surface-accent);
-      padding: 6px 10px;
-      border-radius: 10px;
-      min-width: 0;
-      word-break: break-word;
-      position: relative;
-    }
-
-    .step .dot {
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      background: var(--surface);
-      border: 1px solid var(--surface-accent);
-      font-size: .75rem;
-      position: relative;
-    }
-
-    .step.in-progress {
-      color: var(--text);
-      border-color: var(--primary);
-    }
-
-    .step.in-progress .dot {
-      border-color: var(--primary);
-    }
-
-    .step.done {
-      color: var(--text);
-    }
-
-    .step.done .dot {
-      background: var(--primary);
-      color: var(--bg);
-      border-color: var(--primary);
-    }
-
-    #step-score.in-progress .dot::after {
-      content: '';
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 2px solid currentColor;
-      border-top-color: transparent;
-      animation: spin .8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @media (max-width: 520px) {
-      .step {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        padding: 8px;
-        cursor: pointer;
-      }
-
-      .step .label {
-        display: none;
-      }
-
-      .step.show-tip::after {
-        content: attr(data-label);
-        position: absolute;
-        bottom: calc(100% + 6px);
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--surface);
-        border: 1px solid var(--surface-accent);
-        color: var(--text);
-        padding: 4px 8px;
-        border-radius: 8px;
-        white-space: nowrap;
-        font-size: .75rem;
-        box-shadow: var(--shadow-1);
-        z-index: 5;
-      }
-    }
-
-    .content {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-      gap: 24px;
-      padding: 24px;
-      align-items: start;
-      max-height: none;
-      min-height: 0;
-      overflow: visible;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-    }
-
-    .content > * {
-      min-width: 0;
-    }
-
-    @media (max-width: 959px) {
-      .content {
-        grid-template-columns: 1fr;
-        padding: 16px;
-      }
-    }
-
-    #pad-wrapper {
-      display: grid;
-      gap: 8px;
-      justify-items: center;
-    }
-
-    .canvas-frame {
-      border: 1px solid var(--surface-accent);
-      border-radius: 12px;
-      background: var(--surface-2);
-      padding: 10px;
-      box-shadow: var(--shadow-1);
-      width: 100%;
-    }
-
-    .canvas-layout {
-      display: grid;
-      width: 100%;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      align-items: stretch;
-      justify-content: center;
-      justify-items: center;
-    }
-
-    .canvas-area {
-      position: relative;
-      width: min(100%, 440px);
-      aspect-ratio: 1 / 1;
-      align-self: start;
-      justify-self: center;
-    }
-
-    .sample-select-row {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px 12px;
-      width: 100%;
-      margin-bottom: 12px;
-    }
-
-    .sample-select-label {
-      font-weight: 600;
-      font-size: .85rem;
-      text-align: left;
-    }
-
-    .sample-select {
-      width: min(160px, 100%);
-      min-height: 44px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-      color: var(--text);
-      font-size: .95rem;
-      font-weight: 600;
-      text-align: center;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    .sample-select:focus-visible {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
-    }
-
-    canvas {
-      display: block;
-      user-select: none;
-      touch-action: none;
-      background: var(--canvas-dark);
-      width: 100%;
-      max-width: 100%;
-      height: 100%;
-      border-radius: 8px;
-    }
-
-    #erase {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 2;
-      padding: 6px 8px;
-      opacity: .95;
-      min-height: 44px;
-      min-width: 44px;
-    }
-
-
-
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: flex-start;
-      margin-top: 16px;
-    }
-
-    .btn-primary {
-      border: 1px solid var(--primary);
-      background: var(--primary);
-      color: var(--bg);
-      border-radius: 10px;
-      padding: 10px 14px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 44px;
-      min-width: 180px;
-      justify-content: center;
-      font-weight: 600;
-      touch-action: manipulation;
-    }
-
-    .btn-primary[disabled] {
-      opacity: .7;
-      cursor: not-allowed;
-    }
-
-    .panel {
-      display: grid;
-      gap: 16px;
-      border: 0;
-      border-radius: 0;
-      padding: 0;
-      background: var(--surface);
-      box-shadow: none;
-      align-content: start;
-      min-width: 0;
-    }
-
-    .result-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: .5rem;
-      background: var(--surface);
-      border: 0;
-      border-radius: 0;
-      padding: 0;
-      font-weight: 600;
-      font-family: Inter, Inter, system-ui, sans-serif;
-      max-width: 100%;
-      white-space: normal;
-      flex-wrap: wrap;
-      font-size: clamp(1.1rem, 2vw, 1.45rem);
-    }
-
-    .result-badge i {
-      flex: none;
-      font-size: 1.2em;
-    }
-
-    .result-divider {
-      color: var(--text-muted);
-      font-weight: 400;
-    }
-
-    .result-actual {
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .score-card {
-      display: grid;
-      gap: 6px;
-      padding: 10px 12px;
-      background: var(--surface);
-      border: 1px solid var(--surface-accent);
-      border-radius: 12px;
-    }
-
-    .score-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-
-    .score-value {
-      font-weight: 600;
-      color: var(--text);
-      font-size: 1.75rem;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .score-track {
-      width: 100%;
-      height: 12px;
-      background: var(--surface-2);
-      border: 1px solid var(--surface-accent);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .score-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      transition: width .25s ease;
-    }
-
-    .confidence-block {
-      display: grid;
-      gap: 8px;
-    }
-
-    .confidence-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-
-    .confidence-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .confidence-row {
-      display: grid;
-      grid-template-columns: 24px 1fr 56px;
-      gap: 10px;
-      align-items: center;
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-      position: relative;
-    }
-
-    .confidence-digit {
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .confidence-row.is-actual {
-      border-color: var(--primary);
-      background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, transparent), var(--surface));
-      box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent);
-    }
-
-    .confidence-row.is-actual .confidence-digit {
-      color: var(--primary);
-    }
-
-    .confidence {
-      height: 10px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      width: 0%;
-      transition: width .25s ease;
-    }
-
-    .confidence-track {
-      width: 100%;
-      height: 10px;
-      background: var(--surface);
-      border: 1px solid var(--surface-accent);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .confidence-pct {
-      display: grid;
-      justify-items: end;
-      gap: 2px;
-      text-align: right;
-      font-size: .85rem;
-      color: var(--text-muted);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .confidence-actual {
-      font-size: .65rem;
-      font-weight: 600;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      color: var(--primary);
-    }
-
-    @media (max-width: 520px) {
-      .canvas-layout {
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
-
-    }
-
-    @media (max-width: 600px) {
-      .content {
-        padding: 12px;
-      }
-      .canvas-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto;
-      }
-      .canvas-area {
-        width: 100%;
-        justify-self: stretch;
-      }
-      #erase {
-        top: 8px;
-        right: 8px;
-      }
-      .btn-primary {
-        min-width: 0;
-        width: 100%;
-      }
-      .panel {
-        padding: 12px;
-      }
-    }
-
-    @media (max-width: 420px) {
-      :root {
-        --page-pad: 10px;
-      }
-      .toolbar {
-        width: 100%;
-      }
-    }
-
-    .hint {
-      color: var(--text-muted);
-      font-size: .9rem;
-      line-height: 1.35;
-    }
-
-    a {
-      color: var(--link);
-    }
-
-    @keyframes shimmer {
-      0% { opacity: .6; }
-      50% { opacity: 1; }
-      100% { opacity: .6; }
-    }
-
-    .pulse {
-      animation: shimmer 1.2s ease-in-out infinite;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .pulse {
-        animation: none;
-      }
-
-      #step-score.in-progress .dot::after {
-        animation: none;
-      }
-    }
-
-    @media (max-width: 360px) {
-      #status {
-        display: none;
-      }
-    }
-
-    @media (max-width: 520px) {
-      .title {
-        font-size: 1rem;
-      }
-
-      .subtitle {
-        font-size: .8rem;
-      }
-    }
-  </style>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
     }
   </script>
 </head>
-<body class="demo-compact-workspace handwriting-rating-workspace">
-<a href="#main" class="skip-link">Skip to main content</a>
-  <script>
-    (function () {
-      var CHANNEL = 'handwriting-demo-resize';
-      function calcHeight() {
-        var doc = document.documentElement;
-        var body = document.body || doc;
-        return Math.ceil(Math.max(
-          body.scrollHeight,
-          body.offsetHeight,
-          doc.clientHeight,
-          doc.scrollHeight,
-          doc.offsetHeight
-        ));
-      }
-      function postHeight() {
-        try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch (e) {}
-      }
-      window.addEventListener('load', postHeight);
-      try { document.fonts?.ready?.then(postHeight); } catch (e) {}
-      if ('ResizeObserver' in window) {
-        var ro = new ResizeObserver(function () { postHeight(); });
-        ro.observe(document.documentElement);
-      } else {
-        var prev = 0;
-        setInterval(function () {
-          var h = calcHeight();
-          if (Math.abs(h - prev) > 4) {
-            prev = h;
-            postHeight();
-          }
-        }, 750);
-      }
-    })();
-  </script>
+<body class="handwriting-rating-workspace">
+  <a href="#main" class="skip-link">Skip to main content</a>
   <main id="main">
-
-  <div id="demo-box" role="application" aria-label="Handwriting rating demo">
-    <header class="card-header">
-      <div class="header-copy">
-        <h1 class="title">Handwriting Rating</h1>
-        <p class="subtitle">Draw one digit from 0 to 9, or try a handwritten sample, to see its legibility score.</p>
-      </div>
-      <div class="header-actions">
-        <button id="health-pill" class="health-pill aws-status-badge" data-state="warming" type="button" title="Reconnect demo">Preparing demo</button>
-      </div>
-    </header>
-
-    <div class="content demo-workspace">
-	      <section>
-	        <h2 class="demo-section-label">Your digit</h2>
-	        <div id="pad-wrapper" class="canvas-frame">
-	          <div class="sample-select-row" aria-label="Daniel's Handwritten Numbers">
-	            <label class="sample-select-label" for="sample-select">Try Daniel's handwriting</label>
-	            <select id="sample-select" class="sample-select">
-	              <option value="" selected>Draw your own</option>
-	              <option value="0">0</option>
-	              <option value="1">1</option>
-	              <option value="2">2</option>
-	              <option value="3">3</option>
-	              <option value="4">4</option>
-	              <option value="5">5</option>
-	              <option value="6">6</option>
-	              <option value="7">7</option>
-	              <option value="8">8</option>
-	              <option value="9">9</option>
-	            </select>
-	            <div id="sample-status" class="hint">Choose a sample or draw below.</div>
-	          </div>
-	          <div class="canvas-layout">
-	            <div class="canvas-area">
-	              <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
-	              <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
-	                <i class="fa-solid fa-eraser"></i>
-              </button>
-            </div>
-	          </div>
-	        </div>
-
-        <div class="toolbar">
-          <button id="rate" class="btn-primary" type="button">
-            <i class="fa-solid fa-star"></i> Rate digit
-          </button>
+    <div id="demo-box" class="handwriting-demo" aria-label="Handwriting rating demo">
+      <header class="handwriting-header">
+        <div class="header-copy handwriting-heading">
+          <h1 class="title">Handwriting legibility</h1>
+          <p class="subtitle">Draw a digit from 0–9, or load a sample.</p>
         </div>
+        <button id="health-pill" class="handwriting-health aws-status-badge" data-state="warming" type="button" disabled>Preparing demo</button>
+      </header>
 
-      </section>
+      <div class="handwriting-workspace">
+        <section class="handwriting-input" aria-labelledby="drawing-title">
+          <div class="handwriting-input-header">
+            <h2 id="drawing-title">Your digit</h2>
+            <button id="erase" class="handwriting-clear" type="button" aria-keyshortcuts="C" aria-label="Clear drawing (C)">Clear</button>
+          </div>
+          <div class="handwriting-pad-frame">
+            <canvas id="pad" width="256" height="256" aria-label="Draw one digit from 0 to 9, or use the sample buttons below."></canvas>
+            <span id="drawing-prompt" aria-hidden="true">Draw here</span>
+          </div>
+          <div class="handwriting-toolbar">
+            <button id="rate" class="handwriting-rate" type="button" disabled>Rate digit</button>
+          </div>
+          <p id="status" class="handwriting-status" role="status" aria-live="polite" hidden></p>
+        </section>
 
-	      <section class="panel" aria-live="polite">
-        <div class="prediction-summary">
-          <h2 class="demo-section-label">Legibility result</h2>
-          <div class="result-badge" id="result-badge" aria-label="Prediction">
-            <i class="fa-solid fa-pen-nib"></i>
-            <span id="result-digit">Prediction: --</span>
-            <span id="result-divider" class="result-divider" aria-hidden="true">•</span>
-            <span id="result-actual" class="result-actual">Actual: --</span>
-          </div>
-          <div id="confidence-meter" class="confidence-track" role="meter" aria-label="Prediction confidence" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="No prediction yet">
-            <div id="confidence-bar" class="confidence" style="width:0%"></div>
-          </div>
-          <div id="confidence-text" class="hint">Confidence: –</div>
-          <div class="score-card">
-            <div class="score-head">
-              <span class="score-label">Legibility score</span>
-              <span id="legibility-value" class="score-value">--</span>
+        <section class="handwriting-results" aria-label="Prediction result" aria-live="polite" aria-atomic="true">
+          <div id="prediction-output" hidden>
+            <div class="handwriting-prediction">
+              <span id="result-digit" aria-label="Predicted digit"></span>
+              <div>
+                <p class="handwriting-result-label">Model reads</p>
+                <p id="confidence-text"></p>
+                <p id="result-actual" hidden></p>
+              </div>
             </div>
-            <div class="score-track">
-              <div id="legibility-bar" class="score-bar" style="width:0%"></div>
+            <div class="handwriting-chart-header">
+              <h2>All guesses</h2>
+              <span>0–100%</span>
             </div>
+            <ol id="confidence-list" aria-label="All ten digit scores, highest first"></ol>
           </div>
+          <p id="result-empty">Your result appears here.</p>
+        </section>
+      </div>
+
+      <section class="handwriting-samples" aria-labelledby="samples-title">
+        <div class="handwriting-samples-header">
+          <h2 id="samples-title">Load a sample</h2>
+          <span>Daniel’s handwriting</span>
         </div>
-        <details class="demo-disclosure">
-          <summary>All digit scores</summary>
-          <div id="confidence-list" class="confidence-list" role="list" aria-label="Digit confidence scores"></div>
-        </details>
-        <details class="demo-disclosure">
-          <summary>Processing details</summary>
-          <div id="status" role="status" aria-live="polite"></div>
-        </details>
-
-        <div class="hint">Shortcut: press <strong>C</strong> to clear.</div>
+        <div class="handwriting-sample-buttons" role="group" aria-label="Load a handwritten digit sample">
+          <button type="button" data-sample-digit="0" aria-label="Load sample 0" aria-pressed="false">0</button>
+          <button type="button" data-sample-digit="1" aria-label="Load sample 1" aria-pressed="false">1</button>
+          <button type="button" data-sample-digit="2" aria-label="Load sample 2" aria-pressed="false">2</button>
+          <button type="button" data-sample-digit="3" aria-label="Load sample 3" aria-pressed="false">3</button>
+          <button type="button" data-sample-digit="4" aria-label="Load sample 4" aria-pressed="false">4</button>
+          <button type="button" data-sample-digit="5" aria-label="Load sample 5" aria-pressed="false">5</button>
+          <button type="button" data-sample-digit="6" aria-label="Load sample 6" aria-pressed="false">6</button>
+          <button type="button" data-sample-digit="7" aria-label="Load sample 7" aria-pressed="false">7</button>
+          <button type="button" data-sample-digit="8" aria-label="Load sample 8" aria-pressed="false">8</button>
+          <button type="button" data-sample-digit="9" aria-label="Load sample 9" aria-pressed="false">9</button>
+        </div>
+        <span id="sample-status" class="visually-hidden" role="status" aria-live="polite"></span>
       </section>
+      <p class="handwriting-note">Model confidence reflects digit recognition, not overall handwriting quality.</p>
     </div>
-  </div>
   </main>
 
   <script src="js/demos/aws-client.js"></script>
@@ -850,142 +115,127 @@
       allowOverrides: false
     };
     const candidates = () => listCandidates(endpointConfig).filter(Boolean);
-    const WARM_RETRY_OPTIONS = {
-      retries: 12,
-      baseDelayMs: 1000,
-      factor: 1.8,
-      maxDelayMs: 10000
-    };
-
-    const postToEndpoint = (urlBase, payload) => {
-      return postWithFallback(normalizeBase(urlBase), ['score'], payload);
-    };
-
-    const statusEl = document.getElementById('status');
-    const steps = [
-      { id: 'submit', label: 'Submit drawing' },
-      { id: 'score', label: 'Scoring' },
-      { id: 'complete', label: 'Complete' }
-    ];
-
-    function renderStepper() {
-      const ul = document.createElement('ul');
-      ul.className = 'stepper';
-      steps.forEach((s, i) => {
-        const li = document.createElement('li');
-        li.className = 'step not-started';
-        li.id = `step-${s.id}`;
-        li.dataset.label = s.label;
-        li.setAttribute('role', 'button');
-        li.setAttribute('tabindex', '0');
-        li.setAttribute('aria-label', s.label);
-
-        const dot = document.createElement('div');
-        dot.className = 'dot';
-        dot.textContent = i + 1;
-        const label = document.createElement('span');
-        label.className = 'label';
-        label.textContent = s.label;
-
-        li.append(dot, label);
-        ul.appendChild(li);
-      });
-      statusEl.innerHTML = '';
-      statusEl.appendChild(ul);
-    }
-
-    function setStep(id, state) {
-      const el = document.getElementById(`step-${id}`);
-      if (!el) return;
-      el.classList.remove('not-started', 'in-progress', 'done');
-      el.classList.add(state);
-    }
-
-    renderStepper();
-
-    const mqCompact = window.matchMedia('(max-width: 520px)');
-    statusEl.addEventListener('click', (e) => {
-      const step = e.target.closest('.step');
-      if (!step || !mqCompact.matches) return;
-      step.classList.add('show-tip');
-      clearTimeout(step._tipTimer);
-      step._tipTimer = setTimeout(() => step.classList.remove('show-tip'), 1500);
-    });
-    statusEl.addEventListener('keydown', (e) => {
-      if (!mqCompact.matches) return;
-      const step = e.target.closest('.step');
-      if (!step) return;
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        step.click();
-      }
-    });
-    window.addEventListener('resize', () => {
-      if (!mqCompact.matches) {
-        document.querySelectorAll('.step.show-tip').forEach(s => s.classList.remove('show-tip'));
-      }
-    });
-
+    const WARM_RETRY_OPTIONS = { retries: 12, baseDelayMs: 1000, factor: 1.8, maxDelayMs: 10000 };
+    const postToEndpoint = (base, payload) => postWithFallback(normalizeBase(base), ['score'], payload);
     const canvas = document.getElementById('pad');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const eraseBtn = document.getElementById('erase');
     const rateBtn = document.getElementById('rate');
     const healthPill = document.getElementById('health-pill');
-
-    const resultBadge = document.getElementById('result-badge');
-    const resultDigit = document.getElementById('result-digit');
-    const resultActual = document.getElementById('result-actual');
-    const resultDivider = document.getElementById('result-divider');
-    const confidenceBar = document.getElementById('confidence-bar');
-    const confidenceText = document.getElementById('confidence-text');
-    const legibilityValue = document.getElementById('legibility-value');
-    const legibilityBar = document.getElementById('legibility-bar');
-    const confidenceSummary = document.getElementById('confidence-summary');
-    const confidenceList = document.getElementById('confidence-list');
+    const sampleButtons = Array.from(document.querySelectorAll('[data-sample-digit]'));
     const sampleStatus = document.getElementById('sample-status');
-    const sampleSelect = document.getElementById('sample-select');
-
-    let bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
-    const fg = '#fff';
-    const STROKE_CSS_PX = 6;
+    const statusEl = document.getElementById('status');
+    const predictionOutput = document.getElementById('prediction-output');
+    const resultEmpty = document.getElementById('result-empty');
+    const confidenceList = document.getElementById('confidence-list');
+    const drawingPrompt = document.getElementById('drawing-prompt');
     const SCORE_IMAGE_MAX_EDGE = 256;
+    const STROKE_CSS_PX = 6;
+    const bg = '#ffffff';
+    const fg = '#091f3b';
     let currentDPR = 1;
+    let currentActualDigit = null;
     let hasDrawn = false;
     let drawing = false;
-    let currentActualDigit = null;
+    let activePointer = null;
     let serverReady = false;
     let scoring = false;
     let warming = false;
+    let sampleLoading = false;
+    let sampleRequestId = 0;
+
+    function postHeight() {
+      parent.postMessage({
+        type: 'handwriting-demo-resize',
+        height: Math.ceil(document.getElementById('main').getBoundingClientRect().height)
+      }, '*');
+    }
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(postHeight).observe(document.getElementById('main'));
+    }
+    window.addEventListener('load', postHeight);
+    document.fonts?.ready?.then(postHeight);
+
+    function showStatus(message = '', error = false) {
+      statusEl.textContent = message;
+      statusEl.dataset.state = error ? 'error' : 'info';
+      statusEl.hidden = !message;
+    }
+
+    function clearPrediction(message = 'Your result appears here.') {
+      predictionOutput.hidden = true;
+      resultEmpty.hidden = false;
+      resultEmpty.textContent = message;
+      confidenceList.replaceChildren();
+      document.getElementById('result-actual').hidden = true;
+    }
+
+    function setActiveSampleDigit(digit) {
+      sampleButtons.forEach(button => {
+        button.setAttribute('aria-pressed', String(digit !== null && Number(button.dataset.sampleDigit) === digit));
+      });
+    }
+
+    function updateRateState() {
+      rateBtn.disabled = !serverReady || !hasDrawn || scoring || warming || sampleLoading;
+      rateBtn.textContent = scoring ? 'Rating…' : 'Rate digit';
+      eraseBtn.disabled = scoring;
+      sampleButtons.forEach(button => { button.disabled = scoring; });
+      canvas.setAttribute('aria-disabled', String(scoring));
+      document.querySelector('.handwriting-results').setAttribute('aria-busy', String(scoring));
+      drawingPrompt.hidden = hasDrawn;
+    }
+
+    function fillBackground() {
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     function fitCanvasToDisplaySize() {
-      const r = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 3);
-      currentDPR = dpr;
-      const w = Math.max(1, Math.round(r.width * dpr));
-      const h = Math.max(1, Math.round(r.height * dpr));
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-        resetCanvas();
-      }
+      const bounds = canvas.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      currentDPR = Math.min(window.devicePixelRatio || 1, 3);
+      const width = Math.max(1, Math.round(bounds.width * currentDPR));
+      const height = Math.max(1, Math.round(bounds.height * currentDPR));
+      if (canvas.width === width && canvas.height === height) return;
+      drawing = false;
+      activePointer = null;
+      const previous = document.createElement('canvas');
+      previous.width = canvas.width;
+      previous.height = canvas.height;
+      if (hasDrawn) previous.getContext('2d').drawImage(canvas, 0, 0);
+      canvas.width = width;
+      canvas.height = height;
+      fillBackground();
+      if (hasDrawn) ctx.drawImage(previous, 0, 0, width, height);
     }
 
     function resetCanvas() {
-      ctx.save();
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.restore();
+      fillBackground();
       hasDrawn = false;
+      drawing = false;
+      activePointer = null;
     }
 
-    function pos(e) {
-      const r = canvas.getBoundingClientRect();
-      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-      const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-      const scaleX = canvas.width / r.width;
-      const scaleY = canvas.height / r.height;
-      return [x * scaleX, y * scaleY];
+    function clearDrawing() {
+      if (scoring) return;
+      sampleRequestId += 1;
+      sampleLoading = false;
+      resetCanvas();
+      currentActualDigit = null;
+      setActiveSampleDigit(null);
+      clearPrediction();
+      showStatus();
+      sampleStatus.textContent = '';
+      updateRateState();
+    }
+
+    function pos(event) {
+      const bounds = canvas.getBoundingClientRect();
+      return [
+        (event.clientX - bounds.left) * canvas.width / bounds.width,
+        (event.clientY - bounds.top) * canvas.height / bounds.height
+      ];
     }
 
     function setStroke() {
@@ -995,305 +245,149 @@
       ctx.lineWidth = STROKE_CSS_PX * currentDPR;
     }
 
-    fitCanvasToDisplaySize();
-    setStroke();
-    resetCanvas();
-
-    let resizeTimer = null;
-    function onResize() {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        fitCanvasToDisplaySize();
-        setStroke();
-      }, 50);
-    }
-    window.addEventListener('resize', onResize);
-    window.visualViewport?.addEventListener('resize', onResize);
-
-    canvas.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      if (currentActualDigit !== null) {
-        resetCanvas();
-        currentActualDigit = null;
-        setActiveSampleDigit(null);
-        if (sampleStatus) sampleStatus.textContent = 'Choose a sample or draw below.';
-        setPredictionUI('Draw a digit to begin', null, null, null, null);
-      }
+    canvas.addEventListener('pointerdown', event => {
+      if (scoring || drawing || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      event.preventDefault();
+      sampleRequestId += 1;
+      sampleLoading = false;
+      if (currentActualDigit !== null) resetCanvas();
+      currentActualDigit = null;
+      setActiveSampleDigit(null);
+      clearPrediction();
+      showStatus();
+      sampleStatus.textContent = '';
       drawing = true;
-      canvas.setPointerCapture?.(e.pointerId);
+      activePointer = event.pointerId;
+      canvas.setPointerCapture(event.pointerId);
       setStroke();
+      const [x, y] = pos(event);
       ctx.beginPath();
-      ctx.moveTo(...pos(e));
-    });
-    canvas.addEventListener('pointermove', e => {
-      if (!drawing) return;
-      e.preventDefault();
-      setStroke();
-      const [x, y] = pos(e);
-      ctx.lineTo(x, y);
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + 0.01, y);
       ctx.stroke();
       hasDrawn = true;
+      updateRateState();
     });
-    ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt =>
-      canvas.addEventListener(evt, () => { drawing = false; })
-    );
-
-    document.addEventListener('keydown', e => {
-      if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
-      if (e.key === 'c' || e.key === 'C') eraseBtn.click();
+    canvas.addEventListener('pointermove', event => {
+      if (!drawing || event.pointerId !== activePointer) return;
+      event.preventDefault();
+      ctx.lineTo(...pos(event));
+      ctx.stroke();
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(type => {
+      canvas.addEventListener(type, event => {
+        if (event.pointerId !== activePointer) return;
+        drawing = false;
+        activePointer = null;
+      });
+    });
+    document.addEventListener('keydown', event => {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.target?.isContentEditable || /input|textarea|select/i.test(event.target?.tagName || '')) return;
+      if (event.key.toLowerCase() === 'c') clearDrawing();
     });
 
-    const SAMPLE_MAP = {
-      0: 'img/demos/handwriting-samples/digit-0.jpg',
-      1: 'img/demos/handwriting-samples/digit-1.jpg',
-      2: 'img/demos/handwriting-samples/digit-2.jpg',
-      3: 'img/demos/handwriting-samples/digit-3.jpg',
-      4: 'img/demos/handwriting-samples/digit-4.jpg',
-      5: 'img/demos/handwriting-samples/digit-5.jpg',
-      6: 'img/demos/handwriting-samples/digit-6.jpg',
-      7: 'img/demos/handwriting-samples/digit-7.jpg',
-      8: 'img/demos/handwriting-samples/digit-8.jpg',
-      9: 'img/demos/handwriting-samples/digit-9.jpg'
-    };
-
-    function numberFrom(...vals) {
-      for (const v of vals) {
-        const n = Number(v);
-        if (Number.isFinite(n)) return n;
+    async function loadSampleDigit(digit) {
+      if (scoring) return;
+      const requestId = ++sampleRequestId;
+      sampleLoading = true;
+      setActiveSampleDigit(digit);
+      clearPrediction();
+      showStatus();
+      sampleStatus.textContent = `Loading sample ${digit}…`;
+      updateRateState();
+      try {
+        const image = await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.decoding = 'async';
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error('Sample could not be loaded.'));
+          img.src = `img/demos/handwriting-samples/digit-${digit}.jpg`;
+        });
+        if (requestId !== sampleRequestId) return;
+        fitCanvasToDisplaySize();
+        resetCanvas();
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        currentActualDigit = digit;
+        hasDrawn = true;
+        sampleStatus.textContent = `Sample ${digit} loaded.`;
+      } catch (error) {
+        if (requestId !== sampleRequestId) return;
+        setActiveSampleDigit(currentActualDigit);
+        showStatus('This sample could not be loaded. Try another digit.', true);
+        sampleStatus.textContent = 'Sample could not be loaded.';
+      } finally {
+        if (requestId === sampleRequestId) {
+          sampleLoading = false;
+          updateRateState();
+        }
       }
-      return null;
     }
 
     function normalizeConfidences(raw) {
-      if (!raw) return null;
-      if (Array.isArray(raw)) {
-        if (raw.length === 10 && raw.every(v => v === null || v === undefined || Number.isFinite(Number(v)))) {
-          return raw.map(v => Number(v) || 0);
-        }
-        if (raw.length && typeof raw[0] === 'object') {
-          const arr = Array(10).fill(0);
-          let found = false;
-          raw.forEach(item => {
-            if (!item) return;
-            const digit = numberFrom(item.digit, item.class, item.label);
-            const conf = numberFrom(item.confidence, item.score, item.prob, item.probability);
-            if (Number.isFinite(digit)) {
-              arr[Number(digit)] = Number.isFinite(conf) ? conf : 0;
-              found = true;
-            }
-          });
-          return found ? arr : null;
-        }
-      }
-      if (typeof raw === 'object') {
-        const arr = Array(10).fill(0);
-        let found = false;
-        for (let i = 0; i < 10; i++) {
-          const val = raw[i] ?? raw[String(i)];
-          if (val !== undefined) {
-            arr[i] = Number(val) || 0;
-            found = true;
+      let values;
+      if (Array.isArray(raw) && raw.length === 10 && raw.every(value => typeof value !== 'object')) {
+        values = raw;
+      } else if (Array.isArray(raw)) {
+        values = Array(10).fill(null);
+        raw.forEach(item => {
+          const digit = Number(item?.digit ?? item?.class ?? item?.label);
+          if (Number.isInteger(digit) && digit >= 0 && digit <= 9) {
+            values[digit] = item.confidence ?? item.score ?? item.prob ?? item.probability;
           }
-        }
-        return found ? arr : null;
+        });
+      } else if (raw && typeof raw === 'object') {
+        values = Array.from({ length: 10 }, (_, digit) => raw[digit]);
       }
-      return null;
+      if (!values || values.some(value => value === null || value === undefined || String(value).trim() === '' || !Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > 100)) return null;
+      const numbers = values.map(Number);
+      const scale = numbers.some(value => value > 1) ? 1 : 100;
+      return numbers.map(value => value * scale);
     }
 
-    function setActiveSampleDigit(digit) {
-      if (!sampleSelect) return;
-      sampleSelect.value = (digit === null || digit === undefined) ? '' : String(digit);
+    function formatPercent(value) {
+      if (value > 0 && value < 0.1) return '<0.1%';
+      return `${value.toFixed(1)}%`;
     }
 
-    function loadImage(src) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.decoding = 'async';
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('Sample failed to load.'));
-        img.src = src;
-      });
-    }
-
-    async function loadSampleDigit(digit) {
-      if (scoring) {
-        sampleStatus.textContent = 'Please wait for the current score to finish.';
-        return;
-      }
-      const src = SAMPLE_MAP[digit];
-      if (!src) {
-        sampleStatus.textContent = 'Sample not available.';
-        return;
-      }
-      currentActualDigit = Number(digit);
-      sampleStatus.textContent = `Loading sample ${digit}...`;
-      setPredictionUI(null, null, null, null, digit);
-      try {
-        const img = await loadImage(src);
-        fitCanvasToDisplaySize();
-        resetCanvas();
-        ctx.save();
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-        hasDrawn = true;
-        setActiveSampleDigit(digit);
-        sampleStatus.textContent = `Loaded sample ${digit}. Click "Rate digit" to score.`;
-        setPredictionUI(null, null, null, null, currentActualDigit);
-      } catch (err) {
-        sampleStatus.textContent = err?.message || 'Sample failed to load.';
-      }
-    }
-
-    function updateConfidenceUI(sorted) {
-      if (!confidenceBar || !confidenceText) return;
-      const top = sorted && sorted.length ? sorted[0] : null;
-      const pct = top ? toPercent(top.value) : null;
-      confidenceBar.style.width = pct !== null ? `${Math.round(pct)}%` : '0%';
-      confidenceText.textContent = pct !== null ? `Confidence: ${Math.round(pct)}%` : 'Confidence: –';
-      const meter = document.getElementById('confidence-meter');
-      meter?.setAttribute('aria-valuenow', String(pct !== null ? Math.round(pct) : 0));
-      meter?.setAttribute('aria-valuetext', pct !== null ? `${Math.round(pct)}%` : 'No prediction yet');
-    }
-
-    function toPercent(value) {
-      if (!Number.isFinite(value)) return null;
-      if (value > 1.01) return Math.min(100, value);
-      return Math.max(0, Math.min(100, value * 100));
-    }
-
-    function getSortedConfidences(confidences) {
-      if (!Array.isArray(confidences) || confidences.length !== 10) return null;
-      return confidences
-        .map((val, idx) => ({ digit: idx, value: Number(val) || 0 }))
-        .filter(item => item.value > 0)
-        .sort((a, b) => b.value - a.value);
-    }
-
-    function getPredictionStats(confidences, legibility, digit, actualDigit = null) {
-      const sorted = getSortedConfidences(confidences);
-      const top = sorted && sorted.length ? sorted[0] : null;
-      const resolvedDigit = Number.isFinite(digit) ? digit : (top ? top.digit : null);
-
-      let legibilityValueSource = null;
-      if (Number.isFinite(actualDigit) && Array.isArray(confidences) && confidences.length === 10) {
-        legibilityValueSource = Number(confidences[actualDigit]);
-      }
-      if (!Number.isFinite(legibilityValueSource)) {
-        legibilityValueSource = Number.isFinite(legibility) ? legibility : (top ? top.value : null);
-      }
-
-      return { sorted, resolvedDigit, legibilityValueSource };
-    }
-
-    function renderConfidenceList(sorted, actualDigit = null) {
-      confidenceList.innerHTML = '';
-      const actualValue = Number.isFinite(actualDigit) ? Number(actualDigit) : null;
-      if (!sorted || !sorted.length) {
-        const empty = document.createElement('span');
-        empty.className = 'hint';
-        empty.textContent = 'No guesses yet.';
-        empty.setAttribute('role', 'listitem');
-        confidenceList.appendChild(empty);
-        if (confidenceSummary) confidenceSummary.textContent = '--';
-        return;
-      }
-
-      const entries = sorted
-        .map(item => ({
-          digit: item.digit,
-          value: item.value,
-          pct: toPercent(item.value),
-          isActual: actualValue !== null && item.digit === actualValue
-        }))
-        .filter(item => item.pct !== null && (item.pct >= 1 || item.isActual));
-
-      if (!entries.length) {
-        const empty = document.createElement('span');
-        empty.className = 'hint';
-        empty.textContent = 'No entries >= 1%.';
-        empty.setAttribute('role', 'listitem');
-        confidenceList.appendChild(empty);
-        if (confidenceSummary) confidenceSummary.textContent = '';
-        return;
-      }
-
-      entries.forEach(item => {
-        const row = document.createElement('div');
+    function renderPrediction(scores) {
+      const sorted = scores.map((score, digit) => ({ digit, score })).sort((a, b) => b.score - a.score || a.digit - b.digit);
+      const top = sorted[0];
+      document.getElementById('result-digit').textContent = String(top.digit);
+      document.getElementById('result-digit').setAttribute('aria-label', `Predicted digit ${top.digit}`);
+      document.getElementById('confidence-text').textContent = `${formatPercent(top.score)} confidence`;
+      const actual = document.getElementById('result-actual');
+      actual.hidden = currentActualDigit === null;
+      actual.textContent = currentActualDigit === null ? '' : `Sample ${currentActualDigit}`;
+      confidenceList.replaceChildren();
+      sorted.forEach(({ digit, score }, rank) => {
+        const row = document.createElement('li');
         row.className = 'confidence-row';
-        row.setAttribute('role', 'listitem');
-
-        const digit = document.createElement('span');
-        digit.className = 'confidence-digit';
-        digit.textContent = String(item.digit);
-
-        const track = document.createElement('div');
+        row.dataset.digit = String(digit);
+        row.dataset.score = String(score);
+        row.setAttribute('aria-label', `Digit ${digit}: ${formatPercent(score)}${rank === 0 ? ', top prediction' : ''}`);
+        const label = document.createElement('span');
+        label.className = 'confidence-digit';
+        label.textContent = String(digit);
+        const track = document.createElement('span');
         track.className = 'confidence-track';
         track.setAttribute('aria-hidden', 'true');
-        const fill = document.createElement('div');
+        const fill = document.createElement('span');
         fill.className = 'confidence';
-        fill.style.width = `${Math.round(item.pct)}%`;
-        track.appendChild(fill);
-
-        const pct = document.createElement('div');
-        pct.className = 'confidence-pct';
-        const pctValue = document.createElement('span');
-        pctValue.textContent = item.pct < 1 ? `${item.pct.toFixed(1)}%` : `${Math.round(item.pct)}%`;
-        pct.appendChild(pctValue);
-
-        if (item.isActual) {
-          row.classList.add('is-actual');
-          const actualTag = document.createElement('span');
-          actualTag.className = 'confidence-actual';
-          actualTag.textContent = 'Actual';
-          pct.appendChild(actualTag);
-        }
-
-        row.append(digit, track, pct);
-        confidenceList.appendChild(row);
+        fill.style.width = `${score}%`;
+        track.append(fill);
+        const percent = document.createElement('span');
+        percent.className = 'confidence-pct';
+        percent.textContent = formatPercent(score);
+        row.append(label, track, percent);
+        confidenceList.append(row);
       });
-
-      const hasActual = entries.some(item => item.isActual);
-      if (confidenceSummary) confidenceSummary.textContent = '';
-    }
-
-    function updateLegibility(value) {
-      const pct = toPercent(value);
-      legibilityBar.style.width = pct !== null ? `${Math.round(pct)}%` : '0%';
-      legibilityValue.textContent = pct !== null ? `${Math.round(pct)}%` : '--';
-    }
-
-
-    function setPredictionUI(message, confidences, legibility, digit, actualDigit = null) {
-      const stats = getPredictionStats(confidences, legibility, digit, actualDigit);
-      const { sorted, resolvedDigit, legibilityValueSource } = stats;
-
-      if (Number.isFinite(resolvedDigit)) {
-        resultDigit.textContent = `Prediction: ${resolvedDigit}`;
-      } else {
-        resultDigit.textContent = message || 'Prediction: --';
-      }
-
-      if (Number.isFinite(actualDigit)) {
-        resultActual.textContent = `Actual: ${actualDigit}`;
-        resultActual.hidden = false;
-        resultDivider.hidden = false;
-      } else {
-        resultActual.textContent = 'Actual: --';
-        resultActual.hidden = true;
-        resultDivider.hidden = true;
-      }
-
-      renderConfidenceList(sorted, actualDigit);
-      updateConfidenceUI(sorted);
-
-      updateLegibility(legibilityValueSource);
-      return stats;
+      predictionOutput.hidden = false;
+      resultEmpty.hidden = true;
     }
 
     async function canvasToBase64() {
       // Keep inference uploads independent of display size and pixel density.
-      // The model uses 28x28 inputs; a bounded PNG fits the 512 KiB JSON limit.
+      // The backend accepts light or dark backgrounds and reduces images to 28x28.
       const scoreCanvas = document.createElement('canvas');
       const scale = Math.min(1, SCORE_IMAGE_MAX_EDGE / Math.max(canvas.width, canvas.height));
       scoreCanvas.width = Math.max(1, Math.round(canvas.width * scale));
@@ -1301,51 +395,33 @@
       const scoreContext = scoreCanvas.getContext('2d');
       if (!scoreContext) throw new Error('Unable to prepare digit image');
       scoreContext.drawImage(canvas, 0, 0, scoreCanvas.width, scoreCanvas.height);
-      const blob = await new Promise(res => scoreCanvas.toBlob(res, 'image/png'));
+      const blob = await new Promise(resolve => scoreCanvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('Unable to read canvas');
-      const abuf = await blob.arrayBuffer();
-      const bytes = new Uint8Array(abuf);
-      let b64 = '';
-      const chunkSize = 0x8000;
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        b64 += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
       }
-      return btoa(b64);
+      return btoa(binary);
     }
 
     function setHealth(state, text) {
-      if (!healthPill) return;
       healthPill.dataset.state = state;
       healthPill.textContent = text;
-      healthPill.disabled = state === 'warming';
-      const hint = state === 'warming'
-        ? 'Checking the demo connection'
-        : 'Reconnect demo';
-      healthPill.title = hint;
-      healthPill.setAttribute('aria-label', `${text}. ${hint}.`);
-    }
-
-    function updateRateState() {
-      rateBtn.disabled = !serverReady || scoring || warming;
+      healthPill.disabled = warming || scoring;
+      healthPill.setAttribute('aria-label', `${text}. Reconnect demo.`);
     }
 
     async function warmUpServer({ manual = false } = {}) {
-      if (warming) return;
+      if (warming || scoring) return;
       warming = true;
+      serverReady = false;
+      showStatus();
       setHealth('warming', manual ? 'Reconnecting' : 'Preparing demo');
       updateRateState();
-      const bases = candidates();
-      if (!bases.length) {
-        setHealth('err', 'No endpoint');
-        serverReady = false;
-        return;
-      }
-      const warmPayload = {
-        b64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII='
-      };
-      let lastErr = null;
+      const warmPayload = { b64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=' };
       try {
-        for (const base of bases) {
+        for (const base of candidates()) {
           try {
             await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
             await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
@@ -1353,8 +429,8 @@
             serverReady = true;
             setHealth('ok', 'Ready');
             return;
-          } catch (err) {
-            lastErr = err;
+          } catch (error) {
+            // Older endpoints may expose scoring without dedicated warmup routes.
           }
           try {
             await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
@@ -1362,118 +438,71 @@
             serverReady = true;
             setHealth('ok', 'Ready');
             return;
-          } catch (err) {
-            lastErr = err;
+          } catch (error) {
+            // Continue through the configured same-origin candidates.
           }
         }
-        serverReady = false;
-        setHealth('err', 'Unavailable');
-        if (lastErr) console.error(lastErr);
+        setHealth('err', 'Reconnect');
+        showStatus('The demo could not connect. Select Reconnect to try again.', true);
       } finally {
         warming = false;
+        healthPill.disabled = false;
         updateRateState();
       }
     }
 
     async function scoreDigit() {
-      if (!serverReady) {
-        setPredictionUI('Preparing the demo. Please wait.', null, null, null, currentActualDigit);
-        return;
-      }
-      if (!hasDrawn) {
-        setPredictionUI('Please draw a digit first', null, null, null, currentActualDigit);
-        return;
-      }
-
-      setStep('submit', 'in-progress');
-      setPredictionUI('Processing...', null, null, null, currentActualDigit);
+      if (!serverReady || !hasDrawn || scoring || sampleLoading || warming) return;
       scoring = true;
+      drawing = false;
+      activePointer = null;
+      clearPrediction('Reading your digit…');
+      showStatus();
       updateRateState();
-      resultBadge.classList.add('pulse');
-
+      healthPill.disabled = true;
       try {
         const b64 = await canvasToBase64();
-        setStep('submit', 'done');
-        setStep('score', 'in-progress');
-
         const payload = { b64 };
-        const bases = candidates();
-        if (!bases.length) {
-          throw new Error('Demo service endpoint is unavailable.');
-        }
-
         let json = null;
-        let lastErr = null;
-        for (const base of bases) {
+        for (const base of candidates()) {
           try {
             json = await postToEndpoint(base, payload);
             rememberEndpoint(base, STORAGE_KEY);
             break;
-          } catch (err) {
-            lastErr = err;
+          } catch (error) {
+            // Show one actionable error after all configured candidates fail.
           }
         }
-        if (!json) throw lastErr || new Error('All endpoints failed');
-
-        const confidences = normalizeConfidences(
+        if (!json) throw new Error('Scoring unavailable');
+        const scores = normalizeConfidences(
           json.digit_confidences || json.digitConfidences || json.confidences ||
           json.per_digit_confidence || json.probabilities || json.scores || json.per_digit
         );
-        const digit = numberFrom(json.digit, json.prediction, json.class, json.label);
-        const legibility = numberFrom(json.legibility, json.legibility_score, json.legibilityScore, json.score);
-
-        setStep('score', 'done');
-        setStep('complete', 'done');
-
-        const stats = setPredictionUI('Prediction ready', confidences, legibility, digit, currentActualDigit);
-      } catch (err) {
-        setStep('score', 'not-started');
-        setStep('complete', 'not-started');
-        setPredictionUI(`Error: ${err?.message || String(err)}`, null, null, null, currentActualDigit);
+        if (!scores) throw new Error('Digit scores unavailable');
+        renderPrediction(scores);
+      } catch (error) {
+        clearPrediction();
+        showStatus('This digit could not be rated. Select Rate digit to try again.', true);
       } finally {
         scoring = false;
+        healthPill.disabled = false;
         updateRateState();
-        resultBadge.classList.remove('pulse');
       }
     }
 
+    sampleButtons.forEach(button => {
+      button.addEventListener('click', () => loadSampleDigit(Number(button.dataset.sampleDigit)));
+    });
+    eraseBtn.addEventListener('click', clearDrawing);
     rateBtn.addEventListener('click', scoreDigit);
-    if (sampleSelect) {
-      sampleSelect.addEventListener('change', () => {
-        const digit = String(sampleSelect.value || '').trim();
-        if (!digit) {
-          resetCanvas();
-          currentActualDigit = null;
-          setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
-          if (sampleStatus) sampleStatus.textContent = 'Choose a sample or draw below.';
-          return;
-        }
-        loadSampleDigit(digit);
-      });
-    }
-
-    eraseBtn.addEventListener('click', () => {
-      resetCanvas();
-      currentActualDigit = null;
-      setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
-      setActiveSampleDigit(null);
-      sampleStatus.textContent = 'Choose a sample or draw below.';
-    });
-
-    healthPill?.addEventListener('click', () => {
-      if (scoring) {
-        sampleStatus.textContent = 'Please wait for the current score to finish.';
-        return;
-      }
-      warmUpServer({ manual: true });
-    });
-
-    setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
+    healthPill.addEventListener('click', () => warmUpServer({ manual: true }));
+    fitCanvasToDisplaySize();
+    resetCanvas();
+    if ('ResizeObserver' in window) new ResizeObserver(fitCanvasToDisplaySize).observe(canvas);
+    window.addEventListener('resize', fitCanvasToDisplaySize);
     updateRateState();
     warmUpServer();
-    window.addEventListener('load', () => { fitCanvasToDisplaySize(); setStroke(); });
   </script>
-  <footer></footer>
   <script defer src="dist/site-consent.ab1759e7.js"></script>
 </body>
 </html>

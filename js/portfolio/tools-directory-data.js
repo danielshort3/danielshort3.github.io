@@ -72,7 +72,7 @@ window.DIRECTORY_WORKBENCH = {
         "Compare two drafts and review the changes."
       ],
       "actions": [],
-      "privacy": "Comparison runs on your device. Saving a session uploads drafts and results to your account; shared input links contain your drafts.",
+      "privacy": "Comparison runs on your device. When signed in, drafts, settings, and results save automatically to your account; shared input links contain your drafts.",
       "inputs": [
         "Two text drafts"
       ],
@@ -116,7 +116,7 @@ window.DIRECTORY_WORKBENCH = {
         "Find hard spaces and copy clean text."
       ],
       "actions": [],
-      "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
+      "privacy": "Processing runs on your device. When signed in, text, settings, and results save automatically to your account; shared input links contain your text.",
       "inputs": [
         "Pasted text"
       ],
@@ -160,7 +160,7 @@ window.DIRECTORY_WORKBENCH = {
         "Find candidate lists and review comma usage in context."
       ],
       "actions": [],
-      "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
+      "privacy": "Processing runs on your device. When signed in, text, settings, and results save automatically to your account; shared input links contain your text.",
       "inputs": [
         "Pasted draft"
       ],
@@ -204,7 +204,7 @@ window.DIRECTORY_WORKBENCH = {
         "Find mixed point of view and review it in context."
       ],
       "actions": [],
-      "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
+      "privacy": "Processing runs on your device. When signed in, text, settings, and results save automatically to your account; shared input links contain your text.",
       "inputs": [
         "Pasted text"
       ],
@@ -248,7 +248,7 @@ window.DIRECTORY_WORKBENCH = {
         "Find frequent words and phrases, then review them in context."
       ],
       "actions": [],
-      "privacy": "Processing runs on your device. Saving a session uploads text, settings, and results to your account; shared input links contain your text.",
+      "privacy": "Processing runs on your device. When signed in, text, settings, and results save automatically to your account; shared input links contain your text.",
       "inputs": [
         "Pasted text and stopword preferences"
       ],
@@ -292,7 +292,7 @@ window.DIRECTORY_WORKBENCH = {
         "Build campaign links in batches and export a clean CSV."
       ],
       "actions": [],
-      "privacy": "Link generation runs on your device. Saving a session uploads campaign inputs, settings, and results to your account.",
+      "privacy": "Link generation runs on your device. When signed in, campaign inputs, settings, and results save automatically to your account.",
       "inputs": [
         "Destination URLs and campaign parameters"
       ],
@@ -336,7 +336,7 @@ window.DIRECTORY_WORKBENCH = {
         "Create QR codes for links, text, Wi-Fi, and contacts."
       ],
       "actions": [],
-      "privacy": "QR generation runs on your device. Saving uploads QR content and a preview, excluding Wi-Fi passwords and their QR preview. Managed short links use a cloud service.",
+      "privacy": "QR generation runs on your device. When signed in, QR content and a preview save automatically to your account, excluding Wi-Fi passwords and their QR preview. Managed short links use a cloud service.",
       "inputs": [
         "URL or text, styling, and optional logo"
       ],
@@ -382,7 +382,7 @@ window.DIRECTORY_WORKBENCH = {
         "Organize creative families and renditions, apply controlled UTM values, manage optional A/B tests, and prepare campaign handoffs."
       ],
       "actions": [],
-      "privacy": "Planning runs in your browser. Saving a session uploads campaign planning data and available results to your account; local creative files are excluded.",
+      "privacy": "Planning runs in your browser. When signed in, campaign planning data and available results save automatically to your account; local creative files are excluded.",
       "inputs": [
         "Creative families, rendition files, destinations, controlled UTM values, and testing rules"
       ],
@@ -426,7 +426,7 @@ window.DIRECTORY_WORKBENCH = {
         "Resize, compress, and convert images on your device."
       ],
       "actions": [],
-      "privacy": "Images are processed on your device. Saving a session uploads settings, file names, and result summaries, without the image files.",
+      "privacy": "Images are processed on your device. When signed in, settings, file names, and result summaries save automatically to your account, without the image files.",
       "inputs": [
         "PNG, JPEG, WebP, or AVIF images"
       ],
@@ -470,7 +470,7 @@ window.DIRECTORY_WORKBENCH = {
         "Remove backgrounds from your photos."
       ],
       "actions": [],
-      "privacy": "Images are processed on your device. Saving a session uploads settings, file names, and a small processed-image preview to your account.",
+      "privacy": "Images are processed on your device. When signed in, settings, file names, and a small processed-image preview save automatically to your account.",
       "inputs": [
         "Image file and optional edge refinements"
       ],
@@ -514,7 +514,7 @@ window.DIRECTORY_WORKBENCH = {
         "Record your screen and download the clip in browser-supported formats with optional system audio."
       ],
       "actions": [],
-      "privacy": "Recordings stay on your device. Saving a session uploads recording settings, file names, and result summaries, without the recorded video.",
+      "privacy": "Recordings stay on your device. When signed in, recording settings, file names, and result summaries save automatically to your account, without the recorded video.",
       "inputs": [
         "Screen or window and optional system audio"
       ],

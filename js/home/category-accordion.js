@@ -86,7 +86,6 @@
       tools: 'Browser Tools for Writing, Images & Campaigns | Daniel Short',
       games: 'Browser Games & Interactive Simulations | Daniel Short'
     };
-    const positions = new Map();
     let operation = 0;
     let requested = { category: initial.category, view: initial.view };
     let disposed = false;
@@ -121,13 +120,14 @@
         media.className = `home-library__media home-library__media--${isIcon ? 'icon' : mediaSource ? 'preview' : 'glyph'}`;
         if (mediaSource) {
           const image = document.createElement('img');
-          image.src = href(mediaSource);
           image.alt = isIcon ? '' : entry.imageAlt || '';
           image.width = isIcon || id === 'tools' ? 256 : 640;
           image.height = isIcon || id === 'tools' ? 256 : 360;
           image.loading = 'lazy';
           image.decoding = 'async';
-          media.append(image);
+          const content = window.SiteCatalogIcons?.create(image, href(mediaSource));
+          if (!content) image.src = href(mediaSource);
+          media.append(content || image);
         } else {
           media.setAttribute('aria-hidden', 'true');
           if (entry.iconHtml) media.innerHTML = entry.iconHtml;
@@ -171,7 +171,7 @@
       if (closed) category = '';
       if (!active() || (!closed && !items.has(category)) || (view === 'library' && !routes[category])) return false;
       const previous = frame.homeState();
-      if (!options.initial && options.history !== false && requested.category === category && requested.view === view &&
+      if (!options.initial && !options.force && options.history !== false && requested.category === category && requested.view === view &&
         frame.root().dataset.frameCategory === category && frame.root().dataset.frameView === view) return false;
       const sequence = ++operation;
       requested = { category, view };
@@ -179,13 +179,10 @@
       if (!options.initial && options.history !== false && window.SiteNavigation?.isNavigating?.() && !window.SiteNavigation.cancelPending()) {
         return window.SiteNavigation.navigate(new URL(targetUrl, window.location.href));
       }
-      const owner = frame.viewport();
-      positions.set(`${previous.category}:${previous.view}`, { top: owner.scrollTop, y: window.scrollY });
-      const saved = positions.get(`${category}:${view}`);
       if (view === 'library') render(category);
       const complete = await frame.showHome(category, view, {
         animate: options.animate !== false,
-        scroll: options.reveal === false ? null : { top: closed ? 0 : saved?.y, category, offset: headerBottom() }
+        scroll: options.reveal === false ? null : { top: closed ? 0 : undefined, category, offset: headerBottom() }
       });
       if (!complete || !active() || sequence !== operation) return false;
       activateContactMap(items.get(category));
@@ -198,7 +195,6 @@
         if (window.SiteNavigation?.recordHome) window.SiteNavigation.recordHome(url, state, options.history === 'replace');
         else window.history[options.history === 'replace' ? 'replaceState' : 'pushState']({ ...window.history.state, ...state }, '', url);
       }
-      owner.scrollTop = saved?.top || 0;
       if (options.focus !== false) {
         const target = closed ? tabs.get(options.triggerCategory || previous.category) :
           view === 'library' ? items.get(category).querySelector('[data-home-library-heading]') : tabs.get(category);
@@ -242,6 +238,14 @@
       event.preventDefault(); visible[next]?.focus();
     }
 
+    function explore(event) {
+      const category = event.detail?.category;
+      if (!active() || !items.has(category)) return;
+      event.preventDefault();
+      // Explore navigates to a section; only its rail toggles it closed.
+      select(category, 'overview', { force: true });
+    }
+
     function locationChanged() {
       if (!active()) return;
       const state = window.history.state;
@@ -256,12 +260,14 @@
 
     frame.root().addEventListener('click', click);
     frame.root().addEventListener('keydown', keydown);
+    frame.root().addEventListener('home:category-select', explore);
     window.addEventListener('popstate', locationChanged);
     window.addEventListener('hashchange', locationChanged);
     window.SiteRoutes?.addCleanup(() => {
       disposed = true; operation += 1;
       frame.root().removeEventListener('click', click);
       frame.root().removeEventListener('keydown', keydown);
+      frame.root().removeEventListener('home:category-select', explore);
       window.removeEventListener('popstate', locationChanged);
       window.removeEventListener('hashchange', locationChanged);
     }, 'home');
@@ -524,14 +530,15 @@
     const isIcon = Boolean(item.iconImage);
     if (mediaSource) {
       const image = document.createElement('img');
-      image.src = normalizeLibraryHref(mediaSource);
       image.alt = isIcon ? '' : String(item.imageAlt || '');
       image.width = isIcon || categoryId === 'tools' ? 256 : 640;
       image.height = isIcon || categoryId === 'tools' ? 256 : 360;
       image.loading = 'lazy';
       image.decoding = 'async';
       media.classList.add(isIcon ? 'home-library__media--icon' : 'home-library__media--preview');
-      media.append(image);
+      const content = window.SiteCatalogIcons?.create(image, normalizeLibraryHref(mediaSource));
+      if (!content) image.src = normalizeLibraryHref(mediaSource);
+      media.append(content || image);
     } else if (item.iconHtml) {
       media.setAttribute('aria-hidden', 'true');
       media.classList.add('home-library__media--glyph');

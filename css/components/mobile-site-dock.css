@@ -131,6 +131,118 @@
       white-space: nowrap;
     }
 
+    .mobile-site-masthead__explore {
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+
+    .mobile-site-masthead__explore[hidden],
+    .mobile-site-masthead__explore-links[hidden] {
+      display: none;
+    }
+
+    .mobile-site-masthead__explore-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 44px;
+      padding: 8px 10px;
+      border: 1px solid var(--masthead-line);
+      border-radius: 8px;
+      background: #fff;
+      color: #091f3b;
+      font: inherit;
+      font-size: .875rem;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .mobile-site-masthead__explore-button svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .mobile-site-masthead__explore-button[aria-expanded="true"] svg {
+      transform: rotate(180deg);
+    }
+
+    .mobile-site-masthead__explore-links {
+      box-sizing: border-box;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      display: grid;
+      width: min(260px, 100%);
+      max-height: calc(100dvh - var(--mobile-site-masthead-height) - 20px);
+      overflow-y: auto;
+      padding: 6px;
+      border: 1px solid var(--masthead-line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 12px 32px rgba(9, 31, 59, .14);
+    }
+
+    .mobile-site-masthead__explore-links a {
+      --section-color: #091f3b;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #091f3b;
+      font-size: .9375rem;
+      font-weight: 550;
+      line-height: 1.35;
+      text-decoration: none;
+    }
+
+    .mobile-site-masthead__explore-links [data-mobile-explore-category="projects"] { --section-color: #155dfc; }
+    .mobile-site-masthead__explore-links [data-mobile-explore-category="tools"] { --section-color: #087f8c; }
+    .mobile-site-masthead__explore-links [data-mobile-explore-category="games"] { --section-color: #c94b0a; }
+    .mobile-site-masthead__explore-links [data-mobile-explore-category="contact"] { --section-color: #334155; }
+
+    .mobile-site-masthead__section-dot {
+      flex: 0 0 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--section-color);
+    }
+
+    .mobile-site-masthead__explore-links a svg {
+      width: 16px;
+      height: 16px;
+      margin-left: auto;
+      fill: none;
+      stroke: var(--section-color);
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .mobile-site-masthead__explore-links a:is(:hover, [aria-current="page"]) {
+      background: #f0f4f9;
+    }
+
+    .mobile-site-masthead__explore-links a[aria-current="page"] {
+      font-weight: 750;
+      box-shadow: inset 3px 0 var(--section-color);
+    }
+
+    .mobile-site-masthead__explore-button:focus-visible,
+    .mobile-site-masthead__explore-links a:focus-visible {
+      outline: 2px solid #155dfc;
+      outline-offset: 2px;
+    }
+
     .mobile-site-masthead__search {
       position: relative;
       display: flex;
@@ -140,7 +252,7 @@
       width: 44px;
       min-width: 44px;
       max-width: min(164px, 42vw);
-      margin-left: auto;
+      margin-left: 0;
       transition:
         flex-basis var(--motion-base) var(--easing-standard),
         max-width var(--motion-base) var(--easing-standard),
@@ -148,8 +260,14 @@
     }
 
     .mobile-site-masthead__search.is-expanded {
-      flex: 0 0 min(164px, 42vw);
-      width: min(164px, 42vw);
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      max-width: none;
+    }
+
+    .mobile-site-masthead.is-search-expanded :is(.mobile-site-masthead__brand, .mobile-site-masthead__explore) {
+      visibility: hidden;
     }
 
     .mobile-site-masthead__search-input {
@@ -192,7 +310,11 @@
       }
 
       .mobile-site-masthead__brand {
-        gap: 8px;
+        gap: 6px;
+      }
+
+      .mobile-site-masthead__title {
+        font-size: .875rem;
       }
     }
 

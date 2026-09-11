@@ -681,7 +681,9 @@
     const messageField = document.getElementById('contact-message');
     if (nameField && payload.name) nameField.value = payload.name;
     if (emailField && payload.email) emailField.value = payload.email;
-    if (messageField && payload.message) messageField.value = payload.message;
+    if (messageField && payload.message && (!payload.preserveDraft || !messageField.value.trim())) {
+      messageField.value = payload.message;
+    }
   };
 
   const requestContactModal = (payload) => {
@@ -744,7 +746,7 @@
     if (!trigger) return;
     event.preventDefault();
     event.__contactHandled = true;
-    requestContactModal();
+    requestContactModal({ message: trigger.dataset.contactMessage || '', preserveDraft: true });
   });
 
   function ensurePortfolioScripts(pageId = 'portfolio'){

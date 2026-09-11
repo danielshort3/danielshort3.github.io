@@ -79,6 +79,112 @@
 }
 
 @layer components {
+  .project-evidence {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+  .project-evidence-note {
+    max-width: 85ch;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: .875rem;
+    line-height: 1.6;
+  }
+  .project-evidence-details > summary {
+    width: fit-content;
+    min-height: 44px;
+    padding-block: 10px;
+    color: var(--brand-deep-blue, #0145c8);
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+    scroll-margin-block-start: 10px;
+  }
+  .project-evidence-details > summary:focus-visible,
+  .project-evidence-source:focus-visible,
+  .project-next-steps a:focus-visible {
+    outline: 2px solid var(--brand-signal-blue, #155dfc);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+  .project-evidence-content {
+    display: grid;
+    gap: 18px;
+    padding-block: 8px 12px;
+    font-size: .875rem;
+    line-height: 1.6;
+  }
+  .project-evidence-metrics,
+  .project-evidence-context {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+  }
+  .project-evidence-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  }
+  .project-evidence-metrics dt,
+  .project-evidence-context dt,
+  .project-evidence-limits h3 {
+    margin: 0;
+    color: var(--brand-midnight, #091f3b);
+    font-size: .875rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+  }
+  .project-evidence-metrics dd > span { font-family: var(--font-sans); }
+  .project-evidence-metrics dd,
+  .project-evidence-context dd {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+  }
+  .project-evidence-metrics dd strong {
+    display: block;
+    color: var(--brand-midnight, #091f3b);
+    font-size: 1.0625rem;
+  }
+  .project-evidence-limits ul {
+    display: grid;
+    gap: 6px;
+    margin: 6px 0 0;
+    padding-inline-start: 20px;
+    color: var(--text-muted);
+  }
+  .project-evidence-source,
+  .project-next-steps a {
+    color: var(--brand-deep-blue, #0145c8);
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+  .project-evidence-source { justify-self: start; }
+  .project-next-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    padding-top: 18px;
+    border-top: 2px solid color-mix(in srgb, var(--brand-signal-blue, #155dfc) 25%, transparent);
+    font-size: .875rem;
+  }
+  .project-next-steps a {
+    min-height: 44px;
+    display: inline-flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 3px;
+    padding-block: 6px;
+  }
+  .project-next-link > span {
+    color: var(--text-muted);
+    font-size: .8125rem;
+  }
+  .project-next-steps .project-question-link {
+    flex-direction: row;
+    align-items: center;
+    font-weight: 600;
+  }
   @keyframes projectHeroFloatIn{
     from{
       opacity:0;

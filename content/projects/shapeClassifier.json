@@ -2,6 +2,7 @@
   "id": "shapeClassifier",
   "title": "Shape Classifier Demo",
   "subtitle": "Draw a shape and see how a model classifies it.",
+  "metaDescription": "Draw one of five shapes and try a serverless classifier trained on Quick, Draw! sketches. Explore the model, deployment, and limitations.",
   "image": "img/projects/shapeClassifier.png",
   "iconImage": "img/projects/icons/shapeClassifier.png",
   "imageWidth": 926,
@@ -86,5 +87,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Shape Classifier with a drawn square and the model’s prediction."
-  }
+  },
+  "relatedProjectId": "digitGenerator"
 }

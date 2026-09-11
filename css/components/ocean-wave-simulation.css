@@ -112,6 +112,7 @@
   .ocean-wave-stage.is-idle .ocean-wave-camera-pad, .ocean-wave-stage.is-idle .ocean-wave-camera-hint { opacity: 0; pointer-events: none; }
   .ocean-wave-stage.is-idle .ocean-wave-camera-pad:focus-within { opacity: 1; pointer-events: auto; }
   .ocean-wave-stage.has-render-error::after { content: "Live waves are unavailable. Try reloading."; position: absolute; top: 42%; inset-inline: 20px; text-align: center; color: #163d51; font-size: .9rem; }
+  .ocean-wave-stage[aria-busy="true"]::after { content: "Preparing ocean…"; position: absolute; top: 42%; inset-inline: 20px; text-align: center; color: #163d51; font-size: .9rem; pointer-events: none; }
   .ocean-wave-stage.has-buffer-error::after { content: "Choose a lower graphics quality."; position: absolute; top: 42%; inset-inline: 20px; text-align: center; color: #163d51; font-size: .9rem; }
   @media (max-width: 700px) {
     .ocean-wave-page .ocean-wave-hero { padding: 4px 0 12px; }

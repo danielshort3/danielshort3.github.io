@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -50,7 +52,7 @@ function attrsToString(attrs) {
 function renderToolIconMarkup(tool) {
   const iconImage = String(tool && tool.iconImage ? tool.iconImage : '').trim();
   if (iconImage) {
-    return `<img src="${escapeHtml(trimLeadingSlash(iconImage))}" alt="" width="256" height="256" loading="lazy" decoding="async">`;
+    return renderCatalogIcon(`<img src="${escapeHtml(trimLeadingSlash(iconImage))}" alt="" width="256" height="256" loading="lazy" decoding="async">`);
   }
   return String(tool && tool.iconHtml ? tool.iconHtml : '').trim();
 }
@@ -906,7 +908,7 @@ function renderDirectoryWorkbenchStaticResults(items, kind) {
     const href = String(item.href || '').trim();
     const iconContent = String(item.iconHtml || `<span class="portfolio-result-card__initial">${escapeHtml(title.charAt(0) || '?')}</span>`);
     const media = item.iconImage
-      ? `<span class="portfolio-result-card__icon"><img src="${escapeHtml(item.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async"></span>`
+      ? `<span class="portfolio-result-card__icon">${renderCatalogIcon(`<img src="${escapeHtml(item.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async">`)}</span>`
       : `<span class="portfolio-result-card__icon">${iconContent}</span>`;
     const cardBody = [
       '<span class="portfolio-result-card__body">',
@@ -1140,7 +1142,7 @@ function renderGamesDirectoryBody(page) {
   const cards = data.items.map((game) => {
     const tags = uniqueLabels(Array.isArray(game.tags) ? game.tags : []).slice(0, 2);
     const media = game.iconImage
-      ? `<img src="${escapeHtml(game.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async">`
+      ? renderCatalogIcon(`<img src="${escapeHtml(game.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async">`)
       : game.image
         ? `<img src="${escapeHtml(game.image)}" alt=""${game.imageWidth ? ` width="${escapeHtml(game.imageWidth)}"` : ''}${game.imageHeight ? ` height="${escapeHtml(game.imageHeight)}"` : ''} loading="lazy" decoding="async">`
         : `<span class="games-directory-card__icon">${game.iconHtml || ''}</span>`;

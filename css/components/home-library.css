@@ -424,12 +424,38 @@
     line-height: 1.25;
   }
 
-  .home-library__copy > span {
+  .home-library__copy > span:not(.home-library__access) {
     display: block;
     overflow: visible;
     color: #526174;
     font-size: .75rem;
     line-height: 1.45;
+  }
+
+  .home-library__copy > .home-library__access {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: #091f3b;
+    background: #e6f0ff;
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .home-library__access svg {
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .home-library__arrow {
@@ -666,7 +692,7 @@
       font-size: .9375rem;
     }
 
-    .home-library__copy > span {
+    .home-library__copy > span:not(.home-library__access) {
       font-size: .75rem;
       -webkit-line-clamp: 2;
     }
@@ -844,7 +870,7 @@
       line-height: 1.2;
     }
 
-    .home-library__copy > span {
+    .home-library__copy > span:not(.home-library__access) {
       font-size: .6875rem;
       line-height: 1.4;
     }
@@ -1231,7 +1257,7 @@
     line-height: 1.3;
   }
 
-  .site-frame .home-library__copy > span {
+  .site-frame .home-library__copy > span:not(.home-library__access) {
     font-size: .8125rem;
     line-height: 1.4;
   }
@@ -1282,7 +1308,7 @@
     }
 
     .site-frame .home-library__copy strong { font-size: .875rem; }
-    .site-frame .home-library__copy > span { font-size: .75rem; }
+    .site-frame .home-library__copy > span:not(.home-library__access) { font-size: .75rem; }
     .site-frame .home-library__jump-links { gap: 4px; }
     .site-frame .home-library__jump-links a { padding-inline: 9px; }
   }

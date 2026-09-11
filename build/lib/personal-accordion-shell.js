@@ -1,5 +1,7 @@
 'use strict';
 
+const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
+
 const audienceApi = require('../../js/common/audience-config');
 const framePolicy = require('../../js/navigation/site-frame-policy');
 
@@ -101,6 +103,7 @@ const LIBRARY_PRESENTATION = Object.freeze({
 });
 const ARROW_LEFT = '<path d="m15 18-6-6 6-6"></path>';
 const ARROW_RIGHT = '<path d="m9 5 7 7-7 7"></path>';
+const ACCESS_KEY = '<path d="M15.5 3a5.5 5.5 0 0 0-4.9 8L3 18.6V21h3v-3h3v-3l3.5-3.5A5.5 5.5 0 1 0 15.5 3z"></path><circle cx="16" cy="7.5" r="1"></circle>';
 
 function getTagAttribute(tag, name) {
   const escapedName = String(name || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -912,7 +915,7 @@ function renderLibraryCard(item, categoryId) {
   const iconHtml = String(item && item.iconHtml || '').trim();
   const imageDimensions = iconImage || categoryId === 'tools' ? ' width="256" height="256"' : '';
   const media = image
-    ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(imageAlt)}"${imageDimensions} loading="lazy" decoding="async">`
+    ? renderCatalogIcon(`<img src="${escapeHtml(image)}" alt="${escapeHtml(imageAlt)}"${imageDimensions} loading="lazy" decoding="async">`)
     : (iconHtml || `<span class="personal-library__initial" aria-hidden="true">${escapeHtml(title.charAt(0) || '?')}</span>`);
   const mediaType = iconImage ? 'icon' : image ? 'image' : 'glyph';
   const contentType = String(item && item.contentType || categoryId.replace(/s$/, '')).trim();
@@ -929,6 +932,7 @@ function renderLibraryCard(item, categoryId) {
     '          <span class="home-library__copy">',
     item.badge ? `            <small class="home-library__badge">${escapeHtml(item.badge)}</small>` : '',
     `            <strong>${escapeHtml(title)}</strong>`,
+    visibility === 'admin' ? `            <span class="home-library__access">${renderIcon(ACCESS_KEY)}Admin access</span>` : '',
     summary ? `            <span>${escapeHtml(summary)}</span>` : '',
     '          </span>',
     `          <span class="home-library__arrow" aria-hidden="true">${renderIcon(ARROW_RIGHT)}</span>`,

@@ -1,4 +1,5 @@
 import '../../js/common/audience-config.js';
+import '../../js/common/catalog-icons.js';
 import '../../js/common/site-realm.js';
 import '../../js/navigation/site-route-runtime.js';
 import '../../js/common/motion.js';
