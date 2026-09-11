@@ -58,6 +58,15 @@ const jobs = [
   }
 ];
 
+const catalogDirectories = ['img/projects/icons', 'img/tools/icons', 'img/games/icons'];
+const catalogJobs = catalogDirectories.flatMap((directory) => fs.readdirSync(path.join(root, directory))
+  .filter((file) => /\.png$/i.test(file))
+  .sort()
+  .map((file) => ({
+    source: `${directory}/${file}`,
+    outputs: [{ extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }]
+  })));
+
 function formatBytes(bytes) {
   const value = Number(bytes) || 0;
   if (value < 1024) return `${value}B`;
@@ -95,7 +104,8 @@ async function main() {
   let generated = 0;
   let unchanged = 0;
 
-  for (const job of jobs) {
+  const selectedJobs = process.argv.includes('--catalog-only') ? catalogJobs : [...jobs, ...catalogJobs];
+  for (const job of selectedJobs) {
     const sourcePath = path.join(root, job.source);
     if (!fs.existsSync(sourcePath)) {
       throw new Error(`Missing image source: ${job.source}`);

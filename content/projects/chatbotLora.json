@@ -2,6 +2,7 @@
   "id": "chatbotLora",
   "title": "Chatbot (LoRA + RAG)",
   "subtitle": "Explore Grand Junction with answers grounded in local sources.",
+  "metaDescription": "Explore a Grand Junction chatbot combining retrieval and LoRA tuning, with source-linked answers, an interactive demo, and evaluation limitations.",
   "image": "img/projects/chatbotLora.png",
   "iconImage": "img/projects/icons/chatbotLora.png",
   "imageWidth": 1280,
@@ -89,5 +90,6 @@
       "url": "https://github.com/danielshort3/Chatbot-LoRA-RAG"
     }
   },
-  "order": 2
+  "order": 2,
+  "relatedProjectId": "smartSentence"
 }

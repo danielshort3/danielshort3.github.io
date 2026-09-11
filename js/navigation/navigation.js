@@ -123,6 +123,16 @@
             <span class="mobile-site-masthead__title">Daniel Short</span>
           </span>
         </a>
+        <div class="mobile-site-masthead__explore" data-mobile-explore>
+          <button class="mobile-site-masthead__explore-button" type="button" aria-expanded="false" aria-controls="mobile-explore-links">
+            <span>Explore</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <nav id="mobile-explore-links" class="mobile-site-masthead__explore-links" aria-label="Explore sections" hidden>
+            ${['about', 'projects', 'tools', 'games', 'contact'].map((category) => `
+              <a href="/#${category}" data-mobile-explore-category="${category}"><span class="mobile-site-masthead__section-dot" aria-hidden="true"></span><span>${category.charAt(0).toUpperCase() + category.slice(1)}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></a>
+            `).join('')}
+          </nav>
+        </div>
         <form class="mobile-site-masthead__search" action="/search" method="get" role="search" data-mobile-masthead-search="collapsed">
           <label class="visually-hidden" for="mobile-masthead-search-q">Search site</label>
           <input id="mobile-masthead-search-q" class="mobile-site-masthead__search-input" type="search" name="q" placeholder="Search" autocomplete="off">
@@ -149,9 +159,24 @@
     const searchForm = masthead.querySelector('.mobile-site-masthead__search');
     const searchInput = masthead.querySelector('.mobile-site-masthead__search-input');
     const searchButton = masthead.querySelector('.mobile-site-masthead__search-button');
+    const brand = masthead.querySelector('.mobile-site-masthead__brand');
+    const explore = masthead.querySelector('[data-mobile-explore]');
+    const exploreButton = explore.querySelector('button');
+    const exploreLinks = explore.querySelector('nav');
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
+    const setExploreExpanded = (expanded, options = {}) => {
+      const nextExpanded = Boolean(expanded && mobileQuery.matches && !explore.hidden);
+      exploreButton.setAttribute('aria-expanded', String(nextExpanded));
+      exploreLinks.hidden = !nextExpanded;
+      if (options.restoreFocus) exploreButton.focus({ preventScroll: true });
+    };
     const setSearchExpanded = (expanded, options = {}) => {
       if (!searchForm || !searchInput || !searchButton) return;
       const nextExpanded = Boolean(expanded);
+      if (nextExpanded) setExploreExpanded(false);
+      masthead.classList.toggle('is-search-expanded', nextExpanded);
+      brand.inert = nextExpanded;
+      explore.inert = nextExpanded;
       searchForm.classList.toggle('is-expanded', nextExpanded);
       searchForm.dataset.mobileMastheadSearch = nextExpanded ? 'expanded' : 'collapsed';
       searchButton.setAttribute('aria-expanded', String(nextExpanded));
@@ -164,6 +189,49 @@
         });
       }
     };
+
+    exploreButton.addEventListener('click', () => {
+      setSearchExpanded(false);
+      setExploreExpanded(exploreLinks.hidden);
+    });
+    exploreLinks.addEventListener('click', (event) => {
+      const link = event.target.closest('[data-mobile-explore-category]');
+      if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.button > 0) return;
+      setExploreExpanded(false, { restoreFocus: true });
+      const request = new CustomEvent('home:category-select', { cancelable: true, detail: { category: link.dataset.mobileExploreCategory } });
+      if (window.SiteFrame?.root()?.dispatchEvent(request) === false) event.preventDefault();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || exploreLinks.hidden) return;
+      event.preventDefault();
+      setExploreExpanded(false, { restoreFocus: true });
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!exploreLinks.hidden && !explore.contains(event.target)) setExploreExpanded(false);
+    }, true);
+    explore.addEventListener('focusout', (event) => {
+      if (event.relatedTarget && !explore.contains(event.relatedTarget)) setExploreExpanded(false);
+    });
+    mobileQuery.addEventListener('change', () => {
+      const hadFocus = masthead.contains(document.activeElement);
+      setExploreExpanded(false);
+      setSearchExpanded(false);
+      if (hadFocus && !mobileQuery.matches) {
+        document.querySelector('#combined-header-nav .brand')?.focus({ preventScroll: true });
+      }
+    });
+    masthead.__closeExplore = () => setExploreExpanded(false);
+    masthead.__syncExplore = (context) => {
+      explore.hidden = context.activeAudience.key !== 'personal';
+      if (explore.hidden) setExploreExpanded(false);
+      const state = window.SiteFrame?.current();
+      const category = state?.view === 'closed' ? '' : state?.category || document.body.dataset.siteRouteCategory;
+      exploreLinks.querySelectorAll('[data-mobile-explore-category]').forEach((link) => {
+        if (link.dataset.mobileExploreCategory === category) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+    };
+    document.addEventListener('home:category-change', () => masthead.__syncExplore(getNavigationContext()));
 
     if (searchForm && searchInput && searchButton) {
       searchForm.__closeSearch = () => setSearchExpanded(false);
@@ -193,7 +261,8 @@
     }
 
     syncSearchAudience(searchForm, activeAudience);
-    document.body.appendChild(masthead);
+    const desktopHeader = document.querySelector('#combined-header-nav');
+    desktopHeader.parentNode.insertBefore(masthead, desktopHeader);
     document.body.classList.add('has-mobile-site-masthead');
   }
 
@@ -320,6 +389,7 @@
     if (host) host.dataset.siteRealmNav = config.activeAudience.key;
     if (masthead) {
       masthead.classList.toggle('mobile-site-masthead--home', config.currentPathVariants.includes('/') || document.body?.dataset?.page === 'home');
+      masthead.__syncExplore?.(config);
     }
     scheduleNavHeightUpdate();
     return config;
@@ -336,6 +406,7 @@
       closeHeaderSearch(host);
       const mobileSearch = document.querySelector('.mobile-site-masthead__search');
       if (mobileSearch && typeof mobileSearch.__closeSearch === 'function') mobileSearch.__closeSearch();
+      document.querySelector('[data-mobile-site-masthead]')?.__closeExplore?.();
     });
     document.addEventListener('site:route-change', syncHeaderContext);
   }

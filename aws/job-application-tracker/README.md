@@ -37,12 +37,15 @@ aws cloudformation deploy \
     LambdaReleaseId=YYYY-MM-DD-release-01 \
     AllowedOrigins="https://danielshort.me,https://www.danielshort.me" \
     CognitoDomainPrefix=job-tracker-auth \
+    CognitoIdentityProviders="COGNITO,Google" \
     CallbackUrls="https://www.danielshort.me/tools/job-application-tracker" \
     LogoutUrls="https://www.danielshort.me/tools/job-application-tracker" \
     EnableCanaryAdminPasswordAuth=false
 ```
 
 `LambdaReleaseId` must change for every uploaded package. CloudFormation publishes an immutable function version and moves the `live` alias only after the new version is ready; API Gateway invokes that alias rather than mutable `$LATEST` code.
+
+`CognitoIdentityProviders` has no default: the first update using this template must explicitly preserve the app client's live provider list. The example assumes an existing pool with Google already configured. For a fresh pool, use `COGNITO`, configure the external Google provider separately, and then update the parameter to `COGNITO,Google`. Once the parameter exists on the stack, retain its previous value on subsequent updates unless deliberately changing providers. The template requires `COGNITO` to preserve email sign-in. Also carry forward the full live `CallbackUrls` and `LogoutUrls` lists when updating an existing stack; the short example is not a complete production callback inventory.
 
 The stack retains and deletion-protects the Cognito user pool and applications table, enables DynamoDB point-in-time recovery, and retains the attachment bucket and log groups. Review the CloudFormation change set before execution and confirm that it contains no unexpected data-resource replacement or deletion.
 
@@ -91,6 +94,27 @@ Application deletion removes the DynamoDB record first, then deletes S3 objects.
 ## Auth
 
 API Gateway uses a Cognito JWT authorizer. The Lambda reads the `sub` claim from `event.requestContext.authorizer.jwt.claims` and enforces per-user row security by partition key. The front-end uses the Cognito Hosted UI with PKCE and sends the ID token as `Authorization: Bearer <token>`.
+
+### Google provider setup
+
+Google credentials are stored in the existing Cognito user pool's `Google` identity provider. This template intentionally does not create an `AWS::Cognito::UserPoolIdentityProvider` resource for that separately configured provider, avoiding a duplicate resource or a secret in the repository. Follow [AWS's Google provider setup](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-social-idp.html) to set the Google web client ID/secret, the Cognito domain's `/oauth2/idpresponse` redirect, `openid email profile` scopes, and claim mappings (including `email` to `email`). Keep credentials outside the repository and command-line arguments.
+
+After that provider exists, preview and apply the additive app-client change from the repository root:
+
+```bash
+node scripts/setup-tools-google-auth.js --google-client-id YOUR_CLIENT.apps.googleusercontent.com
+node scripts/setup-tools-google-auth.js --google-client-id YOUR_CLIENT.apps.googleusercontent.com --apply
+```
+
+The helper defaults to this website's account, pool, client, and region; use `--help` for explicit overrides. It verifies the AWS account and expected Google client ID, checks required scopes/mapping, preserves described writable app-client fields, refuses an outdated AWS CLI that cannot round-trip a field, and aborts on client/provider drift before writing. It does not read the Google secret into Node, accept secret inputs, or print AWS response bodies. The temporary app-client input excludes `ClientSecret` and is removed after success or failure. Apply mode reads settings back to verify that only Google was added. [AWS warns that omitted app-client settings reset to defaults](https://docs.aws.amazon.com/cli/latest/reference/cognito-idp/update-user-pool-client.html), so do not replace this with an update containing only the provider list.
+
+Copy the helper's `CognitoIdentityProviders=...` output into the next CloudFormation deployment; the helper does not update the stack parameter. Verify the change set retains that full provider list and existing callback URLs. Enabling Google does not link existing email accounts automatically or add game cloud saves. Google OAuth app audience/testing restrictions still apply, and a complete browser sign-in is required to verify credentials and callbacks.
+
+Run the setup safety checks without AWS access:
+
+```bash
+node tests/infra/setup-tools-google-auth.test.js
+```
 
 ## Idempotent application capture
 

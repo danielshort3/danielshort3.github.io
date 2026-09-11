@@ -60,16 +60,13 @@
   ],
   "contracts": {
     "players": {
-      "artVersion": "v5",
-      "sourceFolder": "asset-sources/project-starfall/players/class-families",
-      "sourcePattern": "<family-id>-v5-source.png",
-      "generationSourcePattern": "<family-id>-v5-generated-chroma.png",
+      "artVersion": "classic",
+      "sourceFolder": "asset-sources/project-starfall/players/classes",
+      "sourcePattern": "<file-id>-source.png",
       "portraitFolder": "img/project-starfall/characters",
-      "portraitPattern": "<family-id>-v5.png",
+      "portraitPattern": "<file-id>.png",
       "animationFolder": "img/project-starfall/animations/players",
-      "animationPattern": "<family-id>-sheet-v5.png",
-      "fallbackPortrait": "img/project-starfall/characters/generic-player-v4.png",
-      "fallbackAnimation": "img/project-starfall/animations/players/generic-player-sheet-v4.png",
+      "animationPattern": "<file-id>-sheet.png",
       "frameSize": 160,
       "columns": 6,
       "rows": [
@@ -88,25 +85,6 @@
       "sheetHeight": 1600,
       "portraitWidth": 320,
       "portraitHeight": 320,
-      "families": [
-        "fighter",
-        "mage",
-        "archer"
-      ],
-      "classFamilies": {
-        "fighter": "fighter",
-        "guardian": "fighter",
-        "berserker": "fighter",
-        "duelist": "fighter",
-        "mage": "mage",
-        "fireMage": "mage",
-        "runeMage": "mage",
-        "stormMage": "mage",
-        "archer": "archer",
-        "sniper": "archer",
-        "trapper": "archer",
-        "beastArcher": "archer"
-      },
       "classes": [
         "fighter",
         "mage",
@@ -125,8 +103,7 @@
     },
     "equipmentAtlases": {
       "folder": "img/project-starfall/equipment-atlases",
-      "pattern": "<equipment-file-id>-atlas-v2.png",
-      "version": 2,
+      "pattern": "<equipment-file-id>-atlas.png",
       "cellSize": 128,
       "columns": 8,
       "angleCount": 8,
@@ -291,20 +268,86 @@
       "iconHeight": 64,
       "processor": "build/process-project-starfall-ai-item-icons.js",
       "sourceSheets": [
-        { "file": "ai-items-consumables-materials.png", "columns": 5, "rows": 5, "outputFile": "ai-items-consumables-materials-sheet.png" },
-        { "file": "ai-items-potion-tiers.png", "columns": 4, "rows": 3, "outputFile": "ai-items-potion-tiers-sheet.png" },
-        { "file": "ai-items-mob-materials-core.png", "columns": 5, "rows": 4, "outputFile": "ai-items-mob-materials-core-sheet.png" },
-        { "file": "ai-items-mob-materials-late.png", "columns": 5, "rows": 4, "outputFile": "ai-items-mob-materials-late-sheet.png" },
-        { "file": "ai-items-coin-stacks.png", "columns": 4, "rows": 1, "outputFile": "ai-items-coin-stacks-sheet.png" },
-        { "file": "ai-items-rate-coupons.png", "columns": 3, "rows": 2, "outputFile": "ai-items-rate-coupons-sheet.png" },
-        { "file": "ai-items-slot-prisms-plinko.png", "columns": 3, "rows": 3, "outputFile": "ai-items-slot-prisms-plinko-sheet.png" },
-        { "file": "ai-items-shop-boss-forest.png", "columns": 5, "rows": 5, "outputFile": "ai-items-shop-boss-forest-sheet.png" },
-        { "file": "ai-items-world-drops.png", "columns": 5, "rows": 4, "outputFile": "ai-items-world-drops-sheet.png" },
-        { "file": "ai-items-boss-core-storm.png", "columns": 5, "rows": 5, "outputFile": "ai-items-boss-core-storm-sheet.png" },
-        { "file": "ai-items-boss-astral-eclipse.png", "columns": 5, "rows": 4, "outputFile": "ai-items-boss-astral-eclipse-sheet.png" }
+        {
+          "file": "ai-items-consumables-materials.png",
+          "columns": 5,
+          "rows": 5,
+          "outputFile": "ai-items-consumables-materials-sheet.png"
+        },
+        {
+          "file": "ai-items-potion-tiers.png",
+          "columns": 4,
+          "rows": 3,
+          "outputFile": "ai-items-potion-tiers-sheet.png"
+        },
+        {
+          "file": "ai-items-mob-materials-core.png",
+          "columns": 5,
+          "rows": 4,
+          "outputFile": "ai-items-mob-materials-core-sheet.png"
+        },
+        {
+          "file": "ai-items-mob-materials-late.png",
+          "columns": 5,
+          "rows": 4,
+          "outputFile": "ai-items-mob-materials-late-sheet.png"
+        },
+        {
+          "file": "ai-items-coin-stacks.png",
+          "columns": 4,
+          "rows": 1,
+          "outputFile": "ai-items-coin-stacks-sheet.png"
+        },
+        {
+          "file": "ai-items-rate-coupons.png",
+          "columns": 3,
+          "rows": 2,
+          "outputFile": "ai-items-rate-coupons-sheet.png"
+        },
+        {
+          "file": "ai-items-slot-prisms-plinko.png",
+          "columns": 3,
+          "rows": 3,
+          "outputFile": "ai-items-slot-prisms-plinko-sheet.png"
+        },
+        {
+          "file": "ai-items-shop-boss-forest.png",
+          "columns": 5,
+          "rows": 5,
+          "outputFile": "ai-items-shop-boss-forest-sheet.png"
+        },
+        {
+          "file": "ai-items-world-drops.png",
+          "columns": 5,
+          "rows": 4,
+          "outputFile": "ai-items-world-drops-sheet.png"
+        },
+        {
+          "file": "ai-items-boss-core-storm.png",
+          "columns": 5,
+          "rows": 5,
+          "outputFile": "ai-items-boss-core-storm-sheet.png"
+        },
+        {
+          "file": "ai-items-boss-astral-eclipse.png",
+          "columns": 5,
+          "rows": 4,
+          "outputFile": "ai-items-boss-astral-eclipse-sheet.png"
+        }
       ],
       "externalSheets": [
-        { "file": "ai-items-star-cards-sheet.png", "columns": 5, "rows": 1, "ids": ["white_star_card", "green_star_card", "blue_star_card", "purple_star_card", "orange_star_card"] }
+        {
+          "file": "ai-items-star-cards-sheet.png",
+          "columns": 5,
+          "rows": 1,
+          "ids": [
+            "white_star_card",
+            "green_star_card",
+            "blue_star_card",
+            "purple_star_card",
+            "orange_star_card"
+          ]
+        }
       ]
     },
     "cards": {
@@ -381,7 +424,7 @@
           "path": "img/project-starfall/environment/structures/town-landmarks.png",
           "source": "img/project-starfall/environment/structures/source/ai-town-landmarks.png",
           "width": 1024,
-          "height": 768,
+          "height": 512,
           "cellSize": 256,
           "columns": 4,
           "rows": 2
@@ -391,10 +434,30 @@
     },
     "ui": {
       "screens": [
-        { "path": "img/project-starfall/ui/splash-screen.png", "width": 1672, "height": 941, "alpha": false },
-        { "path": "img/project-starfall/ui/start-screen.png", "width": 1672, "height": 941, "alpha": false },
-        { "path": "img/project-starfall/ui/character-select-screen.png", "width": 1672, "height": 941, "alpha": false },
-        { "path": "img/project-starfall/ui/character-slot-pedestal.png", "width": 512, "height": 160, "alpha": true }
+        {
+          "path": "img/project-starfall/ui/splash-screen.png",
+          "width": 1672,
+          "height": 941,
+          "alpha": false
+        },
+        {
+          "path": "img/project-starfall/ui/start-screen.png",
+          "width": 1672,
+          "height": 941,
+          "alpha": false
+        },
+        {
+          "path": "img/project-starfall/ui/character-select-screen.png",
+          "width": 1672,
+          "height": 941,
+          "alpha": false
+        },
+        {
+          "path": "img/project-starfall/ui/character-slot-pedestal.png",
+          "width": 512,
+          "height": 160,
+          "alpha": true
+        }
       ],
       "menuIconFolder": "img/project-starfall/ui/menu-icons",
       "menuIconWidth": 64,
@@ -450,9 +513,30 @@
     "build/process-project-starfall-non-enemy-ai-assets.js"
   ],
   "reviewChecklist": {
-    "style": ["Starlit Frontier Fantasy", "readable silhouette", "no copied IP", "no AI artifacts"],
-    "technical": ["correct dimensions", "correct frame count", "correct folder", "correct filename", "transparent runtime output"],
-    "animation": ["stable baseline", "stable scale", "clear tells", "no cell overflow"],
-    "gameplay": ["class identity", "enemy role", "hazard direction", "UI readability"]
+    "style": [
+      "Starlit Frontier Fantasy",
+      "readable silhouette",
+      "no copied IP",
+      "no AI artifacts"
+    ],
+    "technical": [
+      "correct dimensions",
+      "correct frame count",
+      "correct folder",
+      "correct filename",
+      "transparent runtime output"
+    ],
+    "animation": [
+      "stable baseline",
+      "stable scale",
+      "clear tells",
+      "no cell overflow"
+    ],
+    "gameplay": [
+      "class identity",
+      "enemy role",
+      "hazard direction",
+      "UI readability"
+    ]
   }
 }

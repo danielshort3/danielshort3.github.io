@@ -10,7 +10,11 @@
     min-inline-size: 104px;
   }
 
-  .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="toggle-account"]) {
+  .tools-account-bar .tools-account-actions {
+    flex-wrap: nowrap;
+  }
+
+  .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="open-account"]) {
     inline-size: 104px;
     min-inline-size: 104px;
     border-color: #c5d1df;
@@ -20,10 +24,41 @@
     transform: none;
   }
 
-  .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="toggle-account"]):hover {
+  .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="open-account"]):hover {
     border-color: var(--panel-color, #087f8c);
     color: #091f3b;
     background: #f5f8fa;
+  }
+
+  .tools-account-bar .tools-account-signout {
+    flex: 0 0 auto;
+    border-color: #b42318;
+    background: #b42318;
+    color: #fff;
+    white-space: nowrap;
+    box-shadow: none;
+  }
+
+  .tools-account-bar .tools-account-signout:hover {
+    border-color: #912018;
+    background: #912018;
+    color: #fff;
+  }
+
+  @media (max-width: 480px) {
+    .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="open-account"]) {
+      inline-size: 88px;
+      min-inline-size: 88px;
+    }
+
+    .tools-account-bar .tools-account-actions .btn-secondary {
+      padding-inline: 8px;
+      font-size: .8125rem;
+    }
+
+    .tools-account-continue-item .btn-secondary {
+      padding-inline: 12px;
+    }
   }
 }
 
@@ -66,6 +101,7 @@
   }
 
   .tools-account-actions{
+    position:relative;
     grid-area:account;
     display:flex;
     flex-wrap:wrap;
@@ -73,6 +109,13 @@
     gap:8px;
     min-width:0;
     max-width:100%;
+  }
+
+  .tools-account-signed-in-actions{
+    display:flex;
+    flex:0 0 auto;
+    align-items:center;
+    gap:8px;
   }
 
   .tools-account-extensions{
@@ -98,6 +141,20 @@
 
   .tools-account-status[data-tone="error"]{
     color:var(--danger, #b42318);
+  }
+
+  .tools-account-feedback{
+    position:absolute;
+    z-index:21;
+    inset-block-start:calc(100% + 8px);
+    inset-inline-end:0;
+    width:max-content;
+    max-width:min(300px,calc(100vw - 48px));
+    padding:8px 11px;
+    border:1px solid #dce4ed;
+    border-radius:8px;
+    background:#fff;
+    box-shadow:0 8px 24px rgba(9,31,59,.1);
   }
 
   .tools-account-tools-link{
@@ -274,6 +331,11 @@
       flex:1 1 100%;
       justify-content:flex-start;
       width:100%;
+    }
+
+    .tools-account-feedback{
+      inset-inline-start:0;
+      inset-inline-end:auto;
     }
   }
 
@@ -634,6 +696,93 @@
     flex-wrap:wrap;
     gap:10px;
     justify-content:center;
+  }
+
+  .tools-account-modal .modal-content{
+    width:min(620px,calc(100vw - 32px));
+  }
+
+  .tools-account-modal [hidden]{
+    display:none !important;
+  }
+
+  .tools-account-modal-grid{
+    display:grid;
+    gap:24px;
+    min-width:0;
+  }
+
+  .tools-account-profile{
+    display:grid;
+    gap:4px;
+    overflow-wrap:anywhere;
+  }
+
+  .tools-account-profile-name,
+  .tools-account-profile-email,
+  .tools-account-continue-name{
+    margin:0;
+  }
+
+  .tools-account-profile-name,
+  .tools-account-continue-name{
+    color:var(--brand-midnight,#091f3b);
+    font-weight:600;
+  }
+
+  .tools-account-profile-email{
+    color:var(--text-muted);
+    font-size:.86rem;
+    line-height:1.5;
+  }
+
+  .tools-account-continue h2{
+    margin:0 0 12px;
+    font-size:1rem;
+  }
+
+  .tools-account-continue-list{
+    display:grid;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+
+  .tools-account-continue-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 0;
+    border-top:1px solid #e4e9ef;
+  }
+
+  .tools-account-continue-item > div{
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+
+  .tools-account-continue-item .btn-secondary{
+    flex:0 0 auto;
+    min-height:44px;
+    font-size:.86rem;
+  }
+
+  .tools-account-data{
+    padding-top:12px;
+    border-top:1px solid #e4e9ef;
+    font-size:.86rem;
+  }
+
+  .tools-account-data summary{
+    cursor:pointer;
+    min-height:44px;
+    align-content:center;
+    color:var(--text-muted);
+  }
+
+  .tools-account-data .tools-account-delete{
+    color:var(--danger,#b42318);
   }
 
   @media (min-width: 1080px){

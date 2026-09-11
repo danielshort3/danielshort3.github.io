@@ -221,8 +221,8 @@ assert.strictEqual(firstPreload, secondPreload,
   'the picker should return the in-flight or completed preload promise for the same class sheets');
 assert.deepStrictEqual(preloadedPaths, expectedPreviewSheets,
   'the picker should actively preload every distinct base-class animation sheet');
-assert(preloadedPaths.length > 0 && preloadedPaths.every((assetPath) => /-sheet-v5\.png$/.test(assetPath)),
-  'fresh-load previews should request the authored v5 animation sheets');
+assert.deepStrictEqual(preloadedPaths, [data.GENERIC_PLAYER_ANIMATION_ASSET.sheet],
+  'fresh-load previews should reuse the restored shared player animation sheet');
 assert.strictEqual(preloadLabel, 'character-select:base-class-previews',
   'the asset-manager request should be identifiable in loading diagnostics');
 

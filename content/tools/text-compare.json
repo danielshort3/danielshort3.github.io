@@ -4,7 +4,7 @@
   "href": "tools/text-compare",
   "iconImage": "img/tools/icons/text-compare.png",
   "categoryId": "tools-writing",
-  "privacy": "Comparison runs on your device. Saving a session uploads drafts and results to your account; shared input links contain your drafts.",
+  "privacy": "Comparison runs on your device. When signed in, drafts, settings, and results save automatically to your account; shared input links contain your drafts.",
   "inputs": ["Two text drafts"],
   "outputs": ["Highlighted side-by-side comparison"],
   "summary": "Compare two drafts and review the changes.",

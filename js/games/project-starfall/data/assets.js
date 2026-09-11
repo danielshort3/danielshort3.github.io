@@ -17,8 +17,8 @@
   const BASE_SKILL_ICON_ROOT = `${ASSET_ROOT}/skills/base`;
   const ADVANCED_SKILL_ICON_ROOT = `${ASSET_ROOT}/skills/advanced`;
   const CARD_ICON_ROOT = `${ASSET_ROOT}/cards/icons`;
-  const GENERIC_PLAYER_ASSET = `${ASSET_ROOT}/characters/generic-player-v4.png`;
-  const PLAYER_ART_VERSION = 'v5';
+  const GENERIC_PLAYER_ASSET = `${ASSET_ROOT}/characters/generic-player.png`;
+  const PLAYER_ART_VERSION = 'classic';
   const EQUIPMENT_ATLAS_ROOT = `${ASSET_ROOT}/equipment-atlases`;
   const CHARACTER_SLOT_PEDESTAL_ASSET = `${ASSET_ROOT}/ui/character-slot-pedestal.png`;
   const LEVEL_CAP = null;
@@ -68,11 +68,8 @@
   }
 
   const CLASS_ASSETS = Object.freeze(Object.keys(CLASS_FILE_IDS).reduce((assets, classId) => {
-    const familyId = getClassBodyFamilyId(classId);
-    const fileId = CLASS_FAMILY_FILE_IDS[familyId];
-    assets[classId] = fileId
-      ? `${ASSET_ROOT}/characters/${fileId}-${PLAYER_ART_VERSION}.png`
-      : GENERIC_PLAYER_ASSET;
+    // The restored class portraits share the same art and decoded image.
+    assets[classId] = GENERIC_PLAYER_ASSET;
     return assets;
   }, {}));
 
@@ -171,7 +168,7 @@
     rimewardenVault: `${ASSET_ROOT}/maps/rimewarden-vault.webp`,
     stormbreakAerie: `${ASSET_ROOT}/maps/stormbreak-aerie.webp`,
     astralStacks: `${ASSET_ROOT}/maps/astral-stacks.webp`,
-    eclipseThrone: `${ASSET_ROOT}/maps/eclipse-throne-v2.webp`
+    eclipseThrone: `${ASSET_ROOT}/maps/eclipse-throne.webp`
   });
 
   const UI_ASSETS = Object.freeze({

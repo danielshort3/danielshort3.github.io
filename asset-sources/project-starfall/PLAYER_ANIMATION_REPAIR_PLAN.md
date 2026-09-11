@@ -1,12 +1,14 @@
 # Project Starfall animation audit and repair plan
 
-## Scope evaluated
+Restored on 2026-09-10 to the classic art from `eb8de4e1` (before the July 22 visual rework). Active player art uses the shared compact adventurer and unversioned runtime filenames; equipment uses the original `*-atlas.png` files. The later Fracture Runner v4/v5 sources and v2 equipment atlases remain historical references and are not refresh targets. Gameplay changes are retained.
+
+## Historical scope evaluated
 
 The audit covered all 278 unique runtime animation images referenced by the active game manifests and renderer:
 
 | Family | Active sheets | Evaluation |
 | --- | ---: | --- |
-| Player bodies | 3 families + 1 recovery sheet | Replaced. Fighter, Mage, and Archer now have distinct v5 silhouettes on one registered skeleton; advanced classes reuse their base family instead of decoding redundant copies. |
+| Player bodies | 13 | Replaced. The previous sheets reused a mostly rigid standing cutout, rotated whole bodies for action rows, and baked class weapons into the body art. |
 | Equipped-item atlases | 85 | Replaced. Each item now uses eight reusable angle cells instead of duplicating the item across all 60 body-animation frames. Bows add rest, draw, and release rows. |
 | Combat effects | 127 | Retained. Frame progression, cell bounds, and gameplay timing are coherent. |
 | Enemies and projectiles | 49 | Repaired in a follow-up pass. See `MONSTER_ANIMATION_REPAIR_PLAN.md` for the converter, renderer, cadence, and validation changes. |
@@ -35,11 +37,11 @@ Status: complete.
 
 ### 2. Replace the player body animation
 
-- Use one weaponless registration contract with distinct Fighter, Mage, and Archer family silhouettes, preserving the existing 6-column by 10-row contract.
+- Use one weaponless canonical body and preserve the existing 6-column by 10-row contract.
 - Author meaningful sequential motion for idle, run, jump, fall, climb, basic, skill, party, hit, and defeat.
-- Map each advanced class to its base family sheet so changing specialization preserves anatomy, baseline, equipment sockets, and cache reuse.
+- Derive every class sheet from the same registered body frames so changing class cannot change anatomy or baseline.
 
-Status: complete. The v5 class-family pass adds readable armor, mantle, and field-leather silhouettes while preserving the Fracture Runner registration, collision, and 60-frame attachment contract. The v4 sheet remains only as a recovery asset.
+Status: complete.
 
 ### 3. Make equipment reflect game state
 
@@ -68,7 +70,6 @@ npm run validate:project-starfall-equipment-atlases
 npm run test:starfall:assets
 npm run validate:project-starfall-assets
 npm run test:starfall:smoke
-node tests/project-starfall/project-starfall-class-identity.test.js
 ```
 
-Source review artifacts: `asset-sources/project-starfall/players/class-families/*-v5-generated-chroma.png`. The processor normalizes their variable source dimensions into guided source sheets and exact 960 by 1600 runtime sheets.
+Visual review artifact: `asset-sources/project-starfall/players/plain-adventurer-review.png`.

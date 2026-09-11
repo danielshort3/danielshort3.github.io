@@ -1,13 +1,13 @@
 (() => {
   'use strict';
 
-  const MAX_BYTES = 12 * 1024 * 1024;
-  const MAX_PIXELS = 2048 * 1024;
+  const MAX_BYTES = 24 * 1024 * 1024;
+  const MAX_PIXELS = 4096 * 2048;
   const TAU = Math.PI * 2;
   const ASSETS = {
-    dawn: { id: 'kloppenheim_06_puresky', hasSun: true },
-    golden: { id: 'kloppenheim_06_puresky', hasSun: true },
-    daylight: { id: 'kloofendal_48d_partly_cloudy_puresky', hasSun: true },
+    dawn: { id: 'kloppenheim_06_puresky', hasSun: true, ultraResolution: '4k', sunDirection: [.6468873, .0807796, .7582951] },
+    golden: { id: 'kloppenheim_06_puresky', hasSun: true, ultraResolution: '4k', sunDirection: [.6468873, .0807796, .7582951] },
+    daylight: { id: 'kloofendal_48d_partly_cloudy_puresky', hasSun: true, sunDirection: [.3774921, .7417488, .5543541] },
     dusk: { id: 'qwantani_dusk_1_puresky', hasSun: false },
   };
 
@@ -126,11 +126,12 @@
     let brightest = 0;
     let brightestX = 0;
     let brightestY = 0;
+    const sampleStep = Math.max(2, Math.floor(width / 512));
     for (let y = 0; y < upperRows; y++) {
       for (let x = 0; x < width; x++) {
         const value = luminance(data, (y * width + x) * 4);
         if (!Number.isFinite(value)) throw new Error('Non-finite ocean HDR radiance.');
-        if (!(x % 2) && !(y % 2)) samples.push(value);
+        if (!(x % sampleStep) && !(y % sampleStep)) samples.push(value);
         if (value > brightest) {
           brightest = value;
           brightestX = x;
@@ -142,9 +143,9 @@
     const ceiling = samples[Math.floor(samples.length * 0.98)];
     let weighted = 0;
     let totalWeight = 0;
-    for (let y = 0; y < upperRows; y += 2) {
+    for (let y = 0; y < upperRows; y += sampleStep) {
       const weight = Math.sin((y + 0.5) / height * Math.PI);
-      for (let x = 0; x < width; x += 2) {
+      for (let x = 0; x < width; x += sampleStep) {
         weighted += Math.min(ceiling, luminance(data, (y * width + x) * 4)) * weight;
         totalWeight += weight;
       }
@@ -170,12 +171,57 @@
     const length = Math.hypot(...sunDirection);
     if (!sunWeight || !length) sunDirection.splice(0, 3, ...peakDirection);
     else for (let n = 0; n < 3; n++) sunDirection[n] /= length;
+    if (asset.sunDirection) {
+      // Coordinates measured from the 2K source remain fixed during upgrades.
+      // In the 1K sunset, the brightest cloud can outshine the actual sun.
+      sunDirection.splice(0, 3, ...asset.sunDirection);
+      brightestX = Math.floor((Math.atan2(sunDirection[0], sunDirection[2]) / TAU + .5) * width);
+      brightestY = Math.floor(Math.acos(sunDirection[1]) / Math.PI * height);
+    }
+    // Separate only the small solar core from its photographed atmosphere.
+    // Reconstructing that disk at display resolution avoids enlarged HDR
+    // texels and lets crossfades move one sun instead of overlaying two suns.
+    const sunRadiance = [0, 0, 0];
+    if (asset.hasSun) {
+      const radius = Math.ceil(height * .026 / Math.PI) + 2;
+      const region = [];
+      const background = [0, 0, 0];
+      let backgroundWeight = 0;
+      for (let y = Math.max(0, brightestY - radius); y < Math.min(upperRows, brightestY + radius + 1); y++) {
+        const solidAngle = Math.sin((y + .5) / height * Math.PI) * TAU / width * Math.PI / height;
+        for (let dx = -radius; dx <= radius; dx++) {
+          const x = (brightestX + dx + width) % width;
+          const direction = directionAt(x, y, width, height);
+          const alignment = direction[0] * sunDirection[0] + direction[1] * sunDirection[1] + direction[2] * sunDirection[2];
+          const angle = Math.acos(Math.max(-1, Math.min(1, alignment)));
+          const index = (y * width + x) * 4;
+          if (angle >= .013 && angle <= .024) {
+            for (let n = 0; n < 3; n++) background[n] += data[index + n] * solidAngle;
+            backgroundWeight += solidAngle;
+          }
+          if (angle < .011) region.push({ index, angle, solidAngle });
+        }
+      }
+      if (backgroundWeight > 0) {
+        for (let n = 0; n < 3; n++) background[n] /= backgroundWeight;
+        const solarSolidAngle = TAU * (1 - Math.cos(.00465));
+        for (const { index, angle, solidAngle } of region) {
+          const edge = Math.max(0, Math.min(1, (angle - .0065) / .0045));
+          const retained = edge * edge * (3 - 2 * edge);
+          for (let n = 0; n < 3; n++) {
+            const excess = Math.max(0, data[index + n] - background[n]);
+            sunRadiance[n] += excess * (1 - retained) * solidAngle * normalization / solarSolidAngle;
+            data[index + n] -= excess * (1 - retained);
+          }
+        }
+      }
+    }
     for (let pixel = 0; pixel < width * height; pixel++) {
       const index = pixel * 4;
-      for (let n = 0; n < 3; n++) data[index + n] = Math.min(50, Math.max(0, data[index + n] * normalization));
+      for (let n = 0; n < 3; n++) data[index + n] = Math.min(256, Math.max(0, data[index + n] * normalization));
     }
-    return { width, height, data, sunDirection, hasSun: asset.hasSun, normalization,
-      peakLuminance: Math.min(50, brightest * normalization) };
+    return { width, height, data, sunDirection, sunRadiance, hasSun: asset.hasSun, normalization,
+      peakLuminance: brightest * normalization };
   };
 
   const readBounded = async (response) => {
@@ -217,12 +263,17 @@
     if (!gl) return null;
     const floatStorage = !!gl.getExtension('OES_texture_float') || typeof gl.texStorage2D === 'function';
     const floatLinear = floatStorage && !!gl.getExtension('OES_texture_float_linear');
+    const webgl2 = typeof gl.texStorage2D === 'function';
+    const halfExtension = webgl2 ? null : gl.getExtension('OES_texture_half_float');
+    const halfLinear = webgl2 || !!(halfExtension && gl.getExtension('OES_texture_half_float_linear'));
+    const linearStorage = halfLinear || floatLinear;
+    const maximumSize = Number(gl.getParameter(gl.MAX_TEXTURE_SIZE)) || 2048;
     const cache = new Map();
     const pending = new Map();
-    const abort = new AbortController();
     let current = null;
     let disposed = false;
     let selection = 0;
+    let selectionKey = '';
 
     const upload = (sky) => {
       const texture = gl.createTexture();
@@ -230,14 +281,27 @@
       const previous = gl.getParameter(gl.TEXTURE_BINDING_2D);
       const previousFlip = gl.getParameter(gl.UNPACK_FLIP_Y_WEBGL);
       const previousPremultiply = gl.getParameter(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
-      // Float textures retain highlights; the compatibility path trades their
-      // dynamic range for enough linear precision in the main sky gradient.
-      const textureScale = floatLinear ? 1 : 6;
+      // Gamma encoding gives the byte-texture fallback many more levels in
+      // darker sky gradients; all shading still decodes back to linear RGB.
+      const textureScale = linearStorage ? 1 : 8;
+      const textureEncoding = linearStorage ? 0 : 1;
       let pixels = sky.data;
-      if (!floatLinear) {
+      if (halfLinear) {
+        // Half float retains much more radiance precision than the RGBE
+        // source needs, while halving Ultra panorama memory on the GPU.
+        pixels = new Uint16Array(sky.data.length);
+        const bits = new Uint32Array(sky.data.buffer, sky.data.byteOffset, sky.data.length);
+        for (let index = 0; index < bits.length; index++) {
+          const exponent = (bits[index] >>> 23) & 255;
+          const mantissa = bits[index] & 0x7fffff;
+          pixels[index] = exponent < 103 ? 0 : exponent < 113
+            ? ((mantissa | 0x800000) + (1 << (125 - exponent))) >>> (126 - exponent)
+            : Math.min(0x7bff, ((exponent - 112) << 10) + ((mantissa + 0x1000) >>> 13));
+        }
+      } else if (!linearStorage) {
         pixels = new Uint8Array(sky.data.length);
         for (let i = 0; i < pixels.length; i++) {
-          pixels[i] = i % 4 === 3 ? 255 : Math.round(Math.min(1, sky.data[i] / textureScale) * 255);
+          pixels[i] = i % 4 === 3 ? 255 : Math.round(Math.pow(Math.min(1, sky.data[i] / textureScale), 1 / 2.2) * 255);
         }
       }
       try {
@@ -248,8 +312,15 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        const format = floatLinear && typeof gl.texStorage2D === 'function' ? gl.RGBA32F : gl.RGBA;
-        gl.texImage2D(gl.TEXTURE_2D, 0, format, sky.width, sky.height, 0, gl.RGBA, floatLinear ? gl.FLOAT : gl.UNSIGNED_BYTE, pixels);
+        const format = webgl2 && linearStorage ? halfLinear ? gl.RGBA16F : gl.RGBA32F : gl.RGBA;
+        const storage = halfLinear ? webgl2 ? gl.HALF_FLOAT : halfExtension.HALF_FLOAT_OES : floatLinear ? gl.FLOAT : gl.UNSIGNED_BYTE;
+        gl.texImage2D(gl.TEXTURE_2D, 0, format, sky.width, sky.height, 0, gl.RGBA, storage, pixels);
+        // Without mipmaps GLSL's blur argument has no effect. These filtered
+        // radiance levels make distant reflections and diffuse light stable.
+        gl.generateMipmap(gl.TEXTURE_2D);
+        if (gl.getError() === gl.NO_ERROR) {
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        }
       } catch (error) {
         gl.deleteTexture(texture);
         throw error;
@@ -258,48 +329,90 @@
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, previousFlip);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, previousPremultiply);
       }
-      return { texture, textureScale, width: sky.width, height: sky.height, sunDirection: sky.sunDirection,
-        hasSun: sky.hasSun, exposure: 1, peakLuminance: sky.peakLuminance, floatTexture: floatLinear };
+      return { texture, textureScale, textureEncoding, width: sky.width, height: sky.height, sunDirection: sky.sunDirection,
+        sunRadiance: sky.sunRadiance,
+        hasSun: sky.hasSun, exposure: 1, peakLuminance: sky.peakLuminance, floatTexture: linearStorage, halfTexture: halfLinear };
     };
 
-    const load = (asset) => {
-      if (cache.has(asset.id)) return Promise.resolve(cache.get(asset.id));
-      if (pending.has(asset.id)) return pending.get(asset.id);
-      const promise = fetch(`/img/games/ocean/${asset.id}_1k.hdr`, { signal: abort.signal, cache: 'force-cache' })
+    const load = (asset, resolution = '1k') => {
+      const key = `${asset.id}:${resolution}`;
+      if (cache.has(key)) return Promise.resolve(cache.get(key));
+      if (pending.has(key)) return pending.get(key).promise;
+      const request = { controller: new AbortController(), resolution, promise: null };
+      request.promise = fetch(`/img/games/ocean/${asset.id}_${resolution}.hdr`, { signal: request.controller.signal, cache: 'force-cache' })
         .then(readBounded)
         .then((buffer) => {
-          if (disposed || gl.isContextLost()) return null;
+          if (disposed || request.controller.signal.aborted || gl.isContextLost()) return null;
           const sky = upload(prepare(decode(buffer), asset));
-          cache.set(asset.id, sky);
+          sky.assetId = asset.id;
+          sky.resolution = resolution;
+          cache.set(key, sky);
           return sky;
         })
-        .finally(() => pending.delete(asset.id));
-      pending.set(asset.id, promise);
-      return promise;
+        .finally(() => {
+          // A cancelled request may settle after a new request for this sky.
+          if (pending.get(key) === request) pending.delete(key);
+        });
+      pending.set(key, request);
+      return request.promise;
     };
 
     return {
       get current() { return current; },
       get ready() { return !!current && !disposed; },
-      async select(mood) {
+      async select(mood, qualityMode = 'auto') {
         if (disposed) return false;
+        const asset = ASSETS[mood] || ASSETS.dawn;
+        const resolution = qualityMode === 'ultra' && maximumSize >= 2048
+          ? asset.ultraResolution === '4k' && maximumSize >= 4096 ? '4k' : '2k' : '1k';
+        const key = `${asset.id}:${resolution}`;
+        if (key === selectionKey) return !!current;
+        selectionKey = key;
         const selected = ++selection;
-        try {
-          const sky = await load(ASSETS[mood] || ASSETS.dawn);
+        for (const [pendingKey, request] of pending) {
+          if (request.resolution === '1k' || pendingKey === key) continue;
+          pending.delete(pendingKey);
+          request.controller.abort();
+        }
+        const publish = (sky) => {
           if (!sky || disposed || selected !== selection || gl.isContextLost()) return false;
-          current = sky;
-          if (typeof options.onChange === 'function') options.onChange(current);
+          if (current !== sky) {
+            current = sky;
+            if (typeof options.onChange === 'function') options.onChange(current);
+          }
           return true;
+        };
+        try {
+          const cached = cache.get(key);
+          if (cached) return publish(cached);
+          if (!publish(await load(asset))) return false;
+          if (resolution !== '1k') {
+            // Ultra upgrades photographic detail after the smaller sky is
+            // visible. A failed optional upgrade keeps that working sky.
+            try { publish(await load(asset, resolution)); } catch {}
+          }
+          return !disposed && selected === selection && !gl.isContextLost();
         } catch (error) {
           if (!disposed && selected === selection && typeof options.onError === 'function') options.onError(error);
           return false;
+        }
+      },
+      releaseUnused(skies = []) {
+        if (disposed) return;
+        // The renderer owns crossfade references; keep those until its fade
+        // bookkeeping releases them, along with the latest selected sky.
+        const retained = new Set([current, ...skies]);
+        for (const [key, sky] of cache) {
+          if (sky.resolution === '1k' || retained.has(sky)) continue;
+          cache.delete(key);
+          gl.deleteTexture(sky.texture);
         }
       },
       dispose() {
         if (disposed) return;
         disposed = true;
         selection++;
-        abort.abort();
+        for (const request of pending.values()) request.controller.abort();
         for (const sky of cache.values()) gl.deleteTexture(sky.texture);
         cache.clear();
         pending.clear();

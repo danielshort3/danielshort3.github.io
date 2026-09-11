@@ -85,7 +85,7 @@
     low: { label: 'Low', tier: 0, fps: 30, dprMax: 1, maxPixels: 720000, scale: 0.8, maxW: 1600, maxH: 1200 },
     medium: { label: 'Medium', tier: 1, fps: 30, dprMax: 1, maxPixels: 1500000, scale: 1, maxW: 2200, maxH: 1800 },
     high: { label: 'High', tier: 2, fps: 60, dprMax: 2, maxPixels: 4000000, scale: 1, maxW: 3200, maxH: 2560 },
-    ultra: { label: 'Ultra', tier: 3, fps: 30, dprMax: 2, maxPixels: 8300000, scale: 1.25, maxW: 4096, maxH: 4096 },
+    ultra: { label: 'Ultra', tier: 3, fps: 30, dprMax: 2, maxPixels: 8300000, scale: 1.5, maxW: 4096, maxH: 4096 },
   };
   const AUTO_QUALITY_PROFILE = { ...QUALITY_PROFILES.high, fps: 30 };
   const AUTO_DETAIL_PROFILES = [AUTO_QUALITY_PROFILE,
@@ -355,7 +355,7 @@
     toggleBtn.setAttribute('aria-label', state.paused ? 'Play animation' : 'Pause animation');
     toggleBtn.title = state.paused ? 'Play animation' : 'Pause animation';
     setToggleIcon(state.paused);
-    setStatus(rendererAvailable ? `${state.paused ? 'Paused' : 'Running'} - ${getQualityLabel()}`
+    setStatus(pendingGpuCompilation ? 'Preparing detailed waves…' : rendererAvailable ? `${state.paused ? 'Paused' : 'Running'} - ${getQualityLabel()}`
       : bufferUnavailable ? 'Graphics memory is unavailable. Choose a lower quality.' : 'Live waves are unavailable on this device.');
     stage.dataset.oceanPaused = String(state.paused);
     updateConditionSummary();
@@ -558,6 +558,7 @@
   let gpuProgram = null;
   let gpuBuffer = null;
   let gpuUniforms = null;
+  let pendingGpuCompilation = null;
   let contextLost = false;
   let adaptiveScale = 1;
   let adaptiveDetail = 0;
@@ -602,6 +603,15 @@
     skyReady = 0;
     lastSpectrumTime = null;
   };
+  const cancelGpuCompilation = () => {
+    const compilation = pendingGpuCompilation;
+    if (!compilation) return;
+    pendingGpuCompilation = null;
+    if (compilation.frame) window.cancelAnimationFrame(compilation.frame);
+    compilation.shaders.splice(0).forEach(shader => gl.deleteShader(shader));
+    if (compilation.program) gl.deleteProgram(compilation.program);
+    stage.setAttribute('aria-busy', 'false');
+  };
 
   const vertexSource = `
     attribute vec2 position;
@@ -612,36 +622,41 @@
 
   const fragmentSource = window.OceanWaveShaders.fragment;
 
-  const setupGpu = () => {
-    if (!gl || contextLost || disposed) return false;
-    const shaders = [];
-    let program = null;
+  const failGpuSetup = (compilation) => {
+    const ownsReadyProgram = compilation.installedProgram && gpuProgram === compilation.installedProgram;
+    if (pendingGpuCompilation !== compilation && !ownsReadyProgram) return false;
+    if (pendingGpuCompilation === compilation) cancelGpuCompilation();
+    releaseOceanResources();
+    if (gpuBuffer) gl.deleteBuffer(gpuBuffer);
+    if (gpuProgram) gl.deleteProgram(gpuProgram);
+    gpuBuffer = null;
+    gpuProgram = null;
+    gpuUniforms = null;
+    rendererAvailable = false;
+    toggleBtn.disabled = true;
+    stage.classList.add('has-render-error');
+    stage.dataset.oceanRenderer = 'unavailable';
+    stop();
+    // The CSS horizon remains available if an older driver cannot compile.
+    canvas.style.opacity = '0';
+    setStatus('Live waves are unavailable on this device.');
+    stage.dispatchEvent(new CustomEvent('ocean:renderer', { detail: { renderer: 'webgl', available: false } }));
+    return false;
+  };
+
+  const finishGpuSetup = (compilation, asynchronous = false) => {
+    if (pendingGpuCompilation !== compilation || contextLost || disposed) return false;
     try {
-      const precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
-      let shaderFragment = precision && precision.precision > 0
-        ? fragmentSource : fragmentSource.replace('precision highp float;', 'precision mediump float;');
-      if (gl.getExtension('EXT_shader_texture_lod')) {
-        shaderFragment = '#extension GL_EXT_shader_texture_lod : enable\n#define OCEAN_EXPLICIT_LOD\n' + shaderFragment;
-      }
-      if (gl.getExtension('OES_standard_derivatives')) {
-        shaderFragment = '#extension GL_OES_standard_derivatives : enable\n#define OCEAN_DERIVATIVES\n' + shaderFragment;
-      }
-      for (const [type, source] of [[gl.VERTEX_SHADER, vertexSource], [gl.FRAGMENT_SHADER, shaderFragment]]) {
-        const shader = gl.createShader(type);
-        if (!shader) throw new Error('Shader unavailable.');
-        shaders.push(shader);
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error('Shader unavailable.');
-      }
-      program = gl.createProgram();
-      if (!program) throw new Error('Renderer unavailable.');
-      shaders.forEach((shader) => gl.attachShader(program, shader));
-      gl.bindAttribLocation(program, 0, 'position');
-      gl.linkProgram(program);
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error('Renderer unavailable.');
-      gpuProgram = program;
+      // LINK_STATUS is queried only after the non-blocking completion signal,
+      // or in the synchronous compatibility path when the extension is absent.
+      if (!gl.getProgramParameter(compilation.program, gl.LINK_STATUS)) throw new Error('Renderer unavailable.');
+      gpuProgram = compilation.program;
+      // Keep failure cleanup tied to this exact program through the first
+      // draw and UI transition, after the pending indicator has been cleared.
+      compilation.installedProgram = gpuProgram;
+      compilation.program = null;
       gpuBuffer = gl.createBuffer();
+      if (!gpuBuffer) throw new Error('Renderer buffer unavailable.');
       gl.bindBuffer(gl.ARRAY_BUFFER, gpuBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       gl.useProgram(gpuProgram);
@@ -652,20 +667,36 @@
         ['resolution', 'time', 'wind', 'waveHeight', 'elevation', 'cameraAngle', 'cameraPosition', 'mood', 'brightness', 'sceneKind', 'renderQuality',
           'swellField', 'rippleField', 'spectralReady', 'spectralMipmaps', 'fieldLengths', 'environmentA', 'environmentB',
           'environmentScale', 'environmentRotation', 'environmentMix', 'environmentReady', 'sunDirection', 'solarStrength',
-          'foamField', 'foamReady', 'foamMapping', 'swellStyle']
+          'foamField', 'foamReady', 'foamMapping', 'swellStyle', 'fieldSizes', 'spectralLinear', 'foamSize',
+          'solarRadiance', 'environmentEncoding']
           .map((name) => [name, gl.getUniformLocation(gpuProgram, name)])
       );
       gl.disable(gl.DEPTH_TEST);
       gl.disable(gl.BLEND);
       emptyTexture = gl.createTexture();
+      if (!emptyTexture) throw new Error('Renderer texture unavailable.');
       gl.bindTexture(gl.TEXTURE_2D, emptyTexture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      spectrum = window.OceanWaveSpectrum?.create(gl, { size: 128 });
+      spectrum = window.OceanWaveSpectrum?.create(gl, { quality: state.qualityMode === 'auto' ? 'high' : state.qualityMode });
       environment = window.OceanWaveEnvironment?.create(gl, { onChange: (sky) => {
         if (disposed || contextLost) return;
-        if (sky === currentSky) { pendingSky = null; return; }
+        if (sky === currentSky) {
+          pendingSky = null;
+          environment?.releaseUnused?.([previousSky, currentSky]);
+          return;
+        }
+        if (state.qualityMode !== 'ultra' && sky.assetId && sky.assetId === currentSky?.assetId) {
+          // A quality downgrade uses the same photograph. Replace it directly
+          // so lowering quality can release the larger texture immediately.
+          previousSky = sky;
+          currentSky = sky;
+          pendingSky = null;
+          skyMix = 1;
+          renderGpu(simTimeSec);
+          return;
+        }
         if (currentSky && skyMix < 1 && !state.paused && !prefersReducedMotion) {
           // Finish the visible fade before changing its destination. Rapid
           // choices therefore never replace half of the sky in one frame.
@@ -680,29 +711,81 @@
         stage.dataset.oceanSky = 'photographic';
         renderGpu(simTimeSec);
       } });
-      environment?.select(state.mood);
-      canvas.style.opacity = '';
-      rendererAvailable = true;
-      toggleBtn.disabled = false;
+      environment?.select(state.mood, state.qualityMode);
+      pendingGpuCompilation = null;
+      compilation.shaders.splice(0).forEach(shader => gl.deleteShader(shader));
+      stage.setAttribute('aria-busy', 'false');
+      rendererAvailable = Boolean(width && height);
+      canvas.style.opacity = rendererAvailable ? '' : '0';
+      toggleBtn.disabled = !rendererAvailable;
       stage.classList.remove('has-render-error');
       stage.dataset.oceanRenderer = 'webgl';
-      stage.dispatchEvent(new CustomEvent('ocean:renderer', { detail: { renderer: 'webgl', available: true } }));
+      stage.dispatchEvent(new CustomEvent('ocean:renderer', { detail: { renderer: 'webgl', available: rendererAvailable } }));
+      if (asynchronous) {
+        rebuildCameraRays();
+        renderGpu(simTimeSec);
+        syncUI();
+        start();
+      }
       return true;
     } catch {
-      releaseOceanResources();
-      if (program) gl.deleteProgram(program);
-      gpuProgram = null;
+      return failGpuSetup(compilation);
+    }
+  };
+
+  const setupGpu = () => {
+    if (!gl || contextLost || disposed || pendingGpuCompilation) return false;
+    const compilation = { program: null, shaders: [], frame: 0 };
+    pendingGpuCompilation = compilation;
+    try {
+      const precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+      let shaderFragment = precision && precision.precision > 0
+        ? fragmentSource : fragmentSource.replace('precision highp float;', 'precision mediump float;');
+      if (gl.getExtension('OES_texture_float_linear')) shaderFragment = '#define OCEAN_FLOAT_LINEAR\n' + shaderFragment;
+      if (gl.getExtension('EXT_shader_texture_lod')) {
+        shaderFragment = '#extension GL_EXT_shader_texture_lod : enable\n#define OCEAN_EXPLICIT_LOD\n' + shaderFragment;
+      }
+      if (gl.getExtension('OES_standard_derivatives')) {
+        shaderFragment = '#extension GL_OES_standard_derivatives : enable\n#define OCEAN_DERIVATIVES\n' + shaderFragment;
+      }
+      const parallel = gl.getExtension('KHR_parallel_shader_compile');
+      for (const [type, source] of [[gl.VERTEX_SHADER, vertexSource], [gl.FRAGMENT_SHADER, shaderFragment]]) {
+        const shader = gl.createShader(type);
+        if (!shader) throw new Error('Shader unavailable.');
+        compilation.shaders.push(shader);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+      }
+      compilation.program = gl.createProgram();
+      if (!compilation.program) throw new Error('Renderer unavailable.');
+      compilation.shaders.forEach(shader => gl.attachShader(compilation.program, shader));
+      gl.bindAttribLocation(compilation.program, 0, 'position');
+      gl.linkProgram(compilation.program);
+      if (!parallel) return finishGpuSetup(compilation);
       rendererAvailable = false;
-      toggleBtn.disabled = true;
-      stage.classList.add('has-render-error');
-      stop();
-      // The CSS horizon remains available if an older driver cannot compile.
+      bufferUnavailable = false;
       canvas.style.opacity = '0';
-      setStatus('Live waves are unavailable on this device.');
-      stage.dispatchEvent(new CustomEvent('ocean:renderer', { detail: { renderer: 'webgl', available: false } }));
+      toggleBtn.disabled = false;
+      stage.classList.remove('has-render-error');
+      stage.classList.remove('has-buffer-error');
+      stage.dataset.oceanRenderer = 'loading';
+      stage.setAttribute('aria-busy', 'true');
+      syncUI();
+      const poll = () => {
+        compilation.frame = 0;
+        if (pendingGpuCompilation !== compilation || disposed || contextLost) return;
+        if (gl.getProgramParameter(compilation.program, parallel.COMPLETION_STATUS_KHR)) {
+          finishGpuSetup(compilation, true);
+        } else {
+          compilation.frame = window.requestAnimationFrame(poll);
+        }
+      };
+      compilation.frame = window.requestAnimationFrame(poll);
       return false;
-    } finally {
-      shaders.forEach((shader) => gl.deleteShader(shader));
+    } catch {
+      // Allocation errors still use the same cleanup and visible fallback as
+      // an asynchronously reported link failure.
+      return failGpuSetup(compilation);
     }
   };
 
@@ -733,6 +816,11 @@
     // Rebuild the seeded spectrum only at meaningful wind changes; its height
     // and time still evolve continuously on the GPU between these steps.
     const spectralWind = Math.round(displayedScene.wind * 20) / 20;
+    const quality = getQualityProfile();
+    if (spectrum?.setQuality?.(['low', 'medium', 'high', 'ultra'][quality.tier])) lastSpectrumTime = null;
+    environment?.select(state.mood, state.qualityMode);
+    stage.dataset.oceanSpectrum = String(spectrum?.fields[0].size || 0);
+    stage.dataset.oceanFoamResolution = String(spectrum?.foam?.size || 0);
     spectrum?.setView?.(state.sceneKind, camera.x, camera.z);
     const spectrumInterval = state.qualityMode === 'auto' && adaptiveDetail === 2 ? 1 / 20 : 0;
     if (spectrum && (lastSpectrumTime === null || (waveTimeSec - lastSpectrumTime >= spectrumInterval
@@ -757,7 +845,10 @@
       }
       skyMix = immediate ? 1 : Math.min(1, skyMix + elapsed / LIGHT_TRANSITION_SECONDS);
       skyReady = immediate ? 1 : Math.min(1, skyReady + elapsed / LIGHT_TRANSITION_SECONDS);
+      if (skyMix >= 1) previousSky = currentSky;
     }
+    environment?.releaseUnused?.([previousSky, currentSky, pendingSky]);
+    stage.dataset.oceanSkyResolution = currentSky?.resolution || 'analytic';
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, width, height);
     gl.useProgram(gpuProgram);
@@ -778,8 +869,12 @@
     gl.uniform3f(gpuUniforms.foamMapping, spectrum?.foam?.originX || 0, spectrum?.foam?.originZ || 0, spectrum?.foam?.length || 180);
     gl.uniform1f(gpuUniforms.spectralReady, spectrum ? 1 : 0);
     gl.uniform1f(gpuUniforms.spectralMipmaps, spectrum?.mipmapped ? 1 : 0);
+    gl.uniform1f(gpuUniforms.spectralLinear, spectrum?.linear ? 1 : 0);
+    gl.uniform2f(gpuUniforms.fieldSizes, spectrum?.fields[0].size || 128, spectrum?.fields[1].size || 128);
+    gl.uniform1f(gpuUniforms.foamSize, spectrum?.foam?.size || 128);
     gl.uniform2f(gpuUniforms.fieldLengths, spectrum?.fields[0].length || 180, spectrum?.fields[1].length || 18);
     gl.uniform2f(gpuUniforms.environmentScale, previousSky?.textureScale || 1, currentSky?.textureScale || 1);
+    gl.uniform2f(gpuUniforms.environmentEncoding, previousSky?.textureEncoding || 0, currentSky?.textureEncoding || 0);
     gl.uniform2f(gpuUniforms.environmentRotation, skyRotation(previousSky), skyRotation(currentSky));
     const skyBlend = smoothstep(0, 1, skyMix);
     gl.uniform1f(gpuUniforms.environmentMix, skyBlend);
@@ -791,8 +886,12 @@
     gl.uniform3f(gpuUniforms.sunDirection, Math.cos(light.azimuth) * solarHorizontal, solarHeight, Math.sin(light.azimuth) * solarHorizontal);
     gl.uniform1f(gpuUniforms.solarStrength, lerp(previousSky ? Number(previousSky.hasSun) : 1,
       currentSky ? Number(currentSky.hasSun) : 1, skyBlend));
+    const fallbackSun = displayedScene.mood[1] > .5 ? [950, 900, 780] : [650, 420, 210];
+    const fromSun = previousSky?.sunRadiance || (previousSky && !previousSky.hasSun ? [0, 0, 0] : fallbackSun);
+    const toSun = currentSky?.sunRadiance || (currentSky && !currentSky.hasSun ? [0, 0, 0] : fallbackSun);
+    gl.uniform3f(gpuUniforms.solarRadiance, ...fromSun.map((value, index) => lerp(value, toSun[index], skyBlend)));
     gl.uniform1f(gpuUniforms.sceneKind, state.sceneKind === 'cove' ? 1 : 0);
-    gl.uniform1f(gpuUniforms.renderQuality, getQualityProfile().tier);
+    gl.uniform1f(gpuUniforms.renderQuality, quality.tier);
     gl.uniform1f(gpuUniforms.brightness, displayedScene.brightness);
     gl.uniform2f(gpuUniforms.resolution, width, height);
     gl.uniform1f(gpuUniforms.time, waveTimeSec);
@@ -810,6 +909,8 @@
   canvas.addEventListener('webglcontextlost', (event) => {
     event.preventDefault();
     contextLost = true;
+    cancelGpuCompilation();
+    stage.dataset.oceanRenderer = 'unavailable';
     releaseOceanResources();
     rendererAvailable = false;
     toggleBtn.disabled = true;
@@ -821,6 +922,7 @@
   });
 
   canvas.addEventListener('webglcontextrestored', () => {
+    if (disposed) return;
     contextLost = false;
     gpuProgram = null;
     gpuBuffer = null;
@@ -839,10 +941,11 @@
       adaptiveDetail = 0;
       slowFrameCount = 0;
       fastFrameCount = 0;
+      lastQualityAdjustment = performance.now();
     }
     if (gl) {
-      // Manual choices remain fixed. Auto can reduce costly reflection detail
-      // after resolution alone has proved insufficient.
+      // Ultra can reduce resolution under sustained load while retaining its
+      // visual features. Auto can also reduce costly reflection detail.
       return state.qualityMode === 'auto'
         ? AUTO_DETAIL_PROFILES[adaptiveDetail] : QUALITY_PROFILES[state.qualityMode];
     }
@@ -872,11 +975,12 @@
       maxH / (targetH * renderScale),
       Math.sqrt(quality.maxPixels / (targetW * targetH * renderScale * renderScale))
     );
-    const autoScale = state.qualityMode === 'auto' ? adaptiveScale : 1;
-    const nextW = Math.max(1, Math.round(targetW * renderScale * aspectScale * autoScale));
-    const nextH = Math.max(1, Math.round(targetH * renderScale * aspectScale * autoScale));
+    const resolutionScale = state.qualityMode === 'auto' || state.qualityMode === 'ultra' ? adaptiveScale : 1;
+    const nextW = Math.max(1, Math.round(targetW * renderScale * aspectScale * resolutionScale));
+    const nextH = Math.max(1, Math.round(targetH * renderScale * aspectScale * resolutionScale));
     stage.dataset.oceanQuality = state.qualityMode;
     stage.dataset.oceanDetail = String(quality.tier);
+    stage.dataset.oceanRenderScale = String(resolutionScale);
     stage.dataset.oceanResolution = `${nextW}x${nextH}`;
 
     if (nextW === width && nextH === height) return;
@@ -1306,6 +1410,9 @@
       || contextLost || (gl && !gpuProgram)) return;
     lastFrame = null;
     lastRenderedAt = null;
+    slowFrameCount = 0;
+    fastFrameCount = 0;
+    lastQualityAdjustment = performance.now();
     rafId = window.requestAnimationFrame(tick);
   };
 
@@ -1318,7 +1425,7 @@
   };
 
   const tick = (ts) => {
-    if (state.paused || document.hidden || stage.dataset.oceanVisible === 'false' || contextLost) {
+    if (disposed || state.paused || document.hidden || stage.dataset.oceanVisible === 'false' || contextLost) {
       stop();
       return;
     }
@@ -1340,12 +1447,16 @@
       rebuildCameraRays();
       publishConditions();
     }
-    if (gl && state.qualityMode === 'auto') {
+    if (gl && (state.qualityMode === 'auto' || state.qualityMode === 'ultra')) {
+      const minimumScale = state.qualityMode === 'ultra' ? 0.5 : 0.7;
+      const canReduceDetail = state.qualityMode === 'auto' && adaptiveDetail < 2;
       const slow = elapsed > minimumFrameInterval * 1.35;
       slowFrameCount = slow ? slowFrameCount + 1 : Math.max(0, slowFrameCount - 1);
-      fastFrameCount = elapsed > 0 && elapsed <= minimumFrameInterval * 1.14 ? fastFrameCount + 1 : 0;
-      if (slowFrameCount >= 24 && (adaptiveScale > 0.7 || adaptiveDetail < 2) && ts - lastQualityAdjustment > 4000) {
-        if (adaptiveScale > 0.7) adaptiveScale = Math.max(0.7, adaptiveScale * 0.85);
+      // A 30 FPS cap lands on 40 ms frames at 75/100 Hz. Allow that normal
+      // display cadence to recover resolution, below the overload threshold.
+      fastFrameCount = elapsed > 0 && elapsed <= minimumFrameInterval * 1.28 ? fastFrameCount + 1 : 0;
+      if (slowFrameCount >= 24 && (adaptiveScale > minimumScale || canReduceDetail) && ts - lastQualityAdjustment > 4000) {
+        if (adaptiveScale > minimumScale) adaptiveScale = Math.max(minimumScale, adaptiveScale * 0.85);
         else adaptiveDetail++;
         slowFrameCount = 0;
         fastFrameCount = 0;
@@ -1418,7 +1529,7 @@
   const applyLighting = (preset, presetName) => {
     state.mood = preset.mood;
     state.sunElevationDeg = preset.sunElevationDeg;
-    environment?.select(state.mood);
+    environment?.select(state.mood, state.qualityMode);
     updateLight();
     syncUI();
     setActivePreset(presetName);
@@ -1446,7 +1557,7 @@
     state.sunElevationDeg = clamp(Number(conditions.sunElevationDeg), 5, 75);
     state.brightness = 1;
     if (MOODS.includes(conditions.mood)) state.mood = conditions.mood;
-    environment?.select(state.mood);
+    environment?.select(state.mood, state.qualityMode);
     camera.height = Math.max(camera.height, state.waveHeight * 1.3);
     cameraController?.sync();
     cameraController?.setHomePose(homePose());
@@ -1687,6 +1798,7 @@
     stage.removeEventListener('ocean:rest', onRest);
     stage.removeEventListener('ocean:resume', onResume);
     cameraController?.dispose();
+    cancelGpuCompilation();
     if (gl) releaseOceanResources();
     if (gl && !contextLost) {
       if (gpuBuffer) gl.deleteBuffer(gpuBuffer);
@@ -1728,7 +1840,7 @@
   resize();
 
   if (prefersReducedMotion) {
-    setStatus('Paused (reduce motion)');
+    if (!pendingGpuCompilation) setStatus('Paused (reduce motion)');
     setToggleIcon(true);
     toggleBtn.setAttribute('aria-pressed', 'true');
   }

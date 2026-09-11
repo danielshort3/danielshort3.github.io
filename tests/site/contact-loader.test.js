@@ -64,12 +64,17 @@ async function runContactLoaderTests() {
   working.window.requestContactModal();
   assert.equal(working.opened(), 2, 'an already prepared contact modal should still open immediately');
   assert.equal(working.scripts.length, 1, 'an already prepared controller must not load another bundle');
+  working.window.requestContactModal({ message: 'A different project question', preserveDraft: true });
+  assert.equal(working.fields['contact-message'].value, 'Project question', 'a project link must preserve an existing message draft');
+  working.fields['contact-message'].value = '  ';
+  working.window.requestContactModal({ message: 'A different project question', preserveDraft: true });
+  assert.equal(working.fields['contact-message'].value, 'A different project question', 'a project link should prefill an empty message');
 }
 
 module.exports = runContactLoaderTests;
 
 if (require.main === module) {
   runContactLoaderTests()
-    .then(() => console.log('Contact loader tests passed (12 assertions).'))
+    .then(() => console.log('Contact loader tests passed (14 assertions).'))
     .catch((error) => { console.error(error); process.exitCode = 1; });
 }

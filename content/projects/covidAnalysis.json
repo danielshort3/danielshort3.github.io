@@ -2,6 +2,7 @@
   "id": "covidAnalysis",
   "title": "COVID-19 Outbreak Drivers",
   "subtitle": "Explore early warning signals for ICU strain and the factors behind them.",
+  "metaDescription": "Explore historical ICU strain signals in HHS data with an interactive state-level risk demo, XGBoost methods, and documented evaluation limitations.",
   "image": "img/projects/covidAnalysis.png",
   "iconImage": "img/projects/icons/covidAnalysis.png",
   "imageWidth": 1446,
@@ -111,5 +112,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Historical COVID outbreak risk map with state-level percentages and the risk legend."
-  }
+  },
+  "relatedProjectId": "retailStore"
 }

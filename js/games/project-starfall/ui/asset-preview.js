@@ -3,6 +3,8 @@
 
   const CoreIds = (typeof require === 'function' ? require('../core/ids.js') : null) || global.ProjectStarfallCore || {};
   const CoreMath = (typeof require === 'function' ? require('../core/math.js') : null) || global.ProjectStarfallCore || {};
+  const CoreAssets = (typeof require === 'function' ? require('../core/assets.js') : null) || global.ProjectStarfallCore || {};
+  const getAssetRequestUrl = CoreAssets.getAssetRequestUrl || ((assetPath) => assetPath);
   const normalizeId = CoreIds.normalizeId || function normalizeIdFallback(value) {
     return String(value || '').trim();
   };
@@ -427,7 +429,7 @@
     const rowOffset = -Math.max(0, Number(state.row || 0)) * frameHeight;
     const endOffset = -frameWidth * frameCount;
     const duration = Math.max(0.1, frameCount / fps + Math.max(0, Number(state.loopDelay || 0) || 0));
-    return `--asset-sheet:url(&quot;${escapeHtml(entry.path)}&quot;); --asset-frame-width:${frameWidth}px; --asset-frame-height:${frameHeight}px; --asset-row-offset:${rowOffset}px; --asset-end-offset:${endOffset}px; --asset-frames:${frameCount}; --asset-duration:${duration}s;`;
+    return `--asset-sheet:url(&quot;${escapeHtml(getAssetRequestUrl(entry.path))}&quot;); --asset-frame-width:${frameWidth}px; --asset-frame-height:${frameHeight}px; --asset-row-offset:${rowOffset}px; --asset-end-offset:${endOffset}px; --asset-frames:${frameCount}; --asset-duration:${duration}s;`;
   }
 
   function getAssetPreviewAnimationFrameIndex(state, previewState, nowSeconds) {

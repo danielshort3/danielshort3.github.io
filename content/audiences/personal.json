@@ -15,7 +15,7 @@
       "id": "handwritingRating",
       "label": "Featured project",
       "title": "Handwriting Legibility Scoring",
-      "description": "See how a CNN-based handwriting demo turns digit recognition into a practical legibility score.",
+      "description": "Try a handwriting demo and explore how confidently a model recognizes handwritten digits.",
       "href": "/portfolio/handwritingRating",
       "icon": "pencil",
       "accent": "#155dfc",
@@ -112,7 +112,7 @@
               "lead": "I enjoy solving everyday inefficiencies with AI and machine learning. Family is important to me, and I’ve played French horn for 20 years.",
               "context": "Based in western Colorado.",
               "currentWork": {
-                "text": "Currently building: this website and its practical browser tools.",
+                "text": "Currently building: a more useful, accessible home for my projects and browser tools.",
                 "href": "/portfolio/website"
               },
               "aboutStory": {
@@ -121,14 +121,14 @@
                   {
                     "id": "ai",
                     "title": "AI & machine learning",
-                    "description": "Finding better ways to tackle everyday inefficiencies.",
+                    "description": "Turning repetitive tasks into useful tools.",
                     "icon": "ai",
                     "image": "img/hero/about-ai-network-v1.webp",
                     "imageWidth": 512,
                     "imageHeight": 512,
                     "project": {
                       "title": "Practical browser tools",
-                      "summary": "Solving everyday inefficiencies.",
+                      "summary": "Compare text, create QR codes, and record your screen.",
                       "href": "/tools",
                       "contentType": "directory",
                       "contentId": "tools",
@@ -350,7 +350,7 @@
                 {
                   "id": "handwritingRating",
                   "title": "Handwriting Legibility Scoring",
-                  "summary": "My wife said my handwriting was hard to read, so I trained a model to give it an objective legibility score.",
+                  "summary": "My wife said my handwriting was hard to read, so I explored whether a model could recognize my handwritten digits.",
                   "href": "/portfolio/handwritingRating",
                   "iconImage": "img/projects/icons/handwritingRating.png",
                   "contentType": "project",

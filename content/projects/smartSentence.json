@@ -2,6 +2,7 @@
   "id": "smartSentence",
   "title": "Smart Sentence Retriever",
   "subtitle": "Find relevant sentences by meaning, even when the wording differs.",
+  "metaDescription": "Find relevant sentences by meaning in an interactive semantic-search demo. Explore the NLP workflow, deployment, and evaluation limitations.",
   "image": "img/projects/smartSentence.png",
   "iconImage": "img/projects/icons/smartSentence.png",
   "imageWidth": 952,
@@ -105,5 +106,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Sentence Search showing an example query and ranked matching passages from Alice in Wonderland."
-  }
+  },
+  "relatedProjectId": "chatbotLora"
 }

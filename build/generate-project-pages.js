@@ -7,6 +7,7 @@
   No external deps.
 */
 const fs = require('fs');
+const { render: renderCatalogIcon } = require('../js/common/catalog-icons');
 const path = require('path');
 const vm = require('vm');
 const childProcess = require('child_process');
@@ -310,15 +311,12 @@ function toDomIdSafe(value) {
 }
 
 function toMetaDescription(project) {
-  const pieces = [
-    project.subtitle,
-    project.problem
-  ]
+  const description = [project.metaDescription, project.subtitle, project.problem, project.title]
+    .filter((value) => typeof value === 'string')
     .map(normalizeWhitespace)
-    .filter(Boolean);
-  const combined = pieces.join(': ');
-  if (combined.length <= 160) return combined;
-  return combined.slice(0, 157).replace(/\s+\S*$/, '') + '…';
+    .find(Boolean) || 'Explore a project by Daniel Short.';
+  if (description.length <= 160) return description;
+  return description.slice(0, 157).replace(/\s+\S*$/, '').replace(/[,:;]$/, '') + '…';
 }
 
 function toAbsoluteUrl(urlOrPath) {
@@ -426,7 +424,7 @@ function formatResourceLabel(resource) {
   return pieces.join(' · ');
 }
 
-function renderProjectPage(project) {
+function renderProjectPage(project, { relatedProject } = {}) {
   project = versionImageContent(project);
   const id = String(project.id || '').trim();
   const title = normalizeWhitespace(project.title || id);
@@ -689,6 +687,44 @@ function renderProjectPage(project) {
         </div>
       </dl>
     </section>`;
+
+  const evaluation = project.evaluation && typeof project.evaluation === 'object' ? project.evaluation : null;
+  const evaluationLimits = normalizeTextArray(evaluation?.limitations);
+  const evaluationMetrics = Array.isArray(evaluation?.metrics)
+    ? evaluation.metrics.filter((metric) => metric && normalizeWhitespace(metric.label) && normalizeWhitespace(metric.value))
+    : [];
+  const evaluationContext = evaluation ? [
+    ['Data', evaluation.dataset],
+    ['Evaluation split', evaluation.split],
+    ['Baseline', evaluation.baseline],
+    ['What I took from it', evaluation.decision]
+  ].filter(([, value]) => typeof value === 'string' && value.trim()) : [];
+  const evidenceUrl = String(evaluation?.evidence?.url || '').trim();
+  const hasSafeEvidenceUrl = /^(?:https?:\/\/|\/(?!\/))/i.test(evidenceUrl);
+  const evidenceNote = normalizeWhitespace(project.notes || evaluationLimits[0]);
+  const evidence = evaluation ? `<section class="project-evidence" aria-label="Project evidence and limitations">
+      ${evidenceNote ? `<p class="project-evidence-note">${escapeHtml(evidenceNote)}</p>` : ''}
+      <details class="project-evidence-details">
+        <summary>Evidence &amp; limitations</summary>
+        <div class="project-evidence-content">
+          ${evaluationMetrics.length ? `<dl class="project-evidence-metrics">
+            ${evaluationMetrics.map((metric) => `<div><dt>${escapeHtml(normalizeWhitespace(metric.label))}</dt><dd><strong>${escapeHtml(normalizeWhitespace(metric.value))}</strong>${metric.context ? `<span>${escapeHtml(normalizeWhitespace(metric.context))}</span>` : ''}</dd></div>`).join('\n            ')}
+          </dl>` : ''}
+          ${evaluationContext.length ? `<dl class="project-evidence-context">
+            ${evaluationContext.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(normalizeWhitespace(value))}</dd></div>`).join('\n            ')}
+          </dl>` : ''}
+          ${evaluationLimits.length ? `<div class="project-evidence-limits"><h3>Limitations</h3><ul>${evaluationLimits.map((limitation) => `<li>${escapeHtml(limitation)}</li>`).join('')}</ul></div>` : ''}
+          ${hasSafeEvidenceUrl ? `<a class="project-evidence-source" href="${escapeHtml(evidenceUrl)}"${/^https?:\/\//i.test(evidenceUrl) ? ' target="_blank" rel="noopener noreferrer"' : ''}>${escapeHtml(normalizeWhitespace(evaluation.evidence.label || 'Supporting evidence'))}<span aria-hidden="true"> ↗</span></a>` : ''}
+        </div>
+      </details>
+    </section>` : '';
+
+  const nextProject = relatedProject && relatedProject.id !== id && relatedProject.published !== false ? relatedProject : null;
+  const contactMessage = `Hi Daniel, I have a question about ${title}:\n\n`;
+  const nextSteps = `<nav class="project-next-steps" aria-label="Continue exploring">
+      ${nextProject ? `<a class="project-next-link" href="/portfolio/${escapeHtml(encodeURIComponent(nextProject.id))}" data-content-open="true" data-content-id="${escapeHtml(nextProject.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>${escapeHtml(nextProject.title)} <span aria-hidden="true">→</span></strong></a>` : ''}
+      <a class="project-question-link" href="/contact" data-contact-modal-link="true" data-contact-message="${escapeHtml(contactMessage)}">Ask me about this project <span aria-hidden="true">→</span></a>
+    </nav>`;
 
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
@@ -985,8 +1021,10 @@ ${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbedd
 
   const projectBodySections = [
     starSummary,
+    evidence,
     demoTabs || projectPreview,
-    safeResources
+    safeResources,
+    nextSteps
   ].filter(Boolean).join('\n        ');
 
   return `<!DOCTYPE html>
@@ -1008,6 +1046,7 @@ ${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbedd
 ${ogImageDimensionsMeta}
   <meta property="og:type" content="article">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:description" content="${escapeHtml(description)}">
   <meta name="twitter:site" content="@danielshort3">
 
   <meta name="theme-color" content="#091F3B">
@@ -1114,7 +1153,11 @@ function writeProjectPages(projects) {
     const id = String(project.id || '').trim();
     if (!id) throw new Error('Project missing id');
     const outPath = path.join(outDir, `${id}.html`);
-    fs.writeFileSync(outPath, renderProjectPage(project), 'utf8');
+    const relatedProject = projects.find((candidate) => candidate.id === project.relatedProjectId);
+    if (project.relatedProjectId && (!relatedProject || relatedProject.id === id || relatedProject.published === false)) {
+      throw new Error(`Project "${id}" must link to a different published related project.`);
+    }
+    fs.writeFileSync(outPath, renderProjectPage(project, { relatedProject }), 'utf8');
   });
 }
 
@@ -1132,7 +1175,7 @@ function renderPortfolioStaticResults(projects) {
       ? ` width="${escapeHtml(width)}" height="${escapeHtml(height)}"`
       : '';
     const media = iconImage
-      ? `<span class="portfolio-result-card__icon"><img src="${escapeHtml(iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async"></span>`
+      ? `<span class="portfolio-result-card__icon">${renderCatalogIcon(`<img src="${escapeHtml(iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async">`)}</span>`
       : image
       ? `<img src="${escapeHtml(image)}" alt="Preview of ${escapeHtml(title)}"${sizeAttrs} loading="lazy" decoding="async">`
       : `<span class="portfolio-result-card__initial">${escapeHtml(title.charAt(0) || '?')}</span>`;

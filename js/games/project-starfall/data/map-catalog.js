@@ -19,7 +19,7 @@
     const makeBossRoomMap = settings.makeBossRoomMap || DataMapAssembly.makeBossRoomMap;
 
     const MAPS = Object.freeze([
-      { id: 'starfallCrossing', name: 'Starfall Crossing', levelRange: [1, 99], safeZone: true, backgroundMode: 'panorama', palette: ['#101827', '#3d6575', '#d38b4c'], purpose: 'Fractured observatory frontier hub for expedition staging, repairs, shops, quest handoffs, storage, upgrades, and Starfall Plinko.', enemies: [], platforms: [[0, 520, 3800, 80], [420, 430, 260, 24], [980, 385, 300, 24], [1540, 430, 270, 24]], climbables: [], spawnPoints: [], stations: [{ id: 'storage', name: 'Storage Keeper', x: 420 }, { id: 'shop', name: 'Shopkeeper', x: 760 }, { id: 'slots', name: 'Slot Broker', x: 1090 }, { id: 'upgrade', name: 'Upgrade Artisan', x: 1460 }, { id: 'class', name: 'Class Supplier', x: 1840 }, { id: 'plinko', name: 'Starfall Plinko', x: 2260 }], questNpcs: withTownServiceNpcs('starfallCrossing', [{ id: 'crossing_class_master', name: 'Class Master', x: 2080, platformIndex: 0, questIds: ['trial_ready'], color: '#455e73', accent: '#d38b4c' }], { plinkoHost: { xOverride: 2260, platformIndex: 5 } }) },
+      { id: 'starfallCrossing', name: 'Starfall Crossing', levelRange: [1, 99], safeZone: true, palette: ['#f7d28a', '#7ec8d8', '#f8f0dc'], purpose: 'Fractured observatory frontier hub for expedition staging, repairs, shops, quest handoffs, storage, upgrades, and Starfall Plinko.', enemies: [], platforms: [[0, 520, 3800, 80], [420, 430, 260, 24], [980, 385, 300, 24], [1540, 430, 270, 24]], climbables: [], spawnPoints: [], stations: [{ id: 'storage', name: 'Storage Keeper', x: 420 }, { id: 'shop', name: 'Shopkeeper', x: 760 }, { id: 'slots', name: 'Slot Broker', x: 1090 }, { id: 'upgrade', name: 'Upgrade Artisan', x: 1460 }, { id: 'class', name: 'Class Supplier', x: 1840 }, { id: 'plinko', name: 'Starfall Plinko', x: 2260 }], questNpcs: withTownServiceNpcs('starfallCrossing', [{ id: 'crossing_class_master', name: 'Class Master', x: 2080, platformIndex: 0, questIds: ['trial_ready'], color: '#5e7d9f', accent: '#ffd166' }], { plinkoHost: { xOverride: 2260, platformIndex: 5 } }) },
       makeTownHubMap({
         id: 'rustcoilOutpost',
         name: 'Rustcoil Outpost',
@@ -75,14 +75,14 @@
         compactWorldWidth: 4200,
         waveMax: 24,
         waveDelay: 5,
-        palette: ['#18253b', '#4c6f88', '#d89b58'],
+        palette: ['#77bf65', '#91dbe8', '#f3d86d'],
         purpose: 'Opening frontier route through a repair shelf, a starstone basin, and a fractured bridge.',
         enemies: ['faultSkitter', 'glassback', 'glassback', 'riftLantern', 'faultSkitter', 'glassback', 'glassback', 'riftLantern', 'faultSkitter', 'glassback', 'riftLantern', 'glassback'],
         platforms: [[0, 520, 7200, 80], [260, 452, 340, 22], [620, 388, 300, 22], [960, 318, 280, 22], [1360, 452, 410, 22], [1810, 382, 330, 22], [2180, 312, 290, 22], [2640, 452, 360, 22], [3040, 388, 320, 22], [3420, 322, 300, 22], [3840, 452, 420, 22], [4310, 382, 340, 22], [4700, 304, 300, 22], [5120, 452, 380, 22], [5560, 386, 340, 22], [5960, 316, 300, 22], [6320, 246, 260, 22], [6680, 452, 330, 22], [6900, 386, 260, 22]],
         climbables: [{ id: 'meadow_rope_1', x: 1088, y: 318, w: 26, h: 202 }, { id: 'meadow_rope_2', x: 2296, y: 312, w: 26, h: 208 }, { id: 'meadow_rope_3', x: 4814, y: 304, w: 26, h: 216 }, { id: 'meadow_rope_4', x: 6422, y: 246, w: 26, h: 274 }],
         spawnPoints: [{ x: 420, platformIndex: 1, weight: 3 }, { x: 790, platformIndex: 2, weight: 2 }, { x: 1110, platformIndex: 3, weight: 1 }, { x: 1570, platformIndex: 4, weight: 3 }, { x: 2310, platformIndex: 6, weight: 2 }, { x: 3190, platformIndex: 8, weight: 2 }, { x: 3560, platformIndex: 9, weight: 1 }, { x: 4480, platformIndex: 11, weight: 2 }, { x: 4860, platformIndex: 12, weight: 1 }, { x: 5740, platformIndex: 14, weight: 2 }, { x: 6430, platformIndex: 16, weight: 1 }, { x: 6840, platformIndex: 17, weight: 3 }],
         stations: [],
-        questNpcs: [{ id: 'greenroot_guide', name: 'Verge Quartermaster', x: 320, platformIndex: 0, questIds: ['first_steps', 'greenroot_samples'], color: '#455e73', accent: '#d89b58' }]
+        questNpcs: [{ id: 'greenroot_guide', name: 'Verge Quartermaster', x: 320, platformIndex: 0, questIds: ['first_steps', 'greenroot_samples'], color: '#4f9d61', accent: '#ffe16a' }]
       },
       {
         id: 'thornpathThicket',
@@ -92,7 +92,7 @@
         geometryGenerator: 'thornpathFractureCanopyV1',
         waveMax: 26,
         waveDelay: 5,
-        palette: ['#233846', '#52746f', '#d5a85c'],
+        palette: ['#3f8f58', '#5b3d2d', '#c4475d'],
         purpose: 'A fractured starstone relay canopy with a drop-reset ascent and two readable route branches.',
         enemies: ['dewSlime', 'thornSprout', 'mossback', 'vineSnapper', 'briarStag', 'thornSprout', 'mossback', 'vineSnapper', 'thornSprout', 'briarStag', 'mossback', 'vineSnapper', 'dewSlime'],
         platforms: [[0, 520, 7600, 80], [260, 446, 390, 22], [700, 374, 310, 22], [1070, 300, 300, 22], [1460, 454, 420, 22], [1920, 386, 360, 22], [2350, 314, 310, 22], [2800, 452, 400, 22], [3240, 382, 340, 22], [3660, 302, 300, 22], [4080, 452, 440, 22], [4570, 380, 360, 22], [5000, 306, 320, 22], [5440, 452, 410, 22], [5900, 386, 340, 22], [6280, 318, 300, 22], [6600, 248, 290, 22], [6960, 380, 320, 22], [7300, 452, 260, 22]],
@@ -433,7 +433,6 @@
         name: 'Eclipse Throne',
         bossId: 'eclipseSovereign',
         levelRange: [100, 112],
-        backgroundMode: 'panorama',
         palette: ['#1f2330', '#ffbe55', '#7bdff2'],
         purpose: 'Custom boss echo with solar and lunar stance swaps, eclipse sigils, and totality burst windows.',
         enemies: ['eclipseSovereign', 'eclipseDuelist', 'voidMote', 'lumenSentinel', 'indexScribe'],

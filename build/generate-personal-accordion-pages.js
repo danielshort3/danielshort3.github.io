@@ -117,8 +117,8 @@ const GAME_PAGE_PATHS = Object.freeze({
 
 const TOOL_DETAIL_METADATA = Object.freeze({
   'tools-dashboard': Object.freeze({
-    title: 'Tools Dashboard',
-    summary: 'Sign in once and manage your saved tool sessions across danielshort.me/tools.',
+    title: 'Account',
+    summary: 'Sign in to your account.',
     includeAccount: true
   }),
   'job-application-copilot': Object.freeze({

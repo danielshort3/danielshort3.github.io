@@ -26,8 +26,12 @@ function createClient({ initial, key = 'toolsAuth', mode = 'dual', fetchImpl } =
   };
   const listeners = new Map();
   const calls = [];
+  const redirects = [];
   const window = {
-    location: { origin: 'http://127.0.0.1:4181', pathname: '/tools/job-application-tracker', search: '', hash: '' },
+    location: {
+      origin: 'http://127.0.0.1:4181', pathname: '/tools/job-application-tracker', search: '', hash: '',
+      assign: value => redirects.push(value)
+    },
     TOOLS_AUTH_CONFIG: { sessionMode: mode, cognitoDomain: 'auth.example.com', cognitoClientId: 'public-test-client' },
     addEventListener: (name, callback) => listeners.set(name, callback)
   };
@@ -43,7 +47,7 @@ function createClient({ initial, key = 'toolsAuth', mode = 'dual', fetchImpl } =
     }
   };
   vm.runInNewContext(source, context, { filename: 'js/accounts/tools-auth.js' });
-  return { auth: window.ToolsAuth, calls, stored, listeners, context };
+  return { auth: window.ToolsAuth, calls, stored, listeners, context, redirects };
 }
 
 async function run() {
@@ -141,9 +145,25 @@ async function run() {
     check(!client.stored.has('toolsAuth') && waitingCall.options.signal.aborted, `Sign-out must abort ${stage} and prevent stale credential persistence even if fetch ignores cancellation.`);
     await Promise.all([firstLogout, secondLogout]);
     check(client.calls.filter((call) => call.url === '/api/tools/auth/logout').length === 1, 'Concurrent sign-outs must share a single logout request.');
+    check(client.redirects.length === 1 && new URL(client.redirects[0]).pathname === '/logout', 'Concurrent sign-outs must redirect once to clear the Cognito browser session.');
     const countAfterLogout = client.calls.length;
     check(await client.auth.ensureFreshAuth() === null && client.calls.length === countAfterLogout, 'Auth change listeners must not restore a cookie while sign-out is in progress or complete.');
   }
+
+  const logoutGate = deferred();
+  const interruptedLogout = createClient({ initial: expired(), fetchImpl: () => logoutGate.promise });
+  const loggingOut = interruptedLogout.auth.signOut();
+  interruptedLogout.listeners.get('message')({
+    origin: interruptedLogout.context.window.location.origin,
+    data: { type: 'tools-auth:complete' }
+  });
+  check(await interruptedLogout.auth.ensureFreshAuth() === null && interruptedLogout.calls.length === 1, 'A late popup completion message must not reopen session restoration during logout.');
+  interruptedLogout.stored.set('toolsAuth', JSON.stringify({ idToken: token('other-tab'), expiresAt: (now + 3600) * 1000 }));
+  interruptedLogout.listeners.get('storage')({ key: 'toolsAuth', newValue: interruptedLogout.stored.get('toolsAuth') });
+  check(await interruptedLogout.auth.ensureFreshAuth() === null && interruptedLogout.calls.length === 1, 'A credential storage event must not cancel the current tab logout or unblock its API requests.');
+  logoutGate.resolve(response({ ok: true }));
+  await loggingOut;
+  check(interruptedLogout.redirects.length === 1 && new URL(interruptedLogout.redirects[0]).pathname === '/logout', 'Late auth notifications must not prevent the active hosted logout redirect.');
 
   const crossTabGate = deferred();
   const crossTab = createClient({ initial: expired(), mode: 'legacy', fetchImpl: () => crossTabGate.promise });

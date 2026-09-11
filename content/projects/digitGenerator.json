@@ -2,6 +2,7 @@
   "id": "digitGenerator",
   "title": "Synthetic Digit Generator",
   "subtitle": "Generate new handwritten-style digits and explore how a model learns their shapes.",
+  "metaDescription": "Generate MNIST-style handwritten digits with a variational autoencoder. Explore the live demo, training approach, and model limitations.",
   "image": "img/projects/digitGenerator.png",
   "iconImage": "img/projects/icons/digitGenerator.png",
   "imageWidth": 1470,
@@ -99,5 +100,6 @@
     "width": 1280,
     "height": 800,
     "alt": "Synthetic Digit Generator showing a generated four-by-four grid of handwritten digit variations."
-  }
+  },
+  "relatedProjectId": "handwritingRating"
 }
