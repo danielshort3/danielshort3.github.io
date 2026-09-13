@@ -40,6 +40,10 @@
 
   :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) .modal-content::before { display: none; }
 
+  #contact-modal .modal-content {
+    max-height: min(88dvh, 960px, calc(100dvh - var(--modal-mobile-top-clearance, 0px) - var(--modal-mobile-bottom-clearance, 0px)));
+  }
+
   :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) :is(button, .btn-primary, .btn-ghost, .btn-secondary, select, input:not([type="checkbox"]):not([type="radio"]), textarea) {
     box-sizing: border-box;
     min-height: 44px;
@@ -53,7 +57,8 @@
     padding-bottom: 16px;
   }
 
-  #contact-modal .modal-body { padding: 18px 0 0; gap: 16px; }
+  /* Leave room for focus outlines inside the scrolling region. */
+  #contact-modal .modal-body { padding: 18px 6px 6px; gap: 16px; }
   :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) :is(.btn-secondary, .btn-ghost) {
     color: var(--site-dialog-accent);
     border-color: var(--interactive-border);
@@ -67,5 +72,14 @@
   #contact-modal .contact-form textarea { min-height: 120px; }
   #contact-modal .contact-form input:not([type="checkbox"]):not([type="radio"]),
   #contact-modal .contact-form textarea { background: #ffffff; }
+  #contact-modal .contact-form :is(input:not([type="checkbox"]):not([type="radio"]), textarea):focus {
+    border-color: var(--primary);
+    box-shadow: none;
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+    scroll-margin-block: 6px;
+  }
+  #contact-modal .contact-form-status { margin: 0; }
+  #contact-modal .contact-form-status:empty { display: none; }
   #contact-modal .contact-form-success { border-radius: 10px; box-shadow: none; padding: 20px; }
 }

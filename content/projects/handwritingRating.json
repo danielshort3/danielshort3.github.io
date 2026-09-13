@@ -53,7 +53,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "handwriting-rating-demo.html"
+    "url": "handwriting-rating-demo.html",
+    "heading": "Handwriting Rating",
+    "description": "Draw a digit to see how the model recognizes it."
   },
   "demoInstructions": {
     "lead": "Draw a digit (0-9) or load a sample, then compare the model's guesses.",

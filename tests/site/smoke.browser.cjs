@@ -23,6 +23,17 @@ const runProjectContentClarityChecks = require('./project-content-clarity.browse
 const runCatalogIconChecks = require('./catalog-icons.browser.cjs');
 const runScreenRecorderSimpleChecks = require('./screen-recorder-simple.browser.cjs');
 const runAccountSaveChecks = require('./account-save.browser.cjs');
+const runTextCompareSimpleChecks = require('./text-compare-simple.browser.cjs');
+const runCompanionToolsSimpleChecks = require('./companion-tools-simple.browser.cjs');
+const runBackgroundRemoverSimpleChecks = require('./background-remover-simple.browser.cjs');
+const runCampaignToolsSimpleChecks = require('./campaign-tools-simple.browser.cjs');
+const runPrivateToolsSimpleChecks = require('./private-tools-simple.browser.cjs');
+const runDigitGeneratorSimpleChecks = require('./digit-generator-simple.browser.cjs');
+const runContactFormLayoutChecks = require('./contact-form-layout.browser.cjs');
+const runCompactProjectLayoutChecks = require('./compact-project-layout.browser.cjs');
+const runDashboardProjectLayoutChecks = require('./dashboard-project-layout.browser.cjs');
+const runProjectDemoConsistencyChecks = require('./project-demo-consistency.browser.cjs');
+const runTableauProjectIntegrationChecks = require('./tableau-project-integration.browser.cjs');
 
 const root = path.resolve(__dirname, '../..');
 const personalContent = require('../../content/audiences/personal.json');
@@ -765,6 +776,17 @@ async function main() {
     await runProjectContentClarityChecks({ browser, base, artifactDir });
     await runCatalogIconChecks({ browser, base });
     await runScreenRecorderSimpleChecks({ browser, base, artifactDir });
+    await runTextCompareSimpleChecks({ browser, base, artifactDir });
+    await runCompanionToolsSimpleChecks({ browser, base, artifactDir });
+    await runBackgroundRemoverSimpleChecks({ browser, base, artifactDir });
+    await runCampaignToolsSimpleChecks({ browser, base, artifactDir });
+    await runPrivateToolsSimpleChecks({ browser, base, artifactDir });
+    await runDigitGeneratorSimpleChecks({ browser, base, artifactDir });
+    await runContactFormLayoutChecks({ browser, base, artifactDir });
+    await runCompactProjectLayoutChecks({ browser, base, artifactDir });
+    await runDashboardProjectLayoutChecks({ browser, base, artifactDir });
+    await runProjectDemoConsistencyChecks({ browser, base, artifactDir });
+    await runTableauProjectIntegrationChecks({ browser, base, artifactDir });
     await runAccountSaveChecks({ browser, base, artifactDir });
     console.log(`Browser artifacts: ${artifactDir}`);
   } finally {

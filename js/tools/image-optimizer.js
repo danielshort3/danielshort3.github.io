@@ -1382,8 +1382,15 @@
   responsiveInput?.addEventListener('change', updateControlsVisibility);
   qualityInput?.addEventListener('input', updateQualityLabel);
   flattenColor?.addEventListener('input', updateFlattenLabel);
-  form.addEventListener('input', updateSettingsSummary);
-  form.addEventListener('change', updateSettingsSummary);
+  const handleSettingsChange = () => {
+    updateSettingsSummary();
+    if (state.working || !state.outputs.length) return;
+    revokeOutputs();
+    updateSummary();
+    setStatus('Settings changed. Optimize images to update the downloads.');
+  };
+  form.addEventListener('input', handleSettingsChange);
+  form.addEventListener('change', handleSettingsChange);
 
   $$('[data-imgopt-pick]').forEach((btn) => {
     btn.addEventListener('click', (e) => {

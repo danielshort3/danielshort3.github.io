@@ -62,6 +62,22 @@
     text-underline-offset: 3px;
   }
   .image-optimizer-page .imgopt-settings-panel { padding-top: 6px; }
+  .image-optimizer-page .imgopt-more-options {
+    border-top: 1px solid #dce3ec;
+    padding-top: 10px;
+    min-width: 0;
+  }
+  .image-optimizer-page .imgopt-more-options > summary {
+    padding: 8px 0;
+    color: #087f8c;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .image-optimizer-page .imgopt-more-options > summary:focus-visible {
+    outline: 2px solid #087f8c;
+    outline-offset: 3px;
+  }
   .image-optimizer-page .imgopt-control,
   .image-optimizer-page .imgopt-split { gap: 7px; }
   .image-optimizer-page .imgopt-settings-summary {

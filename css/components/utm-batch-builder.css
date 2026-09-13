@@ -977,3 +977,25 @@
     body.utmtool-page[data-page][data-tools-layout] .utmtool-copy-btn { min-height: 40px; }
   }
 }
+
+@layer overrides {
+  @media (min-width: 1051px) {
+    body.utmtool-page[data-page][data-tools-layout] .utmtool-output {
+      position: sticky;
+      top: 20px;
+    }
+  }
+}
+
+@layer overrides {
+  body.utmtool-page[data-page][data-tools-layout] :is(#utmtool-panel-links, #utmtool-panel-parameters) .utmtool-textarea {
+    min-height: 88px;
+    height: 88px;
+  }
+  body.utmtool-page[data-page][data-tools-layout] :is(#utmtool-panel-links, #utmtool-panel-parameters) .utmtool-field {
+    padding: 8px 0;
+  }
+  body.utmtool-page[data-page][data-tools-layout] .utmtool-more-options > .utmtool-inline-body {
+    padding: 0 12px 12px;
+  }
+}

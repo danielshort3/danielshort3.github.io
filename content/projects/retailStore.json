@@ -46,7 +46,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "retail-loss-sales-demo.html"
+    "url": "retail-loss-sales-demo.html",
+    "heading": "Store Loss and Sales",
+    "description": "Explore monthly sales, compare incident hotspots, and follow shrink trends."
   },
   "demoInstructions": {
     "lead": "Start with sales, incident count, and shrink summaries; each metric shows its own source period and population.",

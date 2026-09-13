@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.e022af6d.css">
+  <link rel="stylesheet" href="dist/styles.91c0fa3c.css">
   <link rel="stylesheet" href="dist/styles-tools.32cc46e6.css">
   <link rel="stylesheet" href="css/components/ga4-utm-performance.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -45,7 +45,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <script defer src="dist/site-consent.ab1759e7.js"></script>
   <script defer src="dist/site-tools-account.023b64e1.js"></script>
-  <script defer src="dist/site-shell.d4de4c93.js"></script>
+  <script defer src="dist/site-shell.63ee94e5.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta property="og:image:type" content="image/png">
   <meta name="author" content="Daniel Short">
@@ -53,7 +53,7 @@
   <meta name="twitter:creator" content="@danielshort3">
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.fe0e5a75.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:ga4-utm-performance","path":"/tools/ga4-utm-performance","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.e022af6d.css","/dist/styles-tools.32cc46e6.css","/css/components/ga4-utm-performance.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-consent.ab1759e7.js","/dist/site-tools-account.023b64e1.js","/dist/site-shell.d4de4c93.js","/js/common/no-js.js","/js/tools/tool-share-link.js","/js/tools/ga4-utm-performance.js"],"module":"tools:ga4-utm-performance"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:ga4-utm-performance","path":"/tools/ga4-utm-performance","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.91c0fa3c.css","/dist/styles-tools.32cc46e6.css","/css/components/ga4-utm-performance.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-consent.ab1759e7.js","/dist/site-tools-account.023b64e1.js","/dist/site-shell.63ee94e5.js","/js/common/no-js.js","/js/tools/tool-share-link.js","/js/tools/ga4-utm-performance.js"],"module":"tools:ga4-utm-performance"}</script>
 </head>
 <body data-page="ga4-utm-performance" class="tools-tool-page site-page personal-accordion-page" data-tools-layout="admin" data-tools-title="GA4 UTM Performance" data-tools-eyebrow="GA4 UTM Performance - Private UTM reporting via the GA4 Data API." data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="ga4-utm-performance" data-personal-fit="viewport" data-site-route-id="tools:ga4-utm-performance" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:ga4-utm-performance">
   <a href="/tools/ga4-utm-performance#main" class="skip-link">Skip to main content</a>
@@ -143,7 +143,6 @@
     <div class="ga4-tabs" data-ga4="tabs">
       <div class="wrapper">
         <div class="ga4-tablist" role="tablist" aria-label="GA4 UTM Performance sections">
-          <button type="button" class="ga4-tab" role="tab" id="ga4-tab-access" aria-selected="true" aria-controls="ga4-panel-access" data-ga4-tab="access">Access</button>
           <button type="button" class="ga4-tab" role="tab" id="ga4-tab-scope" aria-selected="false" aria-controls="ga4-panel-scope" tabindex="-1" data-ga4-tab="scope" hidden>Scope</button>
           <button type="button" class="ga4-tab" role="tab" id="ga4-tab-filters" aria-selected="false" aria-controls="ga4-panel-filters" tabindex="-1" data-ga4-tab="filters" hidden>Filters</button>
           <button type="button" class="ga4-tab" role="tab" id="ga4-tab-utm" aria-selected="false" aria-controls="ga4-panel-utm" tabindex="-1" data-ga4-tab="utm">Report</button>
@@ -152,89 +151,62 @@
       </div>
     </div>
 
-    <section class="surface-band tools-section reveal ga4-quickstart-section">
-      <div class="wrapper">
-        <div class="ga4-quickstart" aria-labelledby="ga4-quickstart-title">
-          <p class="ga4-kicker">Workflow</p>
-          <h2 id="ga4-quickstart-title" class="section-title">Run reports in 3 steps</h2>
-          <ol class="ga4-quickstart-list">
-            <li><strong>Access:</strong> Save your token and choose a property.</li>
-            <li><strong>Report:</strong> Set scope, optional filters, and run the URL report.</li>
-            <li><strong>Explore:</strong> Build a custom report and export CSV.</li>
-          </ol>
-        </div>
-      </div>
-    </section>
-
-    <section id="ga4-panel-access" class="surface-band tools-section reveal ga4-panel-section" role="tabpanel" aria-labelledby="ga4-tab-access" data-ga4-panel="access">
+    <section id="ga4-panel-access" class="surface-band tools-section reveal ga4-panel-section" aria-label="GA4 connection">
       <div class="wrapper">
         <details class="shortlinks-access-details ga4-panel-card" data-ga4="access-details" open>
           <summary class="shortlinks-access-summary ga4-panel-summary">
             <div class="ga4-panel-heading">
-              <span class="ga4-step">Step 1</span>
-              <h2 class="section-title">Access</h2>
+              <h2 class="section-title">Connection</h2>
             </div>
             <span class="shortlinks-access-meta" data-ga4="access-meta"></span>
           </summary>
           <div class="shortlinks-access-body ga4-panel-body">
-            <p class="ga4-panel-lead">Store an admin token on this device and save GA4 properties as reusable profiles.</p>
             <form class="contact-form ga4-form" data-ga4="auth" autocomplete="off">
-              <div class="form-field">
-                <label for="ga4-admin-token">Admin token</label>
-                <input id="ga4-admin-token" type="password" inputmode="text" autocomplete="current-password" data-ga4="token">
-                <p class="contact-form-note">Stored in <code>localStorage</code> on this device.</p>
-              </div>
-
-              <div class="tools-grid ga4-grid">
+              <div class="ga4-connection-controls">
                 <div class="form-field">
-                  <label for="ga4-profile-select">Property profile</label>
-                  <select id="ga4-profile-select" data-ga4="profile-select">
-                    <option value="">Custom</option>
-                  </select>
-                  <p class="contact-form-note">Store multiple GA4 properties and switch quickly.</p>
+                  <label for="ga4-admin-token">Admin token</label>
+                  <input id="ga4-admin-token" type="password" autocomplete="current-password" data-ga4="token" aria-describedby="ga4-token-note">
                 </div>
-
-                <div class="form-field">
-                  <label for="ga4-profile-label">Profile label</label>
-                  <input id="ga4-profile-label" type="text" autocomplete="off" placeholder="e.g. danielshort.me" data-ga4="profile-label">
-                </div>
-
-                <div class="form-field">
-                  <label for="ga4-property-id">GA4 property ID</label>
-                  <input id="ga4-property-id" inputmode="numeric" autocomplete="off" placeholder="e.g. 408110790" data-ga4="property-id">
-                </div>
-              </div>
-
-              <div class="form-actions ga4-action-row">
                 <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
-                <button type="button" class="btn-secondary" data-ga4="forget-token">Forget token</button>
-                <button type="button" class="btn-secondary" data-ga4="save-profile">Save profile</button>
-                <button type="button" class="btn-secondary" data-ga4="delete-profile">Delete profile</button>
-                <button type="button" class="btn-secondary" data-ga4="check-access">Check access</button>
               </div>
-
+              <p id="ga4-token-note" class="contact-form-note">Saved on this browser. Use a trusted device.</p>
+              <details class="ga4-connection-options">
+                <summary>Connection options &amp; saved properties</summary>
+                <div class="tools-grid ga4-grid">
+                  <div class="form-field">
+                    <label for="ga4-profile-select">Saved property</label>
+                    <select id="ga4-profile-select" data-ga4="profile-select"><option value="">Custom</option></select>
+                  </div>
+                  <div class="form-field">
+                    <label for="ga4-profile-label">Property name</label>
+                    <input id="ga4-profile-label" type="text" autocomplete="off" placeholder="e.g. My website" data-ga4="profile-label">
+                  </div>
+                </div>
+                <div class="form-actions ga4-action-row">
+                  <button type="button" class="btn-secondary" data-ga4="save-profile">Save property</button>
+                  <button type="button" class="btn-ghost" data-ga4="delete-profile">Delete saved property</button>
+                  <button type="button" class="btn-secondary" data-ga4="check-access">Check connection</button>
+                  <button type="button" class="btn-ghost" data-ga4="forget-token">Forget token</button>
+                </div>
+              </details>
               <div class="contact-form-status" data-ga4="access-status" role="status" aria-live="polite"></div>
               <div class="tools-actions ga4-quota-row" data-ga4="quota" aria-live="polite"></div>
-              <p class="contact-form-note">Server env: <code>GA4_ADMIN_TOKEN</code>, <code>GA4_SERVICE_ACCOUNT_JSON_B64</code>, and (optionally) <code>GA4_PROPERTY_ID</code>.</p>
             </form>
           </div>
         </details>
       </div>
     </section>
 
-    <section id="ga4-panel-scope" class="surface-band tools-section reveal ga4-panel-section ga4-report-config" role="tabpanel" aria-labelledby="ga4-tab-utm" data-ga4-panel="scope">
+    <section id="ga4-panel-scope" class="surface-band tools-section reveal ga4-panel-section ga4-report-config" aria-label="Property and date range">
       <div class="wrapper">
-        <details class="shortlinks-panel ga4-panel-card" data-ga4="scope-details">
-          <summary class="shortlinks-panel-summary ga4-panel-summary">
-            <div class="ga4-panel-heading">
-              <span class="ga4-step">Report setup</span>
-              <h2 class="section-title">Date range</h2>
-            </div>
-          </summary>
+        <div class="shortlinks-panel ga4-panel-card" data-ga4="scope-details">
           <div class="shortlinks-panel-body ga4-panel-body">
-            <p class="ga4-panel-lead">Choose a report window. Wider ranges help when campaign attribution is delayed.</p>
             <form class="contact-form ga4-form" data-ga4="scope-form" autocomplete="off">
-              <div class="tools-grid ga4-grid">
+              <div class="tools-grid ga4-grid ga4-scope-grid">
+                <div class="form-field">
+                  <label for="ga4-property-id">GA4 property ID</label>
+                  <input id="ga4-property-id" inputmode="numeric" autocomplete="off" placeholder="e.g. 408110790" data-ga4="property-id">
+                </div>
                 <div class="form-field">
                   <label for="ga4-start">Start date</label>
                   <input id="ga4-start" type="date" required data-ga4="start">
@@ -244,10 +216,9 @@
                   <input id="ga4-end" type="date" required data-ga4="end">
                 </div>
               </div>
-              <p class="contact-form-note">Tip: GA4 can take time to attribute new campaigns. If you’re not seeing results, try a wider date range.</p>
             </form>
           </div>
-        </details>
+        </div>
       </div>
     </section>
 
@@ -315,7 +286,7 @@
         <details class="shortlinks-panel ga4-panel-card" open data-ga4="utm-details">
           <summary class="shortlinks-panel-summary ga4-panel-summary">
             <div class="ga4-panel-heading">
-              <span class="ga4-step">Step 2</span>
+
               <h2 class="section-title">UTM URL Report</h2>
             </div>
           </summary>
@@ -381,7 +352,7 @@
         <details class="shortlinks-panel ga4-panel-card" open data-ga4="explore-details">
           <summary class="shortlinks-panel-summary ga4-panel-summary">
             <div class="ga4-panel-heading">
-              <span class="ga4-step">Step 3</span>
+
               <h2 class="section-title">Explore</h2>
             </div>
           </summary>

@@ -83,6 +83,7 @@
       .filter(Boolean);
     const allowed = new Set(order);
     const tabAliases = new Map([
+      ['access', 'utm'],
       ['scope', 'utm'],
       ['filters', 'utm']
     ]);
@@ -404,7 +405,9 @@
 
   const updateAccessMeta = () => {
     if (!accessMetaEl) return;
-    accessMetaEl.textContent = getSavedToken() ? 'Token stored' : 'Token required';
+    accessMetaEl.textContent = getSavedToken() ? 'Token saved' : 'Admin token required';
+    const connection = $('[data-ga4="access-details"]', main);
+    if (connection) connection.open = !getSavedToken();
   };
 
   const coerceInt = (value) => {
@@ -1113,7 +1116,7 @@
         headers.forEach((h) => { out[h] = row?.[h] ?? ''; });
         return out;
       });
-      downloadCsv(rows, headers, `ga4-utm-drilldown_${startEl.value || 'start'}_${endEl.value || 'end'}.csv`);
+      downloadCsv(rows, headers, `ga4-utm-drilldown_${lastUtm?.startDate || 'start'}_${lastUtm?.endDate || 'end'}.csv`);
     });
     header.appendChild(exportBtn);
 
@@ -2039,6 +2042,41 @@
     }
   };
 
+  const invalidateReports = ({ utm = true, explore = true, announce = true } = {}) => {
+    if (utm) {
+      const hadOutput = !!lastUtm || utmBusy;
+      utmRequestSeq += 1;
+      lastUtm = null;
+      drilldownGroup = null;
+      utmSummaryEl.replaceChildren();
+      utmOutputEl.replaceChildren();
+      utmDrilldownEl.replaceChildren();
+      setUtmBusy(false);
+      setStatus(utmStatusEl, announce && hadOutput ? 'Settings changed. Run report to update.' : '');
+    }
+    if (explore) {
+      const hadOutput = !!lastExplore || exploreBusy;
+      exploreRequestSeq += 1;
+      lastExplore = null;
+      exploreHistory = [];
+      exploreDrill = null;
+      exploreRoot = null;
+      exploreSummaryEl.replaceChildren();
+      exploreOutputEl.replaceChildren();
+      exploreDrilldownEl.replaceChildren();
+      setExploreBusy(false);
+      setStatus(exploreStatusEl, announce && hadOutput ? 'Settings changed. Run Explore to update.' : '');
+    }
+    markSessionDirty();
+  };
+  const onSharedQueryChange = () => {
+    accessRequestSeq += 1;
+    setAccessBusy(false);
+    renderQuota(null);
+    invalidateReports();
+  };
+  [propertyIdInput, startEl, endEl].forEach((el) => el.addEventListener('input', onSharedQueryChange));
+
   accessForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const token = String(tokenInput.value || '').trim();
@@ -2047,6 +2085,7 @@
       setStatus(accessStatusEl, getSavedToken() ? 'Token already stored.' : 'Paste your admin token to unlock this tool.', getSavedToken() ? 'success' : 'error');
       return;
     }
+    invalidateReports({ announce: false });
     saveToken(token);
     updateAccessMeta();
     tokenInput.value = '';
@@ -2055,6 +2094,7 @@
   });
 
   forgetTokenBtn.addEventListener('click', () => {
+    onSharedQueryChange();
     saveToken('');
     updateAccessMeta();
     tokenInput.value = '';
@@ -2064,6 +2104,7 @@
   });
 
   profileSelect.addEventListener('change', () => {
+    onSharedQueryChange();
     syncProfileInputs();
     markSessionDirty();
   });
@@ -2169,14 +2210,14 @@
     });
   });
 
-  matchTypeEl.addEventListener('change', markSessionDirty);
-  catchAllEl.addEventListener('change', markSessionDirty);
-  utmSourceEl.addEventListener('input', markSessionDirty);
-  utmMediumEl.addEventListener('input', markSessionDirty);
-  utmCampaignEl.addEventListener('input', markSessionDirty);
-  utmContentEl.addEventListener('input', markSessionDirty);
-  utmTermEl.addEventListener('input', markSessionDirty);
-  utmIdEl.addEventListener('input', markSessionDirty);
+  matchTypeEl.addEventListener('change', onSharedQueryChange);
+  catchAllEl.addEventListener('change', onSharedQueryChange);
+  utmSourceEl.addEventListener('input', onSharedQueryChange);
+  utmMediumEl.addEventListener('input', onSharedQueryChange);
+  utmCampaignEl.addEventListener('input', onSharedQueryChange);
+  utmContentEl.addEventListener('input', onSharedQueryChange);
+  utmTermEl.addEventListener('input', onSharedQueryChange);
+  utmIdEl.addEventListener('input', onSharedQueryChange);
 
   downloadGroupedBtn.addEventListener('click', () => {
     if (!lastUtm || !Array.isArray(lastUtm.groups) || !lastUtm.groups.length) return;
@@ -2195,7 +2236,7 @@
       return out;
     });
 
-    downloadCsv(rows, headers, `ga4-utm-grouped_${startEl.value || 'start'}_${endEl.value || 'end'}.csv`);
+    downloadCsv(rows, headers, `ga4-utm-grouped_${lastUtm.startDate || 'start'}_${lastUtm.endDate || 'end'}.csv`);
   });
 
   downloadRawBtn.addEventListener('click', () => {
@@ -2215,7 +2256,7 @@
       return out;
     });
 
-    downloadCsv(rows, headers, `ga4-utm-raw_${startEl.value || 'start'}_${endEl.value || 'end'}.csv`);
+    downloadCsv(rows, headers, `ga4-utm-raw_${lastUtm.startDate || 'start'}_${lastUtm.endDate || 'end'}.csv`);
   });
 
   exploreForm.addEventListener('submit', (event) => {
@@ -2224,6 +2265,7 @@
   });
 
   explorePresetEl.addEventListener('change', () => {
+    invalidateReports({ utm: false });
     if (String(explorePresetEl.value || '') !== 'custom') {
       applyExplorePreset(explorePresetEl.value);
     }
@@ -2232,6 +2274,7 @@
   });
 
   const onExploreConfigChange = () => {
+    invalidateReports({ utm: false });
     syncExploreOrderByOptions();
     markSessionDirty();
   };
@@ -2245,6 +2288,7 @@
 
   let exploreFieldsTimer = 0;
   const onExploreFieldInput = () => {
+    invalidateReports({ utm: false });
     try { window.clearTimeout(exploreFieldsTimer); } catch {}
     exploreFieldsTimer = window.setTimeout(() => {
       syncExploreOrderByOptions();
@@ -2254,9 +2298,9 @@
   exploreCustomDimensionsEl.addEventListener('input', onExploreFieldInput);
   exploreCustomMetricsEl.addEventListener('input', onExploreFieldInput);
 
-  exploreMaxRowsEl.addEventListener('input', markSessionDirty);
-  exploreOrderByEl.addEventListener('change', markSessionDirty);
-  exploreDirEl.addEventListener('change', markSessionDirty);
+  exploreMaxRowsEl.addEventListener('input', () => invalidateReports({ utm: false }));
+  exploreOrderByEl.addEventListener('change', () => invalidateReports({ utm: false }));
+  exploreDirEl.addEventListener('change', () => invalidateReports({ utm: false }));
 
   let exploreFilterTimer = 0;
   exploreFilterEl.addEventListener('input', () => {
@@ -2283,7 +2327,7 @@
       return out;
     });
 
-    downloadCsv(rows, headers, `ga4-explore_${startEl.value || 'start'}_${endEl.value || 'end'}.csv`);
+    downloadCsv(rows, headers, `ga4-explore_${lastExplore.startDate || 'start'}_${lastExplore.endDate || 'end'}.csv`);
   });
 
   const buildAccessSummary = () => {
@@ -2362,13 +2406,14 @@
   document.addEventListener('tools:session-applied', (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
+    invalidateReports({ announce: false });
     const snapshot = detail?.snapshot;
     const output = snapshot?.output;
     if (!output || typeof output !== 'object') return;
     if (String(output.kind || '') !== 'json') return;
 
     const utm = output?.utm;
-    if (utm && typeof utm === 'object') {
+    if (utm && typeof utm === 'object' && String(utm.propertyId || '') === getPropertyId() && utm.startDate === startEl.value && utm.endDate === endEl.value) {
       const parsedRows = Array.isArray(utm.rawRows) ? utm.rawRows : [];
       const groupFields = Array.isArray(utm.groupFields) ? utm.groupFields : getGroupFields();
       const groups = Array.isArray(utm.groups) ? utm.groups : aggregateGroups(parsedRows, groupFields);
@@ -2388,7 +2433,7 @@
     }
 
     const explore = output?.explore;
-    if (explore && typeof explore === 'object') {
+    if (explore && typeof explore === 'object' && String(explore.propertyId || '') === getPropertyId() && explore.startDate === startEl.value && explore.endDate === endEl.value) {
       lastExplore = {
         kind: 'explore',
         propertyId: String(explore.propertyId || '').trim(),
@@ -2411,8 +2456,8 @@
     syncExploreOrderByOptions();
     renderExploreTable(lastExplore);
 
-    if (utm && typeof utm.summary === 'string') setStatus(utmStatusEl, utm.summary);
-    if (explore && typeof explore.summary === 'string') setStatus(exploreStatusEl, explore.summary);
+    if (lastUtm && typeof utm.summary === 'string') setStatus(utmStatusEl, utm.summary);
+    if (lastExplore && typeof explore.summary === 'string') setStatus(exploreStatusEl, explore.summary);
   });
 
   initDefaultDates();

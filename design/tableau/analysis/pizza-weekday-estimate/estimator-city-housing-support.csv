@@ -1,0 +1,17 @@
+City,Housing,n,cost_min,cost_max
+Allen,Residential,2,41.08,42.98
+Carrollton,Apartment,1,55.95,55.95
+Carrollton,Residential,15,20.57,89.2
+Frisco,Apartment,74,6.17,65.38
+Frisco,Business,13,19.21,152.15
+Frisco,Hotel,43,14.61,97.32
+Frisco,Residential,664,5.41,203.15
+Lewisville,Residential,12,22.14,171.79
+McKinney,Residential,10,39.4,85.14
+Plano,Apartment,71,12.18,89.79
+Plano,Business,11,20.03,230.25
+Plano,Hotel,23,12.18,243.02
+Plano,Residential,243,14.61,234.36
+The Colony,Apartment,16,10.83,56.18
+The Colony,Hotel,1,30.85,30.85
+The Colony,Residential,52,20.03,106.41

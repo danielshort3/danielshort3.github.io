@@ -19,7 +19,6 @@
   const clearBtn = $('#povcheck-clear');
 
   const exampleBtn = $('#povcheck-example');
-  const pasteBtn = $('#povcheck-paste');
   const importBtn = $('#povcheck-import');
   const fileInput = $('#povcheck-file');
   const inputStatusEl = $('#povcheck-input-status');
@@ -186,7 +185,6 @@
   const setInputBusy = (busy) => {
     const disabled = Boolean(busy);
     if (exampleBtn) exampleBtn.disabled = disabled;
-    if (pasteBtn) pasteBtn.disabled = disabled;
     if (importBtn) importBtn.disabled = disabled;
     if (fileInput) fileInput.disabled = disabled;
   };
@@ -884,7 +882,7 @@
 
   const renderSummary = (analysis) => {
     if (!analysis.hasText) {
-      summaryEl.textContent = 'Paste text above and click Check.';
+      summaryEl.textContent = '';
       return;
     }
 
@@ -1036,7 +1034,7 @@
       list.innerHTML = '<li class="povcheck-token-empty">Waiting for input.</li>';
     });
 
-    summaryEl.textContent = 'Paste text above and click Check.';
+    summaryEl.textContent = '';
     outputEl.innerHTML = '<p class="povcheck-empty">Waiting for input.</p>';
     driftSummaryEl.textContent = 'Run a check to inspect sentence-level point-of-view shifts.';
     driftListEl.innerHTML = '<li class="povcheck-token-empty">Run a check to inspect sentence-level point-of-view shifts.</li>';
@@ -1285,7 +1283,6 @@
 
     setTokenFilter(token, pov);
     renderAnalysis(lastAnalysis);
-    window.ToolWorkspace?.selectTab('povcheck-results-highlights', { focus: false });
     markSessionDirty();
   };
 
@@ -1298,8 +1295,6 @@
     });
 
     if (!target) return;
-
-    window.ToolWorkspace?.selectTab('povcheck-results-highlights', { focus: false });
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
     target.classList.add('povcheck-mark-focus');
@@ -1567,37 +1562,19 @@
     return { text: await file.text(), warning: '' };
   };
 
-  const pasteIntoInput = async () => {
-    setInputBusy(true);
-    setInputStatus('Reading clipboard...', 'info');
-
-    try {
-      if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
-        throw new Error('Clipboard read is unavailable.');
-      }
-
-      const pasted = normalizeImportedText(await navigator.clipboard.readText());
-      if (!pasted.trim()) {
-        setInputStatus('Clipboard is empty.', 'error');
-        return;
-      }
-
-      textInput.value = pasted;
-      textInput.focus();
-      markSessionDirty();
-      setInputStatus(`Pasted ${formatNumber(pasted.length)} characters.`, 'success');
-
-      if (hasRun) runAnalysis();
-    } catch {
-      setInputStatus('Clipboard access blocked. Use Ctrl/Cmd+V in the text box.', 'error');
-    } finally {
-      setInputBusy(false);
-    }
+  let importVersion = 0;
+  const cancelPendingImport = () => {
+    importVersion += 1;
+    setInputBusy(false);
+    if (fileInput) fileInput.value = '';
+    setInputStatus('');
   };
+  textInput.addEventListener('input', cancelPendingImport);
 
   const importIntoInput = async () => {
     const file = fileInput?.files?.[0];
     if (!file) return;
+    const version = ++importVersion;
 
     setInputBusy(true);
     setInputStatus(`Importing ${file.name}...`, 'info');
@@ -1609,13 +1586,16 @@
       }
 
       const parsed = await parseImportedFile(file);
+      if (version !== importVersion) return;
       const importedText = normalizeImportedText(parsed.text);
       if (!importedText.trim()) {
         throw new Error('No readable text was found in this file.');
       }
 
       textInput.value = importedText;
-      textInput.focus();
+      textInput.focus({ preventScroll: true });
+      textInput.setSelectionRange?.(0, 0);
+      textInput.scrollTop = 0;
       markSessionDirty();
 
       const baseMsg = `${file.name} imported (${formatNumber(importedText.length)} characters).`;
@@ -1624,11 +1604,14 @@
 
       if (hasRun) runAnalysis();
     } catch (error) {
+      if (version !== importVersion) return;
       const message = error instanceof Error ? error.message : 'Unable to import this file.';
       setInputStatus(message, 'error');
     } finally {
-      if (fileInput) fileInput.value = '';
-      setInputBusy(false);
+      if (version === importVersion) {
+        if (fileInput) fileInput.value = '';
+        setInputBusy(false);
+      }
     }
   };
 
@@ -1898,7 +1881,6 @@
     try {
       const analysis = runAnalysis();
       if (inputStatusEl?.dataset.tone === 'success') setInputStatus('');
-      window.ToolWorkspace?.selectTab('povcheck-results-highlights', { focus: false });
       markSessionDirty();
       if (!analysis?.hasText) reportRunError('validation');
       else reportRunComplete(analysis.total ? 'with_findings' : 'no_findings');
@@ -1906,6 +1888,15 @@
       reportRunError('processing');
       throw error;
     }
+  });
+
+  textInput.addEventListener('input', () => {
+    if (!hasRun) return;
+    hasRun = false;
+    lastAnalysis = null;
+    activeTokenFilter = null;
+    summaryEl.textContent = 'Text changed. Select Check text to update.';
+    [copyResultsBtn, exportCsvBtn, exportJsonBtn, copyHtmlBtn].forEach((button) => { if (button) button.disabled = true; });
   });
 
   form.addEventListener('input', () => {
@@ -1941,8 +1932,7 @@
   });
 
   clearBtn?.addEventListener('click', () => {
-    window.ToolWorkspace?.selectTab('povcheck-setup-text', { focus: false });
-    window.ToolWorkspace?.selectTab('povcheck-results-highlights', { focus: false });
+    cancelPendingImport();
     textInput.value = '';
     setInputStatus('');
     setResultsStatus('');
@@ -1974,18 +1964,16 @@
     markSessionDirty();
   });
 
-  pasteBtn?.addEventListener('click', () => {
-    void pasteIntoInput();
-  });
 
   exampleBtn?.addEventListener('click', () => {
-    window.ToolWorkspace?.selectTab('povcheck-setup-text', { focus: false });
+    cancelPendingImport();
     textInput.value = POV_EXAMPLE;
-    setInputStatus('Example loaded. Choose Check to analyze.', 'success');
+    setInputStatus('Example loaded.', 'success');
     setResultsStatus('');
     resetUI();
     markSessionDirty();
-    textInput.focus();
+    textInput.setSelectionRange?.(0, 0);
+    textInput.scrollTop = 0;
   });
 
   importBtn?.addEventListener('click', () => {
@@ -2050,6 +2038,7 @@
       ThirdReferences: thirdReferencesInput?.value || ''
     };
 
+    if (!lastAnalysis) { delete payload.output; return; }
     const html = String(outputEl?.innerHTML || '').trim();
     if (html && html.length <= MAX_SAVED_OUTPUT_HTML_CHARS) {
       payload.output = { kind: 'html', html, summary: payload.outputSummary };
@@ -2064,6 +2053,7 @@
   document.addEventListener('tools:session-applied', (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
+    cancelPendingImport();
     requestAnimationFrame(() => {
       try {
         runAnalysis();

@@ -1,0 +1,184 @@
+/* Dashboard interactions share a surface while keeping their analytical hierarchy. */
+html[data-project-demo-theme="brand"] .demo-size-dashboard > .content {
+  padding: 24px;
+  gap: 24px;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard .demo-scope-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard .demo-scope-controls > .pill {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: .8125rem;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard .demo-status-actions .aws-status-badge {
+  min-width: 112px;
+  justify-content: center;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard .dashboard-feedback:not([data-state="err"]),
+html[data-project-demo-theme="brand"] .pizza-workspace #estimate-summary:is([data-state="current"], [data-state="loading"]) #result-status {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard .dashboard-feedback[data-state="err"] {
+  padding: 12px 24px !important;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard :is(.panel, .analysis-section) {
+  min-width: 0;
+  gap: 16px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard :is(.stat-card, .kpi-card, .metric) {
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard :is(.stat-grid, .kpi-grid, .metrics) {
+  gap: 12px;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard .dashboard-method {
+  grid-column: 1 / -1;
+}
+
+html[data-project-demo-theme="brand"] .demo-size-dashboard .demo-disclosure-content > p {
+  margin: 0;
+}
+
+html[data-project-demo-theme="brand"] .baby-names-workspace .demo-size-dashboard .ratings-content {
+  gap: 24px;
+}
+
+html[data-project-demo-theme="brand"] .baby-names-workspace .demo-size-dashboard .bar-track {
+  padding-inline: 10%;
+}
+
+html[data-project-demo-theme="brand"] .covid-workspace .demo-size-dashboard .selection-row {
+  justify-content: flex-start;
+  align-items: end;
+}
+
+html[data-project-demo-theme="brand"] .covid-workspace .demo-size-dashboard .selection-row label {
+  flex: 1 1 180px;
+  max-width: 280px;
+}
+
+html[data-project-demo-theme="brand"] .covid-workspace .demo-size-dashboard .date-display {
+  padding-block: 10px;
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-project-demo-theme="brand"] .covid-workspace .demo-size-dashboard .state-summary .controls {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+html[data-project-demo-theme="brand"] .empty-package-workspace .demo-size-dashboard .filters-panel {
+  gap: 12px;
+}
+
+html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard > .section {
+  padding: 24px;
+}
+
+html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard .result-grid {
+  align-items: stretch;
+}
+
+html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard .result-card {
+  padding: 20px;
+  background: #ffffff;
+}
+
+html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard #tip-amount {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+}
+
+html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard #tip-percent {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard :is(#scenario-form, .map-panel) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard :is(.grid, #scenario-form, .scenario-column) {
+  gap: 20px;
+}
+
+html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard .actions {
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  html[data-project-demo-theme="brand"] .demo-size-dashboard > .content,
+  html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard > .section {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  html[data-project-demo-theme="brand"] .demo-size-dashboard :is(.panel, .analysis-section) {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  html[data-project-demo-theme="brand"] .demo-size-dashboard :is(.stat-card, .kpi-card, .metric),
+  html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard .result-card {
+    padding: 12px;
+  }
+
+  html[data-project-demo-theme="brand"] .demo-size-dashboard .dashboard-feedback[data-state="err"] {
+    padding: 12px 16px !important;
+  }
+
+  html[data-project-demo-theme="brand"] .baby-names-workspace .demo-size-dashboard .ratings-content {
+    gap: 20px;
+  }
+
+  html[data-project-demo-theme="brand"] .covid-workspace .demo-size-dashboard .selection-row label {
+    max-width: none;
+  }
+
+  html[data-project-demo-theme="brand"] .empty-package-workspace .demo-size-dashboard .filter-grid.primary-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html[data-project-demo-theme="brand"] .empty-package-workspace .demo-size-dashboard .exec-panel .kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  }
+
+  html[data-project-demo-theme="brand"] .pizza-workspace .demo-size-dashboard .actions .btn {
+    flex: 1 1 140px;
+  }
+}

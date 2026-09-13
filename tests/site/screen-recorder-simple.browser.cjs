@@ -99,6 +99,14 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert(await control('start-record').isDisabled(), 'Recording requires an active capture');
     assert(await control('download-all').isDisabled(), 'Download requires a completed clip');
     assert.equal(await page.evaluate(() => window.__screenRecorderTest.captureCalls), 0, 'Loading the tool must not start screen capture');
+    assert(await control('audio-toggle').isVisible(), 'Common audio controls stay visible.');
+    assert(await control('fps-select').isHidden(), 'Advanced video controls start collapsed.');
+    await page.locator('.screenrec-more-options > summary').click();
+    await control('fps-select').selectOption('30');
+    assert(await control('format-options').isVisible(), 'Video and download settings are available together.');
+    await page.locator('.screenrec-more-options > summary').click();
+    assert.match(await control('settings-summary').innerText(), /30 fps/, 'Collapsed options retain a concise settings summary.');
+    assert.equal(await page.evaluate(() => window.__screenRecorderTest.captureCalls), 0, 'Editing options must not start capture.');
     await control('start-capture').scrollIntoViewIfNeeded();
     await checkStatusLayout(page, viewport, stage);
 

@@ -139,7 +139,7 @@
   function computeTableauSrc(base) {
     if (!base) return '';
     const isPhone = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
-    return `${base}?${[':embed=y', ':showVizHome=no', `:device=${isPhone ? 'phone' : 'desktop'}`].join('&')}`;
+    return `${base}?${[':embed=y', ':showVizHome=no', `:device=${isPhone ? 'phone' : 'desktop'}`, ':tabs=no'].join('&')}`;
   }
 
   function sizeMediaViewer(viewer, frame, sourceEl, mediaEl) {

@@ -12,7 +12,6 @@
   const preview = $('#nbsp-preview');
   const fixHardToggle = $('#nbsp-fix-hard');
   const stripNonAsciiToggle = $('#nbsp-strip-nonascii');
-  const pasteBtn = $('#nbsp-paste');
   const importBtn = $('#nbsp-import');
   const fileInput = $('#nbsp-file');
   const inputStatus = $('#nbsp-input-status');
@@ -85,7 +84,6 @@
 
   const setInputBusy = (busy) => {
     const state = Boolean(busy);
-    if (pasteBtn) pasteBtn.disabled = state;
     if (importBtn) importBtn.disabled = state;
     if (fileInput) fileInput.disabled = state;
   };
@@ -187,7 +185,7 @@
         + `${formatNumber(omittedCharacters)} ${omittedCharacters === 1 ? 'character is' : 'characters are'} omitted from this preview; the full input was analyzed and used for the output.</span><br>`
       );
     }
-    preview.innerHTML = parts.join('') || '<span class="nbsp-status">Preview will appear after you paste text.</span>';
+    preview.innerHTML = parts.join('') || '<span class="nbsp-status">Run the cleaner to inspect characters.</span>';
   };
 
   const buildCleaned = (text) => {
@@ -439,12 +437,12 @@
     const text = normalizeInputText(input.value || '');
     input.value = text;
     if (!text.trim()) {
-      summary.textContent = 'Paste text above, then run the cleaner.';
+      summary.textContent = 'Add text to begin.';
       countsList.innerHTML = '';
       output.value = '';
       if (copyBtn) copyBtn.disabled = true;
       setCopyStatus('');
-      preview.innerHTML = '<span class="nbsp-status">Preview will appear after you paste text.</span>';
+      preview.innerHTML = '<span class="nbsp-status">Run the cleaner to inspect characters.</span>';
       return null;
     }
     const { perType, total, characterCount } = analyze(text);
@@ -454,8 +452,8 @@
     output.value = cleaned;
     if (copyBtn) copyBtn.disabled = !cleaned;
     const findings = [];
-    if (total > 0) findings.push(`${formatNumber(total)} hard spaces${replacedHard ? ' replaced' : ' detected (kept)'}`);
-    if (nonAsciiTotal > 0) findings.push(`${formatNumber(nonAsciiTotal)} other non-ASCII ${strippedNonAscii ? 'removed' : 'detected (kept)'}`);
+    if (total > 0) findings.push(`${formatNumber(total)} hard ${total === 1 ? 'space' : 'spaces'}${replacedHard ? ' replaced' : ' detected (kept)'}`);
+    if (nonAsciiTotal > 0) findings.push(`${formatNumber(nonAsciiTotal)} other non-ASCII ${nonAsciiTotal === 1 ? 'character' : 'characters'} ${strippedNonAscii ? 'removed' : 'detected (kept)'}`);
     if (findings.length) {
       summary.innerHTML = `Found ${findings.join(' and ')}.${strippedNonAscii ? ' Output is ASCII-only.' : ''}`;
     } else {
@@ -480,14 +478,15 @@
   });
 
   clearBtn?.addEventListener('click', () => {
+    cancelPendingImport();
     input.value = '';
     output.value = '';
     if (copyBtn) copyBtn.disabled = true;
     countsList.innerHTML = '';
-    summary.textContent = 'Paste text and run the cleaner to see findings.';
+    summary.textContent = 'Add text to begin.';
     setCopyStatus('');
     setInputStatus('');
-    preview.innerHTML = '<span class="nbsp-status">Preview will appear after you paste text.</span>';
+    preview.innerHTML = '<span class="nbsp-status">Run the cleaner to inspect characters.</span>';
     markSessionDirty();
     input.focus();
   });
@@ -505,33 +504,19 @@
     }
   });
 
-  const handlePasteInput = async () => {
-    setInputBusy(true);
-    setInputStatus('Reading clipboard…', 'info');
-
-    try {
-      if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
-        throw new Error('Clipboard read is unavailable.');
-      }
-      const clipboardText = normalizeInputText(await navigator.clipboard.readText());
-      if (!clipboardText.trim()) {
-        setInputStatus('Clipboard is empty.', 'error');
-        return;
-      }
-      input.value = clipboardText;
-      setInputStatus(`Pasted ${clipboardText.length.toLocaleString('en-US')} characters.`, 'success');
-      runCleaner();
-      input.focus();
-    } catch {
-      setInputStatus('Clipboard access blocked. Use Ctrl/Cmd+V in the text box.', 'error');
-    } finally {
-      setInputBusy(false);
-    }
+  let importVersion = 0;
+  const cancelPendingImport = () => {
+    importVersion += 1;
+    setInputBusy(false);
+    if (fileInput) fileInput.value = '';
+    setInputStatus('');
   };
+  input.addEventListener('input', cancelPendingImport);
 
   const handleImportInput = async () => {
     const file = fileInput?.files?.[0];
     if (!file) return;
+    const version = ++importVersion;
 
     setInputBusy(true);
     setInputStatus(`Importing ${file.name}…`, 'info');
@@ -543,6 +528,7 @@
       }
 
       const parsed = await parseImportedFile(file);
+      if (version !== importVersion) return;
       const text = normalizeInputText(parsed.text);
       if (!text.trim()) {
         throw new Error('No readable text was found in this file.');
@@ -554,18 +540,20 @@
         : `${file.name} imported (${text.length.toLocaleString('en-US')} characters).`;
       setInputStatus(status, parsed.warning ? 'info' : 'success');
       runCleaner();
-      input.focus();
+      input.focus({ preventScroll: true });
+      input.setSelectionRange?.(0, 0);
+      input.scrollTop = 0;
     } catch (error) {
+      if (version !== importVersion) return;
       setInputStatus(error instanceof Error ? error.message : 'Unable to import this file.', 'error');
     } finally {
-      if (fileInput) fileInput.value = '';
-      setInputBusy(false);
+      if (version === importVersion) {
+        if (fileInput) fileInput.value = '';
+        setInputBusy(false);
+      }
     }
   };
 
-  pasteBtn?.addEventListener('click', () => {
-    void handlePasteInput();
-  });
 
   importBtn?.addEventListener('click', () => {
     fileInput?.click();
@@ -573,6 +561,23 @@
 
   fileInput?.addEventListener('change', () => {
     void handleImportInput();
+  });
+
+  input.addEventListener('input', () => {
+    if (!output.value) return;
+    output.value = '';
+    summary.textContent = 'Text changed. Select Detect & fix to update.';
+    if (copyBtn) copyBtn.disabled = true;
+    countsList.innerHTML = '';
+    preview.textContent = 'Run the cleaner to inspect characters.';
+    setCopyStatus('');
+    markSessionDirty();
+  });
+
+  [fixHardToggle, stripNonAsciiToggle].forEach((control) => {
+    control?.addEventListener('change', () => {
+      if (input.value.trim()) runCleaner();
+    });
   });
 
   document.addEventListener('tools:session-capture', (event) => {
@@ -586,6 +591,6 @@
   });
 
   document.addEventListener('tools:session-applied', (event) => {
-    if (event.detail?.toolId === TOOL_ID) runCleaner();
+    if (event.detail?.toolId === TOOL_ID) { cancelPendingImport(); runCleaner(); }
   });
 })();

@@ -660,6 +660,13 @@
 
   function updateAccessMeta(){
     const hasToken = hasWorkspaceAccess();
+    const workspace = document.querySelector('[data-shortlinks="workspace"]');
+    const signedOut = document.querySelector('[data-shortlinks="signed-out"]');
+    if (workspace) workspace.hidden = !hasToken;
+    if (signedOut) signedOut.hidden = hasToken;
+    document.querySelectorAll('[data-shortlinks="new-link-from-list"]').forEach((button) => {
+      button.hidden = !hasToken;
+    });
     if (accessMetaEl) {
       accessMetaEl.textContent = hasToken
         ? (getSavedToken() ? 'Workspace access connected' : 'Signed in')
@@ -5761,20 +5768,7 @@
         renderDetailPanel(null);
         renderQrLibrary();
         clearList();
-        const introduction = document.createElement('div');
-        introduction.className = 'shortlinks-empty-state';
-        const title = document.createElement('h3');
-        title.textContent = 'Your links and QR codes, together';
-        const message = document.createElement('p');
-        message.textContent = 'Sign in with an authorized account to create links, save QR designs, and view activity.';
-        const actions = document.createElement('div');
-        actions.className = 'shortlinks-action-row';
-        actions.append(
-          makeLinkAction('Sign in', () => window.ToolsAuth?.signIn?.()),
-          makeLinkAction('Connect workspace access', () => revealAccessCard({ focusInput: true }))
-        );
-        introduction.append(title, message, actions);
-        listEl.appendChild(introduction);
+
       }
     })().finally(() => { if (epoch === workspaceEpoch) accessRefreshPromise = null; });
     return accessRefreshPromise;
@@ -5804,6 +5798,8 @@
     }
     void refreshWorkspaceAccess();
   }
+  document.querySelector('[data-shortlinks="sign-in"]')?.addEventListener('click', () => window.ToolsAuth?.signIn?.());
+  document.querySelector('[data-shortlinks="connect-access"]')?.addEventListener('click', () => revealAccessCard({ focusInput: true }));
   document.addEventListener('tools:auth-changed', handleWorkspaceAccessChange);
   window.addEventListener('shortlinks:access-changed', handleWorkspaceAccessChange);
   window.addEventListener('storage', (event) => {

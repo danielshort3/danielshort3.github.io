@@ -41,7 +41,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "shape-demo.html"
+    "url": "shape-demo.html",
+    "heading": "Shape Classifier",
+    "description": "Draw a circle, triangle, square, hexagon, or octagon to see the model's prediction."
   },
   "demoInstructions": {
     "lead": "Draw one of the supported shapes and let the model classify it.",

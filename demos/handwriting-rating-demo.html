@@ -26,46 +26,48 @@
 <body class="handwriting-rating-workspace">
   <a href="#main" class="skip-link">Skip to main content</a>
   <main id="main">
-    <div id="demo-box" class="handwriting-demo" aria-label="Handwriting rating demo">
-      <header class="handwriting-header">
+    <div id="demo-box" class="handwriting-demo drawing-demo demo-surface demo-size-drawing" aria-label="Handwriting rating demo">
+      <header class="handwriting-header card-header demo-surface-header">
         <div class="header-copy handwriting-heading">
           <h1 class="title">Handwriting legibility</h1>
           <p class="subtitle">Draw a digit from 0–9, or load a sample.</p>
         </div>
-        <button id="health-pill" class="handwriting-health aws-status-badge" data-state="warming" type="button" disabled>Preparing demo</button>
+        <div class="header-actions demo-status-actions">
+          <button id="health-pill" class="handwriting-health health-pill aws-status-badge" data-state="warming" type="button" disabled>AWS · Connecting</button>
+        </div>
       </header>
 
       <div class="handwriting-workspace">
         <section class="handwriting-input" aria-labelledby="drawing-title">
           <div class="handwriting-input-header">
             <h2 id="drawing-title">Your digit</h2>
-            <button id="erase" class="handwriting-clear" type="button" aria-keyshortcuts="C" aria-label="Clear drawing (C)">Clear</button>
+            <button id="erase" class="handwriting-clear drawing-clear" type="button" aria-keyshortcuts="C" aria-label="Clear drawing (C)">Clear</button>
           </div>
-          <div class="handwriting-pad-frame">
+          <div class="handwriting-pad-frame drawing-canvas-frame">
             <canvas id="pad" width="256" height="256" aria-label="Draw one digit from 0 to 9, or use the sample buttons below."></canvas>
             <span id="drawing-prompt" aria-hidden="true">Draw here</span>
           </div>
-          <div class="handwriting-toolbar">
-            <button id="rate" class="handwriting-rate" type="button" disabled>Rate digit</button>
+          <div class="handwriting-toolbar drawing-toolbar">
+            <button id="rate" class="handwriting-rate drawing-action" type="button" disabled>Rate digit</button>
           </div>
           <p id="status" class="handwriting-status" role="status" aria-live="polite" hidden></p>
         </section>
 
-        <section class="handwriting-results" aria-label="Prediction result" aria-live="polite" aria-atomic="true">
+        <section class="handwriting-results drawing-results" aria-label="Prediction result" aria-live="polite" aria-atomic="true">
           <div id="prediction-output" hidden>
-            <div class="handwriting-prediction">
+            <div class="handwriting-prediction drawing-prediction">
               <span id="result-digit" aria-label="Predicted digit"></span>
               <div>
-                <p class="handwriting-result-label">Model reads</p>
+                <p class="handwriting-result-label drawing-result-label">Model reads</p>
                 <p id="confidence-text"></p>
                 <p id="result-actual" hidden></p>
               </div>
             </div>
-            <div class="handwriting-chart-header">
-              <h2>All guesses</h2>
-              <span>0–100%</span>
-            </div>
-            <ol id="confidence-list" aria-label="All ten digit scores, highest first"></ol>
+            <div class="handwriting-confidence-meter drawing-confidence-meter" aria-hidden="true"><span id="primary-confidence"></span></div>
+            <section class="handwriting-score-details" aria-labelledby="digit-scores-title">
+              <h2 id="digit-scores-title">All digit scores</h2>
+              <ol id="confidence-list" aria-label="All ten digit scores, highest first"></ol>
+            </section>
           </div>
           <p id="result-empty">Your result appears here.</p>
         </section>
@@ -131,8 +133,8 @@
     const drawingPrompt = document.getElementById('drawing-prompt');
     const SCORE_IMAGE_MAX_EDGE = 256;
     const STROKE_CSS_PX = 6;
-    const bg = '#ffffff';
-    const fg = '#091f3b';
+    const bg = '#000000';
+    const fg = '#ffffff';
     let currentDPR = 1;
     let currentActualDigit = null;
     let hasDrawn = false;
@@ -355,6 +357,7 @@
       document.getElementById('result-digit').textContent = String(top.digit);
       document.getElementById('result-digit').setAttribute('aria-label', `Predicted digit ${top.digit}`);
       document.getElementById('confidence-text').textContent = `${formatPercent(top.score)} confidence`;
+      document.getElementById('primary-confidence').style.width = `${top.score}%`;
       const actual = document.getElementById('result-actual');
       actual.hidden = currentActualDigit === null;
       actual.textContent = currentActualDigit === null ? '' : `Sample ${currentActualDigit}`;
@@ -407,9 +410,9 @@
 
     function setHealth(state, text) {
       healthPill.dataset.state = state;
-      healthPill.textContent = text;
+      healthPill.textContent = `AWS · ${text}`;
       healthPill.disabled = warming || scoring;
-      healthPill.setAttribute('aria-label', `${text}. Reconnect demo.`);
+      healthPill.setAttribute('aria-label', `AWS ${text}. Reconnect demo.`);
     }
 
     async function warmUpServer({ manual = false } = {}) {
@@ -417,7 +420,7 @@
       warming = true;
       serverReady = false;
       showStatus();
-      setHealth('warming', manual ? 'Reconnecting' : 'Preparing demo');
+      setHealth('warming', manual ? 'Reconnecting' : 'Connecting');
       updateRateState();
       const warmPayload = { b64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=' };
       try {
@@ -427,7 +430,7 @@
             await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
             rememberEndpoint(base, STORAGE_KEY);
             serverReady = true;
-            setHealth('ok', 'Ready');
+            setHealth('ok', 'Connected');
             return;
           } catch (error) {
             // Older endpoints may expose scoring without dedicated warmup routes.
@@ -436,7 +439,7 @@
             await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
             rememberEndpoint(base, STORAGE_KEY);
             serverReady = true;
-            setHealth('ok', 'Ready');
+            setHealth('ok', 'Connected');
             return;
           } catch (error) {
             // Continue through the configured same-origin candidates.
@@ -456,7 +459,8 @@
       scoring = true;
       drawing = false;
       activePointer = null;
-      clearPrediction('Reading your digit…');
+      if (predictionOutput.hidden) clearPrediction('Reading your digit…');
+      setHealth('loading', 'Rating');
       showStatus();
       updateRateState();
       healthPill.disabled = true;
@@ -480,8 +484,10 @@
         );
         if (!scores) throw new Error('Digit scores unavailable');
         renderPrediction(scores);
+        setHealth('ok', 'Connected');
       } catch (error) {
-        clearPrediction();
+        if (predictionOutput.hidden) clearPrediction();
+        setHealth('err', 'Request failed');
         showStatus('This digit could not be rated. Select Rate digit to try again.', true);
       } finally {
         scoring = false;

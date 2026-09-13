@@ -1,0 +1,39 @@
+{
+  "parameters": [
+    {
+      "name": "Order cost ($)",
+      "type": "float",
+      "default": 40,
+      "minimum": 6.17,
+      "maximum": 243.02,
+      "step": 0.01,
+      "format": "currency-2dp"
+    }
+  ],
+  "calculations": {
+    "Weekday order": "DATEPART('weekday', [Date], 'monday')",
+    "Weekday name": "DATENAME('weekday', [Date])",
+    "Tip estimate": "MAX(0, 2.7328850006632157 + 0.10518244598906885 * [Order cost ($)])",
+    "Estimate range low": "MAX(0, [Tip estimate] - 3.5124065373462514)",
+    "Estimate range high": "[Tip estimate] + 3.5124065373462514"
+  },
+  "estimate_aggregation": "MIN",
+  "range_label": "Approx. 80% range",
+  "analysis_filters_apply_to_estimate": false,
+  "default_display": {
+    "estimate": "$6.94",
+    "range": "$3.43\u2013$10.45"
+  },
+  "validated_metrics": {
+    "n": 251,
+    "mae": 2.6169266357449477,
+    "median_absolute_error": 1.8578554709984516,
+    "rmse": 4.096706262034182,
+    "mean_residual_actual_minus_predicted": 0.21003198900210635,
+    "r2": 0.29316142308010984,
+    "residual_min": -7.053101539754607,
+    "residual_max": 20.957593546772877
+  },
+  "range_inside": 203,
+  "range_total": 251
+}

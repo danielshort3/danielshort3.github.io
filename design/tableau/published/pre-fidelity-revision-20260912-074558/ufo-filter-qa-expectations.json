@@ -1,0 +1,154 @@
+{
+  "California 2013": {
+    "count_and_evening_share": [
+      [
+        653,
+        "68.3000000000000000"
+      ]
+    ],
+    "peak_month": [
+      [
+        12,
+        92
+      ]
+    ],
+    "top_shapes": [
+      [
+        "light",
+        150
+      ],
+      [
+        "circle",
+        83
+      ],
+      [
+        "fireball",
+        72
+      ],
+      [
+        "sphere",
+        62
+      ],
+      [
+        "triangle",
+        45
+      ]
+    ],
+    "top_states": [
+      [
+        "ca",
+        653
+      ]
+    ]
+  },
+  "Light 2013": {
+    "count_and_evening_share": [
+      [
+        1368,
+        "76.7000000000000000"
+      ]
+    ],
+    "peak_month": [
+      [
+        8,
+        179
+      ]
+    ],
+    "top_shapes": [
+      [
+        "light",
+        1368
+      ]
+    ],
+    "top_states": [
+      [
+        "ca",
+        150
+      ],
+      [
+        "fl",
+        100
+      ],
+      [
+        "wa",
+        75
+      ],
+      [
+        "pa",
+        61
+      ],
+      [
+        "oh",
+        53
+      ]
+    ]
+  },
+  "All contiguous states 2012": {
+    "count_and_evening_share": [
+      [
+        6626,
+        "68.1"
+      ]
+    ],
+    "peak_month": [
+      [
+        7,
+        775
+      ]
+    ]
+  },
+  "scope": {
+    "country": "us",
+    "states": [
+      "al",
+      "ar",
+      "az",
+      "ca",
+      "co",
+      "ct",
+      "de",
+      "fl",
+      "ga",
+      "ia",
+      "id",
+      "il",
+      "in",
+      "ks",
+      "ky",
+      "la",
+      "ma",
+      "md",
+      "me",
+      "mi",
+      "mn",
+      "mo",
+      "ms",
+      "mt",
+      "nc",
+      "nd",
+      "ne",
+      "nh",
+      "nj",
+      "nm",
+      "nv",
+      "ny",
+      "oh",
+      "ok",
+      "or",
+      "pa",
+      "ri",
+      "sc",
+      "sd",
+      "tn",
+      "tx",
+      "ut",
+      "va",
+      "vt",
+      "wa",
+      "wi",
+      "wv",
+      "wy"
+    ],
+    "note": "Explicit 48-state whitelist excludes Alaska, Hawaii, DC, Puerto Rico and missing state codes."
+  }
+}

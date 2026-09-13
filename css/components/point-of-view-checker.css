@@ -787,3 +787,25 @@
     body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-stat { padding-inline: 7px; }
   }
 }
+
+@layer overrides {
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-input-content { display: grid; gap: 14px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-input-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-input-head > label { font-size: 18px; font-weight: 700; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-field-actions { width: auto; gap: 8px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure { min-width: 0; margin-top: 16px; border-top: 1px solid var(--workspace-border); }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure > summary { min-height: 44px; padding: 12px 0; box-sizing: border-box; color: var(--workspace-ink); font-weight: 600; cursor: pointer; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure > summary:focus-visible { outline: 2px solid var(--workspace-accent); outline-offset: 3px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .tool-workspace-share { border-color: transparent; padding-inline: 0; font-size: 12px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-summary:empty { display: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-input-card > .tool-workspace-actions { margin-top: 14px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-highlight-content { display: grid; gap: 14px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure .povcheck-mode-switch { margin: 8px 0 16px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure .povcheck-preset-grid { padding-top: 12px; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-results-card > .tool-workspace-summary:has(.povcheck-summary:empty):has(.povcheck-results-status:empty) { display: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure .povcheck-drift-header h3 { display: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure .povcheck-drift-list { max-height: 380px; overflow-y: auto; }
+  @media (max-width: 520px) {
+    body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-input-content > textarea { min-height: 200px; }
+  }
+}
