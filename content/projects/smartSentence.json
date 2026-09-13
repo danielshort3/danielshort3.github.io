@@ -52,7 +52,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "sentence-demo.html"
+    "url": "sentence-demo.html",
+    "heading": "Sentence Search",
+    "description": "Describe an idea to find related sentences in Alice in Wonderland."
   },
   "demoInstructions": {
     "lead": "Search a fixed Alice in Wonderland corpus by meaning, not exact wording.",

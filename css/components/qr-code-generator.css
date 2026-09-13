@@ -886,3 +886,23 @@
     body[data-page="qr-code-generator"][data-tools-layout] :is(.btn-primary, .btn-secondary, .btn-ghost, .qrtool-input, .qrtool-select, .qrtool-disclosure > summary) { min-height: 44px; }
   }
 }
+
+@layer overrides {
+  @media (max-width: 600px) {
+    body[data-page="qr-code-generator"][data-tools-layout] .qrtool-tablist {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.6fr;
+      align-items: stretch;
+      gap: 4px;
+    }
+    body[data-page="qr-code-generator"][data-tools-layout] .qrtool-tablist .qrtool-tab {
+      min-width: 0;
+      min-height: 44px;
+      padding: 8px 2px;
+      font-size: 13px;
+      line-height: 1.35;
+      white-space: normal;
+      text-align: center;
+    }
+  }
+}

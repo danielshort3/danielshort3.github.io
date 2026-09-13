@@ -420,7 +420,7 @@
     }
 
     .grid {
-      --grid-cols: 4;
+      --grid-cols: 6;
       display: grid;
       grid-template-columns: repeat(var(--grid-cols), var(--cell-size));
       gap: var(--grid-gap);
@@ -445,17 +445,6 @@
       display: grid;
       place-items: center;
       overflow: hidden;
-      cursor: pointer;
-      transition: border-color 120ms ease, transform 120ms ease;
-    }
-
-    .digit-cell:hover {
-      border-color: color-mix(in srgb, var(--primary) 65%, var(--surface-accent));
-    }
-
-    .digit-cell:focus {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
     }
 
     .digit-cell img {
@@ -631,61 +620,63 @@
         <h1 class="title">Digit Generator</h1>
         <p class="subtitle">Choose a digit and generate a collection of handwritten variations.</p>
       </div>
-      <div class="header-actions">
-        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Preparing demo</span>
-      </div>
     </header>
 
     <div class="content demo-workspace">
-      <div class="generation-toolbar" aria-label="Generation controls">
-        <label for="cluster-select">Digit
-          <select id="cluster-select" class="grid-number-pill" aria-label="Number to generate">
-            <option value="auto">Auto</option>
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4" selected>4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-          </select>
-        </label>
-        <label for="grid-select">Grid size
-          <select id="grid-select">
-            <option value="4">4 × 4 · 16 digits</option>
-            <option value="6">6 × 6 · 36 digits</option>
-            <option value="8" selected>8 × 8 · 64 digits</option>
-          </select>
-        </label>
-        <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
-        <p class="status" id="status" role="status" aria-live="polite">Preparing demo...</p>
-      </div>
-      <div class="grid-shell">
-        <h2 class="demo-section-label">Generated digits</h2>
-        <div class="grid" id="grid" aria-live="polite">
-          <div class="demo-empty-state grid-empty-state" id="grid-empty-state">Generated digits will appear here when the demo is ready.</div>
+      <div class="generation-panel">
+        <div class="generation-controls" role="group" aria-label="Generation controls">
+          <div class="generation-status">
+            <span id="health-pill" class="health-pill aws-status-badge" data-state="warming">AWS · Connecting</span>
+          </div>
+          <div class="generation-toolbar">
+            <label for="cluster-select">Digit
+              <select id="cluster-select" class="grid-number-pill" aria-label="Number to generate">
+                <option value="auto">Auto</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+              </select>
+            </label>
+            <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
+          </div>
         </div>
-        <p class="hint" id="grid-download-hint" hidden>Select any digit image to download it.</p>
-      </div>
-      <details class="demo-disclosure generation-settings">
-        <summary>Advanced generation settings</summary>
-        <p class="hint">Keep a seed to reproduce a grid. Change the latent dimension or distortion to explore how the model varies each digit.</p>
-        <div class="settings-grid">
-          <label>Seed
-            <input id="seed-input" type="number" min="0" placeholder="optional">
-          </label>
-          <label>Latent dimension
-            <select id="dim-select"></select>
-          </label>
-          <label>Distortion level
-            <input id="value-slider" type="range" min="0" max="20" step="0.2" value="5">
-            <span id="value-label" class="range-value">5.0</span>
-          </label>
+        <div class="grid-shell">
+          <p class="status visually-hidden" id="status" role="status" aria-live="polite">Preparing demo...</p>
+          <div class="grid" id="grid">
+            <div class="demo-empty-state grid-empty-state" id="grid-empty-state">Generated digits will appear here when the demo is ready.</div>
+          </div>
         </div>
-      </details>
+        <details class="demo-disclosure generation-settings">
+          <summary>Advanced settings</summary>
+          <div class="settings-grid">
+            <label for="grid-select">Grid size
+              <select id="grid-select">
+                <option value="4">4 × 4 · 16 digits</option>
+                <option value="6" selected>6 × 6 · 36 digits</option>
+                <option value="8">8 × 8 · 64 digits</option>
+              </select>
+            </label>
+            <label>Seed
+              <input id="seed-input" type="number" min="0" placeholder="optional">
+            </label>
+            <label>Latent dimension
+              <select id="dim-select"></select>
+            </label>
+            <label class="generation-distortion">Distortion level
+              <input id="value-slider" type="range" min="0" max="20" step="0.2" value="5">
+              <span id="value-label" class="range-value">5.0</span>
+            </label>
+          </div>
+          <p class="hint">Use the same seed to reproduce a grid. Dimension and distortion control its variations.</p>
+        </details>
+      </div>
     </div>
   </div>
   </main>
@@ -704,11 +695,9 @@
       retryRequest
     } = window.DemoAws;
     const GRID_SIZES = [4, 6, 8];
-    const CELL_SIZE_MIN = 24;
     const CELL_SIZE_MAX = 108;
     const COMPACT_CELL_SIZE_MAX = 72;
-    const compactMedia = window.matchMedia ? window.matchMedia('(max-width: 520px), (max-height: 700px)') : null;
-    const compactLayout = !!(compactMedia && compactMedia.matches);
+    const compactMedia = window.matchMedia ? window.matchMedia('(max-width: 520px)') : null;
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
@@ -726,7 +715,6 @@
 
     const gridEl = document.getElementById('grid');
     const gridEmptyState = document.getElementById('grid-empty-state');
-    const gridDownloadHint = document.getElementById('grid-download-hint');
     const gridShell = document.querySelector('.grid-shell');
     const seedInput = document.getElementById('seed-input');
     const gridSelect = document.getElementById('grid-select');
@@ -742,39 +730,27 @@
     let debounceId = null;
     let requestId = 0;
     let latentDim = 20;
-    let gridSize = compactLayout ? 6 : 8;
+    let gridSize = 6;
     let gridRows = gridSize;
     let gridCols = gridSize;
     let gridMetricsFrame = null;
     let lastSeed = null;
-    let currentState = {
-      seed: null,
-      mode: 'cluster',
-      clusterDigit: null,
-      dim: 0,
-      dimY: 1,
-      value: 0,
-      rows: gridRows,
-      cols: gridCols
-    };
     let serverReady = false;
 
     function setStatus(text) {
       statusEl.textContent = text;
     }
 
+    function setHealth(state, text) {
+      healthPill.dataset.state = state;
+      healthPill.textContent = `AWS · ${text}`;
+    }
+
     function showEmptyGrid(message) {
       if (gridEl.querySelector('.digit-cell')) return;
       gridEmptyState.textContent = message;
       gridEmptyState.hidden = false;
-      gridDownloadHint.hidden = true;
       if (!gridEmptyState.isConnected) gridEl.appendChild(gridEmptyState);
-    }
-
-    function setHealth(state, text) {
-      if (!healthPill) return;
-      healthPill.dataset.state = state;
-      healthPill.textContent = text;
     }
 
     function setControlsEnabled(enabled) {
@@ -832,63 +808,9 @@
       return next;
     }
 
-    function formatValueForFile(value) {
-      const fixed = Number(value).toFixed(1);
-      return fixed.replace('-', 'neg').replace('.', 'p');
-    }
-
-    const DOWNLOAD_BASE_SIZE = 28;
-    const DOWNLOAD_SCALE = 20;
-    const DOWNLOAD_SIZE = DOWNLOAD_BASE_SIZE * DOWNLOAD_SCALE;
-
-    function downloadImage(base64, index) {
-      const seed = currentState.seed ?? ensureSeed();
-      const dim = currentState.dim ?? Number(dimSelect.value || 0);
-      const value = currentState.value ?? Number(valueSlider.value || 0);
-      const fileName = `digit_seed-${seed}_dim-${dim}_val-${formatValueForFile(value)}_cell-${index}.png`;
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = DOWNLOAD_SIZE;
-        canvas.height = DOWNLOAD_SIZE;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0, 0, DOWNLOAD_SIZE, DOWNLOAD_SIZE);
-        ctx.drawImage(img, 0, 0, DOWNLOAD_SIZE, DOWNLOAD_SIZE);
-        if (canvas.toBlob) {
-          canvas.toBlob((blob) => {
-            if (!blob) return;
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
-          }, 'image/png');
-        } else {
-          const link = document.createElement('a');
-          link.href = canvas.toDataURL('image/png');
-          link.download = fileName;
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-        }
-      };
-      img.src = `data:image/png;base64,${base64}`;
-    }
-
     function setGridSize(size) {
       const next = GRID_SIZES.includes(size) ? size : gridSize;
       gridSize = next;
-      gridRows = next;
-      gridCols = next;
-      currentState.rows = gridRows;
-      currentState.cols = gridCols;
-      gridEl.style.setProperty('--grid-cols', String(gridCols));
-      scheduleGridMetricsUpdate();
     }
 
     function isCompactLayout() {
@@ -914,7 +836,7 @@
       const heightCell = (availableHeight - gap * Math.max(0, gridRows - 1)) / Math.max(1, gridRows);
       const maxSize = isCompactLayout() ? COMPACT_CELL_SIZE_MAX : CELL_SIZE_MAX;
       const next = Math.floor(Math.min(widthCell, heightCell));
-      const bounded = Math.max(CELL_SIZE_MIN, Math.min(maxSize, next));
+      const bounded = Math.max(1, Math.min(maxSize, next));
       if (Number.isFinite(bounded)) {
         gridEl.style.setProperty('--cell-size', `${bounded}px`);
       }
@@ -934,17 +856,6 @@
       images.flat().forEach((b64, idx) => {
         const cell = document.createElement('div');
         cell.className = 'digit-cell';
-        cell.title = 'Download digit PNG';
-        cell.tabIndex = 0;
-        cell.setAttribute('role', 'button');
-        cell.setAttribute('aria-label', `Download digit ${idx + 1}`);
-        cell.addEventListener('click', () => downloadImage(b64, idx + 1));
-        cell.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            downloadImage(b64, idx + 1);
-          }
-        });
         const img = document.createElement('img');
         img.alt = `Generated digit ${idx + 1}`;
         img.src = `data:image/png;base64,${b64}`;
@@ -953,18 +864,17 @@
       });
       const hasImages = Boolean(gridEl.querySelector('.digit-cell'));
       gridEmptyState.hidden = hasImages;
-      gridDownloadHint.hidden = !hasImages;
       if (!hasImages) showEmptyGrid('No digit images were returned. Select Generate to try again.');
       scheduleGridMetricsUpdate();
     }
 
     async function warmUpServer() {
-      setHealth('warming', 'Preparing demo');
+      setHealth('warming', 'Connecting');
       setStatus('Preparing demo...');
       setControlsEnabled(false);
       const endpoints = candidates();
       if (!endpoints.length) {
-        setHealth('err', 'No endpoint');
+        setHealth('err', 'Unavailable');
         setStatus('No endpoint configured.');
         showEmptyGrid('The digit collection is unavailable. Reload the demo to try connecting again.');
         serverReady = false;
@@ -986,7 +896,7 @@
           await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
-          setHealth('ok', 'Ready');
+          setHealth('ok', 'Connected');
           setStatus('Ready.');
           setControlsEnabled(true);
           fetchGrid();
@@ -998,7 +908,7 @@
           await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
-          setHealth('ok', 'Ready');
+          setHealth('ok', 'Connected');
           setStatus('Ready.');
           setControlsEnabled(true);
           fetchGrid();
@@ -1031,11 +941,12 @@
         cluster_digit: Number.isFinite(clusterDigit) ? clusterDigit : null,
         dim,
         value,
-        rows: gridRows,
-        cols: gridCols
+        rows: gridSize,
+        cols: gridSize
       };
 
       const id = ++requestId;
+      setHealth('loading', 'Generating');
       setStatus('Generating grid...');
       showEmptyGrid('Creating your digit collection. The generated images will appear here.');
       try {
@@ -1054,20 +965,15 @@
         if (id !== requestId) return;
 
         latentDim = data.latent_dim || latentDim;
+        // Keep the previous collection's layout until its replacement arrives.
+        gridRows = payload.rows;
+        gridCols = payload.cols;
         updateGrid(data.images || []);
-        currentState = {
-          seed: data.seed ?? seed,
-          mode: data.mode || mode,
-          clusterDigit: Number.isFinite(data.cluster_digit) ? data.cluster_digit : null,
-          dim: data.dim ?? dim,
-          dimY: Number.isFinite(data.dim_y) ? data.dim_y : ((data.dim ?? dim) + 1) % latentDim,
-          value: typeof data.value === 'number' ? data.value : value,
-          rows: data.rows ?? gridRows,
-          cols: data.cols ?? gridCols
-        };
+        setHealth('ok', 'Connected');
         setStatus('Grid updated.');
       } catch (err) {
         if (id !== requestId) return;
+        setHealth('err', 'Request failed');
         setStatus('Failed to generate digits.');
         showEmptyGrid('The digit collection could not be generated. Select Generate to try again.');
       }

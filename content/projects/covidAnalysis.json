@@ -45,7 +45,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "covid-outbreak-demo.html"
+    "url": "covid-outbreak-demo.html",
+    "heading": "COVID Outbreak Drivers",
+    "description": "Explore historical ICU utilization and an experimental risk score by state and date."
   },
   "demoInstructions": {
     "lead": "Start with a state's historical ICU utilization and exploratory risk score, then explore the trend and map.",

@@ -550,7 +550,7 @@ function renderProjectPage(project, { relatedProject } = {}) {
   const dashboard = String(embed?.type || '').trim() === 'tableau';
   const dashboardBase = dashboard ? String(embed.base || '').trim() : '';
   const demoLaunchHref = dashboardBase
-    ? `${dashboardBase}${dashboardBase.includes('?') ? '&' : '?'}:showVizHome=no&:embed=y`
+    ? `${dashboardBase}${dashboardBase.includes('?') ? '&' : '?'}:showVizHome=no&:embed=y&:tabs=no`
     : toCanonicalProjectDemoUrl(embed?.url);
   const demoResourceKey = (href) => {
     try {
@@ -921,11 +921,11 @@ function renderProjectPage(project, { relatedProject } = {}) {
       const base = String(embed.base || '').trim();
       if (!base) return '';
       const joiner = base.includes('?') ? '&' : '?';
-      const src = `${base}${joiner}:showVizHome=no&:embed=y&:device=desktop`;
+      const src = `${base}${joiner}:showVizHome=no&:embed=y&:device=desktop&:tabs=no`;
       const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
       const embedMeta = renderEmbedAttrs(embed, id, 'project-embed-tableau');
       return `<div class="project-media project-embed ${embedMeta.className}" ${embedMeta.attrs}>
-        <iframe class="project-embed-frame"${srcAttr} title="${escapeHtml(title)} interactive dashboard" loading="lazy" allowfullscreen></iframe>
+        <iframe class="project-embed-frame"${srcAttr} data-dashboard-default-src="${escapeHtml(src)}" title="${escapeHtml(title)} interactive dashboard" loading="lazy" allowfullscreen></iframe>
       </div>`;
     }
     return '';
@@ -940,6 +940,12 @@ function renderProjectPage(project, { relatedProject } = {}) {
     const launchHref = demoLaunchHref;
     const launchLabel = dashboard ? 'Open dashboard' : 'Launch demo';
     const launchAttrs = /^https?:\/\//i.test(launchHref) ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const demoHeading = normalizeWhitespace(embed.heading || title);
+    const demoDescription = normalizeWhitespace(embed.description || project.subtitle || '');
+    const headingHtml = `<h2 class="section-title project-demo-title">${escapeHtml(demoHeading)}</h2>`;
+    const demoCopy = demoDescription
+      ? `<div class="project-demo-heading">${headingHtml}<p class="project-demo-description">${escapeHtml(demoDescription)}</p></div>`
+      : headingHtml;
 
     const lead = normalizeWhitespace(demoInstructions?.lead || '');
     const bullets = normalizeTextArray(demoInstructions?.bullets);
@@ -972,8 +978,9 @@ function renderProjectPage(project, { relatedProject } = {}) {
 
     return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(embedFit)}" aria-label="Interactive demo">
       <div class="project-demo-header">
-        <h2 class="section-title project-demo-title">Demo</h2>
+        ${demoCopy}
         <div class="project-demo-header-actions">
+          ${dashboard ? '<button class="project-dashboard-reset" type="button" data-dashboard-reset hidden>Reset filters</button>' : ''}
           ${launchHref ? `<a class="project-demo-open" href="${escapeHtml(launchHref)}"${launchAttrs}>${dashboard ? 'Open dashboard' : 'Open full demo'}</a>` : ''}
           ${tooltip}
         </div>
@@ -1098,7 +1105,7 @@ ${tableauPreconnect}
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
-${comparisonScript}${imageViewerScript}  <script src="js/privacy/config.js"></script>
+${comparisonScript}${imageViewerScript}${dashboard ? '  <script defer src="js/portfolio/tableau-controls.js"></script>\n' : ''}  <script src="js/privacy/config.js"></script>
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>

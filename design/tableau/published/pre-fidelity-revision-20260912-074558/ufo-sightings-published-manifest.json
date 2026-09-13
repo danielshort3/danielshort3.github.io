@@ -1,0 +1,22 @@
+{
+  "file": "design/tableau/published/ufo-sightings-published.twbx",
+  "sourceUrl": "https://public.tableau.com/workbooks/UFO_Sightings_16769494135040.twb?showVizHome=no",
+  "downloadedAtUtc": "2026-09-12T05:25:35+00:00",
+  "sha256": "24479c73f960a7024b7567199ce8bfead2cd7ff038f44220ef7e323e618ee277",
+  "files": [
+    {
+      "name": "Data/Extracts/federated_1ln177012ddq4615kuasp1.hyper",
+      "bytes": 10813440,
+      "sha256": "c0ddd072e24b69b66e02d5ec594708bbb1ac60bfcb117a8d0d776da593b6b16a"
+    },
+    {
+      "name": "UFO_Sightings.twb",
+      "bytes": 153152,
+      "sha256": "07c76390850d6ef479c7254a4a1cb476d6e26c69f0f4ff6ab6573744a9eca7d2"
+    }
+  ],
+  "originalHyperSha256": {
+    "Data/Extracts/federated_1ln177012ddq4615kuasp1.hyper": "c0ddd072e24b69b66e02d5ec594708bbb1ac60bfcb117a8d0d776da593b6b16a"
+  },
+  "publishedHyperUnchanged": true
+}

@@ -14,7 +14,7 @@ const sourceBlock = (start, end) => {
   return source.slice(from, to);
 };
 const tabMarkup = [...markup.matchAll(/<button\b[^>]*data-qrtool-tab="([^"]+)"[^>]*>([^<]+)<\/button>/g)];
-assert.deepEqual(tabMarkup.map((match) => match[2].trim()), ['Content', 'Style', 'Export']);
+assert.deepEqual(tabMarkup.map((match) => match[2].trim()), ['Content', 'Style', 'Download options']);
 
 const defaults = vm.runInNewContext(`${sourceBlock('  const DEFAULTS =', '  const TEMPLATES =')}\nDEFAULTS;`);
 assert(defaults.marginModules >= 4, 'New QR codes need at least four blank modules on each side.');
@@ -78,7 +78,7 @@ function createHarness(hash = '') {
   });
   // Execute the production controller and disclosure listener, not copies of their logic.
   const controller = sourceBlock('  const getVisibleTabButtons =', '  const setVerification =');
-  const toggleListener = sourceBlock("  advancedOptions?.addEventListener('toggle'", "  document.querySelector('[data-qrtool-presets-open]')");
+  const toggleListener = sourceBlock("  advancedOptions?.addEventListener('toggle'", "  if (autofixBtn)");
   vm.runInContext(`${controller}\n${toggleListener}\ninitTabs();\nglobalThis.api = { setUiMode };`, context, { filename: 'qr-code-generator.js' });
   const selected = (name, { focused = false } = {}) => {
     assert.equal(buttons.filter((button) => button.getAttribute('aria-selected') === 'true').length, 1);

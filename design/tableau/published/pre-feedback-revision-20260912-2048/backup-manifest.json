@@ -1,0 +1,32 @@
+[
+  {
+    "File": "pizza-delivery-published.twbx",
+    "Sha256": "CF95C6F58AE19E02BCAECFD779B79F447F4951266FB1346D167AACDCC87D068C",
+    "Bytes": 135447
+  },
+  {
+    "File": "pizza-delivery-published.svg",
+    "Sha256": "EB18D5C316A1D8D7C5F0C0E3315458CE69C67E3FE25292F05FF657D24BFA7969",
+    "Bytes": 342882
+  },
+  {
+    "File": "pizza-delivery-published-manifest.json",
+    "Sha256": "9A67D2647231560E2650CCE9DF91058C303EFC4A2E45141806E71A4ABA05137E",
+    "Bytes": 867
+  },
+  {
+    "File": "ufo-sightings-published.twbx",
+    "Sha256": "0BBAA18363C359158293ED1ACC99172AEA3E59BE240737C20929FF2E6715EFF7",
+    "Bytes": 5180523
+  },
+  {
+    "File": "ufo-sightings-published.svg",
+    "Sha256": "134498046EE25B17C16491CAE2E03FDA0C5E371CBE67984D08958E9052C6DF48",
+    "Bytes": 581353
+  },
+  {
+    "File": "ufo-sightings-published-manifest.json",
+    "Sha256": "0C4CB78B6128ED4D60099586B9D1013044F33416FC1FEBA60A8DE93A8FF1814C",
+    "Bytes": 881
+  }
+]

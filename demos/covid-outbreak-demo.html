@@ -691,29 +691,37 @@
 <body class="demo-summary-workspace covid-workspace">
   <a href="#main" class="skip-link">Skip to main content</a>
   <main id="main">
-    <div id="demo-box" role="application" aria-label="COVID outbreak drivers demo">
-      <header class="card-header">
+    <div id="demo-box" class="demo-surface demo-size-dashboard" role="application" aria-label="COVID outbreak drivers demo">
+      <header class="card-header demo-surface-header">
         <div class="header-copy">
           <h1 class="title">COVID outbreak drivers</h1>
           <p class="subtitle">Explore historical ICU utilization and an experimental risk score by state and date.</p>
         </div>
-        <div class="header-actions">
+        <div class="selection-row demo-scope-controls">
+          <label for="state-select">State or territory
+            <select id="state-select" disabled><option value="">Loading states…</option></select>
+          </label>
+          <div class="date-display" id="date-value">--</div>
+        </div>
+        <div class="header-actions demo-status-actions">
+          <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
           <span class="health-pill aws-status-badge" id="connection-pill" data-state="loading" role="status" aria-live="polite">Loading data…</span>
         </div>
       </header>
 
-      <div class="status-row demo-meta-row">
-        <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
+      <div class="status-row demo-meta-row dashboard-feedback" data-state="loading">
         <span class="status-meta" id="connection-meta">Loading map and historical data…</span>
       </div>
 
       <div class="content">
         <section class="panel state-summary" aria-label="Selected state summary">
-          <div class="selection-row">
-            <label for="state-select">State or territory
-              <select id="state-select" disabled><option value="">Loading states…</option></select>
-            </label>
-            <div class="date-display" id="date-value">--</div>
+          <div class="controls">
+            <div class="control-row">
+              <div class="empty-note" id="date-range">Range: --</div>
+              <div class="empty-note visually-hidden" id="date-selected">Selected: --</div>
+            </div>
+            <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Historical date" />
+            <div class="timeline-ticks" id="timeline-ticks" aria-hidden="true"></div>
           </div>
           <div class="detail-header">
             <h2 id="state-title">Select a state</h2>
@@ -730,14 +738,6 @@
             </div>
           </div>
           <p class="empty-note model-context">Historical, exploratory model output. The risk score is not an operational forecast.</p>
-          <div class="controls">
-            <div class="control-row">
-              <div class="empty-note" id="date-range">Range: --</div>
-              <div class="empty-note" id="date-selected">Selected: --</div>
-            </div>
-            <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Historical date" />
-            <div class="timeline-ticks" id="timeline-ticks" aria-hidden="true"></div>
-          </div>
         </section>
 
         <section class="panel trend-panel">
@@ -961,6 +961,7 @@
 
     function setConnection(state, text) {
       DOM.connectionPill.dataset.state = state;
+      DOM.connectionMeta.parentElement.dataset.state = state;
       document.getElementById("retry-demo").hidden = state !== "err";
       DOM.connectionPill.textContent = text;
     }

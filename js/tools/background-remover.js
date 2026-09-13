@@ -28,6 +28,7 @@
 
   const methodSelect = $('#bgtool-method');
   const aiSettings = $('#bgtool-ai-settings');
+  const processingOptions = $('.bgtool-detail-options');
   const colorkeySettings = $('#bgtool-colorkey-settings');
   const deviceSelect = $('#bgtool-device');
   const processingSelect = $('#bgtool-processing');
@@ -397,6 +398,7 @@
     const method = String(methodSelect?.value || 'ai-best');
     const aiOn = method.startsWith('ai-');
     if (aiSettings) aiSettings.hidden = !aiOn;
+    if (processingOptions) processingOptions.hidden = !aiOn;
     if (colorkeySettings) colorkeySettings.hidden = aiOn;
     markSessionDirty();
   };
@@ -1825,6 +1827,11 @@
   };
   form.addEventListener('input', updateSettingsState);
   form.addEventListener('change', updateSettingsState);
+  // Refinement and download controls sit beside the preview, outside the form.
+  $$('#bgtool-panel-refine, #bgtool-panel-export').forEach((panel) => {
+    panel.addEventListener('input', updateSettingsState);
+    panel.addEventListener('change', updateSettingsState);
+  });
   document.addEventListener('tools:session-applied', (event) => {
     if (event?.detail?.toolId === TOOL_ID) updateSettingsState();
   });

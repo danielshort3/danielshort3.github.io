@@ -337,10 +337,12 @@
   /* keep modal within the viewport on all screens */
   #contact-modal .modal-content { width: min(760px, calc(100vw - 24px)); margin-inline:auto; }
   #contact-modal .modal-body {
+    min-height:0;
     overflow-x:hidden;
     overflow-y:auto;
-    scrollbar-gutter:stable;
+    scrollbar-gutter:stable both-edges;
     flex-direction:column;
+    flex-wrap:nowrap;
     align-items:stretch;
     gap:20px;
     padding:24px clamp(16px, 6vw, 32px) 28px;
@@ -365,6 +367,7 @@
   .contact-form .form-field{
     display:flex;
     flex-direction:column;
+    min-width:0;
     gap:6px;
   }
   .contact-form label{

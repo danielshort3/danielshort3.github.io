@@ -49,7 +49,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "baby-names-demo.html"
+    "url": "baby-names-demo.html",
+    "heading": "Baby Name Predictor",
+    "description": "Explore my wife's name ratings and predicted favorites."
   },
   "demoInstructions": {
     "lead": "Start with the ratings summary, then explore favorites and predicted recommendations.",

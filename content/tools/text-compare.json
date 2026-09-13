@@ -6,7 +6,7 @@
   "categoryId": "tools-writing",
   "privacy": "Comparison runs on your device. When signed in, drafts, settings, and results save automatically to your account; shared input links contain your drafts.",
   "inputs": ["Two text drafts"],
-  "outputs": ["Highlighted side-by-side comparison"],
+  "outputs": ["Highlighted changes with both drafts visible"],
   "summary": "Compare two drafts and review the changes.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"4\" y=\"5\" width=\"7\" height=\"14\" rx=\"2\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"13\" y=\"5\" width=\"7\" height=\"14\" rx=\"2\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"4\" y=\"5\" width=\"7\" height=\"14\" rx=\"2\"></rect>\n                      <rect x=\"13\" y=\"5\" width=\"7\" height=\"14\" rx=\"2\"></rect>\n                      <path d=\"M7 9h2M7 12h3M7 15h1.5\"></path>\n                      <path d=\"M16 10v4\"></path>\n                      <path d=\"M14 12h4\"></path>\n                    </svg>",
   "pills": [

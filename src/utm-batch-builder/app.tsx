@@ -1100,13 +1100,11 @@ const RelationshipBuilder = ({
   );
 };
 
-const SETUP_TABS = [{ id: "links", label: "Links" }, { id: "parameters", label: "Parameters" }, { id: "rules", label: "Rules" }];
 const COMBINATION_LABELS: Record<CombinationMode, string> = { cartesian: "All combinations", zip: "Match rows", templateRows: "Template + rows", groups: "Grouped relationships" };
 
 const App = () => {
-  const [setupTab, setSetupTab] = useState("links");
   const [showPresets, setShowPresets] = useState(false);
-  const [config, setConfig] = useState<AppConfigState>(defaultConfig);
+  const [config, setConfigState] = useState<AppConfigState>(defaultConfig);
   const [campaignBuilder, setCampaignBuilder] = useState<CampaignBuilderState>(defaultCampaignBuilder);
 
   const [presetName, setPresetName] = useState("");
@@ -1132,6 +1130,25 @@ const App = () => {
   const [filterQuery, setFilterQuery] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
+  const inputRevision = useRef(0);
+
+  // Invalidate output in the same event as an input change, before another worker
+  // chunk or a save can associate old URLs with the new campaign inputs.
+  const setConfig = useCallback((next: React.SetStateAction<AppConfigState>) => {
+    inputRevision.current += 1;
+    if (activeRequestId.current) workerRef.current?.postMessage({ type: "cancel", requestId: activeRequestId.current });
+    activeRequestId.current = null;
+    activeRunKind.current = null;
+    setConfigState(next);
+    setRows([]);
+    setStatus("idle");
+    setErrors([]);
+    setWarnings([]);
+    setGeneratedCount(0);
+    setEstimatedTotal(0);
+    setParamKeys([]);
+    setFilterQuery("");
+  }, []);
 
   const csvMeta = useMemo(() => {
     const csvText = String(config.csvText || "");
@@ -1266,8 +1283,12 @@ const App = () => {
       const meta = (output as any).meta;
       if (!meta || typeof meta !== "object") return;
 
+      inputRevision.current += 1;
+      if (activeRequestId.current) workerRef.current?.postMessage({ type: "cancel", requestId: activeRequestId.current });
+      activeRequestId.current = null;
+      activeRunKind.current = null;
       if (meta.config) {
-        setConfig(mergeConfig(meta.config));
+        setConfigState(mergeConfig(meta.config));
       }
       if (meta.campaignBuilder) {
         setCampaignBuilder(mergeCampaignBuilder(meta.campaignBuilder));
@@ -1455,6 +1476,7 @@ const App = () => {
   }, [markSessionDirty, startWorker]);
 
   const runGeneration = useCallback(async (kind: "preview" | "full") => {
+    inputRevision.current += 1;
     const action = kind === "preview" ? "preview" : "generate";
     dispatchToolRunEvent("tools:run-start", { action });
     markSessionDirty();
@@ -1502,15 +1524,19 @@ const App = () => {
 
   const handleCsvUpload = async (file: File | null) => {
     if (!file) return;
+    setConfig((previous) => previous);
     if (file.size > UTM_MAX_CSV_BYTES) {
       setErrors([`CSV files must be ${Math.floor(UTM_MAX_CSV_BYTES / (1024 * 1024))} MB or smaller.`]);
       setStatus("error");
       return;
     }
+    const revision = ++inputRevision.current;
     try {
       const text = await file.text();
+      if (revision !== inputRevision.current) return;
       setConfig((prev) => ({ ...prev, csvText: text }));
     } catch (_) {
+      if (revision !== inputRevision.current) return;
       setErrors(["The CSV file could not be read."]);
       setStatus("error");
     }
@@ -1922,21 +1948,6 @@ const App = () => {
             )}
           </div>
 </div>
-          <div className="tool-workspace-tabs" role="tablist" aria-label="Campaign setup">
-            {SETUP_TABS.map((tab, index) => (
-              <button key={tab.id} id={`utmtool-tab-${tab.id}`} type="button" role="tab" aria-selected={setupTab === tab.id} aria-controls={`utmtool-panel-${tab.id}`} tabIndex={setupTab === tab.id ? 0 : -1} onClick={() => setSetupTab(tab.id)} onKeyDown={(event) => {
-                let next = index;
-                if (event.key === "ArrowRight") next = (index + 1) % SETUP_TABS.length;
-                else if (event.key === "ArrowLeft") next = (index - 1 + SETUP_TABS.length) % SETUP_TABS.length;
-                else if (event.key === "Home") next = 0;
-                else if (event.key === "End") next = SETUP_TABS.length - 1;
-                else return;
-                event.preventDefault();
-                setSetupTab(SETUP_TABS[next].id);
-                document.getElementById(`utmtool-tab-${SETUP_TABS[next].id}`)?.focus();
-              }}>{tab.label}</button>
-            ))}
-          </div>
             {csvMeta.hasCsv ? (
               <div className="utmtool-csv-chips" aria-label="CSV columns">
                 {csvMeta.columns.map((c) => (
@@ -1956,7 +1967,7 @@ const App = () => {
                 ))}
               </div>
             ) : null}
-          <div id="utmtool-panel-links" role="tabpanel" aria-labelledby="utmtool-tab-links" hidden={setupTab !== "links"}>
+          <div id="utmtool-panel-links">
           <div className="utmtool-card">
             <FieldEditor
               label="Landing pages"
@@ -1970,35 +1981,8 @@ const App = () => {
             />
           </div>
 
-          <div className="utmtool-card utmtool-csv-import">
-            <div className="utmtool-row utmtool-csv-upload-row">
-              <label className="visually-hidden" htmlFor="utmtool-csv-file">Import CSV</label>
-              <input
-                id="utmtool-csv-file"
-                className="utmtool-file-input"
-                type="file"
-                accept=".csv,text/csv"
-                aria-describedby="utmtool-csv-help"
-                onChange={(e) => handleCsvUpload(e.target.files?.[0] || null)}
-              />
-              {config.csvText ? <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setConfig((prev) => ({ ...prev, csvText: "" }))}
-              >
-                Clear CSV
-              </button> : null}
-            </div>
-            <p id="utmtool-csv-help" className="utmtool-help">
-              {csvMeta.hasCsv
-                ? `${countLabel(csvMeta.rowCount, "row")} · ${countLabel(csvMeta.columns.length, "column")}. Drag columns onto fields.`
-                : "Map CSV columns to campaign fields."}
-            </p>
-
           </div>
-
-          </div>
-          <div id="utmtool-panel-parameters" role="tabpanel" aria-labelledby="utmtool-tab-parameters" hidden={setupTab !== "parameters"}>
+          <div id="utmtool-panel-parameters">
           <div className="utmtool-card">
             <FieldEditor
               label="utm_source"
@@ -2050,7 +2034,43 @@ const App = () => {
               </div>
             </details>
           </div>
+          </div>
 
+          <details className="utmtool-inline-details utmtool-more-options">
+            <summary className="utmtool-inline-summary">More options</summary>
+            <div className="utmtool-inline-body">
+          <details className="utmtool-inline-details">
+            <summary className="utmtool-inline-summary">Import CSV</summary>
+            <div className="utmtool-inline-body">
+          <div className="utmtool-card utmtool-csv-import">
+            <div className="utmtool-row utmtool-csv-upload-row">
+              <label className="visually-hidden" htmlFor="utmtool-csv-file">Import CSV</label>
+              <input
+                id="utmtool-csv-file"
+                className="utmtool-file-input"
+                type="file"
+                accept=".csv,text/csv"
+                aria-describedby="utmtool-csv-help"
+                onChange={(e) => handleCsvUpload(e.target.files?.[0] || null)}
+              />
+              {config.csvText ? <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setConfig((prev) => ({ ...prev, csvText: "" }))}
+              >
+                Clear CSV
+              </button> : null}
+            </div>
+            <p id="utmtool-csv-help" className="utmtool-help">
+              {csvMeta.hasCsv
+                ? `${countLabel(csvMeta.rowCount, "row")} · ${countLabel(csvMeta.columns.length, "column")}. Drag columns onto fields.`
+                : "Map CSV columns to campaign fields."}
+            </p>
+
+          </div>
+
+            </div>
+          </details>
             <AccordionSection title="Custom parameters" defaultOpen={config.customParams.length > 0}>          <div className="utmtool-card">
             <div className="utmtool-card-head">
               <h3>Custom parameters</h3>
@@ -2155,8 +2175,9 @@ const App = () => {
             ) : null}
           </div>
 </AccordionSection>
-          </div>
-          <div id="utmtool-panel-rules" role="tabpanel" aria-labelledby="utmtool-tab-rules" hidden={setupTab !== "rules"}>
+          <details id="utmtool-panel-rules" className="utmtool-inline-details">
+            <summary className="utmtool-inline-summary">Combination rules &amp; formatting</summary>
+            <div className="utmtool-inline-body">
           <div className="utmtool-card">
             <h3>Combination mode</h3>
             <ModePicker
@@ -2283,12 +2304,13 @@ const App = () => {
             </div>
 
 </div></details>
-          </div>
+            </div>
+          </details>
+            </div>
+          </details>
           <div className="tool-workspace-summary">
             <strong>{countLabel(fieldCount(config.baseUrl), "page")} · {countLabel(fieldCount(config.utm.source), "source")} · {countLabel(fieldCount(config.utm.campaign), "campaign")}</strong>
             <span>{COMBINATION_LABELS[config.mode]}</span>
-            <span>Source: {summarizeFieldInput(config.utm.source, csvMeta.columns)}</span>
-            <span>Medium: {summarizeFieldInput(config.utm.medium, csvMeta.columns)} · Campaign: {summarizeFieldInput(config.utm.campaign, csvMeta.columns)}</span>
           </div>
           <div className="tool-workspace-actions utmtool-run-actions">
             <button type="button" className="btn-secondary" onClick={() => runGeneration("preview")} disabled={status === "generating"}>Preview ({Math.max(1, Math.floor(config.previewLimit || 10))})</button>
@@ -2310,7 +2332,7 @@ const App = () => {
               </div>
             </div>
 
-            <div className="utmtool-row">
+            {rows.length ? <div className="utmtool-row">
               <label className="utmtool-label" htmlFor="utmtool-filter">Search</label>
               <input
                 id="utmtool-filter"
@@ -2320,7 +2342,7 @@ const App = () => {
                 placeholder="Filter by URL or value..."
                 onChange={(e) => setFilterQuery(e.target.value)}
               />
-            </div>
+            </div> : null}
 
             {rows.length ? (
               <VirtualizedTable

@@ -54,7 +54,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "sentence-demo.html"
+      "url": "sentence-demo.html",
+      "heading": "Sentence Search",
+      "description": "Describe an idea to find related sentences in Alice in Wonderland."
     },
     "demoInstructions": {
       "lead": "Search a fixed Alice in Wonderland corpus by meaning, not exact wording.",
@@ -153,7 +155,9 @@ window.PROJECTS = [
       "url": "chatbot-demo.html",
       "fit": "viewport",
       "minHeight": 620,
-      "maxHeight": 860
+      "maxHeight": 860,
+      "heading": "Travel Assistant",
+      "description": "Explore Grand Junction with a source-grounded chat. Inputs and responses are saved on AWS."
     },
     "demoInstructions": {
       "lead": "Ask a question and get an answer grounded in the site content (with citations).",
@@ -249,7 +253,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "shape-demo.html"
+      "url": "shape-demo.html",
+      "heading": "Shape Classifier",
+      "description": "Draw a circle, triangle, square, hexagon, or octagon to see the model's prediction."
     },
     "demoInstructions": {
       "lead": "Draw one of the supported shapes and let the model classify it.",
@@ -301,12 +307,12 @@ window.PROJECTS = [
   {
     "id": "ufoDashboard",
     "title": "UFO Sightings Dashboard",
-    "subtitle": "Explore where and when UFO sightings have been reported.",
-    "metaDescription": "Explore a Tableau dashboard of reported UFO sightings by place and time, with project findings and context for interpreting report counts.",
+    "subtitle": "Explore where and when historical UFO reports were recorded.",
+    "metaDescription": "Explore historical UFO report records in Tableau, with geographic, seasonal, time-of-day, and reported-shape comparisons for the contiguous U.S.",
     "image": "img/projects/ufoDashboard.png",
     "iconImage": "img/projects/icons/ufoDashboard.png?v=ae6e397c2406",
-    "imageWidth": 2008,
-    "imageHeight": 1116,
+    "imageWidth": 1600,
+    "imageHeight": 1120,
     "tools": [
       "Tableau"
     ],
@@ -335,31 +341,32 @@ window.PROJECTS = [
       "base": "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013"
     },
     "demoInstructions": {
-      "lead": "Use the interactive Tableau dashboard to explore sightings by place, time, and shape.",
+      "lead": "Explore historical UFO reports.",
       "bullets": [
-        "Hover charts/maps for tooltips and quick readouts.",
-        "Click marks (states/cities/shapes) to filter and cross-highlight views.",
-        "Use Tableau controls to refine the slice you’re looking at.",
-        "Scroll to compare time-of-day and seasonality patterns across views."
+        "Use Overview, Places, Timing, Shapes, and About.",
+        "Year, state, and shape selections stay with you across tabs; select a mark to focus the charts.",
+        "Find definitions in About. Use Reset filters or Tableau Revert to start over."
       ]
     },
-    "problem": "I wanted to see patterns in UFO sighting reports across the U.S.",
-    "task": "Create a Tableau dashboard for exploring geographic, seasonal, and time-of-day patterns in reported UFO sightings.",
+    "problem": "I wanted to explore geographic and time patterns in a historical archive of UFO reports while keeping the limits of report counts clear.",
+    "task": "Create a Tableau dashboard for exploring report volume by location, month, recorded hour, and reported shape.",
     "actions": [
-      "Cleaned and standardized a public UFO sightings dataset.",
-      "Built a Tableau dashboard with maps and time-based charts."
+      "Prepared a historical UFO report dataset with recorded sighting dates from 1906 through May 2014.",
+      "Built geographic, time-based, and reported-shape comparisons in Tableau.",
+      "Defined the default view as the contiguous U.S. in 2013 and documented coverage and interpretation limits."
     ],
     "results": [
-      "In this dataset, reports are most common in the evening/night hours (and shift seasonally with daylight).",
-      "California has the most reports in the dataset, while many central states have fewer."
+      "The default 2013 view contains 6,334 report records across 48 states, with California contributing 653 (10.3%).",
+      "July has the most reports in that view: 810, or 12.8% of the total.",
+      "71.9% of reports in that view have recorded times from 18:00 through 23:59."
     ],
     "order": 4,
-    "notes": "The dashboard uses reported UFO sightings without population normalization, so patterns should be read as report volume, not incidence rates.",
+    "notes": "Historical archive through May 2014, not a current NUFORC feed. Counts represent report records and are not population-adjusted or independently verified events. Recorded hours have no documented timezone normalization.",
     "mobilePreview": {
-      "image": "img/projects/ufoDashboard-preview.webp?v=e114cab706b1",
+      "image": "img/projects/ufoDashboard-preview.webp?v=4d442797f7c3",
       "width": 1280,
-      "height": 800,
-      "alt": "UFO Sightings Dashboard showing state and city maps, sighting counts, shape trends, and a time-of-day heatmap."
+      "height": 896,
+      "alt": "UFO Sightings Dashboard showing report counts by location, reported shape, month, and recorded hour."
     },
     "relatedProjectId": "covidAnalysis"
   },
@@ -410,7 +417,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "covid-outbreak-demo.html"
+      "url": "covid-outbreak-demo.html",
+      "heading": "COVID Outbreak Drivers",
+      "description": "Explore historical ICU utilization and an experimental risk score by state and date."
     },
     "demoInstructions": {
       "lead": "Start with a state's historical ICU utilization and exploratory risk score, then explore the trend and map.",
@@ -522,7 +531,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "target-empty-package-demo.html"
+      "url": "target-empty-package-demo.html",
+      "heading": "Empty-package Recoveries",
+      "description": "Explore anonymized recovery records by location, department, and time."
     },
     "demoInstructions": {
       "lead": "Start with recorded retail value, incidents, average record value, and quarter change, then explore the trend and breakdowns.",
@@ -613,7 +624,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "handwriting-rating-demo.html"
+      "url": "handwriting-rating-demo.html",
+      "heading": "Handwriting Rating",
+      "description": "Draw a digit to see how the model recognizes it."
     },
     "demoInstructions": {
       "lead": "Draw a digit (0-9) or load a sample, then compare the model's guesses.",
@@ -721,14 +734,16 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "/digit-generator-demo"
+      "url": "/digit-generator-demo",
+      "heading": "Digit Generator",
+      "description": "Choose a digit and generate a collection of handwritten variations."
     },
     "demoInstructions": {
       "lead": "Generate a grid of synthetic digits and explore how the output morphs.",
       "bullets": [
-        "Use the blue “Number” control to choose Auto or a digit from 0–9.",
+        "Choose Auto or a digit from 0–9 with the Digit control.",
         "Click “Generate” to refresh the grid.",
-        "Open “Extra settings” to adjust seed, dim, grid density, minimum grid height, and distortion level.",
+        "Open “Advanced settings” below the grid to adjust grid size, seed, latent dimension, and distortion.",
         "Generate again to compare how settings change the outputs."
       ]
     },
@@ -1024,7 +1039,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "retail-loss-sales-demo.html"
+      "url": "retail-loss-sales-demo.html",
+      "heading": "Store Loss and Sales",
+      "description": "Explore monthly sales, compare incident hotspots, and follow shrink trends."
     },
     "demoInstructions": {
       "lead": "Start with sales, incident count, and shrink summaries; each metric shows its own source period and population.",
@@ -1107,7 +1124,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "pizza-tips-demo.html"
+      "url": "pizza-tips-demo.html",
+      "heading": "Pizza Tip Estimator",
+      "description": "Explore how delivery and order details affect the estimated tip."
     },
     "demoInstructions": {
       "lead": "Adjust an order and estimate its tip directly in your browser.",
@@ -1190,7 +1209,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "baby-names-demo.html"
+      "url": "baby-names-demo.html",
+      "heading": "Baby Name Predictor",
+      "description": "Explore my wife's name ratings and predicted favorites."
     },
     "demoInstructions": {
       "lead": "Start with the ratings summary, then explore favorites and predicted recommendations.",
@@ -1225,12 +1246,12 @@ window.PROJECTS = [
   {
     "id": "pizzaDashboard",
     "title": "Pizza Delivery Dashboard",
-    "subtitle": "Compare delivery zones, earnings, and timing to inform shift planning.",
-    "metaDescription": "Compare pizza delivery zones, earnings, and timing in an interactive dashboard built from delivery history to inform shift planning.",
+    "subtitle": "Explore recorded tips, city comparisons, and monthly delivery history.",
+    "metaDescription": "Explore 1,251 historical pizza delivery records in Tableau, with tip summaries, city comparisons, a tip distribution, and monthly delivery counts.",
     "image": "img/projects/pizzaDashboard.png",
     "iconImage": "img/projects/icons/pizzaDashboard.png?v=4e01e3d6a7f6",
-    "imageWidth": 1250,
-    "imageHeight": 1092,
+    "imageWidth": 1600,
+    "imageHeight": 1133,
     "tools": [
       "Tableau"
     ],
@@ -1254,36 +1275,35 @@ window.PROJECTS = [
       "base": "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
     },
     "demoInstructions": {
-      "lead": "Use the Tableau dashboard to compare delivery zones, tips, and timing.",
+      "lead": "Explore delivery history and estimate a tip.",
       "bullets": [
-        "Hover charts/maps to see exact values for the current filter state.",
-        "Click marks to cross-filter other views and isolate a zone or time period.",
-        "Use Tableau filters to narrow by date, city/zone, and other dimensions.",
-        "Scroll to review distributions and the forecast section."
+        "Use Overview, Timing, Trends, Weekday, Tip estimate, and About.",
+        "Date, city, and housing selections stay with you across tabs. Tip estimate uses order cost only.",
+        "Find definitions in About. Use Reset filters or Tableau Revert to start over."
       ]
     },
     "role": [
-      "Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting)."
+      "Prepared the delivery dataset and built the Tableau dashboard."
     ],
-    "problem": "I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.",
-    "task": "Create a Tableau dashboard that brings delivery-zone, earnings, timing, and forecast comparisons together for shift planning.",
+    "problem": "My delivery history contained useful tip information, but comparing cities and patterns across individual records was difficult.",
+    "task": "Create an interactive Tableau dashboard that makes historical tip patterns and delivery counts easier to compare.",
     "actions": [
-      "Reshaped about 12,000 delivery records into a Tableau-ready dataset with consistent dates, zones, housing categories, and tip KPIs.",
-      "Built map, distribution, filter, and 12-month forecast views for fast zone and timing comparison.",
-      "Designed the dashboard around decisions: where to work, what patterns explain tips, and how demand might change."
+      "Prepared 1,251 delivery records from July 2017 through September 2018 with dates, cities, housing categories, costs, and tips.",
+      "Built city comparisons, tip distributions, and monthly views with delivery counts to give averages context.",
+      "Added delivery-count, median-tip, and total-tip summaries, shared filters, and small-sample markers."
     ],
     "results": [
-      "Reduced delivery decision review from roughly five minutes to about one minute during planning.",
-      "Made zone, city, housing-type, tip-rate, and timing differences easier to compare in one view.",
-      "Added forecasting so the dashboard supports planning instead of only retrospective review."
+      "The recorded deliveries contain $8,933.49 in tips, with a $6.00 median and $7.14 average tip.",
+      "Brought city averages, the full tip distribution, and monthly tip and delivery history into one interactive view.",
+      "Made the uneven sample sizes visible: four of the seven cities have fewer than 30 recorded deliveries."
     ],
     "order": 14,
-    "notes": "Built from delivery history; tip efficiency should be interpreted with zone and timing context rather than average tip alone.",
+    "notes": "Historical personal delivery records, not current demand. The first and last months are partial. Delivery time is elapsed order-to-delivery time, not driver work hours; 34 records have zero elapsed minutes. Small city samples limit comparisons.",
     "mobilePreview": {
-      "image": "img/projects/pizzaDashboard-preview.webp?v=45ea8dbf7a11",
+      "image": "img/projects/pizzaDashboard-preview.webp?v=a104c065d30b",
       "width": 1280,
-      "height": 800,
-      "alt": "Pizza Delivery Dashboard showing delivery maps, tip distributions, forecasts, and order breakdowns."
+      "height": 906,
+      "alt": "Pizza Delivery Dashboard showing city comparisons, tip distributions, and delivery history."
     },
     "relatedProjectId": "deliveryTip"
   },
@@ -1334,7 +1354,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "nonogram-demo.html"
+      "url": "nonogram-demo.html",
+      "heading": "Nonogram Solver",
+      "description": "Watch an AI agent reveal a 5 × 5 picture from its row and column clues."
     },
     "demoInstructions": {
       "lead": "Generate a new Nonogram puzzle, then watch the agent solve it step-by-step.",
@@ -1413,7 +1435,9 @@ window.PROJECTS = [
     ],
     "embed": {
       "type": "iframe",
-      "url": "minesweeper-demo.html"
+      "url": "minesweeper-demo.html",
+      "heading": "Minesweeper AI Solver",
+      "description": "Watch an AI agent solve a 9 × 9 board, one move at a time."
     },
     "demoInstructions": {
       "lead": "Generate a Minesweeper board, then watch the agent solve it move-by-move.",

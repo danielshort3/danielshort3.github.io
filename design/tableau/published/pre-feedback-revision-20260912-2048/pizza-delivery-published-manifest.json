@@ -1,0 +1,22 @@
+{
+  "file": "design/tableau/published/pizza-delivery-published.twbx",
+  "sourceUrl": "https://public.tableau.com/workbooks/Pizza_Delivery.twb?showVizHome=no",
+  "downloadedAtUtc": "2026-09-12T17:32:30+00:00",
+  "sha256": "cf95c6f58ae19e02bcaecfd779b79f447f4951266fb1346d167aacdcc87d068c",
+  "files": [
+    {
+      "name": "Data/Extracts/federated_1enxy2v12gw5w218gu8fm1.hyper",
+      "bytes": 262144,
+      "sha256": "614f454d2f64b3de28ee7fae5d18eed3e712c9c474cf21a64e9323b72fbc5f52"
+    },
+    {
+      "name": "Pizza_Delivery.twb",
+      "bytes": 361274,
+      "sha256": "8b9c8c96e6f7806d924d72e727d3924bc9ee3c8319b4acba701416057845a623"
+    }
+  ],
+  "originalHyperSha256": {
+    "Data/Extracts/federated_1enxy2v12gw5w218gu8fm1.hyper": "614f454d2f64b3de28ee7fae5d18eed3e712c9c474cf21a64e9323b72fbc5f52"
+  },
+  "publishedHyperUnchanged": true
+}

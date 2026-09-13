@@ -1,0 +1,41 @@
+{
+  "createdAtUtc": "2026-09-12T13:46:18+00:00",
+  "source": "design/tableau/published",
+  "files": [
+    {
+      "name": "pizza-delivery-published-manifest.json",
+      "bytes": 867,
+      "sha256": "c7d502552d20855dcb864be7cdddfeedff4c5a009130052e92c7cf3dba267b95"
+    },
+    {
+      "name": "pizza-delivery-published.svg",
+      "bytes": 227975,
+      "sha256": "cd08a05a6bb7118e2411ef7b4184f47ffe494c8c9e5a1e1e7aa33d25c45e7a7b"
+    },
+    {
+      "name": "pizza-delivery-published.twbx",
+      "bytes": 121242,
+      "sha256": "2a3b8afa8e22b4158d4cc866ac0e558e274b61fa94b9cae2b307cc7d8836f6dc"
+    },
+    {
+      "name": "ufo-filter-qa-expectations.json",
+      "bytes": 1957,
+      "sha256": "136de5a3c04232d952b54fcac81fc38febccffed8d92532d5a3df5085aa11466"
+    },
+    {
+      "name": "ufo-sightings-published-manifest.json",
+      "bytes": 881,
+      "sha256": "418721b2ec6153c0a8ab3d1531b64a1318f0d3c0554bc511df7cb3c42877d32d"
+    },
+    {
+      "name": "ufo-sightings-published.svg",
+      "bytes": 489119,
+      "sha256": "1b38fc6a22e35ed4bd8c397b9abde32f7df05d503aafdc4a2941c5401e9c9cda"
+    },
+    {
+      "name": "ufo-sightings-published.twbx",
+      "bytes": 5156847,
+      "sha256": "24479c73f960a7024b7567199ce8bfead2cd7ff038f44220ef7e323e618ee277"
+    }
+  ]
+}

@@ -12,8 +12,6 @@
   const swapBtn = $('#textcompare-swap');
   const copyBtn = $('#textcompare-copy');
   const copyStatus = $('#textcompare-copy-status');
-  const originalPasteBtn = $('#textcompare-original-paste');
-  const revisedPasteBtn = $('#textcompare-revised-paste');
   const originalImportBtn = $('#textcompare-original-import');
   const revisedImportBtn = $('#textcompare-revised-import');
   const originalFileInput = $('#textcompare-original-file');
@@ -66,21 +64,24 @@
   let compareWorker = null;
   let workerUnavailable = false;
   let latestCompareRequestId = 0;
+  let refreshTimer = 0;
+  let comparisonStarted = false;
+  const legendEl = $('.textcompare-legend');
   const fields = {
     original: {
       textarea: originalEl,
-      pasteBtn: originalPasteBtn,
       importBtn: originalImportBtn,
       fileInput: originalFileInput,
       statusEl: originalStatusEl,
+      importRequestId: 0,
       sourceKind: 'text'
     },
     revised: {
       textarea: revisedEl,
-      pasteBtn: revisedPasteBtn,
       importBtn: revisedImportBtn,
       fileInput: revisedFileInput,
       statusEl: revisedStatusEl,
+      importRequestId: 0,
       sourceKind: 'text'
     }
   };
@@ -435,7 +436,6 @@
   const setFieldBusy = (fieldKey, busy) => {
     const field = fields[fieldKey];
     if (!field) return;
-    if (field.pasteBtn) field.pasteBtn.disabled = Boolean(busy);
     if (field.importBtn) field.importBtn.disabled = Boolean(busy);
     if (field.fileInput) field.fileInput.disabled = Boolean(busy);
   };
@@ -444,6 +444,20 @@
     setFieldStatus('original', '', '');
     setFieldStatus('revised', '', '');
   };
+
+  const cancelFieldImport = (fieldKey) => {
+    const field = fields[fieldKey];
+    field.importRequestId += 1;
+    if (field.fileInput) field.fileInput.value = '';
+    setFieldBusy(fieldKey, false);
+    setFieldStatus(fieldKey, '', '');
+  };
+
+  window.SiteRoutes?.addCleanup?.(() => {
+    Object.keys(fields).forEach(cancelFieldImport);
+    latestCompareRequestId += 1;
+    window.clearTimeout(refreshTimer);
+  });
 
   const normalizeInputText = (text) => String(text || '')
     .replace(/\u0000/g, '')
@@ -464,7 +478,9 @@
     field.textarea.dispatchEvent(new Event('input', { bubbles: true }));
     field.textarea.dispatchEvent(new Event('change', { bubbles: true }));
     markSessionDirty();
-    field.textarea.focus();
+    field.textarea.setSelectionRange?.(0, 0);
+    field.textarea.scrollTop = 0;
+    if (options?.focus !== false) field.textarea.focus({ preventScroll: true });
   };
 
   const decodeXmlEntities = (text) => String(text || '')
@@ -709,36 +725,12 @@
     return { text: await file.text(), warning: '', sourceKind: importType };
   };
 
-  const pasteIntoField = async (fieldKey) => {
-    const field = fields[fieldKey];
-    if (!field?.textarea) return;
-
-    setFieldBusy(fieldKey, true);
-    setFieldStatus(fieldKey, 'Reading clipboard…', 'info');
-
-    try {
-      if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
-        throw new Error('Clipboard read is unavailable.');
-      }
-      const clipboardText = normalizeInputText(await navigator.clipboard.readText());
-      if (!clipboardText.trim()) {
-        setFieldStatus(fieldKey, 'Clipboard is empty.', 'error');
-        return;
-      }
-      applyTextToField(fieldKey, clipboardText, { sourceKind: 'text' });
-      setFieldStatus(fieldKey, `Pasted ${clipboardText.length.toLocaleString('en-US')} characters.`, 'success');
-    } catch {
-      setFieldStatus(fieldKey, 'Clipboard access blocked. Use Ctrl/Cmd+V in the text box.', 'error');
-    } finally {
-      setFieldBusy(fieldKey, false);
-    }
-  };
-
   const importIntoField = async (fieldKey) => {
     const field = fields[fieldKey];
     const file = field?.fileInput?.files?.[0];
     if (!field?.textarea || !file) return;
 
+    const requestId = ++field.importRequestId;
     setFieldBusy(fieldKey, true);
     setFieldStatus(fieldKey, `Importing ${file.name}…`, 'info');
 
@@ -749,6 +741,7 @@
       }
 
       const parsed = await parseImportedFile(file);
+      if (requestId !== field.importRequestId) return;
       const importedText = normalizeImportedText(parsed.text);
       if (!importedText.trim()) {
         throw new Error('No readable text was found in this file.');
@@ -759,11 +752,14 @@
       const statusText = parsed.warning ? `${summary} ${parsed.warning}` : summary;
       setFieldStatus(fieldKey, statusText, parsed.warning ? 'info' : 'success');
     } catch (error) {
+      if (requestId !== field.importRequestId) return;
       const message = error instanceof Error ? error.message : 'Unable to import this file.';
       setFieldStatus(fieldKey, message, 'error');
     } finally {
-      if (field.fileInput) field.fileInput.value = '';
-      setFieldBusy(fieldKey, false);
+      if (requestId === field.importRequestId) {
+        if (field.fileInput) field.fileInput.value = '';
+        setFieldBusy(fieldKey, false);
+      }
     }
   };
 
@@ -783,13 +779,6 @@
     if (counts.replacements) parts.push(formatSummaryCount(counts.replacements, 'replacement'));
     if (counts.movedBlocks) parts.push(formatSummaryCount(counts.movedBlocks, 'moved block'));
     return `Changes: ${parts.join(' · ')}.`;
-  };
-
-  const getAutoModeNotice = (modeOverride, inferredMode) => {
-    if (modeOverride !== compareCore.MODES.AUTO) return '';
-    if (inferredMode === compareCore.MODES.STRUCTURED) return 'Auto mode used structured comparison.';
-    if (inferredMode === compareCore.MODES.DOCUMENT) return 'Auto mode used document comparison.';
-    return '';
   };
 
   const ensureCompareWorker = () => {
@@ -852,12 +841,12 @@
   const renderCompareResult = (result, revisedText, modeOverride, fallbackWarning) => {
     const warnings = [];
     if (Array.isArray(result?.warnings)) warnings.push(...result.warnings);
-    const autoNotice = getAutoModeNotice(modeOverride, result?.inferredMode);
-    if (autoNotice) warnings.unshift(autoNotice);
     if (fallbackWarning) warnings.push(fallbackWarning);
 
     lastRuns = result?.runs || [];
     lastRevisedText = revisedText;
+    if (copyBtn) copyBtn.disabled = !lastRuns.length;
+    if (legendEl) legendEl.hidden = !result?.counts?.hasChanges;
     outputEl.innerHTML = renderOutput(lastRuns) || '<p class="textcompare-empty">No output.</p>';
     summaryEl.textContent = formatCompareSummary(result?.counts);
     setWarningStatus(warnings.join(' '), warnings.length ? 'info' : '');
@@ -865,7 +854,11 @@
   };
 
   const runCompare = ({ reportOutcome = false } = {}) => {
-    if (reportOutcome) window.ToolWorkspace?.selectTab('textcompare-view-comparison', { focus: false });
+    window.clearTimeout(refreshTimer);
+    comparisonStarted = true;
+    lastRuns = null;
+    if (copyBtn) copyBtn.disabled = true;
+    if (legendEl) legendEl.hidden = true;
     setCopyStatus('');
     setWarningStatus('', '');
     markSessionDirty();
@@ -889,8 +882,8 @@
     }
 
     if (!original.trim() && !revised.trim()) {
-      summaryEl.textContent = 'Paste two drafts or load the example.';
-      setEmpty('Waiting for input.');
+      summaryEl.textContent = 'Changes appear here.';
+      setEmpty('Add both drafts, then compare.');
       lastRuns = null;
       lastRevisedText = '';
       latestCompareRequestId += 1;
@@ -929,6 +922,7 @@
 
     requestAnimationFrame(() => {
       void (async () => {
+        if (requestId !== latestCompareRequestId) return;
         let result = null;
         let fallbackWarning = '';
 
@@ -950,6 +944,7 @@
           try {
             result = await requestWorkerCompare(payload);
           } catch {
+            if (requestId !== latestCompareRequestId) return;
             workerUnavailable = true;
             try {
               compareWorker?.terminate();
@@ -982,12 +977,6 @@
   });
   applyPreviewStyle();
 
-  originalPasteBtn?.addEventListener('click', () => {
-    void pasteIntoField('original');
-  });
-  revisedPasteBtn?.addEventListener('click', () => {
-    void pasteIntoField('revised');
-  });
   originalImportBtn?.addEventListener('click', () => {
     originalFileInput?.click();
   });
@@ -1012,35 +1001,36 @@
   });
 
   exampleBtn?.addEventListener('click', () => {
-    window.ToolWorkspace?.selectTab('textcompare-view-drafts', { focus: false });
-    applyTextToField('original', ORIGINAL_EXAMPLE, { sourceKind: 'text' });
-    applyTextToField('revised', REVISED_EXAMPLE, { sourceKind: 'text' });
+    applyTextToField('original', ORIGINAL_EXAMPLE, { sourceKind: 'text', focus: false });
+    applyTextToField('revised', REVISED_EXAMPLE, { sourceKind: 'text', focus: false });
     clearFieldStatuses();
-    summaryEl.textContent = 'Example loaded. Click Compare to review the changes.';
-    setEmpty('Ready to compare.');
-    revisedEl.focus();
+    runCompare({ reportOutcome: true });
   });
 
   clearBtn?.addEventListener('click', () => {
-    window.ToolWorkspace?.selectTab('textcompare-view-drafts', { focus: false });
+    Object.keys(fields).forEach(cancelFieldImport);
+    window.clearTimeout(refreshTimer);
+    comparisonStarted = false;
+    if (copyBtn) copyBtn.disabled = true;
+    if (legendEl) legendEl.hidden = true;
     latestCompareRequestId += 1;
     originalEl.value = '';
     revisedEl.value = '';
     fields.original.sourceKind = 'text';
     fields.revised.sourceKind = 'text';
-    summaryEl.textContent = 'Paste two drafts or load the example.';
-    setEmpty('Waiting for input.');
+    summaryEl.textContent = 'Changes appear here.';
+    setEmpty('Add both drafts, then compare.');
     lastRuns = null;
     lastRevisedText = '';
     setCopyStatus('');
     setWarningStatus('', '');
     clearFieldStatuses();
     markSessionDirty();
-    updateWorkspaceSummary();
     originalEl.focus();
   });
 
   swapBtn?.addEventListener('click', () => {
+    Object.keys(fields).forEach(cancelFieldImport);
     const a = originalEl.value;
     const sourceKind = fields.original.sourceKind;
     originalEl.value = revisedEl.value;
@@ -1051,20 +1041,25 @@
   });
 
   copyBtn?.addEventListener('click', copyFormatted);
-  const updateWorkspaceSummary = () => {
-    const status = document.querySelector('[data-textcompare-ready]');
-    if (!status) return;
-    const ready = Boolean(originalEl.value.trim() && revisedEl.value.trim());
-    status.textContent = ready ? 'Ready to compare' : 'Paste both drafts to compare.';
-    const modeSummary = document.querySelector('[data-textcompare-mode-summary]');
-    if (modeSummary) {
-      const mode = getSelectedMode();
-      modeSummary.textContent = `${mode === 'structured' ? 'Structured' : mode === 'document' ? 'Document' : 'Auto'} mode · ${mode === 'structured' ? 'Compare line-oriented content' : 'Preserve paragraph boundaries'}`;
-    }
+  const queueComparison = () => {
+    latestCompareRequestId += 1;
+    window.clearTimeout(refreshTimer);
+    lastRuns = null;
+    lastRevisedText = '';
+    if (copyBtn) copyBtn.disabled = true;
+    if (legendEl) legendEl.hidden = true;
+    setCopyStatus('');
+    setWarningStatus('', '');
+    if (!comparisonStarted) return;
+    summaryEl.textContent = 'Updating comparison…';
+    setEmpty('Updating…');
+    refreshTimer = window.setTimeout(() => runCompare(), 450);
   };
-  [originalEl, revisedEl].forEach((input) => input.addEventListener('input', updateWorkspaceSummary));
-  modeInputs.forEach((input) => input.addEventListener('change', updateWorkspaceSummary));
-  updateWorkspaceSummary();
+  Object.entries(fields).forEach(([key, field]) => field.textarea.addEventListener('input', () => {
+    cancelFieldImport(key);
+    queueComparison();
+  }));
+  modeInputs.forEach((input) => input.addEventListener('change', queueComparison));
   const MAX_SAVED_OUTPUT_HTML_CHARS = 120_000;
   const MAX_SAVED_OUTPUT_TEXT_CHARS = 120_000;
 
@@ -1082,17 +1077,11 @@
     if (output?.kind !== 'text') return false;
     const text = String(output.text || '').trim();
     return Boolean(text) && ![
-      'Waiting for input.', 'Ready to compare.', 'No output.',
+      'Waiting for input.', 'Ready to compare.', 'No output.', 'Add both drafts, then compare.', 'Updating…',
       'Paste text in both boxes, then click Compare.', 'Comparing…',
       'Input too large.', 'Comparison failed. Please try smaller sections.'
     ].includes(text);
   };
-
-  document.addEventListener('tool:tab-change', (event) => {
-    if (['textcompare-view-drafts', 'textcompare-view-comparison'].includes(event?.detail?.panelId)) {
-      markSessionDirty();
-    }
-  });
 
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;
@@ -1102,13 +1091,6 @@
 
     const summary = String(summaryEl?.textContent || '').trim();
     payload.outputSummary = summary;
-    payload.inputs = {
-      ...payload.inputs,
-      view: $('#textcompare-view-tab-comparison')?.getAttribute('aria-selected') === 'true'
-        ? 'comparison'
-        : 'drafts'
-    };
-
     const html = String(outputEl?.innerHTML || '').trim();
     if (html && html.length <= MAX_SAVED_OUTPUT_HTML_CHARS) {
       payload.output = { kind: 'html', html, summary };
@@ -1125,12 +1107,23 @@
     if (detail?.toolId !== TOOL_ID) return;
     const snapshot = detail?.snapshot;
     const output = snapshot?.output;
-    updateWorkspaceSummary();
-    const savedView = snapshot?.inputs?.view;
-    const view = ['drafts', 'comparison'].includes(savedView)
-      ? savedView
-      : hasSavedComparison(output) ? 'comparison' : 'drafts';
-    window.ToolWorkspace?.selectTab(`textcompare-view-${view}`, { focus: false, notify: false });
+    // Legacy view preferences no longer hide drafts or results.
+    Object.keys(fields).forEach(cancelFieldImport);
+    window.clearTimeout(refreshTimer);
+    setCopyStatus('');
+    setWarningStatus('', '');
+    latestCompareRequestId += 1;
+    lastRuns = null;
+    lastRevisedText = '';
+    if (copyBtn) copyBtn.disabled = true;
+    if (legendEl) legendEl.hidden = true;
+    comparisonStarted = hasSavedComparison(output);
+    if (comparisonStarted && originalEl.value.trim() && revisedEl.value.trim()) {
+      runCompare();
+      return;
+    }
+    summaryEl.textContent = 'Changes appear here.';
+    setEmpty('Add both drafts, then compare.');
     if (!output || typeof output !== 'object') return;
 
     const summary = String(output.summary || '').trim();

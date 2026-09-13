@@ -446,7 +446,7 @@
       const pill = document.getElementById('health');
       if (pill) {
         pill.dataset.state = state;
-        pill.textContent = label;
+        pill.textContent = `AWS · ${label}`;
       }
       if (healthMeta) {
         healthMeta.textContent = detail || '';
@@ -475,13 +475,13 @@
       serverReady = false;
       if (submitBtn) submitBtn.disabled = true;
       if (healthCheckBtn) healthCheckBtn.disabled = true;
-      setHealth('warming', 'Preparing demo', 'Checking the demo connection...');
+      setHealth('warming', 'Connecting', 'Checking the demo connection...');
 
       const run = (async () => {
         try {
           await retryRequest(() => getJson(url), WARM_RETRY_OPTIONS);
           serverReady = true;
-          setHealth('ok', 'Ready', 'Ready to search.');
+          setHealth('ok', 'Connected', 'Ready to search.');
         } catch (e) {
           serverReady = false;
           setHealth('err', 'Unavailable', 'The demo is temporarily unavailable. Try reconnecting.');
@@ -523,20 +523,26 @@
       const top = Math.max(1, Math.min(20, parseInt(form.top.value || '5', 10)));
       form.submitBtn.disabled = true;
       form.submitBtn.textContent = 'Searching…';
+      document.getElementById('search-feedback').replaceChildren();
+      document.getElementById('results').setAttribute('aria-busy', 'true');
+      setHealth('loading', 'Searching', 'Searching the Alice in Wonderland corpus.');
       try {
         const url = joinUrl(getEndpoint(), 'rank');
         const data = await retryRequest(() => postJson(url, { query, top }), QUERY_RETRY_OPTIONS);
         renderResults(data || {});
+        setHealth('ok', 'Connected', 'Ready to search.');
       } catch (e) {
         if (isRecoverableRequestError(e)) {
           serverReady = false;
           if (submitBtn) submitBtn.disabled = true;
-          setHealth('warming', 'Preparing demo', 'Server is waking up or temporarily unavailable. Check status and retry.');
+          setHealth('err', 'Request failed', 'The search could not connect. Reconnect and try again.');
         }
+        else setHealth('err', 'Request failed', 'The search could not finish. Try again.');
         renderError(getErrorText(e));
       } finally {
         form.submitBtn.disabled = !serverReady;
-        form.submitBtn.textContent = 'Find Sentences';
+        form.submitBtn.textContent = 'Search';
+        document.getElementById('results').setAttribute('aria-busy', 'false');
       }
     }
 
@@ -587,7 +593,7 @@
     }
 
     function renderError(err) {
-      const out = document.getElementById('results');
+      const out = document.getElementById('search-feedback');
       out.innerHTML = '';
       const box = document.createElement('div');
       box.className = 'item';
@@ -650,62 +656,62 @@
   <meta property="og:description" content="Search a fixed Alice in Wonderland corpus by meaning, not exact wording, using precomputed sentence embeddings." />
   <meta property="og:type" content="website" />
 </head>
-<body class="demo-compact-workspace">
+<body class="demo-compact-workspace sentence-search-workspace">
 <a href="#main" class="skip-link">Skip to main content</a>
   <main id="main">
-  <div class="card" id="demo-card">
-    <header class="card-header">
+  <div class="card demo-surface demo-size-compact" id="demo-card">
+    <header class="card-header demo-surface-header">
       <div class="header-copy">
         <h1 class="title">Sentence Search</h1>
         <p class="subtitle">Search a fixed Alice in Wonderland corpus by meaning, not exact wording.</p>
       </div>
-      <div class="header-actions">
+      <div class="header-actions demo-status-actions">
         <div class="health-status" role="status" aria-live="polite">
-          <span id="health" class="health-pill aws-status-badge" data-state="warming">Preparing demo</span>
+          <span id="health" class="health-pill aws-status-badge" data-state="warming">AWS · Connecting</span>
         </div>
       </div>
     </header>
     <div class="sentence-workspace demo-workspace">
-    <section class="section" aria-labelledby="search-heading">
-      <h2 id="search-heading" class="demo-section-label">Describe an idea</h2>
+    <section class="section" aria-label="Search the corpus">
       <form id="form">
-        <div>
-          <label for="query">What are you looking for?</label>
-          <input id="query" name="query" type="text" placeholder="Example: She wonders about things." data-example-query="She wonders about things." />
-          <p class="small">Find passages with a similar meaning in Alice in Wonderland.</p>
+        <div class="sentence-query-row">
+          <div class="sentence-query-field">
+            <label for="query">Describe an idea</label>
+            <input id="query" name="query" type="text" placeholder="Example: She wonders about things." data-example-query="She wonders about things." aria-describedby="corpus-context" />
+          </div>
+          <button type="submit" name="submitBtn" class="btn">Search</button>
         </div>
+        <p id="corpus-context" class="small">Find passages with a similar meaning in Alice in Wonderland.</p>
         <div class="example-queries" aria-label="Example searches">
           <button type="button" class="btn-secondary" data-query-example="She wonders about things.">Curiosity</button>
           <button type="button" class="btn-secondary" data-query-example="A rabbit is in a hurry.">A hurried rabbit</button>
           <button type="button" class="btn-secondary" data-query-example="A very strange tea party.">A strange tea party</button>
         </div>
-        <div class="actions">
-          <button type="submit" name="submitBtn" class="btn">Find Sentences</button>
-        </div>
-        <details class="demo-disclosure">
-          <summary>Search settings and connection</summary>
-          <div class="search-settings">
-          <div class="range-row">
+      </form>
+      <div id="search-feedback" role="status" aria-live="polite"></div>
+    </section>
+    <section class="section sentence-results" aria-labelledby="results-heading">
+      <h2 id="results-heading" class="demo-section-label">Matching sentences</h2>
+      <div id="results" class="results" aria-live="polite">
+        <div class="demo-empty-state">Choose an example or describe an idea to find matching passages.</div>
+      </div>
+    </section>
+    <details class="demo-disclosure sentence-advanced">
+      <summary>Advanced settings</summary>
+      <div class="search-settings">
+        <div class="range-row">
           <div class="range-head">
             <label for="top">Top results</label>
             <span><span id="top-value">5</span> of 20</span>
           </div>
-          <input id="top" name="top" type="range" min="1" max="20" step="1" value="5" aria-label="Top results" />
-          </div>
-          <span id="health-text" class="health-meta" role="status" aria-live="polite">Checking the demo connection...</span>
-          <div class="health-actions">
-            <button id="health-check" class="btn-secondary" type="button">Reconnect demo</button>
-          </div>
-          </div>
-        </details>
-      </form>
-    </section>
-    <section class="section" aria-labelledby="results-heading">
-      <h2 id="results-heading" class="demo-section-label">Matching sentences</h2>
-      <div id="results" class="results" aria-live="polite">
-        <div class="demo-empty-state">Choose an example or describe an idea. Matching passages and their similarity scores will appear here.</div>
+          <input id="top" name="top" form="form" type="range" min="1" max="20" step="1" value="5" aria-label="Top results" />
+        </div>
+        <span id="health-text" class="health-meta" role="status" aria-live="polite">Checking the demo connection...</span>
+        <div class="health-actions">
+          <button id="health-check" class="btn-secondary" type="button">Reconnect demo</button>
+        </div>
       </div>
-    </section>
+    </details>
     </div>
   </div>
   </main>

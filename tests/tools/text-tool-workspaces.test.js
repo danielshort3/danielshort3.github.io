@@ -123,6 +123,8 @@ function harness(slug) {
   Object.assign(window, {
     location: new URL(`https://example.test/tools/${slug}`),
     localStorage: { getItem: (key) => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: (key) => storage.delete(key) },
+    setTimeout: () => 1,
+    clearTimeout() {},
     matchMedia: () => ({ matches: false }),
     TextCompareCore: require('../../js/tools/text-compare-core.js')
   });
@@ -137,6 +139,9 @@ function harness(slug) {
 
 async function run() {
   const compare = harness('text-compare');
+  assert.strictEqual(compare.document.querySelectorAll('[data-workspace-tab]').length, 0, 'Text Compare uses one continuous workspace without view tabs');
+  assert.strictEqual(compare.get('textcompare-view-comparison').hidden, false, 'the comparison section is present before processing');
+  assert.strictEqual(compare.get('textcompare-copy').disabled, true, 'empty output cannot be copied');
   assert.strictEqual(compare.document.body.style['--textcompare-ins-bg'], '#DDF2EC', 'fresh comparisons use the soft insertion highlight');
   assert.strictEqual(compare.document.body.style['--textcompare-del-bg'], '#FBE4E8', 'fresh comparisons use the soft deletion highlight');
   compare.fill('textcompare-ins-bg', '#C0FFEE');
@@ -147,20 +152,29 @@ async function run() {
   compare.fire(compare.get('textcompare-form'), 'submit');
   await Promise.resolve();
   await Promise.resolve();
-  assert.strictEqual(compare.get('textcompare-view-comparison').hidden, false, 'Compare opens the result');
+  assert.strictEqual(compare.get('textcompare-view-comparison').hidden, false, 'Compare keeps the result visible below the drafts');
   assert(compare.get('textcompare-summary').textContent.includes('word'), 'real comparison still returns a summary');
-  compare.window.ToolWorkspace.selectTab('textcompare-view-drafts');
   assert.strictEqual(compare.get('textcompare-original').value, 'Ship the draft on Monday.');
-  assert.strictEqual(compare.get('textcompare-original').scrollTop, 42, 'changing views preserves editor scrolling');
+  assert.strictEqual(compare.get('textcompare-original').scrollTop, 42, 'comparing preserves editor scrolling');
+  assert.strictEqual(compare.get('textcompare-copy').disabled, false, 'computed output can be copied');
   compare.fire(compare.get('textcompare-clear'), 'click');
-  assert.strictEqual(compare.get('textcompare-view-drafts').hidden, false);
+  assert.strictEqual(compare.get('textcompare-original').hidden, false);
+  assert.strictEqual(compare.get('textcompare-revised').hidden, false);
+  assert.strictEqual(compare.get('textcompare-view-comparison').hidden, false);
+  assert.strictEqual(compare.get('textcompare-copy').disabled, true);
   assert.strictEqual(compare.get('textcompare-original').value, '');
-  compare.fire(compare.document, 'tools:session-applied', { detail: { toolId: 'text-compare', snapshot: { output: { kind: 'html', html: '<p>Saved comparison</p>', summary: 'Saved draft changes' } } } });
-  assert.strictEqual(compare.get('textcompare-view-comparison').hidden, false, 'restoring a saved comparison opens its result');
-  assert.strictEqual(compare.get('textcompare-summary').textContent, 'Saved draft changes');
+  compare.get('textcompare-original').value = 'Saved original draft.';
+  compare.get('textcompare-revised').value = 'Saved revised draft.';
+  compare.fire(compare.document, 'tools:session-applied', { detail: { toolId: 'text-compare', snapshot: { inputs: { view: 'comparison' }, output: { kind: 'html', html: '<p>Saved comparison</p>', summary: 'Saved draft changes' } } } });
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.strictEqual(compare.get('textcompare-view-comparison').hidden, false, 'restoring legacy view metadata keeps the result visible');
+  assert.strictEqual(compare.get('textcompare-original').value, 'Saved original draft.', 'restoration retains the editable drafts');
   assert.strictEqual(compare.get('textcompare-ins-bg').value, '#C0FFEE', 'restored output preserves the selected formatting');
 
   const frequency = harness('word-frequency');
+  assert.strictEqual(frequency.document.querySelectorAll('[role="tab"]').length, 0, 'frequency keeps input and results together');
+  assert.strictEqual(frequency.get('wordfreq-paste'), null, 'native paste needs no extra button');
   frequency.fill('wordfreq-text', 'Handoff handoff handoff. Support support.');
   frequency.fire(frequency.get('wordfreq-form'), 'submit');
   const term = frequency.get('wordfreq-results').querySelector('.wordfreq-term-btn');
@@ -168,54 +182,71 @@ async function run() {
   assert.strictEqual(frequency.get('wordfreq-results').querySelector('.wordfreq-count').textContent, '3');
   assert.strictEqual(frequency.get('wordfreq-results').querySelector('.wordfreq-score').hidden, true, 'frequency does not repeat the same count');
   frequency.fire(term, 'click');
-  assert.strictEqual(frequency.get('wordfreq-results-occurrences').hidden, false);
+  assert.strictEqual(frequency.get('wordfreq-results-terms').hidden, false, 'inspection keeps the term list visible');
+  assert.strictEqual(frequency.get('wordfreq-results-occurrences').open, true, 'selecting a term opens contextual occurrences');
   assert(frequency.get('wordfreq-occurrence-summary').textContent.includes('3 matches'));
-  frequency.window.ToolWorkspace.selectTab('wordfreq-results-fulltext');
   assert(frequency.get('wordfreq-fulltext').querySelector('.is-selected'), 'selected term remains highlighted in full text');
-  frequency.window.ToolWorkspace.selectTab('wordfreq-results-terms');
-  assert(frequency.get('wordfreq-results').querySelector('.is-selected'), 'selected result survives switching views');
   frequency.get('wordfreq-score').value = 'share';
   frequency.fire(frequency.get('wordfreq-score'), 'change');
   assert.strictEqual(frequency.get('wordfreq-results').querySelector('.wordfreq-score').hidden, false, 'non-count scores remain visible');
-  frequency.fire(frequency.get('wordfreq-clear'), 'click');
-  frequency.window.ToolWorkspace.selectTab('wordfreq-results-occurrences');
-  assert.strictEqual(frequency.get('wordfreq-occurrence-panel').hidden, false, 'empty tab retains explanatory content');
-  assert(frequency.get('wordfreq-occurrence-summary').textContent.includes('Select a term'));
-  frequency.get('wordfreq-text').value = 'Review review review.';
+  frequency.fill('wordfreq-text', 'Review review review.');
+  assert(frequency.get('wordfreq-copy').disabled, 'changed inputs cannot copy stale results');
+  assert(frequency.get('wordfreq-export-csv').disabled, 'changed inputs cannot export stale results');
+  assert(frequency.get('wordfreq-summary').textContent.includes('Inputs changed'));
   frequency.fire(frequency.document, 'tools:session-applied', { detail: { toolId: 'word-frequency' } });
   assert.strictEqual(frequency.get('wordfreq-results').querySelector('.wordfreq-count').textContent, '3', 'restored inputs regenerate frequency results');
+  assert.strictEqual(frequency.get('wordfreq-copy').disabled, false);
+  frequency.fire(frequency.get('wordfreq-clear'), 'click');
+  assert.strictEqual(frequency.get('wordfreq-results-occurrences').open, false, 'clearing closes previous inspection');
 
   const pov = harness('point-of-view-checker');
+  assert.strictEqual(pov.document.querySelectorAll('[role="tab"]').length, 0, 'POV keeps input and highlighted results together');
+  assert.strictEqual(pov.get('povcheck-paste'), null);
   assert.strictEqual(pov.get('povcheck-stats').hidden, true, 'empty counts are not presented as analyzed results');
   pov.fill('povcheck-text', 'I reviewed the draft. You can share it. They will review the final version.');
   pov.fire(pov.get('povcheck-form'), 'submit');
   assert.strictEqual(pov.get('povcheck-stats').hidden, false);
   assert.strictEqual(pov.get('povcheck-first-count').textContent, '1');
   assert.strictEqual(pov.get('povcheck-second-count').textContent, '1');
-  pov.window.ToolWorkspace.selectTab('povcheck-results-drift');
   const sentence = pov.get('povcheck-drift-list').querySelector('button');
   pov.fire(sentence, 'click');
-  assert.strictEqual(pov.get('povcheck-results-highlights').hidden, false, 'sentence navigation reveals its highlighted target');
-  pov.window.ToolWorkspace.selectTab('povcheck-results-tokens');
+  assert.strictEqual(pov.get('povcheck-results-highlights').hidden, false, 'sentence inspection keeps highlights visible');
   pov.fire(pov.get('povcheck-first-list').querySelector('button'), 'click');
-  assert.strictEqual(pov.get('povcheck-results-highlights').hidden, false, 'token navigation reveals highlighted text');
-  pov.window.ToolWorkspace.selectTab('povcheck-setup-rules');
+  assert.strictEqual(pov.get('povcheck-results-highlights').hidden, false, 'token inspection keeps highlights visible');
   pov.get('povcheck-mode-basic').checked = false;
   pov.get('povcheck-mode-advanced').checked = true;
   pov.fire(pov.get('povcheck-mode-advanced'), 'change');
   assert.strictEqual(pov.get('povcheck-advanced-panel').hidden, false);
   assert(pov.get('povcheck-settings-summary').textContent.includes('Advanced rules'));
-  pov.fire(pov.get('povcheck-clear'), 'click');
-  assert.strictEqual(pov.get('povcheck-setup-text').hidden, false);
-  assert.strictEqual(pov.get('povcheck-stats').hidden, true);
-  pov.get('povcheck-text').value = 'We reviewed the draft.';
+  pov.fill('povcheck-text', 'We reviewed the draft.');
+  assert(pov.get('povcheck-copy-results').disabled, 'changed text cannot copy stale results');
+  assert(pov.get('povcheck-summary').textContent.includes('Text changed'));
   pov.fire(pov.document, 'tools:session-applied', { detail: { toolId: 'point-of-view-checker' } });
   assert.strictEqual(pov.get('povcheck-first-count').textContent, '1', 'restored POV text rebuilds the count strip');
   assert(pov.get('povcheck-settings-summary').textContent.includes('4 words'), 'restored text updates the setup summary');
+  pov.fire(pov.get('povcheck-clear'), 'click');
+  assert.strictEqual(pov.get('povcheck-stats').hidden, true);
+
+  const nbsp = harness('nbsp-cleaner');
+  assert.strictEqual(nbsp.document.querySelectorAll('[role="tab"]').length, 0, 'cleaned text is always the primary result');
+  assert.strictEqual(nbsp.get('nbsp-paste'), null);
+  nbsp.fill('nbsp-input', 'A\u00a0B café');
+  nbsp.fire(nbsp.get('nbsp-form'), 'submit');
+  assert.strictEqual(nbsp.get('nbsp-output').value, 'A B café', 'default cleaning preserves accents');
+  assert.strictEqual(nbsp.get('nbsp-copy').disabled, false);
+  assert(nbsp.get('nbsp-preview').closest('details'), 'markers and counts share optional character details');
+  assert.strictEqual(nbsp.get('nbsp-output').closest('details'), null, 'cleaned output stays outside optional details');
+  nbsp.get('nbsp-strip-nonascii').checked = true;
+  nbsp.fire(nbsp.get('nbsp-strip-nonascii'), 'change');
+  assert.strictEqual(nbsp.get('nbsp-output').value, 'A B caf', 'explicit character-removal option still works');
+  nbsp.fill('nbsp-input', 'New text');
+  assert.strictEqual(nbsp.get('nbsp-copy').disabled, true, 'changed source cannot copy old cleaned text');
+  assert.strictEqual(nbsp.get('nbsp-output').value, '');
+  nbsp.fire(nbsp.document, 'tools:session-applied', { detail: { toolId: 'nbsp-cleaner' } });
+  assert.strictEqual(nbsp.get('nbsp-output').value, 'New text', 'restored inputs regenerate cleaned output');
 
   for (const current of [compare, frequency, pov]) {
     assert.strictEqual(current.document.querySelectorAll('[data-tool-share-link]').length, 1, 'one deliberate share location');
-    assert(current.html.indexOf('js/tools/tool-workspace.js') < current.html.lastIndexOf('js/tools/'), 'shared tabs initialize before the entry script');
     current.document.querySelectorAll('[data-workspace-tab]').forEach((tab) => {
       const panel = current.get(tab.getAttribute('aria-controls'));
       assert(panel && panel.getAttribute('aria-labelledby') === tab.id, 'tab and panel have matching accessible labels');

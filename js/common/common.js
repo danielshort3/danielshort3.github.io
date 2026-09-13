@@ -2356,11 +2356,12 @@
 
   const syncProjectEmbedLoading = (root = document) => {
     root.querySelectorAll('.project-embed[data-embed-fit="content"] .project-embed-frame, .project-embed[data-embed-fit="dashboard"] .project-embed-frame').forEach((ifr) => {
-      const currentSrc = ifr.getAttribute('src');
+      let currentSrc = ifr.getAttribute('src');
       const deferredSrc = ifr.getAttribute('data-src');
       const embed = projectEmbedForFrame(ifr);
+      const embedStyle = embed ? window.getComputedStyle(embed) : null;
       const useLaunchCard = projectEmbedFit(ifr) === 'dashboard'
-        ? !embed || window.getComputedStyle(embed).display === 'none' || embed.getBoundingClientRect().width <= 0
+        ? !embed || embedStyle.display === 'none' || embed.getBoundingClientRect().width <= 0
         : projectEmbedMobileMedia?.matches === true;
 
       if (useLaunchCard) {
@@ -2371,6 +2372,36 @@
         try { ifr._projectEmbedResizeObserver?.disconnect(); } catch {}
         ifr._projectEmbedResizeObserver = null;
         return;
+      }
+
+      const dashboardDefaultSrc = ifr.getAttribute('data-dashboard-default-src');
+      if (dashboardDefaultSrc) {
+        // Use the same container breakpoint as the CSS. Native Phone canvases
+        // need a fresh render when their width changes; height-only changes do not.
+        const device = embedStyle.getPropertyValue('--project-tableau-device').trim() === 'phone' ? 'phone' : 'desktop';
+        const width = Math.round(ifr.getBoundingClientRect().width);
+        clearTimeout(ifr._projectDashboardResizeTimer);
+        ifr._projectDashboardResizeTimer = 0;
+        const loadDashboard = (source) => {
+          const url = new URL(source, document.baseURI);
+          url.searchParams.set(':device', device);
+          ifr._projectDashboardWidth = Math.round(ifr.getBoundingClientRect().width);
+          ifr.setAttribute('data-dashboard-device', device);
+          ifr.setAttribute('src', url.href);
+          ifr.removeAttribute('data-src');
+          return url.href;
+        };
+        const deviceChanged = ifr.getAttribute('data-dashboard-device') !== device;
+        if (!currentSrc) {
+          currentSrc = loadDashboard(dashboardDefaultSrc);
+        } else if (deviceChanged || (device === 'phone' && width !== ifr._projectDashboardWidth)) {
+          ifr._projectDashboardResizeTimer = setTimeout(() => {
+            ifr._projectDashboardResizeTimer = 0;
+            if (ifr.isConnected && ifr._projectEmbedLoadingBound) {
+              loadDashboard(deviceChanged ? dashboardDefaultSrc : (ifr.getAttribute('src') || dashboardDefaultSrc));
+            }
+          }, 200);
+        }
       }
 
       if (!currentSrc && deferredSrc) {
@@ -2425,6 +2456,9 @@
       ifr._projectEmbedLoadingObserver = null;
       ifr._projectEmbedLoadingFrame = 0;
       ifr._projectEmbedLoadingBound = false;
+      clearTimeout(ifr._projectDashboardResizeTimer);
+      ifr._projectDashboardResizeTimer = 0;
+      ifr._projectDashboardWidth = 0;
     });
   };
 
@@ -2513,10 +2547,13 @@
     } else if (module === 'search:search') {
       if (!window.SiteSearch) await loadScriptOnce('js/search/site-search.js');
       await window.SiteSearch?.preload(context);
-    } else if (module === 'page:content'
-      && root?.querySelector('[data-project-image-comparison]')
-      && !window.ProjectImageComparisons) {
-      await loadScriptOnce('js/portfolio/project-image-comparison.js');
+    } else if (module === 'page:content') {
+      if (root?.querySelector('[data-project-image-comparison]') && !window.ProjectImageComparisons) {
+        await loadScriptOnce('js/portfolio/project-image-comparison.js');
+      }
+      if (root?.querySelector('[data-dashboard-reset]') && !window.TableauControls) {
+        await loadScriptOnce('js/portfolio/tableau-controls.js');
+      }
     }
   };
   window.SiteContent = Object.freeze({ mount: mountSharedContent, preload: preloadSharedContent });
@@ -2525,9 +2562,14 @@
       preload(context) { return preloadSharedContent('page:content', context); },
       async mount(context) {
         mountSharedContent(context);
-        if (!context.root.querySelector('[data-project-image-comparison]')) return;
-        if (!window.ProjectImageComparisons) await loadScriptOnce('js/portfolio/project-image-comparison.js');
-        if (!context.signal.aborted) context.cleanup(window.ProjectImageComparisons.mount(context.root));
+        if (context.root.querySelector('[data-project-image-comparison]')) {
+          if (!window.ProjectImageComparisons) await loadScriptOnce('js/portfolio/project-image-comparison.js');
+          if (!context.signal.aborted) context.cleanup(window.ProjectImageComparisons.mount(context.root));
+        }
+        if (context.root.querySelector('[data-dashboard-reset]')) {
+          if (!window.TableauControls) await loadScriptOnce('js/portfolio/tableau-controls.js');
+          if (!context.signal.aborted) context.cleanup(window.TableauControls.mount(context.root));
+        }
       }
     });
     window.SiteRoutes.register('portfolio:workbench', {

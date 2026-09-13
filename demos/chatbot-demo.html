@@ -986,53 +986,21 @@
     })();
   </script>
 
-  <main class="demo-root demo-workspace" id="main">
-    <header class="demo-toolbar">
+  <main class="demo-root demo-workspace demo-surface demo-size-drawing chatbot-workspace" id="main">
+    <header class="demo-toolbar demo-surface-header">
       <div class="demo-title">
         <h1>Travel Assistant</h1>
         <p>Explore Grand Junction with a source-grounded chat. Inputs and responses are saved on AWS.</p>
       </div>
-      <div class="server-control" id="server-control" role="status" aria-live="polite">
-        <span class="server-dot off" id="server-dot" aria-hidden="true"></span>
+      <div class="demo-scope-controls">
         <button class="warmup-button" id="warmup-button" type="button">Prepare demo</button>
       </div>
-      <details class="demo-settings demo-disclosure" id="chat-settings">
-        <summary>Settings</summary>
-        <div class="demo-settings-panel">
-          <label class="backend-select-wrap" for="backend-select">
-            Backend
-            <select id="backend-select" aria-label="Chat backend">
-              <option value="qwen-sagemaker">Qwen / SageMaker</option>
-              <option value="bedrock">Bedrock</option>
-            </select>
-          </label>
-          <div>
-            <p class="demo-section-label">Presentation</p>
-            <div class="view-tabs" role="tablist" aria-label="Chatbot view">
-              <button class="view-tab active" id="regular-view-button" type="button" role="tab" aria-selected="true" aria-controls="regular-view" data-view="regular">Regular</button>
-              <button class="view-tab" id="popup-view-button" type="button" role="tab" aria-selected="false" aria-controls="popup-view" data-view="popup">Pop-up</button>
-            </div>
-          </div>
-          <button class="clear-button" id="regular-clear" type="button">Clear conversation</button>
-          <details class="timer-details" id="timer-details">
-            <summary class="timer" id="server-timer" data-timer-mode="idle" aria-label="Server timer inactive">
-              <span class="timer-label" id="server-timer-label">Idle</span>
-              <span class="timer-ring" aria-hidden="true">
-                <span class="timer-value" id="server-timer-value">--</span>
-              </span>
-            </summary>
-            <div class="timer-detail-panel" id="timer-detail-panel">
-              <div class="timer-detail-row"><span>Status</span><strong id="server-text">Server off</strong></div>
-              <div class="timer-detail-row"><span>Stage</span><strong id="server-stage">Ready to start on demand.</strong></div>
-              <div class="timer-detail-row"><span>Endpoint</span><strong id="server-detail-endpoint">Unknown</strong></div>
-              <div class="timer-detail-row"><span>Instances</span><strong id="server-detail-instances">0 current / 0 desired</strong></div>
-              <div class="timer-detail-row"><span>Warm ETA</span><strong id="server-detail-warm">--</strong></div>
-              <div class="timer-detail-row"><span>Shutoff ETA</span><strong id="server-detail-shutoff">--</strong></div>
-              <div class="timer-detail-row"><span>Basis</span><strong id="server-detail-basis">Local status check</strong></div>
-            </div>
-      </details>
+      <div class="demo-status-actions">
+        <div class="server-control" id="server-control" role="status" aria-live="polite">
+          <span class="server-dot off" id="server-dot" aria-hidden="true" hidden></span>
+          <span class="health-pill aws-status-badge" id="chat-connection-pill" data-state="warming">AWS · Checking</span>
         </div>
-      </details>
+      </div>
     </header>
 
     <dialog class="startup-notice" id="qwen-startup-notice" aria-labelledby="qwen-startup-title">
@@ -1098,6 +1066,43 @@
         </div>
       </section>
     </div>
+    <details class="demo-settings demo-disclosure" id="chat-settings">
+        <summary>Advanced settings</summary>
+        <div class="demo-settings-panel">
+          <label class="backend-select-wrap" for="backend-select">
+            Backend
+            <select id="backend-select" aria-label="Chat backend">
+              <option value="qwen-sagemaker">Qwen / SageMaker</option>
+              <option value="bedrock">Bedrock</option>
+            </select>
+          </label>
+          <div>
+            <p class="demo-section-label">Presentation</p>
+            <div class="view-tabs" role="tablist" aria-label="Chatbot view">
+              <button class="view-tab active" id="regular-view-button" type="button" role="tab" aria-selected="true" aria-controls="regular-view" data-view="regular">Regular</button>
+              <button class="view-tab" id="popup-view-button" type="button" role="tab" aria-selected="false" aria-controls="popup-view" data-view="popup">Pop-up</button>
+            </div>
+          </div>
+          <button class="clear-button" id="regular-clear" type="button">Clear conversation</button>
+          <details class="timer-details" id="timer-details">
+            <summary class="timer" id="server-timer" data-timer-mode="idle" aria-label="Server timer inactive">
+              <span class="timer-label" id="server-timer-label">Idle</span>
+              <span class="timer-ring" aria-hidden="true">
+                <span class="timer-value" id="server-timer-value">--</span>
+              </span>
+            </summary>
+            <div class="timer-detail-panel" id="timer-detail-panel">
+              <div class="timer-detail-row"><span>Status</span><strong id="server-text">Server off</strong></div>
+              <div class="timer-detail-row"><span>Stage</span><strong id="server-stage">Ready to start on demand.</strong></div>
+              <div class="timer-detail-row"><span>Endpoint</span><strong id="server-detail-endpoint">Unknown</strong></div>
+              <div class="timer-detail-row"><span>Instances</span><strong id="server-detail-instances">0 current / 0 desired</strong></div>
+              <div class="timer-detail-row"><span>Warm ETA</span><strong id="server-detail-warm">--</strong></div>
+              <div class="timer-detail-row"><span>Shutoff ETA</span><strong id="server-detail-shutoff">--</strong></div>
+              <div class="timer-detail-row"><span>Basis</span><strong id="server-detail-basis">Local status check</strong></div>
+            </div>
+      </details>
+        </div>
+      </details>
   </main>
 
   <script src="js/demos/aws-client.js"></script>
@@ -1154,6 +1159,7 @@
     };
 
     const serverDot = document.getElementById('server-dot');
+    const connectionPill = document.getElementById('chat-connection-pill');
     const serverText = document.getElementById('server-text');
     const serverStage = document.getElementById('server-stage');
     const serverTimer = document.getElementById('server-timer');
@@ -1420,6 +1426,8 @@
 
     function setServerVisual(mode, text, stage = '') {
       serverDot.className = `server-dot ${mode}`;
+      connectionPill.dataset.state = mode === 'ready' ? 'ok' : mode === 'starting' ? 'warming' : 'idle';
+      connectionPill.textContent = `AWS · ${mode === 'ready' ? 'Ready' : mode === 'starting' ? 'Starting' : 'Standby'}`;
       serverText.textContent = text;
       serverStage.textContent = stage;
       if (mode === 'off') setTimerDisplay({ mode: 'idle' });

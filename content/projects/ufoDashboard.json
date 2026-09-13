@@ -1,12 +1,12 @@
 {
   "id": "ufoDashboard",
   "title": "UFO Sightings Dashboard",
-  "subtitle": "Explore where and when UFO sightings have been reported.",
-  "metaDescription": "Explore a Tableau dashboard of reported UFO sightings by place and time, with project findings and context for interpreting report counts.",
+  "subtitle": "Explore where and when historical UFO reports were recorded.",
+  "metaDescription": "Explore historical UFO report records in Tableau, with geographic, seasonal, time-of-day, and reported-shape comparisons for the contiguous U.S.",
   "image": "img/projects/ufoDashboard.png",
   "iconImage": "img/projects/icons/ufoDashboard.png",
-  "imageWidth": 2008,
-  "imageHeight": 1116,
+  "imageWidth": 1600,
+  "imageHeight": 1120,
   "tools": [
     "Tableau"
   ],
@@ -35,31 +35,32 @@
     "base": "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013"
   },
   "demoInstructions": {
-    "lead": "Use the interactive Tableau dashboard to explore sightings by place, time, and shape.",
+    "lead": "Explore historical UFO reports.",
     "bullets": [
-      "Hover charts/maps for tooltips and quick readouts.",
-      "Click marks (states/cities/shapes) to filter and cross-highlight views.",
-      "Use Tableau controls to refine the slice you’re looking at.",
-      "Scroll to compare time-of-day and seasonality patterns across views."
+      "Use Overview, Places, Timing, Shapes, and About.",
+      "Year, state, and shape selections stay with you across tabs; select a mark to focus the charts.",
+      "Find definitions in About. Use Reset filters or Tableau Revert to start over."
     ]
   },
-  "problem": "I wanted to see patterns in UFO sighting reports across the U.S.",
-  "task": "Create a Tableau dashboard for exploring geographic, seasonal, and time-of-day patterns in reported UFO sightings.",
+  "problem": "I wanted to explore geographic and time patterns in a historical archive of UFO reports while keeping the limits of report counts clear.",
+  "task": "Create a Tableau dashboard for exploring report volume by location, month, recorded hour, and reported shape.",
   "actions": [
-    "Cleaned and standardized a public UFO sightings dataset.",
-    "Built a Tableau dashboard with maps and time-based charts."
+    "Prepared a historical UFO report dataset with recorded sighting dates from 1906 through May 2014.",
+    "Built geographic, time-based, and reported-shape comparisons in Tableau.",
+    "Defined the default view as the contiguous U.S. in 2013 and documented coverage and interpretation limits."
   ],
   "results": [
-    "In this dataset, reports are most common in the evening/night hours (and shift seasonally with daylight).",
-    "California has the most reports in the dataset, while many central states have fewer."
+    "The default 2013 view contains 6,334 report records across 48 states, with California contributing 653 (10.3%).",
+    "July has the most reports in that view: 810, or 12.8% of the total.",
+    "71.9% of reports in that view have recorded times from 18:00 through 23:59."
   ],
   "order": 4,
-  "notes": "The dashboard uses reported UFO sightings without population normalization, so patterns should be read as report volume, not incidence rates.",
+  "notes": "Historical archive through May 2014, not a current NUFORC feed. Counts represent report records and are not population-adjusted or independently verified events. Recorded hours have no documented timezone normalization.",
   "mobilePreview": {
     "image": "img/projects/ufoDashboard-preview.webp",
     "width": 1280,
-    "height": 800,
-    "alt": "UFO Sightings Dashboard showing state and city maps, sighting counts, shape trends, and a time-of-day heatmap."
+    "height": 896,
+    "alt": "UFO Sightings Dashboard showing report counts by location, reported shape, month, and recorded hour."
   },
   "relatedProjectId": "covidAnalysis"
 }

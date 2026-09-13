@@ -703,7 +703,7 @@
     scrollbar-gutter: auto;
   }
 
-  body[data-page="background-remover"][data-tools-layout] .tool-workspace :is(.bgtool-form, [data-workspace-panel], .bgtool-fieldset) {
+  body[data-page="background-remover"][data-tools-layout] .tool-workspace :is(.bgtool-form, .bgtool-settings-group, .bgtool-fieldset) {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
@@ -739,6 +739,26 @@
 
   body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-select { width: 100%; padding: 9px 10px; }
   body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-control { gap: 6px; }
+  body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-detail-options { margin-top: 12px; }
+  body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-download-settings {
+    margin-top: 16px;
+  }
+  body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-download-settings .bgtool-two-col {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    align-items: end;
+  }
+  body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-refinements {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+    gap: 20px;
+    padding-top: 16px;
+  }
+  body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-brush-settings { min-width: 0; }
+  body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-brush-settings h3 {
+    margin: 0;
+    font: 600 13px/1.5 Inter, sans-serif;
+  }
+  body[data-page="background-remover"][data-tools-layout][data-tools-state="empty"] .tool-workspace .bgtool-download-settings { display: none; }
   body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-option { font-size: 13px; gap: 8px; }
   body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-two-col { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-range { gap: 8px; }

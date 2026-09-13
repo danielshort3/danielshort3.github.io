@@ -35,8 +35,6 @@
     cropPresetsLabel: $('[data-screenrec="crop-presets-label"]'),
     cropPresetButtons: $$('[data-screenrec="crop-preset"]'),
     controlsBody: $('[data-screenrec="controls-body"]'),
-    settingsTabs: $$('[data-screenrec-tab]'),
-    settingsPanels: $$('[data-screenrec-panel]'),
     settingsSummary: $('[data-screenrec="settings-summary"]'),
     outputSummary: $('[data-screenrec="output-summary"]'),
     systemAudioDetails: $('[data-screenrec="system-audio-details"]'),
@@ -857,36 +855,8 @@
     if (el.microphoneDetails) el.microphoneDetails.hidden = !el.micToggle?.checked;
   };
 
-  const selectSettingsTab = (name, moveFocus = false) => {
-    const selected = el.settingsTabs.find((tab) => tab.dataset.screenrecTab === name);
-    if (!selected || !el.settingsPanels.some((panel) => panel.dataset.screenrecPanel === name)) return;
-    el.settingsTabs.forEach((tab) => {
-      const active = tab === selected;
-      tab.setAttribute('aria-selected', String(active));
-      tab.setAttribute('tabindex', active ? '0' : '-1');
-    });
-    el.settingsPanels.forEach((panel) => {
-      panel.hidden = panel.dataset.screenrecPanel !== name;
-    });
-    if (moveFocus) selected.focus();
-  };
-
-  const initSettingsTabs = () => {
+  const initSettingsControls = () => {
     if (el.controlsBody) el.controlsBody.hidden = false;
-    selectSettingsTab('audio');
-    el.settingsTabs.forEach((tab, index) => {
-      tab.addEventListener('click', () => selectSettingsTab(tab.dataset.screenrecTab));
-      tab.addEventListener('keydown', (event) => {
-        let nextIndex;
-        if (event.key === 'ArrowRight') nextIndex = (index + 1) % el.settingsTabs.length;
-        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + el.settingsTabs.length) % el.settingsTabs.length;
-        else if (event.key === 'Home') nextIndex = 0;
-        else if (event.key === 'End') nextIndex = el.settingsTabs.length - 1;
-        else return;
-        event.preventDefault();
-        selectSettingsTab(el.settingsTabs[nextIndex].dataset.screenrecTab, true);
-      });
-    });
     const syncSettings = () => {
       updateSettingsSummary();
       updateAudioDetails();
@@ -2738,7 +2708,7 @@
     updateCaptureMeta();
     updateButtons();
     setView();
-    initSettingsTabs();
+    initSettingsControls();
     updateMicDevices();
     if (!supportsMicrophone) {
       setMicHelp('Microphone capture is not supported in this browser.');

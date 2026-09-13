@@ -129,21 +129,29 @@ async function testShapeExportRecovery() {
     () => { throw new Error('Canvas export failed'); },
     (callback) => callback({ arrayBuffer: async () => { throw new Error('Image buffer failed'); } })
   ]) {
-    const predictions = [];
-    let restored = false;
-    let requested = false;
-    const env = {
-      serverReady: true, hasDrawn: true, classifying: false,
-      canvas: { toBlob: exportImage },
-      setStep() {}, setPredictionUI: (message) => predictions.push(message),
-      renderShapeScores() {}, updateClassifyState() {},
-      resultBadge: { classList: { add() {}, remove() { restored = true; } } },
-      postToEndpoint() { requested = true; }
-    };
-    vm.runInNewContext(source, env);
-    await env.classify();
-    check(!env.classifying && restored && !requested && predictions.at(-1).startsWith('Error:'),
-      'canvas export failures should be handled and restore classification controls without requesting inference');
+    for (const hasPrediction of [false, true]) {
+      const predictions = [];
+      const healthStates = [];
+      const classificationFeedback = { hidden: true, textContent: '' };
+      let restored = false;
+      let requested = false;
+      const env = {
+        serverReady: true, hasDrawn: true, classifying: false, hasPrediction,
+        classificationFeedback,
+        canvas: { toBlob: exportImage },
+        setPredictionUI: (message) => predictions.push(message),
+        setHealth: (state, text) => healthStates.push({ state, text }),
+        renderShapeScores() {}, updateClassifyState() { restored = !env.classifying; },
+        postToEndpoint() { requested = true; }
+      };
+      vm.runInNewContext(source, env);
+      await env.classify();
+      check(!env.classifying && restored && !requested && !classificationFeedback.hidden &&
+        classificationFeedback.textContent.includes('Select Classify shape to try again.') && healthStates.at(-1).state === 'err',
+      'canvas export failures should explain recovery and restore classification controls without requesting inference');
+      check(hasPrediction ? predictions.length === 0 : predictions.at(-1) === 'Your result appears here.',
+        'canvas export failures should preserve a successful prediction and use an empty result only before the first success');
+    }
   }
 }
 

@@ -2711,7 +2711,8 @@ function buildPortfolio() {
           f.src = `${base}?${[
             ":embed=y",
             ":showVizHome=no",
-            `:device=${mobileMq.matches ? "phone" : "desktop"}`
+            `:device=${mobileMq.matches ? "phone" : "desktop"}`,
+            ":tabs=no"
           ].join("&")}`;
         });
     };

@@ -22,7 +22,6 @@
   const fullTextSummaryEl = $('#wordfreq-fulltext-summary');
   const fullTextEl = $('#wordfreq-fulltext');
 
-  const pasteBtn = $('#wordfreq-paste');
   const importBtn = $('#wordfreq-import');
   const fileInput = $('#wordfreq-file');
   const inputStatusEl = $('#wordfreq-input-status');
@@ -119,8 +118,8 @@
     '',
     'Root cause analysis, owner assignment, and follow-up actions should be measured weekly, monthly, and again after release.'
   ].join('\n');
-  const DEFAULT_SUMMARY = 'Paste text or load the example.';
-  const DEFAULT_EMPTY = 'Waiting for text.';
+  const DEFAULT_SUMMARY = '';
+  const DEFAULT_EMPTY = 'Add text, then select Analyze text.';
 
   const getAnalysisSourceText = () => {
     return normalizeWhitespace(textInput.value || '');
@@ -161,7 +160,6 @@
 
   const setInputBusy = (busy) => {
     const state = Boolean(busy);
-    if (pasteBtn) pasteBtn.disabled = state;
     if (importBtn) importBtn.disabled = state;
     if (fileInput) fileInput.disabled = state;
   };
@@ -683,6 +681,8 @@
 
   const hideOccurrences = () => {
     if (occurrencePanel) occurrencePanel.hidden = false;
+    const details = $('#wordfreq-results-occurrences');
+    if (details) details.open = false;
     if (occurrenceListEl) occurrenceListEl.innerHTML = '';
     if (occurrenceSummaryEl) {
       occurrenceSummaryEl.textContent = 'Select a term to inspect where it appears in your source text.';
@@ -693,7 +693,7 @@
     if (fullTextPanel) fullTextPanel.hidden = false;
     if (fullTextEl) fullTextEl.innerHTML = '';
     if (fullTextSummaryEl) {
-      fullTextSummaryEl.textContent = 'Select a term from results (or click a word below) to highlight it throughout the source text.';
+      fullTextSummaryEl.textContent = 'Select a word to highlight its matches.';
     }
   };
 
@@ -1279,36 +1279,19 @@
     setCopyStatus('JSON exported.', 'success');
   };
 
-  const handlePasteInput = async () => {
-    setInputBusy(true);
-    setInputStatus('Reading clipboard…', 'info');
-
-    try {
-      if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
-        throw new Error('Clipboard read is unavailable.');
-      }
-
-      const clipboardText = normalizeWhitespace(await navigator.clipboard.readText());
-      if (!clipboardText.trim()) {
-        setInputStatus('Clipboard is empty.', 'error');
-        return;
-      }
-
-      textInput.value = clipboardText;
-      textInput.dispatchEvent(new Event('input', { bubbles: true }));
-      setInputStatus(`Pasted ${clipboardText.length.toLocaleString('en-US')} characters.`, 'success');
-      runAnalysis();
-      textInput.focus();
-    } catch {
-      setInputStatus('Clipboard access blocked. Use Ctrl/Cmd+V in the text box.', 'error');
-    } finally {
-      setInputBusy(false);
-    }
+  let importVersion = 0;
+  const cancelPendingImport = () => {
+    importVersion += 1;
+    setInputBusy(false);
+    if (fileInput) fileInput.value = '';
+    setInputStatus('');
   };
+  textInput.addEventListener('input', cancelPendingImport);
 
   const handleImportInput = async () => {
     const file = fileInput?.files?.[0];
     if (!file) return;
+    const version = ++importVersion;
 
     setInputBusy(true);
     setInputStatus(`Importing ${file.name}…`, 'info');
@@ -1320,6 +1303,7 @@
       }
 
       const parsed = await parseImportedFile(file);
+      if (version !== importVersion) return;
       const text = normalizeWhitespace(parsed.text).trim();
       if (!text) {
         throw new Error('No readable text was found in this file.');
@@ -1332,12 +1316,17 @@
         : `${file.name} imported (${text.length.toLocaleString('en-US')} characters).`;
       setInputStatus(status, parsed.warning ? 'info' : 'success');
       runAnalysis();
-      textInput.focus();
+      textInput.focus({ preventScroll: true });
+      textInput.setSelectionRange?.(0, 0);
+      textInput.scrollTop = 0;
     } catch (error) {
+      if (version !== importVersion) return;
       setInputStatus(error instanceof Error ? error.message : 'Unable to import this file.', 'error');
     } finally {
-      if (fileInput) fileInput.value = '';
-      setInputBusy(false);
+      if (version === importVersion) {
+        if (fileInput) fileInput.value = '';
+        setInputBusy(false);
+      }
     }
   };
 
@@ -1351,7 +1340,6 @@
     try {
       const resultBucket = runAnalysis();
       if (inputStatusEl?.dataset.tone === 'success') setInputStatus('');
-      window.ToolWorkspace?.selectTab('wordfreq-results-terms', { focus: false });
       if (resultBucket) reportRunComplete(resultBucket);
       else reportRunError('validation');
     } catch (error) {
@@ -1361,18 +1349,17 @@
   });
 
   exampleBtn?.addEventListener('click', () => {
-    window.ToolWorkspace?.selectTab('wordfreq-setup-text', { focus: false });
     textInput.value = WORD_FREQUENCY_EXAMPLE;
     textInput.dispatchEvent(new Event('input', { bubbles: true }));
-    setInputStatus('Example loaded. Click Analyze to review the terms.', 'success');
-    renderEmpty('Example loaded. Click Analyze to review the terms.', 'Ready to analyze.');
+    setInputStatus('Example loaded.', 'success');
+    renderEmpty('', 'Select Analyze text to see the terms.');
     markSessionDirty();
-    textInput.focus();
+    textInput.setSelectionRange?.(0, 0);
+    textInput.scrollTop = 0;
   });
 
   clearBtn?.addEventListener('click', () => {
-    window.ToolWorkspace?.selectTab('wordfreq-setup-text', { focus: false });
-    window.ToolWorkspace?.selectTab('wordfreq-results-terms', { focus: false });
+    cancelPendingImport();
     clearFormToDefaults();
     setCopyStatus('', '');
     setInputStatus('', '');
@@ -1394,9 +1381,6 @@
   exportCsvBtn?.addEventListener('click', handleExportCsv);
   exportJsonBtn?.addEventListener('click', handleExportJson);
 
-  pasteBtn?.addEventListener('click', () => {
-    void handlePasteInput();
-  });
 
   importBtn?.addEventListener('click', () => {
     fileInput?.click();
@@ -1420,7 +1404,9 @@
     renderResults(lastAnalysis, selectedTermKey);
     renderOccurrences(lastAnalysis, selectedTerm);
     renderFullText(lastAnalysis, selectedTerm);
-    window.ToolWorkspace?.selectTab('wordfreq-results-occurrences', { focus: false });
+    const occurrenceDetails = $('#wordfreq-results-occurrences');
+    if (occurrenceDetails) occurrenceDetails.open = true;
+    resultsList.querySelector('.wordfreq-row.is-selected .wordfreq-term-btn')?.focus({ preventScroll: true });
   });
 
   fullTextEl?.addEventListener('click', (event) => {
@@ -1444,6 +1430,10 @@
 
   const markDirtyFromControl = () => {
     markSessionDirty();
+    if (!lastAnalysis) return;
+    lastAnalysis = null;
+    summaryEl.textContent = 'Inputs changed. Select Analyze text to update.';
+    [copyBtn, exportCsvBtn, exportJsonBtn].forEach((button) => { if (button) button.disabled = true; });
   };
 
   [textInput, topInput, minLengthInput, includeInput, excludeInput].forEach((el) => {
@@ -1506,6 +1496,7 @@
   document.addEventListener('tools:session-applied', (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
+    cancelPendingImport();
     requestAnimationFrame(() => {
       try {
         runAnalysis();
