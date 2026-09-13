@@ -563,3 +563,97 @@
     }
   }
 }
+
+/* Shared surface/heading utilities load after component rules. Keep this
+   workspace compact without changing the site masthead or other tools. */
+@layer overrides {
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-section {
+    padding-block: 8px;
+  }
+  body[data-page="ga4-utm-performance"] #main .ga4-tabs {
+    position: static;
+    padding-block: 8px;
+    background: transparent;
+    backdrop-filter: none;
+    border: 0;
+  }
+  body[data-page="ga4-utm-performance"] #main .ga4-tablist {
+    padding: 0;
+    gap: 8px;
+  }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-card {
+    margin: 0;
+    border: 1px solid var(--ga4-border);
+    border-radius: 12px;
+    background: var(--surface, #fff);
+    box-shadow: none;
+    overflow: clip;
+  }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 60px;
+    padding: 14px 18px;
+    list-style: none;
+    cursor: pointer;
+  }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-summary::-webkit-details-marker { display: none; }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-summary::marker { content: ""; }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-summary::after {
+    content: "";
+    display: block;
+    flex: 0 0 8px;
+    width: 8px;
+    height: 8px;
+    margin-left: auto;
+    border-right: 2px solid var(--primary);
+    border-bottom: 2px solid var(--primary);
+    transform: rotate(45deg);
+  }
+  body[data-page="ga4-utm-performance"] #main details[open] > .ga4-panel-summary::after { transform: rotate(225deg); }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-summary .section-title {
+    margin: 0;
+    padding: 0;
+    font-size: 1.125rem;
+    line-height: 1.35;
+  }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-summary .section-title::before,
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-summary .section-title::after { content: none; }
+  body[data-page="ga4-utm-performance"] #main .shortlinks-access-meta { font-size: .85rem; color: var(--text-muted); }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-body { padding: 16px 18px; gap: 12px; }
+  body[data-page="ga4-utm-performance"] #main details > .ga4-panel-body { padding-top: 0; }
+  body[data-page="ga4-utm-performance"] #main .ga4-form { gap: 12px; }
+  body[data-page="ga4-utm-performance"] #main .ga4-panel-lead { margin: 0; }
+  @media (max-width: 600px) {
+    body[data-page="ga4-utm-performance"] #main .ga4-panel-summary { padding-inline: 14px; gap: 8px; }
+    body[data-page="ga4-utm-performance"] #main .ga4-panel-body { padding-inline: 14px; }
+  }
+}
+
+@layer components {
+  body[data-page="ga4-utm-performance"] .ga4-connection-controls {
+    display: flex;
+    align-items: end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  body[data-page="ga4-utm-performance"] .ga4-connection-controls .form-field { flex: 1 1 220px; }
+  body[data-page="ga4-utm-performance"] .ga4-connection-controls .btn-primary { margin-bottom: 0; }
+  body[data-page="ga4-utm-performance"] .ga4-connection-options > summary { cursor: pointer; font-weight: 600; padding-block: 8px; }
+  body[data-page="ga4-utm-performance"] .ga4-connection-options[open] > summary { margin-bottom: 12px; }
+  body[data-page="ga4-utm-performance"] .ga4-scope-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body[data-page="ga4-utm-performance"] .ga4-panel-body { padding: clamp(16px, 2vw, 24px); grid-template-columns: minmax(0, 1fr); }
+  body[data-page="ga4-utm-performance"] :is(.ga4-panel-body > *, .ga4-form, .ga4-results-region, .ga4-drill-region, .ga4-table-shell, .ga4-table-wrap) { min-width: 0; }
+  body[data-page="ga4-utm-performance"] :is(.ga4-results-region, .ga4-drill-region, .ga4-table-shell) { grid-template-columns: minmax(0, 1fr); }
+  body[data-page="ga4-utm-performance"] .ga4-table-wrap { max-width: 100%; overflow-x: auto; }
+  @media (max-width: 600px) {
+    body[data-page="ga4-utm-performance"] .ga4-scope-grid { grid-template-columns: 1fr; }
+  }
+}

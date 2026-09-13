@@ -4171,3 +4171,18 @@ body.personal-accordion-page[data-personal-item="short-links"] :is(
     }
   }
 }
+
+@layer components {
+  .shortlinks-access-intro {
+    max-width: 640px;
+    padding: clamp(24px, 4vw, 48px);
+    border: 1px solid var(--border, #d9e2ec);
+    border-radius: 16px;
+    background: var(--surface, #fff);
+  }
+  .shortlinks-access-intro h2 { margin: 0 0 12px; }
+  .shortlinks-access-intro p { margin: 0 0 24px; color: var(--text-muted); }
+  [data-shortlinks="workspace"][hidden],
+  [data-shortlinks="signed-out"][hidden],
+  [data-shortlinks="new-link-from-list"][hidden] { display: none !important; }
+}

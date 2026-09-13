@@ -45,14 +45,16 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "/digit-generator-demo"
+    "url": "/digit-generator-demo",
+    "heading": "Digit Generator",
+    "description": "Choose a digit and generate a collection of handwritten variations."
   },
   "demoInstructions": {
     "lead": "Generate a grid of synthetic digits and explore how the output morphs.",
     "bullets": [
-      "Use the blue “Number” control to choose Auto or a digit from 0–9.",
+      "Choose Auto or a digit from 0–9 with the Digit control.",
       "Click “Generate” to refresh the grid.",
-      "Open “Extra settings” to adjust seed, dim, grid density, minimum grid height, and distortion level.",
+      "Open “Advanced settings” below the grid to adjust grid size, seed, latent dimension, and distortion.",
       "Generate again to compare how settings change the outputs."
     ]
   },

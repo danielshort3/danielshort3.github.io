@@ -1,12 +1,12 @@
 {
   "id": "pizzaDashboard",
   "title": "Pizza Delivery Dashboard",
-  "subtitle": "Compare delivery zones, earnings, and timing to inform shift planning.",
-  "metaDescription": "Compare pizza delivery zones, earnings, and timing in an interactive dashboard built from delivery history to inform shift planning.",
+  "subtitle": "Explore recorded tips, city comparisons, and monthly delivery history.",
+  "metaDescription": "Explore 1,251 historical pizza delivery records in Tableau, with tip summaries, city comparisons, a tip distribution, and monthly delivery counts.",
   "image": "img/projects/pizzaDashboard.png",
   "iconImage": "img/projects/icons/pizzaDashboard.png",
-  "imageWidth": 1250,
-  "imageHeight": 1092,
+  "imageWidth": 1600,
+  "imageHeight": 1133,
   "tools": [
     "Tableau"
   ],
@@ -30,36 +30,35 @@
     "base": "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
   },
   "demoInstructions": {
-    "lead": "Use the Tableau dashboard to compare delivery zones, tips, and timing.",
+    "lead": "Explore delivery history and estimate a tip.",
     "bullets": [
-      "Hover charts/maps to see exact values for the current filter state.",
-      "Click marks to cross-filter other views and isolate a zone or time period.",
-      "Use Tableau filters to narrow by date, city/zone, and other dimensions.",
-      "Scroll to review distributions and the forecast section."
+      "Use Overview, Timing, Trends, Weekday, Tip estimate, and About.",
+      "Date, city, and housing selections stay with you across tabs. Tip estimate uses order cost only.",
+      "Find definitions in About. Use Reset filters or Tableau Revert to start over."
     ]
   },
   "role": [
-    "Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting)."
+    "Prepared the delivery dataset and built the Tableau dashboard."
   ],
-  "problem": "I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.",
-  "task": "Create a Tableau dashboard that brings delivery-zone, earnings, timing, and forecast comparisons together for shift planning.",
+  "problem": "My delivery history contained useful tip information, but comparing cities and patterns across individual records was difficult.",
+  "task": "Create an interactive Tableau dashboard that makes historical tip patterns and delivery counts easier to compare.",
   "actions": [
-    "Reshaped about 12,000 delivery records into a Tableau-ready dataset with consistent dates, zones, housing categories, and tip KPIs.",
-    "Built map, distribution, filter, and 12-month forecast views for fast zone and timing comparison.",
-    "Designed the dashboard around decisions: where to work, what patterns explain tips, and how demand might change."
+    "Prepared 1,251 delivery records from July 2017 through September 2018 with dates, cities, housing categories, costs, and tips.",
+    "Built city comparisons, tip distributions, and monthly views with delivery counts to give averages context.",
+    "Added delivery-count, median-tip, and total-tip summaries, shared filters, and small-sample markers."
   ],
   "results": [
-    "Reduced delivery decision review from roughly five minutes to about one minute during planning.",
-    "Made zone, city, housing-type, tip-rate, and timing differences easier to compare in one view.",
-    "Added forecasting so the dashboard supports planning instead of only retrospective review."
+    "The recorded deliveries contain $8,933.49 in tips, with a $6.00 median and $7.14 average tip.",
+    "Brought city averages, the full tip distribution, and monthly tip and delivery history into one interactive view.",
+    "Made the uneven sample sizes visible: four of the seven cities have fewer than 30 recorded deliveries."
   ],
   "order": 14,
-  "notes": "Built from delivery history; tip efficiency should be interpreted with zone and timing context rather than average tip alone.",
+  "notes": "Historical personal delivery records, not current demand. The first and last months are partial. Delivery time is elapsed order-to-delivery time, not driver work hours; 34 records have zero elapsed minutes. Small city samples limit comparisons.",
   "mobilePreview": {
     "image": "img/projects/pizzaDashboard-preview.webp",
     "width": 1280,
-    "height": 800,
-    "alt": "Pizza Delivery Dashboard showing delivery maps, tip distributions, forecasts, and order breakdowns."
+    "height": 906,
+    "alt": "Pizza Delivery Dashboard showing city comparisons, tip distributions, and delivery history."
   },
   "relatedProjectId": "deliveryTip"
 }

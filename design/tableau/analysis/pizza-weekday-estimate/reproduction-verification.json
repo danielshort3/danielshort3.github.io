@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "scope": "Portable packaged computation reproduced the reviewed external weekday/model analysis; no native Tableau rendering or publication claim.",
+  "checks": [
+    {
+      "file": "weekday-performance.csv",
+      "comparison": "byte equality",
+      "match": true,
+      "reviewedSha256": "721095de182e7e5df1a877f1b5b8f441a48a1463fba1b3527dbf4a4f0c018392"
+    },
+    {
+      "file": "candidate-validation.csv",
+      "comparison": "byte equality",
+      "match": true,
+      "reviewedSha256": "612bcbb62eb72d2ffa36d98ee0f1dd68fc688f63f6843617ca71ec38d17f1166"
+    },
+    {
+      "file": "estimator-model.json",
+      "comparison": "JSON values",
+      "match": true,
+      "reviewedSha256": "c27164a7208bac4f83e5d05bb7eec8eb397d5db57debf67e4c4d7da3b498036e"
+    },
+    {
+      "file": "estimator-parameter-examples.csv",
+      "comparison": "byte equality",
+      "match": true,
+      "reviewedSha256": "2c58aee2e5e7c292c9e610a812674555b272e5e1425ce49d8547eacfa71e65e7"
+    },
+    {
+      "file": "estimator-test-subgroups.csv",
+      "comparison": "byte equality",
+      "match": true,
+      "reviewedSha256": "ac307c4dfadf9867c2fd66c69db803ddb61f2e7dda13655d7014a1394f676d7c"
+    },
+    {
+      "file": "estimator-city-housing-support.csv",
+      "comparison": "byte equality",
+      "match": true,
+      "reviewedSha256": "fbf929037bf1af61937836efef641d6cb098fa41e2b1e62c8d80f025629fe5aa"
+    },
+    {
+      "file": "weekday-estimator-analysis.json",
+      "comparison": "JSON values",
+      "match": true,
+      "reviewedSha256": "f36374efccfe18c03d4c0d996c3ac3bbf8bb1b0af73138b73191828e2b252a49"
+    }
+  ],
+  "rowCount": 1251,
+  "model": "cost",
+  "alpha": 0.1,
+  "fitCalibrationTestRows": [
+    751,
+    249,
+    251
+  ],
+  "holdoutMae": 2.6169266357449477,
+  "rangeInsideTotal": [
+    203,
+    251
+  ],
+  "nativeFormulaMaxAbsoluteDifference": 3.552713678800501e-15,
+  "scoredCsvFilesGenerated": []
+}

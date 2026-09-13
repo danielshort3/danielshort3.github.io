@@ -66,7 +66,6 @@
   const warningEl = $('#qrtool-warning');
 
   const advancedOptions = document.querySelector('[data-qrtool-advanced-options]');
-  const presetsDisclosure = $('#qrtool-presets');
   const settingsStyleSummary = $('#qrtool-summary-style');
   const settingsExportSummary = $('#qrtool-summary-export');
 
@@ -132,7 +131,6 @@
 
   const filenameInput = $('#qrtool-filename');
   const imageSizeSelect = $('#qrtool-image-size');
-  const exportPresetSelect = $('#qrtool-export-preset');
 
   const captionEnabledInput = $('#qrtool-caption-enabled');
   const captionTextInput = $('#qrtool-caption-text');
@@ -2537,14 +2535,6 @@
     if (captionColorInput) captionColorInput.disabled = false;
     if (captionBgColorInput) captionBgColorInput.disabled = false;
 
-    if (imageSizeSelect) {
-      const sizeNum = toInt(imageSizeSelect.value, 1024);
-      const presetMatch = Object.entries(EXPORT_SIZE_BY_PRESET)
-        .find(([, size]) => size === sizeNum)?.[0] || 'custom';
-      if (exportPresetSelect && exportPresetSelect.value !== presetMatch) {
-        exportPresetSelect.value = presetMatch;
-      }
-    }
     if (settingsStyleSummary) {
       const payloadLabel = { url: 'URL', text: 'Text', wifi: 'Wi-Fi', vcard: 'vCard' }[state.payloadMode] || 'URL';
       settingsStyleSummary.textContent = `${payloadLabel} · ${normalizeHex(state.fg)} on ${state.transparent ? 'transparent' : normalizeHex(state.bg)}`;
@@ -3178,7 +3168,7 @@
       captionBgColor: state.captionBgColor,
       filename: filenameInput ? String(filenameInput.value || '') : 'qr-code',
       imageSize: imageSizeSelect ? String(imageSizeSelect.value || '1024') : '1024',
-      exportPreset: exportPresetSelect ? String(exportPresetSelect.value || 'web') : 'web',
+      exportPreset: Object.entries(EXPORT_SIZE_BY_PRESET).find(([, size]) => size === toInt(imageSizeSelect?.value, 1024))?.[0] || 'custom',
     };
 
     const logoUrl = String(state.logoDataUrl || '').trim();
@@ -3241,7 +3231,7 @@
     if (typeof config.captionBgColor === 'string') state.captionBgColor = normalizeHex(config.captionBgColor);
     if (typeof config.filename === 'string' && filenameInput) filenameInput.value = config.filename;
     if (typeof config.imageSize === 'string' && imageSizeSelect) imageSizeSelect.value = config.imageSize;
-    if (typeof config.exportPreset === 'string' && exportPresetSelect) exportPresetSelect.value = config.exportPreset;
+    if (!config.imageSize && EXPORT_SIZE_BY_PRESET[config.exportPreset] && imageSizeSelect) imageSizeSelect.value = String(EXPORT_SIZE_BY_PRESET[config.exportPreset]);
 
     const incomingLogo = typeof config.logoDataUrl === 'string' ? config.logoDataUrl.trim() : '';
     if (Object.prototype.hasOwnProperty.call(config, 'logoDataUrl') && !incomingLogo) {
@@ -3745,13 +3735,6 @@
     scheduleSyncShareUrl();
     markSessionDirty();
   });
-  document.querySelector('[data-qrtool-presets-open]')?.addEventListener('click', () => {
-    if (!presetsDisclosure) return;
-    presetsDisclosure.open = true;
-    presetsDisclosure.scrollIntoView({ block: 'nearest' });
-    configNameInput?.focus({ preventScroll: true });
-  });
-
   if (autofixBtn) {
     autofixBtn.addEventListener('click', () => {
       applyReliabilityFixes();
@@ -3771,20 +3754,7 @@
     });
   }
 
-  if (exportPresetSelect && imageSizeSelect) {
-    exportPresetSelect.addEventListener('change', () => {
-      const preset = exportPresetSelect.value;
-      const presetSize = EXPORT_SIZE_BY_PRESET[preset];
-      if (presetSize) imageSizeSelect.value = String(presetSize);
-      handleControlMutation();
-    });
-    imageSizeSelect.addEventListener('change', () => {
-      const size = toInt(imageSizeSelect.value, 1024);
-      const preset = Object.entries(EXPORT_SIZE_BY_PRESET).find(([, value]) => value === size)?.[0] || 'custom';
-      exportPresetSelect.value = preset;
-      handleControlMutation();
-    });
-  }
+  imageSizeSelect?.addEventListener('change', handleControlMutation);
 
   if (basicLogoToggleInput) {
     basicLogoToggleInput.addEventListener('change', () => {

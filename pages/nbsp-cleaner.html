@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.e022af6d.css">
+  <link rel="stylesheet" href="dist/styles.91c0fa3c.css">
   <link rel="stylesheet" href="dist/styles-tools.32cc46e6.css">
   <link rel="stylesheet" href="css/components/nbsp-cleaner.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -49,7 +49,7 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.d4de4c93.js"></script>
+  <script defer src="dist/site-shell.63ee94e5.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.fe0e5a75.css">
   <script type="application/ld+json" id="tool-jsonld">
@@ -58,7 +58,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/tools/nbsp-cleaner#webpage","url":"https://www.danielshort.me/tools/nbsp-cleaner","name":"Non-breaking Space Cleaner | Daniel Short","description":"Detects non-breaking spaces and replaces them with regular spaces. No uploads, all local.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/tool-nbsp-cleaner.png?v=0acaf8bd46b7"},"mainEntity":{"@id":"https://www.danielshort.me/tools/nbsp-cleaner#app"},"breadcrumb":{"@id":"https://www.danielshort.me/tools/nbsp-cleaner#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/tools/nbsp-cleaner#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://www.danielshort.me/tools"},{"@type":"ListItem","position":3,"name":"Non-breaking Space Cleaner","item":"https://www.danielshort.me/tools/nbsp-cleaner"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:nbsp-cleaner","path":"/tools/nbsp-cleaner","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.e022af6d.css","/dist/styles-tools.32cc46e6.css","/css/components/nbsp-cleaner.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.d4de4c93.js","/js/tools/tool-share-link.js","/js/tools/tool-workspace.js","/js/tools/nbsp-cleaner.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:nbsp-cleaner"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:nbsp-cleaner","path":"/tools/nbsp-cleaner","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.91c0fa3c.css","/dist/styles-tools.32cc46e6.css","/css/components/nbsp-cleaner.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.63ee94e5.js","/js/tools/tool-share-link.js","/js/tools/nbsp-cleaner.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:nbsp-cleaner"}</script>
 </head>
 <body data-page="nbsp-cleaner" class="nbsp-cleaner-page tools-tool-page site-page personal-accordion-page" data-tools-layout="text" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="nbsp-cleaner" data-personal-fit="viewport" data-site-route-id="tools:nbsp-cleaner" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:nbsp-cleaner">
   <a href="/tools/nbsp-cleaner#main" class="skip-link">Skip to main content</a>
@@ -151,51 +151,74 @@
           <div class="tool-workspace-header">
             <h2>Your text</h2>
             <div class="nbsp-field-actions">
-              <button type="button" id="nbsp-paste" class="btn-ghost">Paste</button>
               <button type="button" id="nbsp-import" class="btn-ghost">Import</button>
-              <input id="nbsp-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import text file">
+              <input
+                id="nbsp-file"
+                class="visually-hidden"
+                type="file"
+                accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf"
+                aria-label="Import text file"
+                tabindex="-1"
+              />
             </div>
           </div>
           <label class="visually-hidden" for="nbsp-input">Text with potential hard spaces</label>
           <p id="nbsp-input-status" class="nbsp-input-status" aria-live="polite"></p>
-          <textarea id="nbsp-input" class="nbsp-textarea" name="text" placeholder="Paste text to find hard spaces" required></textarea>
+          <textarea
+            id="nbsp-input"
+            class="nbsp-textarea"
+            name="text"
+            placeholder="Paste text to find hard spaces"
+            required
+          ></textarea>
           <div class="nbsp-options">
             <label class="nbsp-option">
               <span><strong>Replace hard spaces</strong><small>Use regular spaces instead.</small></span>
-              <input id="nbsp-fix-hard" type="checkbox" role="switch" checked>
+              <input id="nbsp-fix-hard" type="checkbox" role="switch" checked />
             </label>
             <label class="nbsp-option">
-              <span><strong>Remove other non-ASCII characters</strong><small>Also removes accents, emoji, and symbols.</small></span>
-              <input id="nbsp-strip-nonascii" type="checkbox" role="switch">
+              <span
+                ><strong>Remove other non-ASCII characters</strong
+                ><small>Also removes accents, emoji, and symbols.</small></span
+              >
+              <input id="nbsp-strip-nonascii" type="checkbox" role="switch" />
             </label>
           </div>
           <div class="nbsp-actions tool-workspace-actions">
             <button type="submit" class="btn-primary">Detect &amp; fix</button>
             <button type="button" id="nbsp-clear" class="btn-ghost">Clear</button>
-            <button type="button" class="btn-ghost tool-workspace-share" data-tool-share-link>Copy link to my inputs</button>
+            <button type="button" class="btn-ghost tool-workspace-share" data-tool-share-link>
+              Copy link to my inputs
+            </button>
           </div>
         </form>
       </div>
-      <div class="nbsp-card nbsp-results nbsp-results-card tool-workspace-card" data-workspace-tabset>
+      <div class="nbsp-card nbsp-results nbsp-results-card tool-workspace-card">
         <div class="tool-workspace-header">
           <h2>Results</h2>
           <button type="button" id="nbsp-copy" class="btn-primary" disabled>Copy cleaned text</button>
         </div>
-        <p id="nbsp-summary" class="nbsp-summary" role="status">Paste text and run the cleaner to see findings.</p>
-        <div class="tool-workspace-tabs" role="tablist" aria-label="Cleaner results">
-          <button type="button" id="nbsp-tab-cleaned" role="tab" data-workspace-tab aria-controls="nbsp-panel-cleaned" aria-selected="true">Cleaned text</button>
-          <button type="button" id="nbsp-tab-markers" role="tab" data-workspace-tab aria-controls="nbsp-panel-markers" aria-selected="false" tabindex="-1">Markers</button>
-        </div>
-        <div id="nbsp-panel-cleaned" role="tabpanel" data-workspace-panel aria-labelledby="nbsp-tab-cleaned">
+        <p id="nbsp-summary" class="nbsp-summary" role="status">Add text to begin.</p>
+        <div id="nbsp-panel-cleaned">
           <label class="visually-hidden" for="nbsp-output">Cleaned text</label>
-          <textarea id="nbsp-output" class="nbsp-textarea" readonly placeholder="Cleaned text will appear here."></textarea>
+          <textarea
+            id="nbsp-output"
+            class="nbsp-textarea"
+            readonly
+            placeholder="Cleaned text will appear here."
+          ></textarea>
         </div>
-        <div id="nbsp-panel-markers" role="tabpanel" data-workspace-panel aria-labelledby="nbsp-tab-markers" hidden>
-          <div id="nbsp-preview" class="nbsp-preview" aria-label="Preview of hard spaces and non-ASCII characters">Run the cleaner to see marked characters.</div>
-        </div>
+
         <span id="nbsp-copy-status" class="nbsp-status" role="status"></span>
         <details class="nbsp-character-details">
           <summary>Character details</summary>
+          <div
+            id="nbsp-preview"
+            class="nbsp-preview"
+            aria-label="Preview of hard spaces and non-ASCII characters"
+          >
+            Run the cleaner to see marked characters.
+          </div>
           <ul id="nbsp-counts" class="nbsp-counts"></ul>
         </details>
       </div>
@@ -221,7 +244,6 @@
   </div>
 </footer>
   <script defer src="js/tools/tool-share-link.js"></script>
-  <script defer src="js/tools/tool-workspace.js"></script>
   <script defer src="js/tools/nbsp-cleaner.js"></script>
   <script defer src="dist/site-tools-account.023b64e1.js"></script>
 

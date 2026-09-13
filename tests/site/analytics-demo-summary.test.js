@@ -14,6 +14,7 @@ function createHarness(name, getJson = async () => ({})) {
       const listeners = new Map();
       elements.set(id, {
         dataset: {}, style: {}, textContent: '', innerHTML: '', value: '', disabled: false,
+        parentElement: { dataset: {} },
         classList: { toggle() {} },
         setAttribute() {},
         addEventListener(type, callback) { listeners.set(type, callback); },
@@ -66,7 +67,9 @@ async function run() {
   assert(retail.indexOf('<section class="panel kpi-panel">') < retail.indexOf('<section class="panel sales-panel">'),
     'Retail summary must precede its first chart in reading and mobile order');
   const targetMarkup = readDemo('target-empty-package');
-  const summary = targetMarkup.slice(targetMarkup.indexOf('<section class="panel exec-panel"'), targetMarkup.indexOf('<section class="panel filters-panel"'));
+  const summary = targetMarkup.match(/<section class="panel exec-panel"[^>]*>[\s\S]*?<\/section>/)?.[0] || '';
+  assert(targetMarkup.indexOf('<section class="panel filters-panel"') < targetMarkup.indexOf('<section class="panel exec-panel"'),
+    'Record filters must precede the summaries they control');
   assert.strictEqual((summary.match(/data-kpi=/g) || []).length, 4, 'Empty-package summary should expose four existing metrics');
   assert(summary.includes('Recorded retail value'), 'Record values must not be presented as cash recovered');
 

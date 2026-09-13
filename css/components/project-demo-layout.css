@@ -1,0 +1,205 @@
+/* Shared workspace structure for compact demos, drawing tools, and dashboards. */
+html[data-project-demo-theme="brand"] body .demo-surface:is(#main, #demo-box, #demo-shell, #demo-card, .demo-surface) {
+  --demo-workspace-padding: 20px;
+  width: 100% !important;
+  max-width: var(--demo-workspace-width, 960px) !important;
+  min-width: 0;
+  margin-inline: auto !important;
+  padding: 0 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-project-demo-theme="brand"] body .demo-size-compact { --demo-workspace-width: 600px; }
+html[data-project-demo-theme="brand"] body .demo-size-drawing { --demo-workspace-width: 960px; }
+html[data-project-demo-theme="brand"] body .demo-size-dashboard { --demo-workspace-width: 1200px; }
+
+html[data-project-demo-theme="brand"][data-embedded="true"] body .demo-surface-header > :is(.header-copy, .demo-title) {
+  display: none !important;
+}
+
+html[data-project-demo-theme="brand"][data-embedded="true"] body .demo-surface .demo-surface-header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px 20px !important;
+  padding: var(--demo-workspace-padding) !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 12px 12px 0 0 !important;
+  background: #ffffff !important;
+}
+
+html[data-project-demo-theme="brand"][data-embedded="true"] body .demo-surface-header .demo-status-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end !important;
+  min-height: 28px;
+  min-width: 0;
+  gap: 8px !important;
+  margin: 0 !important;
+}
+
+html[data-project-demo-theme="brand"] .demo-scope-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html[data-project-demo-theme="brand"] .demo-surface .aws-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px !important;
+  min-height: 28px;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap !important;
+  border: 1px solid var(--border);
+}
+
+html[data-project-demo-theme="brand"] .demo-surface .aws-status-badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+html[data-project-demo-theme="brand"][data-embedded="true"] body .demo-surface .demo-surface-header .aws-status-badge {
+  min-width: 160px !important;
+}
+
+html[data-project-demo-theme="brand"] .demo-surface > :is(.content, .sentence-workspace, .handwriting-content) {
+  padding: 0 var(--demo-workspace-padding) 24px !important;
+  gap: 24px;
+}
+
+html[data-project-demo-theme="brand"] .demo-surface :is(.demo-disclosure, .stat-card, .kpi-card, .result-card) {
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+html[data-project-demo-theme="brand"] .puzzle-workspace .board-actions {
+  justify-content: center;
+  gap: 12px;
+}
+
+html[data-project-demo-theme="brand"] .puzzle-workspace .puzzle-status {
+  min-height: 1.5em;
+  margin: 0;
+  text-align: center;
+  font-size: .875rem;
+  color: var(--muted);
+  font-family: var(--font-sans, "Inter", system-ui, sans-serif);
+}
+
+html[data-project-demo-theme="brand"] .puzzle-workspace .solution-label {
+  text-transform: none;
+  letter-spacing: normal;
+  text-decoration: none;
+  border-bottom: 0;
+  font: inherit;
+}
+
+html[data-project-demo-theme="brand"] .puzzle-workspace .solution-trigger {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: #ffffff;
+}
+
+html[data-project-demo-theme="brand"] .puzzle-workspace .solution-trigger[aria-pressed="true"] {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+html[data-project-demo-theme="brand"] .minesweeper-workspace .board-shell {
+  width: min(100%, 444px);
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  padding: 8px;
+}
+
+html[data-project-demo-theme="brand"] .minesweeper-workspace .grid {
+  width: 100%;
+  aspect-ratio: 1;
+  grid-template-columns: repeat(var(--grid-size), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--grid-size), minmax(0, 1fr));
+}
+
+html[data-project-demo-theme="brand"] .chatbot-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 0 !important;
+  overflow: hidden;
+}
+
+html[data-project-demo-theme="brand"] .chatbot-workspace .views {
+  min-height: 240px;
+  flex: 1 1 auto;
+  padding-inline: 20px;
+}
+
+html[data-project-demo-theme="brand"] .chatbot-workspace .chat-shell--regular:has(.empty-state) {
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: stretch;
+}
+
+html[data-project-demo-theme="brand"] .chatbot-workspace .chat-messages:has(.empty-state) {
+  justify-content: safe center;
+}
+
+html[data-project-demo-theme="brand"] .chatbot-workspace > .demo-settings {
+  flex: 0 0 auto;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 12px 12px;
+  padding-inline: 20px;
+}
+
+html[data-project-demo-theme="brand"] .chatbot-workspace .demo-settings-panel {
+  position: static;
+  width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: none;
+}
+
+html[data-project-demo-theme="brand"] .chatbot-workspace > .demo-settings > summary {
+  display: list-item;
+  padding: 12px 0;
+  list-style-position: inside;
+  font-size: .875rem;
+}
+
+@media (max-width: 640px) {
+  html[data-project-demo-theme="brand"] body .demo-surface { --demo-workspace-padding: 12px; }
+  html[data-project-demo-theme="brand"][data-embedded="true"] body .demo-surface .demo-surface-header {
+    gap: 12px;
+    padding-top: 16px !important;
+  }
+  html[data-project-demo-theme="brand"] .demo-scope-controls {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+  html[data-project-demo-theme="brand"] .demo-surface > :is(.content, .sentence-workspace, .handwriting-content) {
+    padding-bottom: 20px !important;
+    gap: 20px;
+  }
+  html[data-project-demo-theme="brand"] .chatbot-workspace :is(.views, .demo-settings) { padding-inline: 12px; }
+}

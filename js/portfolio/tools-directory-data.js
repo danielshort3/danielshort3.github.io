@@ -77,7 +77,7 @@ window.DIRECTORY_WORKBENCH = {
         "Two text drafts"
       ],
       "outputs": [
-        "Highlighted side-by-side comparison"
+        "Highlighted changes with both drafts visible"
       ],
       "iconImage": "img/tools/icons/text-compare.png?v=de1801cee7ef",
       "iconHtml": "",

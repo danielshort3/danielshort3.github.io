@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.e022af6d.css">
+  <link rel="stylesheet" href="dist/styles.91c0fa3c.css">
   <link rel="stylesheet" href="dist/styles-tools.32cc46e6.css">
   <link rel="stylesheet" href="css/components/image-optimizer.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -49,7 +49,7 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.d4de4c93.js"></script>
+  <script defer src="dist/site-shell.63ee94e5.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.fe0e5a75.css">
   <script type="application/ld+json" id="tool-jsonld">
@@ -58,7 +58,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/tools/image-optimizer#webpage","url":"https://www.danielshort.me/tools/image-optimizer","name":"Image Optimizer | Daniel Short","description":"Resize, compress, and convert images (PNG, JPEG, WebP, AVIF) locally in your browser. Source images stay on your device.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/tool-image-optimizer.png?v=1ceb62f129bf"},"mainEntity":{"@id":"https://www.danielshort.me/tools/image-optimizer#app"},"breadcrumb":{"@id":"https://www.danielshort.me/tools/image-optimizer#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/tools/image-optimizer#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://www.danielshort.me/tools"},{"@type":"ListItem","position":3,"name":"Image Optimizer","item":"https://www.danielshort.me/tools/image-optimizer"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:image-optimizer","path":"/tools/image-optimizer","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.e022af6d.css","/dist/styles-tools.32cc46e6.css","/css/components/image-optimizer.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.d4de4c93.js","/js/tools/tool-share-link.js","/js/tools/tool-workspace.js","/js/tools/image-optimizer.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:image-optimizer"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:image-optimizer","path":"/tools/image-optimizer","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.91c0fa3c.css","/dist/styles-tools.32cc46e6.css","/css/components/image-optimizer.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.63ee94e5.js","/js/tools/tool-share-link.js","/js/tools/tool-workspace.js","/js/tools/image-optimizer.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:image-optimizer"}</script>
 </head>
 <body data-page="image-optimizer" class="image-optimizer-page tools-tool-page site-page personal-accordion-page" data-tools-layout="media" data-tools-state="empty" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="image-optimizer" data-personal-fit="viewport" data-site-route-id="tools:image-optimizer" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:image-optimizer">
   <a href="/tools/image-optimizer#main" class="skip-link">Skip to main content</a>
@@ -90,7 +90,6 @@
       </div>
     </nav>
   </header>
-
 
 <!-- personal-accordion-shell:start -->
   <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>
@@ -201,13 +200,9 @@
             <button type="button" class="btn-ghost imgopt-share" data-tool-share-link aria-label="Copy a link that restores these image settings">Share</button>
           </div>
           <form id="imgopt-form" class="imgopt-form" novalidate>
-            <div class="imgopt-settings" data-workspace-tabset>
-              <div class="tool-workspace-tabs" role="tablist" aria-label="Image settings">
-                <button type="button" id="imgopt-tab-format" role="tab" data-workspace-tab aria-controls="imgopt-panel-format" aria-selected="true">Format</button>
-                <button type="button" id="imgopt-tab-resize" role="tab" data-workspace-tab aria-controls="imgopt-panel-resize" aria-selected="false" tabindex="-1">Resize</button>
-                <button type="button" id="imgopt-tab-naming" role="tab" data-workspace-tab aria-controls="imgopt-panel-naming" aria-selected="false" tabindex="-1">Naming</button>
-              </div>
-              <div id="imgopt-panel-format" class="imgopt-settings-panel" role="tabpanel" aria-labelledby="imgopt-tab-format" data-workspace-panel>
+            <div class="imgopt-settings">
+
+              <div id="imgopt-panel-format" class="imgopt-settings-panel">
                 <div class="imgopt-control">
                   <label class="imgopt-label" for="imgopt-format">Output format</label>
                   <select id="imgopt-format" class="imgopt-select" aria-describedby="imgopt-format-help">
@@ -218,17 +213,13 @@
                     <option value="image/avif">AVIF (if supported)</option>
                   </select>
                   <p id="imgopt-format-help" class="imgopt-help">Re-encoding strips metadata (EXIF) and normalizes orientation.</p>
-                  <label class="imgopt-option imgopt-option-row">
-                    <input id="imgopt-keep-smaller" type="checkbox" aria-describedby="imgopt-keep-smaller-help">
-                    <span>Keep smaller originals</span>
-                  </label>
-                  <p id="imgopt-keep-smaller-help" class="imgopt-help">Optional: reuse a smaller original when its format and dimensions already match and no background change is needed. Originals retain their metadata; leave this off to strip it.</p>
+
                 </div>
                 <div class="imgopt-control" id="imgopt-quality-wrap">
                   <label class="imgopt-label" for="imgopt-quality">Quality <span id="imgopt-quality-value" class="imgopt-value">82</span>
                   </label>
                   <input id="imgopt-quality" class="imgopt-range" type="range" min="40" max="100" value="82" step="1">
-                  <p class="imgopt-help">Used for JPEG/WebP/AVIF. Higher values preserve detail but increase file size.</p>
+                  <p class="imgopt-help">Used for JPEG/WebP/AVIF. Higher quality increases file size.</p>
                 </div>
                 <div class="imgopt-control imgopt-flat-wrap" id="imgopt-flatten-wrap">
                   <label class="imgopt-option imgopt-option-row">
@@ -242,11 +233,11 @@
                   </div>
                 </div>
               </div>
-              <div id="imgopt-panel-resize" class="imgopt-settings-panel" role="tabpanel" aria-labelledby="imgopt-tab-resize" data-workspace-panel hidden>
+              <div id="imgopt-panel-resize" class="imgopt-settings-panel">
                 <fieldset class="imgopt-fieldset">
                   <legend>Resize</legend>
                   <div class="imgopt-row">
-                    <label class="imgopt-label" for="imgopt-resize-mode">Mode</label>
+                    <label class="imgopt-label" for="imgopt-resize-mode">Resize to</label>
                     <select id="imgopt-resize-mode" class="imgopt-select">
                       <option value="none">No resize</option>
                       <option value="maxWidth">Max width</option>
@@ -291,29 +282,35 @@
                     <input id="imgopt-no-upscale" type="checkbox" checked>
                     <span>Prevent upscaling</span>
                   </label>
-                  <label class="imgopt-option">
-                    <input id="imgopt-responsive" type="checkbox">
-                    <span>Generate responsive widths</span>
-                  </label>
-                  <div class="imgopt-row" id="imgopt-responsive-wrap" hidden>
-                    <label class="imgopt-label" for="imgopt-responsive-widths">Widths</label>
-                    <input id="imgopt-responsive-widths" class="imgopt-text" type="text" placeholder="480, 768, 1024, 1600" value="640, 960, 1280">
-                  </div>
-                  <p class="imgopt-help">When enabled, each image exports multiple versions named with a “-640w” suffix.</p>
+
                 </fieldset>
               </div>
-              <div id="imgopt-panel-naming" class="imgopt-settings-panel" role="tabpanel" aria-labelledby="imgopt-tab-naming" data-workspace-panel hidden>
-                <div class="imgopt-control">
-                  <label class="imgopt-label" for="imgopt-suffix">Filename suffix</label>
-                  <input id="imgopt-suffix" class="imgopt-text" type="text" value="-optimized" maxlength="64">
-                  <p class="imgopt-help">Appended before the extension (example: <span class="imgopt-mono">photo-optimized.webp</span>).</p>
+              <details class="imgopt-more-options">
+                <summary>More options</summary>
+                <div class="imgopt-settings-panel">
+                  <div id="imgopt-panel-naming" class="imgopt-settings-panel">
+                    <div class="imgopt-control">
+                      <label class="imgopt-label" for="imgopt-suffix">Filename suffix</label>
+                      <input id="imgopt-suffix" class="imgopt-text" type="text" value="-optimized" maxlength="64">
+                      <p class="imgopt-help">Appended before the extension (example: <span class="imgopt-mono">photo-optimized.webp</span>).</p>
+                    </div>
+                  </div>
+                  <div class="imgopt-control"><label class="imgopt-option">
+                      <input id="imgopt-responsive" type="checkbox">
+                      <span>Generate responsive widths</span>
+                    </label>
+                    <div class="imgopt-row" id="imgopt-responsive-wrap" hidden>
+                      <label class="imgopt-label" for="imgopt-responsive-widths">Widths</label>
+                      <input id="imgopt-responsive-widths" class="imgopt-text" type="text" placeholder="480, 768, 1024, 1600" value="640, 960, 1280">
+                    </div>
+                    <p class="imgopt-help">When enabled, each image exports multiple versions named with a “-640w” suffix.</p></div>
+                  <div class="imgopt-control"><label class="imgopt-option imgopt-option-row">
+                      <input id="imgopt-keep-smaller" type="checkbox" aria-describedby="imgopt-keep-smaller-help">
+                      <span>Keep smaller originals</span>
+                    </label>
+                    <p id="imgopt-keep-smaller-help" class="imgopt-help">Reuse smaller originals when no conversion is needed. Their metadata is retained.</p></div>
                 </div>
-              </div>
-            </div>
-            <div class="imgopt-settings-summary tool-workspace-summary" aria-label="Current image settings">
-              <p id="imgopt-summary-format">Keep original · Quality 82</p>
-              <p id="imgopt-summary-resize">No resize · Prevent upscaling</p>
-              <p id="imgopt-summary-naming">Suffix: -optimized</p>
+              </details>
             </div>
 
           </form>

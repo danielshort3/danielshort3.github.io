@@ -44,7 +44,7 @@ async function runImageOptimizerChecks({ browser, base, artifactDir }) {
       }
       await page.screenshot({ path: path.join(artifactDir, `image-optimizer-${viewport.width}-empty.png`) });
       await page.locator('#imgopt-format').selectOption('image/webp');
-      await page.locator('#imgopt-tab-resize').click();
+      assert(await page.locator('#imgopt-resize-mode').isVisible(), 'Format and resize controls stay visible together.');
       await page.locator('#imgopt-resize-mode').selectOption('maxWidth');
       await page.locator('#imgopt-width').fill('480');
       await page.locator('#imgopt-sample').click();
@@ -63,6 +63,9 @@ async function runImageOptimizerChecks({ browser, base, artifactDir }) {
       assert.equal(output.height, 320, 'Resizing keeps the sample aspect ratio.');
       assert.match(download.suggestedFilename(), /^sample-landscape.*\.webp$/);
       await page.screenshot({ path: path.join(artifactDir, `image-optimizer-${viewport.width}-result.png`) });
+      await page.locator('#imgopt-quality').fill('70');
+      assert.equal(await page.locator('#imgopt-results a[download]').count(), 0, 'Setting changes invalidate previous downloads.');
+      assert(await page.locator('#imgopt-download-all').isDisabled());
       await page.locator('#imgopt-sample').click();
       await page.waitForFunction(() => document.querySelectorAll('#imgopt-filelist .imgopt-file').length === 2 && document.querySelector('#imgopt-status').textContent.includes('image is ready'));
       assert.equal(await page.locator('#imgopt-filelist .imgopt-file').count(), 2, 'Adding a sample does not replace selected images.');

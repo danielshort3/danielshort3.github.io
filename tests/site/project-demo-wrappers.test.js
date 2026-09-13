@@ -93,7 +93,7 @@ function runProjectDemoWrapperTests({ assert }) {
       wrapperFromSource.indexOf(PERSONAL_CONTENT_END)
     );
     const masthead = /<header\b[^>]*\sdata-project-demo-masthead=[^>]*>[\s\S]*?<\/header>/i.exec(fragment)?.[0] || '';
-    const expectedTitle = /\bdemo$/i.test(definition.title) ? definition.title : `${definition.title} Demo`;
+    const expectedTitle = definition.heading || definition.title;
     assert(count(fragment, /\sdata-page-masthead(?=[\s=>])/g) === 1 &&
       masthead.includes(`data-project-demo-masthead="${definition.demoId}"`) &&
       masthead.includes('data-page-masthead-intro') && masthead.includes('data-page-masthead-copy') &&
@@ -152,6 +152,18 @@ function runProjectDemoWrapperTests({ assert }) {
   'Project details should iframe the raw demo while launch actions target the canonical wrapper');
   assert(!sentencePage.includes('project-link-label">Live Demo</span>'),
     'The resource list should not duplicate the primary demo launch action');
+
+  const digitProject = JSON.parse(read('content/projects/digitGenerator.json'));
+  const digitPage = renderProjectPage(digitProject);
+  assert(digitPage.includes('class="section-title project-demo-title">Digit Generator</h2>') &&
+    digitPage.includes('class="project-demo-description">Choose a digit and generate a collection of handwritten variations.</p>') &&
+    !digitPage.includes('class="section-title project-demo-title">Demo</h2>'),
+  'The digit project should promote its specific title and instructions into one demo header');
+  const escapedHeadingPage = renderProjectPage({ ...digitProject, embed: { ...digitProject.embed, heading: 'Digits <4> & <5>', description: 'Choose <one> & generate.' } });
+  assert(escapedHeadingPage.includes('Digits &lt;4&gt; &amp; &lt;5&gt;</h2>') &&
+    escapedHeadingPage.includes('Choose &lt;one&gt; &amp; generate.</p>') &&
+    sentencePage.includes('class="section-title project-demo-title">Sentence Search</h2>'),
+  'Custom demo headings should escape content and use descriptive headings across projects');
 
   assert(buildRunner.includes("generate-project-demo-wrappers.js") &&
     buildRunner.indexOf("generate-personal-accordion-pages.js") < buildRunner.indexOf("generate-project-demo-wrappers.js"),

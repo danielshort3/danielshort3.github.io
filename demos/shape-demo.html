@@ -396,12 +396,6 @@
             color: var(--bg);
             font-weight: 600;
         }
-        /* Slightly wider Classify button */
-        #classify {
-            min-width: 180px;
-            justify-content: center;
-        }
-
         .btn-primary[disabled] {
             opacity: .7;
             cursor: not-allowed;
@@ -471,68 +465,6 @@
             overflow: hidden;
         }
 
-        .shape-scores {
-            display: grid;
-            gap: 8px;
-        }
-
-        .shape-scores-head {
-            font-size: .9rem;
-            color: var(--text-muted);
-        }
-
-        .shape-score-list {
-            display: grid;
-            gap: 8px;
-        }
-
-        .shape-row {
-            display: grid;
-            grid-template-columns: minmax(70px, 110px) 1fr 56px;
-            gap: 10px;
-            align-items: center;
-            padding: 6px 10px;
-            border-radius: 10px;
-            border: 1px solid var(--surface-accent);
-            background: var(--surface);
-        }
-
-        .shape-row.is-top {
-            border-color: var(--primary);
-            background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, transparent), var(--surface));
-            box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent);
-        }
-
-        .shape-row.is-top .shape-name {
-            color: var(--primary);
-        }
-
-        .shape-name {
-            font-weight: 600;
-        }
-
-        .shape-track {
-            height: 10px;
-            border-radius: 999px;
-            background: var(--surface-2);
-            border: 1px solid var(--surface-accent);
-            overflow: hidden;
-        }
-
-        .shape-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transition: width .25s ease;
-        }
-
-        .shape-pct {
-            text-align: right;
-            font-size: .85rem;
-            color: var(--text-muted);
-            font-variant-numeric: tabular-nums;
-        }
-
         .hint {
             color: var(--text-muted);
             font-size: .9rem;
@@ -578,11 +510,6 @@
                 --page-pad: 10px;
             }
 
-            #classify {
-                min-width: 0;
-                width: 100%;
-            }
-
             .toolbar {
                 width: 100%;
             }
@@ -608,7 +535,7 @@
             }
 
         }
-  </style>
+    </style>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
@@ -653,68 +580,54 @@
     </script>
     <main id="main">
 
-    <div id="demo-box" role="application" aria-label="Shape classifier demo">
-        <header class="card-header">
+    <div id="demo-box" class="shape-demo drawing-demo demo-surface demo-size-drawing" aria-label="Shape classifier demo">
+        <header class="card-header demo-surface-header">
             <div class="header-copy">
                 <h1 class="title">Draw a Shape</h1>
                 <p class="subtitle">Draw a circle, triangle, square, hexagon, or octagon to see the model's prediction.</p>
             </div>
-            <div class="header-actions">
-                <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Preparing demo</span>
+            <div class="header-actions demo-status-actions">
+                <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">AWS · Connecting</span>
             </div>
         </header>
 
         <div class="content demo-workspace">
             <!-- Left: canvas & tools -->
-            <section>
-                <h2 class="demo-section-label">Your drawing</h2>
-                <div id="pad-wrapper" class="canvas-frame">
+            <section class="shape-input" aria-labelledby="drawing-title">
+                <div class="drawing-input-header">
+                    <h2 id="drawing-title">Your shape</h2>
+                    <button id="erase" class="drawing-clear" type="button" aria-keyshortcuts="C" aria-label="Clear drawing (C)">Clear</button>
+                </div>
+                <div id="pad-wrapper" class="canvas-frame drawing-canvas-frame">
                     <!-- Note: width/height attributes are resized for DPR in JS -->
-                    <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
-
-                    <!-- Floating eraser button (top-right of the canvas frame) -->
-                    <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
-                        <i class="fa-solid fa-eraser"></i>
-                    </button>
+                    <canvas id="pad" width="256" height="256" aria-label="Draw a circle, triangle, square, hexagon, or octagon."></canvas>
+                    <span id="drawing-prompt" aria-hidden="true">Draw here</span>
                 </div>
 
-                <div class="toolbar">
-                    <button id="classify" class="btn-primary" type="button">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Classify
-                    </button>
+                <div class="drawing-toolbar drawing-primary-action">
+                    <button id="classify" class="drawing-action" type="button" disabled>Classify shape</button>
                 </div>
-                <div class="toolbar" aria-label="Try an example shape">
-                    <span class="hint">Try an example:</span>
-                    <button class="tool-btn" type="button" data-shape-example="circle">Circle</button>
-                    <button class="tool-btn" type="button" data-shape-example="triangle">Triangle</button>
-                    <button class="tool-btn" type="button" data-shape-example="square">Square</button>
-                </div>
+                <p id="classification-feedback" class="drawing-feedback" role="status" aria-live="polite" hidden></p>
             </section>
 
             <!-- Right: result & help -->
-            <section class="panel" aria-live="polite">
-              <div class="prediction-summary">
-                <h2 class="demo-section-label">Prediction</h2>
-                <div class="result-badge" id="result-badge" aria-label="Prediction">
-                  <i class="fa-solid fa-magnifying-glass-chart"></i>
-                  <span id="result-shape">Draw a shape to begin</span>
+            <section class="shape-results drawing-results prediction-summary" aria-label="Prediction result" aria-live="polite" aria-atomic="true">
+              <div id="prediction-output" hidden>
+                <div class="drawing-prediction">
                   <span id="result-icon" aria-hidden="true"></span>
+                  <div>
+                    <p class="drawing-result-label">Model reads</p>
+                    <p id="result-shape"></p>
+                    <p id="confidence-text"></p>
+                  </div>
                 </div>
-                <div class="confidence-track" aria-label="Confidence">
-                  <div id="confidence-bar" class="confidence" style="width:0%"></div>
-                </div>
-                <div id="confidence-text" class="hint">Confidence: –</div>
+                <div class="drawing-confidence-meter" aria-hidden="true"><span id="confidence-bar"></span></div>
+                <section class="shape-score-details" aria-labelledby="shape-scores-title">
+                  <h2 id="shape-scores-title">All shape scores</h2>
+                  <ol id="shape-score-list" aria-label="All five shape scores, highest first"></ol>
+                </section>
               </div>
-              <details class="demo-disclosure">
-                    <summary>All shape scores</summary>
-                    <div id="shape-score-list" class="shape-score-list" aria-label="Per-shape scores"></div>
-                </details>
-                <details class="demo-disclosure">
-                    <summary>Processing details</summary>
-                    <div id="status" role="status" aria-live="polite"></div>
-                </details>
-                <p class="hint">This model recognizes only the five shapes listed above.</p>
-                <div class="hint">Shortcut: press <strong>C</strong> to clear.</div>
+              <p id="result-empty">Your result appears here.</p>
             </section>
         </div>
     </div>
@@ -749,66 +662,6 @@
         const candidates = () => listCandidates(endpointConfig).filter(Boolean);
         const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['predict'], payload);
 
-        /* ---------- Stepper (same structure/behavior as chatbot) ---------- */
-        const statusEl = document.getElementById('status');
-        const steps = [
-            { id: 'submit', label: 'Submit drawing' },
-            { id: 'process', label: 'Processing on server' },
-            { id: 'complete', label: 'Complete' }
-        ];
-        function renderStepper() {
-            const ul = document.createElement('ul'); ul.className = 'stepper';
-            steps.forEach((s, i) => {
-                const li = document.createElement('li');
-                li.className = 'step not-started';
-                li.id = `step-${s.id}`;
-                li.dataset.label = s.label;      // tooltip for compact mode
-                li.setAttribute('role', 'button');
-                li.setAttribute('tabindex', '0');
-                li.setAttribute('aria-label', s.label);
-
-                const dot = document.createElement('div'); dot.className = 'dot'; dot.textContent = i + 1;
-                const label = document.createElement('span'); label.className = 'label'; label.textContent = s.label;
-
-                li.append(dot, label);
-                ul.appendChild(li);
-            });
-            statusEl.innerHTML = ''; statusEl.appendChild(ul);
-        }
-        function setStep(id, state) {
-            const el = document.getElementById(`step-${id}`);
-            if (!el) return;
-            el.classList.remove('not-started', 'in-progress', 'done');
-            el.classList.add(state);
-            /* no notifyResize() here to keep iframe static */
-        }
-        // Render once on load so the stepper space is reserved and height stays stable
-        renderStepper();
-
-        // Compact tooltip interaction for small screens (tap number to reveal label briefly)
-        const mqCompact = window.matchMedia('(max-width: 520px)');
-        statusEl.addEventListener('click', (e) => {
-            const step = e.target.closest('.step');
-            if (!step || !mqCompact.matches) return;
-            step.classList.add('show-tip');
-            clearTimeout(step._tipTimer);
-            step._tipTimer = setTimeout(() => step.classList.remove('show-tip'), 1500);
-        });
-        statusEl.addEventListener('keydown', (e) => {
-            if (!mqCompact.matches) return;
-            const step = e.target.closest('.step');
-            if (!step) return;
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                step.click();
-            }
-        });
-        window.addEventListener('resize', () => {
-            if (!mqCompact.matches) {
-                document.querySelectorAll('.step.show-tip').forEach(s => s.classList.remove('show-tip'));
-            }
-        });
-
         /* ---------- Canvas setup with DPR scaling (crisper lines on phones) ---------- */
         const canvas = document.getElementById('pad');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -816,7 +669,9 @@
         const classifyBtn = document.getElementById('classify');
         const healthPill = document.getElementById('health-pill');
 
-        const resultBadge = document.getElementById('result-badge');
+        const predictionOutput = document.getElementById('prediction-output');
+        const resultEmpty = document.getElementById('result-empty');
+        const drawingPrompt = document.getElementById('drawing-prompt');
         const resultShape = document.getElementById('result-shape');
         const resultIcon = document.getElementById('result-icon');
         const confBar = document.getElementById('confidence-bar');
@@ -831,6 +686,8 @@
         let drawing = false;
         let serverReady = false;
         let classifying = false;
+        let hasPrediction = false;
+        const classificationFeedback = document.getElementById('classification-feedback');
 
         const SHAPE_ORDER = [
             { key: 'circle', label: 'Circle' },
@@ -848,9 +705,17 @@
             const w = Math.max(1, Math.round(r.width * dpr));
             const h = Math.max(1, Math.round(r.height * dpr));
             if (canvas.width !== w || canvas.height !== h) {
+                const previous = document.createElement('canvas');
+                previous.width = canvas.width;
+                previous.height = canvas.height;
+                if (hasDrawn) previous.getContext('2d').drawImage(canvas, 0, 0);
+                const hadDrawing = hasDrawn;
                 canvas.width = w;
                 canvas.height = h;
-                resetCanvas(); // clears & fills bg
+                resetCanvas();
+                if (hadDrawing) ctx.drawImage(previous, 0, 0, w, h);
+                hasDrawn = hadDrawing;
+                drawingPrompt.hidden = hasDrawn;
             }
         }
 
@@ -861,6 +726,8 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
             hasDrawn = false;
+            drawing = false;
+            drawingPrompt.hidden = false;
         }
 
         // Pointer coordinate to canvas space (accounts for DPR)
@@ -882,6 +749,7 @@
 
         // Init
         fitCanvasToDisplaySize();
+        resetCanvas();
         setStroke();
 
         // Redraw bg color if theme variables change (bitmap stays dark by design)
@@ -906,12 +774,22 @@
 
         // Drawing interactions (pen always on)
         canvas.addEventListener('pointerdown', e => {
+            if (classifying || (e.pointerType === 'mouse' && e.button !== 0)) return;
             e.preventDefault();
+            hasPrediction = false;
+            classificationFeedback.hidden = true;
+            setPredictionUI('Your result appears here.', null, null);
+            renderShapeScores(null);
             drawing = true;
             canvas.setPointerCapture?.(e.pointerId);
             setStroke();
+            const [x, y] = pos(e);
             ctx.beginPath();
-            ctx.moveTo(...pos(e));
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 0.01, y);
+            ctx.stroke();
+            hasDrawn = true;
+            updateClassifyState();
         });
         canvas.addEventListener('pointermove', e => {
             if (!drawing) return;
@@ -1074,38 +952,39 @@
             shapeScoreList.innerHTML = '';
             const hasAny = SHAPE_ORDER.some(shape => Number.isFinite(scores?.[shape.key]));
             if (!hasAny) {
-                const empty = document.createElement('span');
+                const empty = document.createElement('li');
                 empty.className = 'hint';
                 empty.textContent = 'Per-shape scores unavailable.';
                 shapeScoreList.appendChild(empty);
                 return;
             }
 
-            SHAPE_ORDER.forEach(shape => {
-                const row = document.createElement('div');
-                row.className = 'shape-row';
+            const sorted = [...SHAPE_ORDER].sort((left, right) => (scores[right.key] ?? -1) - (scores[left.key] ?? -1));
+            sorted.forEach(shape => {
+                const row = document.createElement('li');
+                row.className = 'shape-row confidence-row';
                 if (highlightKey && shape.key === highlightKey) {
                     row.classList.add('is-top');
                 }
 
                 const name = document.createElement('span');
-                name.className = 'shape-name';
+                name.className = 'shape-name confidence-digit';
                 name.textContent = shape.label;
 
                 const track = document.createElement('div');
-                track.className = 'shape-track';
+                track.className = 'shape-track confidence-track';
                 const fill = document.createElement('div');
-                fill.className = 'shape-fill';
+                fill.className = 'shape-fill confidence';
                 const pct = toPercent(scores?.[shape.key]);
-                fill.style.width = pct !== null ? `${Math.round(pct)}%` : '0%';
+                fill.style.width = pct !== null ? `${pct}%` : '0%';
                 track.appendChild(fill);
 
                 const pctLabel = document.createElement('span');
-                pctLabel.className = 'shape-pct';
+                pctLabel.className = 'shape-pct confidence-pct';
                 if (pct === null) {
                     pctLabel.textContent = '--';
                 } else {
-                    pctLabel.textContent = pct < 1 ? `${pct.toFixed(1)}%` : `${Math.round(pct)}%`;
+                    pctLabel.textContent = pct > 0 && pct < 0.1 ? '<0.1%' : `${pct.toFixed(1)}%`;
                 }
 
                 row.append(name, track, pctLabel);
@@ -1125,31 +1004,34 @@
 
 
         function setPredictionUI(text, confidence, iconName = null) {
-            resultShape.textContent = text;
-            setIcon(iconName);
-
             const pct = toPercent(confidence);
-            if (pct !== null) {
-                confBar.style.width = `${Math.round(pct)}%`;
-                confText.textContent = `Confidence: ${Math.round(pct)}%`;
-            } else {
-                confBar.style.width = '0%';
-                confText.textContent = 'Confidence: –';
-            }
+            const showPrediction = iconName !== null || pct !== null || text === 'Unknown';
+            predictionOutput.hidden = !showPrediction;
+            resultEmpty.hidden = showPrediction;
+            resultEmpty.textContent = showPrediction ? '' : text;
+            resultShape.textContent = showPrediction ? text : '';
+            setIcon(iconName);
+            confBar.style.width = pct !== null ? `${pct}%` : '0%';
+            confText.textContent = pct !== null ? `${pct.toFixed(1)}% confidence` : 'Confidence unavailable';
         }
 
         function setHealth(state, text) {
             if (!healthPill) return;
             healthPill.dataset.state = state;
-            healthPill.textContent = text;
+            healthPill.textContent = `AWS · ${text}`;
         }
 
         function updateClassifyState() {
-            classifyBtn.disabled = !serverReady || classifying;
+            classifyBtn.disabled = !serverReady || !hasDrawn || classifying;
+            classifyBtn.textContent = classifying ? 'Classifying…' : 'Classify shape';
+            eraseBtn.disabled = classifying;
+            drawingPrompt.hidden = hasDrawn;
+            canvas.setAttribute('aria-disabled', String(classifying));
+            document.querySelector('.prediction-summary').setAttribute('aria-busy', String(classifying));
         }
 
         async function warmUpServer() {
-            setHealth('warming', 'Preparing demo');
+            setHealth('warming', 'Connecting');
             const bases = candidates();
             if (!bases.length) {
                 setHealth('err', 'No endpoint');
@@ -1167,7 +1049,7 @@
                     await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
                     rememberEndpoint(base, STORAGE_KEY);
                     serverReady = true;
-                    setHealth('ok', 'Ready');
+                    setHealth('ok', 'Connected');
                     updateClassifyState();
                     return;
                 } catch (err) {
@@ -1177,7 +1059,7 @@
                     await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
                     rememberEndpoint(base, STORAGE_KEY);
                     serverReady = true;
-                    setHealth('ok', 'Ready');
+                    setHealth('ok', 'Connected');
                     updateClassifyState();
                     return;
                 } catch (err) {
@@ -1203,15 +1085,13 @@
                 return;
             }
 
-            setStep('submit', 'in-progress');
 
-            // CLEAR previous classification & confidence immediately
-            setPredictionUI('Processing…', null, null);
-            renderShapeScores(null);
+            if (!hasPrediction) setPredictionUI('Reading your shape…', null, null);
+            classificationFeedback.hidden = true;
+            setHealth('loading', 'Classifying');
 
             classifying = true;
             updateClassifyState();
-            resultBadge.classList.add('pulse');
 
             try {
                 // Build base64 PNG; export failures should also restore the controls.
@@ -1228,8 +1108,6 @@
                 }
                 b64 = btoa(b64);
 
-                setStep('submit', 'done');
-                setStep('process', 'in-progress'); // spinner appears on this step
                 const json = await (async () => {
                   const payload = { b64 };
                   let lastErr = null;
@@ -1282,59 +1160,33 @@
                     : 'Unknown';
                 const resolvedConfidence = resolveConfidence(conf, shapeScores, canonical);
 
-                setStep('process', 'done');
-                setStep('complete', 'done');
 
-                setPredictionUI(`Prediction: ${pretty}`, resolvedConfidence, canonical !== 'unknown' ? canonical : null);
+                setPredictionUI(pretty, resolvedConfidence, canonical !== 'unknown' ? canonical : null);
                 renderShapeScores(shapeScores, canonical !== 'unknown' ? canonical : null);
+                hasPrediction = true;
+                setHealth('ok', 'Connected');
             } catch (err) {
-                setStep('process', 'not-started');
-                setStep('complete', 'not-started');
-                setPredictionUI('Error: ' + (err?.message || String(err)), null, null);
-                renderShapeScores(null);
+                if (!hasPrediction) setPredictionUI('Your result appears here.', null, null);
+                classificationFeedback.textContent = 'This shape could not be classified. Select Classify shape to try again.';
+                classificationFeedback.hidden = false;
+                setHealth('err', 'Request failed');
             } finally {
                 classifying = false;
                 updateClassifyState();
-                resultBadge.classList.remove('pulse');
                 /* no notifyResize() to keep iframe static */
             }
         }
 
         classifyBtn.addEventListener('click', classify);
 
-        document.querySelectorAll('[data-shape-example]').forEach(button => {
-            button.addEventListener('click', () => {
-                if (classifying) return;
-                resetCanvas();
-                setStroke();
-                const size = Math.min(canvas.width, canvas.height);
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
-                const radius = size * 0.3;
-                const shape = button.dataset.shapeExample;
-                ctx.beginPath();
-                if (shape === 'circle') {
-                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                } else if (shape === 'square') {
-                    ctx.rect(centerX - radius, centerY - radius, radius * 2, radius * 2);
-                } else {
-                    ctx.moveTo(centerX, centerY - radius);
-                    ctx.lineTo(centerX + radius, centerY + radius);
-                    ctx.lineTo(centerX - radius, centerY + radius);
-                    ctx.closePath();
-                }
-                ctx.stroke();
-                hasDrawn = true;
-                setPredictionUI('Example ready to classify', null, null);
-                renderShapeScores(null);
-            });
-        });
-
         // Erase behavior
         eraseBtn.addEventListener('click', () => {
             resetCanvas();
-            setPredictionUI('Draw a shape to begin', null, null);
+            hasPrediction = false;
+            classificationFeedback.hidden = true;
+            setPredictionUI('Your result appears here.', null, null);
             renderShapeScores(null);
+            updateClassifyState();
         });
 
         renderShapeScores(null);

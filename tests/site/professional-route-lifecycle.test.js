@@ -90,6 +90,7 @@ function searchHarness() {
 }
 
 module.exports = async function runProfessionalRouteLifecycleTests({ assert }) {
+  await require('./tableau-controls.test.js')();
   const source = fs.readFileSync(path.join(__dirname, '../../js/portfolio/portfolio.js'), 'utf8');
   const bindingSource = source.slice(source.indexOf('function createPortfolioBindings()'), source.indexOf('const getSrStatus'));
   const frames = clock();

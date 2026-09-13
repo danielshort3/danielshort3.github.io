@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.e022af6d.css">
+  <link rel="stylesheet" href="dist/styles.91c0fa3c.css">
   <link rel="stylesheet" href="dist/styles-tools.32cc46e6.css">
   <link rel="stylesheet" href="css/components/text-compare.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -49,7 +49,7 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.d4de4c93.js"></script>
+  <script defer src="dist/site-shell.63ee94e5.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.fe0e5a75.css">
   <script type="application/ld+json" id="tool-jsonld">
@@ -58,7 +58,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/tools/text-compare#webpage","url":"https://www.danielshort.me/tools/text-compare","name":"Text Compare | Daniel Short","description":"Compare two versions of text and see insertions, deletions, and replacements inline. Runs locally in your browser.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/tool-text-compare.png?v=590216eb0431"},"mainEntity":{"@id":"https://www.danielshort.me/tools/text-compare#app"},"breadcrumb":{"@id":"https://www.danielshort.me/tools/text-compare#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/tools/text-compare#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://www.danielshort.me/tools"},{"@type":"ListItem","position":3,"name":"Text Compare","item":"https://www.danielshort.me/tools/text-compare"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:text-compare","path":"/tools/text-compare","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.e022af6d.css","/dist/styles-tools.32cc46e6.css","/css/components/text-compare.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.d4de4c93.js","/js/tools/tool-share-link.js","/js/tools/text-compare-core.js","/js/tools/tool-workspace.js","/js/tools/text-compare.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:text-compare"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:text-compare","path":"/tools/text-compare","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.91c0fa3c.css","/dist/styles-tools.32cc46e6.css","/css/components/text-compare.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.63ee94e5.js","/js/tools/tool-share-link.js","/js/tools/text-compare-core.js","/js/tools/text-compare.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:text-compare"}</script>
 </head>
 <body data-page="text-compare" class="text-compare-page tools-tool-page site-page personal-accordion-page" data-tools-layout="text" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="text-compare" data-personal-fit="viewport" data-site-route-id="tools:text-compare" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:text-compare">
   <a href="/tools/text-compare#main" class="skip-link">Skip to main content</a>
@@ -146,115 +146,111 @@
 <!-- personal-tool-header:end -->
 <main id="main">
   <section class="tool-workspace tool-workspace--compare" aria-label="Text comparison workspace">
-    <form id="textcompare-form" class="textcompare-card textcompare-input-card tool-workspace-card" novalidate data-workspace-tabset>
-      <div class="tool-workspace-header textcompare-workspace-toolbar">
-        <div class="tool-workspace-tabs" role="tablist" aria-label="Workspace views">
-  <button type="button" id="textcompare-view-tab-drafts" data-workspace-tab role="tab" aria-controls="textcompare-view-drafts" aria-selected="true" tabindex="0">Drafts</button>
-  <button type="button" id="textcompare-view-tab-comparison" data-workspace-tab role="tab" aria-controls="textcompare-view-comparison" aria-selected="false" tabindex="-1">Comparison</button>
-</div>
-        <div class="textcompare-legend" aria-label="Change legend">
-            <span class="textcompare-legend-item"><span class="diff-pill diff-pill-ins">Inserted</span></span>
-            <span class="textcompare-legend-item"><span class="diff-pill diff-pill-del">Deleted</span></span>
-            <span class="textcompare-legend-item"><span class="diff-pill diff-pill-rep">Replaced</span></span>
+    <form id="textcompare-form" class="textcompare-card textcompare-input-card tool-workspace-card" novalidate>
+      <div id="textcompare-view-drafts" aria-label="Drafts">
+        <div class="textcompare-grid">
+          <div class="textcompare-field" data-field="original">
+            <div class="textcompare-field-head">
+              <label class="textcompare-label" for="textcompare-original">Original</label>
+              <div class="textcompare-field-actions">
+                <button type="button" id="textcompare-original-import" aria-label="Import original file" class="btn-ghost textcompare-field-btn">Import</button>
+                <input id="textcompare-original-file" tabindex="-1" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import original text file">
+              </div>
+            </div>
+            <p id="textcompare-original-status" class="textcompare-field-status" aria-live="polite"></p>
+            <textarea id="textcompare-original" class="textcompare-textarea" name="original" placeholder="Paste the original draft" spellcheck="false"></textarea>
           </div>
-        <div class="tool-workspace-actions">
-          <button type="button" id="textcompare-swap" class="btn-secondary">Swap</button>
-          <button type="button" id="textcompare-clear" class="btn-ghost">Clear</button>
-          <button type="submit" class="btn-primary">Compare drafts</button>
+          <div class="textcompare-field" data-field="revised">
+            <div class="textcompare-field-head">
+              <label class="textcompare-label" for="textcompare-revised">Revised</label>
+              <div class="textcompare-field-actions">
+                <button type="button" id="textcompare-revised-import" aria-label="Import revised file" class="btn-ghost textcompare-field-btn">Import</button>
+                <input id="textcompare-revised-file" tabindex="-1" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import revised text file">
+              </div>
+            </div>
+            <p id="textcompare-revised-status" class="textcompare-field-status" aria-live="polite"></p>
+            <textarea id="textcompare-revised" class="textcompare-textarea" name="revised" placeholder="Paste the revised draft" spellcheck="false"></textarea>
+          </div>
         </div>
       </div>
-      <div id="textcompare-view-drafts" class="tool-workspace-panel " data-workspace-panel role="tabpanel" aria-labelledby="textcompare-view-tab-drafts" tabindex="0">
-<div class="textcompare-grid">
-              <div class="textcompare-field" data-field="original">
-                <div class="textcompare-field-head">
-                  <label class="textcompare-label" for="textcompare-original">Original</label>
-                  <div class="textcompare-field-actions">
-                    <button type="button" id="textcompare-original-paste" class="btn-ghost textcompare-field-btn">Paste</button>
-                    <button type="button" id="textcompare-original-import" class="btn-ghost textcompare-field-btn">Import</button>
-                    <input id="textcompare-original-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import original text file">
-                  </div>
-                </div>
-                <p id="textcompare-original-status" class="textcompare-field-status" aria-live="polite"></p>
-                <textarea id="textcompare-original" class="textcompare-textarea" name="original" placeholder="Paste the original draft" spellcheck="false"></textarea>
-              </div>
-              <div class="textcompare-field" data-field="revised">
-                <div class="textcompare-field-head">
-                  <label class="textcompare-label" for="textcompare-revised">Revised</label>
-                  <div class="textcompare-field-actions">
-                    <button type="button" id="textcompare-revised-paste" class="btn-ghost textcompare-field-btn">Paste</button>
-                    <button type="button" id="textcompare-revised-import" class="btn-ghost textcompare-field-btn">Import</button>
-                    <input id="textcompare-revised-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import revised text file">
-                  </div>
-                </div>
-                <p id="textcompare-revised-status" class="textcompare-field-status" aria-live="polite"></p>
-                <textarea id="textcompare-revised" class="textcompare-textarea" name="revised" placeholder="Paste the revised draft" spellcheck="false"></textarea>
-              </div>
-            </div>
-        <details class="textcompare-settings">
-                <summary>Comparison settings<span class="textcompare-mode-summary" data-textcompare-mode-summary>Auto mode · Preserve paragraph boundaries</span></summary>
-                <fieldset class="textcompare-mode-switch" role="radiogroup" aria-label="Comparison mode">
-                  <legend class="visually-hidden">Comparison mode</legend>
-                  <label class="textcompare-mode-option" for="textcompare-mode-auto">
-                    <input id="textcompare-mode-auto" type="radio" name="textcompare-mode" value="auto" checked>
-                    <span>Auto</span>
-                  </label>
-                  <label class="textcompare-mode-option" for="textcompare-mode-document">
-                    <input id="textcompare-mode-document" type="radio" name="textcompare-mode" value="document">
-                    <span>Document</span>
-                  </label>
-                  <label class="textcompare-mode-option" for="textcompare-mode-structured">
-                    <input id="textcompare-mode-structured" type="radio" name="textcompare-mode" value="structured">
-                    <span>Structured</span>
-                  </label>
-                </fieldset>
-                <p class="textcompare-settings-help">Auto picks document or structured comparison from the text shape and any imported file type. Use Document for drafts and pasted prose. Use Structured for tables, JSON, CSV, XML, and other line-oriented content.</p>
-              </details>
-</div>
-      <div id="textcompare-view-comparison" class="tool-workspace-panel textcompare-results-card" data-workspace-panel role="tabpanel" aria-labelledby="textcompare-view-tab-comparison" tabindex="0" hidden>
-<div class="tool-workspace-header">
-        <div><h2>Comparison</h2><p id="textcompare-summary" class="textcompare-summary">Paste two drafts or load the example.</p></div>
-        <div class="textcompare-results-actions">
-              <button type="button" id="textcompare-copy" class="btn-secondary">Copy formatted</button>
-              <span id="textcompare-copy-status" class="textcompare-copy-status" aria-live="polite"></span>
-            </div>
+      <div class="textcompare-primary-actions">
+        <button type="submit" class="btn-primary">Compare drafts</button>
+        <button type="button" id="textcompare-example" class="btn-ghost">Try an example</button>
       </div>
-      <details class="textcompare-format-details">
-            <summary>Copy formatting</summary>
-            <div class="textcompare-format-grid" role="group" aria-label="Copy formatting options">
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-ins-bg">Inserted highlight</label>
-                <input id="textcompare-ins-bg" class="textcompare-color" type="color" value="#DDF2EC">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-ins-text">Inserted text</label>
-                <input id="textcompare-ins-text" class="textcompare-color" type="color" value="#091F3B">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-del-bg">Deleted highlight</label>
-                <input id="textcompare-del-bg" class="textcompare-color" type="color" value="#FBE4E8">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-del-text">Deleted text</label>
-                <input id="textcompare-del-text" class="textcompare-color" type="color" value="#091F3B">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-del-strike">Deleted strike</label>
-                <input id="textcompare-del-strike" class="textcompare-color" type="color" value="#091F3B">
-              </div>
-            </div>
-            <p class="textcompare-format-hint">Tip: paste into Word using “Keep Source Formatting” to preserve highlights and strikethroughs.</p>
-          </details>
-      <div id="textcompare-output" class="textcompare-output" role="region" aria-label="Inline comparison output">
-            <p class="textcompare-empty">Waiting for input.</p>
+      <section id="textcompare-view-comparison" class="textcompare-results-card" aria-labelledby="textcompare-result-title">
+        <div class="tool-workspace-header">
+          <div>
+            <h2 id="textcompare-result-title">Comparison</h2>
+            <p id="textcompare-summary" class="textcompare-summary" role="status" aria-live="polite">Changes appear here.</p>
           </div>
+          <div class="textcompare-results-actions">
+            <button type="button" id="textcompare-copy" class="btn-secondary" disabled>Copy formatted</button>
+            <span id="textcompare-copy-status" class="textcompare-copy-status" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="textcompare-legend" aria-label="Change legend" hidden>
+          <span class="diff-pill diff-pill-ins">Inserted</span>
+          <span class="diff-pill diff-pill-del">Deleted</span>
+        </div>
+        <div id="textcompare-output" class="textcompare-output" role="region" aria-label="Inline comparison output" tabindex="0">
+          <p class="textcompare-empty">Add both drafts, then compare.</p>
+        </div>
         <p id="textcompare-warning" class="textcompare-warning" aria-live="polite"></p>
-</div>
-      <div class="tool-workspace-actions textcompare-workspace-footer">
-        <p class="textcompare-workspace-status" data-textcompare-ready>Paste both drafts to compare.</p>
-        <button type="button" id="textcompare-example" class="btn-secondary">Load example</button>
-        <button type="button" class="btn-ghost tool-workspace-share" data-tool-share-link aria-label="Copy a link that restores these inputs">Copy link to my inputs</button>
-      </div>
-      <p class="textcompare-settings-help">Comparison runs on your device. When signed in, drafts, settings, and results save automatically to your account; a shared input link contains your drafts. <a href="/privacy#local-tools">Privacy details</a></p>
+      </section>
+      <details class="textcompare-settings">
+        <summary>Comparison options</summary>
+        <fieldset class="textcompare-mode-switch" role="radiogroup" aria-label="Comparison mode">
+          <legend class="visually-hidden">Comparison mode</legend>
+          <label class="textcompare-mode-option" for="textcompare-mode-auto">
+            <input id="textcompare-mode-auto" type="radio" name="textcompare-mode" value="auto" checked>
+            <span>Auto</span>
+          </label>
+          <label class="textcompare-mode-option" for="textcompare-mode-document">
+            <input id="textcompare-mode-document" type="radio" name="textcompare-mode" value="document">
+            <span>Document</span>
+          </label>
+          <label class="textcompare-mode-option" for="textcompare-mode-structured">
+            <input id="textcompare-mode-structured" type="radio" name="textcompare-mode" value="structured">
+            <span>Structured</span>
+          </label>
+        </fieldset>
+        <p class="textcompare-settings-help">Auto works for most text. Choose Document for prose or Structured for code and tables.</p>
+        <div class="tool-workspace-actions">
+          <button type="button" id="textcompare-swap" class="btn-secondary">Swap drafts</button>
+          <button type="button" id="textcompare-clear" class="btn-ghost">Clear drafts</button>
+        </div>
+        <details class="textcompare-format-details">
+          <summary>Copy formatting</summary>
+          <div class="textcompare-format-grid" role="group" aria-label="Copy formatting options">
+            <div class="textcompare-format-field">
+              <label class="textcompare-format-label" for="textcompare-ins-bg">Inserted highlight</label>
+              <input id="textcompare-ins-bg" class="textcompare-color" type="color" value="#DDF2EC">
+            </div>
+            <div class="textcompare-format-field">
+              <label class="textcompare-format-label" for="textcompare-ins-text">Inserted text</label>
+              <input id="textcompare-ins-text" class="textcompare-color" type="color" value="#091F3B">
+            </div>
+            <div class="textcompare-format-field">
+              <label class="textcompare-format-label" for="textcompare-del-bg">Deleted highlight</label>
+              <input id="textcompare-del-bg" class="textcompare-color" type="color" value="#FBE4E8">
+            </div>
+            <div class="textcompare-format-field">
+              <label class="textcompare-format-label" for="textcompare-del-text">Deleted text</label>
+              <input id="textcompare-del-text" class="textcompare-color" type="color" value="#091F3B">
+            </div>
+            <div class="textcompare-format-field">
+              <label class="textcompare-format-label" for="textcompare-del-strike">Deleted strike</label>
+              <input id="textcompare-del-strike" class="textcompare-color" type="color" value="#091F3B">
+            </div>
+          </div>
+          <p class="textcompare-format-hint">Tip: paste into Word using “Keep Source Formatting” to preserve highlights and strikethroughs.</p>
+        </details>
+        <div class="tool-workspace-actions">
+          <button type="button" class="btn-ghost tool-workspace-share" data-tool-share-link aria-label="Copy a link that restores these inputs">Copy link to my inputs</button>
+          <span class="textcompare-settings-help">The link contains both drafts.</span>
+        </div>
+      </details>
+      <p class="textcompare-settings-help">Compared on your device. Signed-in drafts and results save to your account. <a href="/privacy#local-tools">Privacy details</a></p>
     </form>
   </section>
 </main>
@@ -278,7 +274,6 @@
 </footer>
   <script defer src="js/tools/tool-share-link.js"></script>
   <script defer src="js/tools/text-compare-core.js"></script>
-  <script defer src="js/tools/tool-workspace.js"></script>
   <script defer src="js/tools/text-compare.js"></script>
   <script defer src="dist/site-tools-account.023b64e1.js"></script>
 

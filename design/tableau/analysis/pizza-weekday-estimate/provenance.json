@@ -1,0 +1,60 @@
+{
+  "sourceArtifactDirectory": "tableau-redesign/feedback-revision",
+  "sourceCsv": "tableau-redesign/research/pizza/tips.csv",
+  "sourceCsvSha256": "c09bec697c296e0c0f34f160902fe10521972968dfa6e7296648695e1ae0e753",
+  "sourceFiles": [
+    {
+      "name": "weekday-performance.csv",
+      "sha256": "721095de182e7e5df1a877f1b5b8f441a48a1463fba1b3527dbf4a4f0c018392"
+    },
+    {
+      "name": "candidate-validation.csv",
+      "sha256": "612bcbb62eb72d2ffa36d98ee0f1dd68fc688f63f6843617ca71ec38d17f1166"
+    },
+    {
+      "name": "estimator-model.json",
+      "sha256": "c27164a7208bac4f83e5d05bb7eec8eb397d5db57debf67e4c4d7da3b498036e"
+    },
+    {
+      "name": "estimator-parameter-examples.csv",
+      "sha256": "2c58aee2e5e7c292c9e610a812674555b272e5e1425ce49d8547eacfa71e65e7"
+    },
+    {
+      "name": "estimator-test-subgroups.csv",
+      "sha256": "ac307c4dfadf9867c2fd66c69db803ddb61f2e7dda13655d7014a1394f676d7c"
+    },
+    {
+      "name": "estimator-city-housing-support.csv",
+      "sha256": "fbf929037bf1af61937836efef641d6cb098fa41e2b1e62c8d80f025629fe5aa"
+    },
+    {
+      "name": "tableau-estimator-spec.json",
+      "sha256": "de94b1d6b21ca66b69121aa4fafb075a0a9180f37ebf23cfe6d80f4f8147c552"
+    },
+    {
+      "name": "tableau-weekday-estimator-spec.md",
+      "sha256": "b30badefc0edf1428e065fe58ec5837fc22de0b43fbd1c62798c12b191cf0332"
+    },
+    {
+      "name": "analyze-weekday-estimator.py",
+      "sha256": "87bd17f57441fe71ab6fad1ea171e1d56c31db0ab9835d3f4a1c4842484f47a0"
+    },
+    {
+      "name": "weekday-estimator-analysis.json",
+      "sha256": "d2867c61703e6b6faefce60257cd36d637f6db7d446664e03f2ae6f59217b69c"
+    }
+  ],
+  "packagingChanges": [
+    "Portable --source/--output arguments and source hash validation; separate scratch output required.",
+    "Scored CSV export is opt-in.",
+    "Two-space indentation and bounded console summary.",
+    "Analysis report source path is local source-tips.csv.",
+    "Spec assigns caveats to About and references packaged input; method and coefficients unchanged."
+  ],
+  "excludedLargeArtifacts": [
+    "estimator-train-scored.csv",
+    "estimator-calibration-scored.csv",
+    "estimator-test-scored.csv",
+    "weekday-estimator-analysis.ipynb"
+  ]
+}

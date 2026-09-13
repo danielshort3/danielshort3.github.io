@@ -16,11 +16,12 @@
   const absentColorInput = $('[data-oxford-color="absent"]');
   const resetColorsBtn = $('[data-oxford-reset-colors]');
   const exampleBtn = $('#oxford-example');
-  const pasteBtn = $('#oxford-paste');
   const importBtn = $('#oxford-import');
   const fileInput = $('#oxford-file');
   const inputStatus = $('#oxford-input-status');
+  const legend = $('.oxford-legend');
   let hasRun = false;
+  let importGeneration = 0;
 
   if (!form || !input || !summary || !counts || !output) return;
 
@@ -79,10 +80,28 @@
 
   const setInputBusy = (busy) => {
     const state = Boolean(busy);
-    if (exampleBtn) exampleBtn.disabled = state;
-    if (pasteBtn) pasteBtn.disabled = state;
     if (importBtn) importBtn.disabled = state;
     if (fileInput) fileInput.disabled = state;
+  };
+
+  const cancelImport = () => {
+    importGeneration += 1;
+    if (fileInput) fileInput.value = '';
+    setInputBusy(false);
+    setInputStatus('');
+  };
+
+  const invalidateResults = (message = '') => {
+    hasRun = false;
+    counts.innerHTML = '';
+    if (resultsList) resultsList.innerHTML = '';
+    if (legend) legend.hidden = true;
+    summary.textContent = '';
+    output.innerHTML = '';
+    const placeholder = document.createElement('p');
+    placeholder.className = 'oxford-empty';
+    placeholder.textContent = message || 'Enter text and choose Check text.';
+    output.appendChild(placeholder);
   };
 
   const defaultColors = {
@@ -452,19 +471,20 @@
     const { text } = getTextForAnalysis();
     if (!text.trim()) {
       hasRun = false;
-      summary.textContent = 'Paste text and click Check.';
+      summary.textContent = '';
       counts.innerHTML = '';
       if (resultsList) resultsList.innerHTML = '';
       if (empty) {
         empty.hidden = false;
         empty.textContent = 'Waiting for input.';
       }
-      renderOutput('', []);
+      invalidateResults();
       return null;
     }
     const conjunctions = getConjunctions();
     if (!conjunctions.length) {
-      hasRun = true;
+      hasRun = false;
+      if (legend) legend.hidden = true;
       summary.textContent = 'Select at least one conjunction to scan.';
       counts.innerHTML = '';
       if (resultsList) resultsList.innerHTML = '';
@@ -481,13 +501,9 @@
     const present = matches.length - missingCount;
     renderCounts(matches.length, present, missingCount);
     hasRun = true;
+    if (legend) legend.hidden = !matches.length;
     if (matches.length) {
-      const majorityLabel = present === missingCount
-        ? 'Tie'
-        : present > missingCount
-          ? 'Oxford comma present'
-          : 'Oxford comma absent';
-      summary.textContent = `${formatNumber(matches.length)} list candidate${matches.length === 1 ? '' : 's'} found. Oxford comma present in ${formatNumber(present)}, absent in ${formatNumber(missingCount)}. Majority: ${majorityLabel}.`;
+      summary.textContent = `${formatNumber(matches.length)} list candidate${matches.length === 1 ? '' : 's'} found. Review the highlighted text in context.`;
     } else {
       summary.textContent = 'No list candidates detected. Try a longer sample.';
     }
@@ -504,6 +520,7 @@
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    cancelImport();
     try {
       const resultBucket = runAnalysis();
       if (resultBucket) reportRunComplete(resultBucket);
@@ -534,49 +551,23 @@
     applyColorVars();
     markSessionDirty();
   });
+  input.addEventListener('input', () => {
+    cancelImport();
+    invalidateResults(input.value.trim() ? 'Text changed. Check text to update highlights.' : '');
+  });
+
   clearBtn?.addEventListener('click', () => {
+    cancelImport();
     input.value = '';
-    hasRun = false;
-    counts.innerHTML = '';
-    if (resultsList) resultsList.innerHTML = '';
-    summary.textContent = 'Paste text and click Check.';
-    setInputStatus('');
-    if (empty) {
-      empty.hidden = false;
-      empty.textContent = 'Waiting for input.';
-    }
-    output.innerHTML = '<p class="oxford-empty">Paste text and click Check.</p>';
+    invalidateResults();
     markSessionDirty();
     input.focus();
   });
 
-  const handlePasteInput = async () => {
-    setInputBusy(true);
-    setInputStatus('Reading clipboard…', 'info');
-
-    try {
-      if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
-        throw new Error('Clipboard read is unavailable.');
-      }
-      const clipboardText = normalizeInputText(await navigator.clipboard.readText());
-      if (!clipboardText.trim()) {
-        setInputStatus('Clipboard is empty.', 'error');
-        return;
-      }
-      input.value = clipboardText;
-      setInputStatus(`Pasted ${clipboardText.length.toLocaleString('en-US')} characters.`, 'success');
-      runAnalysis();
-      input.focus();
-    } catch {
-      setInputStatus('Clipboard access blocked. Use Ctrl/Cmd+V in the text box.', 'error');
-    } finally {
-      setInputBusy(false);
-    }
-  };
-
   const handleImportInput = async () => {
     const file = fileInput?.files?.[0];
     if (!file) return;
+    const generation = ++importGeneration;
 
     setInputBusy(true);
     setInputStatus(`Importing ${file.name}…`, 'info');
@@ -588,44 +579,38 @@
       }
 
       const parsed = await parseImportedFile(file);
+      if (generation !== importGeneration || !input.isConnected) return;
       const text = normalizeInputText(parsed.text);
       if (!text.trim()) {
         throw new Error('No readable text was found in this file.');
       }
 
       input.value = text;
+      input.setSelectionRange(0, 0);
+      input.scrollTop = 0;
       const status = parsed.warning
         ? `${file.name} imported. ${parsed.warning}`
         : `${file.name} imported (${text.length.toLocaleString('en-US')} characters).`;
       setInputStatus(status, parsed.warning ? 'info' : 'success');
       runAnalysis();
-      input.focus();
+      input.focus({ preventScroll: true });
     } catch (error) {
+      if (generation !== importGeneration || !input.isConnected) return;
       setInputStatus(error instanceof Error ? error.message : 'Unable to import this file.', 'error');
     } finally {
-      if (fileInput) fileInput.value = '';
-      setInputBusy(false);
+      if (generation === importGeneration) {
+        if (fileInput) fileInput.value = '';
+        setInputBusy(false);
+      }
     }
   };
 
-  pasteBtn?.addEventListener('click', () => {
-    void handlePasteInput();
-  });
-
   exampleBtn?.addEventListener('click', () => {
+    cancelImport();
     input.value = OXFORD_COMMA_EXAMPLE;
-    hasRun = false;
-    counts.innerHTML = '';
-    if (resultsList) resultsList.innerHTML = '';
-    summary.textContent = 'Example loaded. Choose Check to analyze.';
-    if (empty) {
-      empty.hidden = false;
-      empty.textContent = 'Ready to analyze.';
-    }
-    output.innerHTML = '<p class="oxford-empty">Ready to analyze.</p>';
-    setInputStatus('Example loaded. Choose Check to analyze.', 'success');
-    markSessionDirty();
-    input.focus();
+    input.setSelectionRange(0, 0);
+    input.scrollTop = 0;
+    runAnalysis();
   });
 
   importBtn?.addEventListener('click', () => {
@@ -653,6 +638,11 @@
     const outSummary = captureSummary();
     payload.outputSummary = outSummary;
     payload.inputs = { Text: input.value || '' };
+    if (!hasRun) {
+      payload.outputSummary = 'Not checked';
+      payload.output = null;
+      return;
+    }
 
     const html = String(output?.innerHTML || '').trim();
     if (html && html.length <= MAX_SAVED_OUTPUT_HTML_CHARS) {
@@ -668,6 +658,8 @@
   document.addEventListener('tools:session-applied', (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
+    cancelImport();
+    invalidateResults();
     requestAnimationFrame(() => {
       try {
         runAnalysis();

@@ -585,13 +585,13 @@
       }
     })();
   </script>
-  <main id="main" class="card demo-workspace">
-    <header class="card-header">
+  <main id="main" class="card demo-workspace demo-surface demo-size-dashboard">
+    <header class="card-header demo-surface-header">
       <div class="header-copy">
         <h1 class="title">Pizza Tip Estimator</h1>
         <p class="subtitle">Adjust an example order and delivery location to explore the estimated tip.</p>
       </div>
-      <div class="header-actions">
+      <div class="header-actions demo-status-actions">
         <span class="health-pill aws-status-badge" id="api-status" data-state="ok" role="status" aria-live="polite">Runs in your browser</span>
       </div>
     </header>
@@ -636,14 +636,14 @@
             </fieldset>
 
             <fieldset class="scenario-segment">
-              <legend>Order Details</legend>
+              <legend>Order details</legend>
               <div class="segment-fields">
                 <div class="input-row" data-feature="orderHour">
-                  <label for="order-hour">Order Time</label>
+                  <label for="order-hour">Order time</label>
                   <select id="order-hour"></select>
                 </div>
                 <div class="input-row" data-feature="cost">
-                  <label for="cost">Order Cost ($)</label>
+                  <label for="cost">Order cost ($)</label>
                   <input id="cost" type="number" min="0" step="0.01" required />
                 </div>
               </div>
@@ -676,6 +676,10 @@
               </div>
             </div>
 
+            <div class="actions">
+              <button class="btn" type="submit" id="predict">Update estimate</button>
+              <button class="btn secondary" type="button" id="reset">Reset example</button>
+            </div>
             <details class="demo-disclosure">
               <summary>Estimate settings</summary>
               <div class="demo-disclosure-content">
@@ -687,10 +691,6 @@
               </div>
             </details>
 
-            <div class="actions">
-              <button class="btn" type="submit" id="predict">Update estimate</button>
-              <button class="btn secondary" type="button" id="reset">Reset example</button>
-            </div>
           </form>
           <details class="demo-disclosure">
             <summary>What contributes to this estimate?</summary>
@@ -1235,6 +1235,7 @@
       estimatePending = true;
       estimateSummary.dataset.state = 'loading';
       resultStatus.textContent = example ? 'Computing the example estimate…' : 'Updating the estimate…';
+      setStatus('warming', example ? 'Computing example' : 'Updating estimate');
       warningsEl.textContent = '';
       updateActions();
       try {
@@ -1249,7 +1250,7 @@
         const description = [formatCurrency(payload.cost) + ' order', result.bucket?.city || resolved.city];
         if (payload.orderHour !== undefined) description.push(formatHour(payload.orderHour));
         resultScenario.textContent = `${example ? 'Computed example' : 'Current scenario'} · ${description.join(', ')}`;
-        resultStatus.textContent = 'Estimate updated. Change the scenario below to compare.';
+        resultStatus.textContent = 'Estimate updated.';
         setStatus('ok', 'Runs in your browser');
         requestHeatmap();
       } catch (err) {

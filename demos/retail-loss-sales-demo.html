@@ -534,23 +534,24 @@
 </head>
 <body class="demo-summary-workspace retail-workspace">
   <a href="#main" class="skip-link">Skip to main content</a>
-  <div id="main" role="application" aria-label="Store loss and sales ETL demo">
-    <header class="card-header">
+  <div id="main" class="demo-surface demo-size-dashboard" role="application" aria-label="Store loss and sales ETL demo">
+    <header class="card-header demo-surface-header">
       <div class="header-copy">
         <h1 class="title">Store loss and sales</h1>
         <p class="subtitle">Explore monthly sales, compare incident hotspots, and follow shrink trends.</p>
       </div>
-      <div class="header-actions">
-        <span class="status-pill aws-status-badge" id="status-pill" data-state="loading" role="status" aria-live="polite">Loading data…</span>
+      <div class="demo-scope-controls">
         <span class="pill" id="date-range-pill">Loading dates</span>
         <button class="btn-ghost" id="reset-filters" type="button">Reset view</button>
       </div>
+      <div class="header-actions demo-status-actions">
+        <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
+        <span class="status-pill aws-status-badge" id="status-pill" data-state="loading" role="status" aria-live="polite">Loading data…</span>
+      </div>
     </header>
 
-    <div class="status-row demo-meta-row" role="status" aria-live="polite">
-      <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
+    <div class="status-row demo-meta-row dashboard-feedback" data-state="loading">
       <span class="status-meta" id="status-meta">Loading anonymized data…</span>
-      <span class="status-note">All identifiers are anonymized.</span>
     </div>
 
     <main class="content">
@@ -700,6 +701,12 @@
           </div>
         </div>
       </details>
+      <details class="demo-disclosure dashboard-method">
+        <summary>Data and method</summary>
+        <div class="demo-disclosure-content">
+          <p class="empty-note">All identifiers are anonymized. Sales, incidents, and inventory shrink cover their labeled reporting periods; compare each measure within its own chart.</p>
+        </div>
+      </details>
     </main>
   </div>
 
@@ -770,6 +777,7 @@
 
     function setStatus(stateValue, label, meta) {
       DOM.statusPill.dataset.state = stateValue;
+      DOM.statusMeta.parentElement.dataset.state = stateValue;
       document.getElementById("retry-demo").hidden = stateValue !== "err";
       DOM.statusPill.textContent = label;
       if (meta !== undefined) DOM.statusMeta.textContent = meta;

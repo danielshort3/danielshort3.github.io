@@ -40,7 +40,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "target-empty-package-demo.html"
+    "url": "target-empty-package-demo.html",
+    "heading": "Empty-package Recoveries",
+    "description": "Explore anonymized recovery records by location, department, and time."
   },
   "demoInstructions": {
     "lead": "Start with recorded retail value, incidents, average record value, and quarter change, then explore the trend and breakdowns.",

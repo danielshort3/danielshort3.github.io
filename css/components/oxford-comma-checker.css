@@ -490,3 +490,15 @@
     body.oxford-comma-page[data-page][data-tools-layout] .oxford-output { min-height: 200px; }
   }
 }
+
+@layer overrides {
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-summary:empty,
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-legend[hidden],
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-input-status:empty { display: none; }
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-actions { margin-top: 0; flex-wrap: nowrap; }
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-actions button { white-space: nowrap; }
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-scan-options { margin-top: 16px; }
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-scan-options .oxford-fieldset { margin: 0; padding: 0 12px 8px; }
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-scan-options .tool-workspace-share { margin: 0 12px 12px; }
+  body.oxford-comma-page[data-page][data-tools-layout] .oxford-field-actions { width: auto; margin-left: auto; }
+}
