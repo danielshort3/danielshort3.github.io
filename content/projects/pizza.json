@@ -39,7 +39,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "pizza-tips-demo.html"
+    "url": "pizza-tips-demo.html",
+    "heading": "Pizza Tip Estimator",
+    "description": "Explore how delivery and order details affect the estimated tip."
   },
   "demoInstructions": {
     "lead": "Adjust an order and estimate its tip directly in your browser.",

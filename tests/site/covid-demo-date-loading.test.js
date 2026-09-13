@@ -21,6 +21,7 @@ function createHarness() {
       const listeners = new Map();
       elements.set(id, {
         dataset: {},
+        parentElement: { dataset: {} },
         textContent: '--',
         value: '',
         hidden: false,
@@ -98,6 +99,7 @@ async function run() {
   assert.strictEqual(slider.value, '2', 'The slider must return to the last rendered date');
   assert.strictEqual(harness.renders.length, initialRenders, 'A failed request must not redraw with missing or stale data');
   assert.strictEqual(harness.getElement('connection-pill').dataset.state, 'err');
+  assert.strictEqual(harness.getElement('connection-meta').parentElement.dataset.state, 'err', 'A failed request must expose its detailed error feedback');
   assert(harness.getElement('connection-meta').textContent.includes('Still showing'), 'The failure state must explain retained data');
   assert.strictEqual(retry.hidden, false, 'The failed date must offer a retry');
 
@@ -107,6 +109,7 @@ async function run() {
   assert.strictEqual(slider.value, '0');
   assert.strictEqual(retry.hidden, true);
   assert.strictEqual(harness.getElement('connection-pill').dataset.state, 'ok');
+  assert.strictEqual(harness.getElement('connection-meta').parentElement.dataset.state, 'ok', 'A successful retry must remove the extra error row');
   assert.strictEqual(harness.reloadCount(), 0, 'A date retry must preserve the current demo session');
 
   let resolveOlder;

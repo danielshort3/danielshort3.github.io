@@ -1029,6 +1029,28 @@
     display: none !important;
   }
 
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-more-options {
+    border-top: 1px solid var(--screenrec-border);
+    padding-top: 10px;
+    min-width: 0;
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-more-options > summary {
+    padding: 8px 0;
+    color: var(--screenrec-accent-strong);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-more-options > summary:focus-visible {
+    outline: 2px solid var(--screenrec-accent);
+    outline-offset: 3px;
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-advanced-settings {
+    display: grid;
+    gap: 20px;
+    padding-top: 14px;
+  }
+
   body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-audio-sources {
     border: 1px solid var(--screenrec-border);
     border-radius: 6px;

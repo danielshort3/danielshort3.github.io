@@ -38835,7 +38835,7 @@ try {
 
     const projectDigest = readFile('dist/ai-pages/portfolio/retailStore.html');
     assert(projectDigest.includes('>STAR Summary</h2>') &&
-      projectDigest.includes('>Demo</h2>') &&
+      projectDigest.includes('>Store Loss and Sales</h2>') &&
       projectDigest.includes('>Links</h2>') &&
       !projectDigest.includes('>Project Links</h3>') &&
       !projectDigest.includes('>Notes</h2>'),
@@ -39914,7 +39914,7 @@ try {
       cwd: __dirname,
       stdio: 'pipe'
     });
-    assert(true, 'Recorder tabs and tool sharing behavior should pass');
+    assert(true, 'Recorder settings and tool sharing behavior should pass');
   });
 
   section('Tool workspace page contracts', () => {
@@ -39963,12 +39963,13 @@ try {
     assert(sharedStyles.includes('components/tool-workspace.css'),
       'The tools stylesheet bundle should include the shared workspace surface');
     const utmSource = readFile('src/utm-batch-builder/app.tsx');
-    ['links', 'parameters', 'rules'].forEach((tab) => {
-      assert(utmSource.includes(`id="utmtool-panel-${tab}"`) &&
-        utmSource.includes(`aria-labelledby="utmtool-tab-${tab}"`) &&
-        utmSource.includes(`hidden={setupTab !== "${tab}"}`),
-        `UTM ${tab} workspace should keep its React-controlled panel labelled and mounted`);
+    ['links', 'parameters'].forEach((section) => {
+      assert(utmSource.includes(`id="utmtool-panel-${section}"`) &&
+        !utmSource.includes(`hidden={setupTab !== "${section}"}`),
+        `UTM ${section} inputs should remain available in the same workspace`);
     });
+    assert(utmSource.includes('<details id="utmtool-panel-rules"'),
+      'UTM advanced combination rules should be optional');
   });
 
   section('Tool workspace interactions', () => {
@@ -40042,7 +40043,8 @@ try {
         `${file} should omit legacy navigation, metadata, notes, evaluation, and related-project sections`);
       if (project && project.embed) {
         assert(html.includes('class="project-demo-header"'), `${file} should show the demo first with a compact header`);
-        assert(html.includes('<h2 class="section-title project-demo-title">Demo</h2>'), `${file} should render the Demo heading with the shared portfolio section-title style`);
+    const expectedDemoHeading = project.embed.heading || project.title;
+        assert(html.includes(`<h2 class="section-title project-demo-title">${expectedDemoHeading}</h2>`), `${file} should render its demo heading with the shared portfolio section-title style`);
         assert(html.includes('class="project-demo-help-trigger"') && html.includes('role="tooltip"'), `${file} should move demo instructions into a tooltip`);
         assert(html.includes('class="project-demo-panel is-active" data-demo-panel="demo"'), `${file} should render the demo panel as the default visible content`);
         assert(!html.includes('How to Use Demo'), `${file} should not render the old instructions tab label`);
@@ -43385,7 +43387,17 @@ try {
       'project demo brand theme should standardize header badges and readable light dashboard surfaces');
     awsDashboardDemoFiles.forEach((file) => {
       const source = fs.readFileSync(file, 'utf8');
-      assert(source.includes('aws-status-badge'), `${file} should place processing status in the shared header badge area`);
+      if (file === 'demos/digit-generator-demo.html') {
+        assert(source.includes('class="generation-status"') &&
+          source.includes('id="status" role="status" aria-live="polite"') &&
+          source.includes('id="health-pill" class="health-pill aws-status-badge"') &&
+          source.indexOf('id="health-pill"') < source.indexOf('class="generation-toolbar"') &&
+          source.indexOf('id="grid"') < source.indexOf('<summary>Advanced settings</summary>') &&
+          !source.includes('>Generated digits</h2>'),
+        'digit generator should show AWS connectivity above its controls, advanced settings below the grid, and announce progress without another header panel');
+      } else {
+        assert(source.includes('aws-status-badge'), `${file} should place processing status in the shared header badge area`);
+      }
       assert(!source.includes('<div class="health-row"'), `${file} should not render a separate full-width health row`);
     });
     const pizzaDemo = fs.readFileSync('demos/pizza-tips-demo.html', 'utf8');
@@ -43396,7 +43408,7 @@ try {
       'pizza tips demo should retain a compact live header badge without a server warmup');
     assert(pizzaDemo.includes('<fieldset class="scenario-segment">') &&
            pizzaDemo.includes('<legend>Delivery details</legend>') &&
-           pizzaDemo.includes('<legend>Order Details</legend>') &&
+           pizzaDemo.includes('<legend>Order details</legend>') &&
            !pizzaDemo.includes('<legend>Delivery Timing</legend>') &&
            !pizzaDemo.includes('<legend>Weather Conditions</legend>') &&
            pizzaDemo.includes('class="inactive-scenario-fields" hidden aria-hidden="true"') &&

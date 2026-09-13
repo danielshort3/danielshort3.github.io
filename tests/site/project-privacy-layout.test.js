@@ -63,9 +63,9 @@ function runProjectPrivacyLayoutTests({ assert }) {
     results: ['Readers can open the available project resources.']
   };
   const dashboardIntro = intro(renderProjectPage({ ...starContent, id: 'dashboard-fixture', title: 'Dashboard', embed: { type: 'tableau', base: 'https://public.tableau.com/views/Example/Main' } }));
-  assert(dashboardIntro.includes('href="https://public.tableau.com/views/Example/Main?:showVizHome=no&amp;:embed=y"')
+  assert(dashboardIntro.includes('href="https://public.tableau.com/views/Example/Main?:showVizHome=no&amp;:embed=y&amp;:tabs=no"')
     && dashboardIntro.includes('>Open dashboard</a>'),
-  'Tableau projects promote the actual dashboard URL with its required parameters.');
+  'Tableau projects promote the actual dashboard URL with its required parameters and native sheet tabs hidden.');
   const previewIntro = intro(renderProjectPage({ ...starContent, id: 'preview-fixture', title: 'Preview', resources: [{ label: 'Notebook', url: '/documents/example.zip' }] }));
   assert(!previewIntro.includes('project-intro-actions'),
     'Projects without an actual demo or report do not get invented or empty actions.');

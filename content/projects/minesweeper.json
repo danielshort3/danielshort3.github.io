@@ -30,7 +30,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "minesweeper-demo.html"
+    "url": "minesweeper-demo.html",
+    "heading": "Minesweeper AI Solver",
+    "description": "Watch an AI agent solve a 9 × 9 board, one move at a time."
   },
   "demoInstructions": {
     "lead": "Generate a Minesweeper board, then watch the agent solve it move-by-move.",

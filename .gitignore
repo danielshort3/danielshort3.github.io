@@ -66,3 +66,6 @@ Baby-Names/
 /ga4/output/
 /.venv-resume
 /.playwright-mcp
+
+# Local Tableau Hyper runtime output
+/hyperd.log

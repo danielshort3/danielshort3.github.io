@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.e022af6d.css">
+  <link rel="stylesheet" href="dist/styles.91c0fa3c.css">
   <link rel="stylesheet" href="dist/styles-tools.32cc46e6.css">
   <link rel="stylesheet" href="css/components/screen-recorder.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -49,7 +49,7 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.d4de4c93.js"></script>
+  <script defer src="dist/site-shell.63ee94e5.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.fe0e5a75.css">
   <script type="application/ld+json" id="tool-jsonld">
@@ -58,7 +58,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/tools/screen-recorder#webpage","url":"https://www.danielshort.me/tools/screen-recorder","name":"Screen Recorder | Daniel Short","description":"Record your screen with optional system audio and download the clip in browser-supported formats. Everything runs locally.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/tool-screen-recorder.png?v=79a55c964080"},"mainEntity":{"@id":"https://www.danielshort.me/tools/screen-recorder#app"},"breadcrumb":{"@id":"https://www.danielshort.me/tools/screen-recorder#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/tools/screen-recorder#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://www.danielshort.me/tools"},{"@type":"ListItem","position":3,"name":"Screen Recorder","item":"https://www.danielshort.me/tools/screen-recorder"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:screen-recorder","path":"/tools/screen-recorder","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.e022af6d.css","/dist/styles-tools.32cc46e6.css","/css/components/screen-recorder.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.d4de4c93.js","/js/tools/tool-share-link.js","/js/tools/screen-recorder.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:screen-recorder"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:screen-recorder","path":"/tools/screen-recorder","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.91c0fa3c.css","/dist/styles-tools.32cc46e6.css","/css/components/screen-recorder.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.63ee94e5.js","/js/tools/tool-share-link.js","/js/tools/screen-recorder.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:screen-recorder"}</script>
 </head>
 <body data-page="screen-recorder" class="screenrec-page tools-tool-page site-page personal-accordion-page" data-tools-layout="media" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="screen-recorder" data-personal-fit="viewport" data-site-route-id="tools:screen-recorder" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:screen-recorder">
   <a href="/tools/screen-recorder#main" class="skip-link">Skip to main content</a>
@@ -90,7 +90,6 @@
       </div>
     </nav>
   </header>
-
 
 <!-- personal-accordion-shell:start -->
   <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>
@@ -152,18 +151,14 @@
             <div class="screenrec-panel-head">
               <div class="screenrec-panel-title">
                 <h2>Capture settings</h2>
-                <p class="screenrec-subtitle">Record your screen with the settings you choose.</p>
+
               </div>
-              <button type="button" class="btn-ghost screenrec-share" data-tool-share-link aria-label="Copy a link that restores these inputs">Copy link to my inputs</button>
+              <button type="button" class="btn-ghost screenrec-share" data-tool-share-link aria-label="Copy a link that restores these inputs">Share settings</button>
             </div>
-            <div class="screenrec-tabs" role="tablist" aria-label="Capture settings">
-              <button type="button" id="screenrec-tab-audio" role="tab" data-screenrec-tab="audio" aria-controls="screenrec-panel-audio" aria-selected="true">Audio</button>
-              <button type="button" id="screenrec-tab-video" role="tab" data-screenrec-tab="video" aria-controls="screenrec-panel-video" aria-selected="false" tabindex="-1">Video</button>
-              <button type="button" id="screenrec-tab-output" role="tab" data-screenrec-tab="output" aria-controls="screenrec-panel-output" aria-selected="false" tabindex="-1">Output</button>
-            </div>
+
             <div class="screenrec-panel-body" id="screenrec-controls-body" data-screenrec="controls-body">
               <form class="screenrec-form" novalidate>
-                <div id="screenrec-panel-audio" class="screenrec-tab-panel" role="tabpanel" aria-labelledby="screenrec-tab-audio" data-screenrec-panel="audio" tabindex="0">
+                <div id="screenrec-panel-audio" class="screenrec-tab-panel">
                   <div class="screenrec-audio-sources">
                     <div class="screenrec-audio-source">
                       <label class="screenrec-source-toggle" for="screenrec-audio">
@@ -202,61 +197,62 @@
                   </div>
                   <p class="screenrec-help screenrec-audio-feedback" data-screenrec="audio-status" role="status">No audio sources selected.</p>
                 </div>
-                <div id="screenrec-panel-video" class="screenrec-tab-panel screenrec-video-settings" role="tabpanel" aria-labelledby="screenrec-tab-video" data-screenrec-panel="video" tabindex="0" hidden>
-                <div class="screenrec-field">
-                  <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
-                  <select id="screenrec-fps" class="screenrec-select" data-screenrec="fps-select">
-                    <option value="auto">Auto (best available)</option>
-                    <option value="15" selected>15 fps</option>
-                    <option value="30">30 fps</option>
-                    <option value="60">60 fps</option>
-                  </select>
-                  <p class="screenrec-help">Applies when starting a new capture.</p>
-                </div>
+                <details class="screenrec-more-options">
+                  <summary>Video and download options</summary>
+                  <div class="screenrec-advanced-settings"><div id="screenrec-panel-video" class="screenrec-tab-panel screenrec-video-settings">
+                      <div class="screenrec-field">
+                        <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
+                        <select id="screenrec-fps" class="screenrec-select" data-screenrec="fps-select">
+                          <option value="auto">Auto (best available)</option>
+                          <option value="15" selected>15 fps</option>
+                          <option value="30">30 fps</option>
+                          <option value="60">60 fps</option>
+                        </select>
+                        <p class="screenrec-help">Applies when starting a new capture.</p>
+                      </div>
+                      <div class="screenrec-field">
+                        <label class="screenrec-label" for="screenrec-quality">Quality</label>
+                        <select id="screenrec-quality" class="screenrec-select" data-screenrec="quality-select">
+                          <option value="auto">Auto (browser default)</option>
+                          <option value="tiny">Tiny preview (0.8 Mbps)</option>
+                          <option value="low" selected>Small (1.5 Mbps)</option>
+                          <option value="medium">Balanced (4 Mbps)</option>
+                          <option value="high">High (8 Mbps)</option>
+                        </select>
+                        <p class="screenrec-help">Lower quality reduces file size. Applies when starting a new recording.</p>
+                      </div>
+                      <div class="screenrec-field">
+                        <label class="screenrec-label" for="screenrec-scale">Resolution scale</label>
+                        <select id="screenrec-scale" class="screenrec-select" data-screenrec="scale-select">
+                          <option value="1">100% (original)</option>
+                          <option value="0.75" selected>75%</option>
+                          <option value="0.5">50%</option>
+                          <option value="0.33">33%</option>
+                        </select>
+                        <p class="screenrec-help">Downscales the recording to shrink files. Preview stays full size.</p>
+                      </div>
+                    </div>
+                    <div id="screenrec-panel-output" class="screenrec-tab-panel">
+                      <fieldset class="screenrec-field">
+                        <legend class="screenrec-label">Download format</legend>
+                        <div class="screenrec-radio-group" data-screenrec="format-options"></div>
+                        <p class="screenrec-help" data-screenrec="format-help">Select one or more formats to export.</p>
+                      </fieldset>
+                      <fieldset class="screenrec-field">
+                        <legend class="screenrec-label">First frame images</legend>
+                        <div class="screenrec-radio-group" data-screenrec="image-format-options"></div>
+                        <p class="screenrec-help" data-screenrec="image-format-help">Select image formats to export the first frame.</p>
+                      </fieldset>
+                      <p class="screenrec-help" data-screenrec="recording-limits"></p>
+                    </div></div>
+                </details>
 
-                <div class="screenrec-field">
-                  <label class="screenrec-label" for="screenrec-quality">Quality</label>
-                  <select id="screenrec-quality" class="screenrec-select" data-screenrec="quality-select">
-                    <option value="auto">Auto (browser default)</option>
-                    <option value="tiny">Tiny preview (0.8 Mbps)</option>
-                    <option value="low" selected>Small (1.5 Mbps)</option>
-                    <option value="medium">Balanced (4 Mbps)</option>
-                    <option value="high">High (8 Mbps)</option>
-                  </select>
-                  <p class="screenrec-help">Lower quality reduces file size. Applies when starting a new recording.</p>
-                </div>
-
-                <div class="screenrec-field">
-                  <label class="screenrec-label" for="screenrec-scale">Resolution scale</label>
-                  <select id="screenrec-scale" class="screenrec-select" data-screenrec="scale-select">
-                    <option value="1">100% (original)</option>
-                    <option value="0.75" selected>75%</option>
-                    <option value="0.5">50%</option>
-                    <option value="0.33">33%</option>
-                  </select>
-                  <p class="screenrec-help">Downscales the recording to shrink files. Preview stays full size.</p>
-                </div>
-
-                </div>
-                <div id="screenrec-panel-output" class="screenrec-tab-panel" role="tabpanel" aria-labelledby="screenrec-tab-output" data-screenrec-panel="output" tabindex="0" hidden>
-                  <fieldset class="screenrec-field">
-                    <legend class="screenrec-label">Download format</legend>
-                    <div class="screenrec-radio-group" data-screenrec="format-options"></div>
-                    <p class="screenrec-help" data-screenrec="format-help">Select one or more formats to export.</p>
-                  </fieldset>
-                  <fieldset class="screenrec-field">
-                    <legend class="screenrec-label">First frame images</legend>
-                    <div class="screenrec-radio-group" data-screenrec="image-format-options"></div>
-                    <p class="screenrec-help" data-screenrec="image-format-help">Select image formats to export the first frame.</p>
-                  </fieldset>
-                  <p class="screenrec-help" data-screenrec="recording-limits"></p>
-                </div>
               </form>
             </div>
             <div class="screenrec-settings-summary" aria-live="polite" aria-atomic="true">
               <p data-screenrec="settings-summary">15 fps · Small quality · 75% scale</p>
               <p data-screenrec="output-summary">Output: Auto</p>
-              <span class="screenrec-help">Video and output options are in the tabs above.</span>
+
             </div>
           </div>
 

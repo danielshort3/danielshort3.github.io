@@ -45,7 +45,9 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "nonogram-demo.html"
+    "url": "nonogram-demo.html",
+    "heading": "Nonogram Solver",
+    "description": "Watch an AI agent reveal a 5 × 5 picture from its row and column clues."
   },
   "demoInstructions": {
     "lead": "Generate a new Nonogram puzzle, then watch the agent solve it step-by-step.",

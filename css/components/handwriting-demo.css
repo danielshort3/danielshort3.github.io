@@ -1,4 +1,4 @@
-/* Scoped to the handwriting demo; other project demos retain their layouts. */
+/* Shared drawing and prediction styles, with handwriting-specific samples and shell. */
 html[data-project-demo-theme="brand"] body.handwriting-rating-workspace {
   margin: 0;
   padding: 0;
@@ -16,7 +16,6 @@ html[data-project-demo-theme="brand"] body.handwriting-rating-workspace {
 
 html[data-project-demo-theme="brand"] .handwriting-rating-workspace #demo-box {
   width: 100%;
-  max-width: 720px !important;
   margin: 0 auto;
   padding: 24px;
   border: 0;
@@ -24,7 +23,7 @@ html[data-project-demo-theme="brand"] .handwriting-rating-workspace #demo-box {
   box-shadow: none;
 }
 
-.handwriting-demo .handwriting-header {
+.drawing-demo .handwriting-header {
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -32,14 +31,14 @@ html[data-project-demo-theme="brand"] .handwriting-rating-workspace #demo-box {
   margin-bottom: 20px;
 }
 
-.handwriting-demo .title {
+.drawing-demo .title {
   margin: 0 0 7px;
   font-size: 1.55rem;
   line-height: 1.2;
   letter-spacing: -.035em;
 }
 
-.handwriting-demo .subtitle {
+.drawing-demo .subtitle {
   margin: 0;
   color: var(--muted);
   font-size: .875rem;
@@ -49,7 +48,7 @@ html[data-project-demo-theme="brand"] .handwriting-rating-workspace #demo-box {
 html[data-project-demo-standalone="true"] .handwriting-heading { display: none; }
 html[data-project-demo-standalone="true"] .handwriting-header { justify-content: flex-end; margin-bottom: 0; }
 
-.handwriting-demo .handwriting-health {
+.drawing-demo .handwriting-health {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -73,8 +72,8 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   background: currentColor;
 }
 
-.handwriting-demo .handwriting-health[data-state="ok"] { color: var(--success); }
-.handwriting-demo .handwriting-health[data-state="err"] { color: var(--danger); }
+.drawing-demo .handwriting-health[data-state="ok"] { color: var(--success); }
+.drawing-demo .handwriting-health[data-state="err"] { color: var(--danger); }
 
 .handwriting-workspace {
   display: grid;
@@ -96,7 +95,7 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   margin-bottom: 6px;
 }
 
-.handwriting-demo h2 {
+html[data-project-demo-theme="brand"] .drawing-demo h2 {
   margin: 0;
   font-size: .8125rem;
   line-height: 1.5;
@@ -104,7 +103,7 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   letter-spacing: 0;
 }
 
-.handwriting-demo .handwriting-clear {
+.drawing-demo .drawing-clear {
   min-width: 44px;
   min-height: 44px;
   padding: 8px 3px;
@@ -121,12 +120,12 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  background: #ffffff;
+  background: #000000;
   border: 1px solid var(--border);
   border-radius: 12px;
 }
 
-.handwriting-demo #pad {
+.drawing-demo #pad {
   display: block;
   width: 100%;
   height: 100%;
@@ -134,25 +133,25 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   cursor: crosshair;
 }
 
-.handwriting-demo #pad[aria-disabled="true"] { cursor: wait; }
+.drawing-demo #pad[aria-disabled="true"] { cursor: wait; }
 
 #drawing-prompt {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--muted);
+  color: #b9c5d6;
   font-size: .875rem;
   pointer-events: none;
 }
 
-.handwriting-toolbar {
+.drawing-toolbar {
   display: flex;
   justify-content: center;
   margin-top: 16px;
 }
 
-.handwriting-demo .handwriting-rate {
+.drawing-demo .drawing-action {
   min-width: 164px;
   min-height: 44px;
   max-width: 100%;
@@ -168,24 +167,24 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   cursor: pointer;
 }
 
-.handwriting-demo .handwriting-rate:hover:not(:disabled) { background: var(--accent-strong); }
-.handwriting-demo button:disabled { opacity: .55; cursor: default; }
+.drawing-demo .drawing-action:hover:not(:disabled) { background: var(--accent-strong); }
+.drawing-demo button:disabled { opacity: .55; cursor: default; }
 
-.handwriting-demo .handwriting-status {
+.drawing-demo .handwriting-status {
   margin: 12px 0 0;
   color: var(--muted);
   font-size: .8125rem;
   line-height: 1.5;
 }
 
-.handwriting-demo .handwriting-status[data-state="error"] { color: var(--danger); }
-.handwriting-results {
+.drawing-demo .handwriting-status[data-state="error"] { color: var(--danger); }
+.drawing-results {
   position: relative;
   align-self: stretch;
   padding-top: 12px;
 }
 
-.handwriting-results::before {
+.drawing-results::before {
   content: '';
   position: absolute;
   inset-block: 0;
@@ -195,7 +194,7 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   pointer-events: none;
 }
 
-.handwriting-prediction {
+.drawing-prediction {
   display: grid;
   grid-template-columns: 62px minmax(0, 1fr);
   align-items: center;
@@ -204,23 +203,23 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   margin-bottom: 20px;
 }
 
-.handwriting-demo #result-digit {
+.drawing-demo #result-digit {
   font-size: 3.875rem;
   line-height: 1;
   font-weight: 600;
   letter-spacing: -.055em;
 }
 
-.handwriting-demo .handwriting-result-label,
-.handwriting-demo #result-actual {
+.drawing-demo .drawing-result-label,
+.drawing-demo #result-actual {
   margin: 0;
   color: var(--muted);
   font-size: .8125rem;
   line-height: 1.5;
 }
 
-.handwriting-demo #result-actual { margin-top: 4px; font-size: .75rem; }
-.handwriting-demo #confidence-text { margin: 0; font-size: .8125rem; line-height: 1.5; font-weight: 600; }
+.drawing-demo #result-actual { margin-top: 4px; font-size: .75rem; }
+.drawing-demo #confidence-text { margin: 0; font-size: .8125rem; line-height: 1.5; font-weight: 600; }
 
 .handwriting-chart-header {
   display: flex;
@@ -231,9 +230,9 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
 }
 
 .handwriting-chart-header > span { color: var(--muted); font-size: .6875rem; }
-.handwriting-demo #confidence-list { list-style: none; margin: 0; padding: 0; }
+.drawing-demo #confidence-list { list-style: none; margin: 0; padding: 0; }
 
-.handwriting-demo .confidence-row {
+.drawing-demo .confidence-row {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr) 51px;
   align-items: center;
@@ -245,9 +244,9 @@ html[data-project-demo-standalone="true"] .handwriting-header { justify-content:
   border: 0;
 }
 
-.handwriting-demo .confidence-digit { font-size: .8125rem; line-height: 1; }
+.drawing-demo .confidence-digit { font-size: .8125rem; line-height: 1; }
 
-html[data-project-demo-theme="brand"] .handwriting-demo .confidence-track {
+html[data-project-demo-theme="brand"] .drawing-demo .confidence-track {
   display: block;
   height: 6px;
   margin: 0;
@@ -258,7 +257,7 @@ html[data-project-demo-theme="brand"] .handwriting-demo .confidence-track {
   overflow: hidden;
 }
 
-html[data-project-demo-theme="brand"] .handwriting-demo .confidence {
+html[data-project-demo-theme="brand"] .drawing-demo .confidence {
   display: block;
   height: 100%;
   min-width: 0;
@@ -266,17 +265,17 @@ html[data-project-demo-theme="brand"] .handwriting-demo .confidence {
   background: #9cacc2;
 }
 
-html[data-project-demo-theme="brand"] .handwriting-demo .confidence-row:first-child .confidence { background: var(--primary); }
-.handwriting-demo .confidence-row:first-child :is(.confidence-digit, .confidence-pct) { font-weight: 600; }
-.handwriting-demo .confidence-pct { font-size: .75rem; line-height: 1; text-align: right; font-variant-numeric: tabular-nums; }
-.handwriting-demo #result-empty { margin: 25px 0; max-width: 20ch; font-size: 1.0625rem; line-height: 1.45; color: var(--muted); }
+html[data-project-demo-theme="brand"] .drawing-demo .confidence-row:first-child .confidence { background: var(--primary); }
+.drawing-demo .confidence-row:first-child :is(.confidence-digit, .confidence-pct) { font-weight: 600; }
+.drawing-demo .confidence-pct { font-size: .75rem; line-height: 1; text-align: right; font-variant-numeric: tabular-nums; }
+.drawing-demo #result-empty { margin: 25px 0; max-width: 20ch; font-size: 1.0625rem; line-height: 1.45; color: var(--muted); }
 
 .handwriting-samples { max-width: 636px; margin: 23px auto 0; padding-top: 16px; border-top: 1px solid var(--border); }
 .handwriting-samples-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
 .handwriting-samples-header > span { color: var(--muted); font-size: .75rem; }
 .handwriting-sample-buttons { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
 
-.handwriting-demo [data-sample-digit] {
+.drawing-demo [data-sample-digit] {
   min-width: 0;
   min-height: 44px;
   padding: 6px 0;
@@ -290,20 +289,20 @@ html[data-project-demo-theme="brand"] .handwriting-demo .confidence-row:first-ch
   cursor: pointer;
 }
 
-.handwriting-demo [data-sample-digit]:hover:not(:disabled) { background: #f1f5fc; }
-.handwriting-demo [data-sample-digit][aria-pressed="true"] { background: #edf3ff; border-color: var(--primary); color: var(--accent-strong); font-weight: 600; }
-.handwriting-demo .handwriting-note { max-width: 636px; margin: 15px auto 0; color: var(--muted); font-size: .6875rem; line-height: 1.5; }
+.drawing-demo [data-sample-digit]:hover:not(:disabled) { background: #f1f5fc; }
+.drawing-demo [data-sample-digit][aria-pressed="true"] { background: #edf3ff; border-color: var(--primary); color: var(--accent-strong); font-weight: 600; }
+.drawing-demo .handwriting-note { max-width: 636px; margin: 15px auto 0; color: var(--muted); font-size: .6875rem; line-height: 1.5; }
 
 @media (max-width: 600px) {
   html[data-project-demo-theme="brand"] .handwriting-rating-workspace #demo-box { padding: 16px 12px; }
-  .handwriting-demo .handwriting-header { flex-wrap: wrap; gap: 6px 12px; }
+  .drawing-demo .handwriting-header { flex-wrap: wrap; gap: 6px 12px; }
   .handwriting-workspace { grid-template-columns: 1fr; gap: 40px; }
-  .handwriting-results { padding: 0; }
-  .handwriting-results::before { inset: -21px 0 auto; width: auto; height: 1px; }
-  .handwriting-demo #result-empty { margin: 0; }
+  .drawing-results { padding: 0; }
+  .drawing-results::before { inset: -21px 0 auto; width: auto; height: 1px; }
+  .drawing-demo #result-empty { margin: 0; }
   .handwriting-sample-buttons { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .handwriting-demo .handwriting-rate { transition: background-color .15s ease; }
+  .drawing-demo .drawing-action { transition: background-color .15s ease; }
 }

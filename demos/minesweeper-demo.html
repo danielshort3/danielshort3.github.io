@@ -481,27 +481,24 @@
 <body class="demo-compact-workspace">
 <a href="#main" class="skip-link">Skip to main content</a>
   <main id="main">
-  <div id="demo-box" class="demo-workspace" aria-label="Minesweeper solver demo">
-    <header class="card-header">
+  <div id="demo-box" class="demo-workspace demo-surface demo-size-compact puzzle-workspace minesweeper-workspace" aria-label="Minesweeper solver demo">
+    <header class="card-header demo-surface-header">
       <div class="header-copy">
         <h1 class="title">Minesweeper AI Solver</h1>
         <p class="subtitle">Watch an AI agent solve a 9 × 9 board, one move at a time.</p>
       </div>
-      <div class="header-actions">
-        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
+      <div class="header-actions demo-status-actions">
+        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">AWS · Connecting</span>
       </div>
     </header>
 
-    <div class="status demo-meta-row" id="status" role="status" aria-live="polite">Ready. Generate a puzzle to begin.</div>
-    <p class="demo-note">Model success rate is ~72% on 9x9 grids with 10 mines. Some wins rely on forced guesses because not every game is solvable without guessing.</p>
 
     <div class="content">
       <div class="board-column">
         <div class="board-actions">
           <button id="action-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
-          <button id="solution-btn" class="solution-trigger" type="button" disabled>
+          <button id="solution-btn" class="solution-trigger" type="button" aria-pressed="false" disabled>
             <span class="solution-label">Solution</span>
-            <span class="solution-icon" aria-hidden="true">?</span>
           </button>
         </div>
 
@@ -514,6 +511,7 @@
         </div>
       </div>
 
+      <p class="puzzle-status" id="status" role="status" aria-live="polite">Preparing demo…</p>
       <div class="puzzle-summary" aria-live="polite">
         <div class="stat"><span>Moves</span> <strong id="stat-moves">—</strong></div>
         <div class="stat"><span>Outcome</span> <strong id="stat-outcome">—</strong></div>
@@ -521,6 +519,7 @@
       <details class="demo-disclosure puzzle-details">
         <summary>How it works &amp; solver details</summary>
         <div class="demo-disclosure-content panel">
+<p class="demo-note">Model success rate is ~72% on 9x9 grids with 10 mines. Some wins rely on forced guesses because not every game is solvable without guessing.</p>
           <p>Start a new puzzle to watch the agent reveal cells and flag mines. Numbers count mines in neighboring cells. Use Solution to inspect the completed board.</p>
           <div class="stat"><span>Model</span> <strong id="stat-model">—</strong></div>
           <div class="stat"><span>Success rate</span> <strong id="stat-success">—</strong></div>
@@ -609,7 +608,7 @@
       function setHealth(state, text) {
         if (!healthPill) return;
         healthPill.dataset.state = state;
-        healthPill.textContent = text;
+        healthPill.textContent = `AWS · ${text === 'Ready' ? 'Connected' : state === 'warming' ? 'Connecting' : text}`;
       }
 
       function setActionMode(nextMode) {
@@ -739,17 +738,22 @@
     }
 
     function captureRevealedSnapshot() {
-      return revealed.map(row => row.slice());
+      return {
+        revealed: revealed.map(row => row.slice()),
+        cells: Array.from(gridEl.querySelectorAll('.cell'), cell => ({
+          classes: Array.from(cell.classList).filter(name => !['newly-opened', 'ai-step'].includes(name)).join(' '),
+          text: cell.textContent
+        }))
+      };
     }
 
     function restoreRevealedSnapshot(snapshot) {
       if (!snapshot) return;
-      revealed = snapshot.map(row => row.slice());
-      gridEl.querySelectorAll('.cell').forEach(cell => {
-        cell.className = 'cell';
-        cell.textContent = '';
+      revealed = snapshot.revealed.map(row => row.slice());
+      gridEl.querySelectorAll('.cell').forEach((cell, index) => {
+        cell.className = snapshot.cells[index].classes;
+        cell.textContent = snapshot.cells[index].text;
       });
-      renderState();
     }
 
     function appendLog(step, index) {
@@ -862,8 +866,10 @@
         }
         resetStats();
         solutionVisible = false;
+        solutionBtn.setAttribute('aria-pressed', 'false');
         revealSnapshot = null;
         renderBoard(current.grid);
+        setStatus('Solving...');
 
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       let idx = 0;
@@ -872,16 +878,17 @@
           solving = false;
           setActionMode('new');
           if (actionBtn) actionBtn.disabled = false;
-          statMoves.textContent = `${current.step_count} moves`;
+          statMoves.textContent = String(current.step_count);
           updateOutcome();
-          solutionVisible = true;
+          solutionVisible = false;
           revealSnapshot = null;
           revealFlags();
-        solutionBtn.disabled = true;
+        solutionBtn.disabled = false;
         let resultMessage = current.success
           ? `Solved in ${current.step_count} moves`
           : (current.hit_mine ? `Mine triggered on move ${current.step_count}` : `Stopped after ${current.step_count} moves`);
         showPerformanceToast(resultMessage);
+        setStatus(resultMessage);
         notifyResize();
       };
 
@@ -930,7 +937,7 @@
             initialLoadTriggered = true;
             await loadPuzzle();
           } else {
-            setStatus('Ready. Generate a puzzle to begin.');
+            setStatus('Puzzle ready.');
           }
           return;
         } catch (err) {
@@ -946,7 +953,7 @@
             initialLoadTriggered = true;
             await loadPuzzle();
           } else {
-            setStatus('Ready. Generate a puzzle to begin.');
+            setStatus('Puzzle ready.');
           }
           return;
         } catch (err) {
@@ -971,11 +978,8 @@
           actionBtn.textContent = 'Generating...';
         }
         solutionBtn.disabled = true;
-        solutionVisible = false;
-        revealSnapshot = null;
-        hitCell = null;
       setStatus('Generating puzzle...');
-      resetStats();
+      setHealth('loading', 'Generating');
 
       try {
         const endpoints = candidates();
@@ -994,24 +998,31 @@
         }
         if (!data) throw new Error('No endpoint available');
 
+          solutionVisible = false;
+          solutionBtn.setAttribute('aria-pressed', 'false');
+          revealSnapshot = null;
+          hitCell = null;
+          resetStats();
           current = data;
+          setHealth('ok', 'Ready');
           renderBoard(data.grid);
-          statMoves.textContent = `${data.step_count} moves`;
+          statMoves.textContent = '0';
+          statOutcome.textContent = 'Not run';
           setModelStats(data.model);
-          setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
+          setStatus('Puzzle ready.');
           setActionMode('solve');
           if (actionBtn) actionBtn.disabled = false;
           solutionBtn.disabled = false;
-          updateOutcome();
           notifyResize();
         } catch (err) {
-          setStatus('Failed to load puzzle.');
+          setHealth('err', 'Request failed');
+          setStatus('Could not load a new puzzle. Try again.');
           setActionMode('new');
           if (actionBtn) {
             actionBtn.disabled = false;
             actionBtn.textContent = 'New Puzzle';
           }
-          solutionBtn.disabled = true;
+          solutionBtn.disabled = !current;
         }
       }
 
@@ -1032,9 +1043,10 @@
 
     function previewSolution(show) {
       if (solving || solutionBtn.disabled) return;
-      setSolutionVisible(show);
+      if (setSolutionVisible(show)) solutionBtn.setAttribute('aria-pressed', String(show));
     }
 
+      solutionBtn.addEventListener('click', () => previewSolution(!solutionVisible));
       if (actionBtn) {
         actionBtn.addEventListener('click', () => {
           if (!current || actionMode === 'new') {
@@ -1044,10 +1056,6 @@
           runSolve();
         });
       }
-      solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
-      solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
-      solutionBtn.addEventListener('focus', () => previewSolution(true));
-      solutionBtn.addEventListener('blur', () => previewSolution(false));
 
       warmUpServer();
     </script>

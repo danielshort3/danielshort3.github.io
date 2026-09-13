@@ -268,6 +268,8 @@
     return {
       version: 1,
       campaign: {
+        isExample: true,
+        started: true,
         id: 'GJ-SUMMER-2026',
         name: 'Grand Junction Summer 2026',
         version: 4,
@@ -285,7 +287,16 @@
     };
   };
 
+  const buildEmptyState = () => ({
+    version: 1,
+    campaign: { id: 'CAMPAIGN', name: 'New campaign', version: 1, started: false, isExample: false, updatedAt: new Date().toISOString(), families: [] },
+    dictionaries: deepClone(DEFAULT_DICTIONARIES),
+    ui: { view: 'library', selectedFamilyId: '', selectedRenditionId: '', expandedFamilyIds: [], exportFormats: ['partner-csv', 'package'] },
+  });
+
   const runtimeAssetUrls = new Map();
+  const openRenditionSettings = new Set();
+  let pendingTabFocus = null;
   let toastTimer = 0;
 
   const escapeHtml = (value) => String(value ?? '')
@@ -344,7 +355,7 @@
   };
 
   const normalizeLoadedStateLegacy = (candidate) => {
-    const fallback = buildSeedState();
+    const fallback = buildEmptyState();
     if (!candidate || candidate.version !== 1 || !Array.isArray(candidate.campaign?.families)) return fallback;
     return {
       ...fallback,
@@ -355,7 +366,7 @@
     };
   };
   const normalizeLoadedState = (candidate) => {
-    const fallback = buildSeedState();
+    const fallback = buildEmptyState();
     if (!candidate || candidate.version !== 1 || !Array.isArray(candidate.campaign?.families)) return fallback;
 
     const asSafeText = (value) => String(value ?? '').trim();
@@ -422,6 +433,8 @@
     return {
       version: 1,
       campaign: {
+        started: candidate.campaign.started !== false,
+        isExample: candidate.campaign.isExample === true,
         id: asSafeText(candidate.campaign?.id) || fallback.campaign.id,
         name: asSafeText(candidate.campaign?.name) || fallback.campaign.name,
         version: asPositiveNumber(candidate.campaign?.version) || fallback.campaign.version,
@@ -447,7 +460,7 @@
     try {
       return normalizeLoadedState(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'));
     } catch {
-      return buildSeedState();
+      return buildEmptyState();
     }
   };
 
@@ -577,7 +590,6 @@
           <h3>Families</h3>
           <p>${state.campaign.families.length} campaign concepts</p>
         </div>
-        <button type="button" class="ctc-icon-button" data-ctc-action="new-family" aria-label="Create creative family">${icon('plus')}</button>
       </div>
       <div class="ctc-family-list">
         ${state.campaign.families.map((family) => {
@@ -596,7 +608,6 @@
           `;
         }).join('')}
       </div>
-      <button type="button" class="ctc-import-button" data-ctc-action="import">${icon('upload')}<span>Import creative</span></button>
     </aside>
   `;
 
@@ -708,7 +719,9 @@
           ${renderTestMode(family.testMode, 'family')}
         </div>
         ${item ? `
-          <div class="ctc-rule-section ctc-override-section ${item.overrideEnabled ? 'is-enabled' : ''}">
+          <details class="ctc-rule-section ctc-rendition-settings" data-ctc-rendition-settings="${escapeHtml(item.id)}" ${openRenditionSettings.has(item.id) ? 'open' : ''}>
+            <summary>Rendition settings <span>${item.overrideEnabled ? 'Overrides on · ' : ''}${validation.valid ? 'QA passed' : 'Needs review'}</span></summary>
+            <div class="ctc-override-section ${item.overrideEnabled ? 'is-enabled' : ''}">
             <div class="ctc-section-heading">
               <div>
                 <h4>${escapeHtml(item.name)} override</h4>
@@ -802,6 +815,7 @@
               ${item.format === 'interactive' && safeHttpHref(item.previewUrl) ? `<a href="${escapeHtml(safeHttpHref(item.previewUrl))}" target="_blank" rel="noopener noreferrer">Open preview</a>` : ''}
             </div>
           </div>
+          </details>
           <div class="ctc-rule-section ctc-generated-links">
             <div class="ctc-section-heading">
               <div>
@@ -818,7 +832,7 @@
 
   const renderLibrary = () => {
     const family = selectedFamily();
-    if (!family) return '<div class="ctc-empty"><h2>No creative families yet</h2><p>Create a family, then import its renditions.</p><button class="ctc-button ctc-button-primary" data-ctc-action="new-family">Create family</button></div>';
+    if (!family) return '<div class="ctc-empty"><h2>No creative families yet</h2><p>Use New family above to add your first concept, then import its renditions.</p></div>';
     return `<div class="ctc-library-layout" data-mobile-pane="${escapeHtml(mobileLibraryPane)}">${renderFamilyRail()}${renderRenditionPane(family)}${renderInspector(family, selectedRendition())}</div>`;
   };
 
@@ -899,13 +913,9 @@
           <aside class="ctc-activity-rail">
             <section>
               <h3>Activity</h3>
-              <div class="ctc-activity-item"><span class="ctc-activity-icon">${icon('settings')}</span><div><strong>UTM taxonomy</strong><span>Version 3 · Active</span><small>${Object.keys(state.dictionaries).length} controlled dictionaries</small></div></div>
+              <div class="ctc-activity-item"><span class="ctc-activity-icon">${icon('settings')}</span><div><strong>UTM taxonomy</strong><span>Active</span><small>${Object.keys(state.dictionaries).length} controlled dictionaries</small></div></div>
             </section>
-            <section>
-              <h3>Approval history</h3>
-              <div class="ctc-timeline-item">${icon('check')}<div><strong>Basis family rules reviewed</strong><span>Prototype seed · Marketing team</span></div></div>
-              <div class="ctc-timeline-item">${icon('check')}<div><strong>CTV test scope reviewed</strong><span>N/A with QR delivery</span></div></div>
-            </section>
+
             <div class="ctc-attention">${icon('warning')}<span>${overrides} rendition overrides in this campaign</span></div>
           </aside>
         </div>
@@ -999,7 +1009,7 @@
 
   const renderAppHeader = () => `
     <header class="ctc-app-header">
-      <div class="ctc-app-title"><h2>Creative families</h2><p>${escapeHtml(state.campaign.name)}</p></div>
+      <div class="ctc-app-title"><h2>Creative families</h2><p>${escapeHtml(state.campaign.name)}${state.campaign.isExample ? ' · Example campaign' : ''}</p></div>
       <nav class="ctc-view-tabs" role="tablist" aria-label="Campaign tracker views">
         ${[
           ['library', 'Creative library', 'library'],
@@ -1010,14 +1020,38 @@
         `).join('')}
       </nav>
       <div class="ctc-app-actions">
-        <button type="button" class="ctc-button ctc-button-secondary" data-ctc-action="import" aria-label="Import creative renditions">${icon('upload')}<span class="ctc-action-label">Import</span></button>
+        <button type="button" class="ctc-button ctc-button-secondary" data-ctc-action="import" aria-label="Import creative renditions" ${state.campaign.families.length ? '' : 'disabled'}>${icon('upload')}<span class="ctc-action-label">Import</span></button>
         <button type="button" class="ctc-button ctc-button-primary" data-ctc-action="new-family" aria-label="Create creative family">${icon('plus')}<span class="ctc-action-label">New family</span></button>
-        <button type="button" class="ctc-icon-button" data-ctc-action="reset-demo" aria-label="Reset prototype data" title="Reset prototype data">${icon('reset')}</button>
+        <details class="ctc-campaign-menu">
+          <summary class="ctc-button ctc-button-ghost">Campaign</summary>
+          <div>
+            <button type="button" class="ctc-button ctc-button-ghost" data-ctc-action="new-campaign">New campaign</button>
+            <button type="button" class="ctc-button ctc-button-ghost" data-ctc-action="load-example">Load example</button>
+          </div>
+        </details>
       </div>
     </header>
   `;
 
+  const editableFocusKey = (element) => {
+    if (!element || !root.contains(element)) return null;
+    const attribute = Array.from(element.attributes || []).find((item) => item.name.startsWith('data-ctc-') && !['data-ctc-action', 'data-ctc-rendition-settings'].includes(item.name));
+    return attribute ? { name: attribute.name, value: attribute.value } : null;
+  };
+
   function render() {
+    const restoreFocus = pendingTabFocus || editableFocusKey(document.activeElement);
+    pendingTabFocus = null;
+    // Read disclosure state before replacing nodes; queued toggle events from
+    // a removed node must not close its freshly rendered replacement.
+    root.querySelectorAll('[data-ctc-rendition-settings]').forEach((details) => {
+      if (details.open) openRenditionSettings.add(details.dataset.ctcRenditionSettings);
+      else openRenditionSettings.delete(details.dataset.ctcRenditionSettings);
+    });
+    if (!state.campaign.started && !state.campaign.families.length) {
+      root.innerHTML = `<div class="ctc-empty ctc-welcome"><h2>Start a campaign</h2><p>Group your creative assets, set their destinations, and prepare a handoff.</p><div class="ctc-toolbar-actions"><button type="button" class="ctc-button ctc-button-primary" data-ctc-action="new-campaign">New campaign</button><button type="button" class="ctc-button ctc-button-secondary" data-ctc-action="load-example">Try an example</button></div></div>`;
+      return;
+    }
     const views = {
       library: renderLibrary,
       dashboard: renderDashboard,
@@ -1026,6 +1060,12 @@
     const view = views[state.ui.view] ? state.ui.view : 'library';
     root.innerHTML = `${renderAppHeader()}<div class="ctc-view" id="ctc-panel-${view}" role="tabpanel" aria-labelledby="ctc-tab-${view}" tabindex="0">${views[view]()}</div>`;
     renderImportFamilyOptions();
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => {
+        const target = Array.from(root.querySelectorAll(`[${restoreFocus.name}]`)).find((node) => node.getAttribute(restoreFocus.name) === restoreFocus.value);
+        if (target && document.activeElement === document.body) target.focus({ preventScroll: true });
+      });
+    }
   }
 
   const openDialog = (name) => {
@@ -1343,6 +1383,12 @@
   };
 
   root.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab' && event.target.matches('input, select, textarea')) {
+      const fields = Array.from(root.querySelectorAll('input, select, textarea, button, a[href], summary')).filter((node) => !node.disabled && node.tabIndex >= 0 && node.getClientRects().length);
+      const next = fields[fields.indexOf(event.target) + (event.shiftKey ? -1 : 1)];
+      pendingTabFocus = editableFocusKey(next);
+      window.setTimeout(() => { pendingTabFocus = null; }, 0);
+    }
     const tab = event.target.closest('[role="tab"][data-view]');
     if (!tab || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     const tabs = Array.from(root.querySelectorAll('[role="tab"][data-view]'));
@@ -1511,15 +1557,19 @@
       setFormStatus('dictionary', 'Default controlled values restored.', 'success');
       return;
     }
-    if (action === 'reset-demo') {
-      if (!window.confirm('Reset the local prototype to its original sample campaign?')) return;
+    if (action === 'new-campaign') {
+      openDialog('campaign');
+      return;
+    }
+    if (action === 'load-example') {
+      if (state.campaign.started && !window.confirm('Replace this local campaign with the example? Export your work first if you want to keep it.')) return;
       runtimeAssetUrls.forEach((url) => URL.revokeObjectURL(url));
       runtimeAssetUrls.clear();
+      openRenditionSettings.clear();
       state = buildSeedState();
-      persistState();
-      render();
-      markSessionDirty();
-      showToast('Prototype data reset.', 'success');
+      mobileLibraryPane = 'families';
+      commit();
+      showToast('Example campaign loaded.', 'success');
     }
   });
 
@@ -1591,6 +1641,24 @@
     if (!form) return;
     event.preventDefault();
     const type = form.dataset.ctcForm;
+    if (type === 'campaign') {
+      const name = String(new FormData(form).get('campaignName') || '').trim();
+      if (!name) return;
+      if (state.campaign.started && !window.confirm('Replace this local campaign? Export your work first if you want to keep it.')) return;
+      runtimeAssetUrls.forEach((url) => URL.revokeObjectURL(url));
+      runtimeAssetUrls.clear();
+      openRenditionSettings.clear();
+      state = buildEmptyState();
+      state.campaign.name = name;
+      state.campaign.id = createId(name, 'CAMPAIGN');
+      state.campaign.started = true;
+      state.dictionaries.utm_campaign = [{ value: core.normalizeValue(name), label: name }];
+      mobileLibraryPane = 'families';
+      form.closest('dialog')?.close();
+      form.reset();
+      commit();
+      return;
+    }
     if (type === 'family') handleFamilyForm(form);
     if (type === 'import') handleImportForm(form);
     if (type === 'dictionary') handleDictionaryForm(form);

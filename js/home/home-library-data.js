@@ -146,7 +146,7 @@
         {
           "id": "ufoDashboard",
           "title": "UFO Sightings Dashboard",
-          "summary": "Explore where and when UFO sightings have been reported.",
+          "summary": "Explore where and when historical UFO reports were recorded.",
           "href": "/portfolio/ufoDashboard",
           "image": "/img/projects/ufoDashboard-640.webp",
           "imageAlt": "",
@@ -242,7 +242,7 @@
         {
           "id": "pizzaDashboard",
           "title": "Pizza Delivery Dashboard",
-          "summary": "Compare delivery zones, earnings, and timing to inform shift planning.",
+          "summary": "Explore recorded tips, city comparisons, and monthly delivery history.",
           "href": "/portfolio/pizzaDashboard",
           "image": "/img/projects/pizzaDashboard-640.webp",
           "imageAlt": "",

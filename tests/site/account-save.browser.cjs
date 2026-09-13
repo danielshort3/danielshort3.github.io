@@ -252,23 +252,33 @@ async function runAccountSwitchCase({ browser, base, artifactDir }) {
       queueMicrotask(() => {
         oldField.value = 'BRAVO_ONLY edited first field';
         oldField.dispatchEvent(new Event('input', { bubbles: true }));
-        document.dispatchEvent(new CustomEvent('tool:tab-change', { detail: { panelId: 'textcompare-view-drafts' } }));
+        document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: 'text-compare' } }));
         document.dispatchEvent(new CustomEvent('tools:save-session', { detail: { toolId: 'text-compare' } }));
       });
     });
     await page.waitForFunction(previous => Number(sessionStorage.getItem('account-switch-document')) > previous &&
       document.querySelector('#main')?.dataset.toolsDraftOwner === 'person-b' &&
-      document.querySelector('#textcompare-output')?.textContent.includes('BRAVO_ONLY saved comparison output'), initialDocument);
+      document.querySelector('#textcompare-output')?.textContent.includes('BRAVO_ONLY') &&
+      document.querySelector('#textcompare-output ins, #textcompare-output del') &&
+      document.querySelector('#textcompare-copy')?.disabled === false, initialDocument);
     assert.equal(await page.locator('#textcompare-original').inputValue(), 'BRAVO_ONLY original draft');
     assert.equal(await page.locator('#textcompare-revised').inputValue(), 'BRAVO_ONLY revised draft');
     assert.match(page.url(), /session=person-b-work/, 'The fresh document restores B’s own session selection.');
     assert(!(await page.locator('#main').innerText()).includes('ALPHA_PRIVATE'), 'The new account cannot see either old draft or its rendered output.');
+    const restoredOutput = await page.locator('#textcompare-output').innerHTML();
+    assert(!restoredOutput.includes('saved comparison output'), 'B’s saved preview is regenerated from its editable drafts.');
+    assert(!(await page.locator('#textcompare-copy').isDisabled()), 'B’s regenerated result is ready to copy.');
 
     stage = 'person-b-save';
-    await page.locator('#textcompare-view-tab-drafts').click();
     await page.locator('#textcompare-original').fill('BRAVO_ONLY newer original draft');
-    await page.waitForFunction(() => JSON.parse(sessionStorage.getItem('account-switch-trace') || '[]').some(entry =>
-      entry.type === 'save' && entry.owner === 'person-b' && entry.request.snapshot.fields['textcompare-original']?.value === 'BRAVO_ONLY newer original draft'));
+    await page.waitForFunction(() => document.querySelector('#textcompare-copy')?.disabled === false &&
+      document.querySelector('#textcompare-output')?.textContent.includes('newer'));
+    const updatedOutput = await page.locator('#textcompare-output').innerHTML();
+    assert.notEqual(updatedOutput, restoredOutput, 'B’s later edit automatically refreshes the comparison.');
+    await page.waitForFunction(expectedHtml => JSON.parse(sessionStorage.getItem('account-switch-trace') || '[]').some(entry =>
+      entry.type === 'save' && entry.owner === 'person-b' &&
+      entry.request.snapshot.fields['textcompare-original']?.value === 'BRAVO_ONLY newer original draft' &&
+      entry.request.snapshot.output?.html === expectedHtml), updatedOutput);
     const trace = await page.evaluate(() => JSON.parse(sessionStorage.getItem('account-switch-trace') || '[]'));
     const bEntries = trace.filter(entry => entry.owner === 'person-b');
     assert(bEntries.some(entry => entry.type === 'get' && entry.request.sessionId === 'person-b-work'), 'B’s continuation loads its own saved state.');
@@ -276,7 +286,8 @@ async function runAccountSwitchCase({ browser, base, artifactDir }) {
     assert(!JSON.stringify(bEntries).includes('ALPHA_PRIVATE'), 'Neither A input nor A output may be captured or saved under B.');
     const saved = bEntries.filter(entry => entry.type === 'save').at(-1).request;
     assert.equal(saved.snapshot.fields['textcompare-revised'].value, 'BRAVO_ONLY revised draft');
-    assert(saved.snapshot.output.html.includes('BRAVO_ONLY saved comparison output'), 'B’s later edits retain only B’s output.');
+    assert.equal(saved.snapshot.fields['textcompare-original'].value, 'BRAVO_ONLY newer original draft');
+    assert.equal(saved.snapshot.output.html, updatedOutput, 'B’s autosave includes its current regenerated comparison, not an old preview.');
     assert.deepEqual(unexpectedRequests, [], 'Account switching uses simulated auth/storage across the reload.');
     assert.deepEqual(errors, [], 'The real account-switch reload causes no JavaScript errors.');
     await page.screenshot({ path: path.join(artifactDir, 'account-switch-text-compare.png') });

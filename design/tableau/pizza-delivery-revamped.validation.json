@@ -1,0 +1,45 @@
+{
+  "input": "C:\\Users\\clopt\\Documents\\coding\\Personal_Projects\\danielshort3.github.io\\design\\tableau\\sources\\Pizza_Delivery.twbx",
+  "output": "C:\\Users\\clopt\\Documents\\coding\\Personal_Projects\\danielshort3.github.io\\design\\tableau\\pizza-delivery-revamped.twbx",
+  "source_url": "https://public.tableau.com/workbooks/Pizza_Delivery.twb?showVizHome=no",
+  "package_integrity": "passed",
+  "xml_parse": "passed",
+  "extracts_unchanged": {
+    "Data/Extracts/federated_1enxy2v12gw5w218gu8fm1.hyper": "614f454d2f64b3de28ee7fae5d18eed3e712c9c474cf21a64e9323b72fbc5f52"
+  },
+  "source_connections_and_relationships": "unchanged",
+  "workbook_id": "Pizza_Delivery",
+  "dashboard_name": "Pizza Delivery Dashboard",
+  "worksheets": [
+    "Pizza - Deliveries",
+    "Pizza - Median tip",
+    "Pizza - Total tips",
+    "Pizza - City average tip",
+    "Pizza - City deliveries",
+    "Pizza - City recorded minutes",
+    "Pizza - Tip distribution",
+    "Pizza - Monthly average tip",
+    "Pizza - Monthly deliveries",
+    "Pizza - Delivery time distribution",
+    "Pizza - Housing average tip"
+  ],
+  "schema_validation": {
+    "status": "passed with inherited source deviation",
+    "schema": "C:\\Users\\clopt\\.codex\\visualizations\\2026\\09\\11\\01a08eca-052b-70a3-96da-6b1df4d11ada\\tableau-redesign\\research\\pizza\\twb-2026.2.xsd",
+    "errors": [
+      "Element 'workbook': Missing child element(s). Expected is one of ( datagraph, thumbnails, external, referenced-extensions, explain-data )."
+    ],
+    "introduced_errors": [],
+    "inherited_source_deviations": [
+      "Element 'workbook': Missing child element(s). Expected is one of ( datagraph, thumbnails, external, referenced-extensions, explain-data )."
+    ],
+    "namespace_resolution": "Supplemental XML and lax user metadata namespace declarations"
+  },
+  "native_render_validation": "pending",
+  "filter_interaction_validation": "pending",
+  "limitations": [
+    "Requires Tableau Desktop Public Edition or a compatible native renderer before publishing.",
+    "Rounded cards, exact concept typography, device layouts and navigation remain subject to native renderer QA.",
+    "Reset uses Tableau's built-in Revert toolbar action; no inert custom reset control is shown."
+  ]
+}

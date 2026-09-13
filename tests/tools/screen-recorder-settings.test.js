@@ -165,32 +165,12 @@ function createHarness({ microphoneSupported = true } = {}) {
 
 function run() {
   const h = createHarness();
-  const selected = (index) => {
-    h.tabs.forEach((tab, current) => {
-      assert.strictEqual(tab.getAttribute('aria-selected'), String(current === index));
-      assert.strictEqual(tab.getAttribute('tabindex'), current === index ? '0' : '-1');
-      assert.strictEqual(h.panels[current].hidden, current !== index);
-    });
-  };
-  selected(0);
   assert.strictEqual(h.get('settings-summary').textContent, '15 fps · Small quality · 75% scale');
   assert.strictEqual(h.get('output-summary').textContent, 'Output: Auto');
   assert.strictEqual(h.get('system-audio-details').hidden, true);
   assert.strictEqual(h.get('microphone-details').hidden, true);
   assert.strictEqual(h.get('audio-status').hidden, true);
   assert.strictEqual(h.get('audio-meter').hidden, true);
-
-  h.fire(h.tabs[0], 'keydown', { key: 'ArrowLeft' });
-  selected(2);
-  assert.strictEqual(h.activeElement(), h.tabs[2]);
-  h.fire(h.tabs[2], 'keydown', { key: 'ArrowRight' });
-  selected(0);
-  h.fire(h.tabs[0], 'keydown', { key: 'End' });
-  selected(2);
-  h.fire(h.tabs[2], 'keydown', { key: 'Home' });
-  selected(0);
-  const unrelatedKey = h.fire(h.tabs[0], 'keydown', { key: 'Tab' });
-  assert.strictEqual(unrelatedKey.defaultPrevented, false);
 
   h.get('fps-select').value = '30';
   h.get('quality-select').value = 'medium';
@@ -212,10 +192,6 @@ function run() {
   assert.strictEqual(h.get('audio-status').hidden, false);
   assert.match(h.get('audio-status').textContent, /System audio appears after you start capture/);
   assert.strictEqual(h.get('audio-meter').hidden, true);
-  h.fire(h.tabs[1], 'click');
-  selected(1);
-  h.fire(h.tabs[2], 'click');
-  selected(2);
   assert.strictEqual(h.get('fps-select').value, '30');
   assert.strictEqual(webm.checked, true);
   assert.strictEqual(png.checked, true);
@@ -226,7 +202,6 @@ function run() {
   h.get('audio-toggle').checked = false;
   h.get('mic-toggle').checked = true;
   h.fire(h.document, 'tools:session-applied', { detail: { toolId: 'screen-recorder' } });
-  selected(2);
   assert.strictEqual(h.get('settings-summary').textContent, '60 fps · Balanced quality · 50% scale');
   assert.strictEqual(h.get('system-audio-details').hidden, true);
   assert.strictEqual(h.get('microphone-details').hidden, false);

@@ -1,0 +1,691 @@
+{
+  "source": "source-tips.csv",
+  "source_sha256": "c09bec697c296e0c0f34f160902fe10521972968dfa6e7296648695e1ae0e753",
+  "grain": "One source delivery row; do not deduplicate OrderNum.",
+  "source_quality": {
+    "rows": 1251,
+    "complete_duplicate_rows": 0,
+    "duplicate_order_ids": 1,
+    "missing_fields": {
+      "OrderNum": 0,
+      "Date": 0,
+      "Cost": 0,
+      "Tip": 0,
+      "Tip Percentage": 0,
+      "Order Time": 0,
+      "Delivery Time": 0,
+      "Total Delivery Time": 0,
+      "City": 0,
+      "Housing": 0
+    },
+    "zero_duration_records": 34,
+    "join_policy": "No weather or ZIP join"
+  },
+  "split_profiles": {
+    "full": {
+      "rows": 1251,
+      "first_date": "2017-07-05",
+      "last_date": "2018-09-23",
+      "unique_dates": 186,
+      "cost_min": 5.41,
+      "cost_max": 243.02,
+      "tip_min": 0.0,
+      "tip_max": 40.0,
+      "mean_tip": 7.141079136690648,
+      "city_counts": {
+        "Frisco": 794,
+        "Plano": 348,
+        "The Colony": 69,
+        "Carrollton": 16,
+        "Lewisville": 12,
+        "McKinney": 10,
+        "Allen": 2
+      },
+      "housing_counts": {
+        "Residential": 998,
+        "Apartment": 162,
+        "Hotel": 67,
+        "Business": 24
+      },
+      "weekday_counts": {
+        "Sunday": 397,
+        "Friday": 367,
+        "Saturday": 334,
+        "Monday": 85,
+        "Wednesday": 45,
+        "Tuesday": 17,
+        "Thursday": 6
+      },
+      "hour_counts": {
+        "18": 381,
+        "19": 298,
+        "17": 279,
+        "20": 160,
+        "16": 89,
+        "21": 31,
+        "13": 6,
+        "15": 3,
+        "12": 2,
+        "11": 1,
+        "14": 1
+      }
+    },
+    "train": {
+      "rows": 751,
+      "first_date": "2017-07-05",
+      "last_date": "2018-03-18",
+      "unique_dates": 108,
+      "cost_min": 6.17,
+      "cost_max": 243.02,
+      "tip_min": 0.0,
+      "tip_max": 32.47,
+      "mean_tip": 7.12548601864181,
+      "city_counts": {
+        "Frisco": 473,
+        "Plano": 220,
+        "The Colony": 39,
+        "Carrollton": 7,
+        "Lewisville": 6,
+        "McKinney": 6
+      },
+      "housing_counts": {
+        "Residential": 585,
+        "Apartment": 103,
+        "Hotel": 48,
+        "Business": 15
+      },
+      "weekday_counts": {
+        "Sunday": 246,
+        "Friday": 222,
+        "Saturday": 177,
+        "Monday": 46,
+        "Wednesday": 43,
+        "Tuesday": 17
+      },
+      "hour_counts": {
+        "18": 219,
+        "19": 173,
+        "17": 171,
+        "20": 96,
+        "16": 65,
+        "21": 22,
+        "15": 3,
+        "12": 1,
+        "13": 1
+      }
+    },
+    "calibration": {
+      "rows": 249,
+      "first_date": "2018-03-23",
+      "last_date": "2018-06-24",
+      "unique_dates": 40,
+      "cost_min": 5.41,
+      "cost_max": 171.96,
+      "tip_min": 1.0,
+      "tip_max": 20.0,
+      "mean_tip": 7.081244979919679,
+      "city_counts": {
+        "Frisco": 159,
+        "Plano": 63,
+        "The Colony": 14,
+        "Lewisville": 4,
+        "Carrollton": 4,
+        "McKinney": 3,
+        "Allen": 2
+      },
+      "housing_counts": {
+        "Residential": 203,
+        "Apartment": 24,
+        "Hotel": 16,
+        "Business": 6
+      },
+      "weekday_counts": {
+        "Sunday": 83,
+        "Friday": 78,
+        "Saturday": 72,
+        "Monday": 12,
+        "Wednesday": 2,
+        "Thursday": 2
+      },
+      "hour_counts": {
+        "18": 86,
+        "19": 59,
+        "17": 58,
+        "20": 32,
+        "16": 12,
+        "21": 2
+      }
+    },
+    "test": {
+      "rows": 251,
+      "first_date": "2018-06-25",
+      "last_date": "2018-09-23",
+      "unique_dates": 38,
+      "cost_min": 12.44,
+      "cost_max": 171.79,
+      "tip_min": 0.0,
+      "tip_max": 40.0,
+      "mean_tip": 7.247091633466136,
+      "city_counts": {
+        "Frisco": 162,
+        "Plano": 65,
+        "The Colony": 16,
+        "Carrollton": 5,
+        "Lewisville": 2,
+        "McKinney": 1
+      },
+      "housing_counts": {
+        "Residential": 210,
+        "Apartment": 35,
+        "Hotel": 3,
+        "Business": 3
+      },
+      "weekday_counts": {
+        "Saturday": 85,
+        "Sunday": 68,
+        "Friday": 67,
+        "Monday": 27,
+        "Thursday": 4
+      },
+      "hour_counts": {
+        "18": 76,
+        "19": 66,
+        "17": 50,
+        "20": 32,
+        "16": 12,
+        "21": 7,
+        "13": 5,
+        "11": 1,
+        "12": 1,
+        "14": 1
+      }
+    }
+  },
+  "cv_folds": [
+    {
+      "train": {
+        "rows": 304,
+        "first_date": "2017-07-05",
+        "last_date": "2017-10-01",
+        "unique_dates": 44,
+        "cost_min": 13.48,
+        "cost_max": 234.36,
+        "tip_min": 0.0,
+        "tip_max": 32.47,
+        "mean_tip": 6.965032894736842,
+        "city_counts": {
+          "Frisco": 191,
+          "Plano": 91,
+          "The Colony": 17,
+          "Carrollton": 3,
+          "Lewisville": 2
+        },
+        "housing_counts": {
+          "Residential": 236,
+          "Apartment": 41,
+          "Hotel": 22,
+          "Business": 5
+        },
+        "weekday_counts": {
+          "Sunday": 98,
+          "Friday": 67,
+          "Saturday": 65,
+          "Monday": 35,
+          "Wednesday": 30,
+          "Tuesday": 9
+        },
+        "hour_counts": {
+          "18": 85,
+          "17": 67,
+          "19": 66,
+          "20": 52,
+          "16": 19,
+          "21": 13,
+          "12": 1,
+          "13": 1
+        }
+      },
+      "valid": {
+        "rows": 144,
+        "first_date": "2017-10-08",
+        "last_date": "2017-11-26",
+        "unique_dates": 20,
+        "cost_min": 10.83,
+        "cost_max": 203.15,
+        "tip_min": 3.0,
+        "tip_max": 25.0,
+        "mean_tip": 7.6625000000000005,
+        "city_counts": {
+          "Frisco": 92,
+          "Plano": 39,
+          "The Colony": 9,
+          "Carrollton": 2,
+          "McKinney": 2
+        },
+        "housing_counts": {
+          "Residential": 111,
+          "Apartment": 21,
+          "Hotel": 10,
+          "Business": 2
+        },
+        "weekday_counts": {
+          "Sunday": 57,
+          "Friday": 47,
+          "Saturday": 29,
+          "Wednesday": 6,
+          "Monday": 5
+        },
+        "hour_counts": {
+          "18": 41,
+          "19": 37,
+          "17": 31,
+          "16": 15,
+          "20": 15,
+          "21": 4,
+          "15": 1
+        }
+      }
+    },
+    {
+      "train": {
+        "rows": 448,
+        "first_date": "2017-07-05",
+        "last_date": "2017-11-26",
+        "unique_dates": 64,
+        "cost_min": 10.83,
+        "cost_max": 234.36,
+        "tip_min": 0.0,
+        "tip_max": 32.47,
+        "mean_tip": 7.18921875,
+        "city_counts": {
+          "Frisco": 283,
+          "Plano": 130,
+          "The Colony": 26,
+          "Carrollton": 5,
+          "Lewisville": 2,
+          "McKinney": 2
+        },
+        "housing_counts": {
+          "Residential": 347,
+          "Apartment": 62,
+          "Hotel": 32,
+          "Business": 7
+        },
+        "weekday_counts": {
+          "Sunday": 155,
+          "Friday": 114,
+          "Saturday": 94,
+          "Monday": 40,
+          "Wednesday": 36,
+          "Tuesday": 9
+        },
+        "hour_counts": {
+          "18": 126,
+          "19": 103,
+          "17": 98,
+          "20": 67,
+          "16": 34,
+          "21": 17,
+          "12": 1,
+          "13": 1,
+          "15": 1
+        }
+      },
+      "valid": {
+        "rows": 153,
+        "first_date": "2017-12-01",
+        "last_date": "2018-01-21",
+        "unique_dates": 22,
+        "cost_min": 6.17,
+        "cost_max": 143.27,
+        "tip_min": 0.0,
+        "tip_max": 25.0,
+        "mean_tip": 7.1858169934640514,
+        "city_counts": {
+          "Frisco": 94,
+          "Plano": 44,
+          "The Colony": 9,
+          "McKinney": 3,
+          "Lewisville": 2,
+          "Carrollton": 1
+        },
+        "housing_counts": {
+          "Residential": 121,
+          "Apartment": 24,
+          "Hotel": 5,
+          "Business": 3
+        },
+        "weekday_counts": {
+          "Friday": 57,
+          "Saturday": 44,
+          "Sunday": 44,
+          "Tuesday": 8
+        },
+        "hour_counts": {
+          "18": 45,
+          "19": 39,
+          "17": 33,
+          "16": 21,
+          "20": 12,
+          "21": 3
+        }
+      }
+    },
+    {
+      "train": {
+        "rows": 601,
+        "first_date": "2017-07-05",
+        "last_date": "2018-01-21",
+        "unique_dates": 86,
+        "cost_min": 6.17,
+        "cost_max": 234.36,
+        "tip_min": 0.0,
+        "tip_max": 32.47,
+        "mean_tip": 7.188352745424292,
+        "city_counts": {
+          "Frisco": 377,
+          "Plano": 174,
+          "The Colony": 35,
+          "Carrollton": 6,
+          "McKinney": 5,
+          "Lewisville": 4
+        },
+        "housing_counts": {
+          "Residential": 468,
+          "Apartment": 86,
+          "Hotel": 37,
+          "Business": 10
+        },
+        "weekday_counts": {
+          "Sunday": 199,
+          "Friday": 171,
+          "Saturday": 138,
+          "Monday": 40,
+          "Wednesday": 36,
+          "Tuesday": 17
+        },
+        "hour_counts": {
+          "18": 171,
+          "19": 142,
+          "17": 131,
+          "20": 79,
+          "16": 55,
+          "21": 20,
+          "12": 1,
+          "13": 1,
+          "15": 1
+        }
+      },
+      "valid": {
+        "rows": 150,
+        "first_date": "2018-01-26",
+        "last_date": "2018-03-18",
+        "unique_dates": 22,
+        "cost_min": 12.18,
+        "cost_max": 243.02,
+        "tip_min": 0.0,
+        "tip_max": 27.82,
+        "mean_tip": 6.8736,
+        "city_counts": {
+          "Frisco": 96,
+          "Plano": 46,
+          "The Colony": 4,
+          "Lewisville": 2,
+          "Carrollton": 1,
+          "McKinney": 1
+        },
+        "housing_counts": {
+          "Residential": 117,
+          "Apartment": 17,
+          "Hotel": 11,
+          "Business": 5
+        },
+        "weekday_counts": {
+          "Friday": 51,
+          "Sunday": 47,
+          "Saturday": 39,
+          "Wednesday": 7,
+          "Monday": 6
+        },
+        "hour_counts": {
+          "18": 48,
+          "17": 40,
+          "19": 31,
+          "20": 17,
+          "16": 10,
+          "15": 2,
+          "21": 2
+        }
+      }
+    }
+  ],
+  "selection_policy": "Minimum criterion count within 1% of lowest expanding-validation MAE; then lowest MAE.",
+  "selected_cv_score": {
+    "n": 447,
+    "mae": 2.4772859938211393,
+    "median_absolute_error": 1.6174728606998752,
+    "rmse": 3.698801114083032,
+    "mean_residual_actual_minus_predicted": 0.20362077001007717,
+    "r2": 0.3226362716199598,
+    "residual_min": -13.881100886636887,
+    "residual_max": 19.537607290539473,
+    "feature_set": "cost",
+    "alpha": 0.1,
+    "criteria_count": 1
+  },
+  "best_cv_score": {
+    "n": 447,
+    "mae": 2.4772859938211393,
+    "median_absolute_error": 1.6174728606998752,
+    "rmse": 3.698801114083032,
+    "mean_residual_actual_minus_predicted": 0.20362077001007717,
+    "r2": 0.3226362716199598,
+    "residual_min": -13.881100886636887,
+    "residual_max": 19.537607290539473,
+    "feature_set": "cost",
+    "alpha": 0.1,
+    "criteria_count": 1
+  },
+  "model": {
+    "feature_set": "cost",
+    "alpha": 0.1,
+    "spec": {
+      "cost_mean": 41.7617310252996,
+      "cost_sd": 27.533062868697467,
+      "categories": {},
+      "hour_cycle": false
+    },
+    "names": [
+      "intercept",
+      "cost_standardized"
+    ],
+    "beta": [
+      7.125486018641812,
+      2.8959948981004087
+    ],
+    "raw_scale_coefficients": {
+      "intercept": 2.7328850006632157,
+      "Cost": 0.10518244598906885
+    },
+    "range_half_width": 3.5124065373462514,
+    "calibration_target": 0.8,
+    "calibration_rank": 200,
+    "fit_rows": 751,
+    "calibration_rows": 249,
+    "test_rows": 251,
+    "test_metrics": {
+      "n": 251,
+      "mae": 2.6169266357449477,
+      "median_absolute_error": 1.8578554709984516,
+      "rmse": 4.096706262034182,
+      "mean_residual_actual_minus_predicted": 0.21003198900210635,
+      "r2": 0.29316142308010984,
+      "residual_min": -7.053101539754607,
+      "residual_max": 20.957593546772877
+    },
+    "test_range_coverage": 0.8087649402390438,
+    "baselines": {
+      "training_median": {
+        "value": 6.0,
+        "n": 251,
+        "mae": 3.059442231075697,
+        "median_absolute_error": 2.0,
+        "rmse": 5.029810416773704,
+        "mean_residual_actual_minus_predicted": 1.2470916334661357,
+        "r2": -0.06550090849152523,
+        "residual_min": -6.0,
+        "residual_max": 34.0
+      },
+      "training_mean": {
+        "value": 7.12548601864181,
+        "n": 251,
+        "mae": 3.291738293165553,
+        "median_absolute_error": 2.3654860186418105,
+        "rmse": 4.87427360864989,
+        "mean_residual_actual_minus_predicted": 0.12160561482432526,
+        "r2": -0.0006228132567240863,
+        "residual_min": -7.12548601864181,
+        "residual_max": 32.87451398135819
+      }
+    },
+    "mae_reduction_vs_median_baseline": 0.14463930413066217,
+    "test_range_inside_count": 203,
+    "test_range_outside_count": 48,
+    "native_formula_max_absolute_difference": 3.552713678800501e-15
+  },
+  "weekday": [
+    {
+      "weekday_number": 1,
+      "weekday": "Monday",
+      "records": 85,
+      "mean_tip": 7.833176470588236,
+      "median_tip": 6.0,
+      "total_tips": 665.82,
+      "mean_order_cost": 41.23564705882353,
+      "total_order_cost": 3505.03,
+      "mean_recorded_minutes": 42.2,
+      "median_recorded_minutes": 41.0,
+      "recorded_dates": 13,
+      "zero_tip_records": 0,
+      "zero_duration_records": 1,
+      "weighted_tip_rate": 0.1899612842115474,
+      "share_of_records": 0.06794564348521183,
+      "fewer_than_30_records": false
+    },
+    {
+      "weekday_number": 2,
+      "weekday": "Tuesday",
+      "records": 17,
+      "mean_tip": 7.49764705882353,
+      "median_tip": 6.6,
+      "total_tips": 127.46000000000001,
+      "mean_order_cost": 39.73705882352941,
+      "total_order_cost": 675.53,
+      "mean_recorded_minutes": 41.64705882352941,
+      "median_recorded_minutes": 38.0,
+      "recorded_dates": 3,
+      "zero_tip_records": 0,
+      "zero_duration_records": 0,
+      "weighted_tip_rate": 0.18868147972702917,
+      "share_of_records": 0.013589128697042365,
+      "fewer_than_30_records": true
+    },
+    {
+      "weekday_number": 3,
+      "weekday": "Wednesday",
+      "records": 45,
+      "mean_tip": 8.067555555555556,
+      "median_tip": 6.0,
+      "total_tips": 363.04,
+      "mean_order_cost": 51.63177777777777,
+      "total_order_cost": 2323.43,
+      "mean_recorded_minutes": 35.55555555555556,
+      "median_recorded_minutes": 36.0,
+      "recorded_dates": 8,
+      "zero_tip_records": 1,
+      "zero_duration_records": 1,
+      "weighted_tip_rate": 0.15625174849253046,
+      "share_of_records": 0.03597122302158273,
+      "fewer_than_30_records": false
+    },
+    {
+      "weekday_number": 4,
+      "weekday": "Thursday",
+      "records": 6,
+      "mean_tip": 6.745,
+      "median_tip": 5.0,
+      "total_tips": 40.47,
+      "mean_order_cost": 53.33833333333334,
+      "total_order_cost": 320.03000000000003,
+      "mean_recorded_minutes": 52.166666666666664,
+      "median_recorded_minutes": 49.0,
+      "recorded_dates": 2,
+      "zero_tip_records": 0,
+      "zero_duration_records": 0,
+      "weighted_tip_rate": 0.12645689466612503,
+      "share_of_records": 0.004796163069544364,
+      "fewer_than_30_records": true
+    },
+    {
+      "weekday_number": 5,
+      "weekday": "Friday",
+      "records": 367,
+      "mean_tip": 7.468773841961853,
+      "median_tip": 6.0,
+      "total_tips": 2741.04,
+      "mean_order_cost": 42.940490463215255,
+      "total_order_cost": 15759.16,
+      "mean_recorded_minutes": 41.23433242506812,
+      "median_recorded_minutes": 41.0,
+      "recorded_dates": 53,
+      "zero_tip_records": 2,
+      "zero_duration_records": 17,
+      "weighted_tip_rate": 0.17393312841547393,
+      "share_of_records": 0.293365307753797,
+      "fewer_than_30_records": false
+    },
+    {
+      "weekday_number": 6,
+      "weekday": "Saturday",
+      "records": 334,
+      "mean_tip": 7.18005988023952,
+      "median_tip": 6.0,
+      "total_tips": 2398.14,
+      "mean_order_cost": 42.691616766467064,
+      "total_order_cost": 14259.0,
+      "mean_recorded_minutes": 39.52694610778443,
+      "median_recorded_minutes": 39.5,
+      "recorded_dates": 53,
+      "zero_tip_records": 3,
+      "zero_duration_records": 10,
+      "weighted_tip_rate": 0.16818430464969492,
+      "share_of_records": 0.266986410871303,
+      "fewer_than_30_records": false
+    },
+    {
+      "weekday_number": 7,
+      "weekday": "Sunday",
+      "records": 397,
+      "mean_tip": 6.542871536523929,
+      "median_tip": 5.12,
+      "total_tips": 2597.52,
+      "mean_order_cost": 38.80858942065491,
+      "total_order_cost": 15407.01,
+      "mean_recorded_minutes": 40.41309823677582,
+      "median_recorded_minutes": 40.0,
+      "recorded_dates": 54,
+      "zero_tip_records": 2,
+      "zero_duration_records": 5,
+      "weighted_tip_rate": 0.1685933870361608,
+      "share_of_records": 0.3173461231015188,
+      "fewer_than_30_records": false
+    }
+  ],
+  "limitations": [
+    "Historical single-driver schedule, not market demand or a current tipping model.",
+    "Prediction is associational; tip outcomes vary widely.",
+    "80% calibration target is not guaranteed coverage under chronological drift.",
+    "Sparse cities/housing categories may not support detailed subgroup predictions.",
+    "Elapsed order-to-delivery minutes are not labor hours; no hourly earnings metric."
+  ]
+}

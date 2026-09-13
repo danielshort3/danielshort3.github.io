@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.e022af6d.css">
+  <link rel="stylesheet" href="dist/styles.91c0fa3c.css">
   <link rel="stylesheet" href="dist/styles-tools.32cc46e6.css">
   <link rel="stylesheet" href="css/components/background-remover.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -49,7 +49,7 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.d4de4c93.js"></script>
+  <script defer src="dist/site-shell.63ee94e5.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.fe0e5a75.css">
   <script type="application/ld+json" id="tool-jsonld">
@@ -58,7 +58,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/tools/background-remover#webpage","url":"https://www.danielshort.me/tools/background-remover","name":"Background Remover | Daniel Short","description":"Remove photo backgrounds with AI matting, refine edges, and export transparent PNG/TIFF files locally in your browser.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/tool-background-remover.png?v=70badc3fc76b"},"mainEntity":{"@id":"https://www.danielshort.me/tools/background-remover#app"},"breadcrumb":{"@id":"https://www.danielshort.me/tools/background-remover#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/tools/background-remover#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://www.danielshort.me/tools"},{"@type":"ListItem","position":3,"name":"Background Remover","item":"https://www.danielshort.me/tools/background-remover"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:background-remover","path":"/tools/background-remover","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.e022af6d.css","/dist/styles-tools.32cc46e6.css","/css/components/background-remover.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.d4de4c93.js","/js/tools/tool-share-link.js","/js/tools/tool-workspace.js","/js/tools/background-remover.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:background-remover"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:background-remover","path":"/tools/background-remover","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.91c0fa3c.css","/dist/styles-tools.32cc46e6.css","/css/components/background-remover.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.63ee94e5.js","/js/tools/tool-share-link.js","/js/tools/tool-workspace.js","/js/tools/background-remover.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:background-remover"}</script>
 </head>
 <body data-page="background-remover" class="tools-tool-page site-page personal-accordion-page" data-tools-layout="media" data-tools-state="empty" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="background-remover" data-personal-fit="viewport" data-site-route-id="tools:background-remover" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="hard" data-personal-chrome="compact" data-site-route-module="tools:background-remover">
   <a href="/tools/background-remover#main" class="skip-link" data-navigation="hard">Skip to main content</a>
@@ -90,7 +90,6 @@
       </div>
     </nav>
   </header>
-
 
 <!-- personal-accordion-shell:start -->
   <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>
@@ -147,7 +146,7 @@
 <main id="main">
     <section class="surface-band bgtool-section tool-workspace">
       <div class="wrapper tool-workspace-grid bgtool-workspace">
-        <div class="bgtool-card bgtool-controls-card tool-workspace-card" data-workspace-tabset>
+        <div class="bgtool-card bgtool-controls-card tool-workspace-card">
           <div class="tool-workspace-header">
             <h2>Settings</h2>
             <button type="button" class="btn-ghost tool-workspace-share" data-tool-share-link aria-label="Copy a link to these settings">Share settings</button>
@@ -157,13 +156,9 @@
             <button type="button" class="btn-secondary bgtool-pick" data-bgtool="pick">Add photos</button>
             <span class="bgtool-help-text">or drop them here</span>
           </div>
-          <div class="tool-workspace-tabs" role="tablist" aria-label="Photo settings">
-            <button type="button" id="bgtool-tab-remove" data-workspace-tab role="tab" aria-controls="bgtool-panel-remove" aria-selected="true">Remove</button>
-            <button type="button" id="bgtool-tab-refine" data-workspace-tab role="tab" aria-controls="bgtool-panel-refine" aria-selected="false" tabindex="-1">Edges</button>
-            <button type="button" id="bgtool-tab-export" data-workspace-tab role="tab" aria-controls="bgtool-panel-export" aria-selected="false" tabindex="-1">Export</button>
-          </div>
+
           <form id="bgtool-form" class="bgtool-form" novalidate>
-            <div id="bgtool-panel-remove" data-workspace-panel role="tabpanel" aria-labelledby="bgtool-tab-remove" tabindex="0">
+            <div id="bgtool-panel-remove" class="bgtool-settings-group">
               <div class="bgtool-control">
                 <label class="bgtool-label" for="bgtool-method">Method</label>
                 <select id="bgtool-method" class="bgtool-select">
@@ -172,21 +167,24 @@
                   <option value="colorkey">Remove a color</option>
                 </select>
               </div>
-              <fieldset class="bgtool-fieldset" id="bgtool-ai-settings">
-                <legend class="visually-hidden">AI options</legend>
-                <div class="bgtool-processing-row">
-                  <div class="bgtool-control">
-                    <label class="bgtool-label" for="bgtool-processing">Detail level</label>
-                    <select id="bgtool-processing" class="bgtool-select">
-                      <option value="1024" selected>Standard · 1024 px</option>
-                      <option value="1536">High · 1536 px</option>
-                      <option value="2048">Higher · 2048 px</option>
-                      <option value="3072">Maximum · 3072 px</option>
-                    </select>
+              <details class="bgtool-help bgtool-detail-options">
+                <summary>Processing options</summary>
+                <fieldset class="bgtool-fieldset" id="bgtool-ai-settings">
+                  <legend class="visually-hidden">AI options</legend>
+                  <div class="bgtool-processing-row">
+                    <div class="bgtool-control">
+                      <label class="bgtool-label" for="bgtool-processing">Detail level</label>
+                      <select id="bgtool-processing" class="bgtool-select">
+                        <option value="1024" selected>Standard · 1024 px</option>
+                        <option value="1536">High · 1536 px</option>
+                        <option value="2048">Higher · 2048 px</option>
+                        <option value="3072">Maximum · 3072 px</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <select id="bgtool-device" aria-label="Processing device" hidden><option value="cpu" selected>CPU</option></select>
-              </fieldset>
+                  <select id="bgtool-device" aria-label="Processing device" hidden><option value="cpu" selected>CPU</option></select>
+                </fieldset>
+              </details>
               <fieldset class="bgtool-fieldset" id="bgtool-colorkey-settings" hidden>
                 <legend class="visually-hidden">Color to remove</legend>
                 <div class="bgtool-two-col">
@@ -210,84 +208,7 @@
                 <ul id="bgtool-filelist" class="bgtool-filelist" aria-label="Selected photos"></ul>
               </div>
             </div>
-            <div id="bgtool-panel-refine" data-workspace-panel role="tabpanel" aria-labelledby="bgtool-tab-refine" tabindex="0" hidden>
-              <p class="bgtool-help-text">Changes preview instantly.</p>
-              <fieldset class="bgtool-fieldset" id="bgtool-mask-settings">
-                <legend class="visually-hidden">Edges</legend>
-                <label class="bgtool-option">
-                  <input type="radio" name="bgtool-mask-type" value="alpha" checked>
-                  Smooth edges
-                </label>
-                <label class="bgtool-option">
-                  <input type="radio" name="bgtool-mask-type" value="binary">
-                  Hard edges
-                </label>
-                <div class="bgtool-range" id="bgtool-threshold-wrap" hidden>
-                  <label class="bgtool-label" for="bgtool-threshold">Threshold <span id="bgtool-threshold-value" class="bgtool-value">50%</span></label>
-                  <input id="bgtool-threshold" type="range" min="1" max="99" value="50" step="1">
-                </div>
-                <div class="bgtool-range">
-                  <label class="bgtool-label" for="bgtool-feather">Feather <span id="bgtool-feather-value" class="bgtool-value">0 px</span></label>
-                  <input id="bgtool-feather" type="range" min="0" max="12" value="0" step="1">
-                </div>
-                <details class="bgtool-help bgtool-silhouette-details">
-                  <summary>Edge outline</summary>
-                  <label class="bgtool-option">
-                  <input id="bgtool-silhouette-enabled" type="checkbox">
-                  Add outline
-                </label>
-                <div class="bgtool-range">
-                  <label class="bgtool-label" for="bgtool-silhouette-width">Width <span id="bgtool-silhouette-width-value" class="bgtool-value">6 px</span></label>
-                  <input id="bgtool-silhouette-width" type="range" min="0" max="24" value="6" step="1">
-                </div>
-                <div class="bgtool-range">
-                  <label class="bgtool-label" for="bgtool-silhouette-sample">Color sample distance <span id="bgtool-silhouette-sample-value" class="bgtool-value">14 px</span></label>
-                  <input id="bgtool-silhouette-sample" type="range" min="1" max="40" value="14" step="1">
-                </div>
-                <div class="bgtool-two-col">
-                  <div class="bgtool-control">
-                    <label class="bgtool-label" for="bgtool-silhouette-color-mode">Outline color</label>
-                    <select id="bgtool-silhouette-color-mode" class="bgtool-select">
-                      <option value="auto" selected>Auto-sample from background</option>
-                      <option value="manual">Manual color</option>
-                    </select>
-                  </div>
-                  <div class="bgtool-control" id="bgtool-silhouette-color-wrap" hidden>
-                    <label class="bgtool-label" for="bgtool-silhouette-color">Manual color</label>
-                    <div class="bgtool-color-row">
-                      <input id="bgtool-silhouette-color" class="bgtool-color" type="color" value="#ffffff" aria-label="Silhouette color">
-                      <span id="bgtool-silhouette-color-label" class="bgtool-chip">#FFFFFF</span>
-                    </div>
-                  </div>
-                </div>
-                </details>
-              </fieldset>
-            </div>
-            <div id="bgtool-panel-export" data-workspace-panel role="tabpanel" aria-labelledby="bgtool-tab-export" tabindex="0" hidden>
-              <fieldset class="bgtool-fieldset" id="bgtool-output-settings">
-                <legend class="visually-hidden">Downloads</legend>
-                <div class="bgtool-two-col">
-                  <div class="bgtool-control">
-                    <label class="bgtool-label" for="bgtool-format">Format</label>
-                    <select id="bgtool-format" class="bgtool-select">
-                      <option value="image/png" selected>PNG (transparent)</option>
-                      <option value="image/tiff">TIFF (transparent)</option>
-                      <option value="image/webp">WebP (transparent)</option>
-                      <option value="image/jpeg">JPEG (solid background)</option>
-                      <option value="image/webp-solid">WebP (solid background)</option>
-                    </select>
-                  </div>
-                  <div class="bgtool-control" id="bgtool-bg-wrap" hidden>
-                    <label class="bgtool-label" for="bgtool-bg">Background</label>
-                    <div class="bgtool-color-row">
-                      <input id="bgtool-bg" class="bgtool-color" type="color" value="#ffffff" aria-label="Background fill color">
-                      <span id="bgtool-bg-label" class="bgtool-chip">#FFFFFF</span>
-                    </div>
-                  </div>
-                </div>
-              </fieldset>
-              <p class="bgtool-help-text">Downloads keep the original size.</p>
-            </div>
+
           </form>
           <div class="bgtool-process-actions">
             <p id="bgtool-pending" class="bgtool-pending" role="status" hidden></p>
@@ -322,31 +243,112 @@
             <canvas id="bgtool-canvas" aria-label="Background removal preview"></canvas>
             <div id="bgtool-overlay" class="bgtool-overlay" role="button" tabindex="0" aria-label="Add photos">Add photos</div>
           </div>
+          <div id="bgtool-panel-export" class="bgtool-settings-group bgtool-download-settings">
+            <fieldset class="bgtool-fieldset" id="bgtool-output-settings">
+              <legend class="visually-hidden">Downloads</legend>
+              <div class="bgtool-two-col">
+                <div class="bgtool-control">
+                  <label class="bgtool-label" for="bgtool-format">Download format</label>
+                  <select form="bgtool-form" id="bgtool-format" class="bgtool-select">
+                    <option value="image/png" selected>PNG (transparent)</option>
+                    <option value="image/tiff">TIFF (transparent)</option>
+                    <option value="image/webp">WebP (transparent)</option>
+                    <option value="image/jpeg">JPEG (solid background)</option>
+                    <option value="image/webp-solid">WebP (solid background)</option>
+                  </select>
+                </div>
+                <div class="bgtool-control" id="bgtool-bg-wrap" hidden>
+                  <label class="bgtool-label" for="bgtool-bg">Background</label>
+                  <div class="bgtool-color-row">
+                    <input form="bgtool-form" id="bgtool-bg" class="bgtool-color" type="color" value="#ffffff" aria-label="Background fill color">
+                    <span id="bgtool-bg-label" class="bgtool-chip">#FFFFFF</span>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+            <p class="bgtool-help-text">Downloads keep the original size.</p>
+          </div>
           <div class="bgtool-results-actions tool-workspace-actions">
             <button type="button" class="btn-primary" id="bgtool-download-selected" disabled>Download photo</button>
             <button type="button" class="btn-secondary" id="bgtool-download-all" hidden disabled>Download checked</button>
             <button type="button" class="btn-ghost" id="bgtool-reset">Clear photos</button>
           </div>
           <details class="bgtool-refine-controls">
-            <summary>Touch up with a brush</summary>
-            <div class="bgtool-refine-bar">
-            <div class="bgtool-refine-left">
-              <span class="bgtool-refine-title">Refine</span>
-              <label class="bgtool-option">
-                <input id="bgtool-refine-enabled" type="checkbox" disabled>
-                Brush on
-              </label>
-            </div>
-            <div class="bgtool-refine-right">
-              <label class="bgtool-label" for="bgtool-brush-mode">Mode</label>
-              <select id="bgtool-brush-mode" class="bgtool-select" disabled>
-                <option value="erase" selected>Erase</option>
-                <option value="restore">Restore</option>
-              </select>
-              <label class="bgtool-label" for="bgtool-brush-size">Size <span id="bgtool-brush-size-value" class="bgtool-value">24 px</span></label>
-              <input id="bgtool-brush-size" type="range" min="6" max="120" value="24" step="1" disabled>
-              <button type="button" class="btn-ghost" id="bgtool-clear-edits" disabled>Clear edits</button>
-            </div>
+            <summary>Refine cutout</summary>
+            <div class="bgtool-refinements">
+              <div id="bgtool-panel-refine" class="bgtool-settings-group">
+                <fieldset class="bgtool-fieldset" id="bgtool-mask-settings">
+                  <legend class="visually-hidden">Edges</legend>
+                  <label class="bgtool-option">
+                    <input form="bgtool-form" type="radio" name="bgtool-mask-type" value="alpha" checked>
+                    Smooth edges
+                  </label>
+                  <label class="bgtool-option">
+                    <input form="bgtool-form" type="radio" name="bgtool-mask-type" value="binary">
+                    Hard edges
+                  </label>
+                  <div class="bgtool-range" id="bgtool-threshold-wrap" hidden>
+                    <label class="bgtool-label" for="bgtool-threshold">Threshold <span id="bgtool-threshold-value" class="bgtool-value">50%</span></label>
+                    <input form="bgtool-form" id="bgtool-threshold" type="range" min="1" max="99" value="50" step="1">
+                  </div>
+                  <div class="bgtool-range">
+                    <label class="bgtool-label" for="bgtool-feather">Feather <span id="bgtool-feather-value" class="bgtool-value">0 px</span></label>
+                    <input form="bgtool-form" id="bgtool-feather" type="range" min="0" max="12" value="0" step="1">
+                  </div>
+                  <details class="bgtool-help bgtool-silhouette-details">
+                    <summary>Edge outline</summary>
+                    <label class="bgtool-option">
+                      <input form="bgtool-form" id="bgtool-silhouette-enabled" type="checkbox">
+                      Add outline
+                    </label>
+                    <div class="bgtool-range">
+                      <label class="bgtool-label" for="bgtool-silhouette-width">Width <span id="bgtool-silhouette-width-value" class="bgtool-value">6 px</span></label>
+                      <input form="bgtool-form" id="bgtool-silhouette-width" type="range" min="0" max="24" value="6" step="1">
+                    </div>
+                    <div class="bgtool-range">
+                      <label class="bgtool-label" for="bgtool-silhouette-sample">Color sample distance <span id="bgtool-silhouette-sample-value" class="bgtool-value">14 px</span></label>
+                      <input form="bgtool-form" id="bgtool-silhouette-sample" type="range" min="1" max="40" value="14" step="1">
+                    </div>
+                    <div class="bgtool-two-col">
+                      <div class="bgtool-control">
+                        <label class="bgtool-label" for="bgtool-silhouette-color-mode">Outline color</label>
+                        <select form="bgtool-form" id="bgtool-silhouette-color-mode" class="bgtool-select">
+                          <option value="auto" selected>Auto-sample from background</option>
+                          <option value="manual">Manual color</option>
+                        </select>
+                      </div>
+                      <div class="bgtool-control" id="bgtool-silhouette-color-wrap" hidden>
+                        <label class="bgtool-label" for="bgtool-silhouette-color">Manual color</label>
+                        <div class="bgtool-color-row">
+                          <input form="bgtool-form" id="bgtool-silhouette-color" class="bgtool-color" type="color" value="#ffffff" aria-label="Silhouette color">
+                          <span id="bgtool-silhouette-color-label" class="bgtool-chip">#FFFFFF</span>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                </fieldset>
+              </div>
+              <div class="bgtool-brush-settings"><h3>Brush touch-up</h3>
+                <div class="bgtool-refine-bar">
+                  <div class="bgtool-refine-left">
+                    <span class="bgtool-refine-title">Refine</span>
+                    <label class="bgtool-option">
+                      <input id="bgtool-refine-enabled" type="checkbox" disabled>
+                      Brush on
+                    </label>
+                  </div>
+                  <div class="bgtool-refine-right">
+                    <label class="bgtool-label" for="bgtool-brush-mode">Mode</label>
+                    <select id="bgtool-brush-mode" class="bgtool-select" disabled>
+                      <option value="erase" selected>Erase</option>
+                      <option value="restore">Restore</option>
+                    </select>
+                    <label class="bgtool-label" for="bgtool-brush-size">Size <span id="bgtool-brush-size-value" class="bgtool-value">24 px</span></label>
+                    <input id="bgtool-brush-size" type="range" min="6" max="120" value="24" step="1" disabled>
+                    <button type="button" class="btn-ghost" id="bgtool-clear-edits" disabled>Clear edits</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </details>
           <div class="bgtool-stats" hidden aria-hidden="true"><span id="bgtool-dim">Size: N/A</span><span id="bgtool-removed">Mask: N/A</span></div>

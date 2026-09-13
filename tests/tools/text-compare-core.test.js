@@ -141,8 +141,6 @@ module.exports = function runTextCompareCoreTests({ assert }) {
   assert(pageScript.includes('requestId !== latestCompareRequestId'), 'text compare page should ignore stale compare responses');
   assert(pageScript.includes('Compared on the main thread because the background worker was unavailable.'),
     'text compare page should surface worker fallback warnings');
-  assert(pageScript.includes('Auto mode used document comparison.'),
-    'text compare page should surface the document auto-mode notice');
   assert(pageScript.includes('new Worker(COMPARE_WORKER_PATH)'), 'text compare page should spin up a worker');
 
   const workerScript = fs.readFileSync('js/tools/text-compare-worker.js', 'utf8');

@@ -40,7 +40,9 @@
     "url": "chatbot-demo.html",
     "fit": "viewport",
     "minHeight": 620,
-    "maxHeight": 860
+    "maxHeight": 860,
+    "heading": "Travel Assistant",
+    "description": "Explore Grand Junction with a source-grounded chat. Inputs and responses are saved on AWS."
   },
   "demoInstructions": {
     "lead": "Ask a question and get an answer grounded in the site content (with citations).",

@@ -312,3 +312,16 @@
     body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-option input::before { transition: none; }
   }
 }
+
+@layer overrides {
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-workspace-grid { align-items: start; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] #nbsp-panel-cleaned .nbsp-textarea { min-height: 260px; height: 300px; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-character-details summary { min-height: 44px; padding: 10px 0; box-sizing: border-box; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-character-details .nbsp-preview { min-height: 100px; max-height: 300px; overflow: auto; margin-top: 8px; }
+  body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-character-details summary:focus-visible { outline: 2px solid #087f8c; outline-offset: 3px; }
+  @media (max-width: 760px) {
+    body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+    body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-actions .btn-primary { white-space: nowrap; }
+    body.nbsp-cleaner-page[data-page][data-tools-layout] .nbsp-actions .tool-workspace-share { grid-column: 1 / -1; justify-self: start; }
+  }
+}

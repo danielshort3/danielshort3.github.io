@@ -573,26 +573,24 @@
   </script>
   <main id="main">
 
-  <div id="demo-box" class="demo-workspace" aria-label="Nonogram solver demo">
-    <header class="card-header">
+  <div id="demo-box" class="demo-workspace demo-surface demo-size-compact puzzle-workspace" aria-label="Nonogram solver demo">
+    <header class="card-header demo-surface-header">
       <div class="header-copy">
         <h1 class="title">Nonogram Solver</h1>
         <p class="subtitle">Watch an AI agent reveal a 5 × 5 picture from its row and column clues.</p>
       </div>
-      <div class="header-actions">
-        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
+      <div class="header-actions demo-status-actions">
+        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">AWS · Connecting</span>
       </div>
     </header>
 
-    <div class="status demo-meta-row" id="status" role="status" aria-live="polite">Ready. Generate a puzzle to begin.</div>
 
     <div class="content">
       <div class="board-column">
         <div class="board-actions">
           <button id="action-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
-          <button id="solution-btn" class="solution-trigger" type="button" disabled>
+          <button id="solution-btn" class="solution-trigger" type="button" aria-pressed="false" disabled>
             <span class="solution-label">Solution</span>
-            <span class="solution-icon" aria-hidden="true">?</span>
           </button>
         </div>
 
@@ -607,6 +605,7 @@
           </div>
       </div>
 
+      <p class="puzzle-status" id="status" role="status" aria-live="polite">Preparing demo…</p>
       <div class="puzzle-summary" aria-live="polite">
         <div class="stat"><span>Accuracy</span> <strong id="stat-accuracy">—</strong></div>
       </div>
@@ -681,7 +680,7 @@
       function setHealth(state, text) {
         if (!healthPill) return;
         healthPill.dataset.state = state;
-        healthPill.textContent = text;
+        healthPill.textContent = `AWS · ${text === 'Ready' ? 'Connected' : state === 'warming' ? 'Connecting' : text}`;
       }
 
       function setActionMode(nextMode) {
@@ -838,6 +837,7 @@
     }
 
     function resetSolutionToggle() {
+      solutionBtn.setAttribute('aria-pressed', 'false');
       solutionVisible = false;
       solutionSnapshot = null;
     }
@@ -866,7 +866,7 @@
             initialLoadTriggered = true;
             await loadPuzzle();
           } else {
-            setStatus('Ready. Generate a puzzle to begin.');
+            setStatus('Puzzle ready.');
           }
           return;
         } catch (err) {
@@ -882,7 +882,7 @@
             initialLoadTriggered = true;
             await loadPuzzle();
           } else {
-            setStatus('Ready. Generate a puzzle to begin.');
+            setStatus('Puzzle ready.');
           }
           return;
         } catch (err) {
@@ -908,10 +908,7 @@
         }
         solutionBtn.disabled = true;
         setStatus('Generating puzzle...');
-        resetStats();
-      resetSolutionToggle();
-      clearLog();
-      clearBoard();
+        setHealth('loading', 'Generating');
 
       const payload = {};
 
@@ -929,22 +926,27 @@
         }
         if (!data) throw new Error('No endpoint available');
 
+          resetStats();
+          resetSolutionToggle();
+          clearLog();
           current = data;
+          setHealth('ok', 'Ready');
           renderBoard(data.grid);
           renderClues(data.row_clues, data.col_clues);
           clearBoard();
           setActionMode('solve');
           if (actionBtn) actionBtn.disabled = false;
           solutionBtn.disabled = false;
-          setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
+          setStatus('Puzzle ready.');
         } catch (err) {
-          setStatus('Failed to load puzzle.');
+          setHealth('err', 'Request failed');
+          setStatus('Could not load a new puzzle. Try again.');
           setActionMode('new');
           if (actionBtn) {
             actionBtn.disabled = false;
             actionBtn.textContent = 'New Puzzle';
           }
-          solutionBtn.disabled = true;
+          solutionBtn.disabled = !current;
         }
       }
 
@@ -1018,7 +1020,7 @@
 
     function previewSolution(show) {
       if (solving || solutionBtn.disabled) return;
-      setSolutionVisible(show);
+      if (setSolutionVisible(show)) solutionBtn.setAttribute('aria-pressed', String(show));
     }
 
       function finishSolve() {
@@ -1029,9 +1031,11 @@
         const accuracyText = formatAccuracy();
         statAccuracy.textContent = accuracyText;
         showAccuracyToast(accuracyText);
-        setStatus('Puzzle Solved!');
+        solutionBtn.disabled = false;
+        setStatus('Puzzle solved.');
       }
 
+      solutionBtn.addEventListener('click', () => previewSolution(!solutionVisible));
       if (actionBtn) {
         actionBtn.addEventListener('click', () => {
           if (!current || actionMode === 'new') {
@@ -1041,8 +1045,6 @@
           runSolve();
         });
       }
-      solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
-      solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
 
     renderBoard(5);
     resetStats();

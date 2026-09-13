@@ -81,8 +81,11 @@ function loadProjectDemoDefinitions() {
       demoId,
       projectId,
       title,
+      heading: String(project.embed?.heading || title).trim(),
       subtitle: String(project.subtitle || '').trim(),
-      descriptionHtml: extractDemoDescriptionHtml(fs.readFileSync(rawFile, 'utf8')),
+      descriptionHtml: project.embed?.description
+        ? `<p>${escapeHtml(project.embed.description)}</p>`
+        : extractDemoDescriptionHtml(fs.readFileSync(rawFile, 'utf8')),
       canonicalPath,
       canonicalUrl: `${SITE_ORIGIN}${canonicalPath}`,
       rawPath: toRawProjectDemoUrl(demoId),
@@ -167,7 +170,7 @@ ${header}
       </a>
       <div data-page-masthead-intro>
         <div data-page-masthead-copy>
-          <h1>${escapeHtml(pageTitle)}</h1>
+          <h1>${escapeHtml(definition.heading || definition.title)}</h1>
           ${descriptionHtml}
         </div>
       </div>
