@@ -96,11 +96,11 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     });
     assert(
       Array.isArray(evaluation.limitations) && evaluation.limitations.length > 0,
-      `${id} should disclose at least one evaluation limitation`,
+      `${id} should preserve at least one authored evaluation limitation`,
     );
     assert(
       evaluation.evidence && evaluation.evidence.label && evaluation.evidence.url,
-      `${id} should link its evaluation context`,
+      `${id} should preserve its authored evaluation source`,
     );
   });
 
@@ -169,9 +169,9 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   assert(
     !projectGenerator.includes('project-pager') &&
       !projectGenerator.includes('project-personal-notes') &&
-      projectGenerator.includes('project-evidence-details') &&
+      !projectGenerator.includes('project-evidence-details') &&
       projectGenerator.includes('project-next-steps'),
-    'generated project details should keep evidence compact and provide a curated next step without a pager or repeated personal-notes section',
+    'generated project details should omit the disabled evidence disclosure and provide a curated next step without a pager or repeated personal-notes section',
   );
   storyIds.forEach((id) => {
     const project = readJson(`content/projects/${id}.json`);
@@ -183,8 +183,8 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     const evaluationIndex = page.indexOf('Evidence &amp; limitations');
     const demoIndex = page.indexOf('project-demo-shell');
     assert(
-      starIndex >= 0 && evaluationIndex > starIndex && demoIndex > evaluationIndex,
-      `${id} should make supporting evidence available between STAR and the demo in a compact disclosure`,
+      starIndex >= 0 && evaluationIndex === -1 && demoIndex > starIndex,
+      `${id} should place STAR before the demo without the disabled evidence disclosure`,
     );
   });
   storyIds.forEach((id) => {

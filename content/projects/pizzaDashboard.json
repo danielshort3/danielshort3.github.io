@@ -30,10 +30,10 @@
     "base": "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
   },
   "demoInstructions": {
-    "lead": "Explore delivery history and estimate a tip.",
+    "lead": "Explore delivery history and recorded tip patterns.",
     "bullets": [
-      "Use Overview, Timing, Trends, Weekday, Tip estimate, and About.",
-      "Date, city, and housing selections stay with you across tabs. Tip estimate uses order cost only.",
+      "Use Overview, Timing, Trends, Weekday, and About.",
+      "Date, city, and housing selections stay with you across tabs.",
       "Find definitions in About. Use Reset filters or Tableau Revert to start over."
     ]
   },

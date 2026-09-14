@@ -1,0 +1,531 @@
+{
+  "passed": true,
+  "scope": "Local published-workbook structure only; native rendering and absence from live preview require browser verification.",
+  "before": "design/tableau/published/pre-tip-pause-20260913-1727/pizza-delivery-published.twbx",
+  "after": "design/tableau/published/pizza-delivery-published.twbx",
+  "beforeSha256": "f679d226b2096fb3b09c7c0c9c1e8018cade063c0a96f68a316ddb0304e19919",
+  "afterSha256": "2485fe73a854658c476e0e5d1fdce930d643f8271f12e4608c3c71ec971fbc8e",
+  "checks": 94,
+  "failures": [],
+  "ignoredMetadata": {
+    "elements": [
+      "repository-location"
+    ],
+    "attributes": [
+      "forceUpdate"
+    ]
+  },
+  "worksheetCount": 30,
+  "calculatedFieldCount": 15,
+  "layouts": [
+    {
+      "dashboard": "Pizza Delivery Dashboard",
+      "layout": "Default",
+      "aboutX": 519.996,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza Delivery Dashboard",
+      "layout": "Phone",
+      "aboutX": 130.00125,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza Timing",
+      "layout": "Default",
+      "aboutX": 519.996,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza Timing",
+      "layout": "Phone",
+      "aboutX": 130.00125,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza Trends",
+      "layout": "Default",
+      "aboutX": 519.996,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza Trends",
+      "layout": "Phone",
+      "aboutX": 130.00125,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza Weekday",
+      "layout": "Default",
+      "aboutX": 519.996,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza Weekday",
+      "layout": "Phone",
+      "aboutX": 130.00125,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza About data",
+      "layout": "Default",
+      "aboutX": 519.996,
+      "estimatorButtons": 0
+    },
+    {
+      "dashboard": "Pizza About data",
+      "layout": "Phone",
+      "aboutX": 130.00125,
+      "estimatorButtons": 0
+    }
+  ],
+  "details": [
+    {
+      "passed": true,
+      "check": "Archived original package matches its committed manifest"
+    },
+    {
+      "passed": true,
+      "check": "Archived source matches the fresh pre-pause public download"
+    },
+    {
+      "passed": true,
+      "check": "Every Hyper member remains byte-identical"
+    },
+    {
+      "passed": true,
+      "check": "All original worksheets remain present with no additions"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Approx. 80% range"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Average tip by city"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Average tip over time"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: City delivery count"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: City recorded minutes"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Deliveries by housing"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Delivery Time Averages (Minutes)"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Delivery Time Histogram (Minutes)"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Delivery records"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Estimate upper range"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Estimated tip"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Median tip"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Monthly date labels"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Monthly delivery count"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Monthly detail table"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Order Count by City Map"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Order Quantity by City"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Order Quantity by Housing Type"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Recorded time summary"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Selected data scope"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Selected tip summary"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Tip $ Averages"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Tip % Averages"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Tip % Histogram"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Tip distribution ($2 bins)"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Total tips"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Weekday average tip"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Weekday deliveries"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Weekday median tip"
+    },
+    {
+      "passed": true,
+      "check": "Worksheet unchanged: Weekday total tips"
+    },
+    {
+      "passed": true,
+      "check": "Every calculated-field definition and parameter calculation remains unchanged"
+    },
+    {
+      "passed": true,
+      "check": "Historical dashboard filter actions remain unchanged"
+    },
+    {
+      "passed": true,
+      "check": "All six source dashboards remain available for temporary restoration"
+    },
+    {
+      "passed": true,
+      "check": "Estimator source dashboard remains archived and present"
+    },
+    {
+      "passed": true,
+      "check": "Estimator source dashboard, controls, and both layouts remain intact"
+    },
+    {
+      "passed": true,
+      "check": "Default and Phone layouts remain: Pizza Delivery Dashboard"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza Delivery Dashboard / Default"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza Delivery Dashboard / Default"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza Delivery Dashboard / Default"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=520px: Pizza Delivery Dashboard / Default"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza Delivery Dashboard / Default"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza Delivery Dashboard / Phone"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza Delivery Dashboard / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza Delivery Dashboard / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=130px: Pizza Delivery Dashboard / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza Delivery Dashboard / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Default and Phone layouts remain: Pizza Timing"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza Timing / Default"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza Timing / Default"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza Timing / Default"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=520px: Pizza Timing / Default"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza Timing / Default"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza Timing / Phone"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza Timing / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza Timing / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=130px: Pizza Timing / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza Timing / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Default and Phone layouts remain: Pizza Trends"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza Trends / Default"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza Trends / Default"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza Trends / Default"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=520px: Pizza Trends / Default"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza Trends / Default"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza Trends / Phone"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza Trends / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza Trends / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=130px: Pizza Trends / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza Trends / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Default and Phone layouts remain: Pizza Weekday"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza Weekday / Default"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza Weekday / Default"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza Weekday / Default"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=520px: Pizza Weekday / Default"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza Weekday / Default"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza Weekday / Phone"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza Weekday / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza Weekday / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=130px: Pizza Weekday / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza Weekday / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Default and Phone layouts remain: Pizza About data"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza About data / Default"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza About data / Default"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza About data / Default"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=520px: Pizza About data / Default"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza About data / Default"
+    },
+    {
+      "passed": true,
+      "check": "No estimator navigation target or label: Pizza About data / Phone"
+    },
+    {
+      "passed": true,
+      "check": "One About navigation object: Pizza About data / Phone"
+    },
+    {
+      "passed": true,
+      "check": "Dashboard dimensions preserved: Pizza About data / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About occupies vacated x=130px: Pizza About data / Phone"
+    },
+    {
+      "passed": true,
+      "check": "About keeps original identity and y/w/h: Pizza About data / Phone"
+    }
+  ],
+  "recordedAtUtc": "2026-09-13T17:43:06+00:00",
+  "canonicalSnapshotCapturedAtUtc": "2026-09-13T17:36:08+00:00",
+  "nativeBrowserVerification": {
+    "passed": true,
+    "browser": "Owned agent-browser Chromium session tip-pause-qa; closed after verification",
+    "desktop": {
+      "viewport": [
+        1400,
+        950
+      ],
+      "visited": [
+        "Overview",
+        "Timing",
+        "Trends",
+        "Weekday",
+        "About",
+        "Overview"
+      ],
+      "filter": "City = Frisco",
+      "filterRetainedAcrossPages": true,
+      "overviewMetrics": {
+        "records": 794,
+        "medianTip": 6,
+        "totalTips": 5777.68
+      },
+      "estimatorControlsAbsent": true,
+      "revertRestoredDefaults": true
+    },
+    "phone": {
+      "viewport": [
+        390,
+        844
+      ],
+      "explicitDevice": "phone",
+      "visited": [
+        "Overview",
+        "Timing",
+        "Trends",
+        "About",
+        "Weekday",
+        "Overview"
+      ],
+      "filter": "Housing = Hotel",
+      "filterRetainedAcrossPages": true,
+      "overviewMetrics": {
+        "records": 67,
+        "medianTip": 6,
+        "totalTips": 461.52
+      },
+      "estimatorControlsAbsent": true,
+      "noHorizontalOverflow": true
+    },
+    "localEmbed": {
+      "url": "http://127.0.0.1:4173/portfolio/pizzaDashboard",
+      "viewport": [
+        390,
+        844
+      ],
+      "frameWidth": 382,
+      "device": "phone",
+      "actualTableauContentRendered": true,
+      "timingNavigationWorked": true,
+      "siteResetReturnedToOverview": true,
+      "resetRetainedPhoneDevice": true,
+      "resetUrlContainsRevertAll": true,
+      "noHorizontalOverflow": true,
+      "reportedBrowserErrors": []
+    },
+    "evidence": "Ignored tmp/pizza-tip-pause-{desktop,phone}-{overview,timing,trends,weekday,about}.txt and desktop/phone overview and local-phone PNG captures.",
+    "scope": "No remote data or authoring changes by verifier. Removing preview navigation does not revoke the separate estimator dashboard direct URL; About methodology text remains noninteractive."
+  }
+}

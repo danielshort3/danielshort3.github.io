@@ -1,4 +1,4 @@
-/** Project evidence, contextual navigation, and contact drafts; never sends a message. */
+/** Project content visibility, contextual navigation, and contact drafts; never sends a message. */
 'use strict';
 
 const assert = require('node:assert/strict');
@@ -15,6 +15,24 @@ async function settle(page) {
       && (!frame || !frame.matches('.site-frame--moving, .site-frame--held'));
   });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
+async function checkEvidenceAbsent(page) {
+  assert.equal(await page.locator('.project-evidence, .project-evidence-details').count(), 0,
+    'Disabled evidence sections and disclosures must be absent, not merely collapsed');
+  assert.equal(await page.getByText('Evidence & limitations', { exact: true }).count(), 0,
+    'The evidence disclosure label must not remain visible');
+  assert(await page.locator('.project-star').isVisible(), 'The STAR summary must remain available');
+  const layout = await page.evaluate(() => {
+    const star = document.querySelector('.project-star');
+    const demo = document.querySelector('.project-demo-shell');
+    return {
+      starBeforeDemo: Boolean(star.compareDocumentPosition(demo) & Node.DOCUMENT_POSITION_FOLLOWING),
+      overflow: document.documentElement.scrollWidth - innerWidth
+    };
+  });
+  assert(layout.starBeforeDemo, 'The STAR summary must remain before the demo');
+  assert(layout.overflow <= 1, 'Project content must not create horizontal page overflow');
 }
 
 async function checkViewport({ browser, base, artifactDir }, viewport) {
@@ -36,51 +54,15 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
   }));
   try {
     await page.goto(`${base}/portfolio/handwritingRating`);
-    await page.locator('.project-evidence-details > summary').waitFor();
+    await page.locator('.project-star').waitFor();
     const essential = page.getByRole('button', { name: 'Essential only', exact: true });
     if (await essential.isVisible()) await essential.click();
     await settle(page);
 
-    stage = 'closed evidence';
-    const evidence = page.locator('.project-evidence');
-    const details = page.locator('.project-evidence-details');
-    const summary = details.locator('summary');
-    assert.equal(await details.getAttribute('open'), null, 'Evidence must start closed');
-    assert.equal(await page.locator('.project-evidence-content').isVisible(), false, 'Supporting evidence must not consume space until opened');
-    await summary.scrollIntoViewIfNeeded();
-    assert.match(await evidence.locator('.project-evidence-note').innerText(), /not a full handwriting benchmark/);
-    const summaryBox = await summary.boundingBox();
-    assert(summaryBox.height >= 44, 'Evidence disclosure must provide a 44px target');
-    await page.screenshot({ path: path.join(artifactDir, `project-evidence-${name}-closed.png`) });
-
-    stage = 'keyboard evidence disclosure';
-    await summary.focus();
-    await summary.press('Enter');
-    await page.locator('.project-evidence-content').waitFor({ state: 'visible' });
-    assert.equal(await details.getAttribute('open'), '');
-    assert.match(await evidence.innerText(), /98\.952%/);
-    assert.match(await evidence.innerText(), /75\.56%/);
-    assert.match(await evidence.innerText(), /small and its size is not documented/);
-    const typefaces = await page.evaluate(() => ({
-      context: getComputedStyle(document.querySelector('.project-evidence-context dd')).fontFamily,
-      metricContext: getComputedStyle(document.querySelector('.project-evidence-metrics dd > span')).fontFamily
-    }));
-    assert.equal(typefaces.metricContext, typefaces.context, 'Metric explanations should use the normal reading typeface');
-    await summary.evaluate(node => node.scrollIntoView({ block: 'start' }));
-    await settle(page);
-    await page.screenshot({ path: path.join(artifactDir, `project-evidence-${name}-open.png`) });
-    const overflow = await page.evaluate(() => ({
-      document: document.documentElement.scrollWidth - innerWidth,
-      content: document.querySelector('.project-evidence').scrollWidth - document.querySelector('.project-evidence').clientWidth
-    }));
-    assert(overflow.document <= 1 && overflow.content <= 1, `${name} evidence must wrap without horizontal overflow`);
-    if (name === 'mobile') {
-      await page.locator('.project-evidence-source').scrollIntoViewIfNeeded();
-      await page.screenshot({ path: path.join(artifactDir, `project-evidence-${name}-limitations.png`) });
-    }
-    await summary.focus();
-    await summary.press('Space');
-    assert.equal(await details.getAttribute('open'), null, 'Space must close the native disclosure');
+    stage = 'disabled evidence';
+    await checkEvidenceAbsent(page);
+    await page.locator('.project-demo-header').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: path.join(artifactDir, `project-content-${name}.png`) });
 
     stage = 'project contact prefill';
     const question = page.locator('.project-question-link');
@@ -109,6 +91,16 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     await page.waitForURL(`${base}/portfolio/shapeClassifier`);
     await settle(page);
     assert.equal(await page.locator('h1:visible').innerText(), 'Shape Classifier Demo');
+    await checkEvidenceAbsent(page);
+
+    for (const audience of ['analytics', 'data-science', 'tourism']) {
+      stage = `${audience} project content`;
+      await page.goto(`${base}/portfolio/handwritingRating?audience=${audience}`);
+      await page.locator('.project-star').waitFor();
+      await settle(page);
+      assert.equal(await page.locator('body').getAttribute('data-audience'), audience);
+      await checkEvidenceAbsent(page);
+    }
 
     if (name === 'desktop') {
       stage = 'audience-scoped next links';
@@ -122,10 +114,11 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
       await settle(page);
       assert.equal(await page.locator('body').getAttribute('data-audience'), 'data-science');
       assert.equal(await page.locator('h1:visible').innerText(), 'Shape Classifier Demo');
+      await checkEvidenceAbsent(page);
     }
     assert.equal(submissions, 0, 'No contact request may be sent during verification');
     assert.deepEqual(errors, [], 'Project content interactions must not produce page errors');
-    console.log(`Project content passed: ${name}, native evidence disclosure, contact prefill/draft preservation, related navigation${name === 'desktop' ? ', audience scope' : ''}.`);
+    console.log(`Project content passed: ${name}, evidence absent across all audiences, contact prefill/draft preservation, related navigation${name === 'desktop' ? ', audience scope' : ''}.`);
   } catch (error) {
     const screenshot = path.join(artifactDir, `project-content-${name}-failure.png`);
     await page.screenshot({ path: screenshot }).catch(() => {});
