@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="317.5mm" height="224.896mm" version="1.1">
-<title>TEMP_01jr79u1ejd1141ar9aog1999xw9</title>
+<title>TEMP_0ijowpj1qq4iom10lwxr60fst7cj</title>
 <desc>Rendered by Tableau</desc>
 <defs>
 <clipPath id="clipPath1">
@@ -5423,11 +5423,11 @@
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Arial" font-size="16" font-weight="400" font-style="normal">
-<rect x="520" y="148" width="130" height="24"/>
+<rect x="680" y="148" width="130" height="24"/>
 </g>
 
 <g fill="none" stroke="#1b1b1b" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Arial" font-size="16" font-weight="400" font-style="normal">
-<text fill="#1b1b1b" fill-opacity="1" stroke="none" xml:space="preserve" x="546.328" y="166" font-family="Arial" font-size="16" font-weight="400" font-style="normal">About data</text>
+<text fill="#1b1b1b" fill-opacity="1" stroke="none" xml:space="preserve" x="706.328" y="166" font-family="Arial" font-size="16" font-weight="400" font-style="normal">About data</text>
 </g>
 
 <g fill="none" stroke="#005fed" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Arial" font-size="15" font-weight="700" font-style="normal">
@@ -5436,6 +5436,10 @@
 
 <g fill="none" stroke="#333333" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Arial" font-size="16" font-weight="400" font-style="normal">
 <text fill="#333333" fill-opacity="1" stroke="none" xml:space="preserve" x="421.672" y="166" font-family="Arial" font-size="16" font-weight="400" font-style="normal">Weekday</text>
+</g>
+
+<g fill="none" stroke="#333333" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Arial" font-size="16" font-weight="400" font-style="normal">
+<text fill="#333333" fill-opacity="1" stroke="none" xml:space="preserve" x="546.469" y="166" font-family="Arial" font-size="16" font-weight="400" font-style="normal">Tip estimate</text>
 </g>
 </g>
 </svg>

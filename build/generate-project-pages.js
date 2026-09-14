@@ -688,43 +688,17 @@ function renderProjectPage(project, { relatedProject } = {}) {
       </dl>
     </section>`;
 
-  const evaluation = project.evaluation && typeof project.evaluation === 'object' ? project.evaluation : null;
-  const evaluationLimits = normalizeTextArray(evaluation?.limitations);
-  const evaluationMetrics = Array.isArray(evaluation?.metrics)
-    ? evaluation.metrics.filter((metric) => metric && normalizeWhitespace(metric.label) && normalizeWhitespace(metric.value))
-    : [];
-  const evaluationContext = evaluation ? [
-    ['Data', evaluation.dataset],
-    ['Evaluation split', evaluation.split],
-    ['Baseline', evaluation.baseline],
-    ['What I took from it', evaluation.decision]
-  ].filter(([, value]) => typeof value === 'string' && value.trim()) : [];
-  const evidenceUrl = String(evaluation?.evidence?.url || '').trim();
-  const hasSafeEvidenceUrl = /^(?:https?:\/\/|\/(?!\/))/i.test(evidenceUrl);
-  const evidenceNote = normalizeWhitespace(project.notes || evaluationLimits[0]);
-  const evidence = evaluation ? `<section class="project-evidence" aria-label="Project evidence and limitations">
-      ${evidenceNote ? `<p class="project-evidence-note">${escapeHtml(evidenceNote)}</p>` : ''}
-      <details class="project-evidence-details">
-        <summary>Evidence &amp; limitations</summary>
-        <div class="project-evidence-content">
-          ${evaluationMetrics.length ? `<dl class="project-evidence-metrics">
-            ${evaluationMetrics.map((metric) => `<div><dt>${escapeHtml(normalizeWhitespace(metric.label))}</dt><dd><strong>${escapeHtml(normalizeWhitespace(metric.value))}</strong>${metric.context ? `<span>${escapeHtml(normalizeWhitespace(metric.context))}</span>` : ''}</dd></div>`).join('\n            ')}
-          </dl>` : ''}
-          ${evaluationContext.length ? `<dl class="project-evidence-context">
-            ${evaluationContext.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(normalizeWhitespace(value))}</dd></div>`).join('\n            ')}
-          </dl>` : ''}
-          ${evaluationLimits.length ? `<div class="project-evidence-limits"><h3>Limitations</h3><ul>${evaluationLimits.map((limitation) => `<li>${escapeHtml(limitation)}</li>`).join('')}</ul></div>` : ''}
-          ${hasSafeEvidenceUrl ? `<a class="project-evidence-source" href="${escapeHtml(evidenceUrl)}"${/^https?:\/\//i.test(evidenceUrl) ? ' target="_blank" rel="noopener noreferrer"' : ''}>${escapeHtml(normalizeWhitespace(evaluation.evidence.label || 'Supporting evidence'))}<span aria-hidden="true"> ↗</span></a>` : ''}
-        </div>
-      </details>
-    </section>` : '';
-
   const nextProject = relatedProject && relatedProject.id !== id && relatedProject.published !== false ? relatedProject : null;
   const contactMessage = `Hi Daniel, I have a question about ${title}:\n\n`;
   const nextSteps = `<nav class="project-next-steps" aria-label="Continue exploring">
       ${nextProject ? `<a class="project-next-link" href="/portfolio/${escapeHtml(encodeURIComponent(nextProject.id))}" data-content-open="true" data-content-id="${escapeHtml(nextProject.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>${escapeHtml(nextProject.title)} <span aria-hidden="true">→</span></strong></a>` : ''}
-      <a class="project-question-link" href="/contact" data-contact-modal-link="true" data-contact-message="${escapeHtml(contactMessage)}">Ask me about this project <span aria-hidden="true">→</span></a>
     </nav>`;
+  const projectQuestion = `<div class="project-question-dock">
+      <a class="project-question-link" href="/contact" data-contact-modal-link="true" data-contact-message="${escapeHtml(contactMessage)}" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"></path></svg>
+        <span class="project-question-copy"><span class="project-question-label">Ask me about</span><span class="project-question-title">${escapeHtml(title)}</span></span>
+      </a>
+    </div>`;
 
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
@@ -1028,7 +1002,6 @@ ${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbedd
 
   const projectBodySections = [
     starSummary,
-    evidence,
     demoTabs || projectPreview,
     safeResources,
     nextSteps
@@ -1092,6 +1065,7 @@ ${tableauPreconnect}
         ${projectBodySections}
       </div>
     </section>
+    ${projectQuestion}
   </main>
 
   <footer>

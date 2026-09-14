@@ -1275,10 +1275,10 @@ window.PROJECTS = [
       "base": "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
     },
     "demoInstructions": {
-      "lead": "Explore delivery history and estimate a tip.",
+      "lead": "Explore delivery history and recorded tip patterns.",
       "bullets": [
-        "Use Overview, Timing, Trends, Weekday, Tip estimate, and About.",
-        "Date, city, and housing selections stay with you across tabs. Tip estimate uses order cost only.",
+        "Use Overview, Timing, Trends, Weekday, and About.",
+        "Date, city, and housing selections stay with you across tabs.",
         "Find definitions in About. Use Reset filters or Tableau Revert to start over."
       ]
     },
@@ -1300,7 +1300,7 @@ window.PROJECTS = [
     "order": 14,
     "notes": "Historical personal delivery records, not current demand. The first and last months are partial. Delivery time is elapsed order-to-delivery time, not driver work hours; 34 records have zero elapsed minutes. Small city samples limit comparisons.",
     "mobilePreview": {
-      "image": "img/projects/pizzaDashboard-preview.webp?v=a104c065d30b",
+      "image": "img/projects/pizzaDashboard-preview.webp?v=c6b55936e84b",
       "width": 1280,
       "height": 906,
       "alt": "Pizza Delivery Dashboard showing city comparisons, tip distributions, and delivery history."

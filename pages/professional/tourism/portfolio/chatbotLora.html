@@ -182,23 +182,6 @@
         </div>
       </dl>
     </section>
-        <section class="project-evidence" aria-label="Project evidence and limitations">
-      <p class="project-evidence-note">Uses public Visit Grand Junction pages; retrieval provides citation links, and cold-start checks are part of the deployed demo.</p>
-      <details class="project-evidence-details">
-        <summary>Evidence &amp; limitations</summary>
-        <div class="project-evidence-content">
-
-          <dl class="project-evidence-context">
-            <div><dt>Data</dt><dd>Public Visit Grand Junction pages plus a generated tourism question-and-answer set.</dd></div>
-            <div><dt>Evaluation split</dt><dd>No controlled evaluation split is documented in the published project.</dd></div>
-            <div><dt>Baseline</dt><dd>No controlled Bedrock-versus-LoRA quality or latency baseline has been published.</dd></div>
-            <div><dt>What I took from it</dt><dd>Bedrock remains the default live path; LoRA/SageMaker remains available for architecture and cold-start comparison.</dd></div>
-          </dl>
-          <div class="project-evidence-limits"><h3>Limitations</h3><ul><li>Retrieval hit rate, citation correctness, answer quality, and warm/cold p50 and p95 latency have not been published.</li><li>The current demo demonstrates the two architectures; it does not establish that one backend produces better answers.</li></ul></div>
-          <a class="project-evidence-source" href="https://github.com/danielshort3/Chatbot-LoRA-RAG" target="_blank" rel="noopener noreferrer">Project repository<span aria-hidden="true"> ↗</span></a>
-        </div>
-      </details>
-    </section>
         <section class="project-demo-shell" data-demo-fit="viewport" aria-label="Interactive demo">
       <div class="project-demo-header">
         <div class="project-demo-heading"><h2 class="section-title project-demo-title">Travel Assistant</h2><p class="project-demo-description">Explore Grand Junction with a source-grounded chat. Inputs and responses are saved on AWS.</p></div>
@@ -242,12 +225,17 @@
     </section>
         <nav class="project-next-steps" aria-label="Continue exploring">
       <a class="project-next-link" href="/portfolio/smartSentence?audience=tourism" data-content-open="true" data-content-id="smartSentence" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>Smart Sentence Retriever <span aria-hidden="true">→</span></strong></a>
-      <a class="project-question-link" href="/contact?audience=tourism" data-contact-modal-link="true" data-contact-message="Hi Daniel, I have a question about Chatbot (LoRA + RAG):
-
-">Ask me about this project <span aria-hidden="true">→</span></a>
     </nav>
       </div>
     </section>
+    <div class="project-question-dock">
+      <a class="project-question-link" href="/contact?audience=tourism" data-contact-modal-link="true" data-contact-message="Hi Daniel, I have a question about Chatbot (LoRA + RAG):
+
+" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"></path></svg>
+        <span class="project-question-copy"><span class="project-question-label">Ask me about</span><span class="project-question-title">Chatbot (LoRA + RAG)</span></span>
+      </a>
+    </div>
   </main>
         <!-- personal-accordion-content:end -->
       </div>
