@@ -1,0 +1,12 @@
+{
+  "capturedAtUtc": "2026-09-13T17:27:54+00:00",
+  "sourceUrl": "https://public.tableau.com/workbooks/Pizza_Delivery.twb?showVizHome=no",
+  "livePackageSha256": "3f4ad3d6b9378cb1cdb716f96c5740dbc9ac57655316332ea59b28f389f8c44b",
+  "committedPackageSha256": "f679d226b2096fb3b09c7c0c9c1e8018cade063c0a96f68a316ddb0304e19919",
+  "uncompressedMembersMatch": true,
+  "members": {
+    "Data/Extracts/federated_1enxy2v12gw5w218gu8fm1.hyper": "614f454d2f64b3de28ee7fae5d18eed3e712c9c474cf21a64e9323b72fbc5f52",
+    "Pizza_Delivery.twb": "a7e2e652e1285b0418b1d503a653e0d6e3faf5eedfa2e35de2225468c772738a"
+  },
+  "purpose": "Reversible backup before temporarily removing Tip estimate navigation from the published preview."
+}
