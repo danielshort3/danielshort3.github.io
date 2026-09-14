@@ -40,36 +40,26 @@ function runProjectContentClarityTests({ assert }) {
     assert((next.match(/class="project-next-link"/g) || []).length === 1 &&
       next.includes(`href="/portfolio/${relatedProject.id}"`) && next.includes(escape(relatedProject.title)),
     `${project.id} should provide exactly one correctly named curated next project`);
-    assert(next.includes('href="/contact" data-contact-modal-link="true"') &&
-      next.includes(`data-contact-message="Hi Daniel, I have a question about ${escape(project.title)}:`),
+    const question = html.match(/<div class="project-question-dock">([\s\S]*?)<\/div>/)[1];
+    assert(question.includes('href="/contact" data-contact-modal-link="true"') &&
+      question.includes(`data-contact-message="Hi Daniel, I have a question about ${escape(project.title)}:`),
     `${project.id} should retain a native contact fallback and provide the project name to the existing prefill flow`);
 
-    const evidence = html.match(/<section class="project-evidence"[^>]*>([\s\S]*?)<\/section>/)?.[1];
-    if (!project.evaluation) {
-      assert(!evidence, `${project.id} should not invent an evaluation section without authored evaluation data`);
-      continue;
+    assert(!html.includes('project-evidence') && !html.includes('Evidence &amp; limitations'),
+      `${project.id} should omit the disabled evidence section and disclosure from rendered markup`);
+    const generatedPaths = [
+      `pages/portfolio/${project.id}.html`,
+      ...['analytics', 'data-science', 'tourism'].map((audience) => `pages/professional/${audience}/portfolio/${project.id}.html`)
+    ];
+    for (const generatedPath of generatedPaths) {
+      const generated = fs.readFileSync(path.join(ROOT, generatedPath), 'utf8');
+      assert(!generated.includes('project-evidence') && !generated.includes('Evidence &amp; limitations'),
+        `${generatedPath} should omit the evidence section in every audience variant`);
     }
-    assert(evidence && /<details class="project-evidence-details">/.test(evidence),
-      `${project.id} should keep supporting evaluation detail closed initially with native disclosure semantics`);
-    assert(evidence.includes(escape(project.notes || project.evaluation.limitations[0])),
-      `${project.id} should expose relevant context even before the disclosure is opened`);
-    for (const field of ['dataset', 'split', 'baseline', 'decision']) {
-      assert(evidence.includes(escape(project.evaluation[field])), `${project.id} should retain authored evaluation ${field}`);
-    }
-    for (const metric of project.evaluation.metrics) {
-      assert(evidence.includes(escape(metric.label)) && evidence.includes(escape(metric.value)) && evidence.includes(escape(metric.context)),
-        `${project.id} should retain every metric and its interpretation, including weak results`);
-    }
-    for (const limitation of project.evaluation.limitations) {
-      assert(evidence.includes(escape(limitation)), `${project.id} should retain every authored limitation`);
-    }
-    assert(evidence.includes(`href="${escape(project.evaluation.evidence.url)}"`), `${project.id} should link to its actual evidence`);
   }
 
   const fixture = { ...byId.get('handwritingRating'), metaDescription: undefined, subtitle: 'One clear sentence.', problem: 'This should remain in the case study.' };
   assert(descriptions(renderProjectPage(fixture))[0] === 'One clear sentence.', 'Metadata fallback should choose one clear source instead of joining complete sentences with a colon');
-  const unsafe = { ...fixture, evaluation: { ...fixture.evaluation, evidence: { label: 'Unsafe', url: 'javascript:alert(1)' } } };
-  assert(!renderProjectPage(unsafe).includes('href="javascript:'), 'Evidence links should reject executable URLs');
   const literal = { ...fixture, metaDescription: 'A <literal> & "quoted" description.' };
   assert(descriptions(renderProjectPage(literal))[0] === escape(literal.metaDescription), 'Authored metadata should be escaped without changing its meaning');
   const homeProjects = personal.page.sections.find((section) => section.type === 'home-accordion').props.categories.find((category) => category.id === 'projects');

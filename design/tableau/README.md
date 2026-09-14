@@ -1,5 +1,13 @@
 # Tableau dashboard redesign
 
+## Temporary Tip estimate pause — published September 13, 2026
+
+Tip estimate is now removed from the five other dashboards' desktop and Phone navigation, with About moved into the freed position. Native desktop and 390px Phone cycles passed across Overview, Timing, Trends, Weekday, and About; no estimator navigation button or order-cost input is reachable through those views. Frisco and Hotel filter selections respectively persisted through the desktop and Phone cycles. The actual local website embed also rendered correctly at 390px, with working Timing navigation and Reset filters, a 382px Phone iframe, no horizontal overflow, and no reported browser errors. Website instructions describe delivery history only.
+
+[The pre-pause archive](published/pre-tip-pause-20260913-1727/) preserves the committed workbook, manifest and SVG, plus a fresh official workbook download. Its verification record confirms byte-identical TWB and Hyper contents before editing. A fresh public snapshot at **2026-09-13 17:36:08 UTC** passed [all 94 structural checks](published/pre-tip-pause-20260913-1727/post-pause-verification.json): all 30 worksheets, 15 calculated-field/parameter definitions, the complete estimator dashboard, historical filter actions, and original Hyper data remain unchanged. The temporary verifier is `tmp/pizza-tip-pause-verify.py`.
+
+This pause removes preview entry points; it does not delete the source model. The estimator's separate direct Tableau URL remains accessible for restoration, and About retains its historical, noninteractive methodology text. The published-behavior and earlier verification records below describe the preceding release wherever they mention six-page estimator navigation.
+
 Both dashboards are published in Tableau Public with the requested feedback revision complete. Native desktop/Phone interactions, final workbook structure, official exports, refreshed previews, and local website checks passed. **The website changes are local; no website deployment is claimed.** This final record supersedes the earlier checkpoint and concept-fidelity acceptance notes.
 
 ## Published behavior
