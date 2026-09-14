@@ -40,8 +40,17 @@ async function assertScoringImage(frame, request, label) {
 }
 
 async function assertWorkspaceLayout(page, frame, label) {
-  const pad = await frame.locator('#pad').boundingBox();
-  const rate = await frame.locator('#rate').boundingBox();
+  // Measure together so iframe resizing or scroll anchoring cannot move the
+  // viewport between two independent page-coordinate bounding-box reads.
+  const { pad, rate } = await frame.evaluate(() => {
+    const bounds = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element || !element.getClientRects().length) return null;
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return { x, y, width, height };
+    };
+    return { pad: bounds('#pad'), rate: bounds('#rate') };
+  });
   assert(pad && rate, `${label} shows the drawing pad and Rate digit button.`);
   assert(Math.abs((pad.x + pad.width / 2) - (rate.x + rate.width / 2)) <= 1, `${label} centers Rate digit below the drawing pad.`);
   assert(rate.y >= pad.y + pad.height, `${label} places Rate digit below the drawing pad.`);
