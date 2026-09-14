@@ -198,17 +198,41 @@ async function wheelToBottom(page, label, owner = 'document') {
   await page.mouse.move(pointerX, pointerY);
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const current = await scrollState(page);
-    if (current[rangeKey] - current[topKey] <= 3) break;
-    await page.mouse.wheel(0, Math.max(800, before.height * 1.5));
-    await page.waitForFunction(({ previous, frameOwned }) => {
-      const node = frameOwned ? SiteFrame.viewport() : document.scrollingElement;
-      const top = frameOwned ? node.scrollTop : scrollY;
-      const range = node.scrollHeight - (frameOwned ? node.clientHeight : innerHeight);
-      return top > previous + 2 || range - top <= 3;
-    }, { previous: current[topKey], frameOwned: frameOwnsScroll }, { timeout: 2500 });
+    if (current[rangeKey] - current[topKey] > 3) {
+      await page.mouse.wheel(0, Math.max(800, before.height * 1.5));
+      await page.waitForFunction(({ previous, frameOwned }) => {
+        const node = frameOwned ? SiteFrame.viewport() : document.scrollingElement;
+        const top = frameOwned ? node.scrollTop : scrollY;
+        const range = node.scrollHeight - (frameOwned ? node.clientHeight : innerHeight);
+        return top > previous + 2 || range - top <= 3;
+      }, { previous: current[topKey], frameOwned: frameOwnsScroll }, { timeout: 2500 });
+    }
+    // Native wheel motion and newly revealed content can outlive the first
+    // progress event. Confirm stable geometry before accepting the bottom;
+    // another iteration supplies real wheel input if the scroll range grows.
+    const atStableBottom = await page.evaluate(frameOwned => new Promise(resolve => {
+      const started = performance.now();
+      let stableSince = started;
+      let previousTop;
+      let previousRange;
+      const observe = () => {
+        const node = frameOwned ? SiteFrame.viewport() : document.scrollingElement;
+        const top = frameOwned ? node.scrollTop : scrollY;
+        const range = node.scrollHeight - (frameOwned ? node.clientHeight : innerHeight);
+        const now = performance.now();
+        if (previousTop !== undefined && (Math.abs(top - previousTop) > 1 || range !== previousRange)) stableSince = now;
+        previousTop = top;
+        previousRange = range;
+        if (now - stableSince >= 120) return resolve(range - top <= 3);
+        if (now - started >= 350) return resolve(false);
+        requestAnimationFrame(observe);
+      };
+      observe();
+    }), frameOwnsScroll);
     const otherTopKey = frameOwnsScroll ? 'documentTop' : 'frameTop';
     assert(Math.abs((await scrollState(page))[otherTopKey] - before[otherTopKey]) <= 1,
       `${label} must scroll its ${owner} owner without moving the other scroll container.`);
+    if (atStableBottom) break;
   }
   const after = await scrollState(page);
   assert(after[topKey] > before[topKey] + 20, `${label} responds to native wheel input.`);
