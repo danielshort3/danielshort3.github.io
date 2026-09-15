@@ -258,6 +258,13 @@
   ],
   "headers": [
     {
+      "source": "/app-content/v1/catalog.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    },
+    {
       "source": "/",
       "has": [
         { "type": "query", "key": "mode" }
