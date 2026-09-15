@@ -139,6 +139,11 @@ function main() {
     const imagesStep = runNodeScript(path.join('build', 'optimize-site-images.js'), { verbose });
     logStep('images', imagesStep.durationMs, 'responsive homepage heroes + Project Starfall start screen');
 
+    // Native Android reads this public, versioned data contract. Generate after
+    // image optimization so changed previews also change the content revision.
+    const mobileContentStep = runNodeScript(path.join('build', 'generate-mobile-content.js'), { verbose });
+    logStep('mobile-content', mobileContentStep.durationMs, 'dist/app-content/v1/catalog.json');
+
     // 3) Branded homepage library previews (authored WebP cards)
     const homeVisualsStep = runNodeScript(path.join('build', 'validate-home-library-visuals.js'), { verbose });
     logStep('home-previews', homeVisualsStep.durationMs,
