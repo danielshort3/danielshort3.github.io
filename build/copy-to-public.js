@@ -558,6 +558,8 @@ function copyStatic(){
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
   copyReferencedDocuments();
   copyDistArtifacts(cssManifest, jsManifest);
+  // Publish only the explicit native catalog, never other build or CMS files.
+  copyFile(path.join(root, 'dist', 'app-content', 'v1', 'catalog.json'), path.join(outDir, 'app-content', 'v1', 'catalog.json'));
   copyDir(path.join(root, 'dist', 'ai-pages'), path.join(outDir, 'dist', 'ai-pages'));
   pruneRetiredPublicArtifacts();
 
