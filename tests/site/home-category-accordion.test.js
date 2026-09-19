@@ -600,7 +600,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     contactMapFrame.includes('data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed"') &&
     !/\ssrc\s*=|\ssrcdoc\s*=/.test(contactMapFrame) &&
     !contactPanel.includes('data-google-maps-iframe') &&
-    contactPanel.includes('href="https://www.google.com/maps/search/?api=1&amp;query=Delta%2C%20CO"'),
+    !contactPanel.includes('href="https://www.google.com/maps/search/?api=1&amp;query=Delta%2C%20CO"'),
   'homepage Contact should defer its named city map until tab selection, without an iframe URL or API-key rewriting that can load it early');
   assert(contactPanel.indexOf('class="home-accordion__cards"') < contactPanel.indexOf('id="home-contact-location"'),
     'the homepage map should follow the three contact choices');

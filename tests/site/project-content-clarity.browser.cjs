@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { createLocalServer } = require('../../build/dev');
+const { loadProjects, isPublishedProject } = require('../../build/generate-project-pages');
 
 async function settle(page) {
   await page.waitForFunction(() => {
@@ -49,9 +50,13 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     await route.abort();
   });
   // These checks exercise project content, not paid inference or embedded demos.
-  await context.route(/\/(?:handwriting-rating-demo|shape-demo)(?:\.html)?(?:\?.*)?$/, route => route.fulfill({
-    status: 200, contentType: 'text/html', body: '<!doctype html><title>Local demo fixture</title><p>Interactive demo fixture</p>'
-  }));
+  await context.route('**/*', route => {
+    const request = route.request();
+    if (request.resourceType() === 'document' && request.frame().parentFrame()) {
+      return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>Local demo fixture</title><p>Interactive demo fixture</p>' });
+    }
+    return route.fallback();
+  });
   try {
     await page.goto(`${base}/portfolio/handwritingRating`);
     await page.locator('.project-star').waitFor();
@@ -83,14 +88,14 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     await modal.getByRole('button', { name: 'Close dialog', exact: true }).click();
     await page.locator('#contact-modal.active').waitFor({ state: 'hidden' });
 
-    stage = 'curated next project';
+    stage = 'next project in collection';
     const next = page.locator('.project-next-link');
     assert.equal(await next.count(), 1);
-    assert.equal(await next.getAttribute('href'), '/portfolio/shapeClassifier');
+    assert.equal(await next.getAttribute('href'), '/portfolio/digitGenerator');
     await next.click();
-    await page.waitForURL(`${base}/portfolio/shapeClassifier`);
+    await page.waitForURL(`${base}/portfolio/digitGenerator`);
     await settle(page);
-    assert.equal(await page.locator('h1:visible').innerText(), 'Shape Classifier Demo');
+    assert.equal(await page.locator('h1:visible').innerText(), 'Synthetic Digit Generator');
     await checkEvidenceAbsent(page);
 
     for (const audience of ['analytics', 'data-science', 'tourism']) {
@@ -107,14 +112,31 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
       await page.goto(`${base}/portfolio/handwritingRating?audience=data-science`);
       await page.locator('.project-next-link').waitFor();
       await settle(page);
-      assert.equal(await page.locator('.project-next-link').getAttribute('href'), '/portfolio/shapeClassifier?audience=data-science');
+      assert.equal(await page.locator('.project-next-link').getAttribute('href'), '/portfolio/digitGenerator?audience=data-science');
       assert.equal(await page.locator('.project-question-link').getAttribute('href'), '/contact?audience=data-science');
       await page.locator('.project-next-link').click();
-      await page.waitForURL(`${base}/portfolio/shapeClassifier?audience=data-science`);
+      await page.waitForURL(`${base}/portfolio/digitGenerator?audience=data-science`);
       await settle(page);
       assert.equal(await page.locator('body').getAttribute('data-audience'), 'data-science');
-      assert.equal(await page.locator('h1:visible').innerText(), 'Shape Classifier Demo');
+      assert.equal(await page.locator('h1:visible').innerText(), 'Synthetic Digit Generator');
       await checkEvidenceAbsent(page);
+
+      stage = 'complete published project cycle';
+      const projects = loadProjects().filter(isPublishedProject);
+      await page.goto(`${base}/portfolio/${projects[0].id}`);
+      await settle(page);
+      const visited = new Set();
+      for (const [index, project] of projects.entries()) {
+        assert.equal(new URL(page.url()).pathname, `/portfolio/${project.id}`);
+        assert.equal(await page.locator('h1:visible').innerText(), project.title);
+        visited.add(project.id);
+        const destination = projects[(index + 1) % projects.length];
+        await page.locator('.project-next-link').click();
+        await page.waitForURL(`${base}/portfolio/${destination.id}`);
+        await settle(page);
+      }
+      assert.equal(visited.size, projects.length, 'Explore next visits every project before repeating');
+      assert.equal(new URL(page.url()).pathname, `/portfolio/${projects[0].id}`, 'The last project wraps back to the first');
     }
     assert.equal(submissions, 0, 'No contact request may be sent during verification');
     assert.deepEqual(errors, [], 'Project content interactions must not produce page errors');
