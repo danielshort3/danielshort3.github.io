@@ -81,7 +81,7 @@
         "title": "Delta, Colorado",
         "body": "My home base in western Colorado.",
         "address": "Delta, CO",
-        "buttonLabel": "Open in Google Maps",
+        "showLink": false,
         "embed": true,
         "useEmbedApi": false,
         "persist": true,

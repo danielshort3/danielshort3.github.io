@@ -189,6 +189,7 @@ async function runCase({ browser, base, artifactDir, fixtures, width, project })
     assert.equal(requests[0].rows, 6, `${label} requests six rows by default.`);
     assert.equal(requests[0].cols, 6, `${label} requests six columns by default.`);
     assert.equal(requests[0].cluster_digit, 4, `${label} preserves the current default digit.`);
+    assert.equal(await frame.locator('#refresh-seed-btn').innerText(), 'Regenerate');
     const advanced = frame.locator('.generation-settings');
     assert.equal(await advanced.getAttribute('open'), null, `${label} keeps advanced settings closed initially.`);
     assert.equal(await advanced.locator('summary').innerText(), 'Advanced settings', `${label} uses the concise disclosure label.`);

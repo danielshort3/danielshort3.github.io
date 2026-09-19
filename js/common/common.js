@@ -2376,16 +2376,23 @@
 
       const dashboardDefaultSrc = ifr.getAttribute('data-dashboard-default-src');
       if (dashboardDefaultSrc) {
-        // Use the same container breakpoint as the CSS. Native Phone canvases
-        // need a fresh render when their width changes; height-only changes do not.
+        // The viewport selects the device layout; a laptop's narrower project
+        // panel must not force Tableau's Phone layout. Scale the authored desktop
+        // canvas to fit without changing its native iframe dimensions or state.
         const device = embedStyle.getPropertyValue('--project-tableau-device').trim() === 'phone' ? 'phone' : 'desktop';
-        const width = Math.round(ifr.getBoundingClientRect().width);
+        if (device === 'desktop') {
+          const available = embed.clientWidth - (parseFloat(embedStyle.paddingLeft) || 0) - (parseFloat(embedStyle.paddingRight) || 0);
+          embed.style.setProperty('--project-tableau-scale', String(Math.min(1, available / 1200)));
+        } else {
+          embed.style.removeProperty('--project-tableau-scale');
+        }
+        const width = ifr.clientWidth;
         clearTimeout(ifr._projectDashboardResizeTimer);
         ifr._projectDashboardResizeTimer = 0;
         const loadDashboard = (source) => {
           const url = new URL(source, document.baseURI);
           url.searchParams.set(':device', device);
-          ifr._projectDashboardWidth = Math.round(ifr.getBoundingClientRect().width);
+          ifr._projectDashboardWidth = ifr.clientWidth;
           ifr.setAttribute('data-dashboard-device', device);
           ifr.setAttribute('src', url.href);
           ifr.removeAttribute('data-src');
@@ -2551,9 +2558,6 @@
       if (root?.querySelector('[data-project-image-comparison]') && !window.ProjectImageComparisons) {
         await loadScriptOnce('js/portfolio/project-image-comparison.js');
       }
-      if (root?.querySelector('[data-dashboard-reset]') && !window.TableauControls) {
-        await loadScriptOnce('js/portfolio/tableau-controls.js');
-      }
     }
   };
   window.SiteContent = Object.freeze({ mount: mountSharedContent, preload: preloadSharedContent });
@@ -2565,10 +2569,6 @@
         if (context.root.querySelector('[data-project-image-comparison]')) {
           if (!window.ProjectImageComparisons) await loadScriptOnce('js/portfolio/project-image-comparison.js');
           if (!context.signal.aborted) context.cleanup(window.ProjectImageComparisons.mount(context.root));
-        }
-        if (context.root.querySelector('[data-dashboard-reset]')) {
-          if (!window.TableauControls) await loadScriptOnce('js/portfolio/tableau-controls.js');
-          if (!context.signal.aborted) context.cleanup(window.TableauControls.mount(context.root));
         }
       }
     });

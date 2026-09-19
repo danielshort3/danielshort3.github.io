@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="Theme.DanielShort.Base" parent="android:style/Theme.Material.Light.NoActionBar">
+    <item name="android:fontFamily">sans</item>
+    <item name="android:colorAccent">#005FED</item>
+    <item name="android:windowLightStatusBar">true</item>
+    <item name="android:statusBarColor">@android:color/transparent</item>
+    <item name="android:navigationBarColor">#091F3B</item>
+    <item name="android:windowBackground">@android:color/white</item>
+    <item name="android:windowActionModeOverlay">true</item>
+  </style>
+  <style name="Theme.DanielShort" parent="Theme.DanielShort.Base" />
+</resources>

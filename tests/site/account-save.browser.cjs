@@ -235,7 +235,7 @@ async function runAccountSwitchCase({ browser, base, artifactDir }) {
     if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
     await page.locator('#textcompare-original').fill('ALPHA_PRIVATE original draft');
     await page.locator('#textcompare-revised').fill('ALPHA_PRIVATE revised draft');
-    await page.getByRole('button', { name: 'Compare drafts', exact: true }).click();
+    await page.getByRole('button', { name: 'Compare', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('#textcompare-output')?.textContent.includes('ALPHA_PRIVATE'));
     await page.waitForFunction(() => JSON.parse(sessionStorage.getItem('account-switch-trace') || '[]').some(entry =>
       entry.type === 'save' && entry.request.snapshot.output?.html?.includes('ALPHA_PRIVATE')));

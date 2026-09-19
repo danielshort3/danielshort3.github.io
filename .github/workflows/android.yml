@@ -1,0 +1,101 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/android/**'
+      - 'content/**'
+      - 'img/**'
+      - 'build/generate-mobile-content.js'
+      - 'build/lib/content-loader.js'
+      - 'api/_lib/cms-content-model.js'
+      - 'build/build-site.js'
+      - 'build/copy-to-public.js'
+      - 'tests/site/mobile-content.test.js'
+      - 'vercel.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android.yml'
+  pull_request:
+    paths:
+      - 'mobile/android/**'
+      - 'content/**'
+      - 'img/**'
+      - 'build/generate-mobile-content.js'
+      - 'build/lib/content-loader.js'
+      - 'api/_lib/cms-content-model.js'
+      - 'build/build-site.js'
+      - 'build/copy-to-public.js'
+      - 'tests/site/mobile-content.test.js'
+      - 'vercel.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        with:
+          accept-android-sdk-licenses: false
+          packages: 'platform-tools platforms;android-36.1 build-tools;36.1.0'
+
+      - name: Setup Gradle cache and validate wrapper
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          dependency-graph: disabled
+
+      - name: Test public content feed
+        run: node tests/site/mobile-content.test.js
+
+      - name: Test, lint, and build review APK
+        working-directory: mobile/android
+        run: bash ./gradlew --no-daemon --console=plain testDebugUnitTest lintDebug assembleDebug
+
+      - name: Upload review APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-review-${{ github.sha }}
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reports-${{ github.sha }}
+          path: |
+            mobile/android/app/build/reports/tests/
+            mobile/android/app/build/reports/lint-results-debug.*
+          if-no-files-found: ignore
+          retention-days: 14

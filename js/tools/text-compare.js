@@ -8,16 +8,9 @@
   const outputEl = $('#textcompare-output');
   const summaryEl = $('#textcompare-summary');
   const clearBtn = $('#textcompare-clear');
-  const exampleBtn = $('#textcompare-example');
   const swapBtn = $('#textcompare-swap');
   const copyBtn = $('#textcompare-copy');
   const copyStatus = $('#textcompare-copy-status');
-  const originalImportBtn = $('#textcompare-original-import');
-  const revisedImportBtn = $('#textcompare-revised-import');
-  const originalFileInput = $('#textcompare-original-file');
-  const revisedFileInput = $('#textcompare-revised-file');
-  const originalStatusEl = $('#textcompare-original-status');
-  const revisedStatusEl = $('#textcompare-revised-status');
   const warningEl = $('#textcompare-warning');
   const insBgEl = $('#textcompare-ins-bg');
   const insTextEl = $('#textcompare-ins-text');
@@ -34,30 +27,9 @@
   const TOOL_ID = 'text-compare';
   const MAX_CHARS = 600_000;
   const MAX_TOKENS = 200_000;
-  const MAX_IMPORT_BYTES = 24 * 1024 * 1024;
   const COMPARE_WORKER_PATH = '/js/tools/text-compare-worker.js';
-  const PDF_WORKER_PATH = '/js/vendor/pdfjs/pdf.worker.min.js';
-  const PDFJS_SRC = '/js/vendor/pdfjs/pdf.min.js';
-  const FFLATE_SRC = '/js/vendor/fflate/fflate.min.js';
-  const ORIGINAL_EXAMPLE = [
-    'Product analytics should be easy to act on.',
-    '',
-    'The onboarding report now highlights new-user activation in the first 24 hours. In January, activation improved from 41% to 57% after we simplified the first-session checklist.',
-    '',
-    'The dashboard includes a weekly friction log with categorized root causes and owner assignments.',
-    '',
-    'Next quarter we will ship cohort-based retention alerts and a support handoff playbook.'
-  ].join('\n');
-  const REVISED_EXAMPLE = [
-    'Product analytics should be operationally actionable.',
-    '',
-    'The onboarding report highlights first-day activation and introduces a 7-day follow-through metric. During January, activation rose from 41% to 59% after we simplified the first-session checklist and removed two optional fields.',
-    '',
-    'Next quarter we will ship cohort retention alerts, ownership routing, and a support handoff playbook.',
-    '',
-    'The dashboard includes a weekly friction log with categorized root causes and owner assignments.'
-  ].join('\n');
-  const vendorScriptPromises = new Map();
+  const ORIGINAL_EXAMPLE = 'Product analytics should be easy to act on. The next report arrives on Monday.';
+  const REVISED_EXAMPLE = 'Product analytics should be easy to use. The next report arrives on Friday.';
   const compareRequests = new Map();
   let lastRuns = null;
   let lastRevisedText = '';
@@ -67,24 +39,13 @@
   let refreshTimer = 0;
   let comparisonStarted = false;
   const legendEl = $('.textcompare-legend');
-  const fields = {
-    original: {
-      textarea: originalEl,
-      importBtn: originalImportBtn,
-      fileInput: originalFileInput,
-      statusEl: originalStatusEl,
-      importRequestId: 0,
-      sourceKind: 'text'
-    },
-    revised: {
-      textarea: revisedEl,
-      importBtn: revisedImportBtn,
-      fileInput: revisedFileInput,
-      statusEl: revisedStatusEl,
-      importRequestId: 0,
-      sourceKind: 'text'
-    }
+  const hasUserText = () => originalEl.value.length > 0 || revisedEl.value.length > 0;
+  const updateExamplePreview = () => {
+    const showingExample = !hasUserText();
+    originalEl.placeholder = showingExample ? ORIGINAL_EXAMPLE : 'Paste the text before changes';
+    revisedEl.placeholder = showingExample ? REVISED_EXAMPLE : 'Paste the text after changes';
   };
+  updateExamplePreview();
 
   const markSessionDirty = () => {
     try {
@@ -426,342 +387,10 @@
     }
   };
 
-  const setFieldStatus = (fieldKey, message, tone) => {
-    const field = fields[fieldKey];
-    if (!field?.statusEl) return;
-    field.statusEl.textContent = String(message || '');
-    field.statusEl.dataset.tone = tone || '';
-  };
-
-  const setFieldBusy = (fieldKey, busy) => {
-    const field = fields[fieldKey];
-    if (!field) return;
-    if (field.importBtn) field.importBtn.disabled = Boolean(busy);
-    if (field.fileInput) field.fileInput.disabled = Boolean(busy);
-  };
-
-  const clearFieldStatuses = () => {
-    setFieldStatus('original', '', '');
-    setFieldStatus('revised', '', '');
-  };
-
-  const cancelFieldImport = (fieldKey) => {
-    const field = fields[fieldKey];
-    field.importRequestId += 1;
-    if (field.fileInput) field.fileInput.value = '';
-    setFieldBusy(fieldKey, false);
-    setFieldStatus(fieldKey, '', '');
-  };
-
   window.SiteRoutes?.addCleanup?.(() => {
-    Object.keys(fields).forEach(cancelFieldImport);
     latestCompareRequestId += 1;
     window.clearTimeout(refreshTimer);
   });
-
-  const normalizeInputText = (text) => String(text || '')
-    .replace(/\u0000/g, '')
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .replace(/\u00A0/g, ' ');
-
-  const normalizeImportedText = (text) => normalizeInputText(text)
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{4,}/g, '\n\n\n')
-    .trim();
-
-  const applyTextToField = (fieldKey, text, options) => {
-    const field = fields[fieldKey];
-    if (!field?.textarea) return;
-    field.sourceKind = String(options?.sourceKind || field.sourceKind || 'text');
-    field.textarea.value = String(text || '');
-    field.textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    field.textarea.dispatchEvent(new Event('change', { bubbles: true }));
-    markSessionDirty();
-    field.textarea.setSelectionRange?.(0, 0);
-    field.textarea.scrollTop = 0;
-    if (options?.focus !== false) field.textarea.focus({ preventScroll: true });
-  };
-
-  const decodeXmlEntities = (text) => String(text || '')
-    .replace(/&#x([0-9a-f]+);/gi, (_match, hex) => {
-      const code = Number.parseInt(hex, 16);
-      if (Number.isNaN(code)) return '';
-      try {
-        return String.fromCodePoint(code);
-      } catch {
-        return '';
-      }
-    })
-    .replace(/&#([0-9]+);/g, (_match, dec) => {
-      const code = Number.parseInt(dec, 10);
-      if (Number.isNaN(code)) return '';
-      try {
-        return String.fromCodePoint(code);
-      } catch {
-        return '';
-      }
-    })
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
-
-  const extractHtmlText = (html) => {
-    const raw = String(html || '');
-    const withBreakHints = raw
-      .replace(/<\s*br\s*\/?>/gi, '\n')
-      .replace(/<\/(p|div|li|tr|h[1-6])>/gi, '\n')
-      .replace(/<li\b[^>]*>/gi, '- ');
-    const doc = new DOMParser().parseFromString(withBreakHints, 'text/html');
-    doc.querySelectorAll('script, style, noscript').forEach((node) => node.remove());
-    return doc.body?.textContent || '';
-  };
-
-  const extractRtfText = (rtf) => String(rtf || '')
-    .replace(/\\par[d]?/gi, '\n')
-    .replace(/\\line\b/gi, '\n')
-    .replace(/\\tab\b/gi, '\t')
-    .replace(/\\'([0-9a-f]{2})/gi, (_match, hex) => String.fromCharCode(Number.parseInt(hex, 16) || 32))
-    .replace(/\\u(-?\d+)\??/g, (_match, num) => {
-      let code = Number.parseInt(num, 10);
-      if (Number.isNaN(code)) return '';
-      if (code < 0) code += 65536;
-      try {
-        return String.fromCharCode(code);
-      } catch {
-        return '';
-      }
-    })
-    .replace(/\\[a-z]+-?\d* ?/gi, '')
-    .replace(/[{}]/g, '');
-
-  const extractDocxXmlText = (xmlText) => {
-    const text = String(xmlText || '')
-      .replace(/<w:tab[^>]*\/>/gi, '\t')
-      .replace(/<w:(br|cr)[^>]*\/>/gi, '\n')
-      .replace(/<\/w:tc>/gi, '\t')
-      .replace(/<\/w:(p|tr)>/gi, '\n')
-      .replace(/<[^>]+>/g, '');
-    return decodeXmlEntities(text);
-  };
-
-  const extractLegacyDocText = (bytes) => {
-    const clean = (text) => String(text || '')
-      .replace(/[^ -~\n\r\t]/g, ' ')
-      .replace(/[ \t]{2,}/g, ' ')
-      .replace(/\n{4,}/g, '\n\n\n');
-
-    const latin = clean(new TextDecoder('latin1').decode(bytes));
-    const utf16 = clean(new TextDecoder('utf-16le').decode(bytes));
-    return utf16.length > latin.length ? utf16 : latin;
-  };
-
-  const loadVendorScript = (src) => {
-    const safeSrc = String(src || '').trim();
-    if (!safeSrc) return Promise.reject(new Error('Vendor script source is missing.'));
-    if (vendorScriptPromises.has(safeSrc)) return vendorScriptPromises.get(safeSrc);
-
-    const existing = document.querySelector(`script[src="${safeSrc}"]`);
-    if (existing && existing.dataset.vendorLoaded === 'true') {
-      return Promise.resolve();
-    }
-
-    const pending = new Promise((resolve, reject) => {
-      const script = existing || document.createElement('script');
-
-      const finish = (error) => {
-        script.removeEventListener('load', onLoad);
-        script.removeEventListener('error', onError);
-        if (error) {
-          vendorScriptPromises.delete(safeSrc);
-          reject(error);
-          return;
-        }
-        script.dataset.vendorLoaded = 'true';
-        resolve();
-      };
-      const onLoad = () => finish();
-      const onError = () => finish(new Error(`Unable to load ${safeSrc}.`));
-
-      script.addEventListener('load', onLoad);
-      script.addEventListener('error', onError);
-
-      if (!existing) {
-        script.src = safeSrc;
-        script.async = true;
-        document.head.appendChild(script);
-      }
-    });
-
-    vendorScriptPromises.set(safeSrc, pending);
-    return pending;
-  };
-
-  const ensureFflate = async () => {
-    const api = window.fflate;
-    if (api && typeof api.unzipSync === 'function') return api;
-    await loadVendorScript(FFLATE_SRC);
-    const loaded = window.fflate;
-    if (!loaded || typeof loaded.unzipSync !== 'function') {
-      throw new Error('DOCX import is unavailable: zip parser failed to load.');
-    }
-    return loaded;
-  };
-
-  const ensurePdfjs = async () => {
-    const api = window.pdfjsLib;
-    if (api && typeof api.getDocument === 'function') return api;
-    await loadVendorScript(PDFJS_SRC);
-    const loaded = window.pdfjsLib;
-    if (!loaded || typeof loaded.getDocument !== 'function') {
-      throw new Error('PDF import is unavailable: parser failed to load.');
-    }
-    return loaded;
-  };
-
-  const parseDocxFile = async (file) => {
-    const api = await ensureFflate();
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const files = api.unzipSync(bytes);
-    const decoder = new TextDecoder('utf-8');
-    const xmlPaths = Object.keys(files)
-      .filter((name) => /^word\/(document|header\d+|footer\d+|footnotes|endnotes)\.xml$/i.test(name))
-      .sort((a, b) => a.localeCompare(b));
-
-    if (!xmlPaths.length) {
-      throw new Error('Unable to find readable text in this DOCX file.');
-    }
-
-    const chunks = [];
-    xmlPaths.forEach((path) => {
-      try {
-        const xml = decoder.decode(files[path]);
-        const text = normalizeImportedText(extractDocxXmlText(xml));
-        if (text) chunks.push(text);
-      } catch {
-        // Skip malformed sections and keep best-effort extraction.
-      }
-    });
-    return chunks.join('\n\n');
-  };
-
-  const parsePdfFile = async (file) => {
-    const pdfjs = await ensurePdfjs();
-    if (pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
-      pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_PATH;
-    }
-
-    const loadingTask = pdfjs.getDocument({ data: await file.arrayBuffer() });
-    let pdf = null;
-
-    try {
-      pdf = await loadingTask.promise;
-      const pages = [];
-      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-        const page = await pdf.getPage(pageNumber);
-        const textContent = await page.getTextContent();
-        let pageText = '';
-        textContent.items.forEach((item) => {
-          const value = String(item?.str || '');
-          if (!value) return;
-          pageText += value;
-          pageText += item?.hasEOL ? '\n' : ' ';
-        });
-        const normalized = normalizeImportedText(pageText);
-        if (normalized) pages.push(normalized);
-      }
-      return pages.join('\n\n');
-    } finally {
-      try {
-        await loadingTask.destroy();
-      } catch {}
-      try {
-        pdf?.cleanup?.();
-      } catch {}
-    }
-  };
-
-  const detectImportType = (file) => {
-    const name = String(file?.name || '').toLowerCase();
-    const type = String(file?.type || '').toLowerCase();
-
-    if (name.endsWith('.csv') || type.includes('csv')) return 'csv';
-    if (name.endsWith('.tsv') || type.includes('tab-separated-values')) return 'tsv';
-    if (name.endsWith('.json') || type.includes('json')) return 'json';
-    if (name.endsWith('.xml') || type.includes('xml')) return 'xml';
-    if (name.endsWith('.pdf') || type.includes('pdf')) return 'pdf';
-    if (name.endsWith('.docx') || type.includes('officedocument.wordprocessingml.document')) return 'docx';
-    if (name.endsWith('.doc') || type === 'application/msword') return 'doc';
-    if (name.endsWith('.rtf') || type.includes('rtf')) return 'rtf';
-    if (name.endsWith('.html') || name.endsWith('.htm') || type.includes('html')) return 'html';
-    if (name.endsWith('.md') || name.endsWith('.markdown')) return 'markdown';
-    return 'text';
-  };
-
-  const parseImportedFile = async (file) => {
-    const importType = detectImportType(file);
-    if (importType === 'pdf') {
-      return { text: await parsePdfFile(file), warning: '', sourceKind: importType };
-    }
-    if (importType === 'docx') {
-      return { text: await parseDocxFile(file), warning: '', sourceKind: importType };
-    }
-    if (importType === 'doc') {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      return {
-        text: extractLegacyDocText(bytes),
-        warning: 'Legacy .doc extraction is best-effort. Convert to .docx for highest fidelity.',
-        sourceKind: importType
-      };
-    }
-    if (importType === 'rtf') {
-      return { text: extractRtfText(await file.text()), warning: '', sourceKind: importType };
-    }
-    if (importType === 'html') {
-      return { text: extractHtmlText(await file.text()), warning: '', sourceKind: importType };
-    }
-    return { text: await file.text(), warning: '', sourceKind: importType };
-  };
-
-  const importIntoField = async (fieldKey) => {
-    const field = fields[fieldKey];
-    const file = field?.fileInput?.files?.[0];
-    if (!field?.textarea || !file) return;
-
-    const requestId = ++field.importRequestId;
-    setFieldBusy(fieldKey, true);
-    setFieldStatus(fieldKey, `Importing ${file.name}…`, 'info');
-
-    try {
-      if (file.size > MAX_IMPORT_BYTES) {
-        const maxMb = Math.round(MAX_IMPORT_BYTES / (1024 * 1024));
-        throw new Error(`File is too large. Max supported size is ${maxMb} MB.`);
-      }
-
-      const parsed = await parseImportedFile(file);
-      if (requestId !== field.importRequestId) return;
-      const importedText = normalizeImportedText(parsed.text);
-      if (!importedText.trim()) {
-        throw new Error('No readable text was found in this file.');
-      }
-
-      applyTextToField(fieldKey, importedText, { sourceKind: parsed.sourceKind || 'text' });
-      const summary = `${file.name} imported (${importedText.length.toLocaleString('en-US')} characters).`;
-      const statusText = parsed.warning ? `${summary} ${parsed.warning}` : summary;
-      setFieldStatus(fieldKey, statusText, parsed.warning ? 'info' : 'success');
-    } catch (error) {
-      if (requestId !== field.importRequestId) return;
-      const message = error instanceof Error ? error.message : 'Unable to import this file.';
-      setFieldStatus(fieldKey, message, 'error');
-    } finally {
-      if (requestId === field.importRequestId) {
-        if (field.fileInput) field.fileInput.value = '';
-        setFieldBusy(fieldKey, false);
-      }
-    }
-  };
 
   const getSelectedMode = () => {
     const selected = modeInputs.find((input) => input.checked);
@@ -862,36 +491,10 @@
     setCopyStatus('');
     setWarningStatus('', '');
     markSessionDirty();
-    const originalInput = originalEl.value || '';
-    const revisedInput = revisedEl.value || '';
-    const originalHasUser = Boolean(originalInput.trim());
-    const revisedHasUser = Boolean(revisedInput.trim());
-    const original = originalInput;
-    const revised = revisedInput;
-
-    if ((!originalHasUser && revisedHasUser) || (originalHasUser && !revisedHasUser)) {
-      summaryEl.textContent = 'Paste both versions to compare.';
-      setEmpty('Paste text in both boxes, then click Compare.');
-      lastRuns = null;
-      lastRevisedText = '';
-      latestCompareRequestId += 1;
-      setWarningStatus('', '');
-      markSessionDirty();
-      if (reportOutcome) reportRunError('validation');
-      return;
-    }
-
-    if (!original.trim() && !revised.trim()) {
-      summaryEl.textContent = 'Changes appear here.';
-      setEmpty('Add both drafts, then compare.');
-      lastRuns = null;
-      lastRevisedText = '';
-      latestCompareRequestId += 1;
-      setWarningStatus('', '');
-      markSessionDirty();
-      if (reportOutcome) reportRunError('validation');
-      return;
-    }
+    // The example stays out of saved editor values and never fills a blank side of a user's comparison.
+    const showingExample = !hasUserText();
+    const original = showingExample ? ORIGINAL_EXAMPLE : originalEl.value;
+    const revised = showingExample ? REVISED_EXAMPLE : revisedEl.value;
 
     if (original.length + revised.length > MAX_CHARS) {
       summaryEl.textContent = 'Text is too large to compare in-browser. Please compare smaller sections.';
@@ -915,8 +518,8 @@
       rightText: revised,
       modeOverride: getSelectedMode(),
       sourceHints: {
-        leftKind: fields.original.sourceKind || 'text',
-        rightKind: fields.revised.sourceKind || 'text'
+        leftKind: 'text',
+        rightKind: 'text'
       }
     };
 
@@ -977,19 +580,6 @@
   });
   applyPreviewStyle();
 
-  originalImportBtn?.addEventListener('click', () => {
-    originalFileInput?.click();
-  });
-  revisedImportBtn?.addEventListener('click', () => {
-    revisedFileInput?.click();
-  });
-  originalFileInput?.addEventListener('change', () => {
-    void importIntoField('original');
-  });
-  revisedFileInput?.addEventListener('change', () => {
-    void importIntoField('revised');
-  });
-
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     try {
@@ -1000,15 +590,7 @@
     }
   });
 
-  exampleBtn?.addEventListener('click', () => {
-    applyTextToField('original', ORIGINAL_EXAMPLE, { sourceKind: 'text', focus: false });
-    applyTextToField('revised', REVISED_EXAMPLE, { sourceKind: 'text', focus: false });
-    clearFieldStatuses();
-    runCompare({ reportOutcome: true });
-  });
-
   clearBtn?.addEventListener('click', () => {
-    Object.keys(fields).forEach(cancelFieldImport);
     window.clearTimeout(refreshTimer);
     comparisonStarted = false;
     if (copyBtn) copyBtn.disabled = true;
@@ -1016,27 +598,22 @@
     latestCompareRequestId += 1;
     originalEl.value = '';
     revisedEl.value = '';
-    fields.original.sourceKind = 'text';
-    fields.revised.sourceKind = 'text';
+    updateExamplePreview();
     summaryEl.textContent = 'Changes appear here.';
-    setEmpty('Add both drafts, then compare.');
+    setEmpty('Compare the example, or enter your own text.');
     lastRuns = null;
     lastRevisedText = '';
     setCopyStatus('');
     setWarningStatus('', '');
-    clearFieldStatuses();
     markSessionDirty();
     originalEl.focus();
   });
 
   swapBtn?.addEventListener('click', () => {
-    Object.keys(fields).forEach(cancelFieldImport);
     const a = originalEl.value;
-    const sourceKind = fields.original.sourceKind;
     originalEl.value = revisedEl.value;
     revisedEl.value = a;
-    fields.original.sourceKind = fields.revised.sourceKind;
-    fields.revised.sourceKind = sourceKind;
+    updateExamplePreview();
     runCompare();
   });
 
@@ -1050,13 +627,16 @@
     if (legendEl) legendEl.hidden = true;
     setCopyStatus('');
     setWarningStatus('', '');
-    if (!comparisonStarted) return;
+    if (!comparisonStarted) {
+      setEmpty(hasUserText() ? 'Click Compare to see the changes.' : 'Compare the example, or enter your own text.');
+      return;
+    }
     summaryEl.textContent = 'Updating comparison…';
     setEmpty('Updating…');
     refreshTimer = window.setTimeout(() => runCompare(), 450);
   };
-  Object.entries(fields).forEach(([key, field]) => field.textarea.addEventListener('input', () => {
-    cancelFieldImport(key);
+  [originalEl, revisedEl].forEach(field => field.addEventListener('input', () => {
+    updateExamplePreview();
     queueComparison();
   }));
   modeInputs.forEach((input) => input.addEventListener('change', queueComparison));
@@ -1078,6 +658,7 @@
     const text = String(output.text || '').trim();
     return Boolean(text) && ![
       'Waiting for input.', 'Ready to compare.', 'No output.', 'Add both drafts, then compare.', 'Updating…',
+      'Click Compare to see the changes.', 'Compare the example, or enter your own text.',
       'Paste text in both boxes, then click Compare.', 'Comparing…',
       'Input too large.', 'Comparison failed. Please try smaller sections.'
     ].includes(text);
@@ -1108,7 +689,7 @@
     const snapshot = detail?.snapshot;
     const output = snapshot?.output;
     // Legacy view preferences no longer hide drafts or results.
-    Object.keys(fields).forEach(cancelFieldImport);
+    updateExamplePreview();
     window.clearTimeout(refreshTimer);
     setCopyStatus('');
     setWarningStatus('', '');
@@ -1118,12 +699,12 @@
     if (copyBtn) copyBtn.disabled = true;
     if (legendEl) legendEl.hidden = true;
     comparisonStarted = hasSavedComparison(output);
-    if (comparisonStarted && originalEl.value.trim() && revisedEl.value.trim()) {
+    if (comparisonStarted) {
       runCompare();
       return;
     }
     summaryEl.textContent = 'Changes appear here.';
-    setEmpty('Add both drafts, then compare.');
+    setEmpty(hasUserText() ? 'Click Compare to see the changes.' : 'Compare the example, or enter your own text.');
     if (!output || typeof output !== 'object') return;
 
     const summary = String(output.summary || '').trim();
