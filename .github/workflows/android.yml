@@ -69,7 +69,7 @@ jobs:
           packages: 'platform-tools platforms;android-36.1 build-tools;36.1.0'
 
       - name: Setup Gradle cache and validate wrapper
-        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           dependency-graph: disabled
