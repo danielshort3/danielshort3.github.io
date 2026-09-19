@@ -260,7 +260,7 @@
           "title": "danielshort.me",
           "summary": "A home for practical tools, personal projects, and browser experiments.",
           "href": "/portfolio/website",
-          "image": "/img/projects/website-640.webp?v=e005645fec7c",
+          "image": "/img/projects/website-640.webp?v=8eb483315671",
           "imageAlt": "",
           "iconImage": "/img/projects/icons/website.png?v=5ee2dd9327e1",
           "iconHtml": "",

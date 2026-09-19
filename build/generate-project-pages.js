@@ -424,7 +424,7 @@ function formatResourceLabel(resource) {
   return pieces.join(' · ');
 }
 
-function renderProjectPage(project, { relatedProject } = {}) {
+function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) {
   project = versionImageContent(project);
   const id = String(project.id || '').trim();
   const title = normalizeWhitespace(project.title || id);
@@ -688,7 +688,7 @@ function renderProjectPage(project, { relatedProject } = {}) {
       </dl>
     </section>`;
 
-  const nextProject = relatedProject && relatedProject.id !== id && relatedProject.published !== false ? relatedProject : null;
+  const nextProject = nextProjectCandidate && nextProjectCandidate.id !== id && nextProjectCandidate.published !== false ? nextProjectCandidate : null;
   const contactMessage = `Hi Daniel, I have a question about ${title}:\n\n`;
   const nextSteps = `<nav class="project-next-steps" aria-label="Continue exploring">
       ${nextProject ? `<a class="project-next-link" href="/portfolio/${escapeHtml(encodeURIComponent(nextProject.id))}" data-content-open="true" data-content-id="${escapeHtml(nextProject.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>${escapeHtml(nextProject.title)} <span aria-hidden="true">→</span></strong></a>` : ''}
@@ -954,7 +954,6 @@ function renderProjectPage(project, { relatedProject } = {}) {
       <div class="project-demo-header">
         ${demoCopy}
         <div class="project-demo-header-actions">
-          ${dashboard ? '<button class="project-dashboard-reset" type="button" data-dashboard-reset hidden>Reset filters</button>' : ''}
           ${launchHref ? `<a class="project-demo-open" href="${escapeHtml(launchHref)}"${launchAttrs}>${dashboard ? 'Open dashboard' : 'Open full demo'}</a>` : ''}
           ${tooltip}
         </div>
@@ -1079,7 +1078,7 @@ ${tableauPreconnect}
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
-${comparisonScript}${imageViewerScript}${dashboard ? '  <script defer src="js/portfolio/tableau-controls.js"></script>\n' : ''}  <script src="js/privacy/config.js"></script>
+${comparisonScript}${imageViewerScript}  <script src="js/privacy/config.js"></script>
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>
@@ -1130,15 +1129,12 @@ function writeProjectPages(projects) {
     });
   } catch (_) {}
 
-  projects.forEach((project) => {
+  projects.forEach((project, index) => {
     const id = String(project.id || '').trim();
     if (!id) throw new Error('Project missing id');
     const outPath = path.join(outDir, `${id}.html`);
-    const relatedProject = projects.find((candidate) => candidate.id === project.relatedProjectId);
-    if (project.relatedProjectId && (!relatedProject || relatedProject.id === id || relatedProject.published === false)) {
-      throw new Error(`Project "${id}" must link to a different published related project.`);
-    }
-    fs.writeFileSync(outPath, renderProjectPage(project, { relatedProject }), 'utf8');
+    const nextProject = projects.length > 1 ? projects[(index + 1) % projects.length] : null;
+    fs.writeFileSync(outPath, renderProjectPage(project, { nextProject }), 'utf8');
   });
 }
 

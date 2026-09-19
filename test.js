@@ -1216,8 +1216,8 @@ try {
            /data-home-contact-map-src="https:\/\/www\.google\.com\/maps\?q=Delta%2C%20CO&amp;output=embed"[^>]*loading="lazy"/.test(contactMapIframe) &&
            !/\ssrc\s*=|\ssrcdoc\s*=/.test(contactMapIframe) &&
            !contactPageHtml.includes('data-google-maps-iframe') &&
-           contactPageHtml.includes('Open in Google Maps'),
-      'contact page should reserve a persistent city map without loading a duplicate iframe and keep a direct Google Maps link');
+           !contactPageHtml.includes('Open in Google Maps'),
+      'contact page should reserve a persistent city map without loading a duplicate iframe or showing an extra map button');
     assert(!/maps\/embed\/v1\/place\?[^"\s]*key=/i.test(contactPageHtml),
       'generated contact source should not commit a Google Maps API key');
 

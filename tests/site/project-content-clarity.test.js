@@ -2,7 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { renderProjectPage } = require('../../build/generate-project-pages');
+const { renderProjectPage, loadProjects, isPublishedProject } = require('../../build/generate-project-pages');
 const { buildHomeLibraryData } = require('../../build/generate-cms-artifacts');
 
 const ROOT = path.resolve(__dirname, '../..');
@@ -17,6 +17,7 @@ function runProjectContentClarityTests({ assert }) {
     .map((file) => readJson(`content/projects/${file}`))
     .filter((project) => project.published !== false);
   const byId = new Map(projects.map((project) => [project.id, project]));
+  const projectOrder = loadProjects().filter(isPublishedProject).map((project) => project.id);
   const personal = readJson('content/audiences/personal.json');
   const library = buildHomeLibraryData({ projects, audiences: [personal], pages: [], tools: [] });
   const libraryProjects = library.projects.items;
@@ -26,9 +27,9 @@ function runProjectContentClarityTests({ assert }) {
       `${project.id} should have a concise authored search description`);
     assert(!project.metaDescription.includes('.:') && !project.metaDescription.endsWith('…'),
       `${project.id} should use complete edited sentences rather than stitched or truncated copy`);
-    const relatedProject = byId.get(project.relatedProjectId);
-    assert(relatedProject && relatedProject.id !== project.id, `${project.id} should recommend a different published project`);
-    const html = renderProjectPage(project, { relatedProject });
+    const nextId = projectOrder[(projectOrder.indexOf(project.id) + 1) % projectOrder.length];
+    const nextProject = byId.get(nextId);
+    const html = renderProjectPage(project, { nextProject });
     assert(JSON.stringify(descriptions(html)) === JSON.stringify(Array(3).fill(escape(project.metaDescription))),
       `${project.id} should use the same authored description in search, Open Graph, and Twitter metadata`);
     const structured = JSON.parse(html.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/)[1]);
@@ -38,8 +39,8 @@ function runProjectContentClarityTests({ assert }) {
       `${project.id} library card should use its benefit-oriented subtitle`);
     const next = html.match(/<nav class="project-next-steps"[^>]*>([\s\S]*?)<\/nav>/)[1];
     assert((next.match(/class="project-next-link"/g) || []).length === 1 &&
-      next.includes(`href="/portfolio/${relatedProject.id}"`) && next.includes(escape(relatedProject.title)),
-    `${project.id} should provide exactly one correctly named curated next project`);
+      next.includes(`href="/portfolio/${nextProject.id}"`) && next.includes(escape(nextProject.title)),
+    `${project.id} should link to the next project in the complete collection`);
     const question = html.match(/<div class="project-question-dock">([\s\S]*?)<\/div>/)[1];
     assert(question.includes('href="/contact" data-contact-modal-link="true"') &&
       question.includes(`data-contact-message="Hi Daniel, I have a question about ${escape(project.title)}:`),
@@ -55,8 +56,22 @@ function runProjectContentClarityTests({ assert }) {
       const generated = fs.readFileSync(path.join(ROOT, generatedPath), 'utf8');
       assert(!generated.includes('project-evidence') && !generated.includes('Evidence &amp; limitations'),
         `${generatedPath} should omit the evidence section in every audience variant`);
+      assert(generated.match(/class="project-next-link"[^>]*data-content-id="([^"]+)"/)?.[1] === nextId,
+        `${generatedPath} should follow the complete project cycle`);
     }
   }
+
+  // Follow the generated links, not the selection helper, to catch short loops.
+  const visited = new Set();
+  let currentId = projectOrder[0];
+  while (!visited.has(currentId)) {
+    assert(byId.has(currentId), 'Next project links must only visit published projects');
+    visited.add(currentId);
+    const page = fs.readFileSync(path.join(ROOT, `pages/portfolio/${currentId}.html`), 'utf8');
+    currentId = page.match(/class="project-next-link"[^>]*data-content-id="([^"]+)"/)?.[1];
+  }
+  assert(visited.size === projects.length && currentId === projectOrder[0],
+    'Explore next must visit every published project once before returning to its start');
 
   const fixture = { ...byId.get('handwritingRating'), metaDescription: undefined, subtitle: 'One clear sentence.', problem: 'This should remain in the case study.' };
   assert(descriptions(renderProjectPage(fixture))[0] === 'One clear sentence.', 'Metadata fallback should choose one clear source instead of joining complete sentences with a colon');

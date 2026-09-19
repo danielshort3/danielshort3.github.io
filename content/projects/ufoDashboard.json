@@ -39,7 +39,7 @@
     "bullets": [
       "Use Overview, Places, Timing, Shapes, and About.",
       "Year, state, and shape selections stay with you across tabs; select a mark to focus the charts.",
-      "Find definitions in About. Use Reset filters or Tableau Revert to start over."
+      "Find definitions in About. Use Tableau Revert to start over."
     ]
   },
   "problem": "I wanted to explore geographic and time patterns in a historical archive of UFO reports while keeping the limits of report counts clear.",

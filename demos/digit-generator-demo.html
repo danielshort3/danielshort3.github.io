@@ -644,7 +644,7 @@
                 <option value="9">9</option>
               </select>
             </label>
-            <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
+            <button id="refresh-seed-btn" class="btn-primary" type="button">Regenerate</button>
           </div>
         </div>
         <div class="grid-shell">
@@ -864,7 +864,7 @@
       });
       const hasImages = Boolean(gridEl.querySelector('.digit-cell'));
       gridEmptyState.hidden = hasImages;
-      if (!hasImages) showEmptyGrid('No digit images were returned. Select Generate to try again.');
+      if (!hasImages) showEmptyGrid('No digit images were returned. Select Regenerate to try again.');
       scheduleGridMetricsUpdate();
     }
 
@@ -975,7 +975,7 @@
         if (id !== requestId) return;
         setHealth('err', 'Request failed');
         setStatus('Failed to generate digits.');
-        showEmptyGrid('The digit collection could not be generated. Select Generate to try again.');
+        showEmptyGrid('The digit collection could not be generated. Select Regenerate to try again.');
       }
     }
 

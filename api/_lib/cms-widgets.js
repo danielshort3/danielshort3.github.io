@@ -192,7 +192,7 @@ function renderMap(section, options = {}) {
     '    <div class="cms-location-copy">',
     `      <h2 class="section-title">${escapeHtml(props.title || 'Location')}</h2>`,
     props.body ? `      <p class="section-subtitle">${escapeHtml(props.body)}</p>` : '',
-    `      <p><a class="btn-secondary" href="${escapeHtml(mapHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(props.buttonLabel || 'Open map')}</a></p>`,
+    props.showLink !== false ? `      <p><a class="btn-secondary" href="${escapeHtml(mapHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(props.buttonLabel || 'Open map')}</a></p>` : '',
     '    </div>',
     `    <div class="cms-map-shell"${persistentMap ? ' data-contact-map-slot' : ''}>`,
     `      <iframe${attrsToString(frameAttrs) ? ` ${attrsToString(frameAttrs)}` : ''}></iframe>`,

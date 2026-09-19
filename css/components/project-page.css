@@ -40,22 +40,6 @@
     text-underline-offset: 3px;
   }
   .project-demo-open:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-  .project-dashboard-reset {
-    min-height: 44px;
-    padding: 8px 12px;
-    border: 1px solid #dce3ec;
-    border-radius: 6px;
-    background: #fff;
-    color: var(--brand-deep-blue, #0145c8);
-    font: inherit;
-    font-size: .875rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .project-dashboard-reset:hover { background: #f4f7fc; }
-  .project-dashboard-reset:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-  .project-dashboard-reset[hidden] { display: none; }
   .project-demo-shell[data-demo-fit] { min-height: 0; }
   .project-embed:is([data-embed-fit="content"], [data-embed-fit="viewport"]) .project-embed-frame { max-height: none; }
   .project-main--dashboard { --project-content-width: 1600px; --personal-content-width: 1600px; }
@@ -73,26 +57,38 @@
   }
   .project-demo-shell[data-demo-fit="dashboard"] .project-embed-tableau {
     --project-tableau-device: desktop;
+    --project-tableau-height: 880px;
+    --project-tableau-scale: 1;
     display: block;
+    height: calc(var(--project-tableau-height) * var(--project-tableau-scale));
+    padding: 0;
   }
   .project-demo-shell[data-demo-fit="dashboard"] :is(.project-embed-pizzadashboard, .project-embed-ufodashboard) .project-embed-frame {
+    position: absolute;
+    top: 0;
+    left: 50%;
     width: 1200px;
-    max-width: 100%;
-    margin-inline: auto;
-    height: 880px;
+    max-width: none;
+    margin: 0;
+    height: var(--project-tableau-height);
     max-height: none;
+    transform: translateX(-50%) scale(var(--project-tableau-scale));
+    transform-origin: top center;
   }
-  .project-demo-shell[data-demo-fit="dashboard"] .project-embed-ufodashboard .project-embed-frame {
-    height: 870px;
+  .project-demo-shell[data-demo-fit="dashboard"] .project-embed-ufodashboard {
+    --project-tableau-height: 870px;
   }
-  @container project-dashboard (max-width: 1225px) {
+  @media (max-width: 768px) {
     .project-demo-shell[data-demo-fit="dashboard"] .project-embed-tableau {
       --project-tableau-device: phone;
-      padding: 0;
+      height: auto;
     }
     .project-demo-shell[data-demo-fit="dashboard"] .project-embed-tableau .project-embed-frame {
+      position: static;
       width: min(100%, 720px);
       height: clamp(600px, 85svh, 900px);
+      margin-inline: auto;
+      transform: none;
     }
   }
   @container project-dashboard (max-width: 700px) {
