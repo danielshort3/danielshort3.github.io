@@ -35,9 +35,7 @@ function createHarness() {
   };
   [
     'textcompare-form', 'textcompare-original', 'textcompare-revised', 'textcompare-output', 'textcompare-summary',
-    'textcompare-clear', 'textcompare-swap', 'textcompare-example', 'textcompare-copy', 'textcompare-copy-status',
-    'textcompare-original-import', 'textcompare-original-file', 'textcompare-original-status',
-    'textcompare-revised-import', 'textcompare-revised-file', 'textcompare-revised-status',
+    'textcompare-clear', 'textcompare-swap', 'textcompare-copy', 'textcompare-copy-status',
     'textcompare-warning', 'textcompare-view-drafts', 'textcompare-view-comparison', 'ready', 'mode-summary'
   ].forEach(create);
   const modes = ['auto', 'document', 'structured'].map(mode => Object.assign(create(`textcompare-mode-${mode}`), { value: mode, checked: mode === 'auto' }));
@@ -164,43 +162,57 @@ async function run() {
   assert.equal(h.requests.length, beforeOtherTool, 'Another tool session cannot trigger Text Compare.');
   assert.equal(h.output.innerHTML, beforeOtherOutput, 'Another tool session cannot replace the comparison.');
 
-  const imports = createHarness();
-  const importInput = imports.get('textcompare-original-file');
-  const startDelayedImport = () => {
-    let finish;
-    const text = new Promise(resolve => { finish = resolve; });
-    importInput.files = [{ name: 'delayed.txt', size: 20, type: 'text/plain', text: () => text }];
-    importInput.dispatchEvent({ type: 'change' });
-    assert(importInput.disabled, 'The active import holds its own busy state.');
-    return async value => { finish(value); await imports.flush(); };
-  };
-  let finishImport = startDelayedImport();
-  imports.click('textcompare-clear');
-  assert(!importInput.disabled, 'Clear releases canceled import controls immediately.');
-  await finishImport('Obsolete import after Clear.');
-  assert.equal(imports.get('textcompare-original').value, '', 'A delayed import cannot repopulate cleared drafts.');
+  const defaults = createHarness();
+  const before = defaults.get('textcompare-original');
+  const after = defaults.get('textcompare-revised');
+  assert.equal(before.value, '', 'The default example never becomes saved Before input.');
+  assert.equal(after.value, '', 'The default example never becomes saved After input.');
+  assert(before.placeholder.includes('Monday') && after.placeholder.includes('Friday'), 'Both empty editors visibly preview the example.');
+  await defaults.tick(1000);
+  assert.equal(defaults.requests.length, 0, 'The initial example waits for Compare.');
+  defaults.submit();
+  const exampleRequest = defaults.requests.at(-1);
+  assert.equal(exampleRequest.leftText, before.placeholder, 'Compare uses the visible Before example.');
+  assert.equal(exampleRequest.rightText, after.placeholder, 'Compare uses the visible After example.');
+  await defaults.respond();
+  assert(defaults.output.innerHTML.includes('diff-ins') && defaults.output.innerHTML.includes('diff-del'), 'The default example produces a real comparison.');
+  assert.equal(before.value + after.value, '', 'Comparing the example leaves actual input values empty.');
+  const savedExample = defaults.capture();
+  defaults.apply({ output: savedExample.output });
+  assert(defaults.get('textcompare-copy').disabled, 'A restored example waits for its own copyable result.');
+  await defaults.respond();
+  assert(!defaults.get('textcompare-copy').disabled, 'Restoring an example regenerates a copyable comparison from blank inputs.');
 
-  finishImport = startDelayedImport();
-  imports.fill('textcompare-original', 'Newer typed draft.');
-  await finishImport('Obsolete import after typing.');
-  assert.equal(imports.get('textcompare-original').value, 'Newer typed draft.', 'A delayed import cannot overwrite a newer edit.');
-
-  finishImport = startDelayedImport();
-  imports.get('textcompare-original').value = 'Restored account draft.';
-  imports.get('textcompare-revised').value = 'Restored account revision.';
-  imports.apply({ inputs: { view: 'drafts' }, output: { kind: 'html', html: '<p class="textcompare-empty">Ready to compare.</p>' } });
-  await finishImport('Obsolete import after restore.');
-  assert.equal(imports.get('textcompare-original').value, 'Restored account draft.', 'A delayed import cannot overwrite a restored account session.');
-
-  const finishOldImport = startDelayedImport();
-  imports.click('textcompare-clear');
-  const finishCurrentImport = startDelayedImport();
-  await finishOldImport('Old request finishing late.');
-  assert(importInput.disabled, 'An old import finishing cannot release a newer import busy state.');
-  await finishCurrentImport('Current imported draft.');
-  assert.equal(imports.get('textcompare-original').value, 'Current imported draft.', 'The current import still applies normally.');
-  assert(!importInput.disabled, 'The completed current import releases its controls.');
-  console.log('Text Compare continuation, debounced edits, stale worker/import cancellation, Clear, and legacy restoration passed.');
+  for (const field of ['original', 'revised']) {
+    const oneSided = createHarness();
+    oneSided.submit();
+    const obsoleteExample = oneSided.requests.at(-1);
+    oneSided.fill('textcompare-' + field, 'ONLY_USER_TEXT');
+    assert(!oneSided.get('textcompare-original').placeholder.includes('Product analytics') &&
+      !oneSided.get('textcompare-revised').placeholder.includes('Product analytics'), 'Typing in either editor immediately removes both example previews.');
+    await oneSided.respond(obsoleteExample);
+    assert(!oneSided.output.innerHTML.includes('Product analytics'), 'An example finishing after a user edit cannot reappear.');
+    await oneSided.tick(450);
+    const request = oneSided.requests.at(-1);
+    assert.equal(request.leftText, field === 'original' ? 'ONLY_USER_TEXT' : '', 'Before uses only actual user input once either side is edited.');
+    assert.equal(request.rightText, field === 'revised' ? 'ONLY_USER_TEXT' : '', 'After never fills its blank side with example text.');
+    await oneSided.respond();
+    assert(oneSided.output.innerHTML.includes(field === 'original' ? 'diff-del' : 'diff-ins'), 'One-sided comparisons show complete deletion or insertion.');
+    assert(!oneSided.output.innerHTML.includes('Product analytics'), 'The completed one-sided result contains no example text.');
+    const saved = oneSided.capture();
+    oneSided.apply({ output: saved.output });
+    await oneSided.respond();
+    assert(!oneSided.get('textcompare-copy').disabled && oneSided.output.innerHTML.includes('ONLY_USER_TEXT'), 'One-sided saved comparisons restore copyable runs.');
+    oneSided.click('textcompare-clear');
+    assert(oneSided.get('textcompare-original').placeholder.includes('Product analytics') &&
+      oneSided.get('textcompare-revised').placeholder.includes('Product analytics'), 'Clear restores the shared default example preview.');
+  }
+  const whitespace = createHarness();
+  whitespace.fill('textcompare-original', ' ');
+  whitespace.submit();
+  assert.equal(whitespace.requests.at(-1).leftText, ' ', 'Even whitespace input is treated as user text.');
+  assert.equal(whitespace.requests.at(-1).rightText, '', 'Whitespace input does not reintroduce the default example.');
+  console.log('Text Compare default example, one-sided comparisons, continuation, debounced edits, stale worker cancellation, Clear, and legacy restoration passed.');
 }
 
 module.exports = run;

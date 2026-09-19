@@ -345,7 +345,7 @@ window.PROJECTS = [
       "bullets": [
         "Use Overview, Places, Timing, Shapes, and About.",
         "Year, state, and shape selections stay with you across tabs; select a mark to focus the charts.",
-        "Find definitions in About. Use Reset filters or Tableau Revert to start over."
+        "Find definitions in About. Use Tableau Revert to start over."
       ]
     },
     "problem": "I wanted to explore geographic and time patterns in a historical archive of UFO reports while keeping the limits of report counts clear.",
@@ -1279,7 +1279,7 @@ window.PROJECTS = [
       "bullets": [
         "Use Overview, Timing, Trends, Weekday, and About.",
         "Date, city, and housing selections stay with you across tabs.",
-        "Find definitions in About. Use Reset filters or Tableau Revert to start over."
+        "Find definitions in About. Use Tableau Revert to start over."
       ]
     },
     "role": [
@@ -1466,10 +1466,10 @@ window.PROJECTS = [
     "title": "danielshort.me",
     "subtitle": "A home for practical tools, personal projects, and browser experiments.",
     "metaDescription": "Explore how Daniel Short built this portfolio with practical browser tools, a searchable project library, shared navigation, and generated pages.",
-    "image": "img/projects/website.png?v=e005645fec7c",
+    "image": "img/projects/website.png?v=8eb483315671",
     "iconImage": "img/projects/icons/website.png?v=5ee2dd9327e1",
-    "imageWidth": 1280,
-    "imageHeight": 800,
+    "imageWidth": 1600,
+    "imageHeight": 1000,
     "tools": [
       "HTML",
       "CSS",
@@ -1511,7 +1511,7 @@ window.PROJECTS = [
     },
     "order": 17,
     "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site.",
-    "imageAlt": "Current Daniel Short homepage in its light theme, with an introduction, timeline, and colored vertical tabs.",
+    "imageAlt": "Daniel Short homepage with all five colored navigation tabs fully collapsed.",
     "relatedProjectId": "smartSentence"
   }
 ];

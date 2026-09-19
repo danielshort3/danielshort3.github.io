@@ -28,7 +28,7 @@ function assertDashboardUrl(value, dashboard, device = null) {
   assert.equal(url.searchParams.get(':embed'), 'y');
   assert.equal(url.searchParams.get(':showVizHome'), 'no');
   assert.equal(url.searchParams.get(':tabs'), 'no', 'Hide legacy worksheet tabs while retaining native dashboard navigation.');
-  assert.equal(url.searchParams.get(':device'), device, 'Use the container-appropriate device; external launch permits native device selection.');
+  assert.equal(url.searchParams.get(':device'), device, 'Use the viewport-appropriate device; external launch permits native device selection.');
 }
 
 async function assertDashboard(page, dashboard, device, label) {
@@ -56,7 +56,7 @@ async function assertDashboard(page, dashboard, device, label) {
   await view.getByRole('heading', { name: dashboard.title, exact: true }).waitFor();
   assert.equal(await launch.isVisible(), false, `${label}: avoid duplicate dashboard preview.`);
   assert(await page.locator('.project-demo-open').isVisible(), `${label}: keep native full-view navigation available.`);
-  await page.locator('[data-dashboard-reset]:visible').waitFor();
+  assert.equal(await page.locator('[data-dashboard-reset]').count(), 0, `${label}: no redundant website reset control.`);
   assert.equal(await frame.getAttribute('scrolling'), 'auto', `${label}: the native dashboard can scroll vertically.`);
   const geometry = await frame.evaluate(node => {
     const box = node.getBoundingClientRect();
@@ -66,14 +66,19 @@ async function assertDashboard(page, dashboard, device, label) {
       width: box.width, height: box.height, left: box.left - parent.left, right: parent.right - box.right,
       available: node.parentElement.clientWidth - parseFloat(parentStyle.paddingLeft) - parseFloat(parentStyle.paddingRight),
       shellWidth: node.closest('.project-demo-shell').getBoundingClientRect().width,
-      viewportHeight: innerHeight
+      viewportHeight: innerHeight, viewportWidth: innerWidth,
+      nativeWidth: node.clientWidth, nativeHeight: node.clientHeight, parentHeight: parent.height
     };
   });
-  assert.equal(device, geometry.shellWidth >= 1226 ? 'desktop' : 'phone', `${label}: choose the device from the actual project container.`);
+  assert.equal(device, geometry.viewportWidth > 768 ? 'desktop' : 'phone', `${label}: laptop and desktop viewports retain the desktop layout even inside narrower audience panels.`);
   assert(Math.abs(geometry.left - geometry.right) <= 1, `${label}: equal side gutters.`);
   if (device === 'desktop') {
-    assert.equal(geometry.width, 1200, `${label}: retain the native 1200px canvas without clipping or scaling.`);
-    assert.equal(geometry.height, dashboard.height, `${label}: include the complete native toolbar.`);
+    const scale = Math.min(1, geometry.available / 1200);
+    assert.equal(geometry.nativeWidth, 1200, `${label}: retain the authored desktop viewport so Tableau does not clip the dashboard.`);
+    assert.equal(geometry.nativeHeight, dashboard.height, `${label}: include the complete native toolbar.`);
+    assert(Math.abs(geometry.width - 1200 * scale) <= 1, `${label}: fit the full desktop canvas proportionally inside the project.`);
+    assert(Math.abs(geometry.height - dashboard.height * scale) <= 1, `${label}: scale the dashboard height proportionally.`);
+    assert(Math.abs(geometry.parentHeight - geometry.height) <= 2, `${label}: the wrapper follows the displayed height without clipping or blank space.`);
   } else {
     assert(Math.abs(geometry.width - Math.min(720, geometry.available)) <= 1, `${label}: fit the native phone canvas within a bounded readable width.`);
     assert(Math.abs(geometry.height - Math.min(900, Math.max(600, geometry.viewportHeight * .85))) <= 1, `${label}: keep the phone workspace height stable and usable.`);
@@ -84,21 +89,8 @@ async function assertDashboard(page, dashboard, device, label) {
   }
 }
 
-async function resetDashboard(page, dashboard, requests, device, label) {
-  const count = requests.length;
-  const response = page.waitForResponse(result => result.url().includes('%3Arevert=all'));
-  await page.locator('[data-dashboard-reset]').click();
-  await page.waitForFunction(() => document.querySelector('iframe.project-embed-frame')?.src.includes('%3Arevert=all'));
-  await response;
-  assert.equal(requests.length, count + 1, `${label}: one reset click starts exactly one fresh native view.`);
-  const reset = new URL(requests.at(-1));
-  assertDashboardUrl(reset.href, dashboard, device);
-  assert.equal(reset.searchParams.get(':revert'), 'all');
-  assert.equal(reset.searchParams.has(':iid'), false);
-}
-
 async function runCase({ browser, base, artifactDir, dashboard, audience, width }) {
-  const device = (audience ? width >= 1920 : width >= 1440) ? 'desktop' : 'phone';
+  const device = width > 768 ? 'desktop' : 'phone';
   const label = `${dashboard.id}-${audience || 'personal'}-${width}`;
   const context = await browser.newContext({ viewport: { width, height: width < 600 ? 844 : 1100 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
   const page = await context.newPage();
@@ -124,7 +116,6 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
     await assertDashboard(page, dashboard, device, label);
     assert.equal(requests.length, 1, `${label}: initial view loads once.`);
     assertDashboardUrl(requests[0], dashboard, device);
-    await resetDashboard(page, dashboard, requests, device, label);
     await page.screenshot({ path: path.join(artifactDir, `${label}.png`) });
 
     if (!audience && width === 1440) {
@@ -139,18 +130,16 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
       await assertDashboard(page, dashboard, 'desktop', `${label} soft re-entry`);
       assert.equal(await page.evaluate(() => window.__tableauRouteIdentity), 'preserved', `${label}: dashboard re-entry is a soft navigation.`);
       assert.equal(requests.length, count + 1, `${label}: re-entry creates one current dashboard.`);
-      await resetDashboard(page, dashboard, requests, 'desktop', `${label} soft re-entry`);
       const desktopCount = requests.length;
       await page.setViewportSize({ width: 390, height: 844 });
       await assertDashboard(page, dashboard, 'phone', `${label} shrink`);
       assert.equal(requests.length, desktopCount + 1, `${label}: switching to Phone reloads exactly once.`);
-      await resetDashboard(page, dashboard, requests, 'phone', `${label} phone reset`);
       const narrowCount = requests.length;
-      const resetSource = await page.locator('iframe.project-embed-frame').getAttribute('src');
+      const phoneSource = await page.locator('iframe.project-embed-frame').getAttribute('src');
       await page.setViewportSize({ width: 390, height: 760 });
       await assertDashboard(page, dashboard, 'phone', `${label} height-only resize`);
       assert.equal(requests.length, narrowCount, `${label}: height-only resize preserves the native view.`);
-      assert.equal(await page.locator('iframe.project-embed-frame').getAttribute('src'), resetSource, `${label}: height-only resize preserves the reset URL.`);
+      assert.equal(await page.locator('iframe.project-embed-frame').getAttribute('src'), phoneSource, `${label}: height-only resize preserves the native view URL.`);
       const resized = page.waitForResponse(result => result.url().startsWith(dashboard.base));
       for (const phoneWidth of [410, 420, 430]) await page.setViewportSize({ width: phoneWidth, height: 760 });
       await resized;
@@ -169,9 +158,9 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
       const cappedCount = requests.length;
       const cappedSource = await page.locator('iframe.project-embed-frame').getAttribute('src');
       await page.setViewportSize({ width: 1100, height: 1100 });
-      await assertDashboard(page, dashboard, 'phone', `${label} capped-width resize`);
-      assert.equal(await page.locator('iframe.project-embed-frame').evaluate(node => node.getBoundingClientRect().width), 720);
-      assert.equal(requests.length, cappedCount, `${label}: an unchanged720px native canvas does not refresh when its container grows.`);
+      await assertDashboard(page, dashboard, 'desktop', `${label} desktop resize`);
+      assert.equal(await page.locator('iframe.project-embed-frame').evaluate(node => node.clientWidth), 1200);
+      assert.equal(requests.length, cappedCount, `${label}: resizing the displayed desktop canvas preserves its interactive state.`);
       assert.equal(await page.locator('iframe.project-embed-frame').getAttribute('src'), cappedSource);
     }
     if (!audience && width === 390) {
@@ -219,7 +208,7 @@ async function runNoScriptCase({ browser, base, dashboard, audience }) {
 async function runTableauProjectIntegrationChecks({ browser, base, artifactDir }) {
   fs.mkdirSync(artifactDir, { recursive: true });
   for (const dashboard of DASHBOARDS) {
-    for (const [audience, width] of [[null, 1440], [null, 320], [null, 390], [null, 768], [null, 1024], ['analytics', 1920], ['data-science', 1920], ['tourism', 1920], ['analytics', 1440], ['analytics', 390]]) {
+    for (const [audience, width] of [[null, 1440], [null, 1366], [null, 320], [null, 390], [null, 768], [null, 1024], ['analytics', 1920], ['data-science', 1920], ['tourism', 1920], ['analytics', 1440], ['analytics', 1024], ['analytics', 390]]) {
       await runCase({ browser, base, artifactDir, dashboard, audience, width });
     }
   }

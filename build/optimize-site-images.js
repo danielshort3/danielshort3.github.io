@@ -55,6 +55,16 @@ const jobs = [
       { extension: '.avif', format: 'avif', options: { quality: 66, effort: 6, chromaSubsampling: '4:4:4' } },
       { extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }
     ]
+  },
+  {
+    source: 'img/projects/website.png',
+    outputs: [
+      ...[null, 640, 960].flatMap((width) => [
+        { suffix: width ? `-${width}` : '', extension: '.avif', format: 'avif', width, options: { quality: 68, effort: 6, chromaSubsampling: '4:4:4' } },
+        { suffix: width ? `-${width}` : '', extension: '.webp', format: 'webp', width, options: { quality: 92, effort: 6, smartSubsample: true } }
+      ]),
+      { suffix: '-preview', extension: '.webp', format: 'webp', width: 1280, options: { quality: 94, effort: 6, smartSubsample: true } }
+    ]
   }
 ];
 

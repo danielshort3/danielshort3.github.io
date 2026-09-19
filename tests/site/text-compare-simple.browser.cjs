@@ -72,6 +72,15 @@ async function runCase({ browser, base, artifactDir }, width) {
     };
     assert.equal(await page.locator('#main [role="tab"]').count(), 0, 'Text Compare has no view tabs.');
     assert.equal(await page.locator('#main button').filter({ hasText: /^Paste$/ }).count(), 0, 'The redundant Paste buttons are gone.');
+    assert.equal(await page.locator('#main input[type="file"]').count(), 0, 'Import file controls are removed.');
+    assert.equal(await page.locator('#main button').filter({ hasText: /^(Import|Try an example)$/ }).count(), 0, 'Import and explicit example buttons are removed.');
+    assert.equal(await page.locator('label[for="textcompare-original"]').innerText(), 'Before');
+    assert.equal(await page.locator('label[for="textcompare-revised"]').innerText(), 'After');
+    assert.equal(await compare.innerText(), 'Compare');
+    assert.equal(await original.inputValue(), '');
+    assert.equal(await revised.inputValue(), '');
+    assert((await original.getAttribute('placeholder')).includes('Product analytics') &&
+      (await revised.getAttribute('placeholder')).includes('Product analytics'), 'The default example is visible without becoming user input.');
     assert.equal(await options.getAttribute('open'), null, 'Advanced controls start collapsed.');
     assert(await copy.isDisabled(), 'Empty comparison cannot be copied.');
     await assertLayout(page, width, stage);
@@ -104,15 +113,11 @@ async function runCase({ browser, base, artifactDir }, width) {
     assert(currentCopy['text/html'].includes('CURRENTREVISION') && !currentCopy['text/html'].includes('FIRSTREVISION'), 'Formatted output also uses the current comparison.');
     await assertLayout(page, width, stage);
 
-    stage = 'import-mode-swap-clear';
+    stage = 'structured-mode-swap-clear';
     await options.locator('summary').first().click();
     await page.locator('#textcompare-clear').click();
-    for (const field of ['original', 'revised']) {
-      const chooser = page.waitForEvent('filechooser');
-      await page.locator(`#textcompare-${field}-import`).click();
-      await (await chooser).setFiles({ name: `${field}.csv`, mimeType: 'text/csv', buffer: Buffer.from(`name,count\nalpha,${field === 'original' ? 2 : 7}`) });
-      await page.waitForFunction(id => document.getElementById(`textcompare-${id}`).value.includes('alpha,'), field);
-    }
+    await original.fill('name,count\nalpha,2');
+    await revised.fill('name,count\nalpha,7');
     await page.locator('#textcompare-mode-structured').check();
     await compare.click();
     await waitResult();
@@ -129,17 +134,34 @@ async function runCase({ browser, base, artifactDir }, width) {
     assert(await copy.isDisabled(), 'Clear cancels pending edits and leaves Copy unavailable.');
     await assertLayout(page, width, stage);
 
-    stage = 'example';
+    stage = 'default-example';
+    await page.locator('#textcompare-mode-auto').check();
     await options.locator('summary').first().click();
-    await page.locator('#textcompare-example').click();
+    await compare.click();
     await waitResult();
-    const exampleDraft = await revised.inputValue();
-    assert(exampleDraft.length > 100 && (await output.locator('ins,del').count()) > 0, 'The example runs immediately and shows actual changes.');
-    assert.equal(await page.evaluate(() => document.activeElement.id), 'textcompare-example', 'Loading the example keeps focus on its button.');
-    assert.equal(await original.evaluate(node => node.scrollTop), 0, 'The original example opens at its beginning.');
-    assert.equal(await revised.evaluate(node => node.scrollTop), 0, 'The revised example opens at its beginning.');
+    const exampleDraft = await revised.getAttribute('placeholder');
+    assert(exampleDraft.includes('Friday') && (await output.locator('ins,del').count()) > 0, 'Compare runs the default example and shows actual changes.');
+    assert.equal(await original.inputValue(), '', 'The default comparison does not populate Before.');
+    assert.equal(await revised.inputValue(), '', 'The default comparison does not populate After.');
+    assert(await compare.evaluate(node => document.activeElement === node), 'Running the example keeps focus on Compare.');
     await copyAndCheck(exampleDraft);
-    await page.screenshot({ path: path.join(artifactDir, `text-compare-simple-${width}-compared.png`), fullPage: width < 500 });
+    await page.screenshot({ path: path.join(artifactDir, 'text-compare-simple-' + width + '-compared.png'), fullPage: width < 500 });
+
+    stage = 'one-sided-comparisons';
+    await original.fill('ONLY_BEFORE_TEXT');
+    assert(!(await original.getAttribute('placeholder')).includes('Product analytics') &&
+      !(await revised.getAttribute('placeholder')).includes('Product analytics'), 'Typing on either side immediately removes both example previews.');
+    assert(!(await output.innerText()).includes('Product analytics'), 'Typing immediately removes the old example result.');
+    await waitResult();
+    assert.equal(await output.locator('del').innerText(), 'ONLY_BEFORE_TEXT', 'Before-only text is shown as deleted.');
+    assert.equal(await output.locator('ins').count(), 0, 'An empty After side receives no example fallback.');
+    await copyAndCheck('');
+    await original.fill('');
+    await revised.fill('ONLY_AFTER_TEXT');
+    await waitResult();
+    assert.equal(await output.locator('ins').innerText(), 'ONLY_AFTER_TEXT', 'After-only text is shown as inserted.');
+    assert.equal(await output.locator('del').count(), 0, 'An empty Before side receives no example fallback.');
+    await copyAndCheck('ONLY_AFTER_TEXT');
 
     stage = 'legacy-restore';
     for (const view of ['drafts', 'comparison']) {
@@ -160,7 +182,7 @@ async function runCase({ browser, base, artifactDir }, width) {
     }
     assert.deepEqual(accountRequests, [], 'No real account or save request is required for these workflows.');
     assert.deepEqual(errors, [], 'The simplified workspace produces no runtime exceptions.');
-    console.log(`Text Compare simple workspace passed at ${width}px: compare/edit/copy, import/mode/swap/clear, example, legacy restore, and layout.`);
+    console.log(`Text Compare simple workspace passed at ${width}px: compare/edit/copy, structured mode/swap/clear, default example, one-sided comparisons, legacy restore, and layout.`);
   } catch (error) {
     await page.screenshot({ path: path.join(artifactDir, `text-compare-simple-${width}-failure.png`), fullPage: true }).catch(() => {});
     error.message = `${width}px ${stage}: ${error.message}`;

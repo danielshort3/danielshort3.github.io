@@ -12,6 +12,9 @@
 *.cjs text eol=lf
 *.mjs text eol=lf
 *.svg text eol=lf
+*.kt text eol=lf
+*.kts text eol=lf
+mobile/android/gradlew text eol=lf
 
 # Ensure binary assets stay untouched
 *.png binary

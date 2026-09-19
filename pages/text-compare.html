@@ -9,7 +9,7 @@
   <meta name="description" content="Compare two versions of text and see insertions, deletions, and replacements inline. Runs locally in your browser.">
   <meta property="og:title" content="Text Compare | Daniel Short">
   <meta property="og:site_name" content="Daniel Short">
-  <meta property="og:description" content="Paste an original and revised draft to see insertions, deletions, and replacements highlighted inline.">
+  <meta property="og:description" content="Paste before and after text to see insertions, deletions, and replacements highlighted inline.">
   <meta property="og:url" content="https://www.danielshort.me/tools/text-compare">
   <meta property="og:image" content="https://www.danielshort.me/img/social/tool-text-compare.png?v=590216eb0431">
   <meta property="og:image:width" content="1200">
@@ -19,7 +19,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:title" content="Text Compare | Daniel Short">
-  <meta name="twitter:description" content="Paste an original and revised draft to see insertions, deletions, and replacements highlighted inline.">
+  <meta name="twitter:description" content="Paste before and after text to see insertions, deletions, and replacements highlighted inline.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/social/tool-text-compare.png?v=590216eb0431">
   <meta name="twitter:image:alt" content="Text Compare — browser tool by Daniel Short">
   <meta name="theme-color" content="#0D1117">
@@ -49,7 +49,7 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.63ee94e5.js"></script>
+  <script defer src="dist/site-shell.0a922a8b.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.fe0e5a75.css">
   <script type="application/ld+json" id="tool-jsonld">
@@ -58,7 +58,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/tools/text-compare#webpage","url":"https://www.danielshort.me/tools/text-compare","name":"Text Compare | Daniel Short","description":"Compare two versions of text and see insertions, deletions, and replacements inline. Runs locally in your browser.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/tool-text-compare.png?v=590216eb0431"},"mainEntity":{"@id":"https://www.danielshort.me/tools/text-compare#app"},"breadcrumb":{"@id":"https://www.danielshort.me/tools/text-compare#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/tools/text-compare#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://www.danielshort.me/tools"},{"@type":"ListItem","position":3,"name":"Text Compare","item":"https://www.danielshort.me/tools/text-compare"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:text-compare","path":"/tools/text-compare","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.91c0fa3c.css","/dist/styles-tools.32cc46e6.css","/css/components/text-compare.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.63ee94e5.js","/js/tools/tool-share-link.js","/js/tools/text-compare-core.js","/js/tools/text-compare.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:text-compare"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:text-compare","path":"/tools/text-compare","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.91c0fa3c.css","/dist/styles-tools.32cc46e6.css","/css/components/text-compare.css","/dist/styles-personal-accordion.fe0e5a75.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.0a922a8b.js","/js/tools/tool-share-link.js","/js/tools/text-compare-core.js","/js/tools/text-compare.js","/dist/site-tools-account.023b64e1.js","/dist/site-consent.ab1759e7.js"],"module":"tools:text-compare"}</script>
 </head>
 <body data-page="text-compare" class="text-compare-page tools-tool-page site-page personal-accordion-page" data-tools-layout="text" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="text-compare" data-personal-fit="viewport" data-site-route-id="tools:text-compare" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:text-compare">
   <a href="/tools/text-compare#main" class="skip-link">Skip to main content</a>
@@ -151,31 +151,20 @@
         <div class="textcompare-grid">
           <div class="textcompare-field" data-field="original">
             <div class="textcompare-field-head">
-              <label class="textcompare-label" for="textcompare-original">Original</label>
-              <div class="textcompare-field-actions">
-                <button type="button" id="textcompare-original-import" aria-label="Import original file" class="btn-ghost textcompare-field-btn">Import</button>
-                <input id="textcompare-original-file" tabindex="-1" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import original text file">
-              </div>
+              <label class="textcompare-label" for="textcompare-original">Before</label>
             </div>
-            <p id="textcompare-original-status" class="textcompare-field-status" aria-live="polite"></p>
-            <textarea id="textcompare-original" class="textcompare-textarea" name="original" placeholder="Paste the original draft" spellcheck="false"></textarea>
+            <textarea id="textcompare-original" class="textcompare-textarea" name="original" placeholder="Paste the text before changes" spellcheck="false"></textarea>
           </div>
           <div class="textcompare-field" data-field="revised">
             <div class="textcompare-field-head">
-              <label class="textcompare-label" for="textcompare-revised">Revised</label>
-              <div class="textcompare-field-actions">
-                <button type="button" id="textcompare-revised-import" aria-label="Import revised file" class="btn-ghost textcompare-field-btn">Import</button>
-                <input id="textcompare-revised-file" tabindex="-1" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import revised text file">
-              </div>
+              <label class="textcompare-label" for="textcompare-revised">After</label>
             </div>
-            <p id="textcompare-revised-status" class="textcompare-field-status" aria-live="polite"></p>
-            <textarea id="textcompare-revised" class="textcompare-textarea" name="revised" placeholder="Paste the revised draft" spellcheck="false"></textarea>
+            <textarea id="textcompare-revised" class="textcompare-textarea" name="revised" placeholder="Paste the text after changes" spellcheck="false"></textarea>
           </div>
         </div>
       </div>
       <div class="textcompare-primary-actions">
-        <button type="submit" class="btn-primary">Compare drafts</button>
-        <button type="button" id="textcompare-example" class="btn-ghost">Try an example</button>
+        <button type="submit" class="btn-primary">Compare</button>
       </div>
       <section id="textcompare-view-comparison" class="textcompare-results-card" aria-labelledby="textcompare-result-title">
         <div class="tool-workspace-header">
@@ -193,7 +182,7 @@
           <span class="diff-pill diff-pill-del">Deleted</span>
         </div>
         <div id="textcompare-output" class="textcompare-output" role="region" aria-label="Inline comparison output" tabindex="0">
-          <p class="textcompare-empty">Add both drafts, then compare.</p>
+          <p class="textcompare-empty">Compare the example, or enter your own text.</p>
         </div>
         <p id="textcompare-warning" class="textcompare-warning" aria-live="polite"></p>
       </section>

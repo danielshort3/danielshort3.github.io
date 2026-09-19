@@ -41,6 +41,7 @@ const scanSkipDirs = new Set([
   'documents',
   'img',
   'node_modules',
+  'mobile',
   'public',
   'test',
   'tests'
