@@ -20,7 +20,7 @@ Open the [interactive hitbox review](../../output/starfall-hitbox-review/index.h
 
 Alpha 64 is a deliberate raster-edge threshold: fainter antialiasing is not hittable. Scaling/filtering can soften the displayed edge at subpixel positions, so this is an exact source-mask guarantee, not a claim that every screen-space antialiasing sample is a separate collision pixel. Cosmetic FX, shadows and warnings are separate layers and do not enlarge the enemy body. This audit does not certify the drawing quality or seamlessness of every animation, nor redefine player hurtboxes or enemy weapon/hazard reach.
 
-Exact masks add approximately **344 KB gzip** to the game bundle, bringing it to about **1.42 MB gzip**. The explicit compressed budget is **1.5 MiB**; the existing **5 MiB raw** limit remains. This is the measured cost of retaining pixel-level transparent gaps instead of accepting coarse invisible padding.
+Exact masks occupy approximately **340 KB gzip** in a separate content-hashed script. The start screen does not request it; selecting Start loads it before character selection can open, with a disabled action, loading status and explicit retry after failure. The initial game bundle is about **1.08 MB gzip**, while both scripts together remain within the existing **1.5 MiB gzip** and **5 MiB raw** limits. The complete initial route is about **1.48 MB gzip** against its unchanged **1.7 MB** delivery budget. The same exact masks preserve pixel-level transparent gaps without runtime image readback.
 
 ## Regeneration
 
