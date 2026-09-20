@@ -54,7 +54,7 @@ internal fun PizzaTipsDemo(onBack: () -> Unit) {
   }
   DemoPage("Pizza Tip Estimator", "Explore the website’s saved regression models with a delivery scenario.", onBack) {
     OutlinedTextField(cost, { cost = it.take(12); showEstimate = false; error = "" }, label = { Text("Order cost ($)") }, singleLine = true,
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth().protectChromeWhileEditing())
     DemoSelect("City", PizzaTipsModel.cities, city, { city = it; showEstimate = false })
     DemoSelect("Housing", PizzaTipsModel.housingTypes, housing, { housing = it; showEstimate = false })
     DemoSelect("Order hour (24h)", (0..23).map(Int::toString), hour, { hour = it; showEstimate = false })

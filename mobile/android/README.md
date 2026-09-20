@@ -12,6 +12,7 @@ A Kotlin and Jetpack Compose app that shares the website's public content. Navig
 | Games | Six native experiences: Roulette, Stellar Dogfight, Ocean Wave Simulation, Project Starfall, Probability Engine, and Stormbreak |
 | Project demos | Native drawing, digit generation, language inputs, Nonogram replay, historical datasets, and dashboard filters/charts |
 | Settings | Header gear; automatic content updates, unmetered updates, reduced motion, refresh, image cache, and bookmark controls |
+| App updates | Settings checks public releases, verifies the installed APK, downloads a smaller binary patch when available, verifies the resulting signed APK, and opens Android's installation confirmation |
 | Contact | Native contact cards; project questions open an email app with the project in the subject |
 | External resources | PDFs, source repositories, credentials, and unsupported future catalog entries are explicitly opened in another app |
 
@@ -42,6 +43,12 @@ The repository validates schema version 1, identifiers, HTTPS links, and payload
 **The production feed is live** at `https://www.danielshort.me/app-content/v1/catalog.json`, deployed through website PR #209. The existing default APK can refresh from it without reinstalling. Future content edits reach phones after the website build is deployed; building only the Android project or running a local preview does not publish those edits. The bundled catalog remains available offline.
 
 Native layouts, Kotlin behavior, dependencies, permissions, and new native features require a rebuilt and installed app update. Website CSS or JavaScript changes do not alter the native UI. No code is fetched and executed to bypass Android app updates.
+
+### Updating native features from Settings
+
+Use **Settings → App updates → Check for updates**. Native checks and downloads are explicit and independent of the automatic website-content setting. The updater recognizes exact published APK bytes, checks signing identity, and verifies the finished update before handing it to Android. A smaller patch is preferred; a verified complete APK can recover from an unavailable patch. Unknown local builds, modified APKs, split installations, different signing keys, and mismatched downloads cannot bypass verification.
+
+The first updater-enabled APK must be installed manually once. In-app updates then require a published channel manifest and matching APK/patch assets; a local build alone does not publish them. Android may ask you to allow installations from this app and always controls the installation confirmation. See [UPDATES.md](UPDATES.md) for artifact preparation, stable signing, and the release order.
 
 ## Offline behavior
 
@@ -126,6 +133,7 @@ node tests/site/mobile-content.test.js
 Important files:
 
 - `app/src/main/java/me/danielshort/app/ui/DanielShortApp.kt`: native screen hierarchy and Android actions.
+- `app/src/main/java/me/danielshort/app/ui/ScrollChrome.kt`: shared header/navigation visibility. Consumed downward gestures hide the complete bars; upward gestures reveal them. Lists retain stable geometry, while text focus, the keyboard, and touch exploration keep navigation available. Reduced motion uses immediate changes. Focused project demos reuse the top bar without adding bottom navigation.
 - `app/src/main/java/me/danielshort/app/data/ContentRepository.kt`: cache, refresh, and bookmarks.
 - `app/src/main/java/me/danielshort/app/data/SiteContent.kt`: typed content model and validation.
 - `app/src/main/java/me/danielshort/app/SiteApplication.kt`: background refresh scheduling.
