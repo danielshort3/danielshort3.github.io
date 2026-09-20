@@ -45,4 +45,3 @@ The raw helper and bundled output each match their public copy byte-for-byte. Th
 ## Limits
 
 No additional test suite or training matrix was started for this review; existing focused tests were read, and source/build inclusion was verified directly. The review did not perform a new live pursuit animation check or exhaustively simulate every route and actor combination. New future policy combinations, dynamic mutation of graph edges in place, and balance outcomes are outside this certification. Training reports and the separate full-size/deep visual reviews retain their own scope and acceptance findings. Line references describe the source at review time and may shift after later edits.
-

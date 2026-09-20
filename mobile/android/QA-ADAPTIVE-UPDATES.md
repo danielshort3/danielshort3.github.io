@@ -33,3 +33,19 @@ Unit/device coverage also checks persistent manual-install suppression, forged c
 - A patch from the published version-4 APK and an inventory preserving earlier approved hashes are staged alongside it. Publication still requires uploading the immutable assets and deliberately updating the channel manifest as described in `UPDATES.md`.
 
 The local APK is intentionally unrecognized by the unchanged public release inventory. Its startup check reports that condition in Settings until the reviewed release is published; routine startup failures do not interrupt the current screen.
+
+## Combined release candidate — version 6
+
+The release candidate was rebuilt from the original workspace after combining the Android changes with the pending website content. This **0.4.0-debug**, version-code **6**, APK supersedes the version-5 staging artifact above. It is distinct from the temporary version-6 installation fixture used in the earlier device checks.
+
+- `testDebugUnitTest`, `lintDebug`, `assembleDebug`, and `assembleDebugAndroidTest` passed. All **161 JVM tests** passed with no skips or failures. Lint reported **0 errors**, 33 warnings, and 10 hints.
+- All **16 Node protocol and release-feed tests** passed.
+- APK: `app/build/outputs/app-update/review-v6/Daniel-Short-review-v6-21283723b7cc6aa7.apk` — **24,747,980 bytes**.
+- APK SHA-256: `21283723b7cc6aa74200f189926e227eaacdb7389ac7bc5c03e4b5e700a2fbe5`.
+- Android metadata confirms package `me.danielshort.app.debug`, version `0.4.0-debug` / `6`, minimum SDK 26, and target SDK 36.
+- `apksigner verify --verbose --print-certs` passed with one APK v2 signer. Certificate SHA-256 remains `88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e`, matching the preserved review identity.
+- The **743,242-byte** patch from published version 4 (`6b250314…`) and **506,397-byte** patch from local version 5 (`67eb0fa4…`) independently reconstructed the complete version-6 APK byte for byte. All staged `SHA256SUMS.txt` entries matched.
+- The staged manifest preserves all three previously published APK identities, adds the verified local version-5 base and this version-6 target, and names two patches: **five approved hashes total**.
+- The APK's `assets/catalog.json` exactly matches both `dist/app-content/v1/catalog.json` and `public/app-content/v1/catalog.json`: SHA-256 `31fa9ce3da3ee73a490287d4027b996ae5600f7c52af72786313250314296d1b`, revision `d7800351a48eac4504064c686e327e762fbaf28ab0855f1ac950dbe573274ddc`.
+
+These are local build and artifact checks. No version-6 device installation or public runtime verification was performed during this rebuild. At staging, the designated review feed still selected published version 4; uploading release assets and changing that feed remain separate release steps. Build and staging logs are in the workstation temporary directory as `android-review-v6-gradle.log` and `android-review-v6-staging.log`.

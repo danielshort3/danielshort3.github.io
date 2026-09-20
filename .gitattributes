@@ -16,6 +16,10 @@
 *.kts text eol=lf
 mobile/android/gradlew text eol=lf
 
+# Archived diffs require their single-space context lines to remain intact.
+output/starfall-map-scenery-review/training-post-measurement-visual.patch whitespace=-blank-at-eol
+output/starfall-map-scenery-review/training-pre-cinder-adjustment/training-post-measurement-visual.patch whitespace=-blank-at-eol
+
 # Ensure binary assets stay untouched
 *.png binary
 *.jpg binary

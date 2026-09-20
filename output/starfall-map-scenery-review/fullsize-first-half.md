@@ -338,4 +338,3 @@ Source: `verified-clear/`.
 The four Pixi views of Bramble Depths, Gearworks Vault, Emberjaw Lair, and Bandit Animation Lab were also inspected under `verified-clear/` before their `npc-final/` replacements. Their arrival views exposed the placeholder defect. Rimewarden Sanctum's primary review began with its repaired `npc-final/` images.
 
 The four Ashglass Pixi views and Canvas middle were first inspected under `verified-clear/`, then the corrected files listed above under `contact-final/`. The initial contact finding is retained here as provenance, not as an unresolved claim about the final repaired images.
-
