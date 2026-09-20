@@ -85,6 +85,8 @@ async function assertLayout(page) {
       audience: frame?.dataset.frameAudience,
       overview: frame?.dataset.frameHome === 'true' && frame?.dataset.frameView === 'overview',
       compact: frame?.dataset.frameCompact === 'true',
+      mobileNavigation: document.body.classList.contains('has-mobile-scroll-chrome'),
+      mobileCategories: [...document.querySelectorAll('[data-mobile-section-nav] [data-mobile-section]')].map(node => node.dataset.mobileSection),
       viewportBox: viewportBox ? { top: viewportBox.top, bottom: viewportBox.bottom, left: viewportBox.left, right: viewportBox.right } : null,
       tabs
     };
@@ -97,13 +99,17 @@ async function assertLayout(page) {
   assert(layout.pageWidth <= layout.width + 1, `Document overflows horizontally: ${JSON.stringify(layout)}`);
   const visibleTabs = layout.tabs.filter(tab => !tab.hidden);
   assert.deepEqual(visibleTabs.map(tab => tab.category), layout.audience !== 'personal'
-    ? ['about', 'projects', 'resume', 'contact'] : layout.overview
+    ? ['about', 'projects', 'resume', 'contact'] : layout.overview && !(layout.compact && layout.mobileNavigation)
       ? ['about', 'projects', 'tools', 'games', 'contact'] : [layout.category],
   'Navigation exposes the correct categories for the audience and route.');
+  if (layout.compact && layout.mobileNavigation) {
+    assert.deepEqual(layout.mobileCategories, ['about', 'projects', 'tools', 'games', 'contact'],
+      'The mobile bottom navigation retains every category while only the active rail is displayed.');
+  }
   assert.equal(layout.tabs.filter(tab => tab.active).length, 1, 'Exactly one category is active.');
   for (const tab of layout.tabs.filter(tab => tab.hidden)) {
     assert(tab.inert && tab.tabIndex === -1 && tab.box?.width === 0 && tab.box?.height === 0,
-      `${tab.category} is removed from layout and keyboard navigation outside the overview.`);
+      `${tab.category} inactive rail is removed from layout and keyboard navigation.`);
   }
   for (const { category, box, inert, tabIndex } of visibleTabs) {
     assert(box && box.width >= 40 && box.height >= 40 && !inert && tabIndex === 0,
@@ -129,7 +135,7 @@ async function assertLayout(page) {
     }
     if (layout.overview) {
       assert(visibleTabs.every((tab, index) => index === 0 || tab.box.top >= visibleTabs[index - 1].box.bottom - 2),
-        'The mobile overview stacks all five category tabs vertically.');
+        'Visible mobile overview rails remain vertically ordered.');
       const activeIndex = visibleTabs.findIndex(tab => tab.active);
       assert(layout.viewportBox.top >= visibleTabs[activeIndex].box.bottom - 2,
         'Mobile overview content expands directly beneath the active category.');
@@ -139,6 +145,18 @@ async function assertLayout(page) {
     }
   }
   return layout;
+}
+
+async function categoryControl(page, category) {
+  const rail = page.locator(`[data-site-tab="${category}"]`);
+  if (await rail.isVisible()) return rail;
+  // Keyboard interaction reveals the scroll-hidden mobile navigation before use.
+  if (await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden'))) {
+    await page.keyboard.press('Tab');
+  }
+  const link = page.locator(`[data-mobile-section-nav] [data-mobile-section="${category}"]`);
+  await link.waitFor({ state: 'visible' });
+  return link;
 }
 
 async function scrollState(page) {
@@ -514,7 +532,7 @@ async function runViewport(browser, base, settings) {
     stage = 'all-five-categories';
     const categoryLayouts = {};
     for (const category of ['projects', 'tools', 'games', 'contact', 'about']) {
-      await page.locator(`[data-site-tab="${category}"]`).focus();
+      await (await categoryControl(page, category)).focus();
       await page.keyboard.press('Enter');
       await settle(page);
       await page.waitForFunction(expected => SiteFrame.root()?.dataset.frameCategory === expected, category);
@@ -527,7 +545,7 @@ async function runViewport(browser, base, settings) {
     }
 
     stage = 'project-library-and-detail';
-    await page.locator('[data-site-tab="projects"]').click();
+    await (await categoryControl(page, 'projects')).click();
     await page.waitForURL(url => url.pathname === '/' && url.hash === '#projects');
     await settle(page);
     await resetScroll(page);
@@ -570,12 +588,12 @@ async function runViewport(browser, base, settings) {
     await assertSharedStage(page, homeStage, 'Project detail restored by Forward');
     assert(await page.evaluate(() => smokeFrame === SiteFrame.root() && smokeTimeOrigin === performance.timeOrigin),
       'Project routes and their history preserve the shared frame and document.');
-    await page.locator('[data-site-tab="projects"]').click();
+    await (await categoryControl(page, 'projects')).click();
     await page.waitForURL(url => url.pathname === '/' && url.hash === '#projects');
     await settle(page);
 
     stage = 'games-library-and-detail';
-    await page.locator('[data-site-tab="games"]').click();
+    await (await categoryControl(page, 'games')).click();
     await page.waitForURL(url => url.pathname === '/' && url.hash === '#games');
     await settle(page);
     await resetScroll(page);
@@ -608,12 +626,12 @@ async function runViewport(browser, base, settings) {
     await assertSharedStage(page, homeStage, 'Game detail restored by Forward');
     assert(await page.evaluate(() => smokeFrame === SiteFrame.root() && smokeTimeOrigin === performance.timeOrigin),
       'Game routes and history preserve the shared frame and document.');
-    await page.locator('[data-site-tab="games"]').click();
+    await (await categoryControl(page, 'games')).click();
     await page.waitForURL(url => url.pathname === '/' && url.hash === '#games');
     await settle(page);
 
     stage = 'keyboard-navigation';
-    await page.locator('[data-site-tab="tools"]').focus();
+    await (await categoryControl(page, 'tools')).focus();
     await page.keyboard.press('Enter');
     await settle(page);
     await page.waitForFunction(() => SiteFrame.root()?.dataset.frameCategory === 'tools');
@@ -640,11 +658,11 @@ async function runViewport(browser, base, settings) {
     await resetScroll(page);
 
     stage = 'contact-navigation';
-    await page.locator('[data-site-tab="tools"]').click();
+    await (await categoryControl(page, 'tools')).click();
     await page.waitForURL(url => url.pathname === '/' && url.hash === '#tools');
     await settle(page);
     await assertLayout(page);
-    await page.locator('[data-site-tab="contact"]').click();
+    await (await categoryControl(page, 'contact')).click();
     await page.waitForURL(url => url.pathname === '/' && url.hash === '#contact');
     await settle(page);
     assert(await page.locator('a[href^="mailto:"]').first().isVisible(), 'Contact exposes a working email link.');
@@ -669,7 +687,7 @@ async function runViewport(browser, base, settings) {
       'Back and Forward preserve the shared frame and page.');
 
     stage = 'text-compare';
-    await page.locator('[data-site-tab="tools"]').click();
+    await (await categoryControl(page, 'tools')).click();
     await settle(page);
     await page.locator('[data-home-library-open="tools"]').click();
     await page.waitForURL(url => url.pathname === '/tools');

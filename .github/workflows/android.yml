@@ -86,7 +86,7 @@ jobs:
 
       - name: Test, lint, and build review APK
         working-directory: mobile/android
-        run: bash ./gradlew --no-daemon --console=plain testDebugUnitTest lintDebug assembleDebug
+        run: bash ./gradlew --no-daemon --console=plain testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 
       - name: Upload review APK
         uses: actions/upload-artifact@v4

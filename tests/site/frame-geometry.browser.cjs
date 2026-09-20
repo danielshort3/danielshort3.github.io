@@ -264,7 +264,17 @@ async function finish(page, prefix) {
   return result;
 }
 async function targetClick(page, selector, touch) {
-  const n = page.locator(selector).first();
+  let n = page.locator(selector).first();
+  const category = /^\[data-site-tab="([a-z]+)"\]$/.exec(selector)?.[1];
+  if (category && !await n.isVisible()) {
+    // Compact windows expose inactive categories through the bottom navigation.
+    if (await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden'))) {
+      await page.keyboard.press('Tab');
+      await page.waitForFunction(() => !document.body.classList.contains('is-mobile-chrome-hidden'));
+    }
+    n = page.locator(`[data-mobile-section-nav] [data-mobile-section="${category}"]`);
+    await n.waitFor({ state: 'visible' });
+  }
   await n.scrollIntoViewIfNeeded();
   if (touch) await n.tap();
   else await n.click();
