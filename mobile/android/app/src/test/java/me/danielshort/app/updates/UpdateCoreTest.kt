@@ -72,6 +72,43 @@ class UpdateCoreTest {
     assertEquals("ready", apk.parentFile?.name)
   }
 
+  @Test fun automatedOptOutOnlyCancelsOwnedDownloads() = runBlocking {
+    transport.downloadGate = CompletableDeferred()
+    val manager = available()
+    manager.download()
+    awaitState<AppUpdateState.Downloading>(manager)
+    manager.cancelAutomaticDownload()
+    transport.downloadGate!!.complete(Unit)
+    awaitState<AppUpdateState.Ready>(manager)
+    assertFalse(manager.automaticDownloadsBlocked.value)
+  }
+
+  @Test fun canceledAutomaticDownloadKeepsVerifiedOfferAndManualRetry(): Unit = runBlocking {
+    transport.downloadGate = CompletableDeferred()
+    val manager = available()
+    manager.download(automated = true)
+    awaitState<AppUpdateState.Downloading>(manager)
+    manager.cancelAutomaticDownload()
+    awaitState<AppUpdateState.Available>(manager)
+    transport.downloadGate!!.complete(Unit)
+    manager.download()
+    awaitState<AppUpdateState.Ready>(manager)
+  }
+
+  @Test fun explicitCancelBlocksAutomaticDownloadButAllowsManualRetry(): Unit = runBlocking {
+    transport.downloadGate = CompletableDeferred()
+    val manager = available()
+    manager.download(automated = true)
+    awaitState<AppUpdateState.Downloading>(manager)
+    manager.cancel()
+    awaitState<AppUpdateState.Available>(manager)
+    assertTrue(manager.automaticDownloadsBlocked.value)
+    assertFalse(manager.download(automated = true))
+    transport.downloadGate!!.complete(Unit)
+    manager.download()
+    awaitState<AppUpdateState.Ready>(manager)
+  }
+
   @Test fun exactPatchReconstructsTarget() = runBlocking {
     val patch = patchBytes { output ->
       output.writeByte(0); output.writeLong(0); output.writeInt(base.length().toInt())

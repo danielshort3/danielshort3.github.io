@@ -12,7 +12,7 @@ A Kotlin and Jetpack Compose app that shares the website's public content. Navig
 | Games | Six native experiences: Roulette, Stellar Dogfight, Ocean Wave Simulation, Project Starfall, Probability Engine, and Stormbreak |
 | Project demos | Native drawing, digit generation, language inputs, Nonogram replay, historical datasets, and dashboard filters/charts |
 | Settings | Header gear; automatic content updates, unmetered updates, reduced motion, refresh, image cache, and bookmark controls |
-| App updates | Settings checks public releases, verifies the installed APK, downloads a smaller binary patch when available, verifies the resulting signed APK, and opens Android's installation confirmation |
+| App updates | Checks for published releases on launch by default; optional automatic verified downloads and installation while the app is out of use, subject to Android's permissions |
 | Contact | Native contact cards; project questions open an email app with the project in the subject |
 | External resources | PDFs, source repositories, credentials, and unsupported future catalog entries are explicitly opened in another app |
 
@@ -46,9 +46,17 @@ Native layouts, Kotlin behavior, dependencies, permissions, and new native featu
 
 ### Updating native features from Settings
 
-Use **Settings → App updates → Check for updates**. Native checks and downloads are explicit and independent of the automatic website-content setting. The updater recognizes exact published APK bytes, checks signing identity, and verifies the finished update before handing it to Android. A smaller patch is preferred; a verified complete APK can recover from an unavailable patch. Unknown local builds, modified APKs, split installations, different signing keys, and mismatched downloads cannot bypass verification.
+The app checks for native updates on a cold launch by default, without blocking the current screen. Rotation and returns from permissions or the installer do not repeat the launch check. **Settings → App updates** also provides a manual check and an optional automatic-update setting, independent of website-content refresh. Automatic downloads are restricted to unmetered connections by default; manual actions remain available.
 
-The first updater-enabled APK must be installed manually once. In-app updates then require a published channel manifest and matching APK/patch assets; a local build alone does not publish them. Android may ask you to allow installations from this app and always controls the installation confirmation. See [UPDATES.md](UPDATES.md) for artifact preparation, stable signing, and the release order.
+The updater recognizes exact published APK bytes, checks signing identity, and verifies the finished update before handing it to Android. A smaller patch is preferred; a verified complete APK can recover from an unavailable patch. Unknown local builds, modified APKs, split installations, different signing keys, and mismatched downloads cannot bypass verification.
+
+The first updater-enabled APK must be installed manually once. In-app updates then require a published channel manifest and matching APK/patch assets; a local build alone does not publish them. Android controls installation permission and may require confirmation. Automatic installation is opt-in and deferred while a native workspace, game, recording, or project detail is active. See [UPDATES.md](UPDATES.md) for platform requirements, artifact preparation, signing, and the release order.
+
+## Phones, tablets, and resizable windows
+
+The available app window determines navigation. Below 840dp, the app retains its phone layout and bottom navigation. Wider windows use the website's five colored vertical tabs, with the active page expanding between them. The window can change size without resetting the selected section or saved editor state.
+
+Wide libraries use additional columns when cards have enough room; reading and settings panels keep a comfortable maximum width. Text Compare places its editors side by side when space and the text-size setting allow it. The tabs remain available on wide screens, while the header can hide as content scrolls. Phone headers and bottom navigation keep their existing scroll behavior.
 
 ## Offline behavior
 
@@ -133,6 +141,9 @@ node tests/site/mobile-content.test.js
 Important files:
 
 - `app/src/main/java/me/danielshort/app/ui/DanielShortApp.kt`: native screen hierarchy and Android actions.
+- `app/src/main/java/me/danielshort/app/ui/AdaptiveSiteLayout.kt`: window-width policy, native vertical tabs, and stable content placement across resizing.
+- `app/src/main/java/me/danielshort/app/updates/AppUpdateCoordinator.kt`: launch checks, network-aware downloads, and background installation eligibility.
+- `app/src/main/java/me/danielshort/app/updates/AutomaticInstallEngine.kt` and `AutomaticAppInstaller.kt`: persistent installation state, Android package sessions, and manual-confirmation fallback. See [UPDATES.md](UPDATES.md) for the verification and publication contract.
 - `app/src/main/java/me/danielshort/app/ui/ScrollChrome.kt`: shared header/navigation visibility. Consumed downward gestures hide the complete bars; upward gestures reveal them. Lists retain stable geometry, while text focus, the keyboard, and touch exploration keep navigation available. Reduced motion uses immediate changes. Focused project demos reuse the top bar without adding bottom navigation.
 - `app/src/main/java/me/danielshort/app/data/ContentRepository.kt`: cache, refresh, and bookmarks.
 - `app/src/main/java/me/danielshort/app/data/SiteContent.kt`: typed content model and validation.
@@ -146,8 +157,8 @@ The DS header and launcher mark use native vector paths from the website's curre
 
 The Android GitHub Actions workflow runs unit tests, lint, and a debug APK build for relevant pull requests and main-branch changes. It uploads a review APK and reports; it does not publish to an app store. Website CI also checks the public content feed.
 
-The debug APK is for local installation and review. It is signed with Android's development key, not a production signing identity. No Play Store listing, production signing key, upload credentials, or automatic app distribution is configured by this project.
+The debug APK is for installation and review. Published review APKs and their update manifest use the preserved workstation development signing identity. CI's separately generated debug key cannot replace that identity. No Play Store listing or stable-channel production signing identity is configured.
 
-For distribution, create and securely retain a release signing/upload key, configure signing outside committed source, increment `versionCode` for app updates, build a signed release APK or App Bundle, and complete the selected distribution channel's setup. Do not commit keystores or passwords. Release artifacts are not ready for public distribution until signing and publication are configured.
+For stable distribution, create and securely retain a release signing/upload key, configure signing outside committed source, increment `versionCode` for app updates, build a signed release APK or App Bundle, and complete the selected distribution channel's setup. Do not commit keystores or passwords. Review-channel publication follows [UPDATES.md](UPDATES.md).
 
 The website feed deployment and Android app publication are separate release steps. Once the feed is public, supported content updates can reach installed apps without a new APK. Changes to native app code continue to require a normal signed app update.

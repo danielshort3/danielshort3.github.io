@@ -108,8 +108,11 @@ internal fun ScrollChromeLayout(
   )
   // Keyboard and accessibility focus restore controls immediately, before an action can run.
   val progress = if (allowed) animatedProgress else 0f
-  val statusInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-  val navigationInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+  // The wide frame owns the system-bar gutters. Raw inset access does not subtract consumed
+  // insets, so avoid painting a second status-bar strip over the frame's native toolbar.
+  val frameOwnsInsets = LocalSiteFrameInsetsHandled.current
+  val statusInset = if (frameOwnsInsets) 0.dp else WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+  val navigationInset = if (frameOwnsInsets) 0.dp else WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
   var topHeight by remember(density.density, statusInset) { mutableStateOf(66.dp + statusInset) }
   var bottomHeight by remember(density.density, navigationInset, bottomBar != null) {
     mutableStateOf(if (bottomBar == null) navigationInset else 81.dp + navigationInset)
