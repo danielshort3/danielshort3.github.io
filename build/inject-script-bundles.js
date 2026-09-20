@@ -31,7 +31,8 @@ const managedHrefs = {
   privacy: resolveHref('site-privacy.js', manifest.privacy),
   toolsAccount: resolveHref('site-tools-account.js', manifest.toolsAccount),
   toolsLanding: resolveHref('site-tools-landing.js', manifest.toolsLanding),
-  projectStarfall: resolveHref('project-starfall.js', manifest.projectStarfall)
+  projectStarfall: resolveHref('project-starfall.js', manifest.projectStarfall),
+  projectStarfallHurtboxes: resolveHref('project-starfall-hurtboxes.js', manifest.projectStarfallHurtboxes)
 };
 const SITE_SHELL_BUNDLE_PATTERN = /<script\b[^>]*\bsrc=(["'])\/?dist\/site-shell(?:\.[0-9a-f]{8})?\.js\1[^>]*>\s*<\/script>/gi;
 
@@ -411,7 +412,13 @@ function processHtml(html, relPath) {
     normalized = ensureSiteShellBundleInHead(normalized);
   }
 
-  const next = normalized.join('\n').replace(/^[ \t]+$/gm, '');
+  let next = normalized.join('\n').replace(/^[ \t]+$/gm, '');
+  if (isProjectStarfall) {
+    next = next.replace(/<section\b[^>]*\bdata-starfall-root\b[^>]*>/, (tag) => {
+      const clean = tag.replace(/\s+data-starfall-hurtboxes-src="[^"]*"/g, '');
+      return clean.replace(/>$/, ` data-starfall-hurtboxes-src="${managedHrefs.projectStarfallHurtboxes}">`);
+    });
+  }
   const finalized = finalizePersonalRouteDocument(next, { home: relPath === 'index.html' });
   if (/\bid="site-route-manifest"/i.test(finalized)) validatePersonalRouteDocument(finalized);
   return { html: finalized, changed: finalized !== html };

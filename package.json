@@ -67,7 +67,7 @@
     "scaffold": "node build/scaffold.js",
     "build": "node build/build-site.js",
     "dev": "node build/dev.js",
-    "test:browser": "node tests/site/smoke.browser.cjs && node tests/site/handwriting-payload.browser.cjs && node tests/site/project-question-cache.browser.cjs && node tests/site/service-worker-cache.browser.cjs && node tests/site/drawing-working-room.browser.cjs && node tests/site/cloud-demo-reconnect.browser.cjs && node tests/site/draft-notice-layout.browser.cjs && node tests/site/mobile-scroll-chrome.browser.cjs && node tests/site/media-tool-draft-clear.browser.cjs",
+    "test:browser": "node tests/site/smoke.browser.cjs && node tests/site/handwriting-payload.browser.cjs && node tests/site/project-question-cache.browser.cjs && node tests/site/service-worker-cache.browser.cjs && node tests/site/drawing-working-room.browser.cjs && node tests/site/cloud-demo-reconnect.browser.cjs && node tests/site/draft-notice-layout.browser.cjs && node tests/site/mobile-scroll-chrome.browser.cjs && node tests/site/media-tool-draft-clear.browser.cjs && node tests/project-starfall/project-starfall-start-data.browser.cjs",
     "performance:report": "node build/report-performance.js --check",
     "test:performance": "node tests/site/performance-budgets.test.js",
     "test:catalog-icons": "node tests/site/catalog-icons.test.js",

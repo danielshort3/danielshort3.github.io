@@ -14375,6 +14375,9 @@
 
     start() {
       if (this.running) return;
+      // Browser startup must never fall back to body bounds while exact combat
+      // data is still loading. Node/source consumers load that data synchronously.
+      if (EnemyHurtboxes.isReady && !EnemyHurtboxes.isReady()) return false;
       if (this.state.player && this.state.player.classId) this.snapCameraToPlayer();
       this.running = true;
       this.lastFrame = 0;
