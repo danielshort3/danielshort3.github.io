@@ -1,0 +1,45 @@
+{
+  "lighthouse": "13.5.0",
+  "results": [
+    {
+      "route": "/",
+      "median": {
+        "lcp": 3036.8106000000002,
+        "cls": 0,
+        "tbt": 31.5,
+        "requests": 19,
+        "bytes": 339196
+      }
+    },
+    {
+      "route": "/tools/text-compare",
+      "median": {
+        "lcp": 3198.3594749999997,
+        "cls": 0,
+        "tbt": 47.5,
+        "requests": 20,
+        "bytes": 346059
+      }
+    },
+    {
+      "route": "/portfolio/website",
+      "median": {
+        "lcp": 3029.0256,
+        "cls": 0,
+        "tbt": 19.5,
+        "requests": 18,
+        "bytes": 330291
+      }
+    },
+    {
+      "route": "/minesweeper-demo",
+      "median": {
+        "lcp": 3344.282,
+        "cls": 0.0002996170820107414,
+        "tbt": 71,
+        "requests": 23,
+        "bytes": 399117
+      }
+    }
+  ]
+}

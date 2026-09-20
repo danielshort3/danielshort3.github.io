@@ -1,0 +1,1989 @@
+{
+  "fileId": "bristle-boar",
+  "sourceSha256": "052f40a23cd61d15bfb09edcf48914057a36c57332104e0f4d53517ce6a377d5",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    190,
+    360,
+    541,
+    707,
+    886,
+    1052,
+    1234,
+    1448
+  ],
+  "sharedScale": 0.7337931034482759,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 86,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/bristle-boar-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 845832,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [
+    "Exact repeated authored drawing 16 and 15; review intentional holds.",
+    "Exact repeated authored drawing 17 and 16; review intentional holds.",
+    "Exact repeated authored drawing 22 and 21; review intentional holds.",
+    "Exact repeated authored drawing 23 and 22; review intentional holds."
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 10,
+        "top": 50,
+        "width": 165,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 116,
+        "width": 165,
+        "height": 117,
+        "pixels": 12278
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 167
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 21,
+        "top": 64,
+        "right": 141,
+        "bottom": 149,
+        "width": 121,
+        "height": 86,
+        "pixels": 6659,
+        "edgePixels": 0
+      },
+      "sha256": "f332b543cd552def81fa76a4b864c7d15068a039ea25ffb7cbe44a4868260f06"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 193,
+        "top": 50,
+        "width": 160,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 116,
+        "width": 160,
+        "height": 117,
+        "pixels": 11937
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 167
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 64,
+        "right": 138,
+        "bottom": 149,
+        "width": 117,
+        "height": 86,
+        "pixels": 6479,
+        "edgePixels": 0
+      },
+      "sha256": "b363870f022525d86605e433d0494fcf671b9eea0daf0ead535c8846ee8b6f37"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 374,
+        "top": 49,
+        "width": 159,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 117,
+        "width": 159,
+        "height": 118,
+        "pixels": 11892
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 167
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 63,
+        "right": 138,
+        "bottom": 149,
+        "width": 117,
+        "height": 87,
+        "pixels": 6496,
+        "edgePixels": 0
+      },
+      "sha256": "0d16cd3f9d9c26d428d987fbd52d7fae004aae81bf7c35dbd0b346c3466af7cc"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 554,
+        "top": 51,
+        "width": 160,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 115,
+        "width": 160,
+        "height": 116,
+        "pixels": 11996
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 167
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 65,
+        "right": 138,
+        "bottom": 149,
+        "width": 117,
+        "height": 85,
+        "pixels": 6485,
+        "edgePixels": 0
+      },
+      "sha256": "6419b0e496a19c0a7b914d93a966ad9144f2590a628a194f09bc5de564698b6d"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 733,
+        "top": 51,
+        "width": 160,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 114,
+        "width": 160,
+        "height": 115,
+        "pixels": 11816
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 167
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 65,
+        "right": 136,
+        "bottom": 148,
+        "width": 117,
+        "height": 84,
+        "pixels": 6347,
+        "edgePixels": 0
+      },
+      "sha256": "e556648d91c014a3b04bd0c4410e3e2b6e1e709e7c0d1ece893d0299f894741e"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 916,
+        "top": 49,
+        "width": 160,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 117,
+        "width": 160,
+        "height": 118,
+        "pixels": 12038
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 167
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 63,
+        "right": 138,
+        "bottom": 149,
+        "width": 117,
+        "height": 87,
+        "pixels": 6572,
+        "edgePixels": 0
+      },
+      "sha256": "c62785dbf52d6dea2be0df9c839432e8b981e1c7287fa567925b7213ad951dc1"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 14,
+        "top": 22,
+        "width": 169,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 119,
+        "width": 169,
+        "height": 120,
+        "pixels": 12371
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 145
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 60,
+        "right": 147,
+        "bottom": 147,
+        "width": 124,
+        "height": 88,
+        "pixels": 6684,
+        "edgePixels": 0
+      },
+      "sha256": "eba404b6f8b9b9293e5e84de0224a790de53b9e19e426e05a7e9431d13d5ae74"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 192,
+        "top": 23,
+        "width": 169,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 121,
+        "width": 169,
+        "height": 122,
+        "pixels": 12175
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 145
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 60,
+        "right": 145,
+        "bottom": 149,
+        "width": 124,
+        "height": 90,
+        "pixels": 6644,
+        "edgePixels": 0
+      },
+      "sha256": "0ac3bf600886576ee21513853a9af9bd29cda42571e7b41247bf765e3e49f44b"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 370,
+        "top": 24,
+        "width": 171,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 121,
+        "width": 171,
+        "height": 122,
+        "pixels": 12883
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 145
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 19,
+        "top": 61,
+        "right": 143,
+        "bottom": 150,
+        "width": 125,
+        "height": 90,
+        "pixels": 7029,
+        "edgePixels": 0
+      },
+      "sha256": "a78b7d391c93078c6bed3a30133e0bbc7b244e823f6036143790e2a7c671496e"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 553,
+        "top": 24,
+        "width": 171,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 121,
+        "width": 171,
+        "height": 122,
+        "pixels": 12693
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 145
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 61,
+        "right": 145,
+        "bottom": 150,
+        "width": 125,
+        "height": 90,
+        "pixels": 6931,
+        "edgePixels": 0
+      },
+      "sha256": "565ed5111924bcf7717edf791ee654b4584a382d51436240e41d9502c1109a98"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 732,
+        "top": 27,
+        "width": 171,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 117,
+        "width": 171,
+        "height": 118,
+        "pixels": 12635
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 145
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 19,
+        "top": 63,
+        "right": 143,
+        "bottom": 149,
+        "width": 125,
+        "height": 87,
+        "pixels": 6883,
+        "edgePixels": 0
+      },
+      "sha256": "f7539f87d22766254b9ebb3382caa6d5a4d068aa9412e78c3cf1a6b1b16a9eac"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 911,
+        "top": 25,
+        "width": 169,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 116,
+        "width": 169,
+        "height": 117,
+        "pixels": 12347
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 145
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 18,
+        "top": 62,
+        "right": 141,
+        "bottom": 147,
+        "width": 124,
+        "height": 86,
+        "pixels": 6703,
+        "edgePixels": 0
+      },
+      "sha256": "64b6ab67c37fad8f510415309f18eb97b2454481ccd369a58e5953ff932401b7"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 29,
+        "top": 130,
+        "width": 385,
+        "height": 274
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 384,
+        "bottom": 273,
+        "width": 385,
+        "height": 274,
+        "pixels": 65921
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 210,
+        "y": 401
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 65,
+        "right": 143,
+        "bottom": 150,
+        "width": 121,
+        "height": 86,
+        "pixels": 6613,
+        "edgePixels": 0
+      },
+      "sha256": "035bbf0722891e2bbd86178badb3dd3f61bffa4301b92c06b08e43814883e15f"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 492,
+        "top": 138,
+        "width": 365,
+        "height": 268
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 364,
+        "bottom": 267,
+        "width": 365,
+        "height": 268,
+        "pixels": 61634
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 664,
+        "y": 403
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 67,
+        "right": 139,
+        "bottom": 150,
+        "width": 114,
+        "height": 84,
+        "pixels": 6163,
+        "edgePixels": 0
+      },
+      "sha256": "6abcff0b5c1a865406f7e48adaf8f23e239c3fc9dc1b9ba9ccd367c34032a496"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 918,
+        "top": 179,
+        "width": 375,
+        "height": 233
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 374,
+        "bottom": 232,
+        "width": 375,
+        "height": 233,
+        "pixels": 59374
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1094,
+        "y": 409
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 78,
+        "right": 142,
+        "bottom": 150,
+        "width": 118,
+        "height": 73,
+        "pixels": 5980,
+        "edgePixels": 0
+      },
+      "sha256": "d0cc4b8c5316f10d91a60aecb05b4ff1f83c5e1bc909807487579a742437a5cd"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 1371,
+        "top": 184,
+        "width": 373,
+        "height": 228
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 372,
+        "bottom": 227,
+        "width": 373,
+        "height": 228,
+        "pixels": 57364
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1548,
+        "y": 409
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 79,
+        "right": 141,
+        "bottom": 149,
+        "width": 117,
+        "height": 71,
+        "pixels": 5756,
+        "edgePixels": 0
+      },
+      "sha256": "d536ff8e136ad6df3fb3e4fa3f5a24c9be08bcb63856f528fba28b2e5f82dde6"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 1371,
+        "top": 184,
+        "width": 373,
+        "height": 228
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 372,
+        "bottom": 227,
+        "width": 373,
+        "height": 228,
+        "pixels": 57364
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1548,
+        "y": 409
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 79,
+        "right": 141,
+        "bottom": 149,
+        "width": 117,
+        "height": 71,
+        "pixels": 5756,
+        "edgePixels": 0
+      },
+      "sha256": "d536ff8e136ad6df3fb3e4fa3f5a24c9be08bcb63856f528fba28b2e5f82dde6"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 1371,
+        "top": 184,
+        "width": 373,
+        "height": 228
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 372,
+        "bottom": 227,
+        "width": 373,
+        "height": 228,
+        "pixels": 57364
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1548,
+        "y": 409
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 79,
+        "right": 141,
+        "bottom": 149,
+        "width": 117,
+        "height": 71,
+        "pixels": 5756,
+        "edgePixels": 0
+      },
+      "sha256": "d536ff8e136ad6df3fb3e4fa3f5a24c9be08bcb63856f528fba28b2e5f82dde6"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 36,
+        "top": 549,
+        "width": 392,
+        "height": 242
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 391,
+        "bottom": 241,
+        "width": 392,
+        "height": 242,
+        "pixels": 60767
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 221,
+        "y": 789
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 22,
+        "top": 75,
+        "right": 144,
+        "bottom": 150,
+        "width": 123,
+        "height": 76,
+        "pixels": 6090,
+        "edgePixels": 0
+      },
+      "sha256": "e824eaa4aa02b4d3cf324a0d535afefd331b27dab539ca4f34b03d38955ed91f"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 477,
+        "top": 553,
+        "width": 390,
+        "height": 249
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 389,
+        "bottom": 248,
+        "width": 390,
+        "height": 249,
+        "pixels": 58823
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 665,
+        "y": 799
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 21,
+        "top": 73,
+        "right": 142,
+        "bottom": 150,
+        "width": 122,
+        "height": 78,
+        "pixels": 5880,
+        "edgePixels": 0
+      },
+      "sha256": "8fb82835e0f65f7ecd60460cb3a64fb33074e93897bd1707f8096ebc3c66bf60"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 936,
+        "top": 541,
+        "width": 377,
+        "height": 256
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 376,
+        "bottom": 255,
+        "width": 377,
+        "height": 256,
+        "pixels": 59495
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1121,
+        "y": 794
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 71,
+        "right": 139,
+        "bottom": 150,
+        "width": 118,
+        "height": 80,
+        "pixels": 5921,
+        "edgePixels": 0
+      },
+      "sha256": "348102f7ad3c0c0860af03b0bbd088a8086d88ff6310ed80e7d605850b4c8281"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 1375,
+        "top": 539,
+        "width": 369,
+        "height": 255
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 368,
+        "bottom": 254,
+        "width": 369,
+        "height": 255,
+        "pixels": 59217
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1545,
+        "y": 791
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 71,
+        "right": 142,
+        "bottom": 150,
+        "width": 116,
+        "height": 80,
+        "pixels": 5952,
+        "edgePixels": 0
+      },
+      "sha256": "085adf2db884734732a608ea6917f9a8dc43ffbd7c3bea808ec4498ecbda8b65"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 1375,
+        "top": 539,
+        "width": 369,
+        "height": 255
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 368,
+        "bottom": 254,
+        "width": 369,
+        "height": 255,
+        "pixels": 59217
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1545,
+        "y": 791
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 71,
+        "right": 142,
+        "bottom": 150,
+        "width": 116,
+        "height": 80,
+        "pixels": 5952,
+        "edgePixels": 0
+      },
+      "sha256": "085adf2db884734732a608ea6917f9a8dc43ffbd7c3bea808ec4498ecbda8b65"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 1375,
+        "top": 539,
+        "width": 369,
+        "height": 255
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 368,
+        "bottom": 254,
+        "width": 369,
+        "height": 255,
+        "pixels": 59217
+      },
+      "sourcePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "scaleFactor": 0.42700729927007297,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1545,
+        "y": 791
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 71,
+        "right": 142,
+        "bottom": 150,
+        "width": 116,
+        "height": 80,
+        "pixels": 5952,
+        "edgePixels": 0
+      },
+      "sha256": "085adf2db884734732a608ea6917f9a8dc43ffbd7c3bea808ec4498ecbda8b65"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 9,
+        "top": 20,
+        "width": 174,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 133,
+        "width": 174,
+        "height": 134,
+        "pixels": 14169
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 155
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 20,
+        "top": 51,
+        "right": 147,
+        "bottom": 148,
+        "width": 128,
+        "height": 98,
+        "pixels": 7707,
+        "edgePixels": 0
+      },
+      "sha256": "8d903dcdd619f74681124e12e524377a802050884425ce5b4264dd7b440c9f2a"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 199,
+        "top": 34,
+        "width": 174,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 120,
+        "width": 174,
+        "height": 121,
+        "pixels": 12744
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 155
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 61,
+        "right": 154,
+        "bottom": 149,
+        "width": 128,
+        "height": 89,
+        "pixels": 6933,
+        "edgePixels": 0
+      },
+      "sha256": "7ee9b73ebc21ee8532e0e39f1277a27bd4c103e4491b345f9c6a3bf6d5f1a440"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 379,
+        "top": 32,
+        "width": 163,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 122,
+        "width": 163,
+        "height": 123,
+        "pixels": 12235
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 155
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 60,
+        "right": 145,
+        "bottom": 149,
+        "width": 120,
+        "height": 90,
+        "pixels": 6631,
+        "edgePixels": 0
+      },
+      "sha256": "4c0e939b5f547d86b1e881a247cec61071f17c0a6ca01abc201603b4bb10bcac"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 556,
+        "top": 32,
+        "width": 172,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 123,
+        "width": 172,
+        "height": 124,
+        "pixels": 13151
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 155
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 60,
+        "right": 148,
+        "bottom": 150,
+        "width": 126,
+        "height": 91,
+        "pixels": 7112,
+        "edgePixels": 0
+      },
+      "sha256": "1d366edc61e09600a15c704178b6a35d6847d5a9d4d6af8ff79e1e61c9aa1e61"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 737,
+        "top": 41,
+        "width": 171,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 112,
+        "width": 171,
+        "height": 113,
+        "pixels": 12317
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 155
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 66,
+        "right": 147,
+        "bottom": 148,
+        "width": 125,
+        "height": 83,
+        "pixels": 6675,
+        "edgePixels": 0
+      },
+      "sha256": "0230743d9ce5c1397d63a9949ecff130a310747cfdc139d98fe62cab61939302"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 915,
+        "top": 33,
+        "width": 162,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 117,
+        "width": 162,
+        "height": 118,
+        "pixels": 12285
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 155
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 60,
+        "right": 139,
+        "bottom": 146,
+        "width": 119,
+        "height": 87,
+        "pixels": 6712,
+        "edgePixels": 0
+      },
+      "sha256": "ca197e62c14a8ced50ef97b74e534b24bda22536df2d779aa5ef4974be136698"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 11,
+        "top": 24,
+        "width": 172,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 121,
+        "width": 172,
+        "height": 122,
+        "pixels": 13433
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 147
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 22,
+        "top": 60,
+        "right": 147,
+        "bottom": 149,
+        "width": 126,
+        "height": 90,
+        "pixels": 7338,
+        "edgePixels": 0
+      },
+      "sha256": "81885dcc47dd50c0da9e903a7e5ff12717cadff71cc3a071458e1c6d945121ff"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 191,
+        "top": 29,
+        "width": 168,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 117,
+        "width": 168,
+        "height": 118,
+        "pixels": 12485
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 147
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 21,
+        "top": 63,
+        "right": 143,
+        "bottom": 149,
+        "width": 123,
+        "height": 87,
+        "pixels": 6807,
+        "edgePixels": 0
+      },
+      "sha256": "fb007108ec436d255b661f32dc515a7abca1dc18e461ce1cdc9783f8fabfcf2c"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 371,
+        "top": 32,
+        "width": 163,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 114,
+        "width": 163,
+        "height": 115,
+        "pixels": 12353
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 147
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 20,
+        "top": 66,
+        "right": 139,
+        "bottom": 149,
+        "width": 120,
+        "height": 84,
+        "pixels": 6724,
+        "edgePixels": 0
+      },
+      "sha256": "13b5f72da305a524c712df85d98b757a6e7c4d634752c939b520425933744c9a"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 546,
+        "top": 24,
+        "width": 179,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 123,
+        "width": 179,
+        "height": 124,
+        "pixels": 13568
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 147
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 16,
+        "top": 60,
+        "right": 146,
+        "bottom": 150,
+        "width": 131,
+        "height": 91,
+        "pixels": 7346,
+        "edgePixels": 0
+      },
+      "sha256": "c360266c31f32ae343fbffd57efc4125472ab14f3072d7a61ad2446f2b51f0e8"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 731,
+        "top": 27,
+        "width": 167,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 120,
+        "width": 167,
+        "height": 121,
+        "pixels": 12949
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 147
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 19,
+        "top": 62,
+        "right": 141,
+        "bottom": 150,
+        "width": 123,
+        "height": 89,
+        "pixels": 7057,
+        "edgePixels": 0
+      },
+      "sha256": "b95bd8cf1d216e0098052fe3fded82b8ae52f306cc9134a96523ea51989bebfd"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 913,
+        "top": 28,
+        "width": 164,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 118,
+        "width": 164,
+        "height": 119,
+        "pixels": 12505
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 147
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 63,
+        "right": 138,
+        "bottom": 149,
+        "width": 120,
+        "height": 87,
+        "pixels": 6724,
+        "edgePixels": 0
+      },
+      "sha256": "1877cd7c08147cfa4d79b90e590aa2f5e444c514c30728c2625e6fa70391a83a"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 9,
+        "top": 18,
+        "width": 168,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 132,
+        "width": 168,
+        "height": 133,
+        "pixels": 13364
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 154
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 20,
+        "top": 50,
+        "right": 142,
+        "bottom": 147,
+        "width": 123,
+        "height": 98,
+        "pixels": 7271,
+        "edgePixels": 0
+      },
+      "sha256": "1797ef40683c0de6d8a6a271129abf906f7824d270004c85b387f473c92007c8"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 207,
+        "top": 27,
+        "width": 162,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 126,
+        "width": 162,
+        "height": 127,
+        "pixels": 13740
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 154
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 33,
+        "top": 57,
+        "right": 151,
+        "bottom": 149,
+        "width": 119,
+        "height": 93,
+        "pixels": 7443,
+        "edgePixels": 0
+      },
+      "sha256": "95ee541677c1fa2cade00c682b4998cef7ac9bf1d16ba29d73007335fd6922ef"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 378,
+        "top": 18,
+        "width": 160,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 135,
+        "width": 160,
+        "height": 136,
+        "pixels": 12950
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 154
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 50,
+        "right": 141,
+        "bottom": 149,
+        "width": 117,
+        "height": 100,
+        "pixels": 7021,
+        "edgePixels": 0
+      },
+      "sha256": "7804798910d734f9c983712cf71ab301229dbc16ee5c0a482ccd8bf4a49438bd"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 551,
+        "top": 30,
+        "width": 173,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 123,
+        "width": 173,
+        "height": 124,
+        "pixels": 13351
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 154
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 19,
+        "top": 59,
+        "right": 145,
+        "bottom": 149,
+        "width": 127,
+        "height": 91,
+        "pixels": 7218,
+        "edgePixels": 0
+      },
+      "sha256": "b0139d5f4b1e96567d099682058f1c0ac714b4c895c6a2ad9fe9466603f076ab"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 732,
+        "top": 45,
+        "width": 175,
+        "height": 108
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 107,
+        "width": 175,
+        "height": 108,
+        "pixels": 12980
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 154
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 19,
+        "top": 70,
+        "right": 146,
+        "bottom": 148,
+        "width": 128,
+        "height": 79,
+        "pixels": 6979,
+        "edgePixels": 0
+      },
+      "sha256": "6d46f40639078e91bb56182281ddd48463d4b74039b015273a7a1a384f611c7c"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 916,
+        "top": 35,
+        "width": 163,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 120,
+        "width": 163,
+        "height": 121,
+        "pixels": 12740
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 154
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 63,
+        "right": 141,
+        "bottom": 151,
+        "width": 120,
+        "height": 89,
+        "pixels": 6938,
+        "edgePixels": 0
+      },
+      "sha256": "4e99438f31f9fc971b9227ebc9a224e5e285dcf3db8fbf8835b3b8bbb8e80aa5"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 6,
+        "top": 26,
+        "width": 168,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 127,
+        "width": 168,
+        "height": 128,
+        "pixels": 13599
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 167
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 18,
+        "top": 47,
+        "right": 140,
+        "bottom": 140,
+        "width": 123,
+        "height": 94,
+        "pixels": 7372,
+        "edgePixels": 0
+      },
+      "sha256": "965b3d298911efa1f98cb6ba95c921ccab651f060c11d8a7ad97d9abb4681c1e"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 190,
+        "top": 38,
+        "width": 173,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 118,
+        "width": 173,
+        "height": 119,
+        "pixels": 13401
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 167
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 20,
+        "top": 55,
+        "right": 146,
+        "bottom": 141,
+        "width": 127,
+        "height": 87,
+        "pixels": 7252,
+        "edgePixels": 0
+      },
+      "sha256": "41ee339b24352fd52a8ca01fd55363827cb47e5d4668dc3ed701b689c1c5a3ee"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 371,
+        "top": 51,
+        "width": 168,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 111,
+        "width": 168,
+        "height": 112,
+        "pixels": 12219
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 167
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 20,
+        "top": 65,
+        "right": 142,
+        "bottom": 146,
+        "width": 123,
+        "height": 82,
+        "pixels": 6568,
+        "edgePixels": 0
+      },
+      "sha256": "8f5d40872c110e8b9ae23434389ac1b8e1f9a2dd5893052526012b7d4a69f0e8"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 547,
+        "top": 75,
+        "width": 166,
+        "height": 93
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 92,
+        "width": 166,
+        "height": 93,
+        "pixels": 10720
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 167
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 17,
+        "top": 82,
+        "right": 138,
+        "bottom": 149,
+        "width": 122,
+        "height": 68,
+        "pixels": 5826,
+        "edgePixels": 0
+      },
+      "sha256": "e01d2f4d5f453d49f463d1c54050079f2a21899d818b53eee8c005a8e2ec40af"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 725,
+        "top": 76,
+        "width": 169,
+        "height": 92
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 91,
+        "width": 169,
+        "height": 92,
+        "pixels": 10154
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 167
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 14,
+        "top": 83,
+        "right": 137,
+        "bottom": 150,
+        "width": 124,
+        "height": 68,
+        "pixels": 5546,
+        "edgePixels": 0
+      },
+      "sha256": "477d8489e6bf211dd9a07bb50628f45ce7227579b52b7d54f9eb9b4fa2759185"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 908,
+        "top": 82,
+        "width": 168,
+        "height": 85
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 84,
+        "width": 168,
+        "height": 85,
+        "pixels": 9221
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 167
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 16,
+        "top": 88,
+        "right": 138,
+        "bottom": 149,
+        "width": 123,
+        "height": 62,
+        "pixels": 4952,
+        "edgePixels": 0
+      },
+      "sha256": "476891929de19f99c2cb158738dec09c5a2749091bc65fce398647d8caf4bd61"
+    }
+  ],
+  "intentionalHolds": {
+    "telegraph": {
+      "frames": [
+        3,
+        4,
+        5
+      ],
+      "sourceStudyFrame": 3,
+      "reason": "Approved committed charge preparation held through final aim-lock window."
+    },
+    "attack": {
+      "frames": [
+        3,
+        4,
+        5
+      ],
+      "sourceStudyFrame": 7,
+      "reason": "Approved recovery drawing held through the recovery tail."
+    }
+  },
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

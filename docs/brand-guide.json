@@ -1,0 +1,325 @@
+{
+  "title": "Daniel Short",
+  "subtitle": "Brand & website guide",
+  "edition": "6.1",
+  "updated": "2026-09-19",
+  "basis": "Current website source and local preview",
+  "pages": [
+    {
+      "id": "01foundation",
+      "kicker": "01 / FOUNDATION",
+      "title": "A personal brand built around useful work",
+      "subtitle": "One recognizable identity connects practical tools, data projects, games, and the person behind them.",
+      "kind": "foundation",
+      "sections": [
+        {
+          "title": "One identity, a broad scope",
+          "body": "Daniel Short is the connecting identity. The DS mark, navy typography, white surfaces, and distinctive category tabs bring the site together. Projects, Tools, and Games can express different interests while retaining the same clear navigation, restrained layout, and attention to useful outcomes."
+        },
+        {
+          "title": "The personal-site message",
+          "body": "Solving everyday problems with data and thoughtful tools. This is the current personal-site tagline. Support it with specific examples, direct language, and a little personal context. Let the work demonstrate curiosity and care; avoid repeating the tagline on every page."
+        },
+        {
+          "title": "Adapt the emphasis, preserve the identity",
+          "body": "Professional materials may emphasize analytics, data science, or tourism for their audience. Use the same visual foundation and accurate, relevant examples. A role-specific descriptor can supplement the name without redefining the personal site. Publish results only when their scope, evidence, and permission to share are clear."
+        }
+      ],
+      "sourceNotes": [
+        "content/audiences/personal.json: brandTagline, About content, and featured work",
+        "docs/visual-style.md: brand identity, color roles, and personal voice"
+      ]
+    },
+    {
+      "id": "02logo",
+      "kicker": "02 / LOGO",
+      "title": "Keep the DS mark whole and recognizable",
+      "subtitle": "The current master remains the default. Size and treatment should suit the actual surface.",
+      "kind": "logo",
+      "sections": [
+        {
+          "title": "Current master and header",
+          "body": "Use the approved full-color DS SVG on light surfaces. The website displays it in a 38px desktop box and a 40px mobile box beside the Daniel Short label, with flat artwork and no hover scaling. These header sizes replace the old guide's universal 120px digital minimum; they are not minimums for every application."
+        },
+        {
+          "title": "Choose the right variant",
+          "body": "Use the personal wordmark without a role descriptor for general materials. Analytics has its own labeled variant. The all-white mark serves dark backgrounds. The favicon is a dedicated DS silhouette on a flat white tile: it omits the three small chart bars while the full master retains them."
+        },
+        {
+          "title": "Preserve the drawing",
+          "body": "Preserve the geometry of the chosen variant; use the purpose-built favicon instead of removing details yourself. Contain the full image rather than cropping it into rounded corners. Give the mark breathing room and keep the name readable. Do not stretch, add outlines, or invent effects."
+        }
+      ],
+      "sourceNotes": [
+        "img/brand/00-ds-logo-master-full-color.svg; 03-ds-logo-monochrome-midnight.svg; 04c-ds-logo-all-white.svg",
+        "img/brand/05-ds-favicon-small-icon.svg; 06-wordmark-horizontal-assembly.svg; 06b-wordmark-analytics.svg",
+        "content/site/navigation.json; css/layout/nav.css; css/components/mobile-site-dock.css",
+        "build/resize_logo.js: current favicon export source and output sizes"
+      ]
+    },
+    {
+      "id": "03palette",
+      "kicker": "03 / COLOR",
+      "title": "A quiet foundation with purposeful accents",
+      "subtitle": "Color identifies a place or a state. It should not make every section feel like a separate website.",
+      "kind": "palette",
+      "sections": [
+        {
+          "title": "Core identity and website categories",
+          "body": "Midnight navy, white, canvas, and mist form the foundation. Signal Blue #005FED is the main brand color and Projects accent; Deep Blue #0145C8 supports interaction states. Tools uses teal #087F8C, Games uses copper #C94B0A, and Contact uses graphite #334155. Keep ordinary cards and secondary controls neutral."
+        },
+        {
+          "title": "Decoration and status have different jobs",
+          "body": "Action Copper #D97706 is a restrained decorative or warning accent; it is not the Games color #C94B0A. Use warning text #92400E on light surfaces, success #166534, and error #B91C1C. Pair every status with meaningful words or symbols. Do not rely on color alone or use pale amber for small text on white."
+        }
+      ],
+      "sourceNotes": [
+        "css/variables.css: brand, category, and semantic status tokens",
+        "docs/visual-style.md: category accents and warning-text usage",
+        "img/brand/22-brand-color-palette.svg: core palette; website categories extend this palette"
+      ]
+    },
+    {
+      "id": "04type",
+      "kicker": "04 / TYPOGRAPHY",
+      "title": "Clear hierarchy without tiny supporting text",
+      "subtitle": "Type should make the next step obvious and the supporting information easy to read.",
+      "kind": "type",
+      "sections": [
+        {
+          "title": "A consistent voice in type",
+          "body": "Inter is the shared interface and body typeface, with system sans-serif fallbacks. IBM Plex Mono is reserved for code and data where monospaced characters help. Use navy for primary text and slate for supporting copy. Avoid introducing extra display faces to make individual tools or projects look different."
+        },
+        {
+          "title": "A small, useful hierarchy",
+          "body": "Use one clear page title, one short introduction, then descriptive section and field labels. Library titles are 16px and descriptions 14px on desktop and mobile. Standard controls use 14px text. Let longer labels wrap and layouts grow instead of shrinking text to force a fit."
+        },
+        {
+          "title": "Readability comes before density",
+          "body": "Keep comfortable line spacing and enough contrast for ordinary reading. Do not use 6-7pt captions in documents people need to read. Check PDFs at normal viewing size and printed scale, not only zoomed in. On the website, verify narrow layouts and text enlargement without clipping labels or hiding essential information."
+        }
+      ],
+      "sourceNotes": [
+        "css/variables.css: --font-sans, --font-mono, and control typography",
+        "docs/visual-style.md: library titles, descriptions, and readable labels"
+      ]
+    },
+    {
+      "id": "05layout",
+      "kicker": "05 / LAYOUT",
+      "title": "One frame, a consistent rhythm",
+      "subtitle": "The frame establishes identity; spacing and alignment organize the contents.",
+      "kind": "layout",
+      "sections": [
+        {
+          "title": "Give each border a clear role",
+          "body": "An open personal homepage tab has a 6px category-colored perimeter. Libraries and detail pages retain 4px. Masthead dividers are 2px, while ordinary internal boundaries are 1px neutral lines. Desktop content joins the active rail without an extra left border. Avoid repeating heavy frames inside the workspace."
+        },
+        {
+          "title": "Use the shared shape system",
+          "body": "External site-frame and dialog corners are 12px. Cards and tool panels use 10px; buttons, inputs, and selects use 8px. Status pills may be fully rounded. Joined elements keep square internal edges, with the enclosing surface owning the outer curve. Shape consistency does not require rounding every adjoining edge."
+        },
+        {
+          "title": "Preserve the signature navigation",
+          "body": "Keep vertical category rails on desktop and flush horizontal tabs on narrow screens. Align masthead titles, divider lines, and content to a shared gutter. Apply the gap below a divider once. Allow the content to scroll naturally within the intended frame without stretching isolated projects into unrelated page dimensions."
+        }
+      ],
+      "sourceNotes": [
+        "css/components/site-frame.css: scoped homepage perimeter and slot padding",
+        "css/components/page-masthead.css: shared 2px divider",
+        "css/variables.css: semantic radius, border, and spacing tokens"
+      ]
+    },
+    {
+      "id": "06components",
+      "kicker": "06 / COMPONENTS",
+      "title": "Make the main action easy to find",
+      "subtitle": "Controls should support the task without surrounding it with unnecessary choices or explanations.",
+      "kind": "components",
+      "sections": [
+        {
+          "title": "A clear action hierarchy",
+          "body": "Use a filled category-colored button for the primary action, a neutral outlined button for secondary actions, and text for tertiary choices. Standard actions are at least 44px tall, with 10px by 14px padding and 8px corners. Use direct labels such as Compare, Regenerate, or Launch demo."
+        },
+        {
+          "title": "One task, one workspace",
+          "body": "Place related inputs, the main action, and results together. Keep primary settings visible and move occasional choices into a clearly labeled advanced section. Prefer spacing or a divider to another enclosing panel. Avoid duplicate headers, redundant buttons, and descriptions that push the useful interface out of view."
+        },
+        {
+          "title": "Feedback that earns trust",
+          "body": "Show concise progress, success, and error states beside the relevant task. Explain whether processing stays on the device or uses a service when that distinction matters. A connection indicator must reflect the current service state. Recorded previews and fixture examples must not imply live AWS connectivity or verified model results."
+        }
+      ],
+      "sourceNotes": [
+        "css/components/buttons.css; css/components/tool-workspace.css; css/components/page-masthead.css",
+        "docs/visual-style.md: shared controls and preview accuracy",
+        "js/demos/aws-client.js: service connection and inference behavior"
+      ]
+    },
+    {
+      "id": "07imagery",
+      "kicker": "07 / IMAGERY",
+      "title": "Different visual jobs, one family",
+      "subtitle": "Navigation glyphs, content illustrations, portraits, and interface captures should remain distinct but compatible.",
+      "kind": "imagery",
+      "sections": [
+        {
+          "title": "Interface glyphs",
+          "body": "Use flat, single-color outlined SVGs with currentColor, rounded caps and joins, and approximately 1.8-2px strokes on a 24px canvas. Choose familiar symbols and pair them with labels where meaning is not obvious. Keep decorative shading and shadows out of navigation and control glyphs."
+        },
+        {
+          "title": "Content illustrations",
+          "body": "Use a recognizable silhouette, crisp navy edges, restrained blue details, and gentle dimensional shading. Match apparent weight across project, tool, game, and interest icons. Keep labels outside the artwork. Contain the image in its pale well without stretching or cropping it; use genuine transparency where available."
+        },
+        {
+          "title": "Portraits and interface captures",
+          "body": "Keep portraits natural and screenshots faithful to the current interface. Mobile demo previews should show current controls and clearly identify recorded examples. Do not invent outputs, performance results, or connection states. Refresh captures after interface changes; retain them separately from the illustrated catalog icons."
+        }
+      ],
+      "sourceNotes": [
+        "docs/visual-style.md: glyphs, content illustrations, and live captures",
+        "css/variables.css: --illustration-surface, border, radius, and fill tokens",
+        "content/projects/: demo preview images and accessible descriptions"
+      ]
+    },
+    {
+      "id": "08responsive",
+      "kicker": "08 / RESPONSIVE BEHAVIOR",
+      "title": "Keep the identity as the layout changes",
+      "subtitle": "Responsive design should reorganize the same experience, not create a smaller and less readable version.",
+      "kind": "responsive",
+      "sections": [
+        {
+          "title": "Desktop: use space purposefully",
+          "body": "Keep the vertical rails, a readable content width, and aligned headings and workspaces. Use available room for meaningful results and related controls rather than oversized gaps or filler. Project question actions must remain accessible without covering drawing samples, advanced settings, or other working controls."
+        },
+        {
+          "title": "Mobile: reflow rather than compress",
+          "body": "Tabs stay flush with the sides. Stack content, keep labels readable, and preserve full logo and name visibility. Place account actions beside Back only when space permits; otherwise align them with the title. Verify 390px and 320px layouts, including long status messages, open dialogs, and search."
+        },
+        {
+          "title": "Motion: maintain orientation",
+          "body": "Shared motion tokens are 160ms, 220ms, and 320ms for fast, base, and slower transitions. Use them as defaults, not reasons to animate everything. Respect reduced-motion preferences. Tab changes should reveal content at the top without a second scroll jump, while preserving already loaded content such as the Contact map."
+        }
+      ],
+      "sourceNotes": [
+        "css/variables.css: shared motion durations",
+        "js/navigation/site-frame.js; css/components/site-frame.css",
+        "css/components/mobile-site-dock.css; js/common/contact-map.js"
+      ]
+    },
+    {
+      "id": "09voice",
+      "kicker": "09 / VOICE & EVIDENCE",
+      "title": "Sound like the person who made it",
+      "subtitle": "Be direct, specific, and personal without turning every description into a pitch.",
+      "kind": "voice",
+      "sections": [
+        {
+          "title": "Use plain first-person language",
+          "body": "Use I for Daniel's work and you when guiding a visitor. State what a project does, why it exists, and what someone can try. Prefer concrete verbs and short explanations. Avoid inflated claims, abstract slogans, and technical detail that does not help the reader make a decision."
+        },
+        {
+          "title": "Separate evidence from interpretation",
+          "body": "Distinguish a working demo, a recorded example, a measured result, and a future idea. Give results the context needed to interpret them, including the data or evaluation they came from. Do not turn private feedback into a public testimonial or publish unsupported performance and business-impact claims."
+        },
+        {
+          "title": "Let personal interests add context",
+          "body": "The About section connects data, AI, and machine learning with everyday problem solving. Family is important to Daniel, and he has played French horn for 20 years. Present these as values and interests that help explain the person and his projects, without suggesting distraction from work or making claims about working longer hours."
+        }
+      ],
+      "sourceNotes": [
+        "content/audiences/personal.json: current About copy and interests",
+        "content/projects/: authored project scope, outcomes, and evidence",
+        "docs/visual-style.md: personal voice and honest preview states"
+      ]
+    },
+    {
+      "id": "10applications",
+      "kicker": "10 / APPLICATIONS",
+      "title": "Carry the identity across formats",
+      "subtitle": "Use the same foundation while respecting what each surface needs to do.",
+      "kind": "applications",
+      "sections": [
+        {
+          "title": "Website",
+          "body": "The shared website shell is intentionally light-only: navy text, white or pale surfaces, and category accents. Retain the DS header, search, breadcrumbs, tabs, and consistent mastheads. Individual games and isolated demo canvases may use deliberate dark interiors without changing the surrounding site identity."
+        },
+        {
+          "title": "Documents and social materials",
+          "body": "Use the plain Daniel Short wordmark for general materials and the separate analytics variant for that audience. Refreshed social previews and banners use the current tagline, restrained colors, and category-tab motif. Production wordmarks use outlined type; editable sources remain available. Check the actual crop and legibility before posting."
+        },
+        {
+          "title": "Native Android app",
+          "body": "The app shares the identity and can refresh supported public content from the website feed. Its Kotlin and Compose interface is a separate implementation. Website CSS, JavaScript, and new behaviors do not automatically update the native app; layout or feature changes require an app build and installation. Verify both surfaces before claiming parity."
+        }
+      ],
+      "sourceNotes": [
+        "AGENTS.md: light-only shared shell and isolated game exceptions",
+        "img/brand/personal-social-card.png: default 1200x630 personal-site preview",
+        "img/brand/06-wordmark-horizontal-assembly.svg; 06b-wordmark-analytics.svg; 09-linkedin-banner-1584x396.svg; 10-github-readme-portfolio-banner.svg",
+        "build/generate-brand-assets.py: outlined production type and refreshed visual exports",
+        "mobile/android/README.md: feed updates versus native app updates"
+      ]
+    },
+    {
+      "id": "11improvements",
+      "kicker": "11 / REFINEMENTS & NEXT STEPS",
+      "title": "Refine the system before replacing it",
+      "subtitle": "The current refinements are implemented locally. A different logo remains an optional future exploration.",
+      "kind": "improvements",
+      "sections": [
+        {
+          "title": "Implemented: an optical favicon",
+          "body": "The new favicon enlarges the DS letter silhouette and removes the small chart bars, shadow, and decorative border. A flat white backing protects the navy on light and dark browser chrome. Use the generated 16-32px exports at actual tab sizes; retain the detailed master in the website header."
+        },
+        {
+          "title": "Implemented: a dependable variant kit",
+          "body": "The kit now includes a plain personal wordmark, a separately named analytics wordmark, an all-white mark, and refreshed social assets. Outlined production type prevents font substitutions. Editable sources support future copy changes. Choose by background and audience; test size and clear space in the intended placement."
+        },
+        {
+          "title": "Proposed: explore, then compare",
+          "body": "If exploring a new logo, compare a careful DS refinement with a simpler monogram or a restrained interpretation of the vertical-tab motif. Test all directions in the real header, favicon, document, and app contexts. Keep the current DS as the default; a concept sheet is not approval to replace it."
+        },
+        {
+          "title": "Implemented: flat header treatment",
+          "body": "Desktop and mobile headers keep the full DS mark and name, without logo shadows or hover enlargement. Shared colors, category tabs, and layout geometry remain consistent. These changes are present in the local source and preview; publication requires the normal website release process."
+        }
+      ],
+      "sourceNotes": [
+        "img/brand/: refreshed favicon, wordmarks, all-white mark, and social assets",
+        "build/resize_logo.js: optical favicon generated from approved master contours",
+        "css/layout/nav.css and css/components/mobile-site-dock.css: flat logo treatment",
+        "Optional new-logo exploration remains a proposal; master geometry is unchanged"
+      ]
+    },
+    {
+      "id": "12governance",
+      "kicker": "12 / GOVERNANCE & REFERENCES",
+      "title": "Keep the guide and the product in step",
+      "subtitle": "Record what is current, distinguish proposals, and validate the experience people will actually see.",
+      "kind": "governance",
+      "sections": [
+        {
+          "title": "Know the source of truth",
+          "body": "Use docs/REPOSITORY_MAP.md to locate authoritative content, styles, generators, and native app sources. Shared tokens live in css/variables.css; artwork lives in img/brand. This edition describes current source and the reviewed local preview. It does not certify that these changes are deployed or replace evidence of production behavior."
+        },
+        {
+          "title": "Check appearance and behavior together",
+          "body": "Review desktop, 390px, and 320px layouts with real content. Check logo integrity, text contrast, keyboard focus, readable labels, reduced motion, and control spacing. The site's 44px action height is its design standard, not a claim that WCAG requires every target to be 44px. Test loading, errors, and empty states as well as the ideal view."
+        },
+        {
+          "title": "Maintain a reviewable workflow",
+          "body": "Edit authoritative sources, regenerate outputs, and run the checks relevant to the change. Inspect the built website and rendered document before publishing. Keep proposals labeled until approved and implemented. Use external guidance for accessibility and logo craft; another organization's logo rules inform the method, not the design of the DS mark."
+        }
+      ],
+      "sourceNotes": [
+        "docs/REPOSITORY_MAP.md; docs/visual-style.md; css/variables.css",
+        "IBM Design Language, 8-Bar: https://www.ibm.com/design/language/ibm-logos/8-bar/",
+        "W3C, Contrast (Minimum): https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+        "W3C, Target Size (Minimum): https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+        "W3C, Animation from Interactions: https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html"
+      ]
+    }
+  ]
+}

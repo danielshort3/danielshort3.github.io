@@ -91,7 +91,12 @@ async function assertClosed(page, label) {
 }
 
 async function openCategory(page, category) {
-  await page.locator(`[data-site-tab="${category}"]`).click();
+  const rail = page.locator(`[data-site-tab="${category}"]`);
+  if (await rail.isVisible()) await rail.click();
+  else {
+    await page.keyboard.press('Tab');
+    await page.locator(`[data-mobile-section="${category}"]`).click();
+  }
   await settle(page, 'overview', category);
   assert.equal(new URL(page.url()).hash, `#${category}`);
   assert(await page.locator(`[data-home-accordion-item="${category}"]`).isVisible(), `${category} opens its content.`);

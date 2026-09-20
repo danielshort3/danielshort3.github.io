@@ -109,10 +109,10 @@
   "order": 7,
   "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark.",
   "mobilePreview": {
-    "image": "img/projects/handwritingRating-preview.webp",
+    "image": "img/projects/handwritingRating-workspace-preview.webp",
     "width": 1280,
-    "height": 800,
-    "alt": "Handwriting Legibility Scoring with a handwritten six and its measured legibility result."
+    "height": 976,
+    "alt": "Current Handwriting Rating workspace with an unscored six on the black drawing canvas, Rate digit button, and all ten sample buttons."
   },
   "relatedProjectId": "shapeClassifier"
 }

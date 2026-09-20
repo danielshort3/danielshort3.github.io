@@ -7,7 +7,7 @@ The public canonical HTML is authoritative. Optional /ai/ summaries contain the 
 
 ## Start Here
 
-- [Daniel Short | Data Analytics, ML Projects & Web Tools](https://www.danielshort.me/): Personal website for Daniel Short, featuring machine learning projects, analytics work, practical tools, and browser games.
+- [Daniel Short | Data Analytics, ML Projects & Web Tools](https://www.danielshort.me/): Solving everyday problems with data and thoughtful tools. Explore Daniel Short’s analytics, machine learning projects, and browser games.
 - [Portfolio](https://www.danielshort.me/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
 - [Browser Tools for Writing, Images & Campaigns](https://www.danielshort.me/tools): Use free, privacy-conscious browser tools for text comparison, writing cleanup, UTM links, QR codes, image optimization, and screen recording.
 - [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Six playable experiments in probability, progression, and interactive systems.

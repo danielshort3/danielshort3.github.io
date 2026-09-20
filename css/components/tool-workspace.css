@@ -14,17 +14,19 @@
     --workspace-ink: #091f3b;
     --workspace-muted: #526174;
     --workspace-accent: #087f8c;
-    --workspace-border: #dce3ec;
+    --workspace-border: var(--surface-border, #dce3ec);
     --workspace-pale: #f5f8fa;
-    --workspace-card-padding: clamp(14px, 1.6cqi, 20px);
+    --workspace-card-padding: clamp(12px, 1.6cqi, 20px);
     box-sizing: border-box;
     width: 100%;
-    padding: var(--frame-section-gap, 24px) var(--frame-content-gutter, 24px);
+    padding: var(--page-content-gap, 24px) var(--frame-content-gutter, 24px);
     color: var(--workspace-ink);
     background: #fff;
     border: 0;
     box-shadow: none;
     min-width: 0;
+    font-size: 15px;
+    line-height: 1.6;
   }
 
   body[data-page][data-tools-layout] .tool-workspace > .wrapper {
@@ -49,7 +51,7 @@
     max-height: none;
     padding: var(--workspace-card-padding);
     border: 1px solid var(--workspace-border);
-    border-radius: 6px;
+    border-radius: var(--radius-card, 10px);
     background: #fff;
     box-shadow: none;
     overflow: visible;
@@ -80,18 +82,28 @@
 
   body[data-page][data-tools-layout] .tool-workspace :is(button, input, select, textarea, summary) {
     font-family: inherit;
-    font-size: 14px;
+    font-size: var(--control-font-size, .875rem);
     line-height: 1.45;
   }
 
-  body[data-page][data-tools-layout] .tool-workspace :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea) {
+  body[data-page][data-tools-layout] .tool-workspace :is(input, select, textarea) {
+    font-size: 15px;
+  }
+
+  /* Keep generic input defaults less specific than each tool's joined fields. */
+  body[data-page][data-tools-layout] .tool-workspace :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea) {
     min-width: 0;
     max-width: 100%;
     border: 1px solid var(--workspace-border);
-    border-radius: 6px;
+    border-radius: var(--radius-control, 8px);
     background: #fff;
     color: var(--workspace-ink);
     box-shadow: none;
+  }
+
+  body[data-page][data-tools-layout] .tool-workspace :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select) {
+    box-sizing: border-box;
+    min-height: var(--control-height, 44px);
   }
 
   body[data-page][data-tools-layout] .tool-workspace textarea {
@@ -102,10 +114,10 @@
   }
 
   body[data-page][data-tools-layout] .tool-workspace :is(.btn-primary, .btn-secondary, .btn-ghost) {
-    min-height: 38px;
-    padding: 8px 14px;
+    min-height: var(--control-height, 44px);
+    padding: var(--control-padding, 10px 14px);
     border: 1px solid #b8cdd2;
-    border-radius: 5px;
+    border-radius: var(--radius-control, 8px);
     background: #fff;
     color: #17636f;
     box-shadow: none;

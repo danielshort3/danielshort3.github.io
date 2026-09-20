@@ -10,12 +10,13 @@ const Data = require('../../js/games/project-starfall/project-starfall-data.js')
 const { ProjectStarfallEngine } = require('../../js/games/project-starfall/project-starfall-engine.js');
 const { createRenderer } = require('../../js/games/project-starfall/project-starfall-renderer-pixi.js');
 
-const revision = '?v=classic-eb8de4e1';
+const revision = '?v=illustrated-v1-maps-20260919';
 const portrait = Data.GENERIC_PLAYER_ASSET;
 const sheet = Data.GENERIC_PLAYER_ANIMATION_ASSET.sheet;
 
 async function main() {
   const restored = [
+    ...require('../../js/games/project-starfall/engine/assets.js').collectAssetPaths(Data),
     ...Object.values(Data.CLASS_ASSETS),
     ...Object.values(Data.PLAYER_ANIMATION_ASSETS).map((animation) => animation.sheet),
     ...Object.values(Data.EQUIPMENT_VISUALS).map((item) => item.atlas && item.atlas.sheet).filter(Boolean),
@@ -35,10 +36,7 @@ async function main() {
   }
   for (const untouched of [
     '', 'img/games/icons/project-starfall.webp',
-    'img/project-starfall/enemies/slimelet.png',
-    'img/project-starfall/maps/thornpath-thicket.webp',
-    'img/project-starfall/characters/fighter-v5.png',
-    'img/project-starfall/equipment-atlases/training-sword-atlas-v2.png',
+    'img/project-starfall/maps/source/old-source.png',
     'https://example.com/img/project-starfall/characters/generic-player.png'
   ]) {
     assert.strictEqual(assets.getAssetRequestUrl(untouched), untouched,
@@ -50,7 +48,7 @@ async function main() {
   assert.deepStrictEqual(revisedFrame, Object.assign({}, before, { path: sheet + revision }),
     'cache revision must preserve sprite crop coordinates and sheet dimensions');
   assert.strictEqual(assets.getAssetRequestUrl(`${sheet}?preview=1&v=old#frame=0,0,160,160`),
-    `${sheet}?preview=1&v=classic-eb8de4e1#frame=0,0,160,160`);
+    `${sheet}?preview=1&v=illustrated-v1-maps-20260919#frame=0,0,160,160`);
   assert(rendering.renderAssetImage(portrait, 'Player', 'portrait').includes(`src="${portrait}${revision}"`));
   assert(rendering.renderAssetImage(framePath, 'Player', 'portrait').includes(`${sheet}${revision}`));
   const animationStyle = preview.getAssetPreviewAnimationStyle({

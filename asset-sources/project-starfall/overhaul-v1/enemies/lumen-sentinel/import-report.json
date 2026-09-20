@@ -1,0 +1,1965 @@
+{
+  "fileId": "lumen-sentinel",
+  "sourceSha256": "09c9a00cad1fa58ca33a8c96eeab4a0582e95d0b83dcd734f73e1445dc8c415c",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    183,
+    367,
+    549,
+    724,
+    901,
+    1099,
+    1278,
+    1448
+  ],
+  "sharedScale": 0.6993427230046948,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 96,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/lumen-sentinel-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 665657,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 19,
+        "top": 29,
+        "width": 157,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 136,
+        "width": 157,
+        "height": 137,
+        "pixels": 15285
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 55,
+        "right": 139,
+        "bottom": 150,
+        "width": 110,
+        "height": 96,
+        "pixels": 7533,
+        "edgePixels": 0
+      },
+      "sha256": "0d181b2b8cc4509691da689c344079469f99e990924f6d99bb585db9c087d681"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 205,
+        "top": 30,
+        "width": 153,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 134,
+        "width": 153,
+        "height": 135,
+        "pixels": 14659
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 33,
+        "top": 56,
+        "right": 139,
+        "bottom": 149,
+        "width": 107,
+        "height": 94,
+        "pixels": 7189,
+        "edgePixels": 0
+      },
+      "sha256": "0a3b949010c6f0edc91cbf3c0be8c4d8d75121709b45c2d9f026063c2d1e791a"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 384,
+        "top": 32,
+        "width": 154,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 132,
+        "width": 154,
+        "height": 133,
+        "pixels": 14661
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 32,
+        "top": 57,
+        "right": 139,
+        "bottom": 149,
+        "width": 108,
+        "height": 93,
+        "pixels": 7230,
+        "edgePixels": 0
+      },
+      "sha256": "705f4a9b6ade3e0e934fc3043095e32438f3c16a9cd63fef010c0514ced43de8"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 564,
+        "top": 33,
+        "width": 154,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 131,
+        "width": 154,
+        "height": 132,
+        "pixels": 14610
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 58,
+        "right": 138,
+        "bottom": 149,
+        "width": 108,
+        "height": 92,
+        "pixels": 7217,
+        "edgePixels": 0
+      },
+      "sha256": "e8df92f35f30b6fff5571deef1321dc7755513506f131f1beae67c6be833a94b"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 748,
+        "top": 32,
+        "width": 152,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 132,
+        "width": 152,
+        "height": 133,
+        "pixels": 14355
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 57,
+        "right": 138,
+        "bottom": 149,
+        "width": 106,
+        "height": 93,
+        "pixels": 7032,
+        "edgePixels": 0
+      },
+      "sha256": "9c354a5a917eaf10f8d6534849d5a2fe6c691be2fa6c21ca5af2b5b43513d186"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 929,
+        "top": 31,
+        "width": 149,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 133,
+        "width": 149,
+        "height": 134,
+        "pixels": 14293
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 56,
+        "right": 136,
+        "bottom": 149,
+        "width": 104,
+        "height": 94,
+        "pixels": 7058,
+        "edgePixels": 0
+      },
+      "sha256": "f97daa6855a32cd8e46c1d04c63659e5a4a19db2b1aaca1b80672c6e972e5cf6"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 21,
+        "top": 204,
+        "width": 155,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 141,
+        "width": 155,
+        "height": 142,
+        "pixels": 15476
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 347
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 50,
+        "right": 138,
+        "bottom": 148,
+        "width": 108,
+        "height": 99,
+        "pixels": 7548,
+        "edgePixels": 0
+      },
+      "sha256": "bff303737df487e18d42610c30e02c906fe85f6041c50b75458ac300e051ceba"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 213,
+        "top": 208,
+        "width": 147,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 138,
+        "width": 147,
+        "height": 139,
+        "pixels": 14547
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 347
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 53,
+        "right": 141,
+        "bottom": 149,
+        "width": 103,
+        "height": 97,
+        "pixels": 7156,
+        "edgePixels": 0
+      },
+      "sha256": "a754a47de7df131a4b28e183e680cf6c698cbb22218346b755d6af9386fc6dab"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 392,
+        "top": 212,
+        "width": 148,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 132,
+        "width": 148,
+        "height": 133,
+        "pixels": 14110
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 347
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 56,
+        "right": 141,
+        "bottom": 148,
+        "width": 104,
+        "height": 93,
+        "pixels": 6993,
+        "edgePixels": 0
+      },
+      "sha256": "af913d3895756c97ca0e8fa5c173cc73c95f61742fd10d1579cfb850e7da80d1"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 573,
+        "top": 200,
+        "width": 146,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 146,
+        "width": 146,
+        "height": 147,
+        "pixels": 14835
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 347
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 47,
+        "right": 139,
+        "bottom": 149,
+        "width": 102,
+        "height": 103,
+        "pixels": 7293,
+        "edgePixels": 0
+      },
+      "sha256": "da4227a081f219579855929a514eb0cba1520740aaab7c01d07e622b22f50b40"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 748,
+        "top": 211,
+        "width": 157,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 134,
+        "width": 157,
+        "height": 135,
+        "pixels": 14422
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 347
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 55,
+        "right": 142,
+        "bottom": 148,
+        "width": 110,
+        "height": 94,
+        "pixels": 7099,
+        "edgePixels": 0
+      },
+      "sha256": "c80109acb88035bf63aeaa629d1816184c0dbd7e6b06c28c615ea049734d5408"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 927,
+        "top": 205,
+        "width": 151,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 141,
+        "width": 151,
+        "height": 142,
+        "pixels": 14845
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 347
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 51,
+        "right": 137,
+        "bottom": 149,
+        "width": 106,
+        "height": 99,
+        "pixels": 7348,
+        "edgePixels": 0
+      },
+      "sha256": "4f57a30448a0e901cc37600d3dcb30cdba9327e22d4837f4f6a615476d60f5b6"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 22,
+        "top": 388,
+        "width": 154,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 137,
+        "width": 154,
+        "height": 138,
+        "pixels": 14369
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 526
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 53,
+        "right": 139,
+        "bottom": 149,
+        "width": 108,
+        "height": 97,
+        "pixels": 7127,
+        "edgePixels": 0
+      },
+      "sha256": "7693f4cabb56c1d71a2e04738713344a2592982271983fc5e1c7965a96d8fc83"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 207,
+        "top": 395,
+        "width": 153,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 130,
+        "width": 153,
+        "height": 131,
+        "pixels": 14334
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 526
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 58,
+        "right": 141,
+        "bottom": 149,
+        "width": 107,
+        "height": 92,
+        "pixels": 7095,
+        "edgePixels": 0
+      },
+      "sha256": "0a3e5a16e6764ca2ca9dae45bb3da7bdbe395ac9ccb949e17ea8947925802322"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 386,
+        "top": 394,
+        "width": 153,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 131,
+        "width": 153,
+        "height": 132,
+        "pixels": 14444
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 526
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 58,
+        "right": 139,
+        "bottom": 149,
+        "width": 107,
+        "height": 92,
+        "pixels": 7095,
+        "edgePixels": 0
+      },
+      "sha256": "741e20a6ac159a4b486aeac0a92907f8560c73a777ca554877f4da19ab450521"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 557,
+        "top": 401,
+        "width": 168,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 124,
+        "width": 168,
+        "height": 125,
+        "pixels": 14602
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 526
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 63,
+        "right": 143,
+        "bottom": 149,
+        "width": 117,
+        "height": 87,
+        "pixels": 7102,
+        "edgePixels": 0
+      },
+      "sha256": "e805ce6ba6ae7a88411a046d8bf3d125ce9655eb656b4c795398900379f8a674"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 749,
+        "top": 387,
+        "width": 153,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 137,
+        "width": 153,
+        "height": 138,
+        "pixels": 14193
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 526
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 53,
+        "right": 140,
+        "bottom": 149,
+        "width": 107,
+        "height": 97,
+        "pixels": 7043,
+        "edgePixels": 0
+      },
+      "sha256": "98598cee8078ac6178ef9e250d81ae724d5a5f6104403312bd08cab208556365"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 918,
+        "top": 398,
+        "width": 166,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 129,
+        "width": 166,
+        "height": 130,
+        "pixels": 14493
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 526
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 60,
+        "right": 141,
+        "bottom": 150,
+        "width": 116,
+        "height": 91,
+        "pixels": 7131,
+        "edgePixels": 0
+      },
+      "sha256": "91f98cde1b02b5bfb726a6bde6ecbd3cc825188ce350e75de0706e81449d9808"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 14,
+        "top": 574,
+        "width": 183,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 182,
+        "bottom": 132,
+        "width": 183,
+        "height": 133,
+        "pixels": 15938
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 707
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 57,
+        "right": 154,
+        "bottom": 149,
+        "width": 128,
+        "height": 93,
+        "pixels": 7824,
+        "edgePixels": 0
+      },
+      "sha256": "d48a87afaf57eadf50ca8fdf9a0d892e89bf32b46c6ec9d3b4347cab957aaa80"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 220,
+        "top": 574,
+        "width": 147,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 132,
+        "width": 147,
+        "height": 133,
+        "pixels": 14061
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 707
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 44,
+        "top": 57,
+        "right": 146,
+        "bottom": 149,
+        "width": 103,
+        "height": 93,
+        "pixels": 6929,
+        "edgePixels": 0
+      },
+      "sha256": "a1d76508190009cb52805cf01160b6b40868345437ba0779bedc65504362ab18"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 390,
+        "top": 573,
+        "width": 149,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 133,
+        "width": 149,
+        "height": 134,
+        "pixels": 13383
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 707
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 56,
+        "right": 139,
+        "bottom": 149,
+        "width": 104,
+        "height": 94,
+        "pixels": 6619,
+        "edgePixels": 0
+      },
+      "sha256": "52ae1b577891cb99aff0ce9813057967db187a6eb3f803ac6158587353b0c00d"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 563,
+        "top": 571,
+        "width": 152,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 135,
+        "width": 152,
+        "height": 136,
+        "pixels": 14859
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 707
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 55,
+        "right": 136,
+        "bottom": 149,
+        "width": 106,
+        "height": 95,
+        "pixels": 7279,
+        "edgePixels": 0
+      },
+      "sha256": "0cd8db515e51b20887a75eaf04756310f1bbed4ef9e01b499de0a00927753797"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 748,
+        "top": 570,
+        "width": 153,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 136,
+        "width": 153,
+        "height": 137,
+        "pixels": 14943
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 707
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 54,
+        "right": 139,
+        "bottom": 149,
+        "width": 107,
+        "height": 96,
+        "pixels": 7360,
+        "edgePixels": 0
+      },
+      "sha256": "3c0580c7ad3fa380670930acbfe2c43e4c442dca3d828ae46a75eeb5ce0a3c70"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 928,
+        "top": 574,
+        "width": 150,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 132,
+        "width": 150,
+        "height": 133,
+        "pixels": 14312
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 707
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 57,
+        "right": 137,
+        "bottom": 149,
+        "width": 105,
+        "height": 93,
+        "pixels": 7037,
+        "edgePixels": 0
+      },
+      "sha256": "7d65859b15a8e5a7018fb42175b934ca7051f3d5d35d5b556ce008c57fa7f3a2"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 21,
+        "top": 751,
+        "width": 173,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 136,
+        "width": 173,
+        "height": 137,
+        "pixels": 14631
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 889
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 53,
+        "right": 151,
+        "bottom": 148,
+        "width": 121,
+        "height": 96,
+        "pixels": 7203,
+        "edgePixels": 0
+      },
+      "sha256": "237d936feeaafec68599d78d6ac7a3453a9f2f57da7c9ac01953837bc283c0e0"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 214,
+        "top": 753,
+        "width": 147,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 134,
+        "width": 147,
+        "height": 135,
+        "pixels": 14288
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 889
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 55,
+        "right": 142,
+        "bottom": 148,
+        "width": 103,
+        "height": 94,
+        "pixels": 7042,
+        "edgePixels": 0
+      },
+      "sha256": "bfbc23097b6da8ab4c056ffc4f98ed7d0626ea015cbccca6bab49784471aa64e"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 393,
+        "top": 751,
+        "width": 137,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 138,
+        "width": 137,
+        "height": 139,
+        "pixels": 13599
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 889
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 53,
+        "right": 133,
+        "bottom": 149,
+        "width": 96,
+        "height": 97,
+        "pixels": 6695,
+        "edgePixels": 0
+      },
+      "sha256": "7152d9967b1c79d35c8984135ce7e2e6781d8f86d804c4c8b11956218af0748d"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 573,
+        "top": 741,
+        "width": 146,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 148,
+        "width": 146,
+        "height": 149,
+        "pixels": 14461
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 889
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 46,
+        "right": 139,
+        "bottom": 149,
+        "width": 102,
+        "height": 104,
+        "pixels": 7078,
+        "edgePixels": 0
+      },
+      "sha256": "d5ecc59b3dc6c9eef82af62a8bde3791931394d9da96a333e85526ff6e9f6b7a"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 749,
+        "top": 754,
+        "width": 151,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 134,
+        "width": 151,
+        "height": 135,
+        "pixels": 14600
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 889
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 56,
+        "right": 139,
+        "bottom": 149,
+        "width": 106,
+        "height": 94,
+        "pixels": 7227,
+        "edgePixels": 0
+      },
+      "sha256": "3e8d8e0962bcd3c2875dbdac96d9b3b56069cbacba987d94d2a6330fb0cae5c6"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 927,
+        "top": 751,
+        "width": 151,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 136,
+        "width": 151,
+        "height": 137,
+        "pixels": 14711
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 889
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 53,
+        "right": 137,
+        "bottom": 148,
+        "width": 106,
+        "height": 96,
+        "pixels": 7280,
+        "edgePixels": 0
+      },
+      "sha256": "285b0835d7e3bc147b427f41c8691dcd6f558decdd7b9d35ac11a94fbe4359da"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 24,
+        "top": 935,
+        "width": 154,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 140,
+        "width": 154,
+        "height": 141,
+        "pixels": 15389
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1076
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 33,
+        "top": 51,
+        "right": 140,
+        "bottom": 149,
+        "width": 108,
+        "height": 99,
+        "pixels": 7603,
+        "edgePixels": 0
+      },
+      "sha256": "ceeb3ee9c856fcf5522f253a470a2bc1ed6b8dcc7d111d2838373e2694f86a93"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 210,
+        "top": 951,
+        "width": 146,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 124,
+        "width": 146,
+        "height": 125,
+        "pixels": 13231
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1076
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 37,
+        "top": 63,
+        "right": 138,
+        "bottom": 149,
+        "width": 102,
+        "height": 87,
+        "pixels": 6485,
+        "edgePixels": 0
+      },
+      "sha256": "8ce86375e0bf2b74c1afcd3d4a84395f54f9b8b07f89f1e6c223a56a55463844"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 396,
+        "top": 930,
+        "width": 137,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 145,
+        "width": 137,
+        "height": 146,
+        "pixels": 14361
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1076
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 48,
+        "right": 135,
+        "bottom": 149,
+        "width": 96,
+        "height": 102,
+        "pixels": 7079,
+        "edgePixels": 0
+      },
+      "sha256": "e1e8a174a3b6a66ed3af58750c78baa6b9c0d4cddf862e7f6ac3597d4d0d88fd"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 578,
+        "top": 911,
+        "width": 136,
+        "height": 165
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 164,
+        "width": 136,
+        "height": 165,
+        "pixels": 15403
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1076
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 41,
+        "top": 35,
+        "right": 135,
+        "bottom": 149,
+        "width": 95,
+        "height": 115,
+        "pixels": 7538,
+        "edgePixels": 0
+      },
+      "sha256": "7df9042893f8bac8021bc5414578983dace20340bdde3a5955a72ccef650a10f"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 752,
+        "top": 944,
+        "width": 152,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 131,
+        "width": 152,
+        "height": 132,
+        "pixels": 14400
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1076
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 58,
+        "right": 141,
+        "bottom": 149,
+        "width": 106,
+        "height": 92,
+        "pixels": 7015,
+        "edgePixels": 0
+      },
+      "sha256": "50972cf03f1f406630aa53a4aed845346330016fed6c8844849f077135711dac"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 932,
+        "top": 944,
+        "width": 146,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 131,
+        "width": 146,
+        "height": 132,
+        "pixels": 13847
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1076
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 58,
+        "right": 137,
+        "bottom": 149,
+        "width": 102,
+        "height": 92,
+        "pixels": 6771,
+        "edgePixels": 0
+      },
+      "sha256": "56f866c1942235f990e05f76203ae58830187443922a1179dff8aa24ac9c22d7"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 25,
+        "top": 1121,
+        "width": 158,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 136,
+        "width": 158,
+        "height": 137,
+        "pixels": 14619
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1259
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 34,
+        "top": 53,
+        "right": 143,
+        "bottom": 148,
+        "width": 110,
+        "height": 96,
+        "pixels": 7191,
+        "edgePixels": 0
+      },
+      "sha256": "a827e0dc8886f3bd37db734d2598835e228ea3131cdd9b44e38f748d6bf8c8fa"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 219,
+        "top": 1135,
+        "width": 150,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 123,
+        "width": 150,
+        "height": 124,
+        "pixels": 13386
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1259
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 43,
+        "top": 63,
+        "right": 147,
+        "bottom": 149,
+        "width": 105,
+        "height": 87,
+        "pixels": 6619,
+        "edgePixels": 0
+      },
+      "sha256": "6e1dff8ae412c8c4abfca2a14dfdc2327d0fbb59e9d5918e4b31176367a8847c"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 396,
+        "top": 1142,
+        "width": 146,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 117,
+        "width": 146,
+        "height": 118,
+        "pixels": 12649
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1259
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 68,
+        "right": 141,
+        "bottom": 150,
+        "width": 102,
+        "height": 83,
+        "pixels": 6270,
+        "edgePixels": 0
+      },
+      "sha256": "b144a0995ee0ff0e3188d160eaa96af766b4504fdf6011f1cb6407503a9ec159"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 577,
+        "top": 1137,
+        "width": 146,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 120,
+        "width": 146,
+        "height": 121,
+        "pixels": 13122
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1259
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 65,
+        "right": 141,
+        "bottom": 149,
+        "width": 102,
+        "height": 85,
+        "pixels": 6496,
+        "edgePixels": 0
+      },
+      "sha256": "3a4a9e4dd801da8dc1d2b9f85f08a8ec2ea1e4ae9cafb1c26751e03f9a843414"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 750,
+        "top": 1135,
+        "width": 154,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 122,
+        "width": 154,
+        "height": 123,
+        "pixels": 13905
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1259
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 35,
+        "top": 63,
+        "right": 142,
+        "bottom": 148,
+        "width": 108,
+        "height": 86,
+        "pixels": 6863,
+        "edgePixels": 0
+      },
+      "sha256": "5bce413392b0568092da08ebdd7f7245935fefde1a152495127e58be6ff8738d"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 929,
+        "top": 1125,
+        "width": 149,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 133,
+        "width": 149,
+        "height": 134,
+        "pixels": 14423
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1259
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 56,
+        "right": 136,
+        "bottom": 149,
+        "width": 104,
+        "height": 94,
+        "pixels": 7123,
+        "edgePixels": 0
+      },
+      "sha256": "d19c585e43e5c8d5ccac8b4cf7db43f5fcf9e52fd08a7fcd2314d65e277056fb"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 28,
+        "top": 1296,
+        "width": 145,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 135,
+        "width": 145,
+        "height": 136,
+        "pixels": 14546
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1432
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 55,
+        "right": 136,
+        "bottom": 149,
+        "width": 101,
+        "height": 95,
+        "pixels": 7123,
+        "edgePixels": 0
+      },
+      "sha256": "29bd5d754bd3e776648eac9e48198883c947f6a0427a47194fe1b8970cae9bb3"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 211,
+        "top": 1314,
+        "width": 153,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 117,
+        "width": 153,
+        "height": 118,
+        "pixels": 12547
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1432
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 67,
+        "right": 144,
+        "bottom": 149,
+        "width": 107,
+        "height": 83,
+        "pixels": 6227,
+        "edgePixels": 0
+      },
+      "sha256": "ae1f1c66bc8827dcf785119ec04378e59ea81757a379f61046a9d535e7877768"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 380,
+        "top": 1319,
+        "width": 150,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 111,
+        "width": 150,
+        "height": 112,
+        "pixels": 11926
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1432
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 71,
+        "right": 133,
+        "bottom": 148,
+        "width": 105,
+        "height": 78,
+        "pixels": 5869,
+        "edgePixels": 0
+      },
+      "sha256": "9789a0b3dd9f64d32c46cbaa657cf99c6d8f32f85bee25d647e47ec0f86acbea"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 550,
+        "top": 1338,
+        "width": 178,
+        "height": 94
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 177,
+        "bottom": 93,
+        "width": 178,
+        "height": 94,
+        "pixels": 11004
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1432
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 84,
+        "right": 145,
+        "bottom": 149,
+        "width": 124,
+        "height": 66,
+        "pixels": 5440,
+        "edgePixels": 0
+      },
+      "sha256": "a7e1b6b9b7ec9034517933dfe91ac36b4f7dc9d8fddc3685fb565b34782efa97"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 730,
+        "top": 1342,
+        "width": 179,
+        "height": 87
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 86,
+        "width": 179,
+        "height": 87,
+        "pixels": 10292
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1432
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 21,
+        "top": 87,
+        "right": 145,
+        "bottom": 147,
+        "width": 125,
+        "height": 61,
+        "pixels": 5091,
+        "edgePixels": 0
+      },
+      "sha256": "a9178ee466ba67728fe87db6bf1444c7bc46bf9b7b5fe35e15201786afa9dc4c"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 911,
+        "top": 1342,
+        "width": 172,
+        "height": 86
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 85,
+        "width": 172,
+        "height": 86,
+        "pixels": 9826
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lumen-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1432
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 87,
+        "right": 140,
+        "bottom": 146,
+        "width": 120,
+        "height": 60,
+        "pixels": 4808,
+        "edgePixels": 0
+      },
+      "sha256": "dd32317953ea5fd4484ad5249f8aa42e47dfab0fb157122d53281b394796a4f6"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

@@ -1,0 +1,8059 @@
+{
+  "generatedAt": "2026-09-20T00:05:34.760Z",
+  "method": "Six-frame idle row only. Fit premultiplied RGB and alpha under translation versus frame 0. Core excludes the outer 17% horizontal width, top 12%, and bottom 26% to reduce limbs and ground contacts; full silhouette fit is an independent cross-check. Search +/-40 px X and +/-18 px Y. All figures are runtime sheet pixels. Translation includes both intentional animation and unwanted packing drift, and changes in anatomy can bias fits. These are visual-review flags, not automatic corrections, acceptance, or proof of registration quality.",
+  "canonicalCount": 44,
+  "rows": [
+    {
+      "fileId": "eclipse-sovereign",
+      "sheet": "img/project-starfall/animations/enemies/eclipse-sovereign-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 23,
+      "alphaCentroidSpanX": 23.22,
+      "coreTranslationSpanX": 24,
+      "fullTranslationSpanX": 23,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -24,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -11,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.12,
+            "improvement": 0.86
+          },
+          "full": {
+            "dx": -11,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.78
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -14,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.12,
+            "improvement": 0.84
+          },
+          "full": {
+            "dx": -13,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.08,
+            "improvement": 0.76
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -19,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.12,
+            "improvement": 0.92
+          },
+          "full": {
+            "dx": -19,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.09,
+            "improvement": 0.86
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -20,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.12,
+            "improvement": 0.75
+          },
+          "full": {
+            "dx": -20,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.09,
+            "improvement": 0.71
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -24,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.11,
+            "improvement": 0.83
+          },
+          "full": {
+            "dx": -23,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.08,
+            "improvement": 0.84
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 36,
+          "minY": 36,
+          "maxX": 129,
+          "maxY": 125,
+          "count": 4237,
+          "centerX": 82.5,
+          "centerY": 80.5,
+          "centroidX": 79.36,
+          "centroidY": 86.83
+        },
+        {
+          "minX": 24,
+          "minY": 35,
+          "maxX": 119,
+          "maxY": 125,
+          "count": 4386,
+          "centerX": 71.5,
+          "centerY": 80,
+          "centroidX": 68.78,
+          "centroidY": 87.14
+        },
+        {
+          "minX": 23,
+          "minY": 36,
+          "maxX": 117,
+          "maxY": 125,
+          "count": 4277,
+          "centerX": 70,
+          "centerY": 80.5,
+          "centroidX": 66.2,
+          "centroidY": 87.33
+        },
+        {
+          "minX": 16,
+          "minY": 36,
+          "maxX": 111,
+          "maxY": 125,
+          "count": 4366,
+          "centerX": 63.5,
+          "centerY": 80.5,
+          "centroidX": 60.85,
+          "centroidY": 87.31
+        },
+        {
+          "minX": 14,
+          "minY": 36,
+          "maxX": 113,
+          "maxY": 124,
+          "count": 4413,
+          "centerX": 63.5,
+          "centerY": 80,
+          "centroidX": 59.52,
+          "centroidY": 86.65
+        },
+        {
+          "minX": 12,
+          "minY": 35,
+          "maxX": 107,
+          "maxY": 124,
+          "count": 4345,
+          "centerX": 59.5,
+          "centerY": 79.5,
+          "centroidX": 56.13,
+          "centroidY": 86.3
+        }
+      ]
+    },
+    {
+      "fileId": "rust-ratchet",
+      "sheet": "img/project-starfall/animations/enemies/rust-ratchet-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 11,
+      "alphaCentroidSpanX": 14.34,
+      "coreTranslationSpanX": 16,
+      "fullTranslationSpanX": 15,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -6,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -1,
+            "dy": 14,
+            "error": 0.05,
+            "unshiftedError": 0.09,
+            "improvement": 0.42
+          },
+          "full": {
+            "dx": -1,
+            "dy": 12,
+            "error": 0.06,
+            "unshiftedError": 0.08,
+            "improvement": 0.29
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -4,
+            "dy": 8,
+            "error": 0.04,
+            "unshiftedError": 0.08,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": -4,
+            "dy": 7,
+            "error": 0.04,
+            "unshiftedError": 0.07,
+            "improvement": 0.43
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -3,
+            "dy": 6,
+            "error": 0.03,
+            "unshiftedError": 0.07,
+            "improvement": 0.55
+          },
+          "full": {
+            "dx": -3,
+            "dy": 6,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.52
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -16,
+            "dy": 6,
+            "error": 0.05,
+            "unshiftedError": 0.13,
+            "improvement": 0.64
+          },
+          "full": {
+            "dx": -15,
+            "dy": 4,
+            "error": 0.04,
+            "unshiftedError": 0.1,
+            "improvement": 0.57
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -6,
+            "dy": 4,
+            "error": 0.04,
+            "unshiftedError": 0.08,
+            "improvement": 0.56
+          },
+          "full": {
+            "dx": -7,
+            "dy": 4,
+            "error": 0.03,
+            "unshiftedError": 0.07,
+            "improvement": 0.52
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 26,
+          "minY": 63,
+          "maxX": 147,
+          "maxY": 148,
+          "count": 6237,
+          "centerX": 86.5,
+          "centerY": 105.5,
+          "centroidX": 92.62,
+          "centroidY": 106.44
+        },
+        {
+          "minX": 24,
+          "minY": 76,
+          "maxX": 145,
+          "maxY": 148,
+          "count": 5537,
+          "centerX": 84.5,
+          "centerY": 112,
+          "centroidX": 91.42,
+          "centroidY": 114.65
+        },
+        {
+          "minX": 22,
+          "minY": 70,
+          "maxX": 142,
+          "maxY": 149,
+          "count": 5722,
+          "centerX": 82,
+          "centerY": 109.5,
+          "centroidX": 88.58,
+          "centroidY": 110.36
+        },
+        {
+          "minX": 23,
+          "minY": 69,
+          "maxX": 143,
+          "maxY": 148,
+          "count": 5732,
+          "centerX": 83,
+          "centerY": 108.5,
+          "centroidX": 89.68,
+          "centroidY": 110.53
+        },
+        {
+          "minX": 19,
+          "minY": 68,
+          "maxX": 132,
+          "maxY": 149,
+          "count": 5771,
+          "centerX": 75.5,
+          "centerY": 108.5,
+          "centroidX": 78.28,
+          "centroidY": 109.76
+        },
+        {
+          "minX": 21,
+          "minY": 69,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 5855,
+          "centerX": 80,
+          "centerY": 109,
+          "centroidX": 85.08,
+          "centroidY": 109.16
+        }
+      ]
+    },
+    {
+      "fileId": "snowglare-wisp",
+      "sheet": "img/project-starfall/animations/enemies/snowglare-wisp-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 16.5,
+      "alphaCentroidSpanX": 16.23,
+      "coreTranslationSpanX": 15,
+      "fullTranslationSpanX": 17,
+      "maxCoreFullDisagreementX": 2,
+      "loopClosureCoreTranslationX": -9,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 6,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.1,
+            "improvement": 0.9
+          },
+          "full": {
+            "dx": 6,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.08,
+            "improvement": 0.88
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 0,
+            "dy": 4,
+            "error": 0.05,
+            "unshiftedError": 0.07,
+            "improvement": 0.29
+          },
+          "full": {
+            "dx": -1,
+            "dy": 2,
+            "error": 0.04,
+            "unshiftedError": 0.04,
+            "improvement": 0.06
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -7,
+            "dy": 3,
+            "error": 0.03,
+            "unshiftedError": 0.12,
+            "improvement": 0.71
+          },
+          "full": {
+            "dx": -7,
+            "dy": 2,
+            "error": 0.03,
+            "unshiftedError": 0.09,
+            "improvement": 0.65
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -9,
+            "dy": 6,
+            "error": 0.04,
+            "unshiftedError": 0.16,
+            "improvement": 0.73
+          },
+          "full": {
+            "dx": -9,
+            "dy": 4,
+            "error": 0.04,
+            "unshiftedError": 0.13,
+            "improvement": 0.71
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -9,
+            "dy": 4,
+            "error": 0.07,
+            "unshiftedError": 0.15,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": -11,
+            "dy": 1,
+            "error": 0.06,
+            "unshiftedError": 0.13,
+            "improvement": 0.58
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 38,
+          "minY": 24,
+          "maxX": 137,
+          "maxY": 132,
+          "count": 6154,
+          "centerX": 87.5,
+          "centerY": 78,
+          "centroidX": 89.07,
+          "centroidY": 81.57
+        },
+        {
+          "minX": 46,
+          "minY": 24,
+          "maxX": 141,
+          "maxY": 132,
+          "count": 6019,
+          "centerX": 93.5,
+          "centerY": 78,
+          "centroidX": 94.7,
+          "centroidY": 80.78
+        },
+        {
+          "minX": 41,
+          "minY": 27,
+          "maxX": 136,
+          "maxY": 132,
+          "count": 5839,
+          "centerX": 88.5,
+          "centerY": 79.5,
+          "centroidX": 89.22,
+          "centroidY": 82.57
+        },
+        {
+          "minX": 35,
+          "minY": 28,
+          "maxX": 130,
+          "maxY": 131,
+          "count": 5797,
+          "centerX": 82.5,
+          "centerY": 79.5,
+          "centroidX": 82.93,
+          "centroidY": 83.04
+        },
+        {
+          "minX": 30,
+          "minY": 31,
+          "maxX": 127,
+          "maxY": 133,
+          "count": 5811,
+          "centerX": 78.5,
+          "centerY": 82,
+          "centroidX": 80.5,
+          "centroidY": 85.12
+        },
+        {
+          "minX": 28,
+          "minY": 26,
+          "maxX": 126,
+          "maxY": 132,
+          "count": 6115,
+          "centerX": 77,
+          "centerY": 79,
+          "centroidX": 78.47,
+          "centroidY": 81.71
+        }
+      ]
+    },
+    {
+      "fileId": "void-mote",
+      "sheet": "img/project-starfall/animations/enemies/void-mote-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 5.5,
+      "alphaCentroidSpanX": 5.25,
+      "coreTranslationSpanX": 14,
+      "fullTranslationSpanX": 12,
+      "maxCoreFullDisagreementX": 4,
+      "loopClosureCoreTranslationX": -1,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 4,
+            "dy": 3,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": 1,
+            "dy": 2,
+            "error": 0.04,
+            "unshiftedError": 0.04,
+            "improvement": 0.11
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 3,
+            "dy": 3,
+            "error": 0.06,
+            "unshiftedError": 0.07,
+            "improvement": 0.12
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.05,
+            "unshiftedError": 0.05,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.03,
+            "improvement": 0.14
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.03,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 13,
+            "dy": 1,
+            "error": 0.05,
+            "unshiftedError": 0.1,
+            "improvement": 0.48
+          },
+          "full": {
+            "dx": 9,
+            "dy": 0,
+            "error": 0.05,
+            "unshiftedError": 0.07,
+            "improvement": 0.19
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.26
+          },
+          "full": {
+            "dx": -3,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.38
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 30,
+          "minY": 34,
+          "maxX": 138,
+          "maxY": 127,
+          "count": 6365,
+          "centerX": 84,
+          "centerY": 80.5,
+          "centroidX": 89.07,
+          "centroidY": 84.8
+        },
+        {
+          "minX": 25,
+          "minY": 35,
+          "maxX": 137,
+          "maxY": 127,
+          "count": 6509,
+          "centerX": 81,
+          "centerY": 81,
+          "centroidX": 86.83,
+          "centroidY": 85.31
+        },
+        {
+          "minX": 28,
+          "minY": 30,
+          "maxX": 138,
+          "maxY": 127,
+          "count": 6844,
+          "centerX": 83,
+          "centerY": 78.5,
+          "centroidX": 86.27,
+          "centroidY": 83.81
+        },
+        {
+          "minX": 22,
+          "minY": 33,
+          "maxX": 137,
+          "maxY": 127,
+          "count": 7035,
+          "centerX": 79.5,
+          "centerY": 80,
+          "centroidX": 84.47,
+          "centroidY": 83.54
+        },
+        {
+          "minX": 29,
+          "minY": 34,
+          "maxX": 140,
+          "maxY": 126,
+          "count": 6755,
+          "centerX": 84.5,
+          "centerY": 80,
+          "centroidX": 89.39,
+          "centroidY": 83.71
+        },
+        {
+          "minX": 25,
+          "minY": 33,
+          "maxX": 133,
+          "maxY": 126,
+          "count": 6415,
+          "centerX": 79,
+          "centerY": 79.5,
+          "centroidX": 84.14,
+          "centroidY": 83.76
+        }
+      ]
+    },
+    {
+      "fileId": "cinder-spitter",
+      "sheet": "img/project-starfall/animations/enemies/cinder-spitter-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 11.5,
+      "alphaCentroidSpanX": 13.73,
+      "coreTranslationSpanX": 13,
+      "fullTranslationSpanX": 13,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -13,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.11
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.08
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -6,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.88
+          },
+          "full": {
+            "dx": -6,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.78
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.74
+          },
+          "full": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.77
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.66
+          },
+          "full": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.78
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -13,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.09,
+            "improvement": 0.92
+          },
+          "full": {
+            "dx": -13,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.08,
+            "improvement": 0.83
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 24,
+          "minY": 67,
+          "maxX": 146,
+          "maxY": 148,
+          "count": 6205,
+          "centerX": 85,
+          "centerY": 107.5,
+          "centroidX": 91.94,
+          "centroidY": 113.7
+        },
+        {
+          "minX": 24,
+          "minY": 67,
+          "maxX": 146,
+          "maxY": 148,
+          "count": 6265,
+          "centerX": 85,
+          "centerY": 107.5,
+          "centroidX": 91.15,
+          "centroidY": 113.3
+        },
+        {
+          "minX": 21,
+          "minY": 67,
+          "maxX": 141,
+          "maxY": 149,
+          "count": 6141,
+          "centerX": 81,
+          "centerY": 108,
+          "centroidX": 86.56,
+          "centroidY": 113.66
+        },
+        {
+          "minX": 17,
+          "minY": 68,
+          "maxX": 136,
+          "maxY": 148,
+          "count": 6040,
+          "centerX": 76.5,
+          "centerY": 108,
+          "centroidX": 82.56,
+          "centroidY": 113.65
+        },
+        {
+          "minX": 12,
+          "minY": 67,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 6214,
+          "centerX": 74.5,
+          "centerY": 108,
+          "centroidX": 81.81,
+          "centroidY": 113.6
+        },
+        {
+          "minX": 13,
+          "minY": 67,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 6193,
+          "centerX": 73.5,
+          "centerY": 108,
+          "centroidX": 78.2,
+          "centroidY": 113.18
+        }
+      ]
+    },
+    {
+      "fileId": "clockbug",
+      "sheet": "img/project-starfall/animations/enemies/clockbug-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 11,
+      "alphaCentroidSpanX": 12.6,
+      "coreTranslationSpanX": 12,
+      "fullTranslationSpanX": 12,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -8,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 4,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.08,
+            "improvement": 0.62
+          },
+          "full": {
+            "dx": 4,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.58
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.34
+          },
+          "full": {
+            "dx": 2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.19
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.47
+          },
+          "full": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.29
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -6,
+            "dy": 1,
+            "error": 0.03,
+            "unshiftedError": 0.09,
+            "improvement": 0.62
+          },
+          "full": {
+            "dx": -6,
+            "dy": 1,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.5
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -8,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.1,
+            "improvement": 0.77
+          },
+          "full": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.08,
+            "improvement": 0.67
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 31,
+          "minY": 36,
+          "maxX": 148,
+          "maxY": 149,
+          "count": 8827,
+          "centerX": 89.5,
+          "centerY": 92.5,
+          "centroidX": 85.59,
+          "centroidY": 101.97
+        },
+        {
+          "minX": 33,
+          "minY": 36,
+          "maxX": 149,
+          "maxY": 149,
+          "count": 8767,
+          "centerX": 91,
+          "centerY": 92.5,
+          "centroidX": 89.63,
+          "centroidY": 101.86
+        },
+        {
+          "minX": 33,
+          "minY": 36,
+          "maxX": 148,
+          "maxY": 149,
+          "count": 8491,
+          "centerX": 90.5,
+          "centerY": 92.5,
+          "centroidX": 86.65,
+          "centroidY": 101.71
+        },
+        {
+          "minX": 29,
+          "minY": 37,
+          "maxX": 146,
+          "maxY": 149,
+          "count": 8599,
+          "centerX": 87.5,
+          "centerY": 93,
+          "centroidX": 84.03,
+          "centroidY": 101.43
+        },
+        {
+          "minX": 28,
+          "minY": 39,
+          "maxX": 141,
+          "maxY": 149,
+          "count": 8132,
+          "centerX": 84.5,
+          "centerY": 94,
+          "centroidX": 79.71,
+          "centroidY": 102.73
+        },
+        {
+          "minX": 25,
+          "minY": 37,
+          "maxX": 135,
+          "maxY": 148,
+          "count": 8223,
+          "centerX": 80,
+          "centerY": 92.5,
+          "centroidX": 77.03,
+          "centroidY": 101.5
+        }
+      ]
+    },
+    {
+      "fileId": "briar-stag",
+      "sheet": "img/project-starfall/animations/enemies/briar-stag-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 12.5,
+      "alphaCentroidSpanX": 10.55,
+      "coreTranslationSpanX": 12,
+      "fullTranslationSpanX": 11,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -8,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 4,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.68
+          },
+          "full": {
+            "dx": 4,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.64
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 2,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.48
+          },
+          "full": {
+            "dx": 2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.47
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 1,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": 1,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.4
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -7,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.1,
+            "improvement": 0.77
+          },
+          "full": {
+            "dx": -7,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.07,
+            "improvement": 0.8
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -8,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.12,
+            "improvement": 0.8
+          },
+          "full": {
+            "dx": -7,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.69
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 51,
+          "minY": 47,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 4420,
+          "centerX": 95,
+          "centerY": 98,
+          "centroidX": 92.54,
+          "centroidY": 102.59
+        },
+        {
+          "minX": 57,
+          "minY": 48,
+          "maxX": 143,
+          "maxY": 149,
+          "count": 4486,
+          "centerX": 100,
+          "centerY": 98.5,
+          "centroidX": 95.9,
+          "centroidY": 102.81
+        },
+        {
+          "minX": 55,
+          "minY": 47,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 4452,
+          "centerX": 97,
+          "centerY": 98,
+          "centroidX": 94.53,
+          "centroidY": 103.04
+        },
+        {
+          "minX": 55,
+          "minY": 48,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 4364,
+          "centerX": 97,
+          "centerY": 98.5,
+          "centroidX": 93.71,
+          "centroidY": 102.89
+        },
+        {
+          "minX": 46,
+          "minY": 48,
+          "maxX": 133,
+          "maxY": 149,
+          "count": 4332,
+          "centerX": 89.5,
+          "centerY": 98.5,
+          "centroidX": 86.18,
+          "centroidY": 102.93
+        },
+        {
+          "minX": 46,
+          "minY": 47,
+          "maxX": 129,
+          "maxY": 149,
+          "count": 4263,
+          "centerX": 87.5,
+          "centerY": 98,
+          "centroidX": 85.35,
+          "centroidY": 102.75
+        }
+      ]
+    },
+    {
+      "fileId": "ember-wisp",
+      "sheet": "img/project-starfall/animations/enemies/ember-wisp-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 10,
+      "alphaCentroidSpanX": 11.65,
+      "coreTranslationSpanX": 12,
+      "fullTranslationSpanX": 12,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -12,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": -6,
+            "error": 0.03,
+            "unshiftedError": 0.09,
+            "improvement": 0.68
+          },
+          "full": {
+            "dx": 0,
+            "dy": -5,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.52
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -4,
+            "dy": -2,
+            "error": 0.04,
+            "unshiftedError": 0.07,
+            "improvement": 0.44
+          },
+          "full": {
+            "dx": -4,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.47
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -5,
+            "dy": -3,
+            "error": 0.06,
+            "unshiftedError": 0.08,
+            "improvement": 0.23
+          },
+          "full": {
+            "dx": -5,
+            "dy": -3,
+            "error": 0.04,
+            "unshiftedError": 0.06,
+            "improvement": 0.34
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -7,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.1,
+            "improvement": 0.86
+          },
+          "full": {
+            "dx": -7,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.08,
+            "improvement": 0.74
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -12,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.13,
+            "improvement": 0.76
+          },
+          "full": {
+            "dx": -12,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.1,
+            "improvement": 0.75
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 37,
+          "minY": 29,
+          "maxX": 140,
+          "maxY": 132,
+          "count": 5543,
+          "centerX": 88.5,
+          "centerY": 80.5,
+          "centroidX": 88.53,
+          "centroidY": 85.51
+        },
+        {
+          "minX": 38,
+          "minY": 23,
+          "maxX": 139,
+          "maxY": 130,
+          "count": 5585,
+          "centerX": 88.5,
+          "centerY": 76.5,
+          "centroidX": 90.28,
+          "centroidY": 81.7
+        },
+        {
+          "minX": 34,
+          "minY": 25,
+          "maxX": 137,
+          "maxY": 132,
+          "count": 5691,
+          "centerX": 85.5,
+          "centerY": 78.5,
+          "centroidX": 86,
+          "centroidY": 84.38
+        },
+        {
+          "minX": 34,
+          "minY": 24,
+          "maxX": 133,
+          "maxY": 131,
+          "count": 5361,
+          "centerX": 83.5,
+          "centerY": 77.5,
+          "centroidX": 84.65,
+          "centroidY": 83.74
+        },
+        {
+          "minX": 31,
+          "minY": 28,
+          "maxX": 133,
+          "maxY": 132,
+          "count": 5556,
+          "centerX": 82,
+          "centerY": 80,
+          "centroidX": 82.35,
+          "centroidY": 84.98
+        },
+        {
+          "minX": 29,
+          "minY": 28,
+          "maxX": 128,
+          "maxY": 132,
+          "count": 5405,
+          "centerX": 78.5,
+          "centerY": 80,
+          "centroidX": 78.63,
+          "centroidY": 86.16
+        }
+      ]
+    },
+    {
+      "fileId": "lava-tick",
+      "sheet": "img/project-starfall/animations/enemies/lava-tick-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 8.5,
+      "alphaCentroidSpanX": 9.09,
+      "coreTranslationSpanX": 12,
+      "fullTranslationSpanX": 9,
+      "maxCoreFullDisagreementX": 3,
+      "loopClosureCoreTranslationX": -9,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -8,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.57
+          },
+          "full": {
+            "dx": -6,
+            "dy": -2,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.41
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -7,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0.05,
+            "improvement": 0.91
+          },
+          "full": {
+            "dx": -6,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.77
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -12,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.75
+          },
+          "full": {
+            "dx": -9,
+            "dy": 2,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.67
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.84
+          },
+          "full": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.78
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -9,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.89
+          },
+          "full": {
+            "dx": -9,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.84
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 21,
+          "minY": 72,
+          "maxX": 148,
+          "maxY": 149,
+          "count": 6514,
+          "centerX": 84.5,
+          "centerY": 110.5,
+          "centroidX": 86.63,
+          "centroidY": 111.99
+        },
+        {
+          "minX": 17,
+          "minY": 70,
+          "maxX": 144,
+          "maxY": 149,
+          "count": 6472,
+          "centerX": 80.5,
+          "centerY": 109.5,
+          "centroidX": 80.33,
+          "centroidY": 110.42
+        },
+        {
+          "minX": 16,
+          "minY": 72,
+          "maxX": 144,
+          "maxY": 149,
+          "count": 6529,
+          "centerX": 80,
+          "centerY": 110.5,
+          "centroidX": 80.98,
+          "centroidY": 112.08
+        },
+        {
+          "minX": 14,
+          "minY": 72,
+          "maxX": 141,
+          "maxY": 151,
+          "count": 6693,
+          "centerX": 77.5,
+          "centerY": 111.5,
+          "centroidX": 77.53,
+          "centroidY": 113.17
+        },
+        {
+          "minX": 14,
+          "minY": 71,
+          "maxX": 141,
+          "maxY": 149,
+          "count": 6589,
+          "centerX": 77.5,
+          "centerY": 110,
+          "centroidX": 79.46,
+          "centroidY": 112.31
+        },
+        {
+          "minX": 14,
+          "minY": 71,
+          "maxX": 138,
+          "maxY": 148,
+          "count": 6359,
+          "centerX": 76,
+          "centerY": 109.5,
+          "centroidX": 78.13,
+          "centroidY": 110.86
+        }
+      ]
+    },
+    {
+      "fileId": "cracked-mimic",
+      "sheet": "img/project-starfall/animations/enemies/cracked-mimic-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 9.5,
+      "alphaCentroidSpanX": 11.15,
+      "coreTranslationSpanX": 12,
+      "fullTranslationSpanX": 12,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -12,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.8
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.6
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -4,
+            "dy": 2,
+            "error": 0.01,
+            "unshiftedError": 0.09,
+            "improvement": 0.9
+          },
+          "full": {
+            "dx": -4,
+            "dy": 2,
+            "error": 0.01,
+            "unshiftedError": 0.07,
+            "improvement": 0.88
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.1,
+            "improvement": 0.73
+          },
+          "full": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.09,
+            "improvement": 0.79
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -11,
+            "dy": 2,
+            "error": 0.02,
+            "unshiftedError": 0.11,
+            "improvement": 0.8
+          },
+          "full": {
+            "dx": -11,
+            "dy": 2,
+            "error": 0.02,
+            "unshiftedError": 0.1,
+            "improvement": 0.8
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -12,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.11,
+            "improvement": 0.95
+          },
+          "full": {
+            "dx": -12,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.1,
+            "improvement": 0.91
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 26,
+          "minY": 63,
+          "maxX": 140,
+          "maxY": 148,
+          "count": 7705,
+          "centerX": 83,
+          "centerY": 105.5,
+          "centroidX": 84.1,
+          "centroidY": 105.11
+        },
+        {
+          "minX": 27,
+          "minY": 62,
+          "maxX": 138,
+          "maxY": 148,
+          "count": 7745,
+          "centerX": 82.5,
+          "centerY": 105,
+          "centroidX": 83,
+          "centroidY": 105.04
+        },
+        {
+          "minX": 23,
+          "minY": 64,
+          "maxX": 136,
+          "maxY": 148,
+          "count": 7578,
+          "centerX": 79.5,
+          "centerY": 106,
+          "centroidX": 80.1,
+          "centroidY": 106.27
+        },
+        {
+          "minX": 17,
+          "minY": 63,
+          "maxX": 130,
+          "maxY": 149,
+          "count": 7466,
+          "centerX": 73.5,
+          "centerY": 106,
+          "centroidX": 75.55,
+          "centroidY": 105.16
+        },
+        {
+          "minX": 19,
+          "minY": 65,
+          "maxX": 131,
+          "maxY": 149,
+          "count": 7495,
+          "centerX": 75,
+          "centerY": 107,
+          "centroidX": 74.32,
+          "centroidY": 106.45
+        },
+        {
+          "minX": 18,
+          "minY": 62,
+          "maxX": 130,
+          "maxY": 148,
+          "count": 7590,
+          "centerX": 74,
+          "centerY": 105,
+          "centroidX": 72.95,
+          "centroidY": 104.94
+        }
+      ]
+    },
+    {
+      "fileId": "bandit-cutter",
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 10.5,
+      "alphaCentroidSpanX": 10.34,
+      "coreTranslationSpanX": 10,
+      "fullTranslationSpanX": 10,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -10,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -2,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.73
+          },
+          "full": {
+            "dx": -2,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.58
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.85
+          },
+          "full": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.87
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -5,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.7
+          },
+          "full": {
+            "dx": -5,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.74
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.09,
+            "improvement": 0.81
+          },
+          "full": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.08,
+            "improvement": 0.83
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.09,
+            "improvement": 0.86
+          },
+          "full": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.09,
+            "improvement": 0.81
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 53,
+          "minY": 79,
+          "maxX": 119,
+          "maxY": 149,
+          "count": 3459,
+          "centerX": 86,
+          "centerY": 114,
+          "centroidX": 86.3,
+          "centroidY": 115.29
+        },
+        {
+          "minX": 51,
+          "minY": 81,
+          "maxX": 117,
+          "maxY": 149,
+          "count": 3320,
+          "centerX": 84,
+          "centerY": 115,
+          "centroidX": 84.52,
+          "centroidY": 116.16
+        },
+        {
+          "minX": 50,
+          "minY": 80,
+          "maxX": 115,
+          "maxY": 149,
+          "count": 3387,
+          "centerX": 82.5,
+          "centerY": 114.5,
+          "centroidX": 82.56,
+          "centroidY": 115.62
+        },
+        {
+          "minX": 48,
+          "minY": 81,
+          "maxX": 113,
+          "maxY": 149,
+          "count": 3338,
+          "centerX": 80.5,
+          "centerY": 115,
+          "centroidX": 81.01,
+          "centroidY": 116.39
+        },
+        {
+          "minX": 44,
+          "minY": 80,
+          "maxX": 109,
+          "maxY": 149,
+          "count": 3311,
+          "centerX": 76.5,
+          "centerY": 114.5,
+          "centroidX": 76.59,
+          "centroidY": 115.54
+        },
+        {
+          "minX": 44,
+          "minY": 80,
+          "maxX": 107,
+          "maxY": 148,
+          "count": 3264,
+          "centerX": 75.5,
+          "centerY": 114,
+          "centroidX": 75.97,
+          "centroidY": 115.31
+        }
+      ]
+    },
+    {
+      "fileId": "clockwork-titan",
+      "sheet": "img/project-starfall/animations/enemies/clockwork-titan-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 11.5,
+      "alphaCentroidSpanX": 11.39,
+      "coreTranslationSpanX": 10,
+      "fullTranslationSpanX": 11,
+      "maxCoreFullDisagreementX": 2,
+      "loopClosureCoreTranslationX": -10,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -3,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.56
+          },
+          "full": {
+            "dx": -4,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.58
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -6,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.07,
+            "improvement": 0.66
+          },
+          "full": {
+            "dx": -6,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.7
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -8,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.09,
+            "improvement": 0.69
+          },
+          "full": {
+            "dx": -9,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.08,
+            "improvement": 0.64
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -9,
+            "dy": -3,
+            "error": 0.05,
+            "unshiftedError": 0.09,
+            "improvement": 0.5
+          },
+          "full": {
+            "dx": -11,
+            "dy": -3,
+            "error": 0.04,
+            "unshiftedError": 0.07,
+            "improvement": 0.46
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.1,
+            "improvement": 0.78
+          },
+          "full": {
+            "dx": -11,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.08,
+            "improvement": 0.8
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 32,
+          "minY": 36,
+          "maxX": 140,
+          "maxY": 149,
+          "count": 8689,
+          "centerX": 86,
+          "centerY": 92.5,
+          "centroidX": 84.06,
+          "centroidY": 99.06
+        },
+        {
+          "minX": 26,
+          "minY": 35,
+          "maxX": 137,
+          "maxY": 148,
+          "count": 8922,
+          "centerX": 81.5,
+          "centerY": 91.5,
+          "centroidX": 79.29,
+          "centroidY": 98.18
+        },
+        {
+          "minX": 23,
+          "minY": 34,
+          "maxX": 134,
+          "maxY": 148,
+          "count": 8912,
+          "centerX": 78.5,
+          "centerY": 91,
+          "centroidX": 76.91,
+          "centroidY": 97.36
+        },
+        {
+          "minX": 20,
+          "minY": 35,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 9181,
+          "centerX": 77,
+          "centerY": 92,
+          "centroidX": 74.3,
+          "centroidY": 98.4
+        },
+        {
+          "minX": 19,
+          "minY": 35,
+          "maxX": 135,
+          "maxY": 148,
+          "count": 9421,
+          "centerX": 77,
+          "centerY": 91.5,
+          "centroidX": 74.71,
+          "centroidY": 97.66
+        },
+        {
+          "minX": 20,
+          "minY": 36,
+          "maxX": 129,
+          "maxY": 149,
+          "count": 8701,
+          "centerX": 74.5,
+          "centerY": 92.5,
+          "centroidX": 72.67,
+          "centroidY": 98.75
+        }
+      ]
+    },
+    {
+      "fileId": "stormbreak-roc",
+      "sheet": "img/project-starfall/animations/enemies/stormbreak-roc-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 10.5,
+      "alphaCentroidSpanX": 11.91,
+      "coreTranslationSpanX": 10,
+      "fullTranslationSpanX": 10,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -10,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -7,
+            "dy": 1,
+            "error": 0.03,
+            "unshiftedError": 0.12,
+            "improvement": 0.71
+          },
+          "full": {
+            "dx": -7,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.08,
+            "improvement": 0.71
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -6,
+            "dy": 0,
+            "error": 0.06,
+            "unshiftedError": 0.12,
+            "improvement": 0.45
+          },
+          "full": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.07,
+            "improvement": 0.47
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -6,
+            "dy": 0,
+            "error": 0.09,
+            "unshiftedError": 0.15,
+            "improvement": 0.43
+          },
+          "full": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.05,
+            "unshiftedError": 0.08,
+            "improvement": 0.45
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -9,
+            "dy": -1,
+            "error": 0.05,
+            "unshiftedError": 0.13,
+            "improvement": 0.66
+          },
+          "full": {
+            "dx": -9,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.09,
+            "improvement": 0.66
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.07,
+            "unshiftedError": 0.16,
+            "improvement": 0.58
+          },
+          "full": {
+            "dx": -10,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.1,
+            "improvement": 0.65
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 36,
+          "minY": 36,
+          "maxX": 125,
+          "maxY": 122,
+          "count": 4252,
+          "centerX": 80.5,
+          "centerY": 79,
+          "centroidX": 83.63,
+          "centroidY": 81.21
+        },
+        {
+          "minX": 31,
+          "minY": 36,
+          "maxX": 115,
+          "maxY": 122,
+          "count": 4198,
+          "centerX": 73,
+          "centerY": 79,
+          "centroidX": 76.47,
+          "centroidY": 81.27
+        },
+        {
+          "minX": 30,
+          "minY": 44,
+          "maxX": 118,
+          "maxY": 122,
+          "count": 4222,
+          "centerX": 74,
+          "centerY": 83,
+          "centroidX": 76.56,
+          "centroidY": 82.47
+        },
+        {
+          "minX": 31,
+          "minY": 42,
+          "maxX": 118,
+          "maxY": 122,
+          "count": 4177,
+          "centerX": 74.5,
+          "centerY": 82,
+          "centroidX": 75.96,
+          "centroidY": 82.09
+        },
+        {
+          "minX": 28,
+          "minY": 37,
+          "maxX": 116,
+          "maxY": 122,
+          "count": 4497,
+          "centerX": 72,
+          "centerY": 79.5,
+          "centroidX": 74.33,
+          "centroidY": 79.16
+        },
+        {
+          "minX": 27,
+          "minY": 35,
+          "maxX": 113,
+          "maxY": 121,
+          "count": 4361,
+          "centerX": 70,
+          "centerY": 78,
+          "centroidX": 71.72,
+          "centroidY": 79.03
+        }
+      ]
+    },
+    {
+      "fileId": "slimelet",
+      "sheet": "img/project-starfall/animations/enemies/slimelet-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 8.5,
+      "alphaCentroidSpanX": 8.79,
+      "coreTranslationSpanX": 9,
+      "fullTranslationSpanX": 9,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -9,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.47
+          },
+          "full": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.31
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 0,
+            "dy": -5,
+            "error": 0.01,
+            "unshiftedError": 0.08,
+            "improvement": 0.93
+          },
+          "full": {
+            "dx": 0,
+            "dy": -5,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.89
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -7,
+            "dy": 6,
+            "error": 0.02,
+            "unshiftedError": 0.12,
+            "improvement": 0.82
+          },
+          "full": {
+            "dx": -7,
+            "dy": 6,
+            "error": 0.03,
+            "unshiftedError": 0.07,
+            "improvement": 0.59
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -9,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0.1,
+            "improvement": 0.96
+          },
+          "full": {
+            "dx": -9,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0.07,
+            "improvement": 0.95
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -9,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.1,
+            "improvement": 0.94
+          },
+          "full": {
+            "dx": -9,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0.07,
+            "improvement": 0.96
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 27,
+          "minY": 50,
+          "maxX": 143,
+          "maxY": 149,
+          "count": 7180,
+          "centerX": 85,
+          "centerY": 99.5,
+          "centroidX": 86.56,
+          "centroidY": 112.64
+        },
+        {
+          "minX": 26,
+          "minY": 54,
+          "maxX": 143,
+          "maxY": 149,
+          "count": 7275,
+          "centerX": 84.5,
+          "centerY": 101.5,
+          "centroidX": 85.63,
+          "centroidY": 112.66
+        },
+        {
+          "minX": 26,
+          "minY": 45,
+          "maxX": 143,
+          "maxY": 146,
+          "count": 7411,
+          "centerX": 84.5,
+          "centerY": 95.5,
+          "centroidX": 86.24,
+          "centroidY": 108.13
+        },
+        {
+          "minX": 21,
+          "minY": 60,
+          "maxX": 136,
+          "maxY": 149,
+          "count": 6430,
+          "centerX": 78.5,
+          "centerY": 104.5,
+          "centroidX": 79.7,
+          "centroidY": 116.01
+        },
+        {
+          "minX": 19,
+          "minY": 50,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 7162,
+          "centerX": 77,
+          "centerY": 99.5,
+          "centroidX": 77.77,
+          "centroidY": 112.85
+        },
+        {
+          "minX": 19,
+          "minY": 50,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 7151,
+          "centerX": 76.5,
+          "centerY": 99.5,
+          "centroidX": 77.91,
+          "centroidY": 112.7
+        }
+      ]
+    },
+    {
+      "fileId": "brambleking",
+      "sheet": "img/project-starfall/animations/enemies/brambleking-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 7,
+      "alphaCentroidSpanX": 8.59,
+      "coreTranslationSpanX": 9,
+      "fullTranslationSpanX": 9,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -9,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.55
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.4
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -4,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.69
+          },
+          "full": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.54
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.73
+          },
+          "full": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.68
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.73
+          },
+          "full": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.72
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -9,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.77
+          },
+          "full": {
+            "dx": -9,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.74
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 34,
+          "minY": 57,
+          "maxX": 131,
+          "maxY": 149,
+          "count": 5615,
+          "centerX": 82.5,
+          "centerY": 103,
+          "centroidX": 84.35,
+          "centroidY": 111.56
+        },
+        {
+          "minX": 35,
+          "minY": 57,
+          "maxX": 129,
+          "maxY": 149,
+          "count": 5279,
+          "centerX": 82,
+          "centerY": 103,
+          "centroidX": 81.58,
+          "centroidY": 111.48
+        },
+        {
+          "minX": 32,
+          "minY": 58,
+          "maxX": 126,
+          "maxY": 149,
+          "count": 5182,
+          "centerX": 79,
+          "centerY": 103.5,
+          "centroidX": 79.55,
+          "centroidY": 112.09
+        },
+        {
+          "minX": 33,
+          "minY": 57,
+          "maxX": 124,
+          "maxY": 149,
+          "count": 5389,
+          "centerX": 78.5,
+          "centerY": 103,
+          "centroidX": 77.36,
+          "centroidY": 111.18
+        },
+        {
+          "minX": 31,
+          "minY": 57,
+          "maxX": 125,
+          "maxY": 149,
+          "count": 5375,
+          "centerX": 78,
+          "centerY": 103,
+          "centroidX": 76.92,
+          "centroidY": 111.22
+        },
+        {
+          "minX": 29,
+          "minY": 57,
+          "maxX": 122,
+          "maxY": 149,
+          "count": 5303,
+          "centerX": 75.5,
+          "centerY": 103,
+          "centroidX": 75.77,
+          "centroidY": 111.54
+        }
+      ]
+    },
+    {
+      "fileId": "rift-aberration",
+      "sheet": "img/project-starfall/animations/enemies/rift-aberration-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 6.5,
+      "alphaCentroidSpanX": 7.34,
+      "coreTranslationSpanX": 9,
+      "fullTranslationSpanX": 9,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -4,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 5,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.73
+          },
+          "full": {
+            "dx": 5,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.47
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.74
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.62
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -3,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.49
+          },
+          "full": {
+            "dx": -3,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.52
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.57
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.56
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.07,
+            "improvement": 0.83
+          },
+          "full": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.76
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 49,
+          "minY": 48,
+          "maxX": 115,
+          "maxY": 111,
+          "count": 2288,
+          "centerX": 82,
+          "centerY": 79.5,
+          "centroidX": 82.52,
+          "centroidY": 84.75
+        },
+        {
+          "minX": 49,
+          "minY": 48,
+          "maxX": 118,
+          "maxY": 111,
+          "count": 2313,
+          "centerX": 83.5,
+          "centerY": 79.5,
+          "centroidX": 85.91,
+          "centroidY": 84.59
+        },
+        {
+          "minX": 48,
+          "minY": 49,
+          "maxX": 111,
+          "maxY": 110,
+          "count": 2224,
+          "centerX": 79.5,
+          "centerY": 79.5,
+          "centroidX": 80.73,
+          "centroidY": 83.91
+        },
+        {
+          "minX": 45,
+          "minY": 51,
+          "maxX": 112,
+          "maxY": 111,
+          "count": 2211,
+          "centerX": 78.5,
+          "centerY": 81,
+          "centroidX": 79.37,
+          "centroidY": 84.48
+        },
+        {
+          "minX": 45,
+          "minY": 48,
+          "maxX": 112,
+          "maxY": 111,
+          "count": 2298,
+          "centerX": 78.5,
+          "centerY": 79.5,
+          "centroidX": 80.4,
+          "centroidY": 84.59
+        },
+        {
+          "minX": 45,
+          "minY": 49,
+          "maxX": 109,
+          "maxY": 111,
+          "count": 2225,
+          "centerX": 77,
+          "centerY": 80,
+          "centroidX": 78.57,
+          "centroidY": 84.56
+        }
+      ]
+    },
+    {
+      "fileId": "dew-slime",
+      "sheet": "img/project-starfall/animations/enemies/dew-slime-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 7.5,
+      "alphaCentroidSpanX": 8.19,
+      "coreTranslationSpanX": 8,
+      "fullTranslationSpanX": 8,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -8,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.72
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.69
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -3,
+            "dy": -3,
+            "error": 0.03,
+            "unshiftedError": 0.09,
+            "improvement": 0.62
+          },
+          "full": {
+            "dx": -3,
+            "dy": -2,
+            "error": 0.04,
+            "unshiftedError": 0.06,
+            "improvement": 0.39
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -5,
+            "dy": 2,
+            "error": 0.03,
+            "unshiftedError": 0.1,
+            "improvement": 0.69
+          },
+          "full": {
+            "dx": -5,
+            "dy": 1,
+            "error": 0.03,
+            "unshiftedError": 0.07,
+            "improvement": 0.61
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -7,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.13,
+            "improvement": 0.81
+          },
+          "full": {
+            "dx": -7,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.1,
+            "improvement": 0.83
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.13,
+            "improvement": 0.91
+          },
+          "full": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.1,
+            "improvement": 0.92
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 23,
+          "minY": 55,
+          "maxX": 144,
+          "maxY": 148,
+          "count": 7015,
+          "centerX": 83.5,
+          "centerY": 101.5,
+          "centroidX": 83.77,
+          "centroidY": 113.52
+        },
+        {
+          "minX": 20,
+          "minY": 54,
+          "maxX": 143,
+          "maxY": 149,
+          "count": 7144,
+          "centerX": 81.5,
+          "centerY": 101.5,
+          "centroidX": 81.97,
+          "centroidY": 113.41
+        },
+        {
+          "minX": 18,
+          "minY": 48,
+          "maxX": 143,
+          "maxY": 148,
+          "count": 7580,
+          "centerX": 80.5,
+          "centerY": 98,
+          "centroidX": 80.24,
+          "centroidY": 111.1
+        },
+        {
+          "minX": 17,
+          "minY": 56,
+          "maxX": 140,
+          "maxY": 149,
+          "count": 7018,
+          "centerX": 78.5,
+          "centerY": 102.5,
+          "centroidX": 78.52,
+          "centroidY": 114.61
+        },
+        {
+          "minX": 15,
+          "minY": 55,
+          "maxX": 138,
+          "maxY": 148,
+          "count": 7028,
+          "centerX": 76.5,
+          "centerY": 101.5,
+          "centroidX": 76.17,
+          "centroidY": 113.33
+        },
+        {
+          "minX": 15,
+          "minY": 55,
+          "maxX": 137,
+          "maxY": 148,
+          "count": 7040,
+          "centerX": 76,
+          "centerY": 101.5,
+          "centroidX": 75.58,
+          "centroidY": 113.13
+        }
+      ]
+    },
+    {
+      "fileId": "glacier-sentinel",
+      "sheet": "img/project-starfall/animations/enemies/glacier-sentinel-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 3,
+      "alphaCentroidSpanX": 4.3,
+      "coreTranslationSpanX": 8,
+      "fullTranslationSpanX": 7,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -1,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -5,
+            "dy": -5,
+            "error": 0.05,
+            "unshiftedError": 0.13,
+            "improvement": 0.58
+          },
+          "full": {
+            "dx": -4,
+            "dy": -4,
+            "error": 0.05,
+            "unshiftedError": 0.07,
+            "improvement": 0.25
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": -3,
+            "error": 0.04,
+            "unshiftedError": 0.08,
+            "improvement": 0.46
+          },
+          "full": {
+            "dx": -1,
+            "dy": -2,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.19
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.06,
+            "unshiftedError": 0.07,
+            "improvement": 0.16
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.17
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 3,
+            "dy": -1,
+            "error": 0.05,
+            "unshiftedError": 0.12,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": 3,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.48
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -1,
+            "dy": -3,
+            "error": 0.04,
+            "unshiftedError": 0.1,
+            "improvement": 0.62
+          },
+          "full": {
+            "dx": -1,
+            "dy": -3,
+            "error": 0.04,
+            "unshiftedError": 0.06,
+            "improvement": 0.33
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 35,
+          "minY": 60,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 5167,
+          "centerX": 84.5,
+          "centerY": 104.5,
+          "centroidX": 76.52,
+          "centroidY": 111.94
+        },
+        {
+          "minX": 35,
+          "minY": 56,
+          "maxX": 135,
+          "maxY": 148,
+          "count": 5511,
+          "centerX": 85,
+          "centerY": 102,
+          "centroidX": 74.89,
+          "centroidY": 109.4
+        },
+        {
+          "minX": 36,
+          "minY": 56,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 5467,
+          "centerX": 86.5,
+          "centerY": 102.5,
+          "centroidX": 76.71,
+          "centroidY": 110.46
+        },
+        {
+          "minX": 36,
+          "minY": 58,
+          "maxX": 133,
+          "maxY": 148,
+          "count": 5319,
+          "centerX": 84.5,
+          "centerY": 103,
+          "centroidX": 77.09,
+          "centroidY": 111.22
+        },
+        {
+          "minX": 37,
+          "minY": 57,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 5402,
+          "centerX": 87.5,
+          "centerY": 103,
+          "centroidX": 79.19,
+          "centroidY": 110.98
+        },
+        {
+          "minX": 37,
+          "minY": 56,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 5414,
+          "centerX": 86,
+          "centerY": 102.5,
+          "centroidX": 77.03,
+          "centroidY": 110.37
+        }
+      ]
+    },
+    {
+      "fileId": "index-scribe",
+      "sheet": "img/project-starfall/animations/enemies/index-scribe-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 8.5,
+      "alphaCentroidSpanX": 8,
+      "coreTranslationSpanX": 8,
+      "fullTranslationSpanX": 8,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -8,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.43
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.16
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.47
+          },
+          "full": {
+            "dx": -1,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.22
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -2,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": -2,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.36
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -4,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.09,
+            "improvement": 0.76
+          },
+          "full": {
+            "dx": -3,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.7
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -8,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.12,
+            "improvement": 0.81
+          },
+          "full": {
+            "dx": -8,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.74
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 38,
+          "minY": 46,
+          "maxX": 139,
+          "maxY": 148,
+          "count": 7245,
+          "centerX": 88.5,
+          "centerY": 97,
+          "centroidX": 86.42,
+          "centroidY": 99.6
+        },
+        {
+          "minX": 41,
+          "minY": 47,
+          "maxX": 138,
+          "maxY": 147,
+          "count": 7110,
+          "centerX": 89.5,
+          "centerY": 97,
+          "centroidX": 85.72,
+          "centroidY": 98.71
+        },
+        {
+          "minX": 35,
+          "minY": 47,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 7237,
+          "centerX": 87,
+          "centerY": 98,
+          "centroidX": 84.98,
+          "centroidY": 100.31
+        },
+        {
+          "minX": 36,
+          "minY": 46,
+          "maxX": 138,
+          "maxY": 148,
+          "count": 7268,
+          "centerX": 87,
+          "centerY": 97,
+          "centroidX": 84.77,
+          "centroidY": 100.17
+        },
+        {
+          "minX": 36,
+          "minY": 46,
+          "maxX": 136,
+          "maxY": 148,
+          "count": 7265,
+          "centerX": 86,
+          "centerY": 97,
+          "centroidX": 83.44,
+          "centroidY": 99.87
+        },
+        {
+          "minX": 32,
+          "minY": 46,
+          "maxX": 130,
+          "maxY": 149,
+          "count": 7229,
+          "centerX": 81,
+          "centerY": 97.5,
+          "centroidX": 78.42,
+          "centroidY": 99.77
+        }
+      ]
+    },
+    {
+      "fileId": "rimewarden",
+      "sheet": "img/project-starfall/animations/enemies/rimewarden-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 5,
+      "alphaCentroidSpanX": 6.67,
+      "coreTranslationSpanX": 8,
+      "fullTranslationSpanX": 7,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -8,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.53
+          },
+          "full": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.43
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -3,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.08,
+            "improvement": 0.7
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.65
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.11,
+            "improvement": 0.78
+          },
+          "full": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.75
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.11,
+            "improvement": 0.79
+          },
+          "full": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.73
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -8,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.13,
+            "improvement": 0.85
+          },
+          "full": {
+            "dx": -7,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.09,
+            "improvement": 0.8
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 30,
+          "minY": 48,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 6887,
+          "centerX": 84.5,
+          "centerY": 98.5,
+          "centroidX": 84.15,
+          "centroidY": 106.97
+        },
+        {
+          "minX": 31,
+          "minY": 49,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 6738,
+          "centerX": 84.5,
+          "centerY": 99,
+          "centroidX": 82.87,
+          "centroidY": 106.72
+        },
+        {
+          "minX": 30,
+          "minY": 49,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 6723,
+          "centerX": 83.5,
+          "centerY": 99,
+          "centroidX": 81.74,
+          "centroidY": 107.47
+        },
+        {
+          "minX": 30,
+          "minY": 49,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 6603,
+          "centerX": 82.5,
+          "centerY": 99,
+          "centroidX": 80.5,
+          "centroidY": 107.21
+        },
+        {
+          "minX": 29,
+          "minY": 49,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 6673,
+          "centerX": 81.5,
+          "centerY": 99,
+          "centroidX": 79.63,
+          "centroidY": 107.11
+        },
+        {
+          "minX": 26,
+          "minY": 48,
+          "maxX": 133,
+          "maxY": 148,
+          "count": 6787,
+          "centerX": 79.5,
+          "centerY": 98,
+          "centroidX": 77.47,
+          "centroidY": 106.62
+        }
+      ]
+    },
+    {
+      "fileId": "thorn-sprout",
+      "sheet": "img/project-starfall/animations/enemies/thorn-sprout-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 7,
+      "alphaCentroidSpanX": 7.07,
+      "coreTranslationSpanX": 7,
+      "fullTranslationSpanX": 7,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -7,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.29
+          },
+          "full": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.22
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -4,
+            "dy": 1,
+            "error": 0.05,
+            "unshiftedError": 0.07,
+            "improvement": 0.28
+          },
+          "full": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.05,
+            "unshiftedError": 0.07,
+            "improvement": 0.23
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.52
+          },
+          "full": {
+            "dx": -4,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.46
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.07,
+            "improvement": 0.81
+          },
+          "full": {
+            "dx": -6,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.7
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -7,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.08,
+            "improvement": 0.72
+          },
+          "full": {
+            "dx": -7,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.58
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 32,
+          "minY": 56,
+          "maxX": 148,
+          "maxY": 149,
+          "count": 6403,
+          "centerX": 90,
+          "centerY": 102.5,
+          "centroidX": 86.07,
+          "centroidY": 105.46
+        },
+        {
+          "minX": 32,
+          "minY": 56,
+          "maxX": 146,
+          "maxY": 149,
+          "count": 6257,
+          "centerX": 89,
+          "centerY": 102.5,
+          "centroidX": 84.77,
+          "centroidY": 105.59
+        },
+        {
+          "minX": 36,
+          "minY": 39,
+          "maxX": 143,
+          "maxY": 149,
+          "count": 6658,
+          "centerX": 89.5,
+          "centerY": 94,
+          "centroidX": 83.61,
+          "centroidY": 99.56
+        },
+        {
+          "minX": 30,
+          "minY": 58,
+          "maxX": 141,
+          "maxY": 148,
+          "count": 6258,
+          "centerX": 85.5,
+          "centerY": 103,
+          "centroidX": 82.03,
+          "centroidY": 105.95
+        },
+        {
+          "minX": 29,
+          "minY": 55,
+          "maxX": 140,
+          "maxY": 149,
+          "count": 6228,
+          "centerX": 84.5,
+          "centerY": 102,
+          "centroidX": 80.8,
+          "centroidY": 104.94
+        },
+        {
+          "minX": 29,
+          "minY": 54,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 6186,
+          "centerX": 83,
+          "centerY": 101.5,
+          "centroidX": 79,
+          "centroidY": 104.54
+        }
+      ]
+    },
+    {
+      "fileId": "dust-imp",
+      "sheet": "img/project-starfall/animations/enemies/dust-imp-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 6,
+      "alphaCentroidSpanX": 6.27,
+      "coreTranslationSpanX": 7,
+      "fullTranslationSpanX": 7,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -7,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -2,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.31
+          },
+          "full": {
+            "dx": -1,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.13
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.58
+          },
+          "full": {
+            "dx": -1,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.37
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.51
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.41
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -4,
+            "dy": 2,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.7
+          },
+          "full": {
+            "dx": -5,
+            "dy": 2,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.6
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -7,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.76
+          },
+          "full": {
+            "dx": -7,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.76
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 25,
+          "minY": 37,
+          "maxX": 140,
+          "maxY": 149,
+          "count": 7362,
+          "centerX": 82.5,
+          "centerY": 93,
+          "centroidX": 86.23,
+          "centroidY": 96.17
+        },
+        {
+          "minX": 26,
+          "minY": 36,
+          "maxX": 140,
+          "maxY": 149,
+          "count": 7359,
+          "centerX": 83,
+          "centerY": 92.5,
+          "centroidX": 85.39,
+          "centroidY": 95.4
+        },
+        {
+          "minX": 24,
+          "minY": 38,
+          "maxX": 140,
+          "maxY": 147,
+          "count": 7219,
+          "centerX": 82,
+          "centerY": 92.5,
+          "centroidX": 85.17,
+          "centroidY": 95.74
+        },
+        {
+          "minX": 25,
+          "minY": 38,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 7172,
+          "centerX": 81.5,
+          "centerY": 93.5,
+          "centroidX": 84.32,
+          "centroidY": 95.96
+        },
+        {
+          "minX": 23,
+          "minY": 39,
+          "maxX": 134,
+          "maxY": 147,
+          "count": 7007,
+          "centerX": 78.5,
+          "centerY": 93,
+          "centroidX": 81.84,
+          "centroidY": 96.19
+        },
+        {
+          "minX": 21,
+          "minY": 36,
+          "maxX": 133,
+          "maxY": 146,
+          "count": 7050,
+          "centerX": 77,
+          "centerY": 91,
+          "centroidX": 79.96,
+          "centroidY": 94.39
+        }
+      ]
+    },
+    {
+      "fileId": "emberjaw-golem",
+      "sheet": "img/project-starfall/animations/enemies/emberjaw-golem-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 7,
+      "alphaCentroidSpanX": 6.92,
+      "coreTranslationSpanX": 7,
+      "fullTranslationSpanX": 7,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -6,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -3,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.35
+          },
+          "full": {
+            "dx": -2,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.22
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 1,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.31
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.11
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -3,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.63
+          },
+          "full": {
+            "dx": -3,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.43
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -6,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.6
+          },
+          "full": {
+            "dx": -6,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.57
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -6,
+            "dy": 2,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.79
+          },
+          "full": {
+            "dx": -6,
+            "dy": 2,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.72
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 29,
+          "minY": 52,
+          "maxX": 141,
+          "maxY": 149,
+          "count": 6938,
+          "centerX": 85,
+          "centerY": 100.5,
+          "centroidX": 81.47,
+          "centroidY": 107.61
+        },
+        {
+          "minX": 29,
+          "minY": 53,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 6766,
+          "centerX": 83.5,
+          "centerY": 101,
+          "centroidX": 80.26,
+          "centroidY": 108.18
+        },
+        {
+          "minX": 29,
+          "minY": 52,
+          "maxX": 141,
+          "maxY": 149,
+          "count": 6879,
+          "centerX": 85,
+          "centerY": 100.5,
+          "centroidX": 81.88,
+          "centroidY": 108.12
+        },
+        {
+          "minX": 27,
+          "minY": 52,
+          "maxX": 137,
+          "maxY": 148,
+          "count": 6824,
+          "centerX": 82,
+          "centerY": 100,
+          "centroidX": 78.82,
+          "centroidY": 108.24
+        },
+        {
+          "minX": 25,
+          "minY": 55,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 6818,
+          "centerX": 79.5,
+          "centerY": 102,
+          "centroidX": 76.16,
+          "centroidY": 108.62
+        },
+        {
+          "minX": 23,
+          "minY": 55,
+          "maxX": 133,
+          "maxY": 149,
+          "count": 6899,
+          "centerX": 78,
+          "centerY": 102,
+          "centroidX": 74.96,
+          "centroidY": 109.01
+        }
+      ]
+    },
+    {
+      "fileId": "astral-archivist",
+      "sheet": "img/project-starfall/animations/enemies/astral-archivist-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 6,
+      "alphaCentroidSpanX": 6.69,
+      "coreTranslationSpanX": 7,
+      "fullTranslationSpanX": 7,
+      "maxCoreFullDisagreementX": 2,
+      "loopClosureCoreTranslationX": -7,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -7,
+            "dy": -2,
+            "error": 0.05,
+            "unshiftedError": 0.1,
+            "improvement": 0.5
+          },
+          "full": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.06,
+            "improvement": 0.29
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.07,
+            "improvement": 0.6
+          },
+          "full": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.37
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -5,
+            "dy": 1,
+            "error": 0.03,
+            "unshiftedError": 0.08,
+            "improvement": 0.7
+          },
+          "full": {
+            "dx": -4,
+            "dy": 1,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.46
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -7,
+            "dy": -2,
+            "error": 0.04,
+            "unshiftedError": 0.1,
+            "improvement": 0.62
+          },
+          "full": {
+            "dx": -6,
+            "dy": -2,
+            "error": 0.04,
+            "unshiftedError": 0.06,
+            "improvement": 0.4
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -7,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.11,
+            "improvement": 0.79
+          },
+          "full": {
+            "dx": -7,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.73
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 42,
+          "minY": 38,
+          "maxX": 128,
+          "maxY": 120,
+          "count": 5006,
+          "centerX": 85,
+          "centerY": 79,
+          "centroidX": 82.33,
+          "centroidY": 80.89
+        },
+        {
+          "minX": 39,
+          "minY": 38,
+          "maxX": 129,
+          "maxY": 121,
+          "count": 4745,
+          "centerX": 84,
+          "centerY": 79.5,
+          "centroidX": 77.23,
+          "centroidY": 80.62
+        },
+        {
+          "minX": 39,
+          "minY": 38,
+          "maxX": 129,
+          "maxY": 121,
+          "count": 4864,
+          "centerX": 84,
+          "centerY": 79.5,
+          "centroidX": 79.04,
+          "centroidY": 81.38
+        },
+        {
+          "minX": 39,
+          "minY": 40,
+          "maxX": 126,
+          "maxY": 121,
+          "count": 4664,
+          "centerX": 82.5,
+          "centerY": 80.5,
+          "centroidX": 78.73,
+          "centroidY": 81.6
+        },
+        {
+          "minX": 39,
+          "minY": 36,
+          "maxX": 128,
+          "maxY": 122,
+          "count": 4780,
+          "centerX": 83.5,
+          "centerY": 79,
+          "centroidX": 76.58,
+          "centroidY": 80.54
+        },
+        {
+          "minX": 36,
+          "minY": 37,
+          "maxX": 122,
+          "maxY": 120,
+          "count": 4834,
+          "centerX": 79,
+          "centerY": 78.5,
+          "centroidX": 75.65,
+          "centroidY": 81.1
+        }
+      ]
+    },
+    {
+      "fileId": "vine-snapper",
+      "sheet": "img/project-starfall/animations/enemies/vine-snapper-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 3.5,
+      "alphaCentroidSpanX": 4.34,
+      "coreTranslationSpanX": 6,
+      "fullTranslationSpanX": 6,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": 0,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 6,
+            "dy": -5,
+            "error": 0.01,
+            "unshiftedError": 0.07,
+            "improvement": 0.85
+          },
+          "full": {
+            "dx": 6,
+            "dy": -4,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.6
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 4,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.68
+          },
+          "full": {
+            "dx": 4,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.65
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 2,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.34
+          },
+          "full": {
+            "dx": 2,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.55
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 4,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.75
+          },
+          "full": {
+            "dx": 4,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.73
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 24,
+          "minY": 65,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 5806,
+          "centerX": 80.5,
+          "centerY": 107,
+          "centroidX": 87.77,
+          "centroidY": 116.61
+        },
+        {
+          "minX": 25,
+          "minY": 61,
+          "maxX": 143,
+          "maxY": 149,
+          "count": 6196,
+          "centerX": 84,
+          "centerY": 105,
+          "centroidX": 92.11,
+          "centroidY": 114.77
+        },
+        {
+          "minX": 27,
+          "minY": 64,
+          "maxX": 141,
+          "maxY": 149,
+          "count": 6062,
+          "centerX": 84,
+          "centerY": 106.5,
+          "centroidX": 90.34,
+          "centroidY": 115.6
+        },
+        {
+          "minX": 25,
+          "minY": 65,
+          "maxX": 140,
+          "maxY": 148,
+          "count": 5912,
+          "centerX": 82.5,
+          "centerY": 106.5,
+          "centroidX": 89.79,
+          "centroidY": 115.24
+        },
+        {
+          "minX": 26,
+          "minY": 66,
+          "maxX": 142,
+          "maxY": 149,
+          "count": 5952,
+          "centerX": 84,
+          "centerY": 107.5,
+          "centroidX": 91.5,
+          "centroidY": 116.14
+        },
+        {
+          "minX": 25,
+          "minY": 64,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 5756,
+          "centerX": 81,
+          "centerY": 106.5,
+          "centroidX": 88.33,
+          "centroidY": 116.45
+        }
+      ]
+    },
+    {
+      "fileId": "quarry-colossus",
+      "sheet": "img/project-starfall/animations/enemies/quarry-colossus-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 3.5,
+      "alphaCentroidSpanX": 3.48,
+      "coreTranslationSpanX": 6,
+      "fullTranslationSpanX": 4,
+      "maxCoreFullDisagreementX": 2,
+      "loopClosureCoreTranslationX": -3,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -3,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.6
+          },
+          "full": {
+            "dx": -3,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.4
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -4,
+            "dy": -2,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.51
+          },
+          "full": {
+            "dx": -4,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.49
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -6,
+            "dy": -2,
+            "error": 0.05,
+            "unshiftedError": 0.07,
+            "improvement": 0.31
+          },
+          "full": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.38
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -3,
+            "dy": 2,
+            "error": 0.06,
+            "unshiftedError": 0.07,
+            "improvement": 0.14
+          },
+          "full": {
+            "dx": -3,
+            "dy": 1,
+            "error": 0.05,
+            "unshiftedError": 0.06,
+            "improvement": 0.08
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -3,
+            "dy": -2,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.52
+          },
+          "full": {
+            "dx": -3,
+            "dy": -2,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.59
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 31,
+          "minY": 60,
+          "maxX": 133,
+          "maxY": 149,
+          "count": 6384,
+          "centerX": 82,
+          "centerY": 104.5,
+          "centroidX": 80.35,
+          "centroidY": 111.71
+        },
+        {
+          "minX": 29,
+          "minY": 61,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 6470,
+          "centerX": 81.5,
+          "centerY": 105,
+          "centroidX": 78.69,
+          "centroidY": 111.83
+        },
+        {
+          "minX": 27,
+          "minY": 59,
+          "maxX": 132,
+          "maxY": 149,
+          "count": 6614,
+          "centerX": 79.5,
+          "centerY": 104,
+          "centroidX": 77.04,
+          "centroidY": 110.58
+        },
+        {
+          "minX": 28,
+          "minY": 59,
+          "maxX": 129,
+          "maxY": 148,
+          "count": 6516,
+          "centerX": 78.5,
+          "centerY": 103.5,
+          "centroidX": 76.87,
+          "centroidY": 110.26
+        },
+        {
+          "minX": 28,
+          "minY": 65,
+          "maxX": 134,
+          "maxY": 148,
+          "count": 6518,
+          "centerX": 81,
+          "centerY": 106.5,
+          "centroidX": 77.34,
+          "centroidY": 111.79
+        },
+        {
+          "minX": 28,
+          "minY": 58,
+          "maxX": 131,
+          "maxY": 149,
+          "count": 6421,
+          "centerX": 79.5,
+          "centerY": 103.5,
+          "centroidX": 76.9,
+          "centroidY": 109.82
+        }
+      ]
+    },
+    {
+      "fileId": "shardling",
+      "sheet": "img/project-starfall/animations/enemies/shardling-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 5,
+      "alphaCentroidSpanX": 5.62,
+      "coreTranslationSpanX": 5,
+      "fullTranslationSpanX": 5,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -2,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": -2,
+            "error": 0.05,
+            "unshiftedError": 0.06,
+            "improvement": 0.15
+          },
+          "full": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.04,
+            "unshiftedError": 0.05,
+            "improvement": 0.12
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": -2,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.35
+          },
+          "full": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.04,
+            "unshiftedError": 0.05,
+            "improvement": 0.25
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.1,
+            "improvement": 0.82
+          },
+          "full": {
+            "dx": -5,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.08,
+            "improvement": 0.73
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.34
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.05,
+            "improvement": 0.21
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.68
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.52
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 23,
+          "minY": 43,
+          "maxX": 144,
+          "maxY": 148,
+          "count": 8113,
+          "centerX": 83.5,
+          "centerY": 95.5,
+          "centroidX": 86.58,
+          "centroidY": 103.25
+        },
+        {
+          "minX": 23,
+          "minY": 41,
+          "maxX": 141,
+          "maxY": 148,
+          "count": 8101,
+          "centerX": 82,
+          "centerY": 94.5,
+          "centroidX": 85.55,
+          "centroidY": 101.95
+        },
+        {
+          "minX": 22,
+          "minY": 41,
+          "maxX": 142,
+          "maxY": 148,
+          "count": 8191,
+          "centerX": 82,
+          "centerY": 94.5,
+          "centroidX": 85.15,
+          "centroidY": 102.3
+        },
+        {
+          "minX": 20,
+          "minY": 41,
+          "maxX": 137,
+          "maxY": 148,
+          "count": 7950,
+          "centerX": 78.5,
+          "centerY": 94.5,
+          "centroidX": 80.96,
+          "centroidY": 102.96
+        },
+        {
+          "minX": 22,
+          "minY": 41,
+          "maxX": 142,
+          "maxY": 149,
+          "count": 8258,
+          "centerX": 82,
+          "centerY": 95,
+          "centroidX": 84.55,
+          "centroidY": 102.41
+        },
+        {
+          "minX": 20,
+          "minY": 42,
+          "maxX": 139,
+          "maxY": 148,
+          "count": 7966,
+          "centerX": 79.5,
+          "centerY": 95,
+          "centroidX": 82.72,
+          "centroidY": 103.21
+        }
+      ]
+    },
+    {
+      "fileId": "rimeback-brute",
+      "sheet": "img/project-starfall/animations/enemies/rimeback-brute-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 2,
+      "alphaCentroidSpanX": 2.79,
+      "coreTranslationSpanX": 5,
+      "fullTranslationSpanX": 3,
+      "maxCoreFullDisagreementX": 2,
+      "loopClosureCoreTranslationX": -2,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -4,
+            "dy": -4,
+            "error": 0.04,
+            "unshiftedError": 0.07,
+            "improvement": 0.43
+          },
+          "full": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.05,
+            "unshiftedError": 0.06,
+            "improvement": 0.11
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.68
+          },
+          "full": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.55
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.48
+          },
+          "full": {
+            "dx": -1,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.3
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 0,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.15
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.01
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.47
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.2
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 31,
+          "minY": 55,
+          "maxX": 125,
+          "maxY": 146,
+          "count": 6383,
+          "centerX": 78,
+          "centerY": 100.5,
+          "centroidX": 78.81,
+          "centroidY": 107.15
+        },
+        {
+          "minX": 29,
+          "minY": 54,
+          "maxX": 128,
+          "maxY": 149,
+          "count": 7168,
+          "centerX": 78.5,
+          "centerY": 101.5,
+          "centroidX": 76.85,
+          "centroidY": 106.58
+        },
+        {
+          "minX": 31,
+          "minY": 55,
+          "maxX": 126,
+          "maxY": 146,
+          "count": 6545,
+          "centerX": 78.5,
+          "centerY": 100.5,
+          "centroidX": 79.64,
+          "centroidY": 106.6
+        },
+        {
+          "minX": 28,
+          "minY": 55,
+          "maxX": 125,
+          "maxY": 149,
+          "count": 6797,
+          "centerX": 76.5,
+          "centerY": 102,
+          "centroidX": 76.9,
+          "centroidY": 107.44
+        },
+        {
+          "minX": 30,
+          "minY": 54,
+          "maxX": 127,
+          "maxY": 149,
+          "count": 6872,
+          "centerX": 78.5,
+          "centerY": 101.5,
+          "centroidX": 78.66,
+          "centroidY": 107.24
+        },
+        {
+          "minX": 29,
+          "minY": 55,
+          "maxX": 125,
+          "maxY": 148,
+          "count": 6787,
+          "centerX": 77,
+          "centerY": 101.5,
+          "centroidX": 77.07,
+          "centroidY": 107.14
+        }
+      ]
+    },
+    {
+      "fileId": "thunder-ram",
+      "sheet": "img/project-starfall/animations/enemies/thunder-ram-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 4,
+      "alphaCentroidSpanX": 4.2,
+      "coreTranslationSpanX": 5,
+      "fullTranslationSpanX": 5,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -4,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 1,
+            "dy": -9,
+            "error": 0.05,
+            "unshiftedError": 0.1,
+            "improvement": 0.53
+          },
+          "full": {
+            "dx": 1,
+            "dy": -5,
+            "error": 0.06,
+            "unshiftedError": 0.07,
+            "improvement": 0.13
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.47
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.34
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.24
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -4,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.83
+          },
+          "full": {
+            "dx": -4,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.67
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 44,
+          "minY": 87,
+          "maxX": 121,
+          "maxY": 149,
+          "count": 3284,
+          "centerX": 82.5,
+          "centerY": 118,
+          "centroidX": 86.21,
+          "centroidY": 118.72
+        },
+        {
+          "minX": 44,
+          "minY": 81,
+          "maxX": 119,
+          "maxY": 149,
+          "count": 3527,
+          "centerX": 81.5,
+          "centerY": 115,
+          "centroidX": 86.15,
+          "centroidY": 116.82
+        },
+        {
+          "minX": 42,
+          "minY": 87,
+          "maxX": 120,
+          "maxY": 149,
+          "count": 3370,
+          "centerX": 81,
+          "centerY": 118,
+          "centroidX": 84.16,
+          "centroidY": 118.74
+        },
+        {
+          "minX": 43,
+          "minY": 88,
+          "maxX": 121,
+          "maxY": 148,
+          "count": 3331,
+          "centerX": 82,
+          "centerY": 118,
+          "centroidX": 85.54,
+          "centroidY": 118.74
+        },
+        {
+          "minX": 42,
+          "minY": 88,
+          "maxX": 119,
+          "maxY": 151,
+          "count": 3362,
+          "centerX": 80.5,
+          "centerY": 119.5,
+          "centroidX": 83.93,
+          "centroidY": 119.35
+        },
+        {
+          "minX": 41,
+          "minY": 88,
+          "maxX": 116,
+          "maxY": 150,
+          "count": 3259,
+          "centerX": 78.5,
+          "centerY": 119,
+          "centroidX": 82.01,
+          "centroidY": 119.9
+        }
+      ]
+    },
+    {
+      "fileId": "mossback",
+      "sheet": "img/project-starfall/animations/enemies/mossback-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 4,
+      "alphaCentroidSpanX": 3.57,
+      "coreTranslationSpanX": 4,
+      "fullTranslationSpanX": 4,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -4,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": -2,
+            "error": 0.03,
+            "unshiftedError": 0.05,
+            "improvement": 0.33
+          },
+          "full": {
+            "dx": 0,
+            "dy": -2,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.22
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.59
+          },
+          "full": {
+            "dx": -1,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.36
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -2,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.82
+          },
+          "full": {
+            "dx": -2,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.51
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -4,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.04,
+            "improvement": 0.77
+          },
+          "full": {
+            "dx": -4,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.66
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -4,
+            "dy": 3,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.8
+          },
+          "full": {
+            "dx": -4,
+            "dy": 3,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.55
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 29,
+          "minY": 58,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 7066,
+          "centerX": 83.5,
+          "centerY": 103.5,
+          "centroidX": 83.18,
+          "centroidY": 110.99
+        },
+        {
+          "minX": 30,
+          "minY": 57,
+          "maxX": 137,
+          "maxY": 148,
+          "count": 6980,
+          "centerX": 83.5,
+          "centerY": 102.5,
+          "centroidX": 83.23,
+          "centroidY": 109.57
+        },
+        {
+          "minX": 27,
+          "minY": 58,
+          "maxX": 137,
+          "maxY": 148,
+          "count": 6877,
+          "centerX": 82,
+          "centerY": 103,
+          "centroidX": 82.02,
+          "centroidY": 111.61
+        },
+        {
+          "minX": 28,
+          "minY": 59,
+          "maxX": 136,
+          "maxY": 148,
+          "count": 6813,
+          "centerX": 82,
+          "centerY": 103.5,
+          "centroidX": 81.68,
+          "centroidY": 111.3
+        },
+        {
+          "minX": 26,
+          "minY": 57,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 6993,
+          "centerX": 80,
+          "centerY": 103,
+          "centroidX": 79.97,
+          "centroidY": 111.1
+        },
+        {
+          "minX": 25,
+          "minY": 62,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 6699,
+          "centerX": 79.5,
+          "centerY": 105.5,
+          "centroidX": 79.65,
+          "centroidY": 112.59
+        }
+      ]
+    },
+    {
+      "fileId": "scrap-warden",
+      "sheet": "img/project-starfall/animations/enemies/scrap-warden-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 4.5,
+      "alphaCentroidSpanX": 4.45,
+      "coreTranslationSpanX": 4,
+      "fullTranslationSpanX": 3,
+      "maxCoreFullDisagreementX": 2,
+      "loopClosureCoreTranslationX": 1,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 1,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.29
+          },
+          "full": {
+            "dx": 2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.22
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.04,
+            "improvement": 0.01
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.12
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 0,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.58
+          },
+          "full": {
+            "dx": 0,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.42
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 3,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.56
+          },
+          "full": {
+            "dx": 3,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.34
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0.02,
+            "improvement": 0.79
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0.01,
+            "improvement": 0.8
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 39,
+          "minY": 59,
+          "maxX": 121,
+          "maxY": 148,
+          "count": 5065,
+          "centerX": 80,
+          "centerY": 103.5,
+          "centroidX": 81.62,
+          "centroidY": 112.16
+        },
+        {
+          "minX": 46,
+          "minY": 60,
+          "maxX": 123,
+          "maxY": 149,
+          "count": 4862,
+          "centerX": 84.5,
+          "centerY": 104.5,
+          "centroidX": 84.69,
+          "centroidY": 112.32
+        },
+        {
+          "minX": 47,
+          "minY": 61,
+          "maxX": 122,
+          "maxY": 149,
+          "count": 4947,
+          "centerX": 84.5,
+          "centerY": 105,
+          "centroidX": 83.52,
+          "centroidY": 112.29
+        },
+        {
+          "minX": 44,
+          "minY": 60,
+          "maxX": 121,
+          "maxY": 149,
+          "count": 4890,
+          "centerX": 82.5,
+          "centerY": 104.5,
+          "centroidX": 82.46,
+          "centroidY": 112.75
+        },
+        {
+          "minX": 46,
+          "minY": 60,
+          "maxX": 123,
+          "maxY": 148,
+          "count": 4685,
+          "centerX": 84.5,
+          "centerY": 104,
+          "centroidX": 86.07,
+          "centroidY": 111.58
+        },
+        {
+          "minX": 40,
+          "minY": 59,
+          "maxX": 121,
+          "maxY": 149,
+          "count": 5019,
+          "centerX": 80.5,
+          "centerY": 104,
+          "centroidX": 82.59,
+          "centroidY": 112.45
+        }
+      ]
+    },
+    {
+      "fileId": "ash-crawler",
+      "sheet": "img/project-starfall/animations/enemies/ash-crawler-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 4.5,
+      "alphaCentroidSpanX": 4.08,
+      "coreTranslationSpanX": 4,
+      "fullTranslationSpanX": 4,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -1,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 3,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.64
+          },
+          "full": {
+            "dx": 3,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.51
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 3,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": 2,
+            "dy": 2,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.37
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 1,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.27
+          },
+          "full": {
+            "dx": 1,
+            "dy": 1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.23
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.17
+          },
+          "full": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.05
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -1,
+            "dy": 3,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.71
+          },
+          "full": {
+            "dx": -1,
+            "dy": 2,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.44
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 26,
+          "minY": 75,
+          "maxX": 138,
+          "maxY": 148,
+          "count": 5890,
+          "centerX": 82,
+          "centerY": 111.5,
+          "centroidX": 79.37,
+          "centroidY": 114.8
+        },
+        {
+          "minX": 28,
+          "minY": 77,
+          "maxX": 141,
+          "maxY": 148,
+          "count": 5808,
+          "centerX": 84.5,
+          "centerY": 112.5,
+          "centroidX": 81.93,
+          "centroidY": 115.74
+        },
+        {
+          "minX": 29,
+          "minY": 77,
+          "maxX": 139,
+          "maxY": 148,
+          "count": 5644,
+          "centerX": 84,
+          "centerY": 112.5,
+          "centroidX": 81.56,
+          "centroidY": 116.03
+        },
+        {
+          "minX": 28,
+          "minY": 76,
+          "maxX": 140,
+          "maxY": 148,
+          "count": 5689,
+          "centerX": 84,
+          "centerY": 112,
+          "centroidX": 80.85,
+          "centroidY": 115.19
+        },
+        {
+          "minX": 30,
+          "minY": 74,
+          "maxX": 137,
+          "maxY": 148,
+          "count": 5720,
+          "centerX": 83.5,
+          "centerY": 111,
+          "centroidX": 79.72,
+          "centroidY": 113.87
+        },
+        {
+          "minX": 24,
+          "minY": 79,
+          "maxX": 136,
+          "maxY": 149,
+          "count": 5533,
+          "centerX": 80,
+          "centerY": 114,
+          "centroidX": 77.85,
+          "centroidY": 116.71
+        }
+      ]
+    },
+    {
+      "fileId": "cloudcall-acolyte",
+      "sheet": "img/project-starfall/animations/enemies/cloudcall-acolyte-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 3,
+      "alphaCentroidSpanX": 3.7,
+      "coreTranslationSpanX": 4,
+      "fullTranslationSpanX": 4,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -2,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 2,
+            "dy": 0,
+            "error": 0.06,
+            "unshiftedError": 0.08,
+            "improvement": 0.33
+          },
+          "full": {
+            "dx": 2,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.06,
+            "improvement": 0.26
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.79
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.69
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.53
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.38
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.64
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.38
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.03,
+            "unshiftedError": 0.06,
+            "improvement": 0.57
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.45
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 33,
+          "minY": 49,
+          "maxX": 142,
+          "maxY": 149,
+          "count": 7197,
+          "centerX": 87.5,
+          "centerY": 99,
+          "centroidX": 84.64,
+          "centroidY": 99.99
+        },
+        {
+          "minX": 34,
+          "minY": 50,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 6941,
+          "centerX": 86.5,
+          "centerY": 99.5,
+          "centroidX": 86.38,
+          "centroidY": 100.73
+        },
+        {
+          "minX": 31,
+          "minY": 48,
+          "maxX": 141,
+          "maxY": 149,
+          "count": 7252,
+          "centerX": 86,
+          "centerY": 98.5,
+          "centroidX": 83.16,
+          "centroidY": 99.96
+        },
+        {
+          "minX": 31,
+          "minY": 48,
+          "maxX": 143,
+          "maxY": 149,
+          "count": 7206,
+          "centerX": 87,
+          "centerY": 98.5,
+          "centroidX": 83.27,
+          "centroidY": 99.64
+        },
+        {
+          "minX": 32,
+          "minY": 49,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 7084,
+          "centerX": 84.5,
+          "centerY": 99,
+          "centroidX": 82.68,
+          "centroidY": 100.25
+        },
+        {
+          "minX": 32,
+          "minY": 48,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 7100,
+          "centerX": 85,
+          "centerY": 98.5,
+          "centroidX": 82.95,
+          "centroidY": 99.78
+        }
+      ]
+    },
+    {
+      "fileId": "bristle-boar",
+      "sheet": "img/project-starfall/animations/enemies/bristle-boar-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 2.5,
+      "alphaCentroidSpanX": 1.69,
+      "coreTranslationSpanX": 3,
+      "fullTranslationSpanX": 2,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -2,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.34
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.24
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.4
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.29
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 0,
+            "dy": 2,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.5
+          },
+          "full": {
+            "dx": 0,
+            "dy": 2,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.28
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -3,
+            "dy": 3,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.5
+          },
+          "full": {
+            "dx": -2,
+            "dy": 2,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.29
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.74
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.51
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 21,
+          "minY": 64,
+          "maxX": 140,
+          "maxY": 149,
+          "count": 6389,
+          "centerX": 80.5,
+          "centerY": 106.5,
+          "centroidX": 83.37,
+          "centroidY": 109.97
+        },
+        {
+          "minX": 22,
+          "minY": 65,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 6204,
+          "centerX": 79.5,
+          "centerY": 107,
+          "centroidX": 82.66,
+          "centroidY": 109.97
+        },
+        {
+          "minX": 22,
+          "minY": 64,
+          "maxX": 138,
+          "maxY": 148,
+          "count": 6230,
+          "centerX": 80,
+          "centerY": 106,
+          "centroidX": 82.94,
+          "centroidY": 109.47
+        },
+        {
+          "minX": 22,
+          "minY": 65,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 6203,
+          "centerX": 80,
+          "centerY": 107,
+          "centroidX": 83.47,
+          "centroidY": 110.91
+        },
+        {
+          "minX": 21,
+          "minY": 66,
+          "maxX": 135,
+          "maxY": 148,
+          "count": 6087,
+          "centerX": 78,
+          "centerY": 107,
+          "centroidX": 81.79,
+          "centroidY": 110.87
+        },
+        {
+          "minX": 22,
+          "minY": 64,
+          "maxX": 138,
+          "maxY": 148,
+          "count": 6304,
+          "centerX": 80,
+          "centerY": 106,
+          "centroidX": 82.08,
+          "centroidY": 109.59
+        }
+      ]
+    },
+    {
+      "fileId": "coil-sentry",
+      "sheet": "img/project-starfall/animations/enemies/coil-sentry-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 2,
+      "alphaCentroidSpanX": 4.24,
+      "coreTranslationSpanX": 3,
+      "fullTranslationSpanX": 2,
+      "maxCoreFullDisagreementX": 3,
+      "loopClosureCoreTranslationX": -1,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.06,
+            "unshiftedError": 0.07,
+            "improvement": 0.13
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.05,
+            "improvement": 0.16
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -2,
+            "dy": -1,
+            "error": 0.07,
+            "unshiftedError": 0.07,
+            "improvement": 0.01
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.05,
+            "unshiftedError": 0.05,
+            "improvement": 0.04
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.05,
+            "unshiftedError": 0.05,
+            "improvement": 0.06
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.03,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.35
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.28
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 40,
+          "minY": 36,
+          "maxX": 126,
+          "maxY": 148,
+          "count": 6718,
+          "centerX": 83,
+          "centerY": 92,
+          "centroidX": 86.38,
+          "centroidY": 99.96
+        },
+        {
+          "minX": 41,
+          "minY": 36,
+          "maxX": 128,
+          "maxY": 149,
+          "count": 6864,
+          "centerX": 84.5,
+          "centerY": 92.5,
+          "centroidX": 89.04,
+          "centroidY": 99.44
+        },
+        {
+          "minX": 41,
+          "minY": 35,
+          "maxX": 128,
+          "maxY": 148,
+          "count": 6823,
+          "centerX": 84.5,
+          "centerY": 91.5,
+          "centroidX": 85.14,
+          "centroidY": 99.48
+        },
+        {
+          "minX": 40,
+          "minY": 36,
+          "maxX": 126,
+          "maxY": 148,
+          "count": 6710,
+          "centerX": 83,
+          "centerY": 92,
+          "centroidX": 85.92,
+          "centroidY": 100.06
+        },
+        {
+          "minX": 40,
+          "minY": 36,
+          "maxX": 127,
+          "maxY": 148,
+          "count": 6850,
+          "centerX": 83.5,
+          "centerY": 92,
+          "centroidX": 84.79,
+          "centroidY": 99.48
+        },
+        {
+          "minX": 39,
+          "minY": 35,
+          "maxX": 126,
+          "maxY": 148,
+          "count": 6807,
+          "centerX": 82.5,
+          "centerY": 91.5,
+          "centroidX": 85.11,
+          "centroidY": 99.23
+        }
+      ]
+    },
+    {
+      "fileId": "glowcap-healer",
+      "sheet": "img/project-starfall/animations/enemies/glowcap-healer-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 4.5,
+      "alphaCentroidSpanX": 3.01,
+      "coreTranslationSpanX": 3,
+      "fullTranslationSpanX": 4,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": 0,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": -1,
+            "dy": 17,
+            "error": 0.05,
+            "unshiftedError": 0.2,
+            "improvement": 0.77
+          },
+          "full": {
+            "dx": -1,
+            "dy": 14,
+            "error": 0.07,
+            "unshiftedError": 0.13,
+            "improvement": 0.45
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 0,
+            "dy": 19,
+            "error": 0.16,
+            "unshiftedError": 0.26,
+            "improvement": 0.38
+          },
+          "full": {
+            "dx": 1,
+            "dy": 19,
+            "error": 0.14,
+            "unshiftedError": 0.18,
+            "improvement": 0.22
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 1,
+            "dy": -11,
+            "error": 0.06,
+            "unshiftedError": 0.13,
+            "improvement": 0.58
+          },
+          "full": {
+            "dx": 1,
+            "dy": -10,
+            "error": 0.05,
+            "unshiftedError": 0.11,
+            "improvement": 0.54
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 2,
+            "dy": -8,
+            "error": 0.07,
+            "unshiftedError": 0.12,
+            "improvement": 0.4
+          },
+          "full": {
+            "dx": 3,
+            "dy": -7,
+            "error": 0.08,
+            "unshiftedError": 0.09,
+            "improvement": 0.19
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 0,
+            "dy": 3,
+            "error": 0.01,
+            "unshiftedError": 0.05,
+            "improvement": 0.78
+          },
+          "full": {
+            "dx": 0,
+            "dy": 2,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.49
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 20,
+          "minY": 36,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 9602,
+          "centerX": 77.5,
+          "centerY": 92.5,
+          "centroidX": 76.48,
+          "centroidY": 96.83
+        },
+        {
+          "minX": 17,
+          "minY": 53,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 8252,
+          "centerX": 76,
+          "centerY": 101,
+          "centroidX": 76.03,
+          "centroidY": 106.36
+        },
+        {
+          "minX": 17,
+          "minY": 69,
+          "maxX": 140,
+          "maxY": 150,
+          "count": 7349,
+          "centerX": 78.5,
+          "centerY": 109.5,
+          "centroidX": 78.01,
+          "centroidY": 115.2
+        },
+        {
+          "minX": 22,
+          "minY": 27,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 9741,
+          "centerX": 78.5,
+          "centerY": 88,
+          "centroidX": 77.85,
+          "centroidY": 90.01
+        },
+        {
+          "minX": 25,
+          "minY": 25,
+          "maxX": 136,
+          "maxY": 150,
+          "count": 9716,
+          "centerX": 80.5,
+          "centerY": 87.5,
+          "centroidX": 78.9,
+          "centroidY": 92.26
+        },
+        {
+          "minX": 18,
+          "minY": 39,
+          "maxX": 134,
+          "maxY": 149,
+          "count": 9338,
+          "centerX": 76,
+          "centerY": 94,
+          "centroidX": 75.89,
+          "centroidY": 98.64
+        }
+      ]
+    },
+    {
+      "fileId": "gale-harrier",
+      "sheet": "img/project-starfall/animations/enemies/gale-harrier-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 3.5,
+      "alphaCentroidSpanX": 2.95,
+      "coreTranslationSpanX": 3,
+      "fullTranslationSpanX": 3,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": 3,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.64
+          },
+          "full": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.39
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 1,
+            "dy": 2,
+            "error": 0.04,
+            "unshiftedError": 0.04,
+            "improvement": 0.12
+          },
+          "full": {
+            "dx": 0,
+            "dy": 1,
+            "error": 0.04,
+            "unshiftedError": 0.05,
+            "improvement": 0.03
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.04,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 1,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.23
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 3,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.82
+          },
+          "full": {
+            "dx": 2,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.53
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 3,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.07,
+            "improvement": 0.85
+          },
+          "full": {
+            "dx": 3,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.69
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 27,
+          "minY": 27,
+          "maxX": 125,
+          "maxY": 132,
+          "count": 6008,
+          "centerX": 76,
+          "centerY": 79.5,
+          "centroidX": 79.95,
+          "centroidY": 79.71
+        },
+        {
+          "minX": 27,
+          "minY": 27,
+          "maxX": 126,
+          "maxY": 131,
+          "count": 6041,
+          "centerX": 76.5,
+          "centerY": 79,
+          "centroidX": 80.05,
+          "centroidY": 79.28
+        },
+        {
+          "minX": 30,
+          "minY": 26,
+          "maxX": 126,
+          "maxY": 136,
+          "count": 5832,
+          "centerX": 78,
+          "centerY": 81,
+          "centroidX": 82.08,
+          "centroidY": 79.8
+        },
+        {
+          "minX": 26,
+          "minY": 26,
+          "maxX": 127,
+          "maxY": 134,
+          "count": 6302,
+          "centerX": 76.5,
+          "centerY": 80,
+          "centroidX": 80.75,
+          "centroidY": 79.86
+        },
+        {
+          "minX": 28,
+          "minY": 26,
+          "maxX": 128,
+          "maxY": 131,
+          "count": 6152,
+          "centerX": 78,
+          "centerY": 78.5,
+          "centroidX": 81.87,
+          "centroidY": 79.21
+        },
+        {
+          "minX": 31,
+          "minY": 27,
+          "maxX": 128,
+          "maxY": 131,
+          "count": 5928,
+          "centerX": 79.5,
+          "centerY": 79,
+          "centroidX": 82.9,
+          "centroidY": 79.15
+        }
+      ]
+    },
+    {
+      "fileId": "stormbound-archer",
+      "sheet": "img/project-starfall/animations/enemies/stormbound-archer-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 3,
+      "alphaCentroidSpanX": 2.66,
+      "coreTranslationSpanX": 3,
+      "fullTranslationSpanX": 3,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": 1,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.24
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.04
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 2,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.73
+          },
+          "full": {
+            "dx": 2,
+            "dy": 1,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.65
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.38
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.44
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 29,
+          "minY": 39,
+          "maxX": 136,
+          "maxY": 149,
+          "count": 7666,
+          "centerX": 82.5,
+          "centerY": 94,
+          "centroidX": 79.64,
+          "centroidY": 91.45
+        },
+        {
+          "minX": 29,
+          "minY": 39,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 7578,
+          "centerX": 82,
+          "centerY": 94,
+          "centroidX": 79.61,
+          "centroidY": 91.96
+        },
+        {
+          "minX": 29,
+          "minY": 39,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 7551,
+          "centerX": 82,
+          "centerY": 94,
+          "centroidX": 79.08,
+          "centroidY": 91.62
+        },
+        {
+          "minX": 32,
+          "minY": 40,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 7468,
+          "centerX": 85,
+          "centerY": 94.5,
+          "centroidX": 81.74,
+          "centroidY": 92.29
+        },
+        {
+          "minX": 29,
+          "minY": 39,
+          "maxX": 136,
+          "maxY": 149,
+          "count": 7551,
+          "centerX": 82.5,
+          "centerY": 94,
+          "centroidX": 79.28,
+          "centroidY": 91.67
+        },
+        {
+          "minX": 31,
+          "minY": 39,
+          "maxX": 136,
+          "maxY": 149,
+          "count": 7543,
+          "centerX": 83.5,
+          "centerY": 94,
+          "centroidX": 80.68,
+          "centroidY": 91.91
+        }
+      ]
+    },
+    {
+      "fileId": "lumen-sentinel",
+      "sheet": "img/project-starfall/animations/enemies/lumen-sentinel-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 2,
+      "alphaCentroidSpanX": 1.56,
+      "coreTranslationSpanX": 3,
+      "fullTranslationSpanX": 1,
+      "maxCoreFullDisagreementX": 2,
+      "loopClosureCoreTranslationX": 2,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.66
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.42
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 2,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.06,
+            "improvement": 0.34
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.3
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 3,
+            "dy": 0,
+            "error": 0.06,
+            "unshiftedError": 0.1,
+            "improvement": 0.41
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.05,
+            "unshiftedError": 0.05,
+            "improvement": 0.12
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 2,
+            "dy": -1,
+            "error": 0.04,
+            "unshiftedError": 0.07,
+            "improvement": 0.4
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.04,
+            "improvement": 0.14
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 2,
+            "dy": -2,
+            "error": 0.04,
+            "unshiftedError": 0.08,
+            "improvement": 0.44
+          },
+          "full": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.04,
+            "unshiftedError": 0.04,
+            "improvement": 0.15
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 30,
+          "minY": 56,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 7352,
+          "centerX": 84.5,
+          "centerY": 102.5,
+          "centroidX": 84.31,
+          "centroidY": 108.49
+        },
+        {
+          "minX": 34,
+          "minY": 56,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 7008,
+          "centerX": 86,
+          "centerY": 102.5,
+          "centroidX": 85.8,
+          "centroidY": 108.42
+        },
+        {
+          "minX": 33,
+          "minY": 57,
+          "maxX": 139,
+          "maxY": 149,
+          "count": 7046,
+          "centerX": 86,
+          "centerY": 103,
+          "centroidX": 85.42,
+          "centroidY": 108.65
+        },
+        {
+          "minX": 31,
+          "minY": 58,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 7021,
+          "centerX": 84.5,
+          "centerY": 103.5,
+          "centroidX": 84.79,
+          "centroidY": 109.09
+        },
+        {
+          "minX": 33,
+          "minY": 58,
+          "maxX": 138,
+          "maxY": 149,
+          "count": 6852,
+          "centerX": 85.5,
+          "centerY": 103.5,
+          "centroidX": 84.99,
+          "centroidY": 108.93
+        },
+        {
+          "minX": 33,
+          "minY": 57,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 6883,
+          "centerX": 84,
+          "centerY": 103,
+          "centroidX": 84.24,
+          "centroidY": 108.21
+        }
+      ]
+    },
+    {
+      "fileId": "oreback-beetle",
+      "sheet": "img/project-starfall/animations/enemies/oreback-beetle-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 1.5,
+      "alphaCentroidSpanX": 1.3,
+      "coreTranslationSpanX": 2,
+      "fullTranslationSpanX": 2,
+      "maxCoreFullDisagreementX": 0,
+      "loopClosureCoreTranslationX": -1,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.09
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.61
+          },
+          "full": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.34
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -1,
+            "dy": -5,
+            "error": 0.01,
+            "unshiftedError": 0.07,
+            "improvement": 0.88
+          },
+          "full": {
+            "dx": -1,
+            "dy": -5,
+            "error": 0.02,
+            "unshiftedError": 0.06,
+            "improvement": 0.63
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -2,
+            "dy": 3,
+            "error": 0.01,
+            "unshiftedError": 0.06,
+            "improvement": 0.79
+          },
+          "full": {
+            "dx": -2,
+            "dy": 3,
+            "error": 0.02,
+            "unshiftedError": 0.04,
+            "improvement": 0.5
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.54
+          },
+          "full": {
+            "dx": -1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.49
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 24,
+          "minY": 70,
+          "maxX": 136,
+          "maxY": 149,
+          "count": 6734,
+          "centerX": 80,
+          "centerY": 109.5,
+          "centroidX": 80.66,
+          "centroidY": 114.09
+        },
+        {
+          "minX": 24,
+          "minY": 69,
+          "maxX": 137,
+          "maxY": 149,
+          "count": 6804,
+          "centerX": 80.5,
+          "centerY": 109,
+          "centroidX": 80.71,
+          "centroidY": 113.64
+        },
+        {
+          "minX": 24,
+          "minY": 68,
+          "maxX": 136,
+          "maxY": 149,
+          "count": 6756,
+          "centerX": 80,
+          "centerY": 108.5,
+          "centroidX": 80.03,
+          "centroidY": 113.36
+        },
+        {
+          "minX": 23,
+          "minY": 64,
+          "maxX": 136,
+          "maxY": 149,
+          "count": 7102,
+          "centerX": 79.5,
+          "centerY": 106.5,
+          "centroidX": 79.41,
+          "centroidY": 111.29
+        },
+        {
+          "minX": 23,
+          "minY": 72,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 6472,
+          "centerX": 79,
+          "centerY": 110.5,
+          "centroidX": 79.54,
+          "centroidY": 115.79
+        },
+        {
+          "minX": 24,
+          "minY": 67,
+          "maxX": 135,
+          "maxY": 149,
+          "count": 6765,
+          "centerX": 79.5,
+          "centerY": 108,
+          "centroidX": 79.7,
+          "centroidY": 112.95
+        }
+      ]
+    },
+    {
+      "fileId": "icebloom-oracle",
+      "sheet": "img/project-starfall/animations/enemies/icebloom-oracle-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 3,
+      "alphaCentroidSpanX": 2.71,
+      "coreTranslationSpanX": 2,
+      "fullTranslationSpanX": 2,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": -2,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": -3,
+            "error": 0.03,
+            "unshiftedError": 0.1,
+            "improvement": 0.72
+          },
+          "full": {
+            "dx": 0,
+            "dy": -3,
+            "error": 0.03,
+            "unshiftedError": 0.07,
+            "improvement": 0.55
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -2,
+            "dy": -2,
+            "error": 0.02,
+            "unshiftedError": 0.09,
+            "improvement": 0.8
+          },
+          "full": {
+            "dx": -2,
+            "dy": -2,
+            "error": 0.02,
+            "unshiftedError": 0.07,
+            "improvement": 0.65
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.04,
+            "improvement": 0.18
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.03,
+            "improvement": 0.12
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.03,
+            "unshiftedError": 0.03,
+            "improvement": 0.05
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.07,
+            "improvement": 0.81
+          },
+          "full": {
+            "dx": -2,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.05,
+            "improvement": 0.59
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 36,
+          "minY": 50,
+          "maxX": 127,
+          "maxY": 149,
+          "count": 5977,
+          "centerX": 81.5,
+          "centerY": 99.5,
+          "centroidX": 81.44,
+          "centroidY": 101.09
+        },
+        {
+          "minX": 33,
+          "minY": 45,
+          "maxX": 128,
+          "maxY": 150,
+          "count": 6328,
+          "centerX": 80.5,
+          "centerY": 97.5,
+          "centroidX": 80.79,
+          "centroidY": 97.74
+        },
+        {
+          "minX": 35,
+          "minY": 49,
+          "maxX": 125,
+          "maxY": 149,
+          "count": 6088,
+          "centerX": 80,
+          "centerY": 99,
+          "centroidX": 78.86,
+          "centroidY": 99.71
+        },
+        {
+          "minX": 34,
+          "minY": 49,
+          "maxX": 127,
+          "maxY": 148,
+          "count": 6263,
+          "centerX": 80.5,
+          "centerY": 98.5,
+          "centroidX": 80.22,
+          "centroidY": 100.67
+        },
+        {
+          "minX": 33,
+          "minY": 49,
+          "maxX": 128,
+          "maxY": 149,
+          "count": 6243,
+          "centerX": 80.5,
+          "centerY": 99,
+          "centroidX": 80.87,
+          "centroidY": 100.8
+        },
+        {
+          "minX": 33,
+          "minY": 49,
+          "maxX": 124,
+          "maxY": 150,
+          "count": 6154,
+          "centerX": 78.5,
+          "centerY": 99.5,
+          "centroidX": 78.73,
+          "centroidY": 101.7
+        }
+      ]
+    },
+    {
+      "fileId": "eclipse-duelist",
+      "sheet": "img/project-starfall/animations/enemies/eclipse-duelist-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 2,
+      "alphaCentroidSpanX": 2.52,
+      "coreTranslationSpanX": 2,
+      "fullTranslationSpanX": 2,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": 0,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.35
+          },
+          "full": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.11
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.48
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.3
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.03,
+            "improvement": 0.56
+          },
+          "full": {
+            "dx": 1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.36
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.12
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 39,
+          "minY": 75,
+          "maxX": 124,
+          "maxY": 149,
+          "count": 3471,
+          "centerX": 81.5,
+          "centerY": 112,
+          "centroidX": 80.02,
+          "centroidY": 113.33
+        },
+        {
+          "minX": 39,
+          "minY": 75,
+          "maxX": 125,
+          "maxY": 149,
+          "count": 3494,
+          "centerX": 82,
+          "centerY": 112,
+          "centroidX": 80.3,
+          "centroidY": 113.03
+        },
+        {
+          "minX": 38,
+          "minY": 75,
+          "maxX": 122,
+          "maxY": 149,
+          "count": 3393,
+          "centerX": 80,
+          "centerY": 112,
+          "centroidX": 77.86,
+          "centroidY": 113.46
+        },
+        {
+          "minX": 38,
+          "minY": 75,
+          "maxX": 124,
+          "maxY": 150,
+          "count": 3507,
+          "centerX": 81,
+          "centerY": 112.5,
+          "centroidX": 80,
+          "centroidY": 113.87
+        },
+        {
+          "minX": 39,
+          "minY": 74,
+          "maxX": 125,
+          "maxY": 149,
+          "count": 3466,
+          "centerX": 82,
+          "centerY": 111.5,
+          "centroidX": 80.39,
+          "centroidY": 113.09
+        },
+        {
+          "minX": 39,
+          "minY": 74,
+          "maxX": 123,
+          "maxY": 149,
+          "count": 3422,
+          "centerX": 81,
+          "centerY": 111.5,
+          "centroidX": 79.11,
+          "centroidY": 113.24
+        }
+      ]
+    },
+    {
+      "fileId": "bandit-thrower",
+      "sheet": "img/project-starfall/animations/enemies/bandit-thrower-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 1.5,
+      "alphaCentroidSpanX": 0.67,
+      "coreTranslationSpanX": 1,
+      "fullTranslationSpanX": 1,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": 0,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.65
+          },
+          "full": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.38
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.43
+          },
+          "full": {
+            "dx": 1,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.33
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 0,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.33
+          },
+          "full": {
+            "dx": 0,
+            "dy": -1,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0.25
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 41,
+          "minY": 53,
+          "maxX": 117,
+          "maxY": 148,
+          "count": 5234,
+          "centerX": 79,
+          "centerY": 100.5,
+          "centroidX": 81.77,
+          "centroidY": 99.96
+        },
+        {
+          "minX": 42,
+          "minY": 53,
+          "maxX": 117,
+          "maxY": 148,
+          "count": 5269,
+          "centerX": 79.5,
+          "centerY": 100.5,
+          "centroidX": 82.39,
+          "centroidY": 99.57
+        },
+        {
+          "minX": 43,
+          "minY": 53,
+          "maxX": 118,
+          "maxY": 148,
+          "count": 5303,
+          "centerX": 80.5,
+          "centerY": 100.5,
+          "centroidX": 82.11,
+          "centroidY": 99.91
+        },
+        {
+          "minX": 40,
+          "minY": 53,
+          "maxX": 118,
+          "maxY": 148,
+          "count": 5305,
+          "centerX": 79,
+          "centerY": 100.5,
+          "centroidX": 82.44,
+          "centroidY": 99.5
+        },
+        {
+          "minX": 41,
+          "minY": 53,
+          "maxX": 117,
+          "maxY": 148,
+          "count": 5231,
+          "centerX": 79,
+          "centerY": 100.5,
+          "centroidX": 81.89,
+          "centroidY": 99.97
+        },
+        {
+          "minX": 40,
+          "minY": 53,
+          "maxX": 118,
+          "maxY": 148,
+          "count": 5317,
+          "centerX": 79,
+          "centerY": 100.5,
+          "centroidX": 82.22,
+          "centroidY": 99.58
+        }
+      ]
+    },
+    {
+      "fileId": "frostling-scout",
+      "sheet": "img/project-starfall/animations/enemies/frostling-scout-sheet.png",
+      "canonical": true,
+      "boundsCenterSpanX": 1.5,
+      "alphaCentroidSpanX": 0.71,
+      "coreTranslationSpanX": 1,
+      "fullTranslationSpanX": 1,
+      "maxCoreFullDisagreementX": 1,
+      "loopClosureCoreTranslationX": 0,
+      "fits": [
+        {
+          "frame": 0,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0,
+            "unshiftedError": 0,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 1,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 2,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.03,
+            "improvement": 0.52
+          },
+          "full": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.02,
+            "improvement": 0.23
+          }
+        },
+        {
+          "frame": 3,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.04,
+            "unshiftedError": 0.04,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 4,
+          "core": {
+            "dx": -1,
+            "dy": 0,
+            "error": 0.02,
+            "unshiftedError": 0.02,
+            "improvement": 0.15
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        },
+        {
+          "frame": 5,
+          "core": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          },
+          "full": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0.01,
+            "unshiftedError": 0.01,
+            "improvement": 0
+          }
+        }
+      ],
+      "boxes": [
+        {
+          "minX": 30,
+          "minY": 62,
+          "maxX": 126,
+          "maxY": 149,
+          "count": 4665,
+          "centerX": 78,
+          "centerY": 105.5,
+          "centroidX": 75.96,
+          "centroidY": 107.43
+        },
+        {
+          "minX": 31,
+          "minY": 61,
+          "maxX": 126,
+          "maxY": 149,
+          "count": 4709,
+          "centerX": 78.5,
+          "centerY": 105,
+          "centroidX": 76.32,
+          "centroidY": 106.66
+        },
+        {
+          "minX": 31,
+          "minY": 61,
+          "maxX": 125,
+          "maxY": 147,
+          "count": 4674,
+          "centerX": 78,
+          "centerY": 104,
+          "centroidX": 75.64,
+          "centroidY": 106.26
+        },
+        {
+          "minX": 30,
+          "minY": 61,
+          "maxX": 126,
+          "maxY": 149,
+          "count": 4828,
+          "centerX": 78,
+          "centerY": 105,
+          "centroidX": 76.04,
+          "centroidY": 106.73
+        },
+        {
+          "minX": 30,
+          "minY": 61,
+          "maxX": 125,
+          "maxY": 149,
+          "count": 4788,
+          "centerX": 77.5,
+          "centerY": 105,
+          "centroidX": 75.61,
+          "centroidY": 106.59
+        },
+        {
+          "minX": 30,
+          "minY": 61,
+          "maxX": 124,
+          "maxY": 149,
+          "count": 4744,
+          "centerX": 77,
+          "centerY": 105,
+          "centroidX": 76.01,
+          "centroidY": 107.07
+        }
+      ]
+    }
+  ]
+}

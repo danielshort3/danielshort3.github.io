@@ -1,0 +1,111 @@
+{
+  "town": {
+    "material": "warm honey limestone and oak with small grassy edges, welcoming observatory frontier town",
+    "themes": [
+      "starfall-crossing",
+      "guardian-trial",
+      "duelist-trial"
+    ]
+  },
+  "meadow": {
+    "material": "lush rounded spring grass, warm brown soil, pale mossy stones and tiny white wildflowers",
+    "themes": [
+      "greenroot-meadow",
+      "beast-archer-trial"
+    ]
+  },
+  "thorn": {
+    "material": "ancient forest roots, dark jade moss, curled thorn vines, soft teal fungi and weathered bark",
+    "themes": [
+      "thornpath-thicket",
+      "bramble-depths",
+      "brambleking-court",
+      "trapper-trial"
+    ]
+  },
+  "gearworks": {
+    "material": "aged brass, copper rivets, pale limestone blocks, teal patina, small mechanical details",
+    "themes": [
+      "rustcoil-outpost",
+      "rustcoil-ruins",
+      "gearworks-vault",
+      "titan-foundry"
+    ]
+  },
+  "cinder": {
+    "material": "charcoal basalt, terracotta, restrained orange glowing mineral cracks, warm ash and sparse golden grass",
+    "themes": [
+      "cinder-refuge",
+      "cinder-hollow",
+      "emberjaw-lair",
+      "emberjaw-furnace",
+      "fire-mage-trial",
+      "berserker-trial"
+    ]
+  },
+  "frost": {
+    "material": "pale blue ice over cool gray stone, clean soft white snow caps, frost crystals and occasional amber wood",
+    "themes": [
+      "frostfen-camp",
+      "frostfen-outskirts",
+      "glacier-spine",
+      "rimewarden-sanctum",
+      "rimewarden-vault"
+    ]
+  },
+  "storm": {
+    "material": "cream weather-worn cliff stone, golden grasses, blue storm-glass crystals and copper wind hardware",
+    "themes": [
+      "stormbreak-haven",
+      "stormbreak-cliffs",
+      "stormbreak-aerie",
+      "storm-mage-trial"
+    ]
+  },
+  "astral": {
+    "material": "ivory celestial masonry with thin brass inlay, honey parchment, sapphire and violet crystal accents",
+    "themes": [
+      "astral-observatory",
+      "astral-archive",
+      "astral-stacks",
+      "rune-mage-trial"
+    ]
+  },
+  "rift": {
+    "material": "deep violet celestial stone, pale gold fissures, floating teal crystal accents, silver grass and black obsidian",
+    "themes": [
+      "eclipse-frontier",
+      "eclipse-throne",
+      "endless-rift"
+    ]
+  },
+  "quarry": {
+    "material": "warm cream sandstone, copper mineral layers, turquoise ore veins, rugged oak mine supports and smoky amber glass",
+    "themes": [
+      "oreback-quarry",
+      "deepcore-core"
+    ]
+  },
+  "ashglass": {
+    "material": "charcoal basalt, dark aubergine volcanic glass, ash-gray worn contact edges and restrained amber mineral seams",
+    "themes": [
+      "ashglass-pass"
+    ]
+  },
+  "bandit": {
+    "material": "rugged warm brown oak planks, rope bindings, gray ridge stone, autumn golden grasses and muted red canvas",
+    "themes": [
+      "bandit-ridge-camp",
+      "sniper-trial"
+    ]
+  },
+  "shop-interior": {
+    "material": "warm neutral dressed gray-taupe flagstone with restrained walnut foundation, no outdoor foliage or glowing minerals",
+    "themes": [
+      "shop-interior"
+    ],
+    "groups": [
+      "terrain"
+    ]
+  }
+}

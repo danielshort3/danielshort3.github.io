@@ -32,7 +32,7 @@ check(descriptionContext.describe({ body: { dataset: { personalFit: 'immersive' 
   querySelector: (selector) => selector === '[data-personal-accordion-shell]' ? immersiveSource : null }).fit === 'immersive',
   'Explicitly immersive route metadata remains exempt from the bounded frame.');
 
-const layoutDocument = { activeElement: null };
+const layoutDocument = { activeElement: null, body: { classList: { contains: () => false } } };
 const layoutPanel = { id: 'content', setAttribute() {} };
 const layoutStage = { style: {}, children: [], insertBefore(node, reference) {
   assert.notEqual(node, layoutPanel, 'Reordering navigation must never detach the panel containing the loaded map.');
@@ -90,10 +90,26 @@ check(layoutDocument.activeElement === layoutTabs.get('projects'), 'Moving a foc
 check(JSON.stringify(layoutStage.children.filter(node => !node.hidden).map(node => node.id)) ===
   JSON.stringify(['about', 'projects', 'content', 'tools', 'games', 'contact']),
 'Changing compact categories updates the DOM reading order around the connected panel.');
+layoutDocument.body.classList.contains = name => name === 'has-mobile-scroll-chrome';
+configurationContext.configure({ audience: 'personal', category: 'tools', view: 'overview', home: true });
+check(order.filter(id => !layoutTabs.get(id).hidden).join() === 'tools',
+  'The personal mobile section bar removes only redundant inactive overview rails.');
+check(layoutPanel === layoutStage.children.find(node => node.id === 'content'),
+  'Enabling mobile section navigation preserves the connected content panel and map.');
+configurationContext.configure({ audience: 'personal', category: '', view: 'closed', home: true });
+check(order.every(id => !layoutTabs.get(id).hidden), 'The closed mobile homepage keeps all five flush category rows.');
+configurationContext.configure({ audience: 'analytics', category: 'projects', view: 'overview', home: true });
+check(['about', 'projects', 'resume', 'contact'].every(id => !layoutTabs.get(id).hidden),
+  'Professional compact navigation retains its original categories.');
+configurationContext.compactQuery.matches = false;
+configurationContext.configure({ audience: 'personal', category: 'projects', view: 'overview', home: true });
+check(order.every(id => !layoutTabs.get(id).hidden), 'Desktop retains every vertical rail even during a mobile class handoff.');
+layoutDocument.body.classList.contains = () => false;
 
 let adoptedCommit;
 const hardManifest = { id: 'tools:transcribe', path: '/tools/transcribe', navigation: 'hard' };
 const hardContext = vm.createContext({
+  window: {},
   frame: null, welcome: null, stage: null, panel: null, slot: null, canvas: null, toolbar: null, viewport: null, loading: null, lastWidth: 0,
   document: { querySelector: selector => selector === '[data-site-route-manifest]' ? { textContent: JSON.stringify(hardManifest) }
     : selector === '[data-site-route-content]' ? { replaceWith: node => { node.isConnected = true; } } : null },
@@ -219,7 +235,7 @@ check(properties.get('min-height').value === '95vh', 'repeated cancellation clea
 
 let copiedIcon;
 const tab = { firstElementChild: { replaceChildren: (icon) => { copiedIcon = icon; } }, children: [{}, { textContent: 'Projects' }], setAttribute() {}, style: { setProperty() {} } };
-const iconContext = vm.createContext({ tabs: new Map([['projects', tab]]), colors: { projects: '#155dfc' },
+const iconContext = vm.createContext({ tabs: new Map([['projects', tab]]), colors: { projects: '#005fed' },
   document: { importNode: (source) => ({ attributes: new Map(source.attributes), hasAttribute(name) { return this.attributes.has(name); }, setAttribute(name, value) { this.attributes.set(name, value); } }) }
 });
 vm.runInContext(frameSource.slice(frameSource.indexOf('  function ensureTab('), frameSource.indexOf('  function loadContent(')), iconContext);
@@ -255,6 +271,7 @@ async function runAsyncChecks() {
       libraryBackButtons,
       items: new Map(order.map(category => [category, category === 'tools' ? homeItem : { querySelector: () => ({ children: [] }) }])) },
     framePolicy, localSequence: 0, desiredTarget: null, held: null,
+    questionDock: null, questionDockOwner: null, canvas: { append() {} },
     toolbar: homeToolbar, viewport: {
       childNodes: [],
       get firstChild() { return this.childNodes[0] || null; },
@@ -269,7 +286,7 @@ async function runAsyncChecks() {
         };
       }
     }, capture: () => ({}), transition() {}, setLoading() {}, wipe: () => Promise.resolve(true),
-    body: { replaceChildren: (...children) => { mountedChildren = children; } },
+    body: { querySelector: () => null, replaceChildren: (...children) => { mountedChildren = children; } },
     release: () => { releasedFits.push(homeContext.current.fit); return Promise.resolve(true); }
   });
   vm.runInContext(frameSource.slice(frameSource.indexOf('  function updateHomeToolbar('), frameSource.indexOf('  function commit(')), homeContext);
@@ -301,7 +318,7 @@ async function runAsyncChecks() {
     }
   }
   const detailBack = { category: 'detail' };
-  const savedDetail = { description: { home: false, view: 'detail' }, body: {}, toolbar: [detailBack] };
+  const savedDetail = { description: { home: false, view: 'detail' }, body: { querySelector: () => null }, toolbar: [detailBack] };
   homeContext.restore(savedDetail, { animate: false });
   check(homeToolbar.childNodes[0] === detailBack && !homeToolbar.hidden,
     'Restoring a detail keeps the canonical route toolbar.');

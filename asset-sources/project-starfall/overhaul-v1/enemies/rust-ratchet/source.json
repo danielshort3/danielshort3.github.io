@@ -1,0 +1,90 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "rust-ratchet",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-d532d715-9068-4193-aa1f-33bcb4549562.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/rust-ratchet.png",
+    "img/project-starfall/animations/enemies/rust-ratchet-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Mainraw7rows retained. Missinghit supplied as6genuineauthoredposes, fixedscalepernewsource, no fabricatedmotion.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/rust-ratchet-sheet.png",
+    "portrait": "img/project-starfall/enemies/rust-ratchet.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "89297ea531a0af1c44a45230a58202cb2dfc9020d2181c1ed975b34a823085ab",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "sourceRows": 7,
+  "sourceRowMap": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    null,
+    6
+  ],
+  "supplementalRows": {
+    "hit": {
+      "file": "hit-supplement.png",
+      "columns": 3,
+      "rows": 2,
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "neutralIndex": 5,
+      "sha256": "64a1a5862a48aafc748c0c85719d78bb7cd9ef8f03c5b752d96a6fa3bc9b59f1"
+    }
+  },
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      4,
+      3,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

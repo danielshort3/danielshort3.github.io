@@ -1,0 +1,87 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "icebloom-oracle",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-c9463c08-4893-4ff6-ab0c-b76c82985c04.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/icebloom-oracle.png",
+    "img/project-starfall/animations/enemies/icebloom-oracle-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png",
+    "output/starfall-animation-samples/oracle-cast-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Raw reviewed; reuse protected approved poses during import; raw protected image unchanged.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/icebloom-oracle-sheet.png",
+    "portrait": "img/project-starfall/enemies/icebloom-oracle.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "7ec7ad0c6742654f62a25bac41c3f20ccb1aa189ddaea65c96950171a8c95149",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "baseReferenceHeight": 144,
+  "supplementalRows": {
+    "buff": {
+      "repoPath": "output/starfall-animation-samples/oracle-cast-study.png",
+      "columns": 4,
+      "rows": 2,
+      "neutralIndex": 0,
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        7
+      ],
+      "anchors": [
+        {
+          "x": 216,
+          "y": 441
+        },
+        {
+          "x": 682,
+          "y": 441
+        },
+        {
+          "x": 1109.5,
+          "y": 440
+        },
+        {
+          "x": 1543,
+          "y": 439
+        },
+        {
+          "x": 227,
+          "y": 844
+        },
+        {
+          "x": 1549,
+          "y": 844
+        }
+      ],
+      "sha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8"
+    }
+  },
+  "protectedReuse": {
+    "source": "output/starfall-animation-samples/oracle-cast-study.png",
+    "sha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8",
+    "unchanged": true,
+    "registration": "Approved anatomical/foot-band anchors; one fixed resolution scale per source; repeated final boar drawings are explicit held commitment/recovery, not manufactured motion."
+  }
+}

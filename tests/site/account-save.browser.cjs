@@ -37,8 +37,46 @@ async function noManualSave(page, state) {
   assert.equal(await page.locator('[data-tools-account="save-privacy"]').count(), 0, `${state} must not retain a manual-save tooltip.`);
 }
 
+function installAutosaveServices() {
+  window.accountTestSignedIn = true;
+  window.accountTestRequests = [];
+  window.accountTestPending = new Map();
+  window.accountTestSignOutCalls = 0;
+  window.accountTestResolve = (number, version) => accountTestPending.get(number).resolve({ session: { sessionId: 'local-ui-test', version } });
+  window.accountTestReject = (number) => accountTestPending.get(number).reject(new Error('Offline. Retrying automatically.'));
+  const auth = {
+    getAuth: () => accountTestSignedIn ? { test: true } : null,
+    authIsValid: () => accountTestSignedIn,
+    getUser: () => accountTestSignedIn ? { sub: 'local-account-ui-test', email: 'local-ui@example.test' } : {},
+    isAdmin: () => false,
+    getConfig: () => ({}),
+    handleRedirect: async () => ({ handled: false }),
+    ensureFreshAuth: async () => null,
+    signIn: async () => { throw new Error('Real sign-in is not part of this test.'); },
+    signOut: async () => { window.accountTestSignOutCalls += 1; window.accountTestSignedIn = false; },
+    fetchWithAuth: async () => { throw new Error('Real account storage is not part of this test.'); }
+  };
+  const storage = {
+    logActivity: async () => ({}),
+    saveSession: (request) => {
+      accountTestRequests.push(request);
+      const number = accountTestRequests.length;
+      return new Promise((resolve, reject) => accountTestPending.set(number, { resolve, reject }));
+    },
+    listSessions: async () => ({ sessions: [] }),
+    getSession: async () => ({ session: { sessionId: 'local-ui-test', version: 1, snapshot: {} } }),
+    getDashboard: async () => ({ recentSessions: [], tools: [] })
+  };
+  // Begin signed in before tools inspect their default settings. A late auth
+  // replacement correctly remounts occupied guest state and discards that mock.
+  // Keep the application's isolation and dirty-state guards fully active.
+  Object.defineProperty(window, 'ToolsAuth', { configurable: true, get: () => auth, set: () => {} });
+  Object.defineProperty(window, 'ToolsState', { configurable: true, get: () => storage, set: () => {} });
+}
+
 async function runCase({ browser, base, artifactDir }, { width, route }) {
   const context = await browser.newContext({ viewport: { width, height: width === 320 ? 740 : 900 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  await context.addInitScript(installAutosaveServices);
   const page = await context.newPage();
   page.setDefaultTimeout(15000);
   const unexpectedRequests = [];
@@ -49,8 +87,7 @@ async function runCase({ browser, base, artifactDir }, { width, route }) {
   page.on('dialog', async dialog => { dialogs.push(dialog.message()); await dialog.dismiss(); });
   await context.route('**/api/tools/**', async request => {
     const req = request.request();
-    const isInitialSessionProbe = stage === 'initial' && req.method() === 'GET' && new URL(req.url()).pathname === '/api/tools/auth/session';
-    if (!isInitialSessionProbe) unexpectedRequests.push(req.url());
+    unexpectedRequests.push(req.url());
     await request.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"sessions":[],"activity":[]}' });
   });
   await context.route(/https:\/\/[^/]*(?:amazoncognito|cognito-idp)[^/]*\//, async request => {
@@ -62,36 +99,6 @@ async function runCase({ browser, base, artifactDir }, { width, route }) {
     await page.waitForFunction(() => window.__toolsAccountUiController && document.querySelector('[data-tools-account-route-id]'));
     if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
     await page.evaluate(() => document.fonts.ready);
-    await page.evaluate(() => {
-      window.accountTestSignedIn = true;
-      window.accountTestRequests = [];
-      window.accountTestPending = new Map();
-      window.accountTestSignOutCalls = 0;
-      window.accountTestResolve = (number, version) => accountTestPending.get(number).resolve({ session: { sessionId: 'local-ui-test', version } });
-      window.accountTestReject = (number) => accountTestPending.get(number).reject(new Error('Offline. Retrying automatically.'));
-      window.ToolsAuth = {
-        ...window.ToolsAuth,
-        getAuth: () => accountTestSignedIn ? { test: true } : null,
-        authIsValid: () => accountTestSignedIn,
-        getUser: () => accountTestSignedIn ? { sub: 'local-account-ui-test', email: 'local-ui@example.test' } : {},
-        ensureFreshAuth: async () => null,
-        signIn: async () => { throw new Error('Real sign-in is not part of this test.'); },
-        signOut: async () => { window.accountTestSignOutCalls += 1; window.accountTestSignedIn = false; }
-      };
-      window.ToolsState = {
-        ...window.ToolsState,
-        logActivity: async () => ({}),
-        saveSession: (request) => {
-          accountTestRequests.push(request);
-          const number = accountTestRequests.length;
-          return new Promise((resolve, reject) => accountTestPending.set(number, { resolve, reject }));
-        },
-        listSessions: async () => ({ sessions: [] }),
-        getSession: async () => ({ session: { sessionId: 'local-ui-test', version: 1, snapshot: {} } }),
-        getDashboard: async () => ({ recentSessions: [], tools: [] })
-      };
-      document.dispatchEvent(new CustomEvent('tools:auth-changed'));
-    });
     const account = page.locator(accountSelector);
     const signOut = page.locator(signOutSelector);
     const status = page.locator('[data-tools-account="bar"] [data-tools-account="status"]');

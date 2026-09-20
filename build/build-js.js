@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const esbuild = require('esbuild');
+const { execFileSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'dist');
@@ -27,7 +28,8 @@ const entries = [
   { entry: path.join(root, 'build', 'entries', 'site-privacy.entry.js'), baseName: 'site-privacy', manifestKey: 'privacy' },
   { entry: path.join(root, 'build', 'entries', 'site-tools-account.entry.js'), baseName: 'site-tools-account', manifestKey: 'toolsAccount' },
   { entry: path.join(root, 'build', 'entries', 'site-tools-landing.entry.js'), baseName: 'site-tools-landing', manifestKey: 'toolsLanding' },
-  { entry: path.join(root, 'build', 'entries', 'project-starfall.entry.js'), baseName: 'project-starfall', manifestKey: 'projectStarfall' }
+  { entry: path.join(root, 'build', 'entries', 'project-starfall.entry.js'), baseName: 'project-starfall', manifestKey: 'projectStarfall' },
+  { entry: path.join(root, 'build', 'entries', 'project-starfall-hurtboxes.entry.js'), baseName: 'project-starfall-hurtboxes', manifestKey: 'projectStarfallHurtboxes' }
 ];
 
 function ensureDir(dirPath) {
@@ -78,6 +80,8 @@ async function buildBundle(entryConfig) {
 }
 
 async function main() {
+  // An edited actor atlas must not ship with collision masks from older pixels.
+  execFileSync(process.execPath, [path.join(__dirname, 'generate-project-starfall-enemy-hurtboxes.js'), '--check'], { cwd: root, stdio: 'pipe' });
   ensureDir(outDir);
   entries.forEach(({ baseName }) => cleanupOldBundles(baseName));
 

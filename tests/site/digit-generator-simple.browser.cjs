@@ -153,14 +153,15 @@ async function runCase({ browser, base, artifactDir, fixtures, width, project })
       await heading.scrollIntoViewIfNeeded();
       assert.equal(await heading.locator('.project-demo-title').innerText(), 'Digit Generator');
       assert.equal(await heading.locator('.project-demo-description').innerText(), 'Choose a digit and generate a collection of handwritten variations.');
-      if (width >= 600) assert(await heading.locator('.project-demo-open').isVisible(), `${label} preserves the full-demo link beside the unified heading.`);
+      assert(await page.locator('.project-intro-action--demo').isVisible(), `${label} keeps one full-demo link in the page masthead.`);
+      assert.equal(await page.locator('.project-demo-open, .project-demo-mobile-launch .btn-primary').count(), 0, `${label} avoids duplicate launch controls.`);
       const headingBox = await heading.locator('.project-demo-heading').boundingBox();
       const actionsBox = await heading.locator('.project-demo-header-actions').boundingBox();
       assert(actionsBox.y < headingBox.y + headingBox.height, `${label} keeps heading actions beside the copy instead of creating an empty row.`);
       await page.screenshot({ path: path.join(artifactDir, `digit-generator-${label}-project-heading.png`) });
     }
     if (project && width < 600) {
-      const launch = page.locator('.project-demo-mobile-launch .btn-primary');
+      const launch = page.locator('.project-intro-action--demo');
       await launch.scrollIntoViewIfNeeded();
       assert(await launch.isVisible(), 'The compact project view offers the full demo.');
       await launch.click();

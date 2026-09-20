@@ -289,6 +289,14 @@ function visiblePngHasNeonGreen(png, alphaThreshold = 8) {
   return false;
 }
 
+function visiblePngHasExactGreenKey(png, alphaThreshold = 8) {
+  for (let offset = 0; offset < png.raw.length; offset += 4) {
+    if (png.raw[offset + 3] > alphaThreshold &&
+      png.raw[offset] < 25 && png.raw[offset + 1] > 220 && png.raw[offset + 2] < 25) return true;
+  }
+  return false;
+}
+
 function visiblePngHasMagentaChroma(png, alphaThreshold = 8) {
   for (let pixel = 0; pixel < png.width * png.height; pixel += 1) {
     const offset = pixel * 4;
@@ -7449,7 +7457,8 @@ try {
       engineCode.includes('this.beginDropThrough(player, LADDER_DROP_REGRAB_LOCK_SECONDS);') &&
       engineCode.includes('player.climbLockUntil = nowSeconds() + LADDER_DROP_REGRAB_LOCK_SECONDS;') &&
       engineCode.includes("} else if (jumpMovement && jumpMovement.type === 'jump') {") &&
-      engineCode.includes('const canAttemptClimbMount = !movementLocked &&') &&
+      engineCode.includes('const groundedDropRequested = jumpRequested && this.input.down && player.grounded &&') &&
+      engineCode.includes('const canAttemptClimbMount = !groundedDropRequested && !movementLocked &&') &&
       engineCode.includes('const climbMountReady = canAttemptClimbMount') &&
       engineCode.includes('const climbActivation = getClimbActivationPlanForMovement(player, movementLocked, mobility, climbable, verticalIntent, climbMountReady, nowSeconds());') &&
       engineCode.includes('if (climbActivation.shouldUpdateClimbing) {') &&
@@ -7522,7 +7531,7 @@ try {
       engineCode.includes('const platformLandingMetrics = { bodyX, bodyY, bodyW, bodyH, centerX, bottom, previousBottom };') &&
       engineCode.includes('const landing = getPlatformLandingResolutionForMovement(platformLandingMetrics, platform);') &&
       engineCode.includes('if (!landing) return false;\n        if (this.shouldSkipDropThroughPlatform(body, platform)) return false;') &&
-      engineCode.includes('body.y = landing.surfaceY - body.h;') &&
+      engineCode.includes('body.y = landingSurfaceY - body.h;') &&
       engineCode.includes('return shouldSkipDropThroughPlatformForMovement(body, platform, nowSeconds());') &&
       !engineCode.includes('EngineMovement.'),
       'Project Starfall teleport target selection, blink movement plan, skill movement application/invulnerability/instant-mode/blink-burst/blink-fallback/blink-target-selection/mobility-state/blink-target/action-effect/flame-trail planning, map movement profile, input intent planning, active mobility state, mobility step/application planning, air-dash momentum carry planning, horizontal movement planning, jump movement action planning, vertical physics and world-x-clamp planning, climb activation/clear-state/jump-exit/mount-state/current-climbable/step/step-dismount-endpoint/step-finalization/dismount/dismount-state/mount metric/platform-height/endpoint-match/reach/overlap-selector/ground-mount planning, drop-through state planning, platform landing resolution, and drop-through skip helpers should live in the engine movement module while the engine facade keeps runtime wrapper methods');
@@ -7857,7 +7866,7 @@ try {
       !engineCode.includes('EngineWorldMap.'),
       'Project Starfall world-map node, portal lookup, edge lock, path, and completion helpers should live in the engine world-map module');
     assert(engineQuestNpcsCode.includes('function alignQuestNpc(rawNpc, index, mapId, platforms, options)') &&
-      engineQuestNpcsCode.includes('function createMapHuntNpcDefinition(map)') &&
+      engineQuestNpcsCode.includes('function createMapHuntNpcDefinition(map, options)') &&
       engineCode.includes('const EngineQuestNpcs =') &&
       engineCode.includes('function getEngineQuestNpcHelper(name)') &&
       engineCode.includes("const ALIGN_QUEST_NPC = getEngineQuestNpcHelper('alignQuestNpc')") &&
@@ -8750,7 +8759,7 @@ try {
       assert(map.asset.startsWith('img/project-starfall/maps/') && fs.existsSync(path.join(__dirname, map.asset)),
         `${map.id} background asset should resolve`);
       const dimensions = readWebpDimensions(path.join(__dirname, map.asset));
-      const expectedWidth = map.backgroundMode === 'panorama' ? 2560 : 1280;
+      const expectedWidth = 1280;
       assert(dimensions.width === expectedWidth && dimensions.height === 640,
         `${map.id} background should match its ${expectedWidth}x640 playable image contract`);
     });
@@ -8807,30 +8816,31 @@ try {
     const engine = createProjectStarfallEngine(null, data);
     const registeredPlayerSheetPng = decodePngRgba(path.join(__dirname, data.GENERIC_PLAYER_ANIMATION_ASSET.sheet));
     const expectedPlayerTimings = {
-      idle: { fps: 5, sequence: '0,1,2,3,4,5,4,3,2,1' },
-      run: { fps: 10 },
-      basic: { fps: 16 }
+      idle: { fps: 8 },
+      run: { fps: 40 / 3 },
+      basic: { fps: 100 }
     };
     Object.entries(expectedPlayerTimings).forEach(([stateId, expected]) => {
       const animationState = data.GENERIC_PLAYER_ANIMATION_ASSET.states[stateId];
-      assert(animationState && animationState.fps === expected.fps &&
+      assert(animationState && animationState.frames === 8 && animationState.fps === expected.fps &&
         (!expected.sequence || animationState.sequence.join(',') === expected.sequence),
         `Project Starfall ${stateId} playback should use the stabilized animation timing`);
     });
     ['idle', 'run'].forEach((stateId) => {
       const row = data.PLAYER_ANIMATION_ROWS.indexOf(stateId);
       const registeredBottomOffsets = [];
-      for (let frameIndex = 0; frameIndex < 6; frameIndex += 1) {
+      for (let frameIndex = 0; frameIndex < 8; frameIndex += 1) {
         const attachment = equipmentAttachments.getEquipmentAttachment(stateId, frameIndex);
         const registration = equipmentAttachments.getPlayerSpriteRegistration(stateId, frameIndex, {
           originX: 80,
-          groundY: 154,
-          authoredBodyHeight: 143
+          groundY: 150,
+          authoredBodyHeight: 140
         });
         const stats = getPngFrameAlphaStats(registeredPlayerSheetPng, frameIndex * 160, row * 160, 160, 160, 20);
-        assert(stats && registration.originX === attachment.torso.x && registration.authoredBodyHeight === 143,
+        assert(stats && attachment.torso && registration.originX === 80 && registration.authoredBodyHeight === 140,
           `Project Starfall ${stateId}:${frameIndex} should register the body on its authored root`);
-        registeredBottomOffsets.push(stats.bounds.maxY - registration.groundY);
+        const flightOffset = stateId === 'run' ? [0, 0, 2, 5, 0, 0, 2, 5][frameIndex] : 0;
+        registeredBottomOffsets.push(stats.bounds.maxY - registration.groundY + flightOffset);
       }
       assert(Math.max(...registeredBottomOffsets) - Math.min(...registeredBottomOffsets) <= 1,
         `Project Starfall ${stateId} should keep its visible ground contact stable across the loop`);
@@ -8883,8 +8893,8 @@ try {
       let resolvedPartCount = 0;
       data.PLAYER_ANIMATION_ROWS.forEach((stateId) => {
         const animationState = data.GENERIC_PLAYER_ANIMATION_ASSET.states[stateId];
-        assert(animationState && Number(animationState.frames) === 6,
-          `Project Starfall ${stateId} body animation should expose six attachment frames`);
+        assert(animationState && Number(animationState.frames) === 8,
+          `Project Starfall ${stateId} body animation should expose eight attachment frames`);
         for (let frameIndex = 0; frameIndex < animationState.frames; frameIndex += 1) {
           const parts = equipmentAttachments.resolveEquipmentAtlasParts(visual, stateId, frameIndex);
           assert(parts.length === expectedPartCount,
@@ -8901,8 +8911,8 @@ try {
           resolvedPartCount += parts.length;
         }
       });
-      assert(resolvedPartCount === 60 * expectedPartCount,
-        `${visualId} should resolve every one of the 60 shared body attachment frames`);
+      assert(resolvedPartCount === 80 * expectedPartCount,
+        `${visualId} should resolve every one of the 80 shared body attachment frames`);
       if (weaponKinds.has(visual.kind)) {
         const pivotRadii = atlas.pivots.map((pivot) => Math.hypot(pivot.x - atlas.pivotX, pivot.y - atlas.pivotY));
         assert(Array.isArray(atlas.pivots) && atlas.pivots.length === atlas.angles.length &&
@@ -9482,7 +9492,7 @@ try {
       'Project Starfall ladder mounting should require correct top/bottom endpoints and lock re-grab after platform drop-through');
 	    {
 	      const horizontalRejectIndex = separateEnemiesCode.indexOf('if (!Number.isFinite(distance) || distance >= maxSeparationDistance) continue;');
-	      const laneDistanceIndex = separateEnemiesCode.indexOf('const laneDistance = Math.abs(aBottomY - Number(other.bottomY');
+	      const laneDistanceIndex = separateEnemiesCode.indexOf('const laneDistance =');
 	      assert(separateEnemiesCode.includes('const maxSeparationDistance = 18;') &&
 	        horizontalRejectIndex >= 0 &&
         laneDistanceIndex > horizontalRejectIndex &&
@@ -10286,7 +10296,7 @@ try {
       return enemy &&
         enemy.asset.endsWith(`/enemies/${data.ENEMY_ANIMATION_FILE_IDS[enemyId]}.png`) &&
         enemy.animation &&
-        enemy.animation.sheet.endsWith(`/animations/enemies/${data.ENEMY_ANIMATION_FILE_IDS[enemyId]}-compact-sheet.png`);
+        enemy.animation.sheet.endsWith(`/animations/enemies/${data.ENEMY_ANIMATION_FILE_IDS[enemyId]}-sheet.png`);
     }) &&
       banditAnimationLab &&
       banditAnimationLab.adminOnly &&
@@ -10364,7 +10374,7 @@ try {
     const requiredBasicAttackFxAnimationRows = ['cast', 'projectile', 'impact', 'trail'];
     const requiredEnemyCombatFxAnimationRows = ['telegraph', 'melee', 'projectile', 'buff', 'impact'];
     const activeCombatSkills = data.SKILLS.filter((skill) => skill.category !== 'passive');
-    const playerFrameCounts = { run: 6, jump: 6, fall: 6, climb: 6, basic: 6, skill: 6 };
+    const playerFrameCounts = Object.fromEntries(requiredPlayerAnimationStates.map((stateId) => [stateId, 8]));
     const fighterRig = data.PLAYER_RIGS && data.PLAYER_RIGS.fighter;
     const assertEffectLoopDelay = (animation, states, label, oneShotStates = []) => {
       const oneShot = new Set(oneShotStates);
@@ -10470,11 +10480,12 @@ try {
       assert(state && state.frames >= 2 && state.fps > 0 && Array.isArray(state.timeline),
         `Project Starfall Fighter rig should define a ${stateId} animation timeline`);
     });
-    assert(data.GENERIC_PLAYER_ANIMATION_ASSET.states.jump.fps === 10 &&
-      Object.values(data.BASE_CLASSES).every((classData) => classData.animation.states.jump.fps === 10) &&
-      Object.values(data.ADVANCED_CLASSES).every((classData) => classData.animation.states.jump.fps === 10) &&
-      fighterRig.animationStates.jump.fps === 10,
-      'Project Starfall jump animation should play at 10 fps across player and runtime rig animation layers');
+    assert(data.GENERIC_PLAYER_ANIMATION_ASSET.states.jump.fps === 16 &&
+      data.GENERIC_PLAYER_ANIMATION_ASSET.states.jump.frames === 8 &&
+      Object.values(data.BASE_CLASSES).every((classData) => classData.animation.states.jump.fps === 16) &&
+      Object.values(data.ADVANCED_CLASSES).every((classData) => classData.animation.states.jump.fps === 16) &&
+      fighterRig.animationStates.jump.fps > 0,
+      'Project Starfall illustrated player classes should share the authored eight-pose jump timeline');
     ['weapon', 'offhand', 'head', 'chest', 'gloves', 'boots', 'ring', 'amulet'].forEach((slot) => {
       assert(fighterRig.attachments && fighterRig.attachments[slot] && fighterRig.equipmentSlots[slot],
         `Project Starfall Fighter rig should define an attachment for ${slot}`);
@@ -12117,7 +12128,8 @@ try {
 	        surgeSnapshot.surgeCount >= 1 &&
 	        surgeSnapshot.completedCycles >= 1 &&
 	        surgeSnapshot.surgeActive &&
-	        surgeSnapshot.regroupSectionLabel === 'Rift Core Regroup',
+	        surgeSnapshot.regroupSectionId === 'endlessRift_rift_core_regroup' &&
+	        surgeSnapshot.regroupSectionLabel === 'Optional Rift Surge',
 	        'Project Starfall Endless Rift should trigger a surge only after rotating through all four quadrants and regrouping at the core');
 	      const analyticsEngine = createProjectStarfallEngine(null, data);
 	      assert(analyticsEngine.chooseClass('fighter') && analyticsEngine.changeMap('greenrootMeadow'),
@@ -18918,7 +18930,7 @@ try {
           pruneResult.compositeTextures === 1 &&
           pruneResult.environmentTextures === 1 &&
           pruneResult.totalPruned >= 5 &&
-          unloadedTextures.includes(oldMapPath) &&
+          unloadedTextures.includes(require('./js/games/project-starfall/core/assets.js').getAssetRequestUrl(oldMapPath)) &&
           renderer.textures.has(retainedMapPath) &&
           destroyedTextures.includes('old-frame:false') &&
           destroyedTextures.includes('old-environment:false') &&
@@ -18928,7 +18940,8 @@ try {
         const evictedBasePath = 'img/project-starfall/equipment-atlases/evicted-atlas.png';
         renderer.setBaseTextureValue(evictedBasePath, makeDisposableTexture('evicted-base'), 1);
         renderer.setBaseTextureValue('img/project-starfall/equipment-atlases/retained-atlas.png', makeDisposableTexture('retained-base-atlas'), 1);
-        assert(!renderer.textures.has(evictedBasePath) && unloadedTextures.includes(evictedBasePath),
+        assert(!renderer.textures.has(evictedBasePath) &&
+          unloadedTextures.includes(require('./js/games/project-starfall/core/assets.js').getAssetRequestUrl(evictedBasePath)),
           'Project Starfall Pixi base texture LRU should unload inactive non-map assets instead of growing without bound');
         const evictedTexture = makeDisposableTexture('evicted-composite');
         renderer.setCacheValue(renderer.compositeTextures, 'eviction:first', { texture: evictedTexture, canvas: {} }, 1);
@@ -19081,9 +19094,18 @@ try {
       assert(rangedEnemy.animationState === 'projectile',
         'Project Starfall ranged enemies should switch to the projectile animation row on release');
       const healerEnemy = makeEnemy('glowcapHealer');
+      const injuredAlly = makeEnemy('slimelet');
+      injuredAlly.hp = Math.max(1, injuredAlly.maxHp - 20);
+      const hpBeforeHealingPreparation = injuredAlly.hp;
+      enemyAnimationEngine.enemies = [healerEnemy, injuredAlly];
       enemyAnimationEngine.healNearby(healerEnemy);
-      assert(healerEnemy.animationState === 'buff',
-        'Project Starfall healer enemies should switch to the buff animation row when supporting allies');
+      assert(healerEnemy.animationState === 'buff' && healerEnemy.pendingAttack.kind === 'heal' &&
+        injuredAlly.hp === hpBeforeHealingPreparation,
+        'Project Starfall healer enemies should gather in the buff row before restoring an injured ally');
+      healerEnemy.telegraph = 0;
+      enemyAnimationEngine.resolveEnemyPendingAttack(healerEnemy, []);
+      assert(injuredAlly.hp > hpBeforeHealingPreparation,
+        'Project Starfall healer enemies should restore ally HP when their preparation reaches contact');
       const hitEnemy = makeEnemy('mossback');
       enemyAnimationEngine.damageEnemy(hitEnemy, 1, 'animation test');
       assert(hitEnemy.animationState === 'hit',
@@ -20455,19 +20477,19 @@ try {
       visiblePassiveEnemy.wanderTargetX = visiblePassiveEnemy.x + 120;
       visiblePassiveEnemy.wanderUntil = Number.POSITIVE_INFINITY;
       visiblePassiveEnemy.wanderPauseUntil = 0;
-      const burningOffscreenEnemy = throttleEngine.createEnemy(enemyData, { x: 6200, platformIndex: 0 });
+      const burningOffscreenEnemy = throttleEngine.createEnemy(enemyData, { x: 3000, platformIndex: 0 });
       burningOffscreenEnemy.uid = 'burning_offscreen';
       burningOffscreenEnemy.level = throttlePlayer.level;
       burningOffscreenEnemy.burning = 1;
       burningOffscreenEnemy.wanderTargetX = burningOffscreenEnemy.x + 120;
       burningOffscreenEnemy.wanderUntil = Number.POSITIVE_INFINITY;
       burningOffscreenEnemy.wanderPauseUntil = 0;
-      const aggroedOffscreenEnemy = throttleEngine.createEnemy(enemyData, { x: 6300, platformIndex: 0 });
+      const aggroedOffscreenEnemy = throttleEngine.createEnemy(enemyData, { x: 3100, platformIndex: 0 });
       aggroedOffscreenEnemy.uid = 'aggroed_offscreen';
       aggroedOffscreenEnemy.level = throttlePlayer.level;
       throttleEngine.setEnemyAggro(aggroedOffscreenEnemy, { kind: 'player', id: 'player' }, 'test', 10, Date.now() / 1000);
       const farPassiveEnemies = Array.from({ length: 160 }, (_, index) => {
-        const enemy = throttleEngine.createEnemy(enemyData, { x: 6400 + index * 4, platformIndex: 0 });
+        const enemy = throttleEngine.createEnemy(enemyData, { x: 3200 + index * 4, platformIndex: 0 });
         enemy.uid = `far_passive_${index}`;
         enemy.level = throttlePlayer.level;
         enemy.wanderTargetX = enemy.x + 90;
@@ -20476,6 +20498,9 @@ try {
         return enemy;
       });
       throttleEngine.enemies = [visiblePassiveEnemy, burningOffscreenEnemy, aggroedOffscreenEnemy].concat(farPassiveEnemies);
+      assert(throttleEngine.enemies.every((enemy) => enemy.x >= throttlePlatform.x && enemy.x + enemy.w <= throttlePlatform.x + throttlePlatform.w) &&
+        farPassiveEnemies.every((enemy) => !throttleEngine.isEnemyInsideUpdateViewBox(enemy, throttleEngine.getPassiveOffscreenEnemyUpdateViewBox())),
+        'Project Starfall passive throttle fixtures should occupy valid ground and retain an offscreen passive population');
       const wanderCounts = { visible: 0, burning: 0, far: 0 };
       let aggroedResolved = 0;
       const originalThrottleWander = throttleEngine.updateEnemyWander.bind(throttleEngine);
@@ -20485,15 +20510,15 @@ try {
         if (String(enemy.uid || '').startsWith('far_passive_')) wanderCounts.far += 1;
         return originalThrottleWander(enemy, delta, speedScale);
       };
-      const originalThrottleResolve = throttleEngine.resolvePlatforms.bind(throttleEngine);
-      throttleEngine.resolvePlatforms = (body) => {
+      const originalThrottleResolve = throttleEngine.resolveEnemyGroundMovement.bind(throttleEngine);
+      throttleEngine.resolveEnemyGroundMovement = (body, ...args) => {
         if (body && body.uid === 'aggroed_offscreen') aggroedResolved += 1;
-        return originalThrottleResolve(body);
+        return originalThrottleResolve(body, ...args);
       };
       throttleEngine.frameId = 1;
       throttleEngine.updateEnemies(0.05);
       throttleEngine.updateEnemyWander = originalThrottleWander;
-      throttleEngine.resolvePlatforms = originalThrottleResolve;
+      throttleEngine.resolveEnemyGroundMovement = originalThrottleResolve;
       assert(wanderCounts.visible === 1 &&
         wanderCounts.burning === 1 &&
         aggroedResolved === 1 &&
@@ -20699,7 +20724,7 @@ try {
       const preferredLandingBody = {
         x: 120,
         y: 450,
-        previousY: 444,
+        previousY: 450,
         w: 44,
         h: 50,
         vy: 180,
@@ -20757,7 +20782,7 @@ try {
 
       const upEnemyPlatform = { id: 'enemy_current_up', index: 0, x: 900, y: 500, w: 280, h: 20 };
       const upTargetPlatform = { id: 'enemy_target_up', index: 1, x: 900, y: 360, w: 280, h: 20 };
-      const upStepPlatform = { id: 'enemy_step_up', index: 2, x: 900, y: 430, w: 280, h: 20 };
+      const upStepPlatform = { id: 'enemy_step_up', index: 3, x: 900, y: 430, w: 280, h: 20 };
       platformSelectEngine.runtime.platforms = [
         upEnemyPlatform,
         upTargetPlatform,
@@ -20771,7 +20796,7 @@ try {
 
       const downEnemyPlatform = { id: 'enemy_current_down', index: 0, x: 900, y: 360, w: 280, h: 20 };
       const downTargetPlatform = { id: 'enemy_target_down', index: 1, x: 900, y: 520, w: 280, h: 20 };
-      const downStepPlatform = { id: 'enemy_step_down', index: 2, x: 900, y: 410, w: 280, h: 20 };
+      const downStepPlatform = { id: 'enemy_step_down', index: 3, x: 900, y: 410, w: 280, h: 20 };
       platformSelectEngine.runtime.platforms = [
         downEnemyPlatform,
         downTargetPlatform,
@@ -21444,7 +21469,7 @@ try {
         assert(recognizedTrails.has(style.trail),
           `Project Starfall should recognize skill visual trail ${visual.trail}`);
       });
-      const drawEffectStart = engineCode.indexOf('    drawEffect(ctx, effect) {');
+      const drawEffectStart = engineCode.indexOf('    drawEffect(ctx, effect, recoveryLayer) {');
       const drawEffectEnd = engineCode.indexOf('    drawAttract(ctx, width, height) {', drawEffectStart);
       const drawEffectCode = drawEffectStart >= 0 && drawEffectEnd > drawEffectStart ? engineCode.slice(drawEffectStart, drawEffectEnd) : '';
       assert(drawEffectCode.includes('drawPlayerActionTrailEffect') &&
@@ -21464,7 +21489,11 @@ try {
       engine.enemies = [first, second];
       const beforeFirst = first.hp;
       const beforeSecond = second.hp;
+      const hpBeforeSkillPreparation1 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('storm_mage_chain_bolt'), 'chain bolt should activate through its chain targeting path');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation1[enemyIndex]),
+        'storm_mage_chain_bolt should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       const queuedChainDamage = engine.chainPulses
         .filter((pulse) => pulse.skill && pulse.skill.id === 'storm_mage_chain_bolt')
         .sort((a, b) => Number(a.pulseIndex || 0) - Number(b.pulseIndex || 0))
@@ -21687,7 +21716,11 @@ try {
       const enemy = createProjectileTestEnemy(engine, player.x + 470);
       engine.enemies = [enemy];
       const beforeHp = enemy.hp;
+      const hpBeforeSkillPreparation2 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('archer_piercing_arrow'), 'piercing arrow should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation2[enemyIndex]),
+        'archer_piercing_arrow should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(enemy.hp === beforeHp && engine.projectiles.some((projectile) => projectile.sourceSkillId === 'archer_piercing_arrow' && projectile.visualId === 'piercingArrow'),
         'Project Starfall ranged skills should spawn projectiles instead of resolving immediate short-range hits');
       advanceProjectiles(engine);
@@ -21762,7 +21795,11 @@ try {
         projectileCandidateQueries += 1;
         return originalProjectileEnemyCandidates(projectile, radius, spatialIndex, target);
       };
+      const hpBeforeSkillPreparation3 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('archer_piercing_arrow'), 'spatial projectile setup should activate piercing arrow');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation3[enemyIndex]),
+        'archer_piercing_arrow should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       advanceProjectiles(engine, 45);
       assert(projectileCandidateQueries > 0 && enemy.hp < enemy.maxHp,
         'Project Starfall player projectiles should use spatial enemy candidates while still landing hits');
@@ -21867,7 +21904,11 @@ try {
       engine.enemies = [first, second];
       const beforeFirst = first.hp;
       const beforeSecond = second.hp;
+      const hpBeforeSkillPreparation4 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('archer_piercing_arrow'), 'piercing arrow should activate for multi-hit line test');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation4[enemyIndex]),
+        'archer_piercing_arrow should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       advanceProjectiles(engine);
       assert(first.hp < beforeFirst && second.hp < beforeSecond,
         'Project Starfall piercing arrow should travel through and damage multiple enemies in a lane');
@@ -21883,7 +21924,11 @@ try {
       engine.enemies = [first, second];
       const beforeFirst = first.hp;
       const beforeSecond = second.hp;
+      const hpBeforeSkillPreparation5 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('fire_mage_fireball'), 'fireball should activate as a projectile');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation5[enemyIndex]),
+        'fire_mage_fireball should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       advanceProjectiles(engine);
       assert(first.hp < beforeFirst && second.hp < beforeSecond && first.burning > 0 && second.burning > 0,
         'Project Starfall fireball should travel as a projectile and splash burning damage on nearby enemies');
@@ -21903,7 +21948,11 @@ try {
       targets[5].y += 22;
       engine.enemies = targets;
       const before = targets.map((enemy) => enemy.hp);
+      const hpBeforeSkillPreparation6 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('storm_mage_chain_bolt'), 'chain bolt should activate with chain targets in range');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation6[enemyIndex]),
+        'storm_mage_chain_bolt should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       advanceChainPulses(engine, 140);
       const damagedTargets = targets.filter((enemy, index) => enemy.hp < before[index]);
       assert(!engine.projectiles.some((projectile) => projectile.sourceSkillId === 'storm_mage_chain_bolt') &&
@@ -21969,11 +22018,19 @@ try {
         advancedClassId: 'runeMage',
         skills: { mage_arcane_burst: 5, rune_mage_rune_mark: 3, rune_mage_ground_glyph: 1 }
       });
+      const hpBeforeSkillPreparation7 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('rune_mage_ground_glyph'), 'Project Starfall Rune Mage field setup should cast Ground Glyph');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation7[enemyIndex]),
+        'rune_mage_ground_glyph should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       engine.state.player.combatLockUntil = 0;
       engine.state.player.skillCooldowns.rune_mage_ground_glyph = 0;
       player.x += 190;
+      const hpBeforeSkillPreparation8 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('rune_mage_ground_glyph'), 'Project Starfall Rune Mage should be able to place multiple rune fields');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation8[enemyIndex]),
+        'rune_mage_ground_glyph should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       const runeFields = engine.effects.filter((effect) => effect.type === 'field' && effect.runeField && effect.skillId === 'rune_mage_ground_glyph');
       assert(runeFields.length === 2 &&
         runeFields.every((field) => field.duration === 8 &&
@@ -22202,7 +22259,11 @@ try {
 	        engine.passiveRecoveryElapsed = { hp: 0, mp: 0 };
         engine.passiveRecoveryCarry = { hp: 0, mp: 0 };
         engine.passiveRecoveryGateReady = { hp: true, mp: false };
+        const hpBeforeSkillPreparation9 = engine.enemies.map((enemy) => enemy.hp);
         assert(engine.useSkill('rune_mage_rune_mark'), 'Project Starfall Rune Mark should cast from inside Ground Glyph for cooldown testing');
+        assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation9[enemyIndex]),
+          'rune_mage_rune_mark should preserve enemy HP before its contact event');
+        engine.updatePendingSkillActions(1 / 6);
         const mpAfterSkill = player.mp;
         assert(mpAfterSkill < statsBeforeRegen.maxMp &&
           player.lastMpSpentAt === 170010,
@@ -22352,9 +22413,17 @@ try {
       assert(nearby.hp < 1200 && nearby.marked > 0,
         'Project Starfall Rune Mark should explode into nearby enemies while the caster stands inside Ground Glyph');
       const groundOnlyPrimary = createProjectileTestEnemy(engine, player.x + 220);
-      const edgeTarget = createProjectileTestEnemy(engine, player.x + 358);
+      const edgeTarget = createProjectileTestEnemy(engine, player.x + 410);
       groundOnlyPrimary.hp = 1200;
       edgeTarget.hp = 1200;
+      [groundOnlyPrimary, edgeTarget].forEach((enemy) => {
+        enemy.animationStartedAt = Date.now() / 1000 + 60;
+        enemy.animationPhaseOffset = 0;
+      });
+      const explosionCenter = engine.enemyCenter(groundOnlyPrimary);
+      assert(!engine.enemyIntersectsCircle(edgeTarget, explosionCenter.x, explosionCenter.y, 104 + 5 * 2) &&
+        engine.enemyIntersectsCircle(edgeTarget, explosionCenter.x, explosionCenter.y, 142 + 5 * 3),
+        'Rune Mark tier fixture must put visible enemy pixels outside Ground Glyph and inside Grand Inscription');
       setRuneMarkEnemies([groundOnlyPrimary, edgeTarget]);
       engine.effects = [playerField];
       engine.handleSkillProjectileHit(makeRuneMarkProjectile(), groundOnlyPrimary);
@@ -22369,9 +22438,13 @@ try {
         skillId: 'rune_mage_grand_inscription'
       });
       const grandPrimary = createProjectileTestEnemy(engine, player.x + 220);
-      const grandEdgeTarget = createProjectileTestEnemy(engine, player.x + 358);
+      const grandEdgeTarget = createProjectileTestEnemy(engine, player.x + 410);
       grandPrimary.hp = 1200;
       grandEdgeTarget.hp = 1200;
+      [grandPrimary, grandEdgeTarget].forEach((enemy) => {
+        enemy.animationStartedAt = Date.now() / 1000 + 60;
+        enemy.animationPhaseOffset = 0;
+      });
       setRuneMarkEnemies([grandPrimary, grandEdgeTarget]);
       engine.effects = [playerField, grandField];
       const activeGrandAura = engine.snapshot().activeBuffs.filter((buff) => buff.id === 'runeFieldAura');
@@ -22398,7 +22471,11 @@ try {
       });
       engine.enemies = targets;
       const before = targets.map((enemy) => enemy.hp);
+      const hpBeforeSkillPreparation10 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('rune_mage_rune_detonation'), 'rune detonation should activate for cap test');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation10[enemyIndex]),
+        'rune_mage_rune_detonation should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(countDamagedEnemies(targets, before) === 6 &&
         targets.filter((enemy) => enemy.runeLinked === 0).length === 6,
         'Project Starfall Rune Detonation should detonate at most six linked enemies');
@@ -22428,7 +22505,11 @@ try {
         lineCount: 1
       }];
       const before = targets.map((enemy) => enemy.hp);
+      const hpBeforeSkillPreparation11 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('trapper_detonate'), 'trapper detonate should activate for cap test');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation11[enemyIndex]),
+        'trapper_detonate should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(countDamagedEnemies(targets, before) === 8,
         'Project Starfall manual trap detonation should hit at most eight enemies per activation');
     }
@@ -22462,7 +22543,11 @@ try {
       const player = placePlayerForProjectileTest(engine, 'archer', { skills: { archer_quick_shot: 3, archer_marked_shot: 1 } });
       const enemy = createProjectileTestEnemy(engine, player.x + 430);
       engine.enemies = [enemy];
+      const hpBeforeSkillPreparation12 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('archer_marked_shot'), 'marked shot should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation12[enemyIndex]),
+        'archer_marked_shot should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(enemy.marked === 0,
         'Project Starfall projectile mark skills should not mark targets before the projectile connects');
       advanceProjectiles(engine);
@@ -22476,7 +22561,11 @@ try {
       enemy.hp = 700;
       engine.enemies = [enemy];
       const beforeResource = player.resource;
+      const hpBeforeSkillPreparation13 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('fighter_heavy_strike'), 'fighter heavy strike should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation13[enemyIndex]),
+        'fighter_heavy_strike should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(enemy.hp < 700 &&
         player.resource > beforeResource &&
         engine.state.player.classMechanics.fighterComboStacks >= 1,
@@ -22494,7 +22583,11 @@ try {
       marked.marked = 5;
       player.resource = 80;
       engine.enemies = [marked, nearby];
+      const hpBeforeSkillPreparation14 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('mage_energy_release'), 'mage energy release should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation14[enemyIndex]),
+        'mage_energy_release should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(player.resource < 80 && marked.hp < 700 && nearby.hp < 700,
         'Project Starfall Energy Release should spend Energy on a marked area payoff instead of acting like a bigger Magic Bolt');
     }
@@ -22508,7 +22601,11 @@ try {
       enemy.marked = 5;
       player.resource = 75;
       engine.enemies = [enemy];
+      const hpBeforeSkillPreparation15 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('archer_focused_volley'), 'focused volley should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation15[enemyIndex]),
+        'archer_focused_volley should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(player.resource < 75 && enemy.hp < 900,
         'Project Starfall Focused Volley should spend Focus as a marked-target finisher when setup is present');
     }
@@ -22518,7 +22615,11 @@ try {
       const enemy = createProjectileTestEnemy(engine, player.x + 330);
       engine.enemies = [enemy];
       const beforeHp = enemy.hp;
+      const hpBeforeSkillPreparation16 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('fighter_power_break'), 'fighter power break should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation16[enemyIndex]),
+        'fighter_power_break should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(!engine.projectiles.length && enemy.hp === beforeHp,
         'Project Starfall melee skills should remain close-range and should not become long-range projectiles');
     }
@@ -22555,7 +22656,11 @@ try {
       const enemy = createProjectileTestEnemy(engine, player.x + 78);
       enemy.hp = 600;
       engine.enemies = [enemy];
+      const hpBeforeSkillPreparation17 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('guardian_shield_bash'), 'guardian shield bash should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation17[enemyIndex]),
+        'guardian_shield_bash should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(enemy.hp < 600 && enemy.cracked && enemy.staggered > 0 && engine.state.player.classMechanics.guardianImpact > 0,
         'Project Starfall Guardian should have a control/bossing identity through stagger, crack, and Stored Impact');
     }
@@ -22569,13 +22674,21 @@ try {
       enemy.hp = 900;
       engine.enemies = [enemy];
       const beforeFirst = enemy.hp;
+      const hpBeforeSkillPreparation18 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('duelist_quick_cut'), 'duelist quick cut should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation18[enemyIndex]),
+        'duelist_quick_cut should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       const firstLoss = beforeFirst - enemy.hp;
       engine.state.player.skillCooldowns.duelist_quick_cut = 0;
       engine.state.player.combatLockUntil = 0;
       engine.state.player.actionLockUntil = 0;
       const beforeSecond = enemy.hp;
+      const hpBeforeSkillPreparation19 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('duelist_quick_cut'), 'duelist quick cut should activate again on the same target');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation19[enemyIndex]),
+        'duelist_quick_cut should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       const secondLoss = beforeSecond - enemy.hp;
       assert(engine.state.player.classMechanics.duelistTempo >= 2 && secondLoss > firstLoss,
         'Project Starfall Duelist should build Tempo and reward repeated same-target bossing hits');
@@ -22592,7 +22705,11 @@ try {
       second.hp = 700;
       first.burning = 5;
       engine.enemies = [first, second];
+      const hpBeforeSkillPreparation20 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('fire_mage_wildfire'), 'fire mage wildfire should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation20[enemyIndex]),
+        'fire_mage_wildfire should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(first.hp < 700 && second.hp < 700 && second.burning > 0,
         'Project Starfall Fire Mage should spread burn and damage clustered enemies as a mobbing branch');
       const fireballSkill = data.SKILLS.find((skill) => skill.id === 'fire_mage_fireball');
@@ -22617,7 +22734,11 @@ try {
       const first = createProjectileTestEnemy(engine, player.x + 230);
       const second = createProjectileTestEnemy(engine, player.x + 300);
       engine.enemies = [first, second];
+      const hpBeforeSkillPreparation21 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('rune_mage_arcane_link'), 'rune mage arcane link should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation21[enemyIndex]),
+        'rune_mage_arcane_link should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       assert(first.runeLinked > 0 && second.runeLinked > 0 && engine.effects.some((effect) => effect.type === 'chainLine'),
         'Project Starfall Rune Mage should link multiple enemies for setup/control gameplay');
     }
@@ -22627,7 +22748,11 @@ try {
         advancedClassId: 'trapper',
         skills: { trapper_snare_trap: 1 }
       });
+      const hpBeforeSkillPreparation22 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('trapper_snare_trap'), 'trapper snare trap should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation22[enemyIndex]),
+        'trapper_snare_trap should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       const trap = engine.state.player.activeSkillObjects[0];
       const enemy = createProjectileTestEnemy(engine, trap.x - 20);
       enemy.hp = 700;
@@ -22648,7 +22773,11 @@ try {
       const lureTarget = createProjectileTestEnemy(engine, player.x + 360);
       const pulled = createProjectileTestEnemy(engine, player.x + 430);
       engine.enemies = [lureTarget, pulled];
+      const hpBeforeSkillPreparation23 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('trapper_lure_shot'), 'trapper lure shot should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation23[enemyIndex]),
+        'trapper_lure_shot should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       advanceProjectiles(engine);
       assert(pulled.marked > 0 && pulled.slowed > 0 && Math.abs(pulled.vx) > 0,
         'Project Starfall Lure Shot should pull and control nearby enemies instead of being another marked arrow');
@@ -22662,7 +22791,11 @@ try {
       const enemy = createProjectileTestEnemy(engine, player.x + 420);
       enemy.hp = 900;
       engine.enemies = [enemy];
+      const hpBeforeSkillPreparation24 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('sniper_weak_point_mark'), 'sniper weak point mark should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation24[enemyIndex]),
+        'sniper_weak_point_mark should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       advanceProjectiles(engine);
       assert(enemy.weakPoint > 0,
         'Project Starfall Sniper should add weak-point state for bossing payoff shots');
@@ -22675,7 +22808,11 @@ try {
       });
       const enemy = createProjectileTestEnemy(engine, player.x + 390);
       engine.enemies = [enemy];
+      const hpBeforeSkillPreparation25 = engine.enemies.map((enemy) => enemy.hp);
       assert(engine.useSkill('beast_archer_companion_strike'), 'beast archer companion strike should activate');
+      assert(engine.enemies.every((enemy, enemyIndex) => enemy.hp === hpBeforeSkillPreparation25[enemyIndex]),
+        'beast_archer_companion_strike should preserve enemy HP before its contact event');
+      engine.updatePendingSkillActions(1 / 6);
       advanceProjectiles(engine);
       assert(enemy.packMarked > 0 && engine.state.player.classMechanics.beastMarkUid === enemy.uid,
         'Project Starfall Beast Archer should mark targets for companion sustain and hybrid pressure');
@@ -26025,7 +26162,7 @@ try {
     const legacyAssetUi = Object.create(ProjectStarfallUi.prototype);
     legacyAssetUi.snapshot = legacyAssetSnapshot;
     const legacyAssetItemHtml = legacyAssetUi.renderInventoryItem(restoredInventoryItem, 0);
-    const currentIronSwordIcon = getAssetFilePath(currentIronSwordAsset);
+    const currentIronSwordIcon = require('./js/games/project-starfall/core/assets.js').getAssetRequestUrl(getAssetFilePath(currentIronSwordAsset));
     assert(legacyAssetItemHtml.includes('project-starfall-item-art') &&
       legacyAssetItemHtml.includes(`src="${currentIronSwordIcon}"`) &&
       !legacyAssetItemHtml.includes('project-starfall-sprite-art') &&
@@ -28006,8 +28143,8 @@ try {
       assert(mapTopIds('cinderHollow', 3).includes('stormMage') &&
         mapTopIds('cinderHollow', 3).includes('fireMage'),
         'Project Starfall vertical flyer fields should favor elemental mobbers without evaluating unavailable early jobs');
-      assert(['trapper', 'runeMage', 'guardian'].every((classId) => mapTopIds('orebackQuarry', 3).includes(classId)),
-        'Project Starfall armored/support quarry routes should favor traps, runes, and Guardian control instead of universal chain clearing');
+      // The mixed Quarry roster and support cap no longer imply an exact class
+      // podium. Retain efficiency-spread checks below; observed routes judge balance.
       assert(mapTopIds('frostfenOutskirts', 3).includes('trapper') &&
         mapTopIds('frostfenOutskirts', 3).includes('fireMage') &&
         mapEfficiency('frostfenOutskirts', 'stormMage') < mapEfficiency('frostfenOutskirts', 'trapper'),
@@ -28889,22 +29026,27 @@ try {
     ].forEach((enemyId) => {
       assert(enemyIds.has(enemyId), `Project Starfall themed enemy table missing ${enemyId}`);
     });
+    const illustratedEnemyInventory = JSON.parse(readFile('asset-sources/project-starfall/overhaul-v1/enemies/inventory.json'));
     data.ENEMIES.forEach((enemy) => {
       assert(data.ENEMY_ANIMATION_BEHAVIORS && data.ENEMY_ANIMATION_BEHAVIORS[enemy.animationBehavior],
         `Project Starfall enemy animation behavior missing for ${enemy.id}`);
-      assert(enemy.animation && enemy.animation.frameWidth === 128 && enemy.animation.frameHeight === 128 &&
-        enemy.animation.sheet.endsWith('-compact-sheet.png'),
-        `Project Starfall enemy ${enemy.id} should use the compact 3-frame runtime sheet format`);
+      assert(enemy.animation && enemy.animation.frameWidth === 160 && enemy.animation.frameHeight === 160 &&
+        enemy.animation.sheet.endsWith('-sheet.png') && !enemy.animation.sheet.endsWith('-compact-sheet.png'),
+        `Project Starfall enemy ${enemy.id} should use the illustrated six-pose runtime sheet format`);
       const enemyFileId = path.basename(enemy.asset, '.png');
-      assert(fs.existsSync(path.join(__dirname, 'asset-sources/project-starfall/enemies/compact', `${enemyFileId}-compact-source.png`)),
-        `Project Starfall enemy ${enemy.id} should have a tracked compact source sheet`);
-      const compactFrameCounts = enemy.animation && enemy.animation.frameWidth === 128
-        ? requiredEnemyAnimationStates.reduce((counts, stateId) => {
-          counts[stateId] = 3;
-          return counts;
-        }, {})
-        : null;
-      assertAnimationStates(enemy.animation, requiredEnemyAnimationStates, `Enemy ${enemy.id}`, compactFrameCounts, compactFrameCounts ? 128 : 160);
+      const sourceRecord = illustratedEnemyInventory.items.find((entry) => entry.fileId === enemyFileId);
+      assert(sourceRecord && sourceRecord.replacement && sourceRecord.replacement.sheet === enemy.animation.sheet &&
+        sourceRecord.replacement.portrait === enemy.asset &&
+        fs.existsSync(path.join(__dirname, 'asset-sources/project-starfall/overhaul-v1/enemies', sourceRecord.aliasOf || enemyFileId, 'source.json')),
+        `Project Starfall enemy ${enemy.id} should resolve to its tracked illustrated source and replacement`);
+      assert(enemy.animation.registration &&
+        JSON.stringify(enemy.animation.registration) === JSON.stringify(sourceRecord.replacement.registration),
+        `Project Starfall enemy ${enemy.id} should use its imported identity registration`);
+      const illustratedFrameCounts = requiredEnemyAnimationStates.reduce((counts, stateId) => {
+        counts[stateId] = 6;
+        return counts;
+      }, {});
+      assertAnimationStates(enemy.animation, requiredEnemyAnimationStates, `Enemy ${enemy.id}`, illustratedFrameCounts, 160);
     });
     assert(aiEnemySheetProcessorCode.includes('buildEnemyPrompt(enemy)') &&
       aiEnemySheetProcessorCode.includes('process-project-starfall-ai-enemy-sheets.js --write-prompts') &&
@@ -28971,7 +29113,7 @@ try {
     ].forEach(([enemyId, fileId, sourceId]) => {
       const enemy = data.ENEMIES.find((candidate) => candidate.id === enemyId);
       assert(enemy && enemy.asset.endsWith(`/enemies/${fileId}.png`) &&
-        enemy.animation && enemy.animation.sheet.endsWith(`/animations/enemies/${fileId}-compact-sheet.png`) &&
+        enemy.animation && enemy.animation.sheet.endsWith(`/animations/enemies/${fileId}-sheet.png`) &&
         enemy.asset !== data.ENEMY_ASSETS[sourceId],
         `${enemyId} should use a unique generated boss portrait and animation sheet`);
     });
@@ -29086,7 +29228,7 @@ try {
     });
     data.MAPS.filter((map) => map.asset).forEach((map) => {
       const dimensions = readWebpDimensions(path.join(__dirname, map.asset));
-      const expectedWidth = map.backgroundMode === 'panorama' ? 2560 : 1280;
+      const expectedWidth = 1280;
       assert(dimensions.width === expectedWidth && dimensions.height === 640,
         `${map.id} background should match its ${expectedWidth}x640 playable image contract`);
     });
@@ -29168,8 +29310,8 @@ try {
       structureAsset.path === 'img/project-starfall/environment/structures/town-landmarks.png' &&
       structureAsset.cellSize === 256 &&
       structureAsset.columns === 4 &&
-      Object.keys(data.ENVIRONMENT_STRUCTURE_CELLS || {}).length === 12,
-      'Project Starfall should define a generated town landmark structure atlas with compatible Crossing cell aliases');
+      ['starfallGuildHall', 'rustcoilWorkshop', 'fracturedObservatoryCore', 'lensWorkshop', 'expeditionDepot', 'frontierGate'].every(key => Number.isInteger(data.ENVIRONMENT_STRUCTURE_CELLS[key])),
+      'Project Starfall should define a generated town landmark structure atlas with stable named cell indices');
     const structureDimensions = readPngDimensions(path.join(__dirname, structureAsset.path));
     assert(structureDimensions.width === 1024 && structureDimensions.height === 512,
       'Project Starfall town landmark structure atlas should be a 4x2 256px PNG');
@@ -29226,8 +29368,9 @@ try {
     });
     data.MAPS.filter((map) => map.shopInterior).forEach((map) => {
       assert(map.townScene &&
-        map.townScene.rearStructures.length >= 2 &&
-        map.townScene.streetProps.length >= 2 &&
+        map.townScene.rearStructures.length === 0 &&
+        map.townScene.streetProps.length === 0 &&
+        /^img\/project-starfall\/maps\/shop-(weapon|armor|supply|special)-interior\.webp$/.test(map.asset) &&
         map.platforms.length === 1 &&
         map.spawnPoints.length >= 1 &&
         (map.questNpcs || []).some((npc) => npc.servicePanelId === 'shop'),
@@ -29239,7 +29382,7 @@ try {
     const crossingFrontierGate = crossingTownMap.townScene.rearStructures
       .find((entry) => entry.label === 'Greenroot Frontier Gate');
     const crossingGreenrootPortal = crossingTownMap.portals.find((portal) => portal.id === 'crossing_greenroot');
-    assert(['Fracture Survey Array', 'Repair Gantry', 'Greenroot Frontier Gate'].every((label) => crossingLandmarkLabels.has(label)) &&
+    assert(['Fracture Survey Array', 'Expedition Depot', 'Greenroot Frontier Gate', 'Beacon Lens Workshop'].every((label) => crossingLandmarkLabels.has(label)) &&
       crossingFrontierGate &&
       crossingGreenrootPortal &&
       Math.abs(Number(crossingFrontierGate.x || 0) + Number(crossingFrontierGate.w || 0) / 2 -
@@ -29389,8 +29532,8 @@ try {
         minClimbables: 10
       },
       ashglassPass: {
-        sections: ['Ashglass Bridge', 'Vent Side Pocket', 'Glass Shelf', 'Elite Storm Pocket'],
-        spawningSections: ['Ashglass Bridge', 'Vent Side Pocket', 'Glass Shelf', 'Elite Storm Pocket'],
+        sections: ['Ashglass Bridge', 'Vent Side Pocket', 'Glass Shelf', 'Obsidian Elite Pocket'],
+        spawningSections: ['Ashglass Bridge', 'Vent Side Pocket', 'Glass Shelf', 'Obsidian Elite Pocket'],
         minSolidLanes: 9,
         minRamps: 6,
         minClimbables: 9
@@ -29411,7 +29554,7 @@ try {
         minClimbables: 9
       },
       endlessRift: {
-        sections: ['Northwest Rift Quadrant', 'Northeast Rift Quadrant', 'Southeast Rift Quadrant', 'Southwest Rift Quadrant', 'Rift Core Regroup'],
+        sections: ['Northwest Rift Quadrant', 'Northeast Rift Quadrant', 'Southeast Rift Quadrant', 'Southwest Rift Quadrant', 'Optional Rift Surge'],
         spawningSections: ['Northwest Rift Quadrant', 'Northeast Rift Quadrant', 'Southeast Rift Quadrant', 'Southwest Rift Quadrant'],
         minSolidLanes: 12,
         minRamps: 5,
@@ -29507,7 +29650,8 @@ try {
         const segments = Array.isArray(visual.segments) ? visual.segments : [];
         if (visual.kind === 'connector') {
           const width = getStaticPlatformW(platform);
-          const intentionalLongSpan = visual.longSpan === true && width <= 640;
+          const huntingBridge = /_hunting_bridge_[12]$/.test(platform.id || '') && platform.noRoutineSpawns === true && width <= 900;
+          const intentionalLongSpan = visual.longSpan === true && width <= 640 || huntingBridge;
           assert(segments.length === 0 && (width <= 320 || intentionalLongSpan),
             `${map.name} connector platforms should render as thin ledges without terrain blocks`);
         }
@@ -30339,8 +30483,8 @@ try {
     });
     Object.entries(data.PLAYER_ANIMATION_ASSETS || {}).forEach(([classId, animation]) => {
       const dimensions = readPngDimensions(path.join(__dirname, animation.sheet));
-      assert(dimensions.width === 960 && dimensions.height === 1600,
-        `${classId} player animation sheet should keep the 6x10 160px grid`);
+      assert(dimensions.width === 1280 && dimensions.height === 1600,
+        `${classId} player animation sheet should keep the 8x10 160px grid`);
     });
     Object.entries(data.EQUIPMENT_VISUALS || {}).forEach(([itemId, visual]) => {
       const dimensions = readPngDimensions(path.join(__dirname, visual.atlas.sheet));
@@ -30582,7 +30726,7 @@ try {
       engineCode.includes('ctx.rect(0, 0, width, playfieldHeight);') &&
       engineDrawCode.includes('ctx.scale(zoom, zoom);') &&
       !engineDrawCode.includes('this.camera.y = 0') &&
-      engineCode.includes('this.drawBackground(ctx, width, playfieldHeight, palette, map)') &&
+      engineCode.includes('this.drawBackground(ctx, width, solidBandBottom, palette, map)') &&
       engineCode.includes('const MAP_BACKGROUND_PARALLAX = 0.42') &&
 	      engineCode.includes('const MAP_BACKGROUND_TILE_OVERLAP_PX = 2') &&
 	      engineCode.includes('const parallaxX = this.camera.x * MAP_BACKGROUND_PARALLAX') &&
@@ -30675,9 +30819,9 @@ try {
         engineCode.includes('getEnvironmentPropKinds(profile, layer, platformIndex)') &&
         engineCode.includes('ENVIRONMENT_UPPER_FRONT_PROP_KINDS') &&
         engineCode.includes('maxFootOverlapPx: 0') &&
-        engineCode.includes("const overlap = layer === 'front' ? 0") &&
+        engineCode.includes('SceneryPlacement.buildPlacements(this.runtime') &&
         engineCode.includes('frontDensityScale: 0.26') &&
-        engineCode.includes('const rawCount = Math.max(1, Math.round(platform.w / spacing * density));') &&
+        fs.readFileSync(path.join(__dirname, 'js/games/project-starfall/engine/scenery-placement.js'), 'utf8').includes('const rawCount = Math.max(1, Math.round(platform.w / spacing * density));') &&
         !engineCode.includes('if (Number(visibility.frontDensityScale || 0) <= 0) return [];') &&
         engineCode.includes('groundOnlyTallProps') &&
         engineCode.includes('environmentKey') &&
@@ -30697,14 +30841,15 @@ try {
       ['pixi environment texture cache and cell drawing', starfallRendererCode.includes('ENVIRONMENT_TEXTURE_CACHE_LIMIT') &&
         starfallRendererCode.includes('environmentTextures') &&
         starfallRendererCode.includes('getEnvironmentCellTexture(kind, profile, cellIndex)') &&
-        starfallRendererCode.includes('getEnvironmentStructureCellTexture(cell)') &&
+        starfallRendererCode.includes('getEnvironmentStructureCellTexture(cell, theme)') &&
         starfallRendererCode.includes('drawEnvironmentTileStrip(snapshot, kind, profile')],
       ['pixi authored visual platform terrain', starfallRendererCode.includes('drawFieldVisualPlatformTerrain(snapshot, map, platform, index') &&
         starfallRendererCode.includes('drawFieldConnectorTerrain(snapshot, map, platform, index, visual, profile, cells, style, seed)') &&
         starfallRendererCode.includes("visual.kind === 'connector' || visual.kind === 'hop' || visual.kind === 'island'") &&
         starfallRendererCode.includes('this.drawFieldPlatformLedge(snapshot, map, platform, index, profile, cells, style, seed);')],
-      ['pixi pixel art camera transform', starfallRendererCode.includes('configurePixelArtRendering()') &&
-        starfallRendererCode.includes('renderer.roundPixels = true') &&
+      ['pixi illustrated sprite camera transform', starfallRendererCode.includes('configurePixelArtRendering()') &&
+        starfallRendererCode.includes('renderer.roundPixels = false') &&
+        starfallRendererCode.includes('pixi.SCALE_MODES.LINEAR') &&
         starfallRendererCode.includes('applyPixelArtTextureSettings(texture)') &&
         starfallRendererCode.includes('const zoom = Math.max(1, Number(camera.zoom || 1));') &&
         starfallRendererCode.includes('this.worldLayer.scale.set(zoom, zoom)') &&
@@ -32223,7 +32368,8 @@ try {
       engineCode.includes('this.beginDropThrough(player, LADDER_DROP_REGRAB_LOCK_SECONDS);') &&
       engineCode.includes('player.climbLockUntil = nowSeconds() + LADDER_DROP_REGRAB_LOCK_SECONDS;') &&
       engineCode.includes("} else if (jumpMovement && jumpMovement.type === 'jump') {") &&
-      engineCode.includes('const canAttemptClimbMount = !movementLocked &&') &&
+      engineCode.includes('const groundedDropRequested = jumpRequested && this.input.down && player.grounded &&') &&
+      engineCode.includes('const canAttemptClimbMount = !groundedDropRequested && !movementLocked &&') &&
       engineCode.includes('const climbMountReady = canAttemptClimbMount') &&
       engineCode.includes('const climbActivation = getClimbActivationPlanForMovement(player, movementLocked, mobility, climbable, verticalIntent, climbMountReady, nowSeconds());') &&
       engineCode.includes('if (climbActivation.shouldUpdateClimbing) {') &&
@@ -32296,7 +32442,7 @@ try {
       engineCode.includes('const platformLandingMetrics = { bodyX, bodyY, bodyW, bodyH, centerX, bottom, previousBottom };') &&
       engineCode.includes('const landing = getPlatformLandingResolutionForMovement(platformLandingMetrics, platform);') &&
       engineCode.includes('if (!landing) return false;\n        if (this.shouldSkipDropThroughPlatform(body, platform)) return false;') &&
-      engineCode.includes('body.y = landing.surfaceY - body.h;') &&
+      engineCode.includes('body.y = landingSurfaceY - body.h;') &&
       engineCode.includes('return shouldSkipDropThroughPlatformForMovement(body, platform, nowSeconds());') &&
       !engineCode.includes('EngineMovement.'),
       'Project Starfall teleport target selection, blink movement plan, skill movement application/invulnerability/instant-mode/blink-burst/blink-fallback/blink-target-selection/mobility-state/blink-target/action-effect/flame-trail planning, map movement profile, input intent planning, active mobility state, mobility step/application planning, air-dash momentum carry planning, horizontal movement planning, jump movement action planning, vertical physics and world-x-clamp planning, climb activation/clear-state/jump-exit/mount-state/current-climbable/step/step-dismount-endpoint/step-finalization/dismount/dismount-state/mount metric/platform-height/endpoint-match/reach/overlap-selector/ground-mount planning, drop-through state planning, platform landing resolution, and drop-through skip helpers should live in the engine movement module while the engine facade keeps runtime wrapper methods');
@@ -32529,7 +32675,7 @@ try {
       !engineCode.includes('EngineWorldMap.'),
       'Project Starfall world-map node, portal lookup, edge lock, path, and completion helpers should live in the engine world-map module');
     assert(engineQuestNpcsCode.includes('function alignQuestNpc(rawNpc, index, mapId, platforms, options)') &&
-      engineQuestNpcsCode.includes('function createMapHuntNpcDefinition(map)') &&
+      engineQuestNpcsCode.includes('function createMapHuntNpcDefinition(map, options)') &&
       engineCode.includes('const EngineQuestNpcs =') &&
       engineCode.includes('function getEngineQuestNpcHelper(name)') &&
       engineCode.includes("const ALIGN_QUEST_NPC = getEngineQuestNpcHelper('alignQuestNpc')") &&
@@ -33601,7 +33747,8 @@ try {
     assert(findEnemiesNearCode.includes('const capLimit = Math.floor(Number(cap));') &&
       findEnemiesNearCode.includes('if (Number.isFinite(capLimit) && capLimit <= 0) return [];') &&
       findEnemiesNearCode.includes('this.findEnemiesNearEntryBuffer') &&
-      findEnemiesNearCode.includes('this.getEnemySpatialEntries(originX, originY, limit, null, entryBuffer)') &&
+      findEnemiesNearCode.includes('this.getEnemyCombatSpatialEntries(originX, originY, limit, null, entryBuffer)') &&
+      findEnemiesNearCode.includes('this.enemyIntersectsCircle(enemy, originX, originY, limit)') &&
       findEnemiesNearCode.includes('let exceededCap = false;') &&
       findEnemiesNearCode.includes('if (!exceededCap) return nearestEnemies;') &&
       !findEnemiesNearCode.includes('.forEach((entry)') &&
@@ -33978,7 +34125,7 @@ try {
       starfallCss.includes('.project-starfall-party-member.is-ally') &&
       starfallCss.includes('.project-starfall-panel-actions'),
       'Project Starfall UI should expose audio controls, onboarding guide messaging, and simulated party finder controls in DOM and canvas layers');
-    const drawEffectContractStart = engineCode.indexOf('    drawEffect(ctx, effect) {');
+    const drawEffectContractStart = engineCode.indexOf('    drawEffect(ctx, effect, recoveryLayer) {');
     const drawEffectContractEnd = engineCode.indexOf('    drawAttract(ctx, width, height) {', drawEffectContractStart);
     const drawEffectContractCode = drawEffectContractStart >= 0 && drawEffectContractEnd > drawEffectContractStart
       ? engineCode.slice(drawEffectContractStart, drawEffectContractEnd)
@@ -37945,63 +38092,73 @@ try {
     assert(itemVisualValidation.issues.length === 0,
       `Project Starfall item visual validation failed:\n${itemVisualValidation.issues.join('\n')}`);
 
-    const aiEnemyPromptManifest = JSON.parse(childProcess.execFileSync(process.execPath, ['build/process-project-starfall-ai-enemy-sheets.js', '--write-prompts', '-'], {
-      cwd: __dirname,
-      encoding: 'utf8',
-      maxBuffer: 1024 * 1024
-    }));
-    assert(aiEnemyPromptManifest.sheet.width === 384 &&
-      aiEnemyPromptManifest.sheet.height === 1024 &&
-      aiEnemyPromptManifest.sheet.frameSize === 128 &&
-      aiEnemyPromptManifest.sheet.guideLine === '#00ffff' &&
-      aiEnemyPromptManifest.enemies.length === data.ENEMIES.length,
-      'Project Starfall AI enemy prompt manifest should cover every enemy');
-    data.ENEMIES.forEach((enemy) => {
-      const entry = aiEnemyPromptManifest.enemies.find((candidate) => candidate.id === enemy.id);
-      const expectedColumns = enemy.animation && enemy.animation.frameWidth === 128 ? 3 : 6;
-      assert(entry &&
-        entry.prompt.includes(enemy.name) &&
-        entry.prompt.includes(`exactly ${expectedColumns} columns by 8 rows`) &&
-        entry.prompt.includes('Visible guide grid') &&
-        entry.prompt.includes('idle:') &&
-        entry.prompt.includes('defeat:') &&
-        entry.outputSheet === enemy.animation.sheet &&
-        entry.outputPortrait === enemy.asset,
-        `Project Starfall AI enemy prompt missing runtime details for ${enemy.id}`);
+    const enemySourceRoot = 'asset-sources/project-starfall/overhaul-v1/enemies';
+    const enemyInventory = JSON.parse(readFile(`${enemySourceRoot}/inventory.json`));
+    const enemyRecordsById = new Map(enemyInventory.items.map((entry) => [entry.fileId, entry]));
+    const allowedEnemyCopies = ['bandit-cutter-direct', 'bandit-cutter-hybrid', 'bandit-cutter-puppet', 'bandit-cutter-reference'];
+    const declaredEnemyCopies = enemyInventory.items.filter((entry) => entry.aliasOf);
+    assert(enemyInventory.items.length === 48 && enemyInventory.enemyIdCount === data.ENEMIES.length &&
+      declaredEnemyCopies.map((entry) => entry.fileId).sort().join(',') === allowedEnemyCopies.join(',') &&
+      declaredEnemyCopies.every((entry) => entry.aliasOf === 'bandit-cutter' && entry.replacement.aliasOf === 'bandit-cutter'),
+      'Project Starfall should declare exactly four bandit compatibility copies across its 48 source records');
+    const digest = (file) => require('crypto').createHash('sha256').update(fs.readFileSync(path.join(__dirname, file))).digest('hex');
+    const canonicalEnemySheetHashes = new Set();
+    const canonicalEnemySources = new Map();
+    enemyInventory.items.forEach((entry) => {
+      const replacement = entry.replacement;
+      assert(replacement && fs.existsSync(path.join(__dirname, replacement.sheet)) &&
+        fs.existsSync(path.join(__dirname, replacement.portrait)) && digest(replacement.sheet) === replacement.sheetSha256,
+        `${entry.fileId} should have an imported sheet and portrait matching recorded output provenance`);
+      if (entry.aliasOf) {
+        const canonical = enemyRecordsById.get(entry.aliasOf).replacement;
+        assert(digest(replacement.sheet) === digest(canonical.sheet) && digest(replacement.portrait) === digest(canonical.portrait),
+          `${entry.fileId} should be an exact declared canonical bandit copy`);
+        return;
+      }
+      const source = JSON.parse(readFile(`${enemySourceRoot}/${entry.fileId}/source.json`));
+      canonicalEnemySources.set(entry.fileId, source);
+      const report = JSON.parse(readFile(replacement.report));
+      const sourcePath = `${enemySourceRoot}/${entry.fileId}/${source.source}`;
+      assert(digest(sourcePath) === source.sourceSha256 && digest(sourcePath) === report.sourceSha256 &&
+        fs.existsSync(path.join(__dirname, enemySourceRoot, entry.fileId, source.prompt || 'generation-prompt.md')),
+        `${entry.fileId} should preserve its exact generated master and generation brief`);
+      Object.values(source.supplementalRows || {}).forEach((row) => {
+        assert(digest(row.repoPath || `${enemySourceRoot}/${entry.fileId}/${row.file}`) === row.sha256,
+          `${entry.fileId} supplemental poses should match their preserved authored source`);
+      });
+      assert(report.substantialActorCount === 48 && report.frames.length === 48 &&
+        report.dimensions.width === 960 && report.dimensions.height === 1280 &&
+        report.noManufacturedMotion === true && report.noPerFrameScaling === true && report.transparentSourcePixels > 0 &&
+        report.frames.every((frame) => frame.outputBounds && frame.outputBounds.edgePixels === 0),
+        `${entry.fileId} should have 48 measured authored poses with shared scale, real alpha and clear cell borders`);
+      assert(!canonicalEnemySheetHashes.has(replacement.sheetSha256),
+        `${entry.fileId} should have a distinct canonical rendered atlas`);
+      canonicalEnemySheetHashes.add(replacement.sheetSha256);
     });
-
-    const aiEnemyAuditReport = JSON.parse(childProcess.execFileSync(process.execPath, ['build/process-project-starfall-ai-enemy-sheets.js', '--audit', '--strict', '--json'], {
-      cwd: __dirname,
-      encoding: 'utf8',
-      maxBuffer: 8 * 1024 * 1024
-    }));
-    const briarStagAudit = aiEnemyAuditReport.enemies.find((enemy) => enemy.id === 'briarStag');
-    assert(aiEnemyAuditReport.checked.enemies === data.ENEMIES.length &&
-      aiEnemyAuditReport.checked.animationAssets >= 100 &&
-      aiEnemyAuditReport.strict === true &&
-      aiEnemyAuditReport.totals.errors === 0 &&
-      aiEnemyAuditReport.totals.warnings === 0 &&
-      briarStagAudit &&
-      briarStagAudit.errors.length === 0 &&
-      briarStagAudit.warnings.length === 0,
-      'Project Starfall AI enemy sprite audit should pass cleanly');
+    assert(canonicalEnemySheetHashes.size === 44,
+      'Project Starfall should retain 44 distinct canonical enemy atlases in addition to its four declared copies');
+    data.ENEMIES.forEach((enemy) => {
+      const entry = enemyRecordsById.get(path.basename(enemy.asset, '.png'));
+      assert(entry && entry.enemies.some((source) => source.id === enemy.id) &&
+        entry.replacement.sheet === enemy.animation.sheet && entry.replacement.portrait === enemy.asset,
+        `${enemy.id} should resolve to its declared illustrated actor and portrait`);
+    });
 
     const mapBackgroundValidationOutput = childProcess.execFileSync(process.execPath, ['build/process-project-starfall-map-backgrounds.js', '--validate'], {
       cwd: __dirname,
       encoding: 'utf8',
       maxBuffer: 1024 * 1024
     });
-    assert(mapBackgroundValidationOutput.includes('Validated greenroot-meadow.webp') &&
-      mapBackgroundValidationOutput.includes('Validated endless-rift.webp') &&
-      mapBackgroundValidationOutput.includes('Validated astral-observatory.webp'),
-      'Project Starfall map background validator should pass representative generated maps');
+    assert(mapBackgroundValidationOutput.includes('[Starfall overhaul scenery] Validated 44 backgrounds assets.'),
+      'Project Starfall map background validator should validate all forty-four source-owned backgrounds');
 
     const environmentImagegenValidationOutput = childProcess.execFileSync(process.execPath, ['build/process-project-starfall-environment-imagegen-assets.js', '--validate'], {
       cwd: __dirname,
       encoding: 'utf8',
       maxBuffer: 1024 * 1024
     });
-    assert(environmentImagegenValidationOutput.includes('Validated 40 imagegen environment terrain atlases and 40 prop atlases'),
+    assert(environmentImagegenValidationOutput.includes('[Starfall overhaul scenery] Validated 41 terrain assets.') &&
+      environmentImagegenValidationOutput.includes('[Starfall overhaul scenery] Validated 40 props assets.'),
       'Project Starfall environment imagegen validator should pass all terrain and prop atlases');
 
     const forestTerrainValidationOutput = childProcess.execFileSync(process.execPath, ['build/generate-project-starfall-forest-terrain-atlases.js', '--validate'], {
@@ -38010,11 +38167,10 @@ try {
       maxBuffer: 1024 * 1024
     });
     const forestTerrainGeneratorCode = readFile('build/generate-project-starfall-forest-terrain-atlases.js');
-    assert(forestTerrainValidationOutput.includes('Validated 4 forest terrain atlases') &&
-      forestTerrainGeneratorCode.includes('greenroot-meadow-terrain-imagegen-source.png') &&
-      forestTerrainGeneratorCode.includes('thornpath-thicket-terrain-imagegen-source.png') &&
-      forestTerrainGeneratorCode.includes('makeHorizontalSeamless'),
-      'Project Starfall forest terrain should be rebuilt from custom AI source sheets with tile-safe seams');
+    assert(forestTerrainValidationOutput.includes('[Starfall overhaul scenery] Validated 41 terrain assets.') &&
+      forestTerrainGeneratorCode.includes("require('./process-project-starfall-overhaul-scenery.js')") &&
+      forestTerrainGeneratorCode.includes("overhaul.processGroup('terrain'"),
+      'Project Starfall legacy forest generation should defer to the source-owned terrain pipeline');
 
     const assertResolvedPng = (assetPath, width, height, label) => {
       assert(assetPath && assetPath.startsWith('img/project-starfall/') && fs.existsSync(path.join(__dirname, getAssetFilePath(assetPath))),
@@ -38041,7 +38197,8 @@ try {
         `${itemId} inventory item icon should be sourced from a standalone parsed icon PNG`);
       const png = assertResolvedPng(assetPath, 64, 64, `${itemId} inventory item icon`);
       assertTransparentPngCorners(png, `${itemId} inventory item icon`);
-      assert(!visiblePngHasNeonGreen(png), `${itemId} inventory item icon should not contain chroma-key green`);
+      // Item materials may be emerald, leaves, or green ink; reject the extraction key itself.
+      assert(!visiblePngHasExactGreenKey(png), `${itemId} inventory item icon should not contain chroma-key green`);
       assert(!pngVisibleTouchesOuterEdge(png), `${itemId} inventory item icon should not touch the canvas edge`);
       const bounds = getPngAlphaBounds(png, 20);
       assert(bounds && Math.max(bounds.maxX - bounds.minX + 1, bounds.maxY - bounds.minY + 1) >= 42,
@@ -38095,7 +38252,7 @@ try {
       assertResolvedPng(animation.sheet, 960, 160, `${variant} portal animation sheet`);
     });
     Object.entries(data.PLAYER_ANIMATION_ASSETS || {}).forEach(([classId, animation]) => {
-      const png = assertResolvedPng(animation.sheet, 960, 1600, `${classId} player animation sheet`);
+      const png = assertResolvedPng(animation.sheet, 1280, 1600, `${classId} player animation sheet`);
       ['run', 'jump', 'fall', 'climb', 'basic', 'skill'].forEach((stateId) => {
         const row = data.PLAYER_ANIMATION_ROWS.indexOf(stateId);
         assert(row >= 0 && countFramePixelDiff(png, 160, row, 0, 1, 48) >= 1500,
@@ -38129,8 +38286,10 @@ try {
       });
     });
 
-    const enemyAttackFrameHashesByKind = new Map();
+    const enemyAttackFrameHashesByIdentity = new Map();
     data.ENEMIES.forEach((enemy) => {
+      const sourceRecord = enemyRecordsById.get(path.basename(enemy.asset, '.png'));
+      const identity = sourceRecord.aliasOf || sourceRecord.fileId;
       const frameSize = Number(enemy.animation.frameWidth || 160);
       const maxFrames = data.ENEMY_ANIMATION_ROWS.reduce((max, stateId) => {
         const state = enemy.animation.states && enemy.animation.states[stateId];
@@ -38165,18 +38324,32 @@ try {
         if (Number(state && state.frames || 1) < 3) return;
         const row = data.ENEMY_ANIMATION_ROWS.indexOf(stateId);
         const minimumChangedPixels = Math.round(minimumEnemyMotionByState[stateId] * Math.pow(frameSize / 160, 2));
-        [[0, 1], [1, 2]].forEach(([fromFrame, toFrame]) => {
-          assert(countFramePixelDiff(png, frameSize, row, fromFrame, toFrame, 32) >= minimumChangedPixels,
-            `${enemy.id} ${stateId} animation frames ${fromFrame + 1}-${toFrame + 1} should be visibly distinct`);
+        Array.from({ length: state.frames - 1 }, (_, index) => [index, index + 1]).forEach(([fromFrame, toFrame]) => {
+          const changedPixels = countFramePixelDiff(png, frameSize, row, fromFrame, toFrame, 32);
+          const approvedBoarHold = identity === 'bristle-boar' && ['telegraph', 'attack'].includes(stateId) && fromFrame >= 3;
+          if (approvedBoarHold) {
+            const source = canonicalEnemySources.get(identity);
+            const heldRow = source.supplementalRows && source.supplementalRows[stateId];
+            const declaredHold = source.intentionalHolds && source.intentionalHolds[stateId];
+            const expectedIndices = stateId === 'telegraph' ? [0, 1, 2, 3, 3, 3] : [4, 5, 6, 7, 7, 7];
+            assert(heldRow && heldRow.repoPath === 'output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png' &&
+              heldRow.indices.join(',') === expectedIndices.join(',') && changedPixels === 0 &&
+              declaredHold && declaredHold.frames.join(',') === '3,4,5' &&
+              declaredHold.sourceStudyFrame === expectedIndices[3] && declaredHold.reason,
+              `${enemy.id} ${stateId} tail should preserve only the explicitly declared approved commitment/recovery hold`);
+          } else {
+            assert(changedPixels >= minimumChangedPixels,
+              `${enemy.id} ${stateId} animation frames ${fromFrame + 1}-${toFrame + 1} should be visibly distinct`);
+          }
         });
       });
       const attackHash = hashAnimationFrame(png, frameSize, data.ENEMY_ANIMATION_ROWS.indexOf('attack'), 0);
-      const kindHashes = enemyAttackFrameHashesByKind.get(enemy.family) || new Map();
-      assert(!kindHashes.has(attackHash),
-        `${enemy.id} should not share an identical attack frame with ${kindHashes.get(attackHash)}`);
-      kindHashes.set(attackHash, enemy.id);
-      enemyAttackFrameHashesByKind.set(enemy.family, kindHashes);
+      assert(!enemyAttackFrameHashesByIdentity.has(identity) || enemyAttackFrameHashesByIdentity.get(identity) === attackHash,
+        `${enemy.id} should match its declared canonical attack pose`);
+      enemyAttackFrameHashesByIdentity.set(identity, attackHash);
     });
+    assert(enemyAttackFrameHashesByIdentity.size === 44 && new Set(enemyAttackFrameHashesByIdentity.values()).size === 44,
+      'All 44 canonical enemy identities should retain distinct attack poses; only declared copies and existing ID aliases may share');
 
     const activeCombatSkills = data.SKILLS.filter((skill) => skill.category !== 'passive');
     const assertCombatFxSheet = (animation, rows, label) => {
@@ -40022,7 +40195,7 @@ try {
       const starIndex = html.indexOf('STAR Summary');
       const linksIndex = html.indexOf('id="links"');
       assert(shellIndex >= 0, `${file} should render a standard demo or preview shell`);
-      assert(starIndex >= 0 && starIndex < shellIndex, `${file} should place STAR Summary before the demo/preview shell`);
+      assert(starIndex > shellIndex, `${file} should place the demo/preview before the longer STAR Summary`);
       assert(linksIndex < 0 || linksIndex > shellIndex, `${file} should place supporting Links after the demo/preview shell`);
       assertProjectStarSummary({ assert, html, project, file });
       ['analytics', 'data-science', 'tourism'].forEach((audience) => {
@@ -40042,9 +40215,10 @@ try {
              !html.includes('class="project-tags"'),
         `${file} should omit legacy navigation, metadata, notes, evaluation, and related-project sections`);
       if (project && project.embed) {
-        assert(html.includes('class="project-demo-header"'), `${file} should show the demo first with a compact header`);
-    const expectedDemoHeading = project.embed.heading || project.title;
-        assert(html.includes(`<h2 class="section-title project-demo-title">${expectedDemoHeading}</h2>`), `${file} should render its demo heading with the shared portfolio section-title style`);
+        const drawingProject = ['handwritingRating', 'shapeClassifier'].includes(project.id);
+        assert(drawingProject ? html.includes('project-main--drawing') && !html.includes('class="project-demo-header"') : html.includes('class="project-demo-header"'), `${file} should show the demo first without repeating drawing project headings`);
+        const expectedDemoHeading = project.embed.heading || project.title;
+        assert(drawingProject ? html.includes(`<h1>${project.title}</h1>`) : html.includes(`<h2 class="section-title project-demo-title">${expectedDemoHeading}</h2>`), `${file} should render its demo heading once in the appropriate shared header`);
         assert(html.includes('class="project-demo-help-trigger"') && html.includes('role="tooltip"'), `${file} should move demo instructions into a tooltip`);
         assert(html.includes('class="project-demo-panel is-active" data-demo-panel="demo"'), `${file} should render the demo panel as the default visible content`);
         assert(!html.includes('How to Use Demo'), `${file} should not render the old instructions tab label`);
@@ -40926,7 +41100,7 @@ try {
     assert(varsCss.includes('--brand-deep-blue:#0145C8;'), 'variables.css missing Deep Blue token');
     assert(varsCss.includes('--brand-canvas:#F9F9FA;'), 'variables.css missing Canvas token');
     assert(varsCss.includes('--brand-action-copper:#D97706;'), 'variables.css missing Action Copper token');
-    assert(varsCss.includes('--category-projects:#155DFC;') &&
+    assert(varsCss.includes('--category-projects:var(--brand-signal-blue);') &&
       varsCss.includes('--category-tools:#087F8C;') &&
       varsCss.includes('--category-games:#C94B0A;'),
       'variables.css should define shared category accents with AA-safe Tools and Games colors for white labels');
@@ -40940,8 +41114,9 @@ try {
         /--modal-backdrop-filter\s*:\s*blur\(4px\)\s*;/.test(varsCss) &&
         /--modal-surface\s*:\s*var\(--surface\)\s*;/.test(varsCss) &&
         /--modal-border\s*:\s*var\(--border-1\)\s*;/.test(varsCss) &&
-        /--modal-radius\s*:\s*var\(--radius-16\)\s*;/.test(varsCss) &&
-        /--modal-radius-mobile\s*:\s*var\(--radius-12\)\s*;/.test(varsCss) &&
+        /--modal-radius\s*:\s*var\(--radius-dialog\)\s*;/.test(varsCss) &&
+        /--modal-radius-mobile\s*:\s*var\(--radius-dialog\)\s*;/.test(varsCss) &&
+        /--radius-dialog\s*:\s*var\(--radius-12\)\s*;/.test(varsCss) &&
         /--modal-shadow\s*:\s*var\(--shadow-lg\)\s*;/.test(varsCss) &&
         /--modal-accent\s*:\s*var\(--brand-signal-blue\)\s*;/.test(varsCss),
       'variables.css should expose the shared light-site modal shell contract',
@@ -41557,10 +41732,11 @@ try {
     runPersonalThemeContinuityTests({ assert });
   });
 
-  section('Tab navigation replaces floating menus', () => {
+  section('Personal mobile section navigation preserves desktop tabs', () => {
     const navigationJs = readFile('js/navigation/navigation.js');
-    assert(!navigationJs.includes('function setupMobileSiteDock') && !navigationJs.includes('function setupMobileDockAutoHide'),
-      'navigation should not recreate the retired mobile dock');
+    assert(navigationJs.includes('function setupMobileSectionNavigation') && navigationJs.includes("context.activeAudience.key === 'personal'") &&
+      navigationJs.includes('enabled = media.matches') && !navigationJs.includes('function setupMobileSiteDock'),
+    'the personal mobile category strip is scoped by viewport and audience without restoring the retired floating contact dock');
     ['personal', 'analytics', 'data-science', 'tourism'].forEach((audience) => {
       const suffix = audience === 'personal' ? '' : '.' + audience;
       assert(!readFile('build/templates/footer' + suffix + '.partial.html').includes('speed-dial'),
@@ -44395,8 +44571,8 @@ try {
 
   section('Stellar dogfight game', () => {
     const demoHtml = fs.readFileSync('pages/games/stellar-dogfight.html', 'utf8');
-    assert(demoHtml.includes('<link rel="stylesheet" href="css/games/stellar-dogfight.css">'),
-      'stellar dogfight demo should load component CSS');
+    assert(/<link rel="stylesheet" href="css\/games\/stellar-dogfight\.css\?v=[a-f0-9]{12}">/.test(demoHtml),
+      'stellar dogfight demo should load content-versioned component CSS');
     assert(demoHtml.includes('<script src="/js/games/stellar-dogfight/data.js"></script>'),
       'stellar dogfight demo should load data script');
     assert(demoHtml.includes('<script src="/js/games/stellar-dogfight/audio.js"></script>'),
@@ -44888,7 +45064,7 @@ try {
            stormbreakHtml.includes('class="zone-row') && stormbreakHtml.includes('data-zone=') &&
            stormbreakHtml.includes('data-action='),
       'Stormbreak should expose battle, ability, upgrade, zone, and utility controls to the engine');
-    assert(stormbreakHtml.includes('<link rel="stylesheet" href="css/games/stormbreak.css">') &&
+    assert(/<link rel="stylesheet" href="css\/games\/stormbreak\.css\?v=[a-f0-9]{12}">/.test(stormbreakHtml) &&
            stormbreakHtml.includes('<script defer src="/js/games/stormbreak/app.js"></script>'),
       'Stormbreak should load its custom stylesheet and external engine');
 

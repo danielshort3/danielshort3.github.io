@@ -1,0 +1,43 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "snowglare-wisp",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-b31d541a-0422-4678-b551-7e4f1fdeb7bc.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/snowglare-wisp.png",
+    "img/project-starfall/animations/enemies/snowglare-wisp-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": true,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Projectile first pose has small external star; use actor-only attack first pose for release. Alpha fringe measurement needed. Invalid pose replaced by explicit existing actor pose; no painted-over repair or synthesized motion.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/snowglare-wisp-sheet.png",
+    "portrait": "img/project-starfall/enemies/snowglare-wisp.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "e834e8303579589876743ec01e8d1364248fafb9d06a6ff5f0daf39a3275d356",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "sourcePoseOverrides": {
+    "24": {
+      "row": 3,
+      "column": 0
+    }
+  }
+}

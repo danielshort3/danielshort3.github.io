@@ -569,7 +569,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.ab1759e7.js"></script>
+  <script defer src="dist/site-consent.b7aca7d5.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
@@ -626,7 +626,7 @@
       <div class="generation-panel">
         <div class="generation-controls" role="group" aria-label="Generation controls">
           <div class="generation-status">
-            <span id="health-pill" class="health-pill aws-status-badge" data-state="warming">AWS · Connecting</span>
+            <button id="health-pill" class="health-pill aws-status-badge" data-state="warming" type="button" disabled>AWS · Connecting</button>
           </div>
           <div class="generation-toolbar">
             <label for="cluster-select">Digit
@@ -736,6 +736,7 @@
     let gridMetricsFrame = null;
     let lastSeed = null;
     let serverReady = false;
+    let warming = false;
 
     function setStatus(text) {
       statusEl.textContent = text;
@@ -744,6 +745,8 @@
     function setHealth(state, text) {
       healthPill.dataset.state = state;
       healthPill.textContent = `AWS · ${text}`;
+      healthPill.disabled = state === 'warming' || state === 'loading';
+      healthPill.setAttribute('aria-label', `AWS ${text}. Reconnect demo.`);
     }
 
     function showEmptyGrid(message) {
@@ -869,59 +872,66 @@
     }
 
     async function warmUpServer() {
-      setHealth('warming', 'Connecting');
-      setStatus('Preparing demo...');
-      setControlsEnabled(false);
-      const endpoints = candidates();
-      if (!endpoints.length) {
-        setHealth('err', 'Unavailable');
-        setStatus('No endpoint configured.');
-        showEmptyGrid('The digit collection is unavailable. Reload the demo to try connecting again.');
-        serverReady = false;
-        return;
-      }
-      const warmPayload = {
-        seed: 1,
-        mode: 'cluster',
-        cluster_digit: 0,
-        dim: 0,
-        value: 0,
-        rows: 1,
-        cols: 1
-      };
-      let lastErr = null;
-      for (const base of endpoints) {
-        try {
-          await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
-          await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
-          rememberEndpoint(base, STORAGE_KEY);
-          serverReady = true;
-          setHealth('ok', 'Connected');
-          setStatus('Ready.');
-          setControlsEnabled(true);
-          fetchGrid();
-          return;
-        } catch (err) {
-          lastErr = err;
-        }
-        try {
-          await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
-          rememberEndpoint(base, STORAGE_KEY);
-          serverReady = true;
-          setHealth('ok', 'Connected');
-          setStatus('Ready.');
-          setControlsEnabled(true);
-          fetchGrid();
-          return;
-        } catch (err) {
-          lastErr = err;
-        }
-      }
+      if (warming || healthPill.dataset.state === 'loading') return;
+      warming = true;
       serverReady = false;
-      setHealth('err', 'Unavailable');
-      setStatus('The demo is temporarily unavailable.');
-      showEmptyGrid('The digit collection is unavailable. Reload the demo to try connecting again.');
-      if (lastErr) console.error(lastErr);
+      try {
+      setHealth('warming', 'Connecting');
+        setStatus('Preparing demo...');
+        setControlsEnabled(false);
+        const endpoints = candidates();
+        if (!endpoints.length) {
+          setHealth('err', 'Reconnect');
+          setStatus('No endpoint configured.');
+          showEmptyGrid('The digit collection is unavailable. Select Reconnect to try again.');
+          serverReady = false;
+          return;
+        }
+        const warmPayload = {
+          seed: 1,
+          mode: 'cluster',
+          cluster_digit: 0,
+          dim: 0,
+          value: 0,
+          rows: 1,
+          cols: 1
+        };
+        let lastErr = null;
+        for (const base of endpoints) {
+          try {
+            await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+            await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+            rememberEndpoint(base, STORAGE_KEY);
+            serverReady = true;
+            setHealth('ok', 'Connected');
+            setStatus('Ready.');
+            setControlsEnabled(true);
+            if (!gridEl.querySelector('.digit-cell')) fetchGrid();
+            return;
+          } catch (err) {
+            lastErr = err;
+          }
+          try {
+            await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
+            rememberEndpoint(base, STORAGE_KEY);
+            serverReady = true;
+            setHealth('ok', 'Connected');
+            setStatus('Ready.');
+            setControlsEnabled(true);
+            if (!gridEl.querySelector('.digit-cell')) fetchGrid();
+            return;
+          } catch (err) {
+            lastErr = err;
+          }
+        }
+        serverReady = false;
+        setHealth('err', 'Reconnect');
+        setStatus('The demo is temporarily unavailable.');
+        showEmptyGrid('The digit collection is unavailable. Select Reconnect to try again.');
+        if (lastErr) console.error(lastErr);
+      } finally {
+        warming = false;
+      }
     }
 
     async function fetchGrid() {
@@ -1032,6 +1042,7 @@
       ensureSeed(true);
       fetchGrid();
     });
+    healthPill.addEventListener('click', warmUpServer);
 
     buildDimOptions(latentDim);
     syncRange(valueSlider.value);

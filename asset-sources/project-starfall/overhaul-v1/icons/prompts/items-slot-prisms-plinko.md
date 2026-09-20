@@ -1,0 +1,12 @@
+Project Starfall: clean illustrated fantasy game art matching the supplied appearance references, crisp dark contours, controlled shading, clear forms, restrained texture, warm adventure with credible danger. References are appearance/style only: do not reproduce their characters. Upper-left/front lighting. No strict pixel grid, no tiny detail, no text, numbers, captions, labels, watermark, contact-sheet headings, borders or UI frames.
+Create ONE production item icons atlas, exactly 3 equally wide columns by 3 equally high rows, regular rectangular grid covering the entire image, read left-to-right then top-to-bottom. This is one coherent atlas asset, not separate images. Each icon is centered in its assigned cell, entirely isolated, no overlap, all artwork within the central 72% of each cell, generous gutters. No visible grid lines. Genuine alpha transparency behind every object; do not paint a checkerboard or colored background. Clear silhouettes readable after export at 64px. Item materials are physical leather/cloth/metal/crystal, not flat UI pictograms. No large outer glow or background aura; rarity decoration is drawn separately by the game.
+Row 1, column 1: equipment slot coupon.
+Row 1, column 2: usable slot coupon.
+Row 1, column 3: etc slot coupon.
+Row 2, column 1: card slot coupon.
+Row 2, column 2: potential cube.
+Row 2, column 3: preservation cube.
+Row 3, column 1: plinko ball basic.
+Row 3, column 2: plinko ball polished.
+Row 3, column 3: plinko ball meteor.
+Keep exact ordering and the full equal-cell grid. Render at high resolution with clean alpha edges.

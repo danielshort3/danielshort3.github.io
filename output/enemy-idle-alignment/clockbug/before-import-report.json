@@ -1,0 +1,1990 @@
+{
+  "fileId": "clockbug",
+  "sourceSha256": "d851ee38db49cafd3f918e58b29367f284e22b265b2ba34bc34f44dd1c46f3c4",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    183,
+    366,
+    541,
+    721,
+    896,
+    1081,
+    1272,
+    1448
+  ],
+  "sharedScale": 0.788148148148148,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 115,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/clockbug-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 703000,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 27,
+        "top": 25,
+        "width": 152,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 145,
+        "width": 152,
+        "height": 146,
+        "pixels": 14635
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 170
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 36,
+        "right": 149,
+        "bottom": 150,
+        "width": 120,
+        "height": 115,
+        "pixels": 9154,
+        "edgePixels": 0
+      },
+      "sha256": "343e841606717387d2ce3963aa3b90ce35d62ef1488d8c4eace5e108bdc18ffd"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 212,
+        "top": 25,
+        "width": 150,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 145,
+        "width": 150,
+        "height": 146,
+        "pixels": 14524
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 170
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 33,
+        "top": 36,
+        "right": 150,
+        "bottom": 150,
+        "width": 118,
+        "height": 115,
+        "pixels": 9041,
+        "edgePixels": 0
+      },
+      "sha256": "f2ebe0801e23673fa94c090bc4a7038b2e08867a94bd499d07b2a976b7f3b246"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 392,
+        "top": 25,
+        "width": 149,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 144,
+        "width": 149,
+        "height": 145,
+        "pixels": 14178
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 170
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 32,
+        "top": 36,
+        "right": 148,
+        "bottom": 149,
+        "width": 117,
+        "height": 114,
+        "pixels": 8787,
+        "edgePixels": 0
+      },
+      "sha256": "82020fb69f45a682ea2e12d0a3dc1532b26707ea0fbacb3ee213fb86429b40e8"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 569,
+        "top": 27,
+        "width": 151,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 142,
+        "width": 151,
+        "height": 143,
+        "pixels": 14240
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 170
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 37,
+        "right": 147,
+        "bottom": 149,
+        "width": 119,
+        "height": 113,
+        "pixels": 8908,
+        "edgePixels": 0
+      },
+      "sha256": "002e0194ff0ea299c903fa82bcafe7d69ddf6ef88fe7f2dbc044117ebea5898f"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 747,
+        "top": 29,
+        "width": 146,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 140,
+        "width": 146,
+        "height": 141,
+        "pixels": 13543
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 170
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 39,
+        "right": 141,
+        "bottom": 149,
+        "width": 115,
+        "height": 111,
+        "pixels": 8413,
+        "edgePixels": 0
+      },
+      "sha256": "6dc39ac696d8d357a44102b09b0d7ea370e1fe1305e77fc1845a1481562c3a73"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 925,
+        "top": 26,
+        "width": 143,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 143,
+        "width": 143,
+        "height": 144,
+        "pixels": 13628
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 170
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 37,
+        "right": 136,
+        "bottom": 149,
+        "width": 113,
+        "height": 113,
+        "pixels": 8520,
+        "edgePixels": 0
+      },
+      "sha256": "492e52ea933c1d621b1a3e4dc523ec7797bb1310d74d2d6e438637815598fb83"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 23,
+        "top": 203,
+        "width": 157,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 141,
+        "width": 157,
+        "height": 142,
+        "pixels": 14787
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 347
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 37,
+        "right": 150,
+        "bottom": 148,
+        "width": 124,
+        "height": 112,
+        "pixels": 9242,
+        "edgePixels": 0
+      },
+      "sha256": "123804dd03c352e8c6e8e0fe599057f2b00fad33f39ee96bd83fca98e4a19084"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 203,
+        "top": 195,
+        "width": 158,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 148,
+        "width": 158,
+        "height": 149,
+        "pixels": 15024
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 347
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 30,
+        "right": 150,
+        "bottom": 146,
+        "width": 125,
+        "height": 117,
+        "pixels": 9422,
+        "edgePixels": 0
+      },
+      "sha256": "2a91f7df99e8797822bb2cad070555307c3a35d12df4c7b53cbc45e50894fc8d"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 382,
+        "top": 203,
+        "width": 160,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 143,
+        "width": 160,
+        "height": 144,
+        "pixels": 14593
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 347
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 37,
+        "right": 149,
+        "bottom": 149,
+        "width": 126,
+        "height": 113,
+        "pixels": 9060,
+        "edgePixels": 0
+      },
+      "sha256": "5a86589fa4ef73d5401731c1d671f5e689442ee67406d00734bf70f4c6c62f07"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 564,
+        "top": 205,
+        "width": 156,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 144,
+        "width": 156,
+        "height": 145,
+        "pixels": 14234
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 347
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 38,
+        "right": 147,
+        "bottom": 151,
+        "width": 123,
+        "height": 114,
+        "pixels": 8873,
+        "edgePixels": 0
+      },
+      "sha256": "4e17fcb1b112b230102473868c2f3a8ecd7aa555e4adc1387208ede270ae0818"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 738,
+        "top": 203,
+        "width": 167,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 144,
+        "width": 167,
+        "height": 145,
+        "pixels": 15050
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 347
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 37,
+        "right": 151,
+        "bottom": 150,
+        "width": 132,
+        "height": 114,
+        "pixels": 9422,
+        "edgePixels": 0
+      },
+      "sha256": "98a5f48c4a4b1f1039d096af4d885bea87a84e914fd2410e138bb4f5ec7866e2"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 932,
+        "top": 198,
+        "width": 134,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 147,
+        "width": 134,
+        "height": 148,
+        "pixels": 14044
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 347
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 33,
+        "right": 135,
+        "bottom": 149,
+        "width": 106,
+        "height": 117,
+        "pixels": 8807,
+        "edgePixels": 0
+      },
+      "sha256": "ced511f90c0d6dddc4c219a8448b46e6b80cd7eb46764c43b1a980c4327133b5"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 23,
+        "top": 382,
+        "width": 156,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 144,
+        "width": 156,
+        "height": 145,
+        "pixels": 14947
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 526
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 37,
+        "right": 149,
+        "bottom": 150,
+        "width": 123,
+        "height": 114,
+        "pixels": 9312,
+        "edgePixels": 0
+      },
+      "sha256": "4adc6c02467919e207017fd424b5801a2520badad4c60de2d3e250d9cfa68f36"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 206,
+        "top": 386,
+        "width": 155,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 139,
+        "width": 155,
+        "height": 140,
+        "pixels": 14174
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 526
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 40,
+        "right": 149,
+        "bottom": 149,
+        "width": 122,
+        "height": 110,
+        "pixels": 8805,
+        "edgePixels": 0
+      },
+      "sha256": "657f98995bb983d89f98cae759b9c28320d76944a65235b96cbadd077f3588d1"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 385,
+        "top": 404,
+        "width": 158,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 122,
+        "width": 158,
+        "height": 123,
+        "pixels": 13606
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 526
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 54,
+        "right": 151,
+        "bottom": 150,
+        "width": 125,
+        "height": 97,
+        "pixels": 8545,
+        "edgePixels": 0
+      },
+      "sha256": "b3750026c2ab7711c06551fd324af6aa3f61c0734827f0f02553b7e87a2ee68b"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 563,
+        "top": 385,
+        "width": 157,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 140,
+        "width": 157,
+        "height": 141,
+        "pixels": 14468
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 526
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 39,
+        "right": 147,
+        "bottom": 149,
+        "width": 124,
+        "height": 111,
+        "pixels": 9036,
+        "edgePixels": 0
+      },
+      "sha256": "7110357ceb9b36e87fc05ed5f691cc77a4d24576fc1942f98d7dcb2bb4de7e80"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 742,
+        "top": 384,
+        "width": 156,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 141,
+        "width": 156,
+        "height": 142,
+        "pixels": 14871
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 526
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 38,
+        "right": 145,
+        "bottom": 149,
+        "width": 123,
+        "height": 112,
+        "pixels": 9256,
+        "edgePixels": 0
+      },
+      "sha256": "b2a93857278fff79f312a4b14a26ce094fc035accc07fd469db14a27e25a09e7"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 920,
+        "top": 381,
+        "width": 150,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 144,
+        "width": 150,
+        "height": 145,
+        "pixels": 14481
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 526
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 20,
+        "top": 36,
+        "right": 137,
+        "bottom": 149,
+        "width": 118,
+        "height": 114,
+        "pixels": 8978,
+        "edgePixels": 0
+      },
+      "sha256": "f034f3e878c6324d0a6c667fd0f15cfb3047b9ea861560c0ace439bd4c7213d1"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 21,
+        "top": 559,
+        "width": 161,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 144,
+        "width": 161,
+        "height": 145,
+        "pixels": 15401
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 704
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 36,
+        "right": 151,
+        "bottom": 149,
+        "width": 127,
+        "height": 114,
+        "pixels": 9606,
+        "edgePixels": 0
+      },
+      "sha256": "58e1dd8897efea639e49d63aaeb359dc8b125bb977f938133e37f4bbd15e5411"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 203,
+        "top": 566,
+        "width": 163,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 138,
+        "width": 163,
+        "height": 139,
+        "pixels": 15070
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 704
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 41,
+        "right": 153,
+        "bottom": 150,
+        "width": 128,
+        "height": 110,
+        "pixels": 9441,
+        "edgePixels": 0
+      },
+      "sha256": "6ab773aacd2a120c2af40f3f574e0025f2f243abab3c93450d0cd7e5a40c7a8e"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 382,
+        "top": 559,
+        "width": 162,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 144,
+        "width": 162,
+        "height": 145,
+        "pixels": 15733
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 704
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 36,
+        "right": 151,
+        "bottom": 149,
+        "width": 128,
+        "height": 114,
+        "pixels": 9838,
+        "edgePixels": 0
+      },
+      "sha256": "92e7876095264af7b21f56fee7fbabf8160a41cdba1d38efb9bc435ef80de1bf"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 561,
+        "top": 555,
+        "width": 166,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 149,
+        "width": 166,
+        "height": 150,
+        "pixels": 15778
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 704
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 33,
+        "right": 153,
+        "bottom": 150,
+        "width": 131,
+        "height": 118,
+        "pixels": 9854,
+        "edgePixels": 0
+      },
+      "sha256": "dd7fc77f25c2076b4def1a6ba10874a31978dc9030db516901841b79d892cb20"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 742,
+        "top": 560,
+        "width": 157,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 142,
+        "width": 157,
+        "height": 143,
+        "pixels": 14612
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 704
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 37,
+        "right": 146,
+        "bottom": 149,
+        "width": 124,
+        "height": 113,
+        "pixels": 9141,
+        "edgePixels": 0
+      },
+      "sha256": "3f23affdd2cdd245ccba6b3abfaf5a1041f9d260ed88b862d2699dfe38d19e4f"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 922,
+        "top": 558,
+        "width": 152,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 144,
+        "width": 152,
+        "height": 145,
+        "pixels": 14816
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 704
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 35,
+        "right": 141,
+        "bottom": 148,
+        "width": 120,
+        "height": 114,
+        "pixels": 9258,
+        "edgePixels": 0
+      },
+      "sha256": "0076443eadf0ad4900404961c1f144555444f113d3e9c91744692051eb43b2d0"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 22,
+        "top": 739,
+        "width": 153,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 144,
+        "width": 153,
+        "height": 145,
+        "pixels": 14748
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 884
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 36,
+        "right": 146,
+        "bottom": 149,
+        "width": 121,
+        "height": 114,
+        "pixels": 9236,
+        "edgePixels": 0
+      },
+      "sha256": "7b42a5d6accd31a4261b797e41ae07b3596ec6a8224643e4745368a0a6def2b3"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 202,
+        "top": 740,
+        "width": 156,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 142,
+        "width": 156,
+        "height": 143,
+        "pixels": 15076
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 884
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 37,
+        "right": 147,
+        "bottom": 149,
+        "width": 123,
+        "height": 113,
+        "pixels": 9432,
+        "edgePixels": 0
+      },
+      "sha256": "9d1a3fd8cb4c4c024f8517ca6e36aac0dbdfbe01518c0af4b8c178c775ed3359"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 386,
+        "top": 738,
+        "width": 154,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 145,
+        "width": 154,
+        "height": 146,
+        "pixels": 14746
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 884
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 35,
+        "right": 148,
+        "bottom": 149,
+        "width": 121,
+        "height": 115,
+        "pixels": 9160,
+        "edgePixels": 0
+      },
+      "sha256": "86fe1c238f97e17552614e07a0473dc35d2025ce5fa6fe85c20dd424fceb532f"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 563,
+        "top": 738,
+        "width": 159,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 145,
+        "width": 159,
+        "height": 146,
+        "pixels": 14670
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 884
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 35,
+        "right": 148,
+        "bottom": 149,
+        "width": 125,
+        "height": 115,
+        "pixels": 9124,
+        "edgePixels": 0
+      },
+      "sha256": "96a799aaf53754fd1a934fc79efddbf1b89ac14f025fe3a1b11a4d99d0e0653f"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 742,
+        "top": 736,
+        "width": 156,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 147,
+        "width": 156,
+        "height": 148,
+        "pixels": 14754
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 884
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 33,
+        "right": 145,
+        "bottom": 149,
+        "width": 123,
+        "height": 117,
+        "pixels": 9256,
+        "edgePixels": 0
+      },
+      "sha256": "3ad22339ffa3d9d9e48b94a896ad52ddcf6038178bb56afca82c379a3ffb83e2"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 922,
+        "top": 736,
+        "width": 149,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 147,
+        "width": 149,
+        "height": 148,
+        "pixels": 14416
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 884
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 33,
+        "right": 138,
+        "bottom": 149,
+        "width": 117,
+        "height": 117,
+        "pixels": 9035,
+        "edgePixels": 0
+      },
+      "sha256": "89c196ff892384a6844eda27e7f5ec268464dc9499bc9211df1796bc339eaf0c"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 26,
+        "top": 913,
+        "width": 154,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 151,
+        "width": 154,
+        "height": 152,
+        "pixels": 15331
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1065
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 30,
+        "right": 149,
+        "bottom": 149,
+        "width": 121,
+        "height": 120,
+        "pixels": 9586,
+        "edgePixels": 0
+      },
+      "sha256": "c8e86a7a5fee81460f862fd34187563c98f08a5cd8e39a7e5b9afeec3df4bb1f"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 205,
+        "top": 922,
+        "width": 155,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 142,
+        "width": 155,
+        "height": 143,
+        "pixels": 13845
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1065
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 37,
+        "right": 149,
+        "bottom": 149,
+        "width": 122,
+        "height": 113,
+        "pixels": 8675,
+        "edgePixels": 0
+      },
+      "sha256": "68db727f8919f60a4d8a330435d597c83ac3e03d0292b18238687cbd98600f6d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 386,
+        "top": 927,
+        "width": 155,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 137,
+        "width": 155,
+        "height": 138,
+        "pixels": 13528
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1065
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 41,
+        "right": 149,
+        "bottom": 149,
+        "width": 122,
+        "height": 109,
+        "pixels": 8465,
+        "edgePixels": 0
+      },
+      "sha256": "5d9bb7b8bc4b92ec881b26fa3cff53233f7c38c352bfbadd2ee93cfd1e75abb5"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 568,
+        "top": 908,
+        "width": 156,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 155,
+        "width": 156,
+        "height": 156,
+        "pixels": 15829
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1065
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 26,
+        "right": 150,
+        "bottom": 148,
+        "width": 123,
+        "height": 123,
+        "pixels": 9871,
+        "edgePixels": 0
+      },
+      "sha256": "db4bca1c658058c6230818bbd7fe99e5b3560aaed87b3ea334f81a6b0b65e863"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 744,
+        "top": 928,
+        "width": 155,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 136,
+        "width": 155,
+        "height": 137,
+        "pixels": 14914
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1065
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 42,
+        "right": 145,
+        "bottom": 149,
+        "width": 122,
+        "height": 108,
+        "pixels": 9285,
+        "edgePixels": 0
+      },
+      "sha256": "1f32447b8dd7a8d9892b70a3d79f08b6c146d4a9f8887351740a809153e81ba3"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 923,
+        "top": 920,
+        "width": 147,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 144,
+        "width": 147,
+        "height": 145,
+        "pixels": 14163
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1065
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 36,
+        "right": 138,
+        "bottom": 149,
+        "width": 116,
+        "height": 114,
+        "pixels": 8844,
+        "edgePixels": 0
+      },
+      "sha256": "f19d3e25dfbc6956caf53dbac21325ba6b67d00325dd826a237ffdf4b652a5f8"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 23,
+        "top": 1099,
+        "width": 159,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 143,
+        "width": 159,
+        "height": 144,
+        "pixels": 14549
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1247
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 33,
+        "right": 151,
+        "bottom": 145,
+        "width": 125,
+        "height": 113,
+        "pixels": 9016,
+        "edgePixels": 0
+      },
+      "sha256": "f598278ffa8a0481dcdfd60db267c0f2afcbff71054bf3a544a60322aec6cb06"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 205,
+        "top": 1104,
+        "width": 155,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 138,
+        "width": 155,
+        "height": 139,
+        "pixels": 14883
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1247
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 37,
+        "right": 149,
+        "bottom": 146,
+        "width": 122,
+        "height": 110,
+        "pixels": 9348,
+        "edgePixels": 0
+      },
+      "sha256": "613f8f96e1826b0482736dc8ae954963d685acbd379806fc43fd20daa9a394c7"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 390,
+        "top": 1122,
+        "width": 155,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 124,
+        "width": 155,
+        "height": 125,
+        "pixels": 13453
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1247
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 51,
+        "right": 152,
+        "bottom": 149,
+        "width": 122,
+        "height": 99,
+        "pixels": 8458,
+        "edgePixels": 0
+      },
+      "sha256": "68978f423213db867a16086823b3a8e465508832e846ee5ca6cbd1bda0319a4f"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 567,
+        "top": 1097,
+        "width": 150,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 151,
+        "width": 150,
+        "height": 152,
+        "pixels": 15412
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1247
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 32,
+        "right": 145,
+        "bottom": 151,
+        "width": 118,
+        "height": 120,
+        "pixels": 9622,
+        "edgePixels": 0
+      },
+      "sha256": "e038b09b7ef79e58369f573c472af2bfbe8190c44837d56c3d379a7587363f22"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 744,
+        "top": 1102,
+        "width": 155,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 144,
+        "width": 155,
+        "height": 145,
+        "pixels": 14497
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1247
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 36,
+        "right": 145,
+        "bottom": 149,
+        "width": 122,
+        "height": 114,
+        "pixels": 9001,
+        "edgePixels": 0
+      },
+      "sha256": "7c5908d8ba00c2d9a73555fb4c9a41ebb3f90abdb502fdc41b9a7816ad119283"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 921,
+        "top": 1104,
+        "width": 152,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 143,
+        "width": 152,
+        "height": 144,
+        "pixels": 13957
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1247
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 37,
+        "right": 140,
+        "bottom": 149,
+        "width": 120,
+        "height": 113,
+        "pixels": 8716,
+        "edgePixels": 0
+      },
+      "sha256": "19e99540329d0254852af2aa66d52ffc67bb833c6f3bb22886aa845c6c0efdcf"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 18,
+        "top": 1294,
+        "width": 158,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 129,
+        "width": 158,
+        "height": 130,
+        "pixels": 13823
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1424
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 48,
+        "right": 147,
+        "bottom": 149,
+        "width": 125,
+        "height": 102,
+        "pixels": 8674,
+        "edgePixels": 0
+      },
+      "sha256": "e68d76f594c7f1a9e547a1c47f13f94bf9377650a16ecdc52e9ebe56c045227d"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 207,
+        "top": 1307,
+        "width": 159,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 116,
+        "width": 159,
+        "height": 117,
+        "pixels": 13084
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1424
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 58,
+        "right": 153,
+        "bottom": 149,
+        "width": 125,
+        "height": 92,
+        "pixels": 8109,
+        "edgePixels": 0
+      },
+      "sha256": "1f9de26891e95155501cd20675c4a0efd922458897acb0655dfcf1928ecbbfdd"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 387,
+        "top": 1322,
+        "width": 159,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 101,
+        "width": 159,
+        "height": 102,
+        "pixels": 11785
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1424
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 70,
+        "right": 152,
+        "bottom": 149,
+        "width": 125,
+        "height": 80,
+        "pixels": 7311,
+        "edgePixels": 0
+      },
+      "sha256": "85e28a85f55e3086104388860292c9a47ae22abc11f7424941e97ed98140fdff"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 561,
+        "top": 1316,
+        "width": 160,
+        "height": 108
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 107,
+        "width": 160,
+        "height": 108,
+        "pixels": 12618
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1424
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 65,
+        "right": 148,
+        "bottom": 149,
+        "width": 126,
+        "height": 85,
+        "pixels": 7845,
+        "edgePixels": 0
+      },
+      "sha256": "6ec5de0b3585ad855d920f9a596a027d9bd20dcb797ac2e4d611a48fd14499d7"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 733,
+        "top": 1321,
+        "width": 171,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 101,
+        "width": 171,
+        "height": 102,
+        "pixels": 12553
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1424
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 16,
+        "top": 69,
+        "right": 150,
+        "bottom": 148,
+        "width": 135,
+        "height": 80,
+        "pixels": 7844,
+        "edgePixels": 0
+      },
+      "sha256": "f705beaf90b03f9a10ed485e6aabd0856fd5f0fb4fbd9406bdcad725b9e7dc67"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 916,
+        "top": 1326,
+        "width": 159,
+        "height": 97
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 96,
+        "width": 159,
+        "height": 97,
+        "pixels": 11417
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockbug/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1424
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 17,
+        "top": 73,
+        "right": 141,
+        "bottom": 148,
+        "width": 125,
+        "height": 76,
+        "pixels": 7074,
+        "edgePixels": 0
+      },
+      "sha256": "2359b093cc91633c85deb9b86fb83de0f6480915f59566664b4454d6a8718fb4"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

@@ -214,7 +214,10 @@ function main() {
   assert((encounter.phaseTransitionDelay + totalityProfile.telegraph - reactionSeconds) * baseSpeed >= 2960 - 2180);
 
   const sovereignAnimation = Data.ENEMY_ANIMATION_ASSETS.eclipseSovereign.states;
-  assert.deepStrictEqual(sovereignAnimation.telegraph.holds, [3, 3, 4]);
+  assert.deepStrictEqual(sovereignAnimation.telegraph.holds, [1, 1, 1, 1, 2, 4]);
+  assert.strictEqual(sovereignAnimation.telegraph.frames, 6);
+  assert.strictEqual(sovereignAnimation.attack.frames, 6);
+  assert.strictEqual(sovereignAnimation.buff.frames, 6);
   assert.strictEqual(sovereignAnimation.telegraph.fps, 8);
   assert.strictEqual(sovereignAnimation.telegraph.holds.reduce((sum, hold) => sum + hold, 0) / sovereignAnimation.telegraph.fps, 1.25);
   assert.strictEqual(sovereignAnimation.attack.holds.reduce((sum, hold) => sum + hold, 0) / sovereignAnimation.attack.fps, 0.5);

@@ -1,0 +1,1965 @@
+{
+  "fileId": "brambleking",
+  "sourceSha256": "c4275d4ed8ff37f0348ec4dd60c53b0888bee147543afedd3464227f3d6818aa",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1449
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    182,
+    360,
+    541,
+    710,
+    884,
+    1064,
+    1239,
+    1448
+  ],
+  "sharedScale": 0.5982329317269076,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 93,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/brambleking-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 555721,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 12,
+        "top": 16,
+        "width": 165,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 155,
+        "width": 165,
+        "height": 156,
+        "pixels": 16610
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 172
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 33,
+        "top": 57,
+        "right": 131,
+        "bottom": 149,
+        "width": 99,
+        "height": 93,
+        "pixels": 6033,
+        "edgePixels": 0
+      },
+      "sha256": "36ecec9b34ee20602f3a792ad5b744241bf2c15c9f47c6a8fac13f13e6c3588a"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 195,
+        "top": 17,
+        "width": 160,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 154,
+        "width": 160,
+        "height": 155,
+        "pixels": 15714
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 172
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 57,
+        "right": 129,
+        "bottom": 149,
+        "width": 96,
+        "height": 93,
+        "pixels": 5694,
+        "edgePixels": 0
+      },
+      "sha256": "192a7dd2fe50738cdb8da5147f24ecddc53850814e4520b130212411aedc77df"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 373,
+        "top": 17,
+        "width": 159,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 154,
+        "width": 159,
+        "height": 155,
+        "pixels": 15390
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 172
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 32,
+        "top": 57,
+        "right": 126,
+        "bottom": 149,
+        "width": 95,
+        "height": 93,
+        "pixels": 5567,
+        "edgePixels": 0
+      },
+      "sha256": "b10383e2d8d23e0668498258d394f7901d097078ed53705c508625f8d12c61e1"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 553,
+        "top": 16,
+        "width": 157,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 155,
+        "width": 157,
+        "height": 156,
+        "pixels": 16080
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 172
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 32,
+        "top": 57,
+        "right": 125,
+        "bottom": 149,
+        "width": 94,
+        "height": 93,
+        "pixels": 5802,
+        "edgePixels": 0
+      },
+      "sha256": "55ebd03b9b04f5e542be6900c3b38b0c7e532dd1c667d7c8c920e887dacdae6f"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 733,
+        "top": 16,
+        "width": 158,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 155,
+        "width": 158,
+        "height": 156,
+        "pixels": 15941
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 172
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 57,
+        "right": 125,
+        "bottom": 149,
+        "width": 95,
+        "height": 93,
+        "pixels": 5794,
+        "edgePixels": 0
+      },
+      "sha256": "09fe18ef6805fffd6ff57fab35e8f7bb7925364157a63f99101444f690d0ae5f"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 911,
+        "top": 17,
+        "width": 158,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 154,
+        "width": 158,
+        "height": 155,
+        "pixels": 15658
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 172
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 57,
+        "right": 123,
+        "bottom": 149,
+        "width": 95,
+        "height": 93,
+        "pixels": 5695,
+        "edgePixels": 0
+      },
+      "sha256": "d549c3c76b9ceee31ee4add036a7817c035b086915eab44762749a0ae06efd57"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 12,
+        "top": 11,
+        "width": 163,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 155,
+        "width": 163,
+        "height": 156,
+        "pixels": 15621
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 167
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 33,
+        "top": 57,
+        "right": 130,
+        "bottom": 149,
+        "width": 98,
+        "height": 93,
+        "pixels": 5685,
+        "edgePixels": 0
+      },
+      "sha256": "dafcfbf2af23ce4267139dcddd6fa14683705882fb54816f72c6785315e87efd"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 190,
+        "top": 11,
+        "width": 168,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 154,
+        "width": 168,
+        "height": 155,
+        "pixels": 15681
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 167
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 31,
+        "top": 57,
+        "right": 131,
+        "bottom": 149,
+        "width": 101,
+        "height": 93,
+        "pixels": 5706,
+        "edgePixels": 0
+      },
+      "sha256": "305c313d0a09412d3e968e727f885e639f38796f84a7c4d1c8af25085e88016d"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 374,
+        "top": 12,
+        "width": 158,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 155,
+        "width": 158,
+        "height": 156,
+        "pixels": 15323
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 167
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 57,
+        "right": 127,
+        "bottom": 149,
+        "width": 95,
+        "height": 93,
+        "pixels": 5578,
+        "edgePixels": 0
+      },
+      "sha256": "3b9bd25e6eeba40865970f546b1a1130bd23dd2978d10c2ffc5a26117631fc50"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 548,
+        "top": 10,
+        "width": 170,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 156,
+        "width": 170,
+        "height": 157,
+        "pixels": 16568
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 167
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 56,
+        "right": 130,
+        "bottom": 149,
+        "width": 102,
+        "height": 94,
+        "pixels": 6008,
+        "edgePixels": 0
+      },
+      "sha256": "fd7dfcf0bcf85cdb6d4efee4478eaca549a9bdf4c43bbf03dcbbdba34bba936b"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 733,
+        "top": 8,
+        "width": 160,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 158,
+        "width": 160,
+        "height": 159,
+        "pixels": 15060
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 167
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 55,
+        "right": 126,
+        "bottom": 149,
+        "width": 96,
+        "height": 95,
+        "pixels": 5458,
+        "edgePixels": 0
+      },
+      "sha256": "b1e1f47146e509b8cc83cf694db30e4eef2eb4399fbc4d493b1deb5c7d7da2c0"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 908,
+        "top": 10,
+        "width": 166,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 155,
+        "width": 166,
+        "height": 156,
+        "pixels": 15316
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 167
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 56,
+        "right": 126,
+        "bottom": 148,
+        "width": 99,
+        "height": 93,
+        "pixels": 5484,
+        "edgePixels": 0
+      },
+      "sha256": "00caa1157251ef4d1e845daf71105c45bf5728fc0529672fbffeefd4bb82d9b5"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 52,
+        "top": 56,
+        "width": 411,
+        "height": 394
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 410,
+        "bottom": 393,
+        "width": 411,
+        "height": 394,
+        "pixels": 107757
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/telegraph-supplement.png",
+      "scaleFactor": 0.39593908629441626,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 257.5,
+        "y": 450
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 57,
+        "right": 127,
+        "bottom": 149,
+        "width": 97,
+        "height": 93,
+        "pixels": 6135,
+        "edgePixels": 0
+      },
+      "sha256": "1c3ea141c5535e6d30eabab5f9104408d31d8d5387a81fdfdd5f8f5391160485"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 542,
+        "top": 62,
+        "width": 409,
+        "height": 385
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 408,
+        "bottom": 384,
+        "width": 409,
+        "height": 385,
+        "pixels": 100901
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/telegraph-supplement.png",
+      "scaleFactor": 0.39593908629441626,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 746.5,
+        "y": 447
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 59,
+        "right": 128,
+        "bottom": 149,
+        "width": 97,
+        "height": 91,
+        "pixels": 5810,
+        "edgePixels": 0
+      },
+      "sha256": "0afeb8cf7fd78beaddd8cf52aa318f59db30b99d36b2ea1d2e6ef42a45a3be28"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 1035,
+        "top": 113,
+        "width": 468,
+        "height": 338
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 467,
+        "bottom": 337,
+        "width": 468,
+        "height": 338,
+        "pixels": 105421
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/telegraph-supplement.png",
+      "scaleFactor": 0.39593908629441626,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1269,
+        "y": 451
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 70,
+        "right": 135,
+        "bottom": 149,
+        "width": 111,
+        "height": 80,
+        "pixels": 6067,
+        "edgePixels": 0
+      },
+      "sha256": "5163d1f6ef5865490d34dcb0f76b7132f552e0f4c2e18170d87a8c1e011fd229"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 56,
+        "top": 504,
+        "width": 394,
+        "height": 426
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 393,
+        "bottom": 425,
+        "width": 394,
+        "height": 426,
+        "pixels": 115667
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/telegraph-supplement.png",
+      "scaleFactor": 0.39593908629441626,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 253,
+        "y": 930
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 49,
+        "right": 125,
+        "bottom": 149,
+        "width": 93,
+        "height": 101,
+        "pixels": 6655,
+        "edgePixels": 0
+      },
+      "sha256": "a979ff7a82c52e869e9659e23db77f5595feefd6a04b082908228495ebff73b0"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 562,
+        "top": 537,
+        "width": 391,
+        "height": 392
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 391,
+        "width": 391,
+        "height": 392,
+        "pixels": 108621
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/telegraph-supplement.png",
+      "scaleFactor": 0.39593908629441626,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 757.5,
+        "y": 929
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 57,
+        "right": 126,
+        "bottom": 149,
+        "width": 93,
+        "height": 93,
+        "pixels": 6292,
+        "edgePixels": 0
+      },
+      "sha256": "3b8a8cb3f8c5043c4e8e86c56a692777156357b4b596425ad210a22f772d6521"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 1069,
+        "top": 516,
+        "width": 393,
+        "height": 414
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 392,
+        "bottom": 413,
+        "width": 393,
+        "height": 414,
+        "pixels": 115100
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/telegraph-supplement.png",
+      "scaleFactor": 0.39593908629441626,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1265.5,
+        "y": 930
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 52,
+        "right": 125,
+        "bottom": 149,
+        "width": 93,
+        "height": 98,
+        "pixels": 6613,
+        "edgePixels": 0
+      },
+      "sha256": "d352954aef17351496f8bafcdfe69308165d254086e3edec364bdb5e536dd3fa"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 15,
+        "top": 11,
+        "width": 175,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 150,
+        "width": 175,
+        "height": 151,
+        "pixels": 16675
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 164
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 58,
+        "right": 139,
+        "bottom": 147,
+        "width": 105,
+        "height": 90,
+        "pixels": 6038,
+        "edgePixels": 0
+      },
+      "sha256": "8afcc7ff42768e279491f345a6c54b346a3e8ebc5b94e2f1e0b390c294b45caf"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 199,
+        "top": 11,
+        "width": 167,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 152,
+        "width": 167,
+        "height": 153,
+        "pixels": 17222
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 164
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 37,
+        "top": 58,
+        "right": 136,
+        "bottom": 149,
+        "width": 100,
+        "height": 92,
+        "pixels": 6258,
+        "edgePixels": 0
+      },
+      "sha256": "c5f1af94d732cbe6908697cb5acf70ecf361f1ba576756dcaacc1c5d098bf560"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 374,
+        "top": 9,
+        "width": 166,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 154,
+        "width": 166,
+        "height": 155,
+        "pixels": 16592
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 164
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 57,
+        "right": 131,
+        "bottom": 149,
+        "width": 99,
+        "height": 93,
+        "pixels": 5993,
+        "edgePixels": 0
+      },
+      "sha256": "a52c177df20605ac836f9759d97e768aeb76025d06dec3a9adfbfdab49ad24d0"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 551,
+        "top": 9,
+        "width": 170,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 154,
+        "width": 170,
+        "height": 155,
+        "pixels": 16260
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 164
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 57,
+        "right": 132,
+        "bottom": 149,
+        "width": 102,
+        "height": 93,
+        "pixels": 5903,
+        "edgePixels": 0
+      },
+      "sha256": "2fac27790939724f2d033e0ab5afa566d5d41fbd97a48859ed77eae8bf4430ef"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 735,
+        "top": 8,
+        "width": 163,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 154,
+        "width": 163,
+        "height": 155,
+        "pixels": 16844
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 164
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 57,
+        "right": 129,
+        "bottom": 149,
+        "width": 98,
+        "height": 93,
+        "pixels": 6106,
+        "edgePixels": 0
+      },
+      "sha256": "b015164f7bed06da0eba5286b3814526eba0b9df3489bd9b5473823009593d4b"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 912,
+        "top": 7,
+        "width": 155,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 155,
+        "width": 155,
+        "height": 156,
+        "pixels": 15934
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 164
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 56,
+        "right": 122,
+        "bottom": 148,
+        "width": 93,
+        "height": 93,
+        "pixels": 5766,
+        "edgePixels": 0
+      },
+      "sha256": "c2dd50c6cb7a0b20a5f411dd317fbe2a25dabc44fe9bdc27c2701e3644dd9c48"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 14,
+        "top": 7,
+        "width": 194,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 193,
+        "bottom": 156,
+        "width": 194,
+        "height": 157,
+        "pixels": 17353
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 164
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 34,
+        "top": 56,
+        "right": 149,
+        "bottom": 149,
+        "width": 116,
+        "height": 94,
+        "pixels": 6256,
+        "edgePixels": 0
+      },
+      "sha256": "d75a2ce09285f664a150e43468b586612b700ce7ec295ad29d4e7fd7c996277c"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 209,
+        "top": 9,
+        "width": 187,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 186,
+        "bottom": 153,
+        "width": 187,
+        "height": 154,
+        "pixels": 16073
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 164
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 43,
+        "top": 57,
+        "right": 154,
+        "bottom": 148,
+        "width": 112,
+        "height": 92,
+        "pixels": 5804,
+        "edgePixels": 0
+      },
+      "sha256": "84fe562e626ca2633014c5b65ab9eab64b5b9d1cedd00035d0f0babd4adb2d52"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 390,
+        "top": 11,
+        "width": 158,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 152,
+        "width": 158,
+        "height": 153,
+        "pixels": 15014
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 164
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 43,
+        "top": 58,
+        "right": 137,
+        "bottom": 149,
+        "width": 95,
+        "height": 92,
+        "pixels": 5461,
+        "edgePixels": 0
+      },
+      "sha256": "31ed3d5fa96590be440d5cf9d8823a8b0eb1ee6e452adbf162c1213dc3f7362a"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 552,
+        "top": 12,
+        "width": 165,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 150,
+        "width": 165,
+        "height": 151,
+        "pixels": 15518
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 164
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 59,
+        "right": 129,
+        "bottom": 148,
+        "width": 99,
+        "height": 90,
+        "pixels": 5617,
+        "edgePixels": 0
+      },
+      "sha256": "98720284fa8ff345d6504c712ec6e493cd785b85928bf766e893eaae771535c8"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 726,
+        "top": 12,
+        "width": 170,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 148,
+        "width": 170,
+        "height": 149,
+        "pixels": 16342
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 164
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 59,
+        "right": 128,
+        "bottom": 147,
+        "width": 102,
+        "height": 89,
+        "pixels": 5911,
+        "edgePixels": 0
+      },
+      "sha256": "3d4d156c211021cfddb36875eef89202de32871b55ea09f88f602d609bc06caf"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 910,
+        "top": 11,
+        "width": 157,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 156,
+        "width": 157,
+        "height": 157,
+        "pixels": 16095
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 164
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 58,
+        "right": 122,
+        "bottom": 151,
+        "width": 94,
+        "height": 94,
+        "pixels": 5801,
+        "edgePixels": 0
+      },
+      "sha256": "ba9f6eb4bd09e3ab64dbae42ece2f8f0184b7bf93ec0e03d525e7ed19c89f3fa"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 16,
+        "top": 11,
+        "width": 157,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 156,
+        "width": 157,
+        "height": 157,
+        "pixels": 16369
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 170
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 55,
+        "right": 128,
+        "bottom": 148,
+        "width": 94,
+        "height": 94,
+        "pixels": 5902,
+        "edgePixels": 0
+      },
+      "sha256": "604ed381c76dede98e70dc047aa7a38c41f2457e632f7e2ba9ba3d536a6594f0"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 196,
+        "top": 16,
+        "width": 158,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 153,
+        "width": 158,
+        "height": 154,
+        "pixels": 15935
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 170
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 58,
+        "right": 129,
+        "bottom": 149,
+        "width": 95,
+        "height": 92,
+        "pixels": 5791,
+        "edgePixels": 0
+      },
+      "sha256": "38f197b110e86229c55ecb24571cc1bcd528cecd01fadb4600a4944afc3a4c1b"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 366,
+        "top": 10,
+        "width": 175,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 159,
+        "width": 175,
+        "height": 160,
+        "pixels": 17538
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 170
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 54,
+        "right": 132,
+        "bottom": 149,
+        "width": 105,
+        "height": 96,
+        "pixels": 6346,
+        "edgePixels": 0
+      },
+      "sha256": "c4216af742d33469250b4b0a2502a1f0e957916e297f5ebafd35519db37efa83"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 560,
+        "top": 1,
+        "width": 159,
+        "height": 170
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 169,
+        "width": 159,
+        "height": 170,
+        "pixels": 17934
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 170
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 49,
+        "right": 130,
+        "bottom": 150,
+        "width": 95,
+        "height": 102,
+        "pixels": 6495,
+        "edgePixels": 0
+      },
+      "sha256": "afad500e40e6cf530fb0a7d494e490872faefc04342ab318b6896b38280e128b"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 714,
+        "top": 9,
+        "width": 200,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 199,
+        "bottom": 159,
+        "width": 200,
+        "height": 160,
+        "pixels": 18221
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 170
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 54,
+        "right": 139,
+        "bottom": 149,
+        "width": 120,
+        "height": 96,
+        "pixels": 6611,
+        "edgePixels": 0
+      },
+      "sha256": "deabaf2a2b61c937f40b530e094dbd1c381b18f636c8c91e8318306cfaa01ae7"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 916,
+        "top": 12,
+        "width": 149,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 155,
+        "width": 149,
+        "height": 156,
+        "pixels": 15492
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 170
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 55,
+        "right": 120,
+        "bottom": 147,
+        "width": 89,
+        "height": 93,
+        "pixels": 5553,
+        "edgePixels": 0
+      },
+      "sha256": "6aa821e6ecc2bb0e44cbf3652b5a543b2c6e4849740e3ae5e81ef3b28ecedf53"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 13,
+        "top": 8,
+        "width": 155,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 152,
+        "width": 155,
+        "height": 153,
+        "pixels": 14837
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 161
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 34,
+        "top": 58,
+        "right": 126,
+        "bottom": 149,
+        "width": 93,
+        "height": 92,
+        "pixels": 5399,
+        "edgePixels": 0
+      },
+      "sha256": "8a61f0613cd5702b5dbc587d52c0a2842ff1301e449ea644757a1a1cfe6a1395"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 195,
+        "top": 15,
+        "width": 163,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 146,
+        "width": 163,
+        "height": 147,
+        "pixels": 15322
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 161
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 63,
+        "right": 131,
+        "bottom": 150,
+        "width": 98,
+        "height": 88,
+        "pixels": 5571,
+        "edgePixels": 0
+      },
+      "sha256": "146bec12bc37980bb904b59bc8d3515fda9a11609f0808b2a9b890f5efc883c1"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 371,
+        "top": 5,
+        "width": 172,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 155,
+        "width": 172,
+        "height": 156,
+        "pixels": 15949
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 161
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 57,
+        "right": 133,
+        "bottom": 149,
+        "width": 103,
+        "height": 93,
+        "pixels": 5755,
+        "edgePixels": 0
+      },
+      "sha256": "92860bb0813a995db7fea112bfc35713a01b76241a459c04f38b36c7483f138e"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 559,
+        "top": 5,
+        "width": 158,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 155,
+        "width": 158,
+        "height": 156,
+        "pixels": 16338
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 161
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 57,
+        "right": 129,
+        "bottom": 149,
+        "width": 95,
+        "height": 93,
+        "pixels": 5939,
+        "edgePixels": 0
+      },
+      "sha256": "550219472caba534ec52f99d270dbd78553e226dd5fcb003b16d4332f90f3b6a"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 734,
+        "top": 6,
+        "width": 161,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 154,
+        "width": 161,
+        "height": 155,
+        "pixels": 15648
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 161
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 57,
+        "right": 127,
+        "bottom": 149,
+        "width": 96,
+        "height": 93,
+        "pixels": 5657,
+        "edgePixels": 0
+      },
+      "sha256": "cbe0c12b5228d5611206a7ab804d6ef8684b7e1459f6b9726fadee138fdf2c88"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 910,
+        "top": 4,
+        "width": 158,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 156,
+        "width": 158,
+        "height": 157,
+        "pixels": 16481
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 161
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 56,
+        "right": 123,
+        "bottom": 149,
+        "width": 95,
+        "height": 94,
+        "pixels": 5989,
+        "edgePixels": 0
+      },
+      "sha256": "9faa5f3768a30198569c8f027c4f1e693da9889401bd496a01e7f3c8030d1bed"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 20,
+        "top": 6,
+        "width": 160,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 154,
+        "width": 160,
+        "height": 155,
+        "pixels": 14428
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 162
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 57,
+        "right": 133,
+        "bottom": 149,
+        "width": 96,
+        "height": 93,
+        "pixels": 5236,
+        "edgePixels": 0
+      },
+      "sha256": "c3fec2dc269d44e39cb3a3df18b5f43faa054a9909606194799a48766cadc2d8"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 196,
+        "top": 25,
+        "width": 150,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 135,
+        "width": 150,
+        "height": 136,
+        "pixels": 13845
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 162
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 68,
+        "right": 124,
+        "bottom": 148,
+        "width": 90,
+        "height": 81,
+        "pixels": 5012,
+        "edgePixels": 0
+      },
+      "sha256": "67676306336fda01ea295abe2a5cefe3c85a0eb2c8232fd182fa6f9876e8962e"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 364,
+        "top": 27,
+        "width": 174,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 134,
+        "width": 174,
+        "height": 135,
+        "pixels": 15004
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 162
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 27,
+        "top": 69,
+        "right": 130,
+        "bottom": 149,
+        "width": 104,
+        "height": 81,
+        "pixels": 5443,
+        "edgePixels": 0
+      },
+      "sha256": "ef94ff26ef7f7a351b6167be469478fc0dba335f483dd6be70eec251265e045c"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 546,
+        "top": 52,
+        "width": 166,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 109,
+        "width": 166,
+        "height": 110,
+        "pixels": 12769
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 162
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 84,
+        "right": 126,
+        "bottom": 149,
+        "width": 99,
+        "height": 66,
+        "pixels": 4623,
+        "edgePixels": 0
+      },
+      "sha256": "bab658fc1b7f91e2489afed105c2d58cf856ee1c830996086880939ca2d9ec7e"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 723,
+        "top": 65,
+        "width": 172,
+        "height": 97
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 96,
+        "width": 172,
+        "height": 97,
+        "pixels": 11455
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 162
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 92,
+        "right": 127,
+        "bottom": 149,
+        "width": 103,
+        "height": 58,
+        "pixels": 4142,
+        "edgePixels": 0
+      },
+      "sha256": "a25f74869fa111c7dd317f94ecddb9ec2f843cb78192c0409cf6e151de3ab18c"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 902,
+        "top": 89,
+        "width": 170,
+        "height": 73
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 72,
+        "width": 170,
+        "height": 73,
+        "pixels": 8961
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/brambleking/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 162
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 106,
+        "right": 125,
+        "bottom": 149,
+        "width": 102,
+        "height": 44,
+        "pixels": 3274,
+        "edgePixels": 0
+      },
+      "sha256": "d69ddd5f06e335d03a57963db0cb9a05a72b7fea6cedb3fbf64e798ade51f979"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

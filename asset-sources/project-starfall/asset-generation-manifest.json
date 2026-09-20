@@ -2,9 +2,46 @@
   "version": 1,
   "name": "Project Starfall Asset Generation Manifest",
   "guide": "docs/project-starfall/ASSET_GENERATION_GUIDE.md",
-  "styleSource": "img/project-starfall/asset-prompts.md",
+  "styleSource": "docs/project-starfall/ASSET_GENERATION_GUIDE.md",
   "promptTemplates": "asset-sources/project-starfall/prompts/README.md",
   "validationCommand": "npm run validate:project-starfall-assets",
+  "productionOwnership": {
+    "artVersion": "illustrated-v1",
+    "sourceRoot": "asset-sources/project-starfall/overhaul-v1",
+    "report": "docs/project-starfall/ASSET_OVERHAUL_V1.md",
+    "baseline": "asset-sources/project-starfall/overhaul-v1/baseline.json",
+    "coverage": "asset-sources/project-starfall/overhaul-v1/coverage.json",
+    "coverageCommand": "node build/audit-project-starfall-overhaul.js --complete",
+    "protectedSessionImages": 31,
+    "note": "These owners supersede historical source fields below for illustrated outputs; legacy fields remain compatibility records. Completion requires the current coverage report and runtime checks.",
+    "iconsAndUi": {
+      "sourceFolder": "asset-sources/project-starfall/overhaul-v1/icons",
+      "catalog": "asset-sources/project-starfall/overhaul-v1/icons/catalog.json",
+      "ledger": "asset-sources/project-starfall/overhaul-v1/icons/ledger.json",
+      "processor": "build/project-starfall-overhaul-icons.js",
+      "validator": "build/verify-project-starfall-overhaul-icons.js",
+      "rasterOutputCount": 337,
+      "equipmentOutputCount": 85,
+      "equipmentMasterFolder": "asset-sources/project-starfall/overhaul-v1/icons/equipment",
+      "equipmentGenerator": "build/project-starfall-equipment-illustrations.js"
+    },
+    "scenery": {
+      "sourceFolder": "asset-sources/project-starfall/overhaul-v1/scenery",
+      "ledger": "asset-sources/project-starfall/overhaul-v1/scenery/ledger.json",
+      "processor": "build/process-project-starfall-overhaul-scenery.js",
+      "validator": "asset-sources/project-starfall/overhaul-v1/scenery/validate-scenery.cjs",
+      "outputCount": 173,
+      "backgroundMode": "bounded cover-scaled panorama"
+    },
+    "effects": {
+      "sourceFolder": "asset-sources/project-starfall/overhaul-v1/fx",
+      "ledger": "asset-sources/project-starfall/overhaul-v1/fx/ledger.json",
+      "processor": "build/process-project-starfall-overhaul-fx.js",
+      "nativeCombatSource": "build/lib/starfall-combat-language-art.js",
+      "nativeCombatGenerator": "build/generate-project-starfall-combat-fx.js",
+      "outputCount": 134
+    }
+  },
   "engine": {
     "type": "static browser game",
     "renderer": "Project Starfall canvas/Pixi runtime",
@@ -60,15 +97,15 @@
   ],
   "contracts": {
     "players": {
-      "artVersion": "classic",
-      "sourceFolder": "asset-sources/project-starfall/players/classes",
-      "sourcePattern": "<file-id>-source.png",
+      "artVersion": "illustrated-v1",
+      "sourceFolder": "asset-sources/project-starfall/overhaul-v1/players",
+      "sourcePattern": "player-<action-pair>.png",
       "portraitFolder": "img/project-starfall/characters",
       "portraitPattern": "<file-id>.png",
       "animationFolder": "img/project-starfall/animations/players",
       "animationPattern": "<file-id>-sheet.png",
       "frameSize": 160,
-      "columns": 6,
+      "columns": 8,
       "rows": [
         "idle",
         "run",
@@ -81,7 +118,7 @@
         "hit",
         "defeat"
       ],
-      "sheetWidth": 960,
+      "sheetWidth": 1280,
       "sheetHeight": 1600,
       "portraitWidth": 320,
       "portraitHeight": 320,
@@ -99,7 +136,15 @@
         "trapper",
         "beastArcher"
       ],
-      "processor": "build/process-project-starfall-player-ai-assets.js --validate"
+      "processor": "build/process-project-starfall-player-ai-assets.js --validate",
+      "sourceFiles": [
+        "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+        "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+        "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+        "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+        "output/starfall-animation-samples/review-v2/player-run-study.png",
+        "output/starfall-animation-samples/review-v2/player-strike-study.png"
+      ]
     },
     "equipmentAtlases": {
       "folder": "img/project-starfall/equipment-atlases",
@@ -126,14 +171,14 @@
       "processor": "build/generate-project-starfall-equipment-atlases.js --all --validate"
     },
     "enemies": {
-      "sourceFolder": "asset-sources/project-starfall/enemies/compact",
-      "sourcePattern": "<enemy-file-id>-compact-source.png",
+      "sourceFolder": "asset-sources/project-starfall/overhaul-v1/enemies",
+      "sourcePattern": "<enemy-file-id>/source.png",
       "portraitFolder": "img/project-starfall/enemies",
       "portraitPattern": "<enemy-file-id>.png",
       "animationFolder": "img/project-starfall/animations/enemies",
-      "animationPattern": "<enemy-file-id>-compact-sheet.png",
-      "frameSize": 128,
-      "columns": 3,
+      "animationPattern": "<enemy-file-id>-sheet.png",
+      "frameSize": 160,
+      "columns": 6,
       "rows": [
         "idle",
         "move",
@@ -144,12 +189,11 @@
         "hit",
         "defeat"
       ],
-      "sheetWidth": 384,
-      "sheetHeight": 1024,
-      "sourceGuideColor": "#00ffff",
-      "defaultChroma": "#00ff00",
-      "greenSubjectChroma": "#ff00ff",
-      "processor": "build/process-project-starfall-compact-bandits.js --validate"
+      "sheetWidth": 960,
+      "sheetHeight": 1280,
+      "processor": "build/process-project-starfall-overhaul-enemies.js --enemy <file-id> --import",
+      "artVersion": "illustrated-v1",
+      "inventory": "asset-sources/project-starfall/overhaul-v1/enemies/inventory.json"
     },
     "enemyProjectiles": {
       "folder": "img/project-starfall/animations/enemy-projectiles",
@@ -387,7 +431,25 @@
       "width": 1280,
       "height": 640,
       "format": "webp",
-      "processor": "build/process-project-starfall-map-backgrounds.js --validate"
+      "processor": "build/process-project-starfall-map-backgrounds.js --validate",
+      "interiorBackgrounds": {
+        "weapon": {
+          "path": "img/project-starfall/maps/shop-weapon-interior.webp",
+          "source": "asset-sources/project-starfall/overhaul-v1/scenery/backgrounds/shop-weapon-interior.png"
+        },
+        "armor": {
+          "path": "img/project-starfall/maps/shop-armor-interior.webp",
+          "source": "asset-sources/project-starfall/overhaul-v1/scenery/backgrounds/shop-armor-interior.png"
+        },
+        "supply": {
+          "path": "img/project-starfall/maps/shop-supply-interior.webp",
+          "source": "asset-sources/project-starfall/overhaul-v1/scenery/backgrounds/shop-supply-interior.png"
+        },
+        "special": {
+          "path": "img/project-starfall/maps/shop-special-interior.webp",
+          "source": "asset-sources/project-starfall/overhaul-v1/scenery/backgrounds/shop-special-interior.png"
+        }
+      }
     },
     "worldMap": {
       "path": "img/project-starfall/world-map/starfall-atlas.webp",
@@ -402,7 +464,13 @@
         "height": 256,
         "cellSize": 64,
         "columns": 8,
-        "schema": "modular-v2"
+        "schema": "modular-v2",
+        "additionalThemes": {
+          "shop-interior": {
+            "path": "img/project-starfall/environment/terrain/shop-interior.png",
+            "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/shop-interior-terrain.png"
+          }
+        }
       },
       "props": {
         "folder": "img/project-starfall/environment/props",
@@ -423,6 +491,15 @@
         "townLandmarks": {
           "path": "img/project-starfall/environment/structures/town-landmarks.png",
           "source": "img/project-starfall/environment/structures/source/ai-town-landmarks.png",
+          "width": 1024,
+          "height": 512,
+          "cellSize": 256,
+          "columns": 4,
+          "rows": 2
+        },
+        "crossingLandmarks": {
+          "path": "img/project-starfall/environment/structures/crossing-landmarks.png",
+          "source": "asset-sources/project-starfall/overhaul-v1/scenery/structures/crossing-landmarks.png",
           "width": 1024,
           "height": 512,
           "cellSize": 256,

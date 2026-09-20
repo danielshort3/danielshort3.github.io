@@ -489,7 +489,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'built homepage should expose one persistent chrome, route surface, progress line, announcer, and manifest');
   assert(
     JSON.stringify(categories.map((category) => category.color)) === JSON.stringify([
-      '#091f3b', '#155dfc', '#087f8c', '#c94b0a', '#334155'
+      '#091f3b', '#005fed', '#087f8c', '#c94b0a', '#334155'
     ]),
     'homepage rails should use the approved site-native category colors'
   );
@@ -1462,7 +1462,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     css.includes('gap: 0;') &&
     overviewRailCss.includes('background: var(--panel-color);') &&
     !overviewRailCss.includes('linear-gradient') &&
-    overviewPanelCss.includes('border: 4px solid var(--panel-color);') &&
+    overviewPanelCss.includes('border: var(--home-panel-border-width, 4px) solid var(--panel-color);') &&
     overviewPanelCss.includes('border-left: 0;') &&
     css.includes('right: -11px;') &&
     css.includes('width: 12px;') &&
@@ -1507,7 +1507,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     mobileAccordionCss.includes('transition: height var(--motion-slow) var(--easing-standard)') &&
     !mobileAccordionCss.includes('min-height: 54px;') &&
     mobileAccordionCss.includes('.home-accordion:not(.is-library-mode) .home-accordion__scroller') &&
-    mobileAccordionCss.includes('border: 4px solid var(--panel-color);') &&
+    mobileAccordionCss.includes('border: var(--home-panel-border-width, 4px) solid var(--panel-color);') &&
     mobileAccordionCss.includes('width: 20px;') &&
     mobileAccordionCss.includes('height: 10px;') &&
     mobileAccordionCss.includes('clip-path: polygon(0 0, 100% 0, 50% 100%);'),
@@ -1806,10 +1806,10 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     !navigation.includes('const isHomeSearch ='),
   'homepage search should use the same compact, explicitly expandable desktop behavior as the rest of the site');
 
-  assert(!navigation.includes('setupMobileSiteDock') &&
+  assert(navigation.includes('setupMobileSectionNavigation') && !navigation.includes('setupMobileSiteDock') &&
     css.includes('.mobile-site-dock {') &&
     css.includes('display: none !important;'),
-  'homepage should share the dock-free navigation runtime and retain a CSS safety fallback');
+  'homepage should share the personal section navigation while keeping the retired floating dock disabled');
   assert(count(css, /var\(--personal-footer-block-size, 0px\)/g) === 3 &&
     css.includes('min-height: min(540px, calc(100svh') &&
     !css.includes('.footer.footer-classic'),

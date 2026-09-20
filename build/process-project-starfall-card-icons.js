@@ -175,6 +175,8 @@ async function validateCardIcons() {
 }
 
 async function main() {
+  const owner = require('./project-starfall-overhaul-icons.js');
+  if (owner.owns()) return process.argv.includes('--validate') ? owner.verify() : owner.rebuild('cards');
   const args = new Set(process.argv.slice(2));
   if (args.has('--help')) {
     process.stdout.write([

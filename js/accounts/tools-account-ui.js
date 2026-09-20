@@ -565,7 +565,7 @@
     try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch {}
   };
 
-  const serializeToolFields = (root) => {
+  const serializeToolFields = (root, { draftOnly = false } = {}) => {
     const fields = {};
     if (!root) return fields;
 
@@ -574,6 +574,7 @@
 
     elements.forEach((el) => {
       if (!el || el.disabled) return;
+      if (draftOnly && (el.readOnly || el.closest('[data-no-draft]') || /^(?:blob:|data:(?:image|audio|video|application)\/)/i.test(el.value || ''))) return;
       const tag = String(el.tagName || '').toLowerCase();
       const type = tag === 'input' ? String(el.type || '').toLowerCase() : '';
 
@@ -2474,7 +2475,7 @@
 
     const owner = draftOwner();
     const previousOwner = root.dataset?.toolsDraftOwner || '';
-    const inheritedAccountInput = previousOwner && previousOwner !== 'guest' && previousOwner !== owner;
+    const inheritedAccountInput = previousOwner && previousOwner !== owner && (previousOwner !== 'guest' || root.dataset?.toolsGuestInput === 'true');
     if (inheritedAccountInput) {
       // Tool modules can retain private output, files, and pending work outside
       // their form fields. Start a fresh document before a different account
@@ -2511,6 +2512,7 @@
       return String(field.value || '') !== String(field.defaultValue || '');
     });
     const sessionIdFromUrl = getSessionParam() || '';
+    const explicitContent = sessionIdFromUrl || /(?:^|[?&])(?:share|shared|state|data|input|text|session)=/i.test(window.location.search);
     const authed = window.ToolsAuth.authIsValid(window.ToolsAuth.getAuth());
     const autosaveEnabled = persistenceMode === 'autosave';
     const pendingDraftKey = `toolsPendingDraft:${encodeURIComponent(owner)}:${toolId}`;
@@ -2526,6 +2528,7 @@
     let sessionId = sessionIdFromUrl || (authed ? (pendingDraft?.sessionId || getActiveSessionId(toolId)) : '') || '';
     let sessionVersion = sessionId ? null : 0;
     let dirty = hasExistingInput;
+    if (owner === 'guest' && hasExistingInput && root.dataset) root.dataset.toolsGuestInput = 'true';
     let dirtyGeneration = dirty ? 1 : 0;
     let dataGeneration = 0;
     let isFindingLatest = false;
@@ -2537,6 +2540,28 @@
     let isApplying = false;
     let statusClearTimer = 0;
     let disposed = false;
+    const guestKey = `tools:${toolId}`;
+    let guestTimer = 0;
+    let dismissGuestNotice = null;
+    let guestCleared = false;
+    const originalFields = serializeToolFields(root, { draftOnly: true });
+    const persistGuest = () => {
+      window.clearTimeout(guestTimer);
+      if (owner !== 'guest' || owner !== draftOwner() || disposed || explicitContent || guestCleared) return;
+      const fields = serializeToolFields(root, { draftOnly: true });
+      if (!dirty || (!hasExistingInput && JSON.stringify(fields) === JSON.stringify(originalFields))) {
+        window.SiteSessionDrafts?.remove(guestKey);
+        return;
+      }
+      window.SiteSessionDrafts?.write(guestKey, fields);
+    };
+    const clearGuest = () => {
+      guestCleared = true;
+      window.clearTimeout(guestTimer);
+      window.SiteSessionDrafts?.remove(guestKey);
+      routeDrafts.delete(draftKey());
+      dismissGuestNotice?.();
+    };
     const draftKey = () => `${toolId}:${sessionId}`;
     const captureSnapshot = () => {
       const snapshot = buildSnapshot({ toolId, root });
@@ -2560,6 +2585,10 @@
     };
     const rememberDraft = () => {
       if (owner !== draftOwner()) return;
+      if (owner === 'guest') {
+        persistGuest();
+        return;
+      }
       const captured = captureSnapshot();
       routeDrafts.set(draftKey(), { ...captured, dirty, sessionVersion, owner });
       persistPendingDraft(captured);
@@ -2785,6 +2814,7 @@
 
     const handleNewSession = (event) => {
       if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
+      clearGuest();
       dataGeneration += 1;
       routeDrafts.delete(draftKey());
       forgetPendingDraft();
@@ -2834,11 +2864,17 @@
 
     const markDirty = () => {
       if (isApplying) return;
+      guestCleared = false;
+      if (owner === 'guest' && root.dataset) root.dataset.toolsGuestInput = 'true';
       if (root.dataset) root.dataset.toolsDraftOwner = owner;
       dirty = true;
       dirtyGeneration += 1;
       if (!saveInFlight) updatePersistence('dirty');
       scheduleAutoSave();
+      if (owner === 'guest') {
+        window.clearTimeout(guestTimer);
+        guestTimer = window.setTimeout(persistGuest, 500);
+      }
     };
 
     const handleSessionDirty = (event) => {
@@ -2855,11 +2891,22 @@
     root.addEventListener('input', markDirty);
     root.addEventListener('change', markDirty);
     root.addEventListener('submit', markDirty);
+    const handleClear = (event) => {
+      if (event.type === 'reset' || event.target.closest?.('[data-tools-draft-clear]')) {
+        // Run after the tool's own synchronous clear handler.
+        queueMicrotask(clearGuest);
+      }
+    };
+    root.addEventListener('reset', handleClear);
+    root.addEventListener('click', handleClear);
+    document.addEventListener('tools:session-cleared', clearGuest);
 
     setActiveSessionId(toolId, sessionId);
     updatePersistence(dirty ? 'dirty' : 'clean');
 
-    const localDraft = routeDrafts.get(draftKey()) || pendingDraft;
+    const guestFields = owner === 'guest' && !authed && !hasExistingInput && !explicitContent ? window.SiteSessionDrafts?.read(guestKey) : null;
+    const guestDraft = guestFields ? { owner, dirty: true, sessionVersion: 0, snapshot: { fields: guestFields } } : null;
+    const localDraft = guestDraft || (!hasExistingInput && (authed || !explicitContent) ? routeDrafts.get(draftKey()) : null) || pendingDraft;
     if (localDraft?.owner === owner) {
       isApplying = true;
       try {
@@ -2873,6 +2920,21 @@
       sessionVersion = localDraft.sessionVersion;
       if (root.dataset) root.dataset.toolsDraftOwner = owner;
       updatePersistence(dirty ? 'dirty' : 'clean');
+      if (guestDraft) {
+        if (root.dataset) root.dataset.toolsGuestInput = 'true';
+        const summary = root.closest('[data-site-route-body]')?.querySelector('.personal-tool-header__summary')
+          || document.querySelector('.personal-tool-header__summary');
+        dismissGuestNotice = window.SiteSessionDrafts?.notice({ replace: summary, container: root, onDiscard: () => {
+          isApplying = true;
+          try {
+            applyToolFields(root, originalFields);
+            notifySessionApplied({ toolId, root, sessionId: '', snapshot: { fields: originalFields } });
+          } finally { isApplying = false; }
+          dirty = false;
+          clearGuest();
+          root.querySelector('textarea, input:not([type="hidden"]), select')?.focus();
+        } });
+      }
       if (authed && sessionId && sessionVersion === null) {
         applySession({ keepLocal: dirty }).catch((err) => logAsyncError('tool-autosave:resume-load', err));
       }
@@ -2903,7 +2965,7 @@
     };
     const handleOnline = () => { if (dirty) scheduleAutoSave(0); };
 
-    if (autosaveEnabled) {
+    if (autosaveEnabled || owner === 'guest') {
       timer = window.setInterval(tick, AUTO_SAVE_MS);
       window.addEventListener('beforeunload', flush);
       window.addEventListener('pagehide', flush);
@@ -2916,6 +2978,8 @@
       if (disposed) return;
       rememberDraft();
       disposed = true;
+      window.clearTimeout(guestTimer);
+      dismissGuestNotice?.();
       if (statusClearTimer) window.clearTimeout(statusClearTimer);
       if (timer) window.clearInterval(timer);
       if (autosaveTimer) window.clearTimeout(autosaveTimer);
@@ -2932,6 +2996,9 @@
       root.removeEventListener('input', markDirty);
       root.removeEventListener('change', markDirty);
       root.removeEventListener('submit', markDirty);
+      root.removeEventListener('reset', handleClear);
+      root.removeEventListener('click', handleClear);
+      document.removeEventListener('tools:session-cleared', clearGuest);
     };
     cleanup.beforeLeave = async () => {
       rememberDraft();
@@ -3173,6 +3240,7 @@
       const nextOwner = draftOwner();
       if (nextOwner === currentDraftOwner) return;
       routeDrafts.clear();
+      window.SiteSessionDrafts?.removePrefix('tools:');
       currentDraftOwner = nextOwner;
       activeRouteMount?.cleanup();
       syncToolsAccountRoute();

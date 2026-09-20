@@ -15,8 +15,9 @@
   }
 
   .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="open-account"]) {
-    inline-size: 104px;
-    min-inline-size: 104px;
+    inline-size: max(104px, 6em);
+    min-inline-size: max(104px, 6em);
+    white-space: nowrap;
     border-color: #c5d1df;
     color: #405b7b;
     background: #ffffff;
@@ -47,8 +48,8 @@
 
   @media (max-width: 480px) {
     .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="open-account"]) {
-      inline-size: 88px;
-      min-inline-size: 88px;
+      inline-size: max(88px, 6em);
+      min-inline-size: max(88px, 6em);
     }
 
     .tools-account-bar .tools-account-actions .btn-secondary {

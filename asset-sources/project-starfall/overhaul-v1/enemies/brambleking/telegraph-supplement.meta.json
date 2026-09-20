@@ -1,0 +1,18 @@
+{
+  "file": "telegraph-supplement.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-35be-7a93-9773-ce24aa252f30\\exec-47ca0d41-1c5d-4543-994a-fa17717892aa.png",
+  "generator": "built-in image_gen",
+  "columns": 3,
+  "rows": 2,
+  "prompt": "telegraph-supplement.cleanup-prompt.md",
+  "row": "telegraph",
+  "poseOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "alpha": "True alpha measured; majority of background alpha<8; image generation display appears to show invisible RGB, verify white composite."
+}

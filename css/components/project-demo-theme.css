@@ -68,7 +68,7 @@ html[data-project-demo-theme="brand"] {
   --shadow-2: 0 2px 8px rgba(9, 31, 59, .05);
   --shadow: 0 2px 8px rgba(9, 31, 59, .05);
   --demo-gutter: 24px;
-  --radius: 12px;
+  --radius: var(--radius-card, 10px);
 }
 
 html[data-project-demo-theme="brand"] body {
@@ -743,7 +743,8 @@ html[data-project-demo-theme="brand"] :is(.subtitle, .demo-title p) {
 }
 
 html[data-project-demo-theme="brand"] :is(button, select, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"])) {
-  min-height: 44px;
+  min-height: var(--control-height, 44px);
+  border-radius: var(--radius-control, 8px);
 }
 
 html[data-project-demo-theme="brand"] :is(button, input, select, textarea, summary, a):focus-visible {
@@ -752,7 +753,7 @@ html[data-project-demo-theme="brand"] :is(button, input, select, textarea, summa
 }
 
 html[data-project-demo-theme="brand"] :is(.panel, .stat-card, .kpi-card, .result-card, .score-card, .settings-panel, .demo-workspace) {
-  border-radius: 12px;
+  border-radius: var(--radius-card, 10px);
 }
 
 html[data-project-demo-theme="brand"] .demo-disclosure {
@@ -760,7 +761,7 @@ html[data-project-demo-theme="brand"] .demo-disclosure {
   margin: 0;
   padding: 0 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-card, 10px);
   background: #ffffff;
 }
 
@@ -885,7 +886,7 @@ html[data-project-demo-theme="brand"] .demo-compact-workspace .prediction-summar
   gap: 10px;
   padding: 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-card, 10px);
 }
 
 html[data-project-demo-theme="brand"] .demo-compact-workspace .prediction-summary .score-card {
@@ -922,7 +923,7 @@ html[data-project-demo-theme="brand"] .digit-workspace .generation-panel {
   min-width: 0;
   margin-inline: auto;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-card, 10px);
   background: #ffffff;
 }
 
@@ -955,7 +956,7 @@ html[data-project-demo-theme="brand"] .digit-workspace .generation-toolbar {
   gap: 12px;
   padding: 0;
   background: #ffffff;
-  border-radius: 12px 12px 0 0;
+  border-radius: var(--radius-card, 10px) var(--radius-card, 10px) 0 0;
 }
 
 html[data-project-demo-theme="brand"] .digit-workspace .generation-toolbar label {
@@ -969,13 +970,13 @@ html[data-project-demo-theme="brand"] .digit-workspace .generation-toolbar .btn-
   min-height: 44px;
   min-width: 128px;
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: var(--radius-control, 8px);
 }
 
 html[data-project-demo-theme="brand"] .digit-workspace .generation-settings {
   border: 0;
   border-top: 1px solid var(--border);
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 var(--radius-card, 10px) var(--radius-card, 10px);
   padding-inline: 20px;
 }
 

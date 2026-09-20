@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const sharp = require('sharp');
+const CombatLanguageArt = require('./lib/starfall-combat-language-art');
 
 const ROOT = path.resolve(__dirname, '..');
 const Data = require('../js/games/project-starfall/project-starfall-data.js');
@@ -614,11 +615,7 @@ function makeSheetSvg(entry) {
       const y = rowIndex * frameHeight + contentOffset;
       const frameSeed = seed + rowIndex * 101 + frame * 37;
 	      parts.push(`<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${contentScale})">`);
-	      parts.push(shape('ellipse', { cx: 80, cy: 124, rx: 52, ry: 12, fill: mixHex(palette.color, '#000000', 0.25), 'fill-opacity': 0.08 }));
-	      parts.push(entry.kind === 'skill'
-	        ? drawSkillFrame(profile, rowId, stateFrame, state, palette, motif, frameSeed, identity)
-	        : drawFrame(rowId, stateFrame, state, palette, motif, frameSeed));
-	      parts.push(drawMotifSignature(motif, rowId, stateFrame, rowFrames, palette, frameSeed));
+	      parts.push(CombatLanguageArt.draw(Object.assign({}, entry, { identity }), rowId, stateFrame, rowFrames));
 	      parts.push('</g>');
     }
   });
@@ -824,7 +821,9 @@ async function processSemanticSkillFx(options = {}) {
   const allEntries = buildEntries().skills;
   const selected = selectSkillEntries(allEntries, options.skillIds || options.skill || []);
   const shouldWrite = options.write !== false;
-  const useDedicatedSources = shouldWrite && !options.outputDir && options.preferSources !== false;
+  // The v1 semantic artwork is authoritative; historical class-color source
+  // sheets require an explicit opt-in for archival exports.
+  const useDedicatedSources = shouldWrite && !options.outputDir && options.preferSources === true;
   const outputPaths = [];
   const semanticBuffers = new Map();
   const semanticHashes = new Map();

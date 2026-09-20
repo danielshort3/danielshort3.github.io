@@ -1,0 +1,37 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "glacier-sentinel",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-259d5fb5-2a42-45f4-bad0-6d44d1780f64.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/glacier-sentinel.png",
+    "img/project-starfall/animations/enemies/glacier-sentinel-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": false,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Eight rows, coherent identity; alpha fringe and packed registration checks pending.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/glacier-sentinel-sheet.png",
+    "portrait": "img/project-starfall/enemies/glacier-sentinel.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "43a3f0a577154ec8d3911c1f9c4aaf2a9fde050ce846ca706f79d3d8077cbda1",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  }
+}

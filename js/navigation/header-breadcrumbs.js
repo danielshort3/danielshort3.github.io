@@ -2,7 +2,7 @@
   'use strict';
 
   const labels = { about: 'About', projects: 'Projects', tools: 'Tools', games: 'Games', resume: 'Resume', contact: 'Contact' };
-  const colors = { about: '#091f3b', projects: '#155dfc', tools: '#087f8c', games: '#c94b0a', resume: '#087f8c', contact: '#334155' };
+  const colors = { about: '#091f3b', projects: '#005fed', tools: '#087f8c', games: '#c94b0a', resume: '#087f8c', contact: '#334155' };
   const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
   const cleanPath = (value) => String(value || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
 

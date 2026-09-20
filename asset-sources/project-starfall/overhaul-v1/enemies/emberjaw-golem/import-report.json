@@ -1,0 +1,1965 @@
+{
+  "fileId": "emberjaw-golem",
+  "sourceSha256": "748395ac2f61276ee16475550e956540a51ef85935ef140ad5f9b1e6f6eeec17",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    179,
+    349,
+    538,
+    716,
+    880,
+    1066,
+    1245,
+    1448
+  ],
+  "sharedScale": 0.7173195876288659,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 98,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/emberjaw-golem-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 725042,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 20,
+        "top": 34,
+        "width": 158,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 135,
+        "width": 158,
+        "height": 136,
+        "pixels": 13836
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 170
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 52,
+        "right": 141,
+        "bottom": 149,
+        "width": 113,
+        "height": 98,
+        "pixels": 7206,
+        "edgePixels": 0
+      },
+      "sha256": "e521da8a3bfe70c184d9f6a587694cebeaabf948d1308abc33380b0ef867237e"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 200,
+        "top": 32,
+        "width": 155,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 137,
+        "width": 155,
+        "height": 138,
+        "pixels": 13653
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 170
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 51,
+        "right": 139,
+        "bottom": 149,
+        "width": 111,
+        "height": 99,
+        "pixels": 7039,
+        "edgePixels": 0
+      },
+      "sha256": "06a59e520be5d462e138f5074ad490f388dccfd1313995e0ba3467f700d5a0bd"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 381,
+        "top": 32,
+        "width": 158,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 137,
+        "width": 158,
+        "height": 138,
+        "pixels": 13870
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 170
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 51,
+        "right": 141,
+        "bottom": 149,
+        "width": 113,
+        "height": 99,
+        "pixels": 7171,
+        "edgePixels": 0
+      },
+      "sha256": "07976912a5fe9f93072ee3b413f4980d7e33c16443fc1e5a6169235630df7b13"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 558,
+        "top": 34,
+        "width": 157,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 136,
+        "width": 157,
+        "height": 137,
+        "pixels": 13634
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 170
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 52,
+        "right": 138,
+        "bottom": 149,
+        "width": 113,
+        "height": 98,
+        "pixels": 7093,
+        "edgePixels": 0
+      },
+      "sha256": "9b0985e8eddbac4bf91fc1ade9449fae67b37e454476b5d861aa3aadc8963dc1"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 737,
+        "top": 35,
+        "width": 155,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 134,
+        "width": 155,
+        "height": 135,
+        "pixels": 13677
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 170
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 53,
+        "right": 134,
+        "bottom": 149,
+        "width": 111,
+        "height": 97,
+        "pixels": 7089,
+        "edgePixels": 0
+      },
+      "sha256": "28d274901af7cd5dd7a3466d4c13249450ee7522973d478f3b79134595b0e888"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 915,
+        "top": 36,
+        "width": 158,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 133,
+        "width": 158,
+        "height": 134,
+        "pixels": 13878
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 170
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 54,
+        "right": 134,
+        "bottom": 149,
+        "width": 113,
+        "height": 96,
+        "pixels": 7152,
+        "edgePixels": 0
+      },
+      "sha256": "aa79eb026a1f683b0f03754d320be15d793411443195e71d52a8c4afb02d1600"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 17,
+        "top": 189,
+        "width": 159,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 148,
+        "width": 159,
+        "height": 149,
+        "pixels": 14706
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 338
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 43,
+        "right": 140,
+        "bottom": 149,
+        "width": 114,
+        "height": 107,
+        "pixels": 7609,
+        "edgePixels": 0
+      },
+      "sha256": "38e2e76ff74c49bcbdb8fc99c21c3d97caaa30b535cae93ad6ba0c4e38197257"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 209,
+        "top": 192,
+        "width": 142,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 146,
+        "width": 142,
+        "height": 147,
+        "pixels": 13394
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 338
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 45,
+        "right": 136,
+        "bottom": 149,
+        "width": 102,
+        "height": 105,
+        "pixels": 6935,
+        "edgePixels": 0
+      },
+      "sha256": "871a60c955bdf3629c8c673127e7a97a489f3253e0eb5b255265ccec54c824a8"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 381,
+        "top": 193,
+        "width": 146,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 145,
+        "width": 146,
+        "height": 146,
+        "pixels": 14225
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 338
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 46,
+        "right": 133,
+        "bottom": 150,
+        "width": 105,
+        "height": 105,
+        "pixels": 7384,
+        "edgePixels": 0
+      },
+      "sha256": "dcc904b02b9a8f22d1175f5992d3b39ac3d71273d35225f0109e1c6e3bfe1ccf"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 563,
+        "top": 193,
+        "width": 145,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 144,
+        "width": 145,
+        "height": 145,
+        "pixels": 13530
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 338
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 46,
+        "right": 132,
+        "bottom": 149,
+        "width": 104,
+        "height": 104,
+        "pixels": 6983,
+        "edgePixels": 0
+      },
+      "sha256": "6a9aef57c40a05d12845877ff12f5a94c5f9ddccfa348b3da26af259760177ba"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 737,
+        "top": 187,
+        "width": 144,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 149,
+        "width": 144,
+        "height": 150,
+        "pixels": 13236
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 338
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 42,
+        "right": 126,
+        "bottom": 149,
+        "width": 103,
+        "height": 108,
+        "pixels": 6887,
+        "edgePixels": 0
+      },
+      "sha256": "b733047729bb2b9d80c48cec8ab920d2ccbbd50bc4fb2055724983af91829d2e"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 928,
+        "top": 194,
+        "width": 139,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 143,
+        "width": 139,
+        "height": 144,
+        "pixels": 13058
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 338
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 47,
+        "right": 131,
+        "bottom": 149,
+        "width": 100,
+        "height": 103,
+        "pixels": 6783,
+        "edgePixels": 0
+      },
+      "sha256": "bae3582eed81f3171daa07e5b13a8822c0818e4a471289aa76bba81ad707158b"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 18,
+        "top": 376,
+        "width": 158,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 143,
+        "width": 158,
+        "height": 144,
+        "pixels": 14288
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 520
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 47,
+        "right": 140,
+        "bottom": 149,
+        "width": 113,
+        "height": 103,
+        "pixels": 7342,
+        "edgePixels": 0
+      },
+      "sha256": "7c177c1471d25a384c6fece6f2b94608379d212e8ef750dd585e4a07d6047f4a"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 193,
+        "top": 375,
+        "width": 159,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 144,
+        "width": 159,
+        "height": 145,
+        "pixels": 15006
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 520
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 46,
+        "right": 137,
+        "bottom": 149,
+        "width": 114,
+        "height": 104,
+        "pixels": 7748,
+        "edgePixels": 0
+      },
+      "sha256": "3b62e76773e7de04d97562bde28340873a2f6569c877244978f1ea307a6b9d72"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 380,
+        "top": 370,
+        "width": 148,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 149,
+        "width": 148,
+        "height": 150,
+        "pixels": 13624
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 520
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 42,
+        "right": 133,
+        "bottom": 149,
+        "width": 106,
+        "height": 108,
+        "pixels": 7089,
+        "edgePixels": 0
+      },
+      "sha256": "2e4b79d550b96250401b0a78ac776672fc95bbefc70e5af3b7af7d91bed072fd"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 557,
+        "top": 359,
+        "width": 138,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 160,
+        "width": 138,
+        "height": 161,
+        "pixels": 15189
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 520
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 35,
+        "right": 123,
+        "bottom": 149,
+        "width": 99,
+        "height": 115,
+        "pixels": 7842,
+        "edgePixels": 0
+      },
+      "sha256": "54026ff9cca241768a955f0c634b53bad831f970b077ebe4227db2fcd2fdc1c2"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 718,
+        "top": 382,
+        "width": 194,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 193,
+        "bottom": 137,
+        "width": 194,
+        "height": 138,
+        "pixels": 15888
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 520
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 11,
+        "top": 51,
+        "right": 149,
+        "bottom": 149,
+        "width": 139,
+        "height": 99,
+        "pixels": 8207,
+        "edgePixels": 0
+      },
+      "sha256": "da699d040025427fc2186db8e556a8c037dbeb1ba8fb946fe20e15907e21dc78"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 917,
+        "top": 368,
+        "width": 156,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 151,
+        "width": 156,
+        "height": 152,
+        "pixels": 14410
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 520
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 41,
+        "right": 135,
+        "bottom": 149,
+        "width": 112,
+        "height": 109,
+        "pixels": 7438,
+        "edgePixels": 0
+      },
+      "sha256": "c382d9a2bb8e490ddea899cfbce1e2b1a1d6613108eec2e80481fa6f22107962"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 12,
+        "top": 577,
+        "width": 178,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 177,
+        "bottom": 126,
+        "width": 178,
+        "height": 127,
+        "pixels": 13304
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 700
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 62,
+        "right": 150,
+        "bottom": 152,
+        "width": 127,
+        "height": 91,
+        "pixels": 6914,
+        "edgePixels": 0
+      },
+      "sha256": "46de5ec6956966bb20b69a28c37ded5f64d7cb91bc2bbc0e9b6ce92bc70ddb69"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 206,
+        "top": 556,
+        "width": 165,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 144,
+        "width": 165,
+        "height": 145,
+        "pixels": 13888
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 700
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 33,
+        "top": 47,
+        "right": 150,
+        "bottom": 150,
+        "width": 118,
+        "height": 104,
+        "pixels": 7176,
+        "edgePixels": 0
+      },
+      "sha256": "b4850e8acf70970526169c38bbcd6d11e7162e68f74f924351690fa18c0bea45"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 380,
+        "top": 559,
+        "width": 175,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 140,
+        "width": 175,
+        "height": 141,
+        "pixels": 14961
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 700
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 49,
+        "right": 153,
+        "bottom": 149,
+        "width": 126,
+        "height": 101,
+        "pixels": 7794,
+        "edgePixels": 0
+      },
+      "sha256": "ac2b0e4dc025d573a21f791a9dec15b64e2aca043c2ce68ac3764aa4eb2f32b8"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 567,
+        "top": 557,
+        "width": 155,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 142,
+        "width": 155,
+        "height": 143,
+        "pixels": 14333
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 700
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 32,
+        "top": 47,
+        "right": 142,
+        "bottom": 149,
+        "width": 111,
+        "height": 103,
+        "pixels": 7463,
+        "edgePixels": 0
+      },
+      "sha256": "292c30a7919d28659815fbb654d980ba88a441bf3c2d00f9d494bda7884cc0ab"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 736,
+        "top": 558,
+        "width": 164,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 141,
+        "width": 164,
+        "height": 142,
+        "pixels": 14758
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 700
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 48,
+        "right": 141,
+        "bottom": 149,
+        "width": 118,
+        "height": 102,
+        "pixels": 7659,
+        "edgePixels": 0
+      },
+      "sha256": "5ad43eec00f9eff9edd65fa62259ae5a6f830a4466bfe9544e5e93e2de2427a8"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 915,
+        "top": 557,
+        "width": 160,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 142,
+        "width": 160,
+        "height": 143,
+        "pixels": 14703
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 700
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 47,
+        "right": 136,
+        "bottom": 149,
+        "width": 115,
+        "height": 103,
+        "pixels": 7656,
+        "edgePixels": 0
+      },
+      "sha256": "f8efff708ccdb635bc3d78d47db44e757083f5b0772018d1e110567434766a0e"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 27,
+        "top": 735,
+        "width": 143,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 138,
+        "width": 143,
+        "height": 139,
+        "pixels": 13733
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 874
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 34,
+        "top": 50,
+        "right": 136,
+        "bottom": 149,
+        "width": 103,
+        "height": 100,
+        "pixels": 7160,
+        "edgePixels": 0
+      },
+      "sha256": "42bd42056b351628972a73efa2bdaab55b227a48beaff29bda48e0eeea5b75fb"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 199,
+        "top": 728,
+        "width": 152,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 143,
+        "width": 152,
+        "height": 144,
+        "pixels": 14753
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 874
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 45,
+        "right": 136,
+        "bottom": 147,
+        "width": 109,
+        "height": 103,
+        "pixels": 7597,
+        "edgePixels": 0
+      },
+      "sha256": "2f08d5a81ddae731df5b8f40585a3e5bebf3e1fda9b7fe2a66e81f26a5cb9cfb"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 381,
+        "top": 731,
+        "width": 154,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 141,
+        "width": 154,
+        "height": 142,
+        "pixels": 14719
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 874
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 47,
+        "right": 138,
+        "bottom": 148,
+        "width": 110,
+        "height": 102,
+        "pixels": 7616,
+        "edgePixels": 0
+      },
+      "sha256": "acf44d2ed7b9bb7c7b5ddb4520c641fa60f900dbef1058a038b3dd2dad26a833"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 559,
+        "top": 736,
+        "width": 143,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 137,
+        "width": 143,
+        "height": 138,
+        "pixels": 13910
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 874
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 51,
+        "right": 129,
+        "bottom": 149,
+        "width": 103,
+        "height": 99,
+        "pixels": 7254,
+        "edgePixels": 0
+      },
+      "sha256": "87311d53e532ad79893946b20b0f7e9c691e8632a5b4316f0be7b789456604e2"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 735,
+        "top": 735,
+        "width": 155,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 138,
+        "width": 155,
+        "height": 139,
+        "pixels": 14311
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 874
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 50,
+        "right": 133,
+        "bottom": 149,
+        "width": 111,
+        "height": 100,
+        "pixels": 7410,
+        "edgePixels": 0
+      },
+      "sha256": "e011abc1903923ceb44950950dea434f1c0de50eef9a3e9e2472d59bbad46af2"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 915,
+        "top": 736,
+        "width": 159,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 137,
+        "width": 159,
+        "height": 138,
+        "pixels": 14280
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 874
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 51,
+        "right": 135,
+        "bottom": 149,
+        "width": 114,
+        "height": 99,
+        "pixels": 7375,
+        "edgePixels": 0
+      },
+      "sha256": "8284d77470601b72555ad54dfb28fb8c236945e1cb32fdc333946e7b71a9e26c"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 18,
+        "top": 909,
+        "width": 157,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 141,
+        "width": 157,
+        "height": 142,
+        "pixels": 14243
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1051
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 48,
+        "right": 140,
+        "bottom": 149,
+        "width": 113,
+        "height": 102,
+        "pixels": 7403,
+        "edgePixels": 0
+      },
+      "sha256": "a20d1de14a6ecbaaf19c00ab0b82742b9821ca2958bd6183f723c3c04d56a08a"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 194,
+        "top": 910,
+        "width": 164,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 140,
+        "width": 164,
+        "height": 141,
+        "pixels": 14545
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1051
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 49,
+        "right": 141,
+        "bottom": 149,
+        "width": 118,
+        "height": 101,
+        "pixels": 7548,
+        "edgePixels": 0
+      },
+      "sha256": "f8361abe4b84892029926753c807f653e463ad58caaa8d1365121b80937ac64d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 368,
+        "top": 886,
+        "width": 169,
+        "height": 165
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 164,
+        "width": 169,
+        "height": 165,
+        "pixels": 17126
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1051
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 19,
+        "top": 32,
+        "right": 139,
+        "bottom": 149,
+        "width": 121,
+        "height": 118,
+        "pixels": 8811,
+        "edgePixels": 0
+      },
+      "sha256": "6bca711b4ec82df64fa0c79389e8018be8a53c2f0fe457ef8e03e34323146358"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 552,
+        "top": 902,
+        "width": 171,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 148,
+        "width": 171,
+        "height": 149,
+        "pixels": 15666
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1051
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 43,
+        "right": 144,
+        "bottom": 149,
+        "width": 123,
+        "height": 107,
+        "pixels": 8126,
+        "edgePixels": 0
+      },
+      "sha256": "ceec7bce7b00c1650409ed301eda3ec8a2b7b7f74555d0ddd0fb57b7860094e2"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 742,
+        "top": 902,
+        "width": 155,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 148,
+        "width": 155,
+        "height": 149,
+        "pixels": 14877
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1051
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 43,
+        "right": 138,
+        "bottom": 149,
+        "width": 111,
+        "height": 107,
+        "pixels": 7690,
+        "edgePixels": 0
+      },
+      "sha256": "1b842a4897401065e07edb965233808e48361f64b02b75a2ea400f2e3dfac091"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 920,
+        "top": 910,
+        "width": 151,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 140,
+        "width": 151,
+        "height": 141,
+        "pixels": 13732
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1051
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 49,
+        "right": 133,
+        "bottom": 149,
+        "width": 108,
+        "height": 101,
+        "pixels": 7068,
+        "edgePixels": 0
+      },
+      "sha256": "da3b0430c5dbb372232e9bca56cc896bbd083650da302e840bfb70e83350e25d"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 30,
+        "top": 1085,
+        "width": 158,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 141,
+        "width": 158,
+        "height": 142,
+        "pixels": 14449
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1227
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 48,
+        "right": 149,
+        "bottom": 149,
+        "width": 113,
+        "height": 102,
+        "pixels": 7481,
+        "edgePixels": 0
+      },
+      "sha256": "d311a0a2d8b9056cd4e75c39d63950236937d14dd4645803571db07ac6e644f0"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 215,
+        "top": 1081,
+        "width": 133,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 145,
+        "width": 133,
+        "height": 146,
+        "pixels": 12455
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1227
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 45,
+        "right": 133,
+        "bottom": 149,
+        "width": 95,
+        "height": 105,
+        "pixels": 6474,
+        "edgePixels": 0
+      },
+      "sha256": "a14820338691d52c13ef17c3d8676afebb78947edf0b671833044fe186a69b6d"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 394,
+        "top": 1093,
+        "width": 135,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 133,
+        "width": 135,
+        "height": 134,
+        "pixels": 11746
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1227
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 54,
+        "right": 134,
+        "bottom": 149,
+        "width": 97,
+        "height": 96,
+        "pixels": 6080,
+        "edgePixels": 0
+      },
+      "sha256": "470b0fcf2e262ba4e486d712321828a0951d441b21f9f22d199607ad9a4a1aeb"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 564,
+        "top": 1099,
+        "width": 140,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 130,
+        "width": 140,
+        "height": 131,
+        "pixels": 11706
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1227
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 58,
+        "right": 129,
+        "bottom": 151,
+        "width": 100,
+        "height": 94,
+        "pixels": 6057,
+        "edgePixels": 0
+      },
+      "sha256": "1c2ff1da1df0ab9f954c0563834859bde31746df110cb3b792eaccb4b047af17"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 733,
+        "top": 1086,
+        "width": 164,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 140,
+        "width": 164,
+        "height": 141,
+        "pixels": 14142
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1227
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 49,
+        "right": 139,
+        "bottom": 149,
+        "width": 118,
+        "height": 101,
+        "pixels": 7342,
+        "edgePixels": 0
+      },
+      "sha256": "1995e444c1a37c724ec4c1e2cf6e7a30871ebe1d7e922fa43679f3afb16661bd"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 918,
+        "top": 1085,
+        "width": 154,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 141,
+        "width": 154,
+        "height": 142,
+        "pixels": 13970
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1227
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 48,
+        "right": 133,
+        "bottom": 149,
+        "width": 110,
+        "height": 102,
+        "pixels": 7225,
+        "edgePixels": 0
+      },
+      "sha256": "37529cc78749e331798dd8aa13a96f4a0187a24226ec7d513f07fd9a7d76b5d0"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 20,
+        "top": 1260,
+        "width": 158,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 141,
+        "width": 158,
+        "height": 142,
+        "pixels": 13559
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1405
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 46,
+        "right": 141,
+        "bottom": 147,
+        "width": 113,
+        "height": 102,
+        "pixels": 7030,
+        "edgePixels": 0
+      },
+      "sha256": "4bb73f5bde19da920a410c7766e80cd53c811d02a9b3294ab694d134ecdfb074"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 209,
+        "top": 1259,
+        "width": 144,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 144,
+        "width": 144,
+        "height": 145,
+        "pixels": 12771
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1405
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 45,
+        "right": 137,
+        "bottom": 148,
+        "width": 103,
+        "height": 104,
+        "pixels": 6599,
+        "edgePixels": 0
+      },
+      "sha256": "33ffed7000d0292d41ec522910e2d5813476dd349bfb79ac91db60d84bf5ad24"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 384,
+        "top": 1272,
+        "width": 144,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 135,
+        "width": 144,
+        "height": 136,
+        "pixels": 11148
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1405
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 55,
+        "right": 133,
+        "bottom": 152,
+        "width": 103,
+        "height": 98,
+        "pixels": 5804,
+        "edgePixels": 0
+      },
+      "sha256": "a071a5f1f8706e7f15dc5f02f921984c6b35aaf9dfb2116b29e91d12969bad59"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 549,
+        "top": 1288,
+        "width": 154,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 117,
+        "width": 154,
+        "height": 118,
+        "pixels": 10374
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1405
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 19,
+        "top": 66,
+        "right": 128,
+        "bottom": 150,
+        "width": 110,
+        "height": 85,
+        "pixels": 5404,
+        "edgePixels": 0
+      },
+      "sha256": "f0470743244a3114ba22d2fc25062ffdc6e6ff98fdb0cc1f1fdaafdcbd490216"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 713,
+        "top": 1331,
+        "width": 174,
+        "height": 74
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 73,
+        "width": 174,
+        "height": 74,
+        "pixels": 9596
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1405
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 7,
+        "top": 97,
+        "right": 131,
+        "bottom": 149,
+        "width": 125,
+        "height": 53,
+        "pixels": 4969,
+        "edgePixels": 0
+      },
+      "sha256": "1dcff0edce3f7065d43dd6469e299c5236151c8cc99ed3895ad45799a8cfd532"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 897,
+        "top": 1331,
+        "width": 172,
+        "height": 74
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 73,
+        "width": 172,
+        "height": 74,
+        "pixels": 9535
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/emberjaw-golem/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1405
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 9,
+        "top": 97,
+        "right": 131,
+        "bottom": 149,
+        "width": 123,
+        "height": 53,
+        "pixels": 4901,
+        "edgePixels": 0
+      },
+      "sha256": "41447c2eb769adf7929b3836276504680c6982251632fc0daa2d6664d2c65c1c"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

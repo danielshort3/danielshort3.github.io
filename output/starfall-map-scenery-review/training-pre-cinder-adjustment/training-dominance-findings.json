@@ -1,0 +1,2111 @@
+{
+  "evidenceKind": "observed-dominance-diagnostic",
+  "scope": "Final three-seed solo main-circuit comparisons. No new runs, source edits or XP tuning.",
+  "comparisons": [
+    {
+      "level": 19,
+      "higher": "cinderHollow",
+      "lower": "rustcoilRuins",
+      "classes": [
+        {
+          "classId": "fighter",
+          "current": {
+            "higher": {
+              "mapId": "cinderHollow",
+              "level": 19,
+              "classId": "fighter",
+              "seedCount": 3,
+              "xpPerMinute": 11059.533,
+              "killsPerMinute": 35.667,
+              "xpPerKill": 310.08,
+              "leaderDamageTakenPerMinute": 113.933,
+              "damageDealtPerMinute": 21370.533,
+              "consumableReplacementCostPerMinute": 923.667,
+              "travelPercent": 35.637,
+              "respawnWaitPercent": 0.044,
+              "killsByEnemy": [
+                {
+                  "id": "lavaTick",
+                  "kills": 287,
+                  "sharePercent": 53.645
+                },
+                {
+                  "id": "ashCrawler",
+                  "kills": 183,
+                  "sharePercent": 34.206
+                },
+                {
+                  "id": "cinderSpitter",
+                  "kills": 65,
+                  "sharePercent": 12.15
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "cinderHollow_ash_floor_loop",
+                  "kills": 317,
+                  "sharePercent": 59.252
+                },
+                {
+                  "id": "cinderHollow_vent_shortcut",
+                  "kills": 218,
+                  "sharePercent": 40.748
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "rustcoilRuins",
+              "level": 19,
+              "classId": "fighter",
+              "seedCount": 3,
+              "xpPerMinute": 8744.533,
+              "killsPerMinute": 34.4,
+              "xpPerKill": 254.202,
+              "leaderDamageTakenPerMinute": 145,
+              "damageDealtPerMinute": 22607.933,
+              "consumableReplacementCostPerMinute": 1014.333,
+              "travelPercent": 30.489,
+              "respawnWaitPercent": 0,
+              "killsByEnemy": [
+                {
+                  "id": "rustRatchet",
+                  "kills": 304,
+                  "sharePercent": 58.915
+                },
+                {
+                  "id": "clockbug",
+                  "kills": 147,
+                  "sharePercent": 28.488
+                },
+                {
+                  "id": "coilSentry",
+                  "kills": 65,
+                  "sharePercent": 12.597
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "rustcoilRuins_surveyor_yard",
+                  "kills": 352,
+                  "sharePercent": 68.217
+                },
+                {
+                  "id": "rustcoilRuins_coil_switchworks",
+                  "kills": 164,
+                  "sharePercent": 31.783
+                }
+              ]
+            }
+          },
+          "before": {
+            "higher": {
+              "mapId": "cinderHollow",
+              "level": 19,
+              "classId": "fighter",
+              "seedCount": 3,
+              "xpPerMinute": 7807,
+              "killsPerMinute": 25.733,
+              "xpPerKill": 303.381,
+              "leaderDamageTakenPerMinute": 262.467,
+              "damageDealtPerMinute": 15233.6,
+              "consumableReplacementCostPerMinute": 895.333,
+              "travelPercent": 47.885,
+              "respawnWaitPercent": 0.015,
+              "killsByEnemy": [
+                {
+                  "id": "emberWisp",
+                  "kills": 115,
+                  "sharePercent": 29.793
+                },
+                {
+                  "id": "ashCrawler",
+                  "kills": 106,
+                  "sharePercent": 27.461
+                },
+                {
+                  "id": "lavaTick",
+                  "kills": 98,
+                  "sharePercent": 25.389
+                },
+                {
+                  "id": "cinderSpitter",
+                  "kills": 67,
+                  "sharePercent": 17.358
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "cinderHollow_vent_shortcut",
+                  "kills": 222,
+                  "sharePercent": 57.513
+                },
+                {
+                  "id": "cinderHollow_ash_floor_loop",
+                  "kills": 164,
+                  "sharePercent": 42.487
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "rustcoilRuins",
+              "level": 19,
+              "classId": "fighter",
+              "seedCount": 3,
+              "xpPerMinute": 7777.467,
+              "killsPerMinute": 28.067,
+              "xpPerKill": 277.107,
+              "leaderDamageTakenPerMinute": 230.6,
+              "damageDealtPerMinute": 21372.133,
+              "consumableReplacementCostPerMinute": 1048.333,
+              "travelPercent": 40.537,
+              "respawnWaitPercent": 0,
+              "killsByEnemy": [
+                {
+                  "id": "clockbug",
+                  "kills": 152,
+                  "sharePercent": 36.105
+                },
+                {
+                  "id": "rustRatchet",
+                  "kills": 122,
+                  "sharePercent": 28.979
+                },
+                {
+                  "id": "coilSentry",
+                  "kills": 92,
+                  "sharePercent": 21.853
+                },
+                {
+                  "id": "scrapWarden",
+                  "kills": 55,
+                  "sharePercent": 13.064
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "rustcoilRuins_surveyor_yard",
+                  "kills": 221,
+                  "sharePercent": 52.494
+                },
+                {
+                  "id": "rustcoilRuins_coil_switchworks",
+                  "kills": 200,
+                  "sharePercent": 47.506
+                }
+              ]
+            }
+          },
+          "xpAdvantagePercent": 26.474,
+          "killRateAdvantagePercent": 3.683,
+          "xpPerKillAdvantagePercent": 21.982,
+          "beforeXpAdvantagePercent": 0.38,
+          "higherMapXpChangePercent": 41.662,
+          "lowerMapXpChangePercent": 12.434
+        },
+        {
+          "classId": "mage",
+          "current": {
+            "higher": {
+              "mapId": "cinderHollow",
+              "level": 19,
+              "classId": "mage",
+              "seedCount": 3,
+              "xpPerMinute": 11498.4,
+              "killsPerMinute": 37.6,
+              "xpPerKill": 305.809,
+              "leaderDamageTakenPerMinute": 203.867,
+              "damageDealtPerMinute": 22701.333,
+              "consumableReplacementCostPerMinute": 1110.667,
+              "travelPercent": 33.219,
+              "respawnWaitPercent": 0.096,
+              "killsByEnemy": [
+                {
+                  "id": "lavaTick",
+                  "kills": 298,
+                  "sharePercent": 52.837
+                },
+                {
+                  "id": "ashCrawler",
+                  "kills": 215,
+                  "sharePercent": 38.121
+                },
+                {
+                  "id": "cinderSpitter",
+                  "kills": 51,
+                  "sharePercent": 9.043
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "cinderHollow_ash_floor_loop",
+                  "kills": 385,
+                  "sharePercent": 68.262
+                },
+                {
+                  "id": "cinderHollow_vent_shortcut",
+                  "kills": 179,
+                  "sharePercent": 31.738
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "rustcoilRuins",
+              "level": 19,
+              "classId": "mage",
+              "seedCount": 3,
+              "xpPerMinute": 8413.4,
+              "killsPerMinute": 33.4,
+              "xpPerKill": 251.898,
+              "leaderDamageTakenPerMinute": 251.467,
+              "damageDealtPerMinute": 21480.933,
+              "consumableReplacementCostPerMinute": 1116.333,
+              "travelPercent": 29.456,
+              "respawnWaitPercent": 0,
+              "killsByEnemy": [
+                {
+                  "id": "rustRatchet",
+                  "kills": 314,
+                  "sharePercent": 62.675
+                },
+                {
+                  "id": "clockbug",
+                  "kills": 119,
+                  "sharePercent": 23.752
+                },
+                {
+                  "id": "coilSentry",
+                  "kills": 68,
+                  "sharePercent": 13.573
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "rustcoilRuins_surveyor_yard",
+                  "kills": 337,
+                  "sharePercent": 67.265
+                },
+                {
+                  "id": "rustcoilRuins_coil_switchworks",
+                  "kills": 164,
+                  "sharePercent": 32.735
+                }
+              ]
+            }
+          },
+          "before": {
+            "higher": {
+              "mapId": "cinderHollow",
+              "level": 19,
+              "classId": "mage",
+              "seedCount": 3,
+              "xpPerMinute": 7703.533,
+              "killsPerMinute": 25.667,
+              "xpPerKill": 300.138,
+              "leaderDamageTakenPerMinute": 298.867,
+              "damageDealtPerMinute": 15256.133,
+              "consumableReplacementCostPerMinute": 974.667,
+              "travelPercent": 44.907,
+              "respawnWaitPercent": 0.189,
+              "killsByEnemy": [
+                {
+                  "id": "emberWisp",
+                  "kills": 118,
+                  "sharePercent": 30.649
+                },
+                {
+                  "id": "ashCrawler",
+                  "kills": 112,
+                  "sharePercent": 29.091
+                },
+                {
+                  "id": "lavaTick",
+                  "kills": 92,
+                  "sharePercent": 23.896
+                },
+                {
+                  "id": "cinderSpitter",
+                  "kills": 63,
+                  "sharePercent": 16.364
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "cinderHollow_ash_floor_loop",
+                  "kills": 204,
+                  "sharePercent": 52.987
+                },
+                {
+                  "id": "cinderHollow_vent_shortcut",
+                  "kills": 181,
+                  "sharePercent": 47.013
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "rustcoilRuins",
+              "level": 19,
+              "classId": "mage",
+              "seedCount": 3,
+              "xpPerMinute": 7240.067,
+              "killsPerMinute": 26.067,
+              "xpPerKill": 277.752,
+              "leaderDamageTakenPerMinute": 376.667,
+              "damageDealtPerMinute": 19896.733,
+              "consumableReplacementCostPerMinute": 1173,
+              "travelPercent": 37.541,
+              "respawnWaitPercent": 0,
+              "killsByEnemy": [
+                {
+                  "id": "clockbug",
+                  "kills": 128,
+                  "sharePercent": 32.737
+                },
+                {
+                  "id": "rustRatchet",
+                  "kills": 119,
+                  "sharePercent": 30.435
+                },
+                {
+                  "id": "coilSentry",
+                  "kills": 77,
+                  "sharePercent": 19.693
+                },
+                {
+                  "id": "scrapWarden",
+                  "kills": 67,
+                  "sharePercent": 17.136
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "rustcoilRuins_surveyor_yard",
+                  "kills": 231,
+                  "sharePercent": 59.079
+                },
+                {
+                  "id": "rustcoilRuins_coil_switchworks",
+                  "kills": 160,
+                  "sharePercent": 40.921
+                }
+              ]
+            }
+          },
+          "xpAdvantagePercent": 36.668,
+          "killRateAdvantagePercent": 12.575,
+          "xpPerKillAdvantagePercent": 21.402,
+          "beforeXpAdvantagePercent": 6.401,
+          "higherMapXpChangePercent": 49.261,
+          "lowerMapXpChangePercent": 16.206
+        },
+        {
+          "classId": "archer",
+          "current": {
+            "higher": {
+              "mapId": "cinderHollow",
+              "level": 19,
+              "classId": "archer",
+              "seedCount": 3,
+              "xpPerMinute": 12081.333,
+              "killsPerMinute": 39.6,
+              "xpPerKill": 305.084,
+              "leaderDamageTakenPerMinute": 238.2,
+              "damageDealtPerMinute": 23923.533,
+              "consumableReplacementCostPerMinute": 1252.333,
+              "travelPercent": 35.381,
+              "respawnWaitPercent": 0.107,
+              "killsByEnemy": [
+                {
+                  "id": "lavaTick",
+                  "kills": 305,
+                  "sharePercent": 51.347
+                },
+                {
+                  "id": "ashCrawler",
+                  "kills": 234,
+                  "sharePercent": 39.394
+                },
+                {
+                  "id": "cinderSpitter",
+                  "kills": 55,
+                  "sharePercent": 9.259
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "cinderHollow_ash_floor_loop",
+                  "kills": 392,
+                  "sharePercent": 65.993
+                },
+                {
+                  "id": "cinderHollow_vent_shortcut",
+                  "kills": 202,
+                  "sharePercent": 34.007
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "rustcoilRuins",
+              "level": 19,
+              "classId": "archer",
+              "seedCount": 3,
+              "xpPerMinute": 8301.8,
+              "killsPerMinute": 32.4,
+              "xpPerKill": 256.228,
+              "leaderDamageTakenPerMinute": 343.333,
+              "damageDealtPerMinute": 21076.733,
+              "consumableReplacementCostPerMinute": 1331.667,
+              "travelPercent": 29.693,
+              "respawnWaitPercent": 0,
+              "killsByEnemy": [
+                {
+                  "id": "rustRatchet",
+                  "kills": 254,
+                  "sharePercent": 52.263
+                },
+                {
+                  "id": "clockbug",
+                  "kills": 141,
+                  "sharePercent": 29.012
+                },
+                {
+                  "id": "coilSentry",
+                  "kills": 91,
+                  "sharePercent": 18.724
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "rustcoilRuins_surveyor_yard",
+                  "kills": 277,
+                  "sharePercent": 56.996
+                },
+                {
+                  "id": "rustcoilRuins_coil_switchworks",
+                  "kills": 208,
+                  "sharePercent": 42.798
+                },
+                {
+                  "id": "rustcoilRuins_warden_gearwell",
+                  "kills": 1,
+                  "sharePercent": 0.206
+                }
+              ]
+            }
+          },
+          "before": {
+            "higher": {
+              "mapId": "cinderHollow",
+              "level": 19,
+              "classId": "archer",
+              "seedCount": 3,
+              "xpPerMinute": 7843.933,
+              "killsPerMinute": 26.133,
+              "xpPerKill": 300.151,
+              "leaderDamageTakenPerMinute": 340.133,
+              "damageDealtPerMinute": 15302.267,
+              "consumableReplacementCostPerMinute": 1122,
+              "travelPercent": 42.578,
+              "respawnWaitPercent": 0.048,
+              "killsByEnemy": [
+                {
+                  "id": "emberWisp",
+                  "kills": 140,
+                  "sharePercent": 35.714
+                },
+                {
+                  "id": "lavaTick",
+                  "kills": 100,
+                  "sharePercent": 25.51
+                },
+                {
+                  "id": "ashCrawler",
+                  "kills": 91,
+                  "sharePercent": 23.214
+                },
+                {
+                  "id": "cinderSpitter",
+                  "kills": 61,
+                  "sharePercent": 15.561
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "cinderHollow_ash_floor_loop",
+                  "kills": 201,
+                  "sharePercent": 51.276
+                },
+                {
+                  "id": "cinderHollow_vent_shortcut",
+                  "kills": 191,
+                  "sharePercent": 48.724
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "rustcoilRuins",
+              "level": 19,
+              "classId": "archer",
+              "seedCount": 3,
+              "xpPerMinute": 8003.667,
+              "killsPerMinute": 28.8,
+              "xpPerKill": 277.905,
+              "leaderDamageTakenPerMinute": 307.133,
+              "damageDealtPerMinute": 21854.133,
+              "consumableReplacementCostPerMinute": 1326,
+              "travelPercent": 32.719,
+              "respawnWaitPercent": 0,
+              "killsByEnemy": [
+                {
+                  "id": "clockbug",
+                  "kills": 166,
+                  "sharePercent": 38.426
+                },
+                {
+                  "id": "rustRatchet",
+                  "kills": 128,
+                  "sharePercent": 29.63
+                },
+                {
+                  "id": "coilSentry",
+                  "kills": 81,
+                  "sharePercent": 18.75
+                },
+                {
+                  "id": "scrapWarden",
+                  "kills": 57,
+                  "sharePercent": 13.194
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "rustcoilRuins_surveyor_yard",
+                  "kills": 229,
+                  "sharePercent": 53.009
+                },
+                {
+                  "id": "rustcoilRuins_coil_switchworks",
+                  "kills": 203,
+                  "sharePercent": 46.991
+                }
+              ]
+            }
+          },
+          "xpAdvantagePercent": 45.527,
+          "killRateAdvantagePercent": 22.222,
+          "xpPerKillAdvantagePercent": 19.067,
+          "beforeXpAdvantagePercent": -1.996,
+          "higherMapXpChangePercent": 54.021,
+          "lowerMapXpChangePercent": 3.725
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "higher": "thornpathThicket",
+      "lower": "greenrootMeadow",
+      "classes": [
+        {
+          "classId": "fighter",
+          "current": {
+            "higher": {
+              "mapId": "thornpathThicket",
+              "level": 6,
+              "classId": "fighter",
+              "seedCount": 3,
+              "xpPerMinute": 2164.533,
+              "killsPerMinute": 26.4,
+              "xpPerKill": 81.99,
+              "leaderDamageTakenPerMinute": 91.133,
+              "damageDealtPerMinute": 5031.4,
+              "consumableReplacementCostPerMinute": 578.667,
+              "travelPercent": 47.185,
+              "respawnWaitPercent": 0.122,
+              "killsByEnemy": [
+                {
+                  "id": "dewSlime",
+                  "kills": 165,
+                  "sharePercent": 41.667
+                },
+                {
+                  "id": "vineSnapper",
+                  "kills": 135,
+                  "sharePercent": 34.091
+                },
+                {
+                  "id": "mossback",
+                  "kills": 57,
+                  "sharePercent": 14.394
+                },
+                {
+                  "id": "thornSprout",
+                  "kills": 39,
+                  "sharePercent": 9.848
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "thornpathThicket_meadow_return",
+                  "kills": 293,
+                  "sharePercent": 73.99
+                },
+                {
+                  "id": "thornpathThicket_fracture_canopy",
+                  "kills": 103,
+                  "sharePercent": 26.01
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "greenrootMeadow",
+              "level": 6,
+              "classId": "fighter",
+              "seedCount": 3,
+              "xpPerMinute": 1269.533,
+              "killsPerMinute": 20.8,
+              "xpPerKill": 61.035,
+              "leaderDamageTakenPerMinute": 62.867,
+              "damageDealtPerMinute": 3514.467,
+              "consumableReplacementCostPerMinute": 571.667,
+              "travelPercent": 49.815,
+              "respawnWaitPercent": 0.089,
+              "killsByEnemy": [
+                {
+                  "id": "glassback",
+                  "kills": 176,
+                  "sharePercent": 56.41
+                },
+                {
+                  "id": "faultSkitter",
+                  "kills": 109,
+                  "sharePercent": 34.936
+                },
+                {
+                  "id": "riftLantern",
+                  "kills": 27,
+                  "sharePercent": 8.654
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "greenrootMeadow_glass_basin",
+                  "kills": 211,
+                  "sharePercent": 67.628
+                },
+                {
+                  "id": "greenrootMeadow_arrival_shelf",
+                  "kills": 98,
+                  "sharePercent": 31.41
+                },
+                {
+                  "id": "greenrootMeadow_fractured_bridge",
+                  "kills": 3,
+                  "sharePercent": 0.962
+                }
+              ]
+            }
+          },
+          "before": {
+            "higher": {
+              "mapId": "thornpathThicket",
+              "level": 6,
+              "classId": "fighter",
+              "seedCount": 3,
+              "xpPerMinute": 1773,
+              "killsPerMinute": 17.067,
+              "xpPerKill": 103.887,
+              "leaderDamageTakenPerMinute": 192.4,
+              "damageDealtPerMinute": 4165.133,
+              "consumableReplacementCostPerMinute": 651,
+              "travelPercent": 52.063,
+              "respawnWaitPercent": 0.111,
+              "killsByEnemy": [
+                {
+                  "id": "vineSnapper",
+                  "kills": 62,
+                  "sharePercent": 24.219
+                },
+                {
+                  "id": "thornSprout",
+                  "kills": 58,
+                  "sharePercent": 22.656
+                },
+                {
+                  "id": "mossback",
+                  "kills": 56,
+                  "sharePercent": 21.875
+                },
+                {
+                  "id": "briarStag",
+                  "kills": 48,
+                  "sharePercent": 18.75
+                },
+                {
+                  "id": "dewSlime",
+                  "kills": 32,
+                  "sharePercent": 12.5
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "thornpathThicket_meadow_return",
+                  "kills": 177,
+                  "sharePercent": 69.141
+                },
+                {
+                  "id": "thornpathThicket_fracture_canopy",
+                  "kills": 79,
+                  "sharePercent": 30.859
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "greenrootMeadow",
+              "level": 6,
+              "classId": "fighter",
+              "seedCount": 3,
+              "xpPerMinute": 1145.933,
+              "killsPerMinute": 18.733,
+              "xpPerKill": 61.171,
+              "leaderDamageTakenPerMinute": 40.533,
+              "damageDealtPerMinute": 3203,
+              "consumableReplacementCostPerMinute": 562.333,
+              "travelPercent": 62.659,
+              "respawnWaitPercent": 0.178,
+              "killsByEnemy": [
+                {
+                  "id": "glassback",
+                  "kills": 166,
+                  "sharePercent": 59.075
+                },
+                {
+                  "id": "faultSkitter",
+                  "kills": 96,
+                  "sharePercent": 34.164
+                },
+                {
+                  "id": "riftLantern",
+                  "kills": 19,
+                  "sharePercent": 6.762
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "greenrootMeadow_glass_basin",
+                  "kills": 172,
+                  "sharePercent": 61.21
+                },
+                {
+                  "id": "greenrootMeadow_arrival_shelf",
+                  "kills": 105,
+                  "sharePercent": 37.367
+                },
+                {
+                  "id": "greenrootMeadow_fractured_bridge",
+                  "kills": 4,
+                  "sharePercent": 1.423
+                }
+              ]
+            }
+          },
+          "xpAdvantagePercent": 70.498,
+          "killRateAdvantagePercent": 26.923,
+          "xpPerKillAdvantagePercent": 34.333,
+          "beforeXpAdvantagePercent": 54.721,
+          "higherMapXpChangePercent": 22.083,
+          "lowerMapXpChangePercent": 10.786
+        },
+        {
+          "classId": "mage",
+          "current": {
+            "higher": {
+              "mapId": "thornpathThicket",
+              "level": 6,
+              "classId": "mage",
+              "seedCount": 3,
+              "xpPerMinute": 1867.467,
+              "killsPerMinute": 22.8,
+              "xpPerKill": 81.906,
+              "leaderDamageTakenPerMinute": 134.8,
+              "damageDealtPerMinute": 4164.533,
+              "consumableReplacementCostPerMinute": 541.333,
+              "travelPercent": 46.956,
+              "respawnWaitPercent": 0.156,
+              "killsByEnemy": [
+                {
+                  "id": "dewSlime",
+                  "kills": 151,
+                  "sharePercent": 44.152
+                },
+                {
+                  "id": "vineSnapper",
+                  "kills": 124,
+                  "sharePercent": 36.257
+                },
+                {
+                  "id": "thornSprout",
+                  "kills": 34,
+                  "sharePercent": 9.942
+                },
+                {
+                  "id": "mossback",
+                  "kills": 33,
+                  "sharePercent": 9.649
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "thornpathThicket_meadow_return",
+                  "kills": 255,
+                  "sharePercent": 74.561
+                },
+                {
+                  "id": "thornpathThicket_fracture_canopy",
+                  "kills": 87,
+                  "sharePercent": 25.439
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "greenrootMeadow",
+              "level": 6,
+              "classId": "mage",
+              "seedCount": 3,
+              "xpPerMinute": 1397.2,
+              "killsPerMinute": 22.867,
+              "xpPerKill": 61.102,
+              "leaderDamageTakenPerMinute": 49.867,
+              "damageDealtPerMinute": 3684.333,
+              "consumableReplacementCostPerMinute": 497,
+              "travelPercent": 46.337,
+              "respawnWaitPercent": 0.326,
+              "killsByEnemy": [
+                {
+                  "id": "glassback",
+                  "kills": 188,
+                  "sharePercent": 54.81
+                },
+                {
+                  "id": "faultSkitter",
+                  "kills": 121,
+                  "sharePercent": 35.277
+                },
+                {
+                  "id": "riftLantern",
+                  "kills": 34,
+                  "sharePercent": 9.913
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "greenrootMeadow_glass_basin",
+                  "kills": 215,
+                  "sharePercent": 62.682
+                },
+                {
+                  "id": "greenrootMeadow_arrival_shelf",
+                  "kills": 128,
+                  "sharePercent": 37.318
+                }
+              ]
+            }
+          },
+          "before": {
+            "higher": {
+              "mapId": "thornpathThicket",
+              "level": 6,
+              "classId": "mage",
+              "seedCount": 3,
+              "xpPerMinute": 1772.733,
+              "killsPerMinute": 17.6,
+              "xpPerKill": 100.723,
+              "leaderDamageTakenPerMinute": 255.933,
+              "damageDealtPerMinute": 3963.733,
+              "consumableReplacementCostPerMinute": 616,
+              "travelPercent": 47.026,
+              "respawnWaitPercent": 0.226,
+              "killsByEnemy": [
+                {
+                  "id": "vineSnapper",
+                  "kills": 62,
+                  "sharePercent": 23.485
+                },
+                {
+                  "id": "mossback",
+                  "kills": 60,
+                  "sharePercent": 22.727
+                },
+                {
+                  "id": "thornSprout",
+                  "kills": 59,
+                  "sharePercent": 22.348
+                },
+                {
+                  "id": "briarStag",
+                  "kills": 42,
+                  "sharePercent": 15.909
+                },
+                {
+                  "id": "dewSlime",
+                  "kills": 41,
+                  "sharePercent": 15.53
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "thornpathThicket_meadow_return",
+                  "kills": 194,
+                  "sharePercent": 73.485
+                },
+                {
+                  "id": "thornpathThicket_fracture_canopy",
+                  "kills": 70,
+                  "sharePercent": 26.515
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "greenrootMeadow",
+              "level": 6,
+              "classId": "mage",
+              "seedCount": 3,
+              "xpPerMinute": 1218.2,
+              "killsPerMinute": 19.733,
+              "xpPerKill": 61.733,
+              "leaderDamageTakenPerMinute": 23.067,
+              "damageDealtPerMinute": 3263.267,
+              "consumableReplacementCostPerMinute": 445.667,
+              "travelPercent": 54.707,
+              "respawnWaitPercent": 0.448,
+              "killsByEnemy": [
+                {
+                  "id": "glassback",
+                  "kills": 182,
+                  "sharePercent": 61.486
+                },
+                {
+                  "id": "faultSkitter",
+                  "kills": 99,
+                  "sharePercent": 33.446
+                },
+                {
+                  "id": "riftLantern",
+                  "kills": 15,
+                  "sharePercent": 5.068
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "greenrootMeadow_glass_basin",
+                  "kills": 173,
+                  "sharePercent": 58.446
+                },
+                {
+                  "id": "greenrootMeadow_arrival_shelf",
+                  "kills": 123,
+                  "sharePercent": 41.554
+                }
+              ]
+            }
+          },
+          "xpAdvantagePercent": 33.658,
+          "killRateAdvantagePercent": -0.293,
+          "xpPerKillAdvantagePercent": 34.048,
+          "beforeXpAdvantagePercent": 45.521,
+          "higherMapXpChangePercent": 5.344,
+          "lowerMapXpChangePercent": 14.694
+        },
+        {
+          "classId": "archer",
+          "current": {
+            "higher": {
+              "mapId": "thornpathThicket",
+              "level": 6,
+              "classId": "archer",
+              "seedCount": 3,
+              "xpPerMinute": 2119.867,
+              "killsPerMinute": 25.467,
+              "xpPerKill": 83.241,
+              "leaderDamageTakenPerMinute": 157.667,
+              "damageDealtPerMinute": 4900.333,
+              "consumableReplacementCostPerMinute": 611.333,
+              "travelPercent": 43.574,
+              "respawnWaitPercent": 0.319,
+              "killsByEnemy": [
+                {
+                  "id": "dewSlime",
+                  "kills": 154,
+                  "sharePercent": 40.314
+                },
+                {
+                  "id": "vineSnapper",
+                  "kills": 135,
+                  "sharePercent": 35.34
+                },
+                {
+                  "id": "mossback",
+                  "kills": 62,
+                  "sharePercent": 16.23
+                },
+                {
+                  "id": "thornSprout",
+                  "kills": 31,
+                  "sharePercent": 8.115
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "thornpathThicket_meadow_return",
+                  "kills": 299,
+                  "sharePercent": 78.272
+                },
+                {
+                  "id": "thornpathThicket_fracture_canopy",
+                  "kills": 83,
+                  "sharePercent": 21.728
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "greenrootMeadow",
+              "level": 6,
+              "classId": "archer",
+              "seedCount": 3,
+              "xpPerMinute": 1434.6,
+              "killsPerMinute": 23.6,
+              "xpPerKill": 60.788,
+              "leaderDamageTakenPerMinute": 38.333,
+              "damageDealtPerMinute": 3888.067,
+              "consumableReplacementCostPerMinute": 499.333,
+              "travelPercent": 49.656,
+              "respawnWaitPercent": 0.489,
+              "killsByEnemy": [
+                {
+                  "id": "glassback",
+                  "kills": 206,
+                  "sharePercent": 58.192
+                },
+                {
+                  "id": "faultSkitter",
+                  "kills": 124,
+                  "sharePercent": 35.028
+                },
+                {
+                  "id": "riftLantern",
+                  "kills": 24,
+                  "sharePercent": 6.78
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "greenrootMeadow_glass_basin",
+                  "kills": 245,
+                  "sharePercent": 69.209
+                },
+                {
+                  "id": "greenrootMeadow_arrival_shelf",
+                  "kills": 109,
+                  "sharePercent": 30.791
+                }
+              ]
+            }
+          },
+          "before": {
+            "higher": {
+              "mapId": "thornpathThicket",
+              "level": 6,
+              "classId": "archer",
+              "seedCount": 3,
+              "xpPerMinute": 1864.867,
+              "killsPerMinute": 18.267,
+              "xpPerKill": 102.091,
+              "leaderDamageTakenPerMinute": 244.533,
+              "damageDealtPerMinute": 4320,
+              "consumableReplacementCostPerMinute": 646.333,
+              "travelPercent": 49.33,
+              "respawnWaitPercent": 0.352,
+              "killsByEnemy": [
+                {
+                  "id": "vineSnapper",
+                  "kills": 70,
+                  "sharePercent": 25.547
+                },
+                {
+                  "id": "mossback",
+                  "kills": 67,
+                  "sharePercent": 24.453
+                },
+                {
+                  "id": "thornSprout",
+                  "kills": 60,
+                  "sharePercent": 21.898
+                },
+                {
+                  "id": "briarStag",
+                  "kills": 42,
+                  "sharePercent": 15.328
+                },
+                {
+                  "id": "dewSlime",
+                  "kills": 35,
+                  "sharePercent": 12.774
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "thornpathThicket_meadow_return",
+                  "kills": 194,
+                  "sharePercent": 70.803
+                },
+                {
+                  "id": "thornpathThicket_fracture_canopy",
+                  "kills": 80,
+                  "sharePercent": 29.197
+                }
+              ]
+            },
+            "lower": {
+              "mapId": "greenrootMeadow",
+              "level": 6,
+              "classId": "archer",
+              "seedCount": 3,
+              "xpPerMinute": 1432.667,
+              "killsPerMinute": 23.4,
+              "xpPerKill": 61.225,
+              "leaderDamageTakenPerMinute": 39,
+              "damageDealtPerMinute": 3800.333,
+              "consumableReplacementCostPerMinute": 515.667,
+              "travelPercent": 51.748,
+              "respawnWaitPercent": 0.548,
+              "killsByEnemy": [
+                {
+                  "id": "glassback",
+                  "kills": 187,
+                  "sharePercent": 53.276
+                },
+                {
+                  "id": "faultSkitter",
+                  "kills": 131,
+                  "sharePercent": 37.322
+                },
+                {
+                  "id": "riftLantern",
+                  "kills": 33,
+                  "sharePercent": 9.402
+                }
+              ],
+              "killsByGroup": [
+                {
+                  "id": "greenrootMeadow_glass_basin",
+                  "kills": 211,
+                  "sharePercent": 60.114
+                },
+                {
+                  "id": "greenrootMeadow_arrival_shelf",
+                  "kills": 138,
+                  "sharePercent": 39.316
+                },
+                {
+                  "id": "greenrootMeadow_fractured_bridge",
+                  "kills": 2,
+                  "sharePercent": 0.57
+                }
+              ]
+            }
+          },
+          "xpAdvantagePercent": 47.767,
+          "killRateAdvantagePercent": 7.911,
+          "xpPerKillAdvantagePercent": 36.937,
+          "beforeXpAdvantagePercent": 30.168,
+          "higherMapXpChangePercent": 13.674,
+          "lowerMapXpChangePercent": 0.135
+        }
+      ]
+    }
+  ],
+  "currentAuthoring": [
+    {
+      "mapId": "greenrootMeadow",
+      "levelRange": [
+        1,
+        6
+      ],
+      "scaleEnemies": false,
+      "spawnGroups": [
+        {
+          "id": "greenrootMeadow_arrival_shelf",
+          "platformIds": [
+            "greenroot_meadow_solid_lane_01"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "glassback",
+              "weight": 6
+            },
+            {
+              "enemyId": "faultSkitter",
+              "weight": 3
+            }
+          ],
+          "population": 2,
+          "respawnSeconds": 6
+        },
+        {
+          "id": "greenrootMeadow_glass_basin",
+          "platformIds": [
+            "greenroot_meadow_solid_lane_02",
+            "greenroot_meadow_solid_lane_03"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "glassback",
+              "weight": 4
+            },
+            {
+              "enemyId": "faultSkitter",
+              "weight": 3
+            },
+            {
+              "enemyId": "riftLantern",
+              "weight": 1
+            }
+          ],
+          "population": 4,
+          "respawnSeconds": 6
+        },
+        {
+          "id": "greenrootMeadow_fractured_bridge",
+          "platformIds": [
+            "greenroot_meadow_solid_lane_04"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "glassback",
+              "weight": 3
+            },
+            {
+              "enemyId": "riftLantern",
+              "weight": 3
+            },
+            {
+              "enemyId": "faultSkitter",
+              "weight": 2
+            }
+          ],
+          "population": 3,
+          "respawnSeconds": 7
+        },
+        {
+          "id": "greenrootMeadow_beacon_approach",
+          "platformIds": [
+            "greenroot_meadow_solid_lane_06"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "glassback",
+              "weight": 3
+            },
+            {
+              "enemyId": "riftLantern",
+              "weight": 4
+            }
+          ],
+          "population": 2,
+          "respawnSeconds": 7
+        }
+      ]
+    },
+    {
+      "mapId": "thornpathThicket",
+      "levelRange": [
+        5,
+        16
+      ],
+      "scaleEnemies": false,
+      "spawnGroups": [
+        {
+          "id": "thornpathThicket_meadow_return",
+          "platformIds": [
+            "thornpath_rootfall_lane",
+            "thornpath_rootfall_relay_shelf",
+            "thornpath_rootfall_overlook"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "dewSlime",
+              "weight": 5
+            },
+            {
+              "enemyId": "vineSnapper",
+              "weight": 3
+            },
+            {
+              "enemyId": "mossback",
+              "weight": 2
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "thornpathThicket_fracture_canopy",
+          "platformIds": [
+            "thornpath_relay_lower_walk",
+            "thornpath_relay_mid_deck",
+            "thornpath_relay_high_bough",
+            "thornpath_relay_shard_perch"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "thornSprout",
+              "weight": 4
+            },
+            {
+              "enemyId": "vineSnapper",
+              "weight": 5
+            },
+            {
+              "enemyId": "dewSlime",
+              "weight": 1
+            }
+          ],
+          "population": 10,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "thornpathThicket_observatory_fork",
+          "platformIds": [
+            "thornpath_fork_lower_lane",
+            "thornpath_fork_ridge_branch",
+            "thornpath_fork_observatory_branch"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "briarStag",
+              "weight": 5
+            },
+            {
+              "enemyId": "mossback",
+              "weight": 3
+            },
+            {
+              "enemyId": "vineSnapper",
+              "weight": 2
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 6
+        }
+      ]
+    },
+    {
+      "mapId": "rustcoilRuins",
+      "levelRange": [
+        12,
+        22
+      ],
+      "scaleEnemies": false,
+      "spawnGroups": [
+        {
+          "id": "rustcoilRuins_surveyor_yard",
+          "platformIds": [
+            "rustcoil_yard_ratchet_lane",
+            "rustcoil_yard_service_gantry",
+            "rustcoil_yard_broken_orrery"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "rustRatchet",
+              "weight": 7
+            },
+            {
+              "enemyId": "clockbug",
+              "weight": 3
+            }
+          ],
+          "population": 10,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "rustcoilRuins_coil_switchworks",
+          "platformIds": [
+            "rustcoil_switchworks_conveyor",
+            "rustcoil_switchworks_west_catwalk",
+            "rustcoil_switchworks_return_deck",
+            "rustcoil_switchworks_east_catwalk"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "coilSentry",
+              "weight": 4
+            },
+            {
+              "enemyId": "rustRatchet",
+              "weight": 4
+            },
+            {
+              "enemyId": "clockbug",
+              "weight": 2
+            }
+          ],
+          "population": 10,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "rustcoilRuins_warden_gearwell",
+          "platformIds": [
+            "rustcoil_warden_return_belt",
+            "rustcoil_warden_gear_ring",
+            "rustcoil_warden_relay_dais",
+            "rustcoil_warden_starcoil_perch"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "scrapWarden",
+              "weight": 5
+            },
+            {
+              "enemyId": "clockbug",
+              "weight": 3
+            },
+            {
+              "enemyId": "coilSentry",
+              "weight": 2
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 6
+        }
+      ]
+    },
+    {
+      "mapId": "cinderHollow",
+      "levelRange": [
+        16,
+        40
+      ],
+      "scaleEnemies": false,
+      "spawnGroups": [
+        {
+          "id": "cinderHollow_ash_floor_loop",
+          "platformIds": [
+            "cinder_hollow_solid_lane_01",
+            "cinder_hollow_solid_lane_02",
+            "cinder_hollow_solid_lane_03"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "ashCrawler",
+              "weight": 6
+            },
+            {
+              "enemyId": "lavaTick",
+              "weight": 4
+            }
+          ],
+          "population": 9,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "cinderHollow_vent_shortcut",
+          "platformIds": [
+            "cinder_hollow_solid_lane_04",
+            "cinder_hollow_solid_lane_05",
+            "cinder_hollow_solid_lane_06"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "lavaTick",
+              "weight": 7
+            },
+            {
+              "enemyId": "cinderSpitter",
+              "weight": 3
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "cinderHollow_flyer_turns",
+          "platformIds": [
+            "cinder_hollow_solid_lane_07",
+            "cinder_hollow_solid_lane_08",
+            "cinder_hollow_solid_lane_09"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "cinderSpitter",
+              "weight": 5
+            },
+            {
+              "enemyId": "lavaTick",
+              "weight": 3
+            },
+            {
+              "enemyId": "emberWisp",
+              "weight": 2
+            }
+          ],
+          "population": 7,
+          "respawnSeconds": 6
+        }
+      ]
+    }
+  ],
+  "beforeAuthoring": [
+    {
+      "mapId": "greenrootMeadow",
+      "levelRange": [
+        1,
+        6
+      ],
+      "scaleEnemies": false,
+      "spawnGroups": [
+        {
+          "id": "greenrootMeadow_arrival_shelf",
+          "platformIds": [
+            "greenroot_meadow_solid_lane_01"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "glassback",
+              "weight": 6
+            },
+            {
+              "enemyId": "faultSkitter",
+              "weight": 3
+            }
+          ],
+          "population": 2,
+          "respawnSeconds": 6
+        },
+        {
+          "id": "greenrootMeadow_glass_basin",
+          "platformIds": [
+            "greenroot_meadow_solid_lane_02",
+            "greenroot_meadow_solid_lane_03"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "glassback",
+              "weight": 4
+            },
+            {
+              "enemyId": "faultSkitter",
+              "weight": 3
+            },
+            {
+              "enemyId": "riftLantern",
+              "weight": 1
+            }
+          ],
+          "population": 3,
+          "respawnSeconds": 6
+        },
+        {
+          "id": "greenrootMeadow_fractured_bridge",
+          "platformIds": [
+            "greenroot_meadow_solid_lane_04"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "glassback",
+              "weight": 3
+            },
+            {
+              "enemyId": "riftLantern",
+              "weight": 3
+            },
+            {
+              "enemyId": "faultSkitter",
+              "weight": 2
+            }
+          ],
+          "population": 3,
+          "respawnSeconds": 7
+        },
+        {
+          "id": "greenrootMeadow_beacon_approach",
+          "platformIds": [
+            "greenroot_meadow_solid_lane_06"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "glassback",
+              "weight": 2
+            },
+            {
+              "enemyId": "riftLantern",
+              "weight": 3
+            },
+            {
+              "enemyId": "faultSkitter",
+              "weight": 2
+            }
+          ],
+          "population": 2,
+          "respawnSeconds": 7
+        }
+      ]
+    },
+    {
+      "mapId": "thornpathThicket",
+      "levelRange": [
+        5,
+        16
+      ],
+      "scaleEnemies": false,
+      "spawnGroups": [
+        {
+          "id": "thornpathThicket_meadow_return",
+          "platformIds": [
+            "thornpath_rootfall_lane",
+            "thornpath_rootfall_relay_shelf",
+            "thornpath_rootfall_overlook"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "dewSlime",
+              "weight": 2
+            },
+            {
+              "enemyId": "thornSprout",
+              "weight": 3
+            },
+            {
+              "enemyId": "mossback",
+              "weight": 3
+            },
+            {
+              "enemyId": "vineSnapper",
+              "weight": 3
+            },
+            {
+              "enemyId": "briarStag",
+              "weight": 2
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "thornpathThicket_fracture_canopy",
+          "platformIds": [
+            "thornpath_relay_lower_walk",
+            "thornpath_relay_mid_deck",
+            "thornpath_relay_high_bough",
+            "thornpath_relay_shard_perch"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "dewSlime",
+              "weight": 2
+            },
+            {
+              "enemyId": "thornSprout",
+              "weight": 3
+            },
+            {
+              "enemyId": "mossback",
+              "weight": 3
+            },
+            {
+              "enemyId": "vineSnapper",
+              "weight": 3
+            },
+            {
+              "enemyId": "briarStag",
+              "weight": 2
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "thornpathThicket_observatory_fork",
+          "platformIds": [
+            "thornpath_fork_lower_lane",
+            "thornpath_fork_ridge_branch",
+            "thornpath_fork_observatory_branch"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "dewSlime",
+              "weight": 2
+            },
+            {
+              "enemyId": "thornSprout",
+              "weight": 3
+            },
+            {
+              "enemyId": "mossback",
+              "weight": 3
+            },
+            {
+              "enemyId": "vineSnapper",
+              "weight": 3
+            },
+            {
+              "enemyId": "briarStag",
+              "weight": 2
+            }
+          ],
+          "population": 10,
+          "respawnSeconds": 5
+        }
+      ]
+    },
+    {
+      "mapId": "rustcoilRuins",
+      "levelRange": [
+        12,
+        22
+      ],
+      "scaleEnemies": false,
+      "spawnGroups": [
+        {
+          "id": "rustcoilRuins_surveyor_yard",
+          "platformIds": [
+            "rustcoil_yard_ratchet_lane",
+            "rustcoil_yard_service_gantry",
+            "rustcoil_yard_broken_orrery"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "rustRatchet",
+              "weight": 4
+            },
+            {
+              "enemyId": "clockbug",
+              "weight": 5
+            },
+            {
+              "enemyId": "coilSentry",
+              "weight": 3
+            },
+            {
+              "enemyId": "scrapWarden",
+              "weight": 2
+            }
+          ],
+          "population": 9,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "rustcoilRuins_coil_switchworks",
+          "platformIds": [
+            "rustcoil_switchworks_conveyor",
+            "rustcoil_switchworks_west_catwalk",
+            "rustcoil_switchworks_return_deck",
+            "rustcoil_switchworks_east_catwalk"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "rustRatchet",
+              "weight": 4
+            },
+            {
+              "enemyId": "clockbug",
+              "weight": 5
+            },
+            {
+              "enemyId": "coilSentry",
+              "weight": 3
+            },
+            {
+              "enemyId": "scrapWarden",
+              "weight": 2
+            }
+          ],
+          "population": 9,
+          "respawnSeconds": 5
+        },
+        {
+          "id": "rustcoilRuins_warden_gearwell",
+          "platformIds": [
+            "rustcoil_warden_return_belt",
+            "rustcoil_warden_gear_ring",
+            "rustcoil_warden_relay_dais",
+            "rustcoil_warden_starcoil_perch"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "rustRatchet",
+              "weight": 4
+            },
+            {
+              "enemyId": "clockbug",
+              "weight": 5
+            },
+            {
+              "enemyId": "coilSentry",
+              "weight": 3
+            },
+            {
+              "enemyId": "scrapWarden",
+              "weight": 2
+            }
+          ],
+          "population": 10,
+          "respawnSeconds": 5
+        }
+      ]
+    },
+    {
+      "mapId": "cinderHollow",
+      "levelRange": [
+        16,
+        40
+      ],
+      "scaleEnemies": false,
+      "spawnGroups": [
+        {
+          "id": "cinderHollow_ash_floor_loop",
+          "platformIds": [
+            "cinder_hollow_solid_lane_01",
+            "cinder_hollow_solid_lane_02",
+            "cinder_hollow_solid_lane_03"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "emberWisp",
+              "weight": 4
+            },
+            {
+              "enemyId": "ashCrawler",
+              "weight": 3
+            },
+            {
+              "enemyId": "lavaTick",
+              "weight": 3
+            },
+            {
+              "enemyId": "cinderSpitter",
+              "weight": 2
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 6
+        },
+        {
+          "id": "cinderHollow_vent_shortcut",
+          "platformIds": [
+            "cinder_hollow_solid_lane_04",
+            "cinder_hollow_solid_lane_05",
+            "cinder_hollow_solid_lane_06"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "emberWisp",
+              "weight": 4
+            },
+            {
+              "enemyId": "ashCrawler",
+              "weight": 3
+            },
+            {
+              "enemyId": "lavaTick",
+              "weight": 3
+            },
+            {
+              "enemyId": "cinderSpitter",
+              "weight": 2
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 6
+        },
+        {
+          "id": "cinderHollow_flyer_turns",
+          "platformIds": [
+            "cinder_hollow_solid_lane_07",
+            "cinder_hollow_solid_lane_08",
+            "cinder_hollow_solid_lane_09"
+          ],
+          "enemyWeights": [
+            {
+              "enemyId": "emberWisp",
+              "weight": 4
+            },
+            {
+              "enemyId": "ashCrawler",
+              "weight": 3
+            },
+            {
+              "enemyId": "lavaTick",
+              "weight": 3
+            },
+            {
+              "enemyId": "cinderSpitter",
+              "weight": 2
+            }
+          ],
+          "population": 8,
+          "respawnSeconds": 6
+        }
+      ]
+    }
+  ],
+  "enemyDefinitions": [
+    {
+      "id": "glassback",
+      "levelRange": [
+        1,
+        8
+      ],
+      "hpMult": 0.9,
+      "defenseMult": 0.82,
+      "expMult": 0.82
+    },
+    {
+      "id": "riftLantern",
+      "levelRange": [
+        2,
+        9
+      ],
+      "hpMult": 0.72,
+      "defenseMult": 0.58,
+      "expMult": 0.88
+    },
+    {
+      "id": "faultSkitter",
+      "levelRange": [
+        1,
+        7
+      ],
+      "hpMult": 0.58,
+      "defenseMult": 0.55,
+      "expMult": 0.62
+    },
+    {
+      "id": "dewSlime",
+      "levelRange": [
+        1,
+        8
+      ],
+      "hpMult": 0.68,
+      "defenseMult": 0.55,
+      "expMult": 0.72
+    },
+    {
+      "id": "mossback",
+      "levelRange": [
+        4,
+        10
+      ],
+      "hpMult": 1.25,
+      "defenseMult": 1.2,
+      "expMult": 1.1
+    },
+    {
+      "id": "thornSprout",
+      "levelRange": [
+        5,
+        12
+      ],
+      "hpMult": 0.7,
+      "defenseMult": 0.7,
+      "expMult": 1
+    },
+    {
+      "id": "vineSnapper",
+      "levelRange": [
+        8,
+        22
+      ],
+      "hpMult": 0.95,
+      "defenseMult": 0.85,
+      "expMult": 1.08
+    },
+    {
+      "id": "briarStag",
+      "levelRange": [
+        12,
+        28
+      ],
+      "hpMult": 1.3,
+      "defenseMult": 1.05,
+      "expMult": 1.24
+    },
+    {
+      "id": "clockbug",
+      "levelRange": [
+        12,
+        22
+      ],
+      "hpMult": 1.7,
+      "defenseMult": 1.7,
+      "expMult": 1.4
+    },
+    {
+      "id": "rustRatchet",
+      "levelRange": [
+        12,
+        26
+      ],
+      "hpMult": 0.9,
+      "defenseMult": 1,
+      "expMult": 1.12
+    },
+    {
+      "id": "coilSentry",
+      "levelRange": [
+        14,
+        32
+      ],
+      "hpMult": 0.95,
+      "defenseMult": 1.35,
+      "expMult": 1.2
+    },
+    {
+      "id": "scrapWarden",
+      "levelRange": [
+        24,
+        46
+      ],
+      "hpMult": 1.55,
+      "defenseMult": 1.45,
+      "expMult": 1.36
+    },
+    {
+      "id": "emberWisp",
+      "levelRange": [
+        16,
+        26
+      ],
+      "hpMult": 0.85,
+      "defenseMult": 0.7,
+      "expMult": 1.15
+    },
+    {
+      "id": "ashCrawler",
+      "levelRange": [
+        16,
+        40
+      ],
+      "hpMult": 1.35,
+      "defenseMult": 1.18,
+      "expMult": 1.22
+    },
+    {
+      "id": "lavaTick",
+      "levelRange": [
+        22,
+        50
+      ],
+      "hpMult": 0.72,
+      "defenseMult": 0.78,
+      "expMult": 1.18
+    },
+    {
+      "id": "cinderSpitter",
+      "levelRange": [
+        28,
+        55
+      ],
+      "hpMult": 0.88,
+      "defenseMult": 0.9,
+      "expMult": 1.26
+    }
+  ]
+}

@@ -1,0 +1,2158 @@
+{
+  "idle": [
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 106,
+        "top": 18,
+        "width": 192,
+        "height": 326,
+        "count": 39027
+      },
+      "transform": {
+        "scale": 0.425,
+        "left": 47,
+        "top": 11,
+        "sourceLeft": 106,
+        "sourceTop": 18
+      },
+      "buckle": {
+        "x": 197.751968503937,
+        "y": 229.5275590551181,
+        "count": 254
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 403,
+        "top": 18,
+        "width": 192,
+        "height": 326,
+        "count": 38788
+      },
+      "transform": {
+        "scale": 0.425,
+        "left": 44,
+        "top": 11,
+        "sourceLeft": 403,
+        "sourceTop": 18
+      },
+      "buckle": {
+        "x": 501.1333333333333,
+        "y": 231.86666666666667,
+        "count": 300
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 701,
+        "top": 18,
+        "width": 192,
+        "height": 326,
+        "count": 39240
+      },
+      "transform": {
+        "scale": 0.425,
+        "left": 45,
+        "top": 11,
+        "sourceLeft": 701,
+        "sourceTop": 18
+      },
+      "buckle": {
+        "x": 797.350553505535,
+        "y": 229.73062730627305,
+        "count": 271
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 999,
+        "top": 17,
+        "width": 192,
+        "height": 327,
+        "count": 39113
+      },
+      "transform": {
+        "scale": 0.425,
+        "left": 43,
+        "top": 11,
+        "sourceLeft": 999,
+        "sourceTop": 17
+      },
+      "buckle": {
+        "x": 1099.6579925650558,
+        "y": 230.28996282527882,
+        "count": 269
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 105,
+        "top": 354,
+        "width": 193,
+        "height": 315,
+        "count": 37676
+      },
+      "transform": {
+        "scale": 0.425,
+        "left": 45,
+        "top": 16,
+        "sourceLeft": 105,
+        "sourceTop": 354
+      },
+      "buckle": {
+        "x": 201.532,
+        "y": 559.5,
+        "count": 250
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 403,
+        "top": 354,
+        "width": 192,
+        "height": 316,
+        "count": 37575
+      },
+      "transform": {
+        "scale": 0.425,
+        "left": 44,
+        "top": 16,
+        "sourceLeft": 403,
+        "sourceTop": 354
+      },
+      "buckle": {
+        "x": 501.4826086956522,
+        "y": 563.3391304347826,
+        "count": 230
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 701,
+        "top": 354,
+        "width": 193,
+        "height": 315,
+        "count": 37713
+      },
+      "transform": {
+        "scale": 0.425,
+        "left": 46,
+        "top": 16,
+        "sourceLeft": 701,
+        "sourceTop": 354
+      },
+      "buckle": {
+        "x": 794.1866666666666,
+        "y": 560.92,
+        "count": 225
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 999,
+        "top": 354,
+        "width": 193,
+        "height": 315,
+        "count": 37673
+      },
+      "transform": {
+        "scale": 0.425,
+        "left": 44,
+        "top": 16,
+        "sourceLeft": 999,
+        "sourceTop": 354
+      },
+      "buckle": {
+        "x": 1098.6563706563707,
+        "y": 559.1467181467182,
+        "count": 259
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "run": [
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sourceRect": {
+        "left": 88,
+        "top": 57,
+        "width": 267,
+        "height": 376,
+        "count": 58510
+      },
+      "transform": {
+        "scale": 0.36,
+        "left": 34,
+        "top": 15,
+        "sourceLeft": 88,
+        "sourceTop": 57
+      },
+      "buckle": {
+        "x": 231.93832599118943,
+        "y": 290.7180616740088,
+        "count": 454
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sourceRect": {
+        "left": 572,
+        "top": 55,
+        "width": 220,
+        "height": 375,
+        "count": 51216
+      },
+      "transform": {
+        "scale": 0.36,
+        "left": 52,
+        "top": 15,
+        "sourceLeft": 572,
+        "sourceTop": 55
+      },
+      "buckle": {
+        "x": 667.0246913580247,
+        "y": 289.7191358024691,
+        "count": 324
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sourceRect": {
+        "left": 966,
+        "top": 49,
+        "width": 269,
+        "height": 381,
+        "count": 57665
+      },
+      "transform": {
+        "scale": 0.36,
+        "left": 39,
+        "top": 11,
+        "sourceLeft": 966,
+        "sourceTop": 49
+      },
+      "buckle": {
+        "x": 1097.3698030634573,
+        "y": 287.10065645514226,
+        "count": 457
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sourceRect": {
+        "left": 1400,
+        "top": 55,
+        "width": 288,
+        "height": 359,
+        "count": 56881
+      },
+      "transform": {
+        "scale": 0.36,
+        "left": 31,
+        "top": 16,
+        "sourceLeft": 1400,
+        "sourceTop": 55
+      },
+      "buckle": {
+        "x": 1551.9297052154195,
+        "y": 275.4875283446712,
+        "count": 441
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sourceRect": {
+        "left": 69,
+        "top": 477,
+        "width": 273,
+        "height": 373,
+        "count": 56189
+      },
+      "transform": {
+        "scale": 0.36,
+        "left": 27,
+        "top": 16,
+        "sourceLeft": 69,
+        "sourceTop": 477
+      },
+      "buckle": {
+        "x": 233.1048951048951,
+        "y": 706.6118881118881,
+        "count": 286
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sourceRect": {
+        "left": 549,
+        "top": 480,
+        "width": 235,
+        "height": 371,
+        "count": 50870
+      },
+      "transform": {
+        "scale": 0.36,
+        "left": 42,
+        "top": 16,
+        "sourceLeft": 549,
+        "sourceTop": 480
+      },
+      "buckle": {
+        "x": 671.1434977578475,
+        "y": 709,
+        "count": 223
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sourceRect": {
+        "left": 949,
+        "top": 477,
+        "width": 278,
+        "height": 374,
+        "count": 53967
+      },
+      "transform": {
+        "scale": 0.36,
+        "left": 26,
+        "top": 13,
+        "sourceLeft": 949,
+        "sourceTop": 477
+      },
+      "buckle": {
+        "x": 1114.5303514376997,
+        "y": 703.108626198083,
+        "count": 313
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sourceRect": {
+        "left": 1399,
+        "top": 479,
+        "width": 293,
+        "height": 365,
+        "count": 57357
+      },
+      "transform": {
+        "scale": 0.36,
+        "left": 22,
+        "top": 14,
+        "sourceLeft": 1399,
+        "sourceTop": 479
+      },
+      "buckle": {
+        "x": 1578.0518518518518,
+        "y": 703.2962962962963,
+        "count": 270
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "jump": [
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 56,
+        "top": 101,
+        "width": 217,
+        "height": 235,
+        "count": 32134
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 44,
+        "top": 42,
+        "sourceLeft": 56,
+        "sourceTop": 101
+      },
+      "buckle": {
+        "x": 146.98540145985402,
+        "y": 253.75912408759123,
+        "count": 137
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 355,
+        "top": 61,
+        "width": 205,
+        "height": 276,
+        "count": 32007
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 37,
+        "top": 23,
+        "sourceLeft": 355,
+        "sourceTop": 61
+      },
+      "buckle": {
+        "x": 461.73148148148147,
+        "y": 236.83796296296296,
+        "count": 216
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 686,
+        "top": 34,
+        "width": 193,
+        "height": 303,
+        "count": 30942
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 49,
+        "top": 11,
+        "sourceLeft": 686,
+        "sourceTop": 34
+      },
+      "buckle": {
+        "x": 766.6815286624204,
+        "y": 207.9299363057325,
+        "count": 157
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 1006,
+        "top": 47,
+        "width": 194,
+        "height": 265,
+        "count": 28576
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 33,
+        "top": 28,
+        "sourceLeft": 1006,
+        "sourceTop": 47
+      },
+      "buckle": {
+        "x": 1120.8343195266273,
+        "y": 198.1656804733728,
+        "count": 169
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 49,
+        "top": 372,
+        "width": 209,
+        "height": 278,
+        "count": 28861
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 41,
+        "top": 22,
+        "sourceLeft": 49,
+        "sourceTop": 372
+      },
+      "buckle": {
+        "x": 146.86805555555554,
+        "y": 537.8402777777778,
+        "count": 144
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 369,
+        "top": 375,
+        "width": 197,
+        "height": 268,
+        "count": 30141
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 40,
+        "top": 27,
+        "sourceLeft": 369,
+        "sourceTop": 375
+      },
+      "buckle": {
+        "x": 469.8173076923077,
+        "y": 536.0817307692307,
+        "count": 208
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 668,
+        "top": 366,
+        "width": 217,
+        "height": 268,
+        "count": 32153
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 37,
+        "top": 27,
+        "sourceLeft": 668,
+        "sourceTop": 366
+      },
+      "buckle": {
+        "x": 773.59375,
+        "y": 530.5,
+        "count": 224
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 994,
+        "top": 366,
+        "width": 213,
+        "height": 277,
+        "count": 31967
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 34,
+        "top": 23,
+        "sourceLeft": 994,
+        "sourceTop": 366
+      },
+      "buckle": {
+        "x": 1107.2242990654206,
+        "y": 527.5747663551402,
+        "count": 214
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "fall": [
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 42,
+        "top": 677,
+        "width": 209,
+        "height": 273,
+        "count": 32643
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 39,
+        "top": 24,
+        "sourceLeft": 42,
+        "sourceTop": 677
+      },
+      "buckle": {
+        "x": 144.86486486486487,
+        "y": 840.1126126126126,
+        "count": 222
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 364,
+        "top": 681,
+        "width": 192,
+        "height": 276,
+        "count": 29181
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 37,
+        "top": 23,
+        "sourceLeft": 364,
+        "sourceTop": 681
+      },
+      "buckle": {
+        "x": 471.1297297297297,
+        "y": 844.1891891891892,
+        "count": 185
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 682,
+        "top": 700,
+        "width": 216,
+        "height": 269,
+        "count": 28577
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 35,
+        "top": 26,
+        "sourceLeft": 682,
+        "sourceTop": 700
+      },
+      "buckle": {
+        "x": 792.8923076923077,
+        "y": 861.1923076923077,
+        "count": 130
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 1012,
+        "top": 718,
+        "width": 214,
+        "height": 249,
+        "count": 26289
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 45,
+        "top": 35,
+        "sourceLeft": 1012,
+        "sourceTop": 718
+      },
+      "buckle": {
+        "x": 1100.876923076923,
+        "y": 859.7538461538461,
+        "count": 130
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 61,
+        "top": 983,
+        "width": 207,
+        "height": 257,
+        "count": 27263
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 44,
+        "top": 32,
+        "sourceLeft": 61,
+        "sourceTop": 983
+      },
+      "buckle": {
+        "x": 152.8050847457627,
+        "y": 1134.8983050847457,
+        "count": 118
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 401,
+        "top": 997,
+        "width": 181,
+        "height": 244,
+        "count": 28118
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 40,
+        "top": 38,
+        "sourceLeft": 401,
+        "sourceTop": 997
+      },
+      "buckle": {
+        "x": 501.23571428571427,
+        "y": 1148.6642857142858,
+        "count": 140
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 706,
+        "top": 1009,
+        "width": 180,
+        "height": 233,
+        "count": 27161
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 42,
+        "top": 43,
+        "sourceLeft": 706,
+        "sourceTop": 1009
+      },
+      "buckle": {
+        "x": 802.5688073394496,
+        "y": 1148.1834862385322,
+        "count": 109
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sourceRect": {
+        "left": 1017,
+        "top": 1010,
+        "width": 194,
+        "height": 232,
+        "count": 27692
+      },
+      "transform": {
+        "scale": 0.46,
+        "left": 36,
+        "top": 43,
+        "sourceLeft": 1017,
+        "sourceTop": 1010
+      },
+      "buckle": {
+        "x": 1125.787234042553,
+        "y": 1147.0744680851064,
+        "count": 94
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "climb": [
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 97,
+        "top": 692,
+        "width": 173,
+        "height": 256,
+        "count": 26658
+      },
+      "transform": {
+        "scale": 0.5,
+        "left": 37,
+        "top": 22,
+        "sourceLeft": 97,
+        "sourceTop": 692
+      },
+      "buckle": null,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 401,
+        "top": 691,
+        "width": 169,
+        "height": 257,
+        "count": 25233
+      },
+      "transform": {
+        "scale": 0.5,
+        "left": 38,
+        "top": 22,
+        "sourceLeft": 401,
+        "sourceTop": 691
+      },
+      "buckle": null,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 695,
+        "top": 692,
+        "width": 172,
+        "height": 257,
+        "count": 26454
+      },
+      "transform": {
+        "scale": 0.5,
+        "left": 37,
+        "top": 22,
+        "sourceLeft": 695,
+        "sourceTop": 692
+      },
+      "buckle": null,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 995,
+        "top": 693,
+        "width": 167,
+        "height": 256,
+        "count": 25836
+      },
+      "transform": {
+        "scale": 0.5,
+        "left": 38,
+        "top": 22,
+        "sourceLeft": 995,
+        "sourceTop": 693
+      },
+      "buckle": null,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 105,
+        "top": 965,
+        "width": 178,
+        "height": 264,
+        "count": 26034
+      },
+      "transform": {
+        "scale": 0.5,
+        "left": 36,
+        "top": 18,
+        "sourceLeft": 105,
+        "sourceTop": 965
+      },
+      "buckle": null,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 415,
+        "top": 965,
+        "width": 163,
+        "height": 264,
+        "count": 24883
+      },
+      "transform": {
+        "scale": 0.5,
+        "left": 39,
+        "top": 18,
+        "sourceLeft": 415,
+        "sourceTop": 965
+      },
+      "buckle": null,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 716,
+        "top": 965,
+        "width": 164,
+        "height": 264,
+        "count": 25733
+      },
+      "transform": {
+        "scale": 0.5,
+        "left": 39,
+        "top": 18,
+        "sourceLeft": 716,
+        "sourceTop": 965
+      },
+      "buckle": {
+        "x": 835.3333333333334,
+        "y": 1112.6666666666667,
+        "count": 3
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sourceRect": {
+        "left": 1017,
+        "top": 967,
+        "width": 167,
+        "height": 262,
+        "count": 26017
+      },
+      "transform": {
+        "scale": 0.5,
+        "left": 38,
+        "top": 19,
+        "sourceLeft": 1017,
+        "sourceTop": 967
+      },
+      "buckle": {
+        "x": 1138.25,
+        "y": 1119.25,
+        "count": 4
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "basic": [
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sourceRect": {
+        "left": 107,
+        "top": 43,
+        "width": 238,
+        "height": 398,
+        "count": 61018
+      },
+      "transform": {
+        "scale": 0.35,
+        "left": 48,
+        "top": 11,
+        "sourceLeft": 107,
+        "sourceTop": 43
+      },
+      "buckle": {
+        "x": 216.045766590389,
+        "y": 294.18535469107553,
+        "count": 437
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sourceRect": {
+        "left": 513,
+        "top": 50,
+        "width": 277,
+        "height": 393,
+        "count": 63163
+      },
+      "transform": {
+        "scale": 0.35,
+        "left": 40,
+        "top": 12,
+        "sourceLeft": 513,
+        "sourceTop": 50
+      },
+      "buckle": {
+        "x": 645.072265625,
+        "y": 293.529296875,
+        "count": 512
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sourceRect": {
+        "left": 953,
+        "top": 57,
+        "width": 293,
+        "height": 386,
+        "count": 63200
+      },
+      "transform": {
+        "scale": 0.35,
+        "left": 35,
+        "top": 15,
+        "sourceLeft": 953,
+        "sourceTop": 57
+      },
+      "buckle": {
+        "x": 1098.9940357852884,
+        "y": 294.34393638170974,
+        "count": 503
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sourceRect": {
+        "left": 1412,
+        "top": 57,
+        "width": 321,
+        "height": 387,
+        "count": 63922
+      },
+      "transform": {
+        "scale": 0.35,
+        "left": 20,
+        "top": 15,
+        "sourceLeft": 1412,
+        "sourceTop": 57
+      },
+      "buckle": {
+        "x": 1601.6674757281553,
+        "y": 292.4466019417476,
+        "count": 412
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sourceRect": {
+        "left": 67,
+        "top": 476,
+        "width": 318,
+        "height": 384,
+        "count": 62929
+      },
+      "transform": {
+        "scale": 0.35,
+        "left": 27,
+        "top": 16,
+        "sourceLeft": 67,
+        "sourceTop": 476
+      },
+      "buckle": {
+        "x": 235.78393351800554,
+        "y": 713.4542936288088,
+        "count": 361
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sourceRect": {
+        "left": 521,
+        "top": 477,
+        "width": 285,
+        "height": 383,
+        "count": 60662
+      },
+      "transform": {
+        "scale": 0.35,
+        "left": 36,
+        "top": 16,
+        "sourceLeft": 521,
+        "sourceTop": 477
+      },
+      "buckle": {
+        "x": 662.6325,
+        "y": 715.3875,
+        "count": 400
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sourceRect": {
+        "left": 992,
+        "top": 471,
+        "width": 240,
+        "height": 389,
+        "count": 59602
+      },
+      "transform": {
+        "scale": 0.35,
+        "left": 47,
+        "top": 14,
+        "sourceLeft": 992,
+        "sourceTop": 471
+      },
+      "buckle": {
+        "x": 1103.4873737373737,
+        "y": 716.0328282828283,
+        "count": 396
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sourceRect": {
+        "left": 1447,
+        "top": 471,
+        "width": 237,
+        "height": 389,
+        "count": 59377
+      },
+      "transform": {
+        "scale": 0.35,
+        "left": 46,
+        "top": 14,
+        "sourceLeft": 1447,
+        "sourceTop": 471
+      },
+      "buckle": {
+        "x": 1561.859649122807,
+        "y": 718.4586466165414,
+        "count": 399
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "skill": [
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 60,
+        "top": 19,
+        "width": 206,
+        "height": 292,
+        "count": 37532
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 38,
+        "top": 13,
+        "sourceLeft": 60,
+        "sourceTop": 19
+      },
+      "buckle": {
+        "x": 162.84782608695653,
+        "y": 206.8840579710145,
+        "count": 276
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 364,
+        "top": 18,
+        "width": 233,
+        "height": 293,
+        "count": 37373
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 27,
+        "top": 12,
+        "sourceLeft": 364,
+        "sourceTop": 18
+      },
+      "buckle": {
+        "x": 488.6346863468635,
+        "y": 199.28413284132841,
+        "count": 271
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 681,
+        "top": 18,
+        "width": 206,
+        "height": 293,
+        "count": 35198
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 34,
+        "top": 12,
+        "sourceLeft": 681,
+        "sourceTop": 18
+      },
+      "buckle": {
+        "x": 790.7118644067797,
+        "y": 194.82203389830508,
+        "count": 236
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 970,
+        "top": 19,
+        "width": 230,
+        "height": 293,
+        "count": 36115
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 22,
+        "top": 12,
+        "sourceLeft": 970,
+        "sourceTop": 19
+      },
+      "buckle": {
+        "x": 1105.8535564853557,
+        "y": 200.31799163179917,
+        "count": 239
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 43,
+        "top": 327,
+        "width": 257,
+        "height": 299,
+        "count": 41684
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 29,
+        "top": 9,
+        "sourceLeft": 43,
+        "sourceTop": 327
+      },
+      "buckle": {
+        "x": 165.33913043478262,
+        "y": 507.73333333333335,
+        "count": 345
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 360,
+        "top": 332,
+        "width": 258,
+        "height": 293,
+        "count": 40776
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 7,
+        "top": 12,
+        "sourceLeft": 360,
+        "sourceTop": 332
+      },
+      "buckle": {
+        "x": 528.964705882353,
+        "y": 506.0470588235294,
+        "count": 255
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 681,
+        "top": 329,
+        "width": 219,
+        "height": 297,
+        "count": 36190
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 29,
+        "top": 10,
+        "sourceLeft": 681,
+        "sourceTop": 329
+      },
+      "buckle": {
+        "x": 801.6307692307693,
+        "y": 512.0102564102564,
+        "count": 195
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 998,
+        "top": 329,
+        "width": 209,
+        "height": 297,
+        "count": 38517
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 37,
+        "top": 10,
+        "sourceLeft": 998,
+        "sourceTop": 329
+      },
+      "buckle": {
+        "x": 1102.3920863309352,
+        "y": 521.115107913669,
+        "count": 278
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "party": [
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 65,
+        "top": 648,
+        "width": 202,
+        "height": 292,
+        "count": 37460
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 39,
+        "top": 13,
+        "sourceLeft": 65,
+        "sourceTop": 648
+      },
+      "buckle": {
+        "x": 165.5667870036101,
+        "y": 838.1263537906137,
+        "count": 277
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 387,
+        "top": 647,
+        "width": 197,
+        "height": 293,
+        "count": 34654
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 32,
+        "top": 12,
+        "sourceLeft": 387,
+        "sourceTop": 647
+      },
+      "buckle": {
+        "x": 502.0315789473684,
+        "y": 838.6368421052632,
+        "count": 190
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 696,
+        "top": 649,
+        "width": 196,
+        "height": 292,
+        "count": 34432
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 35,
+        "top": 13,
+        "sourceLeft": 696,
+        "sourceTop": 649
+      },
+      "buckle": {
+        "x": 804.5684210526316,
+        "y": 826.6,
+        "count": 190
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 1009,
+        "top": 646,
+        "width": 192,
+        "height": 294,
+        "count": 34539
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 40,
+        "top": 12,
+        "sourceLeft": 1009,
+        "sourceTop": 646
+      },
+      "buckle": {
+        "x": 1107.2434782608696,
+        "y": 830.508695652174,
+        "count": 230
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 65,
+        "top": 954,
+        "width": 251,
+        "height": 290,
+        "count": 36869
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 20,
+        "top": 14,
+        "sourceLeft": 65,
+        "sourceTop": 954
+      },
+      "buckle": {
+        "x": 206.1809210526316,
+        "y": 1122.4309210526317,
+        "count": 304
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 392,
+        "top": 952,
+        "width": 232,
+        "height": 292,
+        "count": 36159
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 23,
+        "top": 13,
+        "sourceLeft": 392,
+        "sourceTop": 952
+      },
+      "buckle": {
+        "x": 525.022813688213,
+        "y": 1122.3231939163497,
+        "count": 263
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 697,
+        "top": 952,
+        "width": 200,
+        "height": 292,
+        "count": 35636
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 31,
+        "top": 13,
+        "sourceLeft": 697,
+        "sourceTop": 952
+      },
+      "buckle": {
+        "x": 814.1554404145078,
+        "y": 1138.419689119171,
+        "count": 193
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sourceRect": {
+        "left": 1007,
+        "top": 952,
+        "width": 199,
+        "height": 292,
+        "count": 36813
+      },
+      "transform": {
+        "scale": 0.47,
+        "left": 40,
+        "top": 13,
+        "sourceLeft": 1007,
+        "sourceTop": 952
+      },
+      "buckle": {
+        "x": 1105.144578313253,
+        "y": 1142.0562248995984,
+        "count": 249
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "hit": [
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 44,
+        "top": 41,
+        "width": 196,
+        "height": 310,
+        "count": 39045
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 38,
+        "top": 12,
+        "sourceLeft": 44,
+        "sourceTop": 41
+      },
+      "buckle": {
+        "x": 151.64309764309763,
+        "y": 231.5117845117845,
+        "count": 297
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 360,
+        "top": 48,
+        "width": 209,
+        "height": 303,
+        "count": 37338
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 26,
+        "top": 15,
+        "sourceLeft": 360,
+        "sourceTop": 48
+      },
+      "buckle": {
+        "x": 494.0257510729614,
+        "y": 231.21888412017168,
+        "count": 233
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 686,
+        "top": 78,
+        "width": 201,
+        "height": 273,
+        "count": 34576
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 38,
+        "top": 29,
+        "sourceLeft": 686,
+        "sourceTop": 78
+      },
+      "buckle": {
+        "x": 794.6059322033898,
+        "y": 241.26694915254237,
+        "count": 236
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 986,
+        "top": 50,
+        "width": 228,
+        "height": 300,
+        "count": 38990
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 37,
+        "top": 17,
+        "sourceLeft": 986,
+        "sourceTop": 50
+      },
+      "buckle": {
+        "x": 1096.0583333333334,
+        "y": 238.08333333333334,
+        "count": 240
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 42,
+        "top": 388,
+        "width": 207,
+        "height": 300,
+        "count": 36833
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 44,
+        "top": 17,
+        "sourceLeft": 42,
+        "sourceTop": 388
+      },
+      "buckle": {
+        "x": 136.17021276595744,
+        "y": 563.2304964539007,
+        "count": 282
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 353,
+        "top": 397,
+        "width": 230,
+        "height": 291,
+        "count": 35038
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 36,
+        "top": 21,
+        "sourceLeft": 353,
+        "sourceTop": 397
+      },
+      "buckle": {
+        "x": 466.1093117408907,
+        "y": 574.6437246963562,
+        "count": 247
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 697,
+        "top": 377,
+        "width": 187,
+        "height": 311,
+        "count": 38365
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 46,
+        "top": 12,
+        "sourceLeft": 697,
+        "sourceTop": 377
+      },
+      "buckle": {
+        "x": 786.8235294117648,
+        "y": 571.3125,
+        "count": 272
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 1012,
+        "top": 382,
+        "width": 194,
+        "height": 306,
+        "count": 38562
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 41,
+        "top": 14,
+        "sourceLeft": 1012,
+        "sourceTop": 382
+      },
+      "buckle": {
+        "x": 1112.8387096774193,
+        "y": 572.5304659498208,
+        "count": 279
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ],
+  "defeat": [
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 38,
+        "top": 714,
+        "width": 213,
+        "height": 300,
+        "count": 38462
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 44,
+        "top": 17,
+        "sourceLeft": 38,
+        "sourceTop": 714
+      },
+      "buckle": {
+        "x": 132.17034700315457,
+        "y": 902.1293375394322,
+        "count": 317
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 365,
+        "top": 723,
+        "width": 220,
+        "height": 291,
+        "count": 35515
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 41,
+        "top": 21,
+        "sourceLeft": 365,
+        "sourceTop": 723
+      },
+      "buckle": {
+        "x": 465.0782608695652,
+        "y": 911.3260869565217,
+        "count": 230
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 679,
+        "top": 742,
+        "width": 239,
+        "height": 270,
+        "count": 36435
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 37,
+        "top": 30,
+        "sourceLeft": 679,
+        "sourceTop": 742
+      },
+      "buckle": {
+        "x": 788.5031055900621,
+        "y": 914.2049689440994,
+        "count": 161
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 994,
+        "top": 774,
+        "width": 239,
+        "height": 237,
+        "count": 32951
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 35,
+        "top": 45,
+        "sourceLeft": 994,
+        "sourceTop": 774
+      },
+      "buckle": {
+        "x": 1109.5440414507773,
+        "y": 934.0777202072538,
+        "count": 193
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 28,
+        "top": 1035,
+        "width": 260,
+        "height": 194,
+        "count": 28984
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 32,
+        "top": 64,
+        "sourceLeft": 28,
+        "sourceTop": 1035
+      },
+      "buckle": {
+        "x": 149.02298850574712,
+        "y": 1164.3103448275863,
+        "count": 87
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 317,
+        "top": 1064,
+        "width": 304,
+        "height": 155,
+        "count": 26630
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 12,
+        "top": 81,
+        "sourceLeft": 317,
+        "sourceTop": 1064
+      },
+      "buckle": {
+        "x": 483.1679104477612,
+        "y": 1178.2835820895523,
+        "count": 268
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 638,
+        "top": 1099,
+        "width": 286,
+        "height": 115,
+        "count": 22609
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 16,
+        "top": 99,
+        "sourceLeft": 638,
+        "sourceTop": 1099
+      },
+      "buckle": {
+        "x": 776.236559139785,
+        "y": 1180.8010752688172,
+        "count": 186
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    },
+    {
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sourceRect": {
+        "left": 942,
+        "top": 1109,
+        "width": 301,
+        "height": 104,
+        "count": 20933
+      },
+      "transform": {
+        "scale": 0.445,
+        "left": 13,
+        "top": 104,
+        "sourceLeft": 942,
+        "sourceTop": 1109
+      },
+      "buckle": {
+        "x": 1109.9117647058824,
+        "y": 1183.189075630252,
+        "count": 238
+      },
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 140
+      }
+    }
+  ]
+}

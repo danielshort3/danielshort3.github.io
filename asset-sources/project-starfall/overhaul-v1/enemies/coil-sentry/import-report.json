@@ -1,0 +1,1990 @@
+{
+  "fileId": "coil-sentry",
+  "sourceSha256": "cea45a7544ab62dedc26ccda4fa202808361862deee9a2fbe0e685459e020842",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    191,
+    375,
+    544,
+    726,
+    916,
+    1093,
+    1281,
+    1448
+  ],
+  "sharedScale": 0.7886390532544378,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 115,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/coil-sentry-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 915537,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 39,
+        "top": 31,
+        "width": 113,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 145,
+        "width": 113,
+        "height": 146,
+        "pixels": 11159
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 177
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 35,
+        "right": 127,
+        "bottom": 149,
+        "width": 89,
+        "height": 115,
+        "pixels": 6942,
+        "edgePixels": 0
+      },
+      "sha256": "f1a8f82311119d1e511360063aeca9c0ebf7f2e4b0740a821345d98e25ea491a"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 221,
+        "top": 32,
+        "width": 114,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 113,
+        "bottom": 144,
+        "width": 114,
+        "height": 145,
+        "pixels": 11318
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 177
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 36,
+        "right": 129,
+        "bottom": 149,
+        "width": 90,
+        "height": 114,
+        "pixels": 7079,
+        "edgePixels": 0
+      },
+      "sha256": "682048b4e951a1d4acc82ebcd800f8c1abfabfc1e4e5cc3bbf502f95ad847337"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 403,
+        "top": 31,
+        "width": 111,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 145,
+        "width": 111,
+        "height": 146,
+        "pixels": 11169
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 177
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 35,
+        "right": 128,
+        "bottom": 149,
+        "width": 88,
+        "height": 115,
+        "pixels": 7043,
+        "edgePixels": 0
+      },
+      "sha256": "4b83f40e1ab0dd41b4f91e3bcfe63d1f42491290a0890b676d2de78666a33104"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 583,
+        "top": 32,
+        "width": 112,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 111,
+        "bottom": 144,
+        "width": 112,
+        "height": 145,
+        "pixels": 11159
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 177
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 36,
+        "right": 127,
+        "bottom": 149,
+        "width": 88,
+        "height": 114,
+        "pixels": 6924,
+        "edgePixels": 0
+      },
+      "sha256": "bc89e4685fb396fba50591d0754baffdfea5a6cd366d850581c9da9dcdc6197c"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 764,
+        "top": 32,
+        "width": 111,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 144,
+        "width": 111,
+        "height": 145,
+        "pixels": 11209
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 177
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 40,
+        "top": 36,
+        "right": 127,
+        "bottom": 149,
+        "width": 88,
+        "height": 114,
+        "pixels": 7054,
+        "edgePixels": 0
+      },
+      "sha256": "fece297da17e726e4db4bc7dbf63783f1be014fa14cff86247d748fcd3290f3b"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 944,
+        "top": 31,
+        "width": 111,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 145,
+        "width": 111,
+        "height": 146,
+        "pixels": 11145
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 177
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 35,
+        "right": 126,
+        "bottom": 149,
+        "width": 88,
+        "height": 115,
+        "pixels": 7025,
+        "edgePixels": 0
+      },
+      "sha256": "a124104eff15e016ed7f8c61cdaa11a930d36cad79e919246c2d26bbe00105a9"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 38,
+        "top": 206,
+        "width": 115,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 114,
+        "bottom": 148,
+        "width": 115,
+        "height": 149,
+        "pixels": 11697
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 356
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 32,
+        "right": 129,
+        "bottom": 149,
+        "width": 91,
+        "height": 118,
+        "pixels": 7346,
+        "edgePixels": 0
+      },
+      "sha256": "188975e47e77f7b5c2854ef5d550fc6246e5af8925e30f69122c44f9178ade21"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 222,
+        "top": 209,
+        "width": 113,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 146,
+        "width": 113,
+        "height": 147,
+        "pixels": 11414
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 356
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 34,
+        "right": 129,
+        "bottom": 149,
+        "width": 89,
+        "height": 116,
+        "pixels": 7137,
+        "edgePixels": 0
+      },
+      "sha256": "08fda5110f5fe4a30d615263af1742aa1fb320bc49a69816b5977588ff3146e4"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 402,
+        "top": 205,
+        "width": 112,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 111,
+        "bottom": 150,
+        "width": 112,
+        "height": 151,
+        "pixels": 11514
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 356
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 31,
+        "right": 127,
+        "bottom": 149,
+        "width": 88,
+        "height": 119,
+        "pixels": 7182,
+        "edgePixels": 0
+      },
+      "sha256": "c72e079959f50b2a67f95839103694af5d6fadfd9f5344339c3606242291ee8c"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 582,
+        "top": 210,
+        "width": 117,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 116,
+        "bottom": 145,
+        "width": 117,
+        "height": 146,
+        "pixels": 11510
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 356
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 39,
+        "top": 35,
+        "right": 130,
+        "bottom": 149,
+        "width": 92,
+        "height": 115,
+        "pixels": 7172,
+        "edgePixels": 0
+      },
+      "sha256": "76590460f645d363e53851e0e293867a37105bfff3797010eff552874b142ca5"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 762,
+        "top": 208,
+        "width": 119,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 118,
+        "bottom": 147,
+        "width": 119,
+        "height": 148,
+        "pixels": 11311
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 356
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 33,
+        "right": 132,
+        "bottom": 149,
+        "width": 94,
+        "height": 117,
+        "pixels": 7091,
+        "edgePixels": 0
+      },
+      "sha256": "19399806add34db79ddd4da0388a26287c6eadfc442f44df541dda8c83ef77d1"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 944,
+        "top": 208,
+        "width": 111,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 147,
+        "width": 111,
+        "height": 148,
+        "pixels": 11286
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 356
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 33,
+        "right": 126,
+        "bottom": 149,
+        "width": 88,
+        "height": 117,
+        "pixels": 7118,
+        "edgePixels": 0
+      },
+      "sha256": "19d2bf9aa047a111561c32d42ff5ae93faa3e80b4bcde36d9bad71da960ca5fe"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 39,
+        "top": 394,
+        "width": 115,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 114,
+        "bottom": 140,
+        "width": 115,
+        "height": 141,
+        "pixels": 11394
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 535
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 39,
+        "right": 129,
+        "bottom": 149,
+        "width": 91,
+        "height": 111,
+        "pixels": 7146,
+        "edgePixels": 0
+      },
+      "sha256": "1b1ade7085c43bb04b7939e0af836fafa6b63bfff84964b5eac9593a18a3088a"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 221,
+        "top": 396,
+        "width": 113,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 138,
+        "width": 113,
+        "height": 139,
+        "pixels": 11348
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 535
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 40,
+        "right": 128,
+        "bottom": 149,
+        "width": 89,
+        "height": 110,
+        "pixels": 7127,
+        "edgePixels": 0
+      },
+      "sha256": "2b949d1b721848d1ffaabb5ddb90053bc7ffc1a591bbeebbdfe724d3835895e0"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 402,
+        "top": 404,
+        "width": 112,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 111,
+        "bottom": 130,
+        "width": 112,
+        "height": 131,
+        "pixels": 10901
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 535
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 47,
+        "right": 127,
+        "bottom": 149,
+        "width": 88,
+        "height": 103,
+        "pixels": 6762,
+        "edgePixels": 0
+      },
+      "sha256": "7e356de780ed21014990f9d0552c6a20a074772eef6b093243cad9a4ae7f7308"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 582,
+        "top": 399,
+        "width": 115,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 114,
+        "bottom": 135,
+        "width": 115,
+        "height": 136,
+        "pixels": 11202
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 535
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 43,
+        "right": 129,
+        "bottom": 149,
+        "width": 91,
+        "height": 107,
+        "pixels": 7038,
+        "edgePixels": 0
+      },
+      "sha256": "8220fa2b95790d84f988f2bd8f8762917198b60df9d10be9848614b237abf18d"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 762,
+        "top": 417,
+        "width": 113,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 117,
+        "width": 113,
+        "height": 118,
+        "pixels": 10098
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 535
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 57,
+        "right": 127,
+        "bottom": 149,
+        "width": 89,
+        "height": 93,
+        "pixels": 6295,
+        "edgePixels": 0
+      },
+      "sha256": "f7a40a21facb9eb8cde0de73aa40ba2a92bf6bf42905d54738f9562361b53d83"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 944,
+        "top": 404,
+        "width": 114,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 113,
+        "bottom": 130,
+        "width": 114,
+        "height": 131,
+        "pixels": 10748
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 535
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 39,
+        "top": 47,
+        "right": 128,
+        "bottom": 149,
+        "width": 90,
+        "height": 103,
+        "pixels": 6717,
+        "edgePixels": 0
+      },
+      "sha256": "031b0144197b7df3f55100d2bc08a00b07e054aa561bdfaf3f9528956b40dd46"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 40,
+        "top": 601,
+        "width": 112,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 111,
+        "bottom": 118,
+        "width": 112,
+        "height": 119,
+        "pixels": 9762
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 720
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 40,
+        "top": 56,
+        "right": 127,
+        "bottom": 149,
+        "width": 88,
+        "height": 94,
+        "pixels": 6104,
+        "edgePixels": 0
+      },
+      "sha256": "28741eb516d77d81bca9971c1eb2988a094239b52e703e84a1228c052f838672"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 222,
+        "top": 572,
+        "width": 111,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 147,
+        "width": 111,
+        "height": 148,
+        "pixels": 11088
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 720
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 41,
+        "top": 33,
+        "right": 128,
+        "bottom": 149,
+        "width": 88,
+        "height": 117,
+        "pixels": 6989,
+        "edgePixels": 0
+      },
+      "sha256": "495a50d5688f9ff688a56c6923dc86682c4ee21b2b2a5164ba8ee2a69b35923c"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 403,
+        "top": 553,
+        "width": 110,
+        "height": 167
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 109,
+        "bottom": 166,
+        "width": 110,
+        "height": 167,
+        "pixels": 11951
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 720
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 18,
+        "right": 127,
+        "bottom": 149,
+        "width": 87,
+        "height": 132,
+        "pixels": 7507,
+        "edgePixels": 0
+      },
+      "sha256": "2508783d325e5db3086e51a6673552499b9e0a89a0fd8a159b43eae8df2ab674"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 578,
+        "top": 578,
+        "width": 118,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 117,
+        "bottom": 141,
+        "width": 118,
+        "height": 142,
+        "pixels": 11530
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 720
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 38,
+        "right": 128,
+        "bottom": 149,
+        "width": 93,
+        "height": 112,
+        "pixels": 7206,
+        "edgePixels": 0
+      },
+      "sha256": "e1673e0f817de3fd80315df393c5d7e643fdbacda201d3709a1580118104fcf2"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 761,
+        "top": 581,
+        "width": 113,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 138,
+        "width": 113,
+        "height": 139,
+        "pixels": 11066
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 720
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 40,
+        "right": 126,
+        "bottom": 149,
+        "width": 89,
+        "height": 110,
+        "pixels": 6959,
+        "edgePixels": 0
+      },
+      "sha256": "946796b1d91f0820d3f616e3b92c9f2119fb253f4a685dcb488848775a41685e"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 944,
+        "top": 582,
+        "width": 111,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 136,
+        "width": 111,
+        "height": 137,
+        "pixels": 10707
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 720
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 41,
+        "right": 126,
+        "bottom": 148,
+        "width": 88,
+        "height": 108,
+        "pixels": 6740,
+        "edgePixels": 0
+      },
+      "sha256": "a9ced56ff04dab8c26e70a47f29e233602a70e49d85c1611d9d4487797df55fb"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 40,
+        "top": 777,
+        "width": 112,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 111,
+        "bottom": 122,
+        "width": 112,
+        "height": 123,
+        "pixels": 10349
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 900
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 40,
+        "top": 53,
+        "right": 127,
+        "bottom": 149,
+        "width": 88,
+        "height": 97,
+        "pixels": 6457,
+        "edgePixels": 0
+      },
+      "sha256": "2832b9aa73864924e6ba76cf8e77892e135841d5f8988fac335a7f9f390a0362"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 223,
+        "top": 770,
+        "width": 115,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 114,
+        "bottom": 130,
+        "width": 115,
+        "height": 131,
+        "pixels": 10996
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 900
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 42,
+        "top": 47,
+        "right": 132,
+        "bottom": 149,
+        "width": 91,
+        "height": 103,
+        "pixels": 6898,
+        "edgePixels": 0
+      },
+      "sha256": "b03d74a7196d3e1ffcacf2700b1e680d2270d554d6655eb9d5a136d09739e5fb"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 402,
+        "top": 734,
+        "width": 111,
+        "height": 166
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 165,
+        "width": 111,
+        "height": 166,
+        "pixels": 12116
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 900
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 19,
+        "right": 127,
+        "bottom": 149,
+        "width": 88,
+        "height": 131,
+        "pixels": 7629,
+        "edgePixels": 0
+      },
+      "sha256": "c616b772c3ef1d8e117ad3061f9a4260cf1d0c11c5e146cd7d4a62db6984905c"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 584,
+        "top": 732,
+        "width": 112,
+        "height": 169
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 111,
+        "bottom": 168,
+        "width": 112,
+        "height": 169,
+        "pixels": 12394
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 900
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 18,
+        "right": 128,
+        "bottom": 150,
+        "width": 88,
+        "height": 133,
+        "pixels": 7691,
+        "edgePixels": 0
+      },
+      "sha256": "9c92b6589b8e3135bae26bf377324d04f8afe04dd5923d1cc31421493dd123f4"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 763,
+        "top": 766,
+        "width": 118,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 117,
+        "bottom": 133,
+        "width": 118,
+        "height": 134,
+        "pixels": 10965
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 900
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 44,
+        "right": 131,
+        "bottom": 149,
+        "width": 93,
+        "height": 106,
+        "pixels": 6889,
+        "edgePixels": 0
+      },
+      "sha256": "fc1e28b457ae3d6182e990e6e6b2f48c320940e6c102f065f3beabd911630d97"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 944,
+        "top": 755,
+        "width": 111,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 144,
+        "width": 111,
+        "height": 145,
+        "pixels": 11255
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 900
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 36,
+        "right": 126,
+        "bottom": 149,
+        "width": 88,
+        "height": 114,
+        "pixels": 7082,
+        "edgePixels": 0
+      },
+      "sha256": "55d9abf285032f46f4c828157082f22f84ce1f3f74c8dd5dad696cb7559c7c39"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 39,
+        "top": 960,
+        "width": 113,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 120,
+        "width": 113,
+        "height": 121,
+        "pixels": 10372
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1081
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 55,
+        "right": 127,
+        "bottom": 149,
+        "width": 89,
+        "height": 95,
+        "pixels": 6456,
+        "edgePixels": 0
+      },
+      "sha256": "35520cdc80391404c623112744a9bc45abd57e9b95ffcb029a0bfbb5c8bb34f8"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 222,
+        "top": 939,
+        "width": 118,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 117,
+        "bottom": 141,
+        "width": 118,
+        "height": 142,
+        "pixels": 11407
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1081
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 38,
+        "right": 133,
+        "bottom": 149,
+        "width": 93,
+        "height": 112,
+        "pixels": 7110,
+        "edgePixels": 0
+      },
+      "sha256": "38875332005b467ac8524f9b6ebdefe346e6c1478c390866d00b7cac39d707d6"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 401,
+        "top": 961,
+        "width": 112,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 111,
+        "bottom": 119,
+        "width": 112,
+        "height": 120,
+        "pixels": 10344
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1081
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 39,
+        "top": 55,
+        "right": 126,
+        "bottom": 149,
+        "width": 88,
+        "height": 95,
+        "pixels": 6507,
+        "edgePixels": 0
+      },
+      "sha256": "87892c90aabf1377ad11ea7eaf96d684bca5196ff847b435f48b227e7d5e28df"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 582,
+        "top": 972,
+        "width": 114,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 113,
+        "bottom": 108,
+        "width": 114,
+        "height": 109,
+        "pixels": 10037
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1081
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 39,
+        "top": 64,
+        "right": 128,
+        "bottom": 149,
+        "width": 90,
+        "height": 86,
+        "pixels": 6274,
+        "edgePixels": 0
+      },
+      "sha256": "de70d13585f3894599a5601b4ebd1d06fb7bc02e6973eb7af96efa974143d43e"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 762,
+        "top": 930,
+        "width": 113,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 150,
+        "width": 113,
+        "height": 151,
+        "pixels": 11593
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1081
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 31,
+        "right": 127,
+        "bottom": 149,
+        "width": 89,
+        "height": 119,
+        "pixels": 7224,
+        "edgePixels": 0
+      },
+      "sha256": "854b8606fa4873c7d3a1096f0a2378ad800f48539e9d60b76976598c9092d72a"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 944,
+        "top": 933,
+        "width": 111,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 147,
+        "width": 111,
+        "height": 148,
+        "pixels": 11292
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1081
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 33,
+        "right": 126,
+        "bottom": 149,
+        "width": 88,
+        "height": 117,
+        "pixels": 7115,
+        "edgePixels": 0
+      },
+      "sha256": "377b920975deea44a0544bebd69dec5f705e771feba9d7355ea74370e9e39884"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 41,
+        "top": 1104,
+        "width": 113,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 156,
+        "width": 113,
+        "height": 157,
+        "pixels": 11728
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1261
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 26,
+        "right": 129,
+        "bottom": 149,
+        "width": 89,
+        "height": 124,
+        "pixels": 7340,
+        "edgePixels": 0
+      },
+      "sha256": "7f32abc254b8c63401c63006ba37c65441db18289ba3668be9b277be3a4869b1"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 222,
+        "top": 1127,
+        "width": 112,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 111,
+        "bottom": 133,
+        "width": 112,
+        "height": 134,
+        "pixels": 11043
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1261
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 44,
+        "right": 128,
+        "bottom": 149,
+        "width": 88,
+        "height": 106,
+        "pixels": 6919,
+        "edgePixels": 0
+      },
+      "sha256": "85f6e3eb17d219b14660956b2087b5cf11efaacba0d514779f29591863f73807"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 403,
+        "top": 1114,
+        "width": 111,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 146,
+        "width": 111,
+        "height": 147,
+        "pixels": 11309
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1261
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 34,
+        "right": 128,
+        "bottom": 149,
+        "width": 88,
+        "height": 116,
+        "pixels": 7136,
+        "edgePixels": 0
+      },
+      "sha256": "8a8d0dd02ceecc94082b6ec8623fcb71973b0d202f6a8c00dafd073e1dbaab1d"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 584,
+        "top": 1115,
+        "width": 113,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 145,
+        "width": 113,
+        "height": 146,
+        "pixels": 11465
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1261
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 41,
+        "top": 35,
+        "right": 129,
+        "bottom": 149,
+        "width": 89,
+        "height": 115,
+        "pixels": 7129,
+        "edgePixels": 0
+      },
+      "sha256": "7e17c58ac74d6aa1b320d53b8de193bf146e809b29df1af3c2d11cd6efa10485"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 764,
+        "top": 1120,
+        "width": 111,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 140,
+        "width": 111,
+        "height": 141,
+        "pixels": 11091
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1261
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 40,
+        "top": 39,
+        "right": 127,
+        "bottom": 149,
+        "width": 88,
+        "height": 111,
+        "pixels": 6976,
+        "edgePixels": 0
+      },
+      "sha256": "1aa1e27ab60b601e91a5930245185b6c3445fd2528125a7d5375347f86396f82"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 944,
+        "top": 1113,
+        "width": 111,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 110,
+        "bottom": 147,
+        "width": 111,
+        "height": 148,
+        "pixels": 11241
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1261
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 33,
+        "right": 126,
+        "bottom": 149,
+        "width": 88,
+        "height": 117,
+        "pixels": 7083,
+        "edgePixels": 0
+      },
+      "sha256": "46b9739fc5593c6c5028759590d230602f79dfbdadcce432ecb1dd21206b9a25"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 38,
+        "top": 1304,
+        "width": 115,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 114,
+        "bottom": 133,
+        "width": 115,
+        "height": 134,
+        "pixels": 11379
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1438
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 44,
+        "right": 129,
+        "bottom": 149,
+        "width": 91,
+        "height": 106,
+        "pixels": 7142,
+        "edgePixels": 0
+      },
+      "sha256": "5daaa16c9a91ed23c1b624aa67ca712be55cd1a7c7f67313a590eaa6e9a7e0d3"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 218,
+        "top": 1300,
+        "width": 117,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 116,
+        "bottom": 137,
+        "width": 117,
+        "height": 138,
+        "pixels": 11353
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1438
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 41,
+        "right": 129,
+        "bottom": 149,
+        "width": 92,
+        "height": 109,
+        "pixels": 7109,
+        "edgePixels": 0
+      },
+      "sha256": "5c454c4ca75ddf91869026f5d80d6a1246aa19ae7afdd80787696a993c3974da"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 399,
+        "top": 1317,
+        "width": 120,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 119,
+        "bottom": 120,
+        "width": 120,
+        "height": 121,
+        "pixels": 10678
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1438
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 55,
+        "right": 132,
+        "bottom": 149,
+        "width": 95,
+        "height": 95,
+        "pixels": 6708,
+        "edgePixels": 0
+      },
+      "sha256": "154bc96a103b97d3072047f3fdbee46c5d4a3d9a4d76b951a18fe3af479f5bd0"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 580,
+        "top": 1339,
+        "width": 116,
+        "height": 100
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 115,
+        "bottom": 99,
+        "width": 116,
+        "height": 100,
+        "pixels": 8984
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1438
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 72,
+        "right": 128,
+        "bottom": 150,
+        "width": 91,
+        "height": 79,
+        "pixels": 5626,
+        "edgePixels": 0
+      },
+      "sha256": "3c58d2f280d36edc5bf979932fa690dec590b5d8bae90d27b8440d8e7fc96bde"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 761,
+        "top": 1346,
+        "width": 118,
+        "height": 92
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 117,
+        "bottom": 91,
+        "width": 118,
+        "height": 92,
+        "pixels": 8622
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1438
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 38,
+        "top": 77,
+        "right": 130,
+        "bottom": 149,
+        "width": 93,
+        "height": 73,
+        "pixels": 5444,
+        "edgePixels": 0
+      },
+      "sha256": "43b166bc38581822f11d3c3b2928a73e93f0ccd7ca579031861bcde076d76e8a"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 937,
+        "top": 1360,
+        "width": 116,
+        "height": 79
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 115,
+        "bottom": 78,
+        "width": 116,
+        "height": 79,
+        "pixels": 7425
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/coil-sentry/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1438
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 34,
+        "top": 88,
+        "right": 124,
+        "bottom": 149,
+        "width": 91,
+        "height": 62,
+        "pixels": 4585,
+        "edgePixels": 0
+      },
+      "sha256": "e8839c42c0158d8da469abbc2695d5a0b8bd00631ffedd798fcad85d89a3d3af"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

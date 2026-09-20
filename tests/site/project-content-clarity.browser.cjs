@@ -28,11 +28,11 @@ async function checkEvidenceAbsent(page) {
     const star = document.querySelector('.project-star');
     const demo = document.querySelector('.project-demo-shell');
     return {
-      starBeforeDemo: Boolean(star.compareDocumentPosition(demo) & Node.DOCUMENT_POSITION_FOLLOWING),
+      demoBeforeStar: Boolean(demo.compareDocumentPosition(star) & Node.DOCUMENT_POSITION_FOLLOWING),
       overflow: document.documentElement.scrollWidth - innerWidth
     };
   });
-  assert(layout.starBeforeDemo, 'The STAR summary must remain before the demo');
+  assert(layout.demoBeforeStar, 'The demo must be available before the longer case study in reading and visual order');
   assert(layout.overflow <= 1, 'Project content must not create horizontal page overflow');
 }
 
@@ -66,7 +66,8 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
 
     stage = 'disabled evidence';
     await checkEvidenceAbsent(page);
-    await page.locator('.project-demo-header').scrollIntoViewIfNeeded();
+    assert.equal(await page.locator('.project-demo-header').count(), 0, 'Drawing projects use the page masthead without a duplicate demo heading');
+    await page.locator('[data-page-masthead]').scrollIntoViewIfNeeded();
     await page.screenshot({ path: path.join(artifactDir, `project-content-${name}.png`) });
 
     stage = 'project contact prefill';

@@ -1,0 +1,18 @@
+{
+  "file": "action-supplement.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-35be-7a93-9773-ce24aa252f30\\exec-8ecfeb6f-f8cc-4ca6-8191-9b31f0a0abc0.png",
+  "generator": "built-in image_gen",
+  "columns": 3,
+  "rows": 2,
+  "prompt": "action-supplement.cleanup-prompt.md",
+  "row": "attack",
+  "poseOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "alpha": "True alpha measured; majority of background alpha<8; image generation display appears to show invisible RGB, verify white composite."
+}

@@ -1,6 +1,6 @@
 {
   "exportFormatVersion": 2,
-  "exportTime": "2026-09-06 02:31:58",
+  "exportTime": "2026-09-20 01:15:50",
   "containerVersion": {
     "path": "accounts/6221119580/containers/179683921/versions/0",
     "accountId": "6221119580",
@@ -132,6 +132,46 @@
       {
         "accountId": "6221119580",
         "containerId": "179683921",
+        "tagId": "51",
+        "name": "GA4 - Event - Web Vitals",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Web vital parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000100",
+        "firingTriggerId": [
+          "52"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
         "tagId": "6",
         "name": "GA4 - Event - Home Explore Select",
         "type": "gaawe",
@@ -157,7 +197,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000100",
+        "fingerprint": "1783739000101",
         "firingTriggerId": [
           "5"
         ],
@@ -197,7 +237,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000101",
+        "fingerprint": "1783739000102",
         "firingTriggerId": [
           "15"
         ],
@@ -237,7 +277,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000102",
+        "fingerprint": "1783739000103",
         "firingTriggerId": [
           "16"
         ],
@@ -277,7 +317,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000103",
+        "fingerprint": "1783739000104",
         "firingTriggerId": [
           "17"
         ],
@@ -317,7 +357,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000104",
+        "fingerprint": "1783739000105",
         "firingTriggerId": [
           "18"
         ],
@@ -357,7 +397,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000105",
+        "fingerprint": "1783739000106",
         "firingTriggerId": [
           "19"
         ],
@@ -397,7 +437,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000106",
+        "fingerprint": "1783739000107",
         "firingTriggerId": [
           "20"
         ],
@@ -437,7 +477,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000107",
+        "fingerprint": "1783739000108",
         "firingTriggerId": [
           "21"
         ],
@@ -477,7 +517,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000108",
+        "fingerprint": "1783739000109",
         "firingTriggerId": [
           "22"
         ],
@@ -517,7 +557,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000109",
+        "fingerprint": "1783739000110",
         "firingTriggerId": [
           "23"
         ],
@@ -557,7 +597,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000110",
+        "fingerprint": "1783739000111",
         "firingTriggerId": [
           "24"
         ],
@@ -597,7 +637,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000111",
+        "fingerprint": "1783739000112",
         "firingTriggerId": [
           "25"
         ],
@@ -637,7 +677,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000112",
+        "fingerprint": "1783739000113",
         "firingTriggerId": [
           "26"
         ],
@@ -677,7 +717,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000113",
+        "fingerprint": "1783739000114",
         "firingTriggerId": [
           "27"
         ],
@@ -717,7 +757,7 @@
             "value": "{{EVS - Site activity parameters}}"
           }
         ],
-        "fingerprint": "1783739000114",
+        "fingerprint": "1783739000115",
         "firingTriggerId": [
           "28"
         ],
@@ -757,7 +797,7 @@
             "value": "{{EVS - Virtual page parameters}}"
           }
         ],
-        "fingerprint": "1783739000115",
+        "fingerprint": "1783739000116",
         "firingTriggerId": [
           "44"
         ],
@@ -771,6 +811,31 @@
       }
     ],
     "trigger": [
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "52",
+        "name": "CE - Web Vitals",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^web_vital$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000200"
+      },
       {
         "accountId": "6221119580",
         "containerId": "179683921",
@@ -794,7 +859,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000200"
+        "fingerprint": "1783739000201"
       },
       {
         "accountId": "6221119580",
@@ -819,7 +884,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000201"
+        "fingerprint": "1783739000202"
       },
       {
         "accountId": "6221119580",
@@ -844,7 +909,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000202"
+        "fingerprint": "1783739000203"
       },
       {
         "accountId": "6221119580",
@@ -869,7 +934,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000203"
+        "fingerprint": "1783739000204"
       },
       {
         "accountId": "6221119580",
@@ -894,7 +959,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000204"
+        "fingerprint": "1783739000205"
       },
       {
         "accountId": "6221119580",
@@ -919,7 +984,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000205"
+        "fingerprint": "1783739000206"
       },
       {
         "accountId": "6221119580",
@@ -944,7 +1009,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000206"
+        "fingerprint": "1783739000207"
       },
       {
         "accountId": "6221119580",
@@ -969,7 +1034,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000207"
+        "fingerprint": "1783739000208"
       },
       {
         "accountId": "6221119580",
@@ -994,7 +1059,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000208"
+        "fingerprint": "1783739000209"
       },
       {
         "accountId": "6221119580",
@@ -1019,7 +1084,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000209"
+        "fingerprint": "1783739000210"
       },
       {
         "accountId": "6221119580",
@@ -1044,7 +1109,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000210"
+        "fingerprint": "1783739000211"
       },
       {
         "accountId": "6221119580",
@@ -1069,7 +1134,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000211"
+        "fingerprint": "1783739000212"
       },
       {
         "accountId": "6221119580",
@@ -1094,7 +1159,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000212"
+        "fingerprint": "1783739000213"
       },
       {
         "accountId": "6221119580",
@@ -1119,7 +1184,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000213"
+        "fingerprint": "1783739000214"
       },
       {
         "accountId": "6221119580",
@@ -1144,7 +1209,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000214"
+        "fingerprint": "1783739000215"
       },
       {
         "accountId": "6221119580",
@@ -1169,7 +1234,7 @@
             ]
           }
         ],
-        "fingerprint": "1783739000215"
+        "fingerprint": "1783739000216"
       }
     ],
     "variable": [
@@ -1488,6 +1553,110 @@
       {
         "accountId": "6221119580",
         "containerId": "179683921",
+        "variableId": "53",
+        "name": "DLV - metric_name",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "metric_name"
+          }
+        ],
+        "fingerprint": "1783739000312",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "54",
+        "name": "DLV - metric_value",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "metric_value"
+          }
+        ],
+        "fingerprint": "1783739000313",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "55",
+        "name": "DLV - metric_rating",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "metric_rating"
+          }
+        ],
+        "fingerprint": "1783739000314",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "56",
+        "name": "DLV - page_path",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "page_path"
+          }
+        ],
+        "fingerprint": "1783739000315",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
         "variableId": "8",
         "name": "EVS - Site activity parameters",
         "type": "gtes",
@@ -1756,6 +1925,142 @@
           }
         ],
         "fingerprint": "1783739000401"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "57",
+        "name": "EVS - Web vital parameters",
+        "type": "gtes",
+        "parameter": [
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "metric_name"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - metric_name}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "metric_value"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - metric_value}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "metric_rating"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - metric_rating}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "page_path"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - page_path}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "page_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - page_id}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "audience"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - audience}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "debug_mode"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - analytics_debug}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "traffic_type"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - traffic_type}}"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000402"
       }
     ],
     "builtInVariable": [

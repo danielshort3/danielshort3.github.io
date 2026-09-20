@@ -1,0 +1,556 @@
+{
+  "outputs": [
+    {
+      "path": "img/project-starfall/animations/portals/standard-sheet.png",
+      "sha256": "fcb01faa27dd293d1c9e3a52b0ce1eac11c34c68f4125b17aa34620be11590f3"
+    },
+    {
+      "path": "img/project-starfall/animations/portals/boss-sheet.png",
+      "sha256": "5ce46198e7b1bf2560c8047fe1b01c85fedd4fbcd992c8a5717f90e1536cee7b"
+    },
+    {
+      "path": "img/project-starfall/animations/portals/locked-sheet.png",
+      "sha256": "0fcd15ce7968f81053d82fd023ee027c48d39af282b431af5324232d2a8089fe"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/slash-sheet.png",
+      "sha256": "cdd182f687110382bf9b954016620266e087230e8628344c53cb07e016f8bbae"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/cast-sheet.png",
+      "sha256": "1a4eb226742b458bc7668b58800b2108ea45474a09387235b4b3da063bf4ad6f"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/arrow-release-sheet.png",
+      "sha256": "3acb99321f6673ddf2b68f0a50d62b014374d45dc79e7519e0386417bdb36ad7"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/party-buff-sheet.png",
+      "sha256": "7545afc6f54292a4e785f66e90a05fe6f2ede9891d492f27ea4c31b0574d3820"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/impact-sheet.png",
+      "sha256": "32a532dfb0dc61d5bc7f00ddadc825af178282aba0564fefb4d64ae404a1326d"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/defeat-burst-sheet.png",
+      "sha256": "7a150f02bf9d7d54d6171b2862cd2d981c1d844ae6ab5c36d1e4680dec8aaa34"
+    },
+    {
+      "path": "img/project-starfall/animations/enemy-projectiles/bandit-knife-sheet.png",
+      "sha256": "81a5f27591acefb79893ce86a732b2df99227f34e36f8326d83293062948cbd0"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-heavy-strike-sheet.png",
+      "sha256": "494e0063bc92116a377f82faca46dfe3e3912ecffee21859e966d24a7e120846"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-dash-slash-sheet.png",
+      "sha256": "9ff93620d75bf7e51aab86772d9e6c0d5301dda378aaf5ac368c6a0046026b4f"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-guard-sheet.png",
+      "sha256": "6d16ce6104ba29333d538d86403e4a47bdd29efb17282b2672f32783d840f201"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-ground-slam-sheet.png",
+      "sha256": "21847b78a4e247515eb87a4e8510739f48f27db532ae2e9bb7e1c7217b4ef950"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-power-break-sheet.png",
+      "sha256": "241b2669686500a4996a3d58c4c56d420e67ac0092112d780331de4a08cd9c84"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-momentum-burst-sheet.png",
+      "sha256": "5e1f9aafdfb6625ef7af2e36bfe6e25670b85ccdb6080942920a425300f03bf4"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-magic-bolt-sheet.png",
+      "sha256": "7eb0538a70d0ae8796f8a4fb020a442a8e44e6f6dcfc3bb91c95ad6b775e75c6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-blink-sheet.png",
+      "sha256": "950c64da439558fe098ab077e051fa2494c38f0396a5de2c2475abfe71dcbf0e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-arcane-burst-sheet.png",
+      "sha256": "33b0b37faa9af0e6a35ef166e4636bb00d2d7e7fc1b86f2edbe02d265be4c431"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-mana-shield-sheet.png",
+      "sha256": "ee76f8687c2a55e10d1dcda62c04d6b5e68fcb668a5234c180741fd275bfd1aa"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-spell-mark-sheet.png",
+      "sha256": "be1d69826477d19c3ed0ace20abc09aa78cbc6f51539fa835473160a76a788ca"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-energy-release-sheet.png",
+      "sha256": "6264bf36a68e5e3cded53df7bb5527595bd21a104dd45aaadd3ea62ac9ae9e97"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-quick-shot-sheet.png",
+      "sha256": "38c57e8397ed726e79f7e1e301ed2541966b170c8c6b52d40261c9df09251f82"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-roll-shot-sheet.png",
+      "sha256": "7cb4a1bc33f9f29a6c445f57420be1d17d760d51a91394200189fe35aca78459"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-marked-shot-sheet.png",
+      "sha256": "870832a057d1a96b14d45d7b020b766f20dc89b98ae49add091899819cace72a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-piercing-arrow-sheet.png",
+      "sha256": "475a592dd2098b744300a10a752a5afb16bd912d63b05e42733651b003bf4c28"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-eagle-stance-sheet.png",
+      "sha256": "af573a6574b1b2097091987a40a9fa112233b2227b26f4b9eea3d5ef38138d99"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-focused-volley-sheet.png",
+      "sha256": "1aff4da801e1b9c55412cf33c32ac969ab489f1ad16ee922154a0bbe60942c1d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-shield-bash-sheet.png",
+      "sha256": "4d3edea084d32c88108b6ebf343e3b48428ed12d72ac8006dc5e23f902de6572"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-shield-dash-sheet.png",
+      "sha256": "9230b5fcdc53c793f152feaadac844d168a69fb3f651a2cc48c61a62d8c05ce6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-impact-guard-sheet.png",
+      "sha256": "8bd533130e73f336744f67016f5bc8927a8e01d0114320a8b528bd98dce71c7f"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-oath-barrier-sheet.png",
+      "sha256": "c0032b913b6e2f16a0452657de833d81602eb5e1ece4f8c95bbff59c636a2810"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-retaliation-wave-sheet.png",
+      "sha256": "2cfe0decfa134c0c0df5bdff00ef12f0da05d2239937b4308d7c65ac59d1f619"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-verdict-sheet.png",
+      "sha256": "357651395f46c1e24f14acf4c8c5071fcc80e41c5586a85d8b540d3c4f971e7d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-shield-wall-sheet.png",
+      "sha256": "09653c775619192a0250af910577847fa2e518bbb0ebd28651111b85149ba3a2"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-blood-cleave-sheet.png",
+      "sha256": "1aa0c837492af7c696a3fe84fcce9bfbd372afa8655b08f63c11142356d9b3dd"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-rage-surge-sheet.png",
+      "sha256": "17b3154532fb61a8d744ad0de328aec03b8580a1135a814c85606bb3a235bba3"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-reckless-leap-sheet.png",
+      "sha256": "502e601be348a141051ac44ab2d9c124f496a131365fee308f1765698b83271b"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-crimson-recovery-sheet.png",
+      "sha256": "45dce8d6934f8f35787b385867b3643c5492734a39f05620df0acd2f9202d43b"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-last-stand-sheet.png",
+      "sha256": "539ff81f0c57fb60e940b0c44c35ffb34868e3ab0526cd7ccf6794a72ebdcf29"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-war-cry-sheet.png",
+      "sha256": "3bc6963a20b77feb9bbf99e40b5ceac45d2f7735d71cdbf5ac002c1cb08099a3"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/duelist-quick-cut-sheet.png",
+      "sha256": "1afde406151a4033ed97f2dabf2e8753c45cd58bb4fb26032e5a0e37136fe8c6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/duelist-flash-step-sheet.png",
+      "sha256": "2efaccf7d3ad023d865f059f0a5e5c7234645b5a11374ab84d4d1b2168069898"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/duelist-rallying-flourish-sheet.png",
+      "sha256": "105ea3bf11db136b36cd4a38ac34c5fe45acea929671023709e1b8537cda28b1"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-fireball-sheet.png",
+      "sha256": "837a9bf126de24690b0c82da2558a96a35016c5a70a5ec02cc0954be8ee00366"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-flame-trail-sheet.png",
+      "sha256": "2a143df061821adaf57fe801133c3e5a2c11ff4cda7c5754942332074a5a2da3"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-burning-mark-sheet.png",
+      "sha256": "0fad8878db4794bfbc5cfbecd17139d8f94f91dda2d9518050b211b1ed9af9cc"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-heat-vent-sheet.png",
+      "sha256": "3029bd1b70b44aafc9352709eedae23bf9e8c15e5b659e431f907788df8a3233"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-wildfire-sheet.png",
+      "sha256": "d57b0a4cb5aa778b67d066c71f4a13d67daeb367f8e8b480b2bbbdc63bb4d911"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-inferno-burst-sheet.png",
+      "sha256": "955b612de9ce9deb223d2586dbd062298a49f937b69740ee71c6a1a938fcbb26"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-ignition-aura-sheet.png",
+      "sha256": "5a55c6af98986ea7c7c140d2e02afb3a3ba95c37317a417d90e9ca89db0c6826"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-rune-mark-sheet.png",
+      "sha256": "a6f437eccb154f5b2d42f6c1d5cbb55039b9a85df872328536f30286add95e28"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-rune-blink-sheet.png",
+      "sha256": "93e20e48d8c3d05682cb2530155c952902d00210b0a13ad718c0d1c877665f09"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-ground-glyph-sheet.png",
+      "sha256": "dbfc2aefbb6872913943bd8cad330caeada9dd78ca0f169393fdf67221294d35"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-arcane-link-sheet.png",
+      "sha256": "c415fe09459e3a799cf0fec0632efb366ca683268f889ba60dc159949b7227f4"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-rune-detonation-sheet.png",
+      "sha256": "7bc545947d8f807e66468898fa6280bc345aff418743aee713a2e08d5bee9dff"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-mana-seal-sheet.png",
+      "sha256": "7277265de474426576df6893fb50c536e33c9c6190be3f05b79ca4c4e8fc0bad"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-grand-inscription-sheet.png",
+      "sha256": "fd5b8fe1e90e8a9276edf1421d22b472d688297f3500c2649f091bfbf50d96c3"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-rune-circle-sheet.png",
+      "sha256": "8859d991a71d25fbd338508351700a2ab8e48cf49971a134badb17553aeb43e6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/storm-mage-chain-bolt-sheet.png",
+      "sha256": "50e15c7df735b4ff92366e385734daa728b81fc11d22a1ac05cfa03ee0a0f57a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/storm-mage-static-shift-sheet.png",
+      "sha256": "dea5b306ef55750d27144e99f4f368eb0645b924f015dad8aa0c211402895c8c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/storm-mage-stormfront-sheet.png",
+      "sha256": "d11a9853a14c16b6ebee828d59a8371f89184ce2fb7c37ec4e8f6ac695f4d90a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-aimed-shot-sheet.png",
+      "sha256": "d1a5e75b3c9eb934ca2e7dd66a9f44340b1a5c455471fd635bbe2b3153959412"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-combat-roll-sheet.png",
+      "sha256": "a54a958e32d287216e7fbbaf1eb124cb53cc4c2a0cb1ca425fc96d6be7f50fa0"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-weak-point-mark-sheet.png",
+      "sha256": "f99d282e4af315e472cc5317b382d69ee52b38980667e2ab8924b038f4879a8e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-pierce-armor-sheet.png",
+      "sha256": "b90317947b89ce99307e5a34b0fa4eaf68fd2a62e9506392da48784e77487a22"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-execution-shot-sheet.png",
+      "sha256": "ac890f42b6139cd47504f6a3c1e9668b934071d86695b8fa8eb4513bfb02ef3a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-one-perfect-shot-sheet.png",
+      "sha256": "a651e52764a35761513eb432515e7d0cd474822b907f31748ad980377fc1c04f"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-eagle-eye-sheet.png",
+      "sha256": "cb0bebfddb56e0127800f68db2299ef1c4d4d5d921101545bda227b8c12953c0"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-snare-trap-sheet.png",
+      "sha256": "d1756a8031ff90ccc74ea56050b5fe5f0818242e92fef668deaa4330b0c8b08c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-grapple-dash-sheet.png",
+      "sha256": "2cfd3ea78ddd506c76454b7c2ecbed9542a6b1238b1bd65e2a3ffda2f0551b9f"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-spike-trap-sheet.png",
+      "sha256": "8ee99aed7a974e11a23a4f1c7d61dae20f07aa9d6cf8e72968500e0cc4b742c7"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-lure-shot-sheet.png",
+      "sha256": "cf16b7d4635b9a13fe3db0ae7611af9dba120bd12acb74de9031816237e162f5"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-tripwire-sheet.png",
+      "sha256": "6ad2d3ad3ef241e4d527b208d85f09e34ff08dded4741927dcff128767a38725"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-detonate-sheet.png",
+      "sha256": "84f8a071f57a9dcab5a0a380cda60a68307f7a11625252ce4f67d69db0b2a0e6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-kill-zone-sheet.png",
+      "sha256": "58929ab35951dc823613535e5135099593adf8ab52897d747a92b8fdb939d8fc"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-tactical-field-sheet.png",
+      "sha256": "c21274f79d09827ae71a7919680557c953fe4fa65eb822d49d35fe92da019fef"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/beast-archer-companion-strike-sheet.png",
+      "sha256": "5f5dae0bfd3cf7072166adc7b2273f9d7609631afbd8ced16c4ebdc7719940f9"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/beast-archer-pounce-roll-sheet.png",
+      "sha256": "4baf9f78c3a07fd53191315f01405fa57fd205254ccb4a2b170b37624bb9133e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/beast-archer-pack-call-sheet.png",
+      "sha256": "9fdba918f297c9b18d72fce7e90ca28deb898fc4216ccfea9f86cbf9ab567997"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/basic/basic-fighter-sheet.png",
+      "sha256": "f58b295347759ecdf828bfb61ca4b6e76acd843fe2f61bf9aebe9a622e659fee"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/basic/basic-mage-sheet.png",
+      "sha256": "e49b19e9ba52d4633fc9c6b58971695bed7bec68090bd858bf4ecb26463a864c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/basic/basic-archer-sheet.png",
+      "sha256": "64df2f7577fbc173111a06d1392a466fc82f6cad8c5186d57cbab85f1b07a541"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/glassback-sheet.png",
+      "sha256": "b6055dfb2e415673048490ccc47aabd379d736e59b8e415db822326a561f14b9"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rift-lantern-sheet.png",
+      "sha256": "92678166352ccd9a71d4e8c9d133724f0e89fab00e546e19e393b9a9f18ee216"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/fault-skitter-sheet.png",
+      "sha256": "8468b4c4ceb37d6a32b929a00252f01c440703ba77ff8137523d6bca7fb49802"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/slimelet-sheet.png",
+      "sha256": "428e2396c808af46ae0dc40dc72aed44f05936d24d5bd4238ca4fd959e8f7550"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/dew-slime-sheet.png",
+      "sha256": "78a4ffef49f1d49618c84d98105ab925876dcb0f8143331f5fbefaad5d5b507e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/mossback-sheet.png",
+      "sha256": "c3f9ed0ca5c1cb73bb2f03045b4ba38c3e6f264ba98e1e0be3db26d549dfff01"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/thorn-sprout-sheet.png",
+      "sha256": "a6d751d42c014caa3124fb71b0c83f367c274c256c9c36e2fbcec0a145aee692"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/vine-snapper-sheet.png",
+      "sha256": "afdbfe5aeacf6335c03c9eb695bc3b13a673d36853e68cd88126b4e222e4bf24"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bristle-boar-sheet.png",
+      "sha256": "f1388b6f5745dda7fc25cc0fe818a8085559628d679c8e6695fcc1f96ae431cf"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/briar-stag-sheet.png",
+      "sha256": "bf56e27a67c2c92a3533a90ce12b748938f4adb9d44bea7dc01a99ede22cec38"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/dust-imp-sheet.png",
+      "sha256": "363d2965424ae6f170f8cc4f39891a88ec1bbb38e0701e9777e8d2bf6d73baaa"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/clockbug-sheet.png",
+      "sha256": "67099d9dd7f00794858f8fa111b49c77e375d3e5de738433257e7504537f114d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rust-ratchet-sheet.png",
+      "sha256": "623d73fd10a65f9525b475f5e96c75d8e1691c6356093da3b2e6b775919522f9"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/coil-sentry-sheet.png",
+      "sha256": "47b022555042645465b3ba247b4d83b037de3692fe743ded1ddf0f9175a261db"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/scrap-warden-sheet.png",
+      "sha256": "4c34afe3805c8281618a501c7858c98bde4474fbfec993a5389eab2edb513234"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/ember-wisp-sheet.png",
+      "sha256": "b13399badd7630e46f4202875cafe114d76767d16d4c37ef0b059252767fcbe5"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/ash-crawler-sheet.png",
+      "sha256": "ab1349bc37f228ffb8ccf7a7628931a690788e41b4a8ecaacaa23375196b9b9e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/lava-tick-sheet.png",
+      "sha256": "a3be03b3320bfdeb2e2d632d8a897ba1e97933ea771cab1de5fc7709d12eef13"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/cinder-spitter-sheet.png",
+      "sha256": "bd5d4e2527ada73f519e7d59cd86380010027ed1d406ee3f5aa239e2db02278a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-sheet.png",
+      "sha256": "5ddc28de713ef234a5637d9a15ef7e5eab0a8d6c98693673f29561d1f6150af4"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-direct-sheet.png",
+      "sha256": "7cddfcaa934458058a90c2ed27923219fb1384bc25ed0e2dd7b84a53a731d14a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-reference-sheet.png",
+      "sha256": "9e54818538c8ee3eb25ac8f85c11e814a0c08cdccabfee6e07b9c8fbc80b2e55"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-hybrid-sheet.png",
+      "sha256": "70fb08c7e5e298c8dc576f189ec7907085439ae4a9d4695bd8290a76379cd1f1"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-puppet-sheet.png",
+      "sha256": "35657beab87a52507e59bea6e4691ac9f490f0e11b18fa7d3fa2fd402c73b2ef"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-thrower-sheet.png",
+      "sha256": "b1c8a654a1a05f6251cac8f3cc94298867da3feaf450bb46f35388a226b13a6e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/oreback-beetle-sheet.png",
+      "sha256": "dfd8e483c8ef1df6e6f7182d43c1ca26b68918c2222128d6e236f2830d9ad308"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/glowcap-healer-sheet.png",
+      "sha256": "c258cdab73eee52fe26b79bb0d85ce3cec387ec8544520ea20e3904a1da87d7c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/cracked-mimic-sheet.png",
+      "sha256": "0e5de565b83a83d1feb90a0dab12bd00417b623d1ff701889f3557dbde6f717a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/brambleking-sheet.png",
+      "sha256": "ddba347bec5106bf15b46a1e2969cea20a29916e7995429d8a7293fed34e2d34"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/clockwork-titan-sheet.png",
+      "sha256": "52b37a189f479b24d8aa7d243f030dd6ca78fcae9379f0e1a904586f084b03f6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/quarry-colossus-sheet.png",
+      "sha256": "68abb8e8d44b3877547b887e5db0310d8247e022898a22ae3ae0d12dbad16d87"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/emberjaw-golem-sheet.png",
+      "sha256": "d4f7e15bad90a95d08541282cd164a62d7ff0d50e4eca2ad071cf613c3fe3d16"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/frostling-scout-sheet.png",
+      "sha256": "f09d688442c54af659742dd6c3edebc06658f12c4c737974e88b208c47792e1e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/shardling-sheet.png",
+      "sha256": "37e6d401d9c7c2f742df0a64bf9eb2b7fa030f85aa25fde4f0e35f2b4fb93cf9"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rimeback-brute-sheet.png",
+      "sha256": "d052b4e6f82bbeddec2ad2f18ff361b866af638b373bcfc217bb22af7a96502e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/glacier-sentinel-sheet.png",
+      "sha256": "8701357dff1f0febf79a572b926bc14f4f7852e1247618c5058fe99653356fae"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/snowglare-wisp-sheet.png",
+      "sha256": "31c360b5a660b5c7f25dac371b95646f7e1c9a0a8b176d0ef3c0c36da2872f0f"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/icebloom-oracle-sheet.png",
+      "sha256": "07930b05c70c933b189db5729d8ebe9e49411bece655bfa680457e34c5481ec5"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/gale-harrier-sheet.png",
+      "sha256": "930541fe28e6bf0a4e8e8017762974f1d74c5590ffe767f089aa5d79464889a8"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/stormbound-archer-sheet.png",
+      "sha256": "77223559d2868e6884102d3ee2ee4932d2eb0566a03368093ad17cf6c935251c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/thunder-ram-sheet.png",
+      "sha256": "24d46da06adfdc8655e882d695cc146d9a0cf09189ae50eb689b197f7793ea2a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/cloudcall-acolyte-sheet.png",
+      "sha256": "dc909ce8b28e5cd2e7f09f8faad846caab998d16e1b0a65a99caaa45564798c0"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/index-scribe-sheet.png",
+      "sha256": "1efd193a001ca7b6150d0e2cb2a07780442375e92ea23753620c712771785e22"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/lumen-sentinel-sheet.png",
+      "sha256": "1c74c3106bf4e607ad4f2a013726a2b18b9a15dea6e1fe08620fc4a875012f60"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/void-mote-sheet.png",
+      "sha256": "c18ba25db65c68c0a3452dc29c1a1384e8295f5d5a3d9ff8dfe8070d83de889d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/eclipse-duelist-sheet.png",
+      "sha256": "15575b2fbd669f10309d9fe4b1355f47bb62b627896c982e270ad2fdaf62e51e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rift-aberration-sheet.png",
+      "sha256": "cdbb65dd55f309910bcde534e83e9cd1ec79189ed38a80b46f8ea15d6cf1b9c0"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rimewarden-sheet.png",
+      "sha256": "e9820dd1802555958dc6ea2bd3e03ba82adf8e67429453421a28c4f5f474141c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/stormbreak-roc-sheet.png",
+      "sha256": "263db30fb4945ae38254dd3a9f5514f2fc8227036282b4eb45784527c8f4f929"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/astral-archivist-sheet.png",
+      "sha256": "92d44ebc1b1172f11e8c38df3f5875e3b98cd993ada25cbcdfb068e3f36d4ea4"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/eclipse-sovereign-sheet.png",
+      "sha256": "5d23515ebfbb18429aef10db1a8b93469bdaf031226dea93bfb9c1ed171f72f5"
+    }
+  ],
+  "sources": [
+    {
+      "path": "asset-sources/project-starfall/overhaul-v1/fx/portals.png",
+      "sha256": "838ac0c03e4c12894c22a1d3878570a55a98c8aa2781e071b277fb420ea54fca"
+    },
+    {
+      "path": "asset-sources/project-starfall/overhaul-v1/fx/global-fx-clean.png",
+      "sha256": "ffd5dc0d913a62e72adf7acba87812eca84b055b09a3e63d2552aa51aa0a070d"
+    },
+    {
+      "path": "asset-sources/project-starfall/overhaul-v1/fx/bandit-knife.png",
+      "sha256": "9b458966f147719e711c50b4687416f53c30efa1706306fd3149a526f3b1a522"
+    }
+  ],
+  "nativeSource": "build/lib/starfall-combat-language-art.js",
+  "rejectedSource": "global-fx.png (dark matte on bright scenery)"
+}

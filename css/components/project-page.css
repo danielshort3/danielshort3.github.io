@@ -51,7 +51,7 @@
     width: 100%;
     height: auto;
     max-height: none;
-    aspect-ratio: auto;
+    aspect-ratio: var(--project-preview-aspect, auto);
     object-fit: contain;
     object-position: center;
   }
@@ -142,11 +142,29 @@
     .project-main--compact .project-star-value { padding: 0; }
     .project-main--compact .project-star-list { margin: 0; }
   }
+
+  /* Match the shared compact frame, including phones in landscape. Loading a
+     full content-height iframe here would resize the page after its transition. */
+  @media (max-width: 959px), (max-height: 619px) {
+    .project-demo-shell[data-demo-fit="content"] .project-embed { display: none; }
+    .project-demo-shell[data-demo-fit="content"] .project-demo-mobile-launch {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+      padding: 12px;
+      background: #ffffff;
+    }
+    .project-demo-shell[data-demo-fit="content"] .project-demo-launch-image {
+      height: auto;
+      max-height: none;
+      object-fit: contain;
+    }
+  }
 }
 
 @layer components {
   .project-next-steps a:focus-visible {
-    outline: 2px solid var(--brand-signal-blue, #155dfc);
+    outline: 2px solid var(--brand-signal-blue, #005fed);
     outline-offset: 3px;
     border-radius: 3px;
   }
@@ -162,7 +180,7 @@
     flex-wrap: wrap;
     gap: 12px 28px;
     padding-top: 18px;
-    border-top: 2px solid color-mix(in srgb, var(--brand-signal-blue, #155dfc) 25%, transparent);
+    border-top: 2px solid color-mix(in srgb, var(--brand-signal-blue, #005fed) 25%, transparent);
     font-size: .875rem;
   }
   .project-next-steps a {
@@ -183,22 +201,31 @@
     z-index: 20;
     display: flex;
     justify-content: center;
-    padding: 12px 16px max(16px, env(safe-area-inset-bottom));
+    padding: 6px 16px max(6px, env(safe-area-inset-bottom));
     opacity: 1;
     transition: opacity var(--motion-base, 220ms) var(--easing-standard, ease);
     pointer-events: none;
+  }
+  /* A dedicated footer keeps the floating action clear of the project content. */
+  .site-frame__slot-content > .project-question-dock {
+    flex: 0 0 auto;
+    border-top: 1px solid var(--surface-border, #dce3ec);
+    background: #ffffff;
+  }
+  .site-frame[data-frame-compact="false"] .site-frame__slot-content > .project-question-dock {
+    position: relative;
   }
   .project-question-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    min-height: 48px;
-    max-width: min(100%, 440px);
-    padding: 10px 18px;
+    min-height: 44px;
+    max-width: 100%;
+    padding: 8px 14px;
     box-sizing: border-box;
     border: 1px solid #b8c9e2;
-    border-radius: 10px;
+    border-radius: var(--radius-card, 10px);
     background: #fff;
     color: var(--brand-deep-blue, #0145c8);
     box-shadow: 0 4px 16px rgba(9, 31, 59, .14);
@@ -210,14 +237,16 @@
     pointer-events: auto;
   }
   .project-question-copy {
-    display: grid;
-    gap: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 4px;
     min-width: 0;
     text-align: left;
   }
   .project-question-label {
     color: var(--text-muted, #475569);
-    font-size: .75rem;
+    font-size: inherit;
     font-weight: 400;
   }
   .project-question-title { overflow-wrap: anywhere; }
@@ -225,14 +254,14 @@
     flex: 0 0 22px;
     width: 22px;
     height: 22px;
-    color: var(--brand-signal-blue, #155dfc);
+    color: var(--brand-signal-blue, #005fed);
   }
   .project-question-link:hover {
-    border-color: var(--brand-signal-blue, #155dfc);
+    border-color: var(--brand-signal-blue, #005fed);
     background: #f4f7fc;
   }
   .project-question-link:focus-visible {
-    outline: 3px solid var(--brand-signal-blue, #155dfc);
+    outline: 3px solid var(--brand-signal-blue, #005fed);
     outline-offset: 3px;
   }
   body:is(.modal-open, .media-viewer-open) .project-question-dock {
@@ -642,8 +671,8 @@
     width:var(--comparison-crop-width);
     height:var(--comparison-crop-height);
     box-sizing:border-box;
-    border:2px solid #155dfc;
-    background:rgb(21 93 252 / .06);
+    border:2px solid var(--category-projects, #005fed);
+    background:color-mix(in srgb, var(--category-projects, #005fed) 6%, transparent);
     box-shadow:0 0 0 1px #fff;
     pointer-events:none;
   }
@@ -738,16 +767,16 @@
     width:100%;
     min-height:44px;
     margin:0;
-    accent-color:#155dfc;
+    accent-color:var(--category-projects, #005fed);
   }
   .project-selection-reset{
     min-width:44px;
     min-height:44px;
     padding:8px 12px;
-    border:1px solid #155dfc;
+    border:1px solid var(--category-projects, #005fed);
     border-radius:10px;
     background:#fff;
-    color:#155dfc;
+    color:var(--category-projects, #005fed);
     font:inherit;
     font-size:.85rem;
     cursor:pointer;
@@ -1729,7 +1758,7 @@
     width: 72px;
     height: 2px;
     margin-top: 8px;
-    background: #155dfc;
+    background: var(--category-projects, #005fed);
   }
 
   .project-main--compact .project-subtitle {
@@ -1748,7 +1777,7 @@
     display: grid;
     width: min(100%, calc(var(--project-content-width) + var(--project-content-gutter) + var(--project-content-gutter)));
     max-width: calc(var(--project-content-width) + var(--project-content-gutter) + var(--project-content-gutter));
-    gap: 16px;
+    gap: var(--page-content-gap, 24px);
     padding-inline: var(--project-content-gutter);
   }
 
@@ -1756,7 +1785,7 @@
     min-width: 0;
     margin: 0;
     border: 1px solid var(--project-compact-border);
-    border-radius: 8px;
+    border-radius: var(--radius-card, 10px);
     background: #ffffff;
     box-shadow: none;
   }
@@ -1895,7 +1924,7 @@
     min-height: 48px;
     padding: 12px;
     border-color: var(--project-compact-border);
-    border-radius: 6px;
+    border-radius: var(--radius-control, 8px);
     background: #ffffff;
     font-weight: 600;
     box-shadow: none;
@@ -1911,8 +1940,8 @@
   }
 
   .project-main--compact .project-link:is(:hover, :focus-visible) {
-    border-color: color-mix(in srgb, #155dfc 48%, var(--project-compact-border) 52%);
-    background: color-mix(in srgb, #155dfc 3%, #ffffff 97%);
+    border-color: color-mix(in srgb, var(--category-projects, #005fed) 48%, var(--project-compact-border) 52%);
+    background: color-mix(in srgb, var(--category-projects, #005fed) 3%, #ffffff 97%);
     box-shadow: none;
     transform: none;
   }
@@ -1942,14 +1971,14 @@
     }
 
     .project-main--compact .project-body > .wrapper {
-      gap: 16px;
+      gap: var(--page-content-gap, 24px);
     }
 
     .project-main--compact :is(.project-star, .project-demo-shell, .project-section) {
       margin-inline: 0;
       border-right: 1px solid var(--project-compact-border);
       border-left: 1px solid var(--project-compact-border);
-      border-radius: 8px;
+      border-radius: var(--radius-card, 10px);
     }
 
     .project-main--compact .project-resources--flat {
@@ -2059,20 +2088,37 @@
   }
 
   .project-main--compact .project-intro-action--demo {
-    border-color: #155dfc;
+    border-color: var(--category-projects, #005fed);
     color: #ffffff;
-    background: #155dfc;
+    background: var(--category-projects, #005fed);
   }
 
   .project-main--compact .project-intro-action:hover {
-    border-color: #155dfc;
+    border-color: var(--category-projects, #005fed);
     text-decoration: underline;
     text-underline-offset: 3px;
   }
 
   .project-main--compact .project-intro-action:focus-visible {
-    outline: 3px solid #155dfc;
+    outline: 3px solid var(--category-projects, #005fed);
     outline-offset: 3px;
+  }
+
+  /* Drawing projects use the page introduction once, leaving room for the pad. */
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .project-main--drawing .project-hero[data-page-masthead] {
+    --masthead-padding-start: 16px;
+    --masthead-padding-end: 16px;
+  }
+
+  .project-main--drawing .project-intro-actions .project-demo-tooltip { z-index: 30; }
+
+  @media (max-width: 699px) {
+    .project-main--drawing .project-intro-actions .project-demo-help { position: static; }
+    .project-main--drawing .project-intro-actions { position: relative; }
+    .project-main--drawing .project-intro-actions .project-demo-tooltip {
+      inset-inline: 0;
+      width: min(360px, calc(100vw - 48px));
+    }
   }
 
   @container site-content (min-width: 700px) {

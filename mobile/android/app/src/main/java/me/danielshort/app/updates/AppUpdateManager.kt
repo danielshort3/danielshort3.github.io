@@ -38,7 +38,7 @@ class AppUpdateManager(
   private val verifier: InstalledAppVerifier,
   private val transport: UpdateTransport = HttpsUpdateTransport(),
   private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-) {
+) : AppUpdateActions {
   constructor(
     context: Context,
     feedUrl: String = BuildConfig.APP_UPDATE_URL,
@@ -47,14 +47,17 @@ class AppUpdateManager(
 
   private data class Plan(val manifest: UpdateManifest, val installed: VerifiedApk, val patch: UpdatePatch?, val offer: UpdateOffer)
   private val mutableState = MutableStateFlow<AppUpdateState>(AppUpdateState.Idle)
-  val state: StateFlow<AppUpdateState> = mutableState.asStateFlow()
+  override val state: StateFlow<AppUpdateState> = mutableState.asStateFlow()
+  private val mutableAutomationBlocked = MutableStateFlow(false)
+  override val automaticDownloadsBlocked = mutableAutomationBlocked.asStateFlow()
   private val operationLock = Any()
   private val mutex = Mutex()
   private var operation: Job? = null
+  private var automaticDownload: Job? = null
   private var plan: Plan? = null
   private val readyDirectory = File(storageDirectory, "ready")
 
-  fun check() = start(UpdateRetryAction.CHECK) {
+  override fun check(automated: Boolean) = start(UpdateRetryAction.CHECK, automated) {
     mutableState.value = AppUpdateState.Checking
     plan = null
     prepareStorage()
@@ -73,7 +76,7 @@ class AppUpdateManager(
     AppUpdateState.Available(offer)
   }
 
-  fun download() = start(UpdateRetryAction.DOWNLOAD) {
+  override fun download(automated: Boolean) = start(UpdateRetryAction.DOWNLOAD, automated) {
     val selected = plan ?: throw UpdateFailure("Check for updates before downloading.")
     mutableState.value = AppUpdateState.Downloading(selected.offer, null, selected.offer.usingPatch)
     prepareStorage()
@@ -152,7 +155,16 @@ class AppUpdateManager(
   }
 
   fun cancel() {
+    // A deliberate cancellation suppresses further automatic downloads this process.
+    // Explicit Check/Download actions remain available.
+    mutableAutomationBlocked.value = true
     synchronized(operationLock) { operation?.cancel() }
+  }
+
+  override fun cancelAutomaticDownload() {
+    synchronized(operationLock) {
+      if (operation === automaticDownload) automaticDownload?.cancel()
+    }
   }
 
   /** Call immediately before constructing the Android installer intent; the UI must still ask Android to install. */
@@ -178,9 +190,9 @@ class AppUpdateManager(
     }
   }
 
-  private fun start(retry: UpdateRetryAction, action: suspend () -> AppUpdateState) {
+  private fun start(retry: UpdateRetryAction, automated: Boolean, action: suspend () -> AppUpdateState): Boolean {
     synchronized(operationLock) {
-      if (operation?.isActive == true) return
+      if (operation?.isActive == true || (automated && retry == UpdateRetryAction.DOWNLOAD && automaticDownloadsBlocked.value)) return false
       val next = scope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
         val running = currentCoroutineContext()[Job]
         val result = try {
@@ -188,18 +200,22 @@ class AppUpdateManager(
         } catch (_: CancellationException) {
           plan?.let { AppUpdateState.Available(it.offer) } ?: AppUpdateState.Idle
         } catch (failure: Exception) {
+          if (retry == UpdateRetryAction.DOWNLOAD) mutableAutomationBlocked.value = true
           AppUpdateState.Error(friendlyMessage(failure), if (plan == null) UpdateRetryAction.CHECK else retry)
         }
         synchronized(operationLock) {
           if (operation === running) {
             // Terminal states are actionable immediately, after storage work and ownership finish.
             operation = null
+            automaticDownload = null
             mutableState.value = result
           }
         }
       }
       operation = next
+      automaticDownload = if (automated && retry == UpdateRetryAction.DOWNLOAD) next else null
       next.start()
+      return true
     }
   }
 

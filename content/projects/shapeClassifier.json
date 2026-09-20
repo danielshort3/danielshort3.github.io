@@ -49,8 +49,8 @@
     "lead": "Draw one of the supported shapes and let the model classify it.",
     "bullets": [
       "Draw on the canvas (circle, triangle, square, hexagon, or octagon).",
-      "Click “Classify” to submit the drawing.",
-      "Use the eraser button (or press C) to clear and try again.",
+      "Click “Classify shape” to submit the drawing.",
+      "Select Clear (or press C) to clear and try again.",
       "Review the confidence bar and per-shape scores on the right."
     ]
   },
@@ -85,10 +85,10 @@
   "order": 3,
   "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task.",
   "mobilePreview": {
-    "image": "img/projects/shapeClassifier-preview.webp",
+    "image": "img/projects/shapeClassifier-workspace-preview.webp",
     "width": 1280,
-    "height": 800,
-    "alt": "Shape Classifier with a drawn square and the model’s prediction."
+    "height": 748,
+    "alt": "Current Shape Classifier workspace with an unclassified square on the black drawing canvas and the Classify shape button."
   },
   "relatedProjectId": "digitGenerator"
 }

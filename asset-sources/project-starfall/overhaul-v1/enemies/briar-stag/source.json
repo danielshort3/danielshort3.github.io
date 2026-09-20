@@ -1,0 +1,216 @@
+{
+  "schema": "starfall-authored-enemy-source-v1",
+  "fileId": "briar-stag",
+  "tool": "built-in image_gen",
+  "generationDate": "2026-09-19",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-1bc63e63-2eb0-4000-bc3e-b9105eb42031.png",
+  "source": "source.png",
+  "grid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "sourceFacing": "right",
+  "floating": false,
+  "references": [
+    "img/project-starfall/enemies/briar-stag.png",
+    "img/project-starfall/animations/enemies/briar-stag-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Raw and packed contact sheets visually inspected; 48 coherent actors, transparent gutters, no clipped silhouette, consistent identity. In-game playback QA remains required.",
+    "animationReview": "pending-runtime-integration"
+  },
+  "import": {
+    "frameWidth": 160,
+    "frameHeight": 160,
+    "columns": 6,
+    "rows": 8,
+    "baseline": 150,
+    "anchorX": 80,
+    "gutter": 6,
+    "portraitFrame": 0,
+    "output": "img/project-starfall/animations/enemies/briar-stag-sheet.png",
+    "portrait": "img/project-starfall/enemies/briar-stag.png"
+  },
+  "sourceSha256": "e148c27fee8c9238589fa88b4d959870fe5411e9f8662984df066763df1a9f3d",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "sourcePeakColumns": {
+      "attack": 3,
+      "projectile": 3
+    },
+    "note": "Peak then authored follow-through then reverse-order preparation poses retract toward rest. No synthesized interpolation."
+  },
+  "sharedScale": 0.6448484848484849,
+  "frames": {
+    "0": {
+      "anchor": {
+        "x": 90.5,
+        "y": 172
+      }
+    },
+    "1": {
+      "anchor": {
+        "x": 277.703007518797,
+        "y": 172
+      }
+    },
+    "2": {
+      "anchor": {
+        "x": 455.6015037593985,
+        "y": 172
+      }
+    },
+    "3": {
+      "anchor": {
+        "x": 635.0507518796992,
+        "y": 172
+      }
+    },
+    "4": {
+      "anchor": {
+        "x": 803.6447368421053,
+        "y": 172
+      }
+    },
+    "5": {
+      "anchor": {
+        "x": 983.093984962406,
+        "y": 172
+      }
+    }
+  },
+  "registrationReview": {
+    "status": "reviewed-horizontal",
+    "scope": "idle-horizontal only",
+    "method": "Reviewed stable anatomical-core translation against idle frame 0, corroborated by whole-silhouette translation and fixed-guide contact sheets. No bounding-box centering. Only X anchors changed; authored Y, all drawing pixels and fixed identity scale are preserved.",
+    "landmark": "torso and planted leg root; antler tips and leaf ornaments are excluded",
+    "referenceFrame": 0,
+    "fixedSharedScale": 0.6448484848484849,
+    "sourceUnchanged": true,
+    "actionsChanged": [
+      "idle"
+    ],
+    "visualVerification": "Before/after fixed-guide strips inspected for the declared rigid anatomical landmarks and last-to-first horizontal closure. All six poses retain their authored vertical variation. This review does not certify other action rows or all shape and transition quality.",
+    "evidence": "output/enemy-idle-alignment/briar-stag/alignment-evidence.json",
+    "corrections": [
+      {
+        "frame": 0,
+        "measuredPriorBodyDriftX": 0,
+        "outputTranslationX": 0,
+        "previousAnchor": {
+          "x": 90.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 90.5,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 1,
+        "measuredPriorBodyDriftX": 4,
+        "outputTranslationX": -4,
+        "previousAnchor": {
+          "x": 271.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 277.703007518797,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 2,
+        "measuredPriorBodyDriftX": 2,
+        "outputTranslationX": -2,
+        "previousAnchor": {
+          "x": 452.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 455.6015037593985,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 3,
+        "measuredPriorBodyDriftX": 1,
+        "outputTranslationX": -1,
+        "previousAnchor": {
+          "x": 633.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 635.0507518796992,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 4,
+        "measuredPriorBodyDriftX": -7,
+        "outputTranslationX": 7,
+        "previousAnchor": {
+          "x": 814.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 803.6447368421053,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 5,
+        "measuredPriorBodyDriftX": -8,
+        "outputTranslationX": 8,
+        "previousAnchor": {
+          "x": 995.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 983.093984962406,
+          "y": 172
+        },
+        "scaleFactor": 1
+      }
+    ]
+  }
+}

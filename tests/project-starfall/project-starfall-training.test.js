@@ -1,0 +1,163 @@
+'use strict';
+
+const assert = require('assert');
+const data = require('../../js/games/project-starfall/project-starfall-data.js');
+const { createProjectStarfallEngine } = require('../../js/games/project-starfall/project-starfall-engine.js');
+const { getMapSpawnPopulation, getMapEnemyPopulationWeights, createMapBalanceReport } = require('./project-starfall-balance-harness.js');
+const { TRAINING_PROTOCOL, getPublicTrainingMaps, getTrainingCohorts, getEligibleTrainingClasses, prepareTrainingPlayer, useTrainingConsumables, assessTrainingLoot, classifyTrainingPhase, selectTrainingRoute, getTrainingLinkLandingX, getTrainingRampDirection, isTrainingDropTraversable, prepareTrainingDropLink, findTrainingRoute, runTrainingScenario } = require('./project-starfall-training-harness.js');
+const { compareTrainingReports, compareTrainingRouteScopes, toCsv } = require('../../build/compare-project-starfall-training.js');
+
+assert.strictEqual(TRAINING_PROTOCOL.warmupSeconds, 60);
+assert.strictEqual(TRAINING_PROTOCOL.measuredSeconds, 300);
+assert.strictEqual(new Set(TRAINING_PROTOCOL.seeds).size, 3);
+const vacantPocket = { hasRoute: true, atCombatPocket: true, localEnemyAlive: false, pendingLocalRespawn: true, moving: false, navigationInput: false };
+assert.strictEqual(classifyTrainingPhase(vacantPocket), 'respawnWaiting', 'a stationary cleared pocket with a pending local replacement is waiting even when remote enemies live');
+assert.strictEqual(classifyTrainingPhase({ ...vacantPocket, navigationInput: true }), 'travel', 'walking toward another pocket remains travel even if the whole map is empty');
+assert.strictEqual(classifyTrainingPhase({ ...vacantPocket, moving: true }), 'travel', 'continued physical movement cannot count as stationary respawn waiting');
+assert.strictEqual(classifyTrainingPhase({ ...vacantPocket, pendingLocalRespawn: false }), 'travel', 'an unrelated distant replacement is not evidence of local respawn waiting');
+assert.strictEqual(classifyTrainingPhase({ ...vacantPocket, localEnemyAlive: true }), 'travel', 'a nearby live target means the pocket is not awaiting respawns');
+assert.strictEqual(classifyTrainingPhase({ ...vacantPocket, combat: true }), 'combat');
+assert.strictEqual(classifyTrainingPhase({ ...vacantPocket, recovery: true }), 'recovery');
+const routeFixture = { platforms: [{ id: 'a' }, { id: 'b' }, { id: 'c' }], trainingRoute: { routePlatformIds: ['a', 'b', 'c'] } };
+const authoredRoute = { trainingRoute: { mainPlatformIds: ['a', 'b'], optionalPlatformIds: ['c'] } };
+assert.deepStrictEqual(selectTrainingRoute(authoredRoute, routeFixture, {}).platformIds, ['a', 'b']);
+assert.deepStrictEqual(selectTrainingRoute(authoredRoute, routeFixture, { routeScope: 'optional' }).platformIds, ['c']);
+assert.deepStrictEqual(selectTrainingRoute(authoredRoute, routeFixture, { routeScope: 'full' }).platformIds, ['a', 'b', 'c']);
+assert.strictEqual(selectTrainingRoute({}, routeFixture, {}).fallback, true, 'missing authored circuits remain explicitly diagnostic');
+assert.deepStrictEqual(selectTrainingRoute({}, routeFixture, { routePlan: { mainPlatformIds: ['a', 'missing'] } }).missingPlatformIds, ['missing'], 'shared before/after circuit cannot silently drop unavailable terrain');
+assert.throws(() => selectTrainingRoute(authoredRoute, routeFixture, { routeScope: 'invented' }), /route/);
+const routePlatforms = [{ x: 0, w: 1000, y: 200 }, { x: 1000, w: 1000, y: 400 }, { x: 0, w: 2000, y: 500 }];
+const wideFlat = { x: 1460, w: 820, y: 960 };
+const risingRamp = { x: 1460, w: 280, y: 960, y2: 780, shape: 'slope' };
+assert.strictEqual(getTrainingRampDirection({ type: 'ramp-up' }, wideFlat, risingRamp), 1, 'ascending direction follows the actual slope even when the broad flat center is to its right');
+assert.strictEqual(getTrainingRampDirection({ type: 'ramp-down' }, risingRamp, wideFlat), -1);
+const directDrop = { from: 0, to: 1, type: 'drop', exitX: 970, entryX: 990 };
+assert.strictEqual(getTrainingLinkLandingX(directDrop, routePlatforms, 40), 1022, 'drop destination lies inside actual landing terrain');
+assert.strictEqual(isTrainingDropTraversable(directDrop, routePlatforms, { speed: 240, bodyWidth: 40 }), true);
+assert.strictEqual(isTrainingDropTraversable({ ...directDrop, exitX: 800 }, routePlatforms, { speed: 240, bodyWidth: 40 }), false, 'ordinary fall cannot cross a large gap before passing the floor');
+const ladderDrop = { from: 0, to: 2, type: 'drop', exitX: 500, entryX: 500 };
+const clearDrop = prepareTrainingDropLink(ladderDrop, routePlatforms, [{ x: 488, y: 200, w: 24, h: 300 }], { speed: 240, bodyWidth: 40 });
+assert(Math.abs(clearDrop.exitX - 500) >= 90 && clearDrop.type === 'drop', 'step clear of ladder auto-mount before issuing real down+jump');
+const physicalGraph = [[directDrop, { from: 0, to: 2, type: 'ladder-down', exitX: 200, entryX: 200 }], [], [{ from: 2, to: 1, type: 'ladder-up', exitX: 1700, entryX: 1700 }]];
+assert.strictEqual(findTrainingRoute(physicalGraph, routePlatforms, 0, 1, 950, 1300, { speed: 240, bodyWidth: 40 }).link, directDrop, 'actual walking and climbing duration beats a long ladder detour with fewer topology penalties');
+for (const classId of ['fighter', 'archer', 'mage']) {
+  const engine = createProjectStarfallEngine(null, data);
+  const loadout = prepareTrainingPlayer(data, engine, classId, 28);
+  engine.state.player.mp = 0;
+  engine.state.player.resource = engine.getStats().secondaryResourceMax;
+  useTrainingConsumables(engine, loadout);
+  assert(engine.state.player.mp > 0, `${classId}: full secondary meter must not prevent the real tonic from restoring depleted MP`);
+  assert.strictEqual(engine.state.consumables[loadout.potionIds[1]], 98, `${classId}: tonic consumes real inventory`);
+  assert(loadout.attackMpReserve > 0 && loadout.mobilitySkills.every((skill) => skill.mpCost > 0 && skill.movementEffect.mode !== 'leap'), 'travel skills retain a real attack-cost reserve and exclude unverified leap arcs');
+  const usable = data.SHOP_ITEMS.find((item) => item.slot === 'weapon' && item.level <= 28 && item.classId === classId);
+  const coinsBefore = engine.state.player.currency;
+  const assessed = assessTrainingLoot(engine, { kind: 'equipment', quantity: 1 }, usable);
+  assert.strictEqual(assessed.equippableEquipment, 1, 'usefulness uses production class and level requirements');
+  assert.strictEqual(assessed.potentialEquipmentResale, engine.getItemSellValue(usable));
+  assert.strictEqual(assessTrainingLoot(engine, { kind: 'equipment', quantity: 1 }, { ...usable, level: 99 }).equippableEquipment, 0, 'high-level drops cannot be counted as currently equippable');
+  assert.strictEqual(engine.state.player.currency, coinsBefore, 'appraisal never sells loot or fabricates earned currency');
+}
+assert.strictEqual(getPublicTrainingMaps(data).length, 13);
+assert.strictEqual(getEligibleTrainingClasses(data, 24).length, 3);
+assert.strictEqual(getEligibleTrainingClasses(data, 25).length, 12);
+const maps = getPublicTrainingMaps(data);
+const cohorts = getTrainingCohorts(data);
+maps.forEach((map) => assert(cohorts.some((cohort) => cohort.mapIds.includes(map.id)), `${map.id}: covered by comparison or explicit standalone cohort`));
+cohorts.forEach((cohort) => cohort.mapIds.forEach((id) => {
+  const map = maps.find((candidate) => candidate.id === id);
+  assert(cohort.level >= map.levelRange[0] && cohort.level <= map.levelRange[1], `${id}: comparison level is inside authored range`);
+}));
+
+const weightedMap = { enemies: ['glassback'], waveMax: 500, waveDelay: 999, spawnGroups: [
+  { id: 'a', population: 2, maxPopulation: 4, partyBonusPerMember: 1, partyScaling: 'section-count', respawnSeconds: 3, enemyWeights: [{ enemyId: 'glassback', weight: 1 }] },
+  { id: 'b', population: 6, respawnSeconds: 7, enemyWeights: [{ enemyId: 'faultSkitter', weight: 3 }, { enemyId: 'riftLantern', weight: 1 }] }
+] };
+assert.deepStrictEqual(getMapSpawnPopulation(weightedMap).population, 8, 'ignore obsolete map-wide cap when authored groups exist');
+assert.strictEqual(getMapSpawnPopulation(weightedMap).respawnSeconds, 6, 'cadence weighted by real population');
+assert.strictEqual(getMapSpawnPopulation(weightedMap, 3).population, 10, 'party population respects group-specific cap');
+assert.strictEqual(getMapSpawnPopulation({ spawnGroups: [{ population: 5, maxPopulation: 9, partyBonusPerMember: 2, partyScaling: 'none' }] }, 3).population, 5, 'groups without authored party scaling remain fixed');
+const weights = Object.fromEntries(getMapEnemyPopulationWeights(data, weightedMap).map((entry) => [entry.enemy.id, entry.weight]));
+assert.deepStrictEqual(weights, { glassback: 0.25, faultSkitter: 0.5625, riftLantern: 0.1875 });
+const cappedMap = { spawnGroups: [{ id: 'support', population: 10, maxPopulation: 14, partyScaling: 'section-count', partyBonusPerMember: 2, enemyMaxAlive: { glowcapHealer: 1 }, enemyWeights: [{ enemyId: 'glowcapHealer', weight: 8 }, { enemyId: 'orebackBeetle', weight: 2 }] }] };
+assert.strictEqual(getMapEnemyPopulationWeights(data, cappedMap).find((entry) => entry.enemy.id === 'glowcapHealer').weight, 0.1, 'formula composition respects the authored single-healer cap');
+assert.strictEqual(getMapEnemyPopulationWeights(data, cappedMap, 3).find((entry) => entry.enemy.id === 'glowcapHealer').weight, 1 / 14, 'party expansion never expands a single-healer cap');
+const report = createMapBalanceReport(data, createProjectStarfallEngine, { classIds: ['fighter'] });
+const field = report.maps.find((map) => map.id === 'greenrootMeadow');
+const tuning = report.mapTuning.maps.find((map) => map.mapId === field.id);
+assert.strictEqual(field.evidenceKind, 'formula-estimate');
+assert.strictEqual(report.maps.find((map) => map.id === 'cinderHollow').trainingXpMultiplier, 0.93, 'formula estimates disclose the same authored multiplier as measured kills');
+assert(Math.abs(tuning.metrics.routeCycleSeconds - field.waveMax / tuning.metrics.killsPerMinute * 60) < 0.3, 'route cycle converts kills/minute to seconds');
+
+const originalRandom = Math.random;
+const originalNow = Date.now;
+const originalPerformanceNow = performance.now;
+const options = { mapId: 'orebackQuarry', level: 28, classId: 'fighter', seed: 137, warmupSeconds: 5, measuredSeconds: 20 };
+const first = runTrainingScenario(data, createProjectStarfallEngine, options);
+const second = runTrainingScenario(data, createProjectStarfallEngine, options);
+assert.deepStrictEqual(first, second, 'same clock and seed replay exact real-engine rewards, inputs and movement');
+assert.strictEqual(Math.random, originalRandom, 'restore random after run');
+assert.strictEqual(Date.now, originalNow, 'restore clock after run');
+assert.strictEqual(performance.now, originalPerformanceNow, 'restore monotonic clock after run');
+assert.strictEqual(first.evidenceKind, 'observed-engine');
+assert(first.totals.kill > 0 && first.totals.xp > 0 && first.totals.damage > 0, 'real attacks kill enemies and produce actual awards');
+assert.strictEqual(first.invalidCoordinates, 0);
+assert.strictEqual(first.partyDownMemberSeconds, 0, 'solo runs have no companion recovery time');
+assert(Math.abs(Object.values(first.phases).reduce((sum, value) => sum + value, 0) - 20) < 0.01, 'phases account for measured window only');
+assert.strictEqual(first.leaderXpPerMinute, Math.round(first.totals.xp * 3 * 1000) / 1000, 'XP/min uses awarded measured XP');
+assert(first.loadout.equipmentSpent <= first.loadout.equipmentBudget, 'legal shop-budget control');
+assert(first.route.visitedPlatformIds.length > 0, 'player moves to real hunting terrain');
+assert(first.loadout.skills.fighter_heavy_strike <= 20, 'skill caps respected');
+const party = runTrainingScenario(data, createProjectStarfallEngine, { ...options, party: true });
+assert(party.population.population >= first.population.population, 'runtime companion mode uses group party scaling');
+assert(party.limitations.some((text) => text.includes('companions use authored AI')), 'do not misrepresent companion party as three human budgets');
+assert(party.partyDownMemberSeconds >= 0 && party.partyDownMemberSeconds <= 2 * options.measuredSeconds, 'two companions contribute at most two down member-seconds per measured second');
+assert(Math.abs(Object.values(party.partyDownSecondsByMember).reduce((sum, value) => sum + value, 0) - party.partyDownMemberSeconds) <= 0.002, 'per-companion recovery durations reconcile with the measured party total');
+assert.strictEqual(Object.values(party.partyDownsByMember).reduce((sum, value) => sum + value, 0), party.partyDeaths, 'per-companion down transitions reconcile without counting each recovery frame as a new down');
+assert.throws(() => runTrainingScenario(data, createProjectStarfallEngine, { ...options, level: 2 }), /outside/);
+assert.throws(() => runTrainingScenario(data, createProjectStarfallEngine, { ...options, classId: 'guardian', level: 24 }), /Ineligible/);
+assert.throws(() => runTrainingScenario(data, createProjectStarfallEngine, { ...options, measuredSeconds: 0 }), /positive/);
+assert.throws(() => runTrainingScenario(data, createProjectStarfallEngine, { ...options, fps: 1 }), /FPS/);
+// Synthetic report fixtures exercise acceptance arithmetic, not game balance.
+const acceptedFixture = (mapId, xp) => TRAINING_PROTOCOL.seeds.map((seed) => ({ ...first, mapId, seed, warmupSeconds: 60, measuredSeconds: 300, leaderXpPerMinute: xp, travelPercent: 20, respawnWaitingPercent: 1,
+  route: { ...first.route, visitedPlatformIds: Array.from({ length: 9 }, (_, index) => `lane-${index}`), routePlatformCount: 9, stuckSeconds: 0 } }));
+const fixture = { runtimeSourceHash: 'same-runtime', runtimeDependencySourceHash: 'same-dependencies', harnessSourceHash: 'same-controller', runnerSourceHash: 'same-runner', balanceHarnessSourceHash: 'same-rotations', routePlanSourceHash: 'same-route-plan', runs: [...acceptedFixture('cinderHollow', 1000), ...acceptedFixture('banditRidgeCamp', 1110), ...acceptedFixture('orebackQuarry', 1400)] };
+const comparison = compareTrainingReports(fixture, fixture);
+assert.strictEqual(comparison.dominance.length, 0, 'a single tested class cannot establish dominance across every eligible class');
+assert.strictEqual(comparison.comparableProtocol, true);
+assert.strictEqual(comparison.rows.find((row) => row.mapId === 'banditRidgeCamp').status, 'within-numerical-targets', 'danger route gets moderate10–20% reward advantage');
+assert.strictEqual(comparison.rows.find((row) => row.mapId === 'orebackQuarry').status, 'requires-tuning', '40% danger advantage cannot silently pass');
+const duplicateSeeds = { ...fixture, runs: [fixture.runs[0], fixture.runs[0], fixture.runs[0]] };
+assert.strictEqual(compareTrainingReports(duplicateSeeds).rows[0].eligibleForAcceptance, false, 'three duplicates are not three fixed seeds');
+const invalidReference = { ...fixture, runs: fixture.runs.map((run) => run.mapId === 'cinderHollow' ? { ...run, route: { ...run.route, visitedPlatformIds: [] } } : run) };
+assert.strictEqual(compareTrainingReports(invalidReference).rows.find((row) => row.mapId === 'banditRidgeCamp').status, 'diagnostic-comparison-cohort', 'an incomplete reference cannot make another route pass');
+const specialRoutes = compareTrainingReports({ ...fixture, runs: [...acceptedFixture('eclipseFrontier', 1000), ...acceptedFixture('endlessRift', 5000)].map((run) => ({ ...run, level: 100 })) });
+assert.strictEqual(specialRoutes.rows.find((row) => row.mapId === 'endlessRift').status, 'special-route-review', 'endless mechanics use a separate purpose review');
+assert.strictEqual(specialRoutes.rows.find((row) => row.mapId === 'eclipseFrontier').status, 'standalone-review', 'endless rewards cannot become the ordinary-field cohort reference');
+assert.strictEqual(compareTrainingReports(fixture, { ...fixture, harnessSourceHash: 'different-controller' }).comparableProtocol, false, 'different controllers do not count as matched before/after evidence');
+const differentRoute = { ...fixture, runs: fixture.runs.map((run) => ({ ...run, route: { ...run.route, plannedPlatformIds: ['different-loop'] } })) };
+assert.strictEqual(compareTrainingReports(fixture, differentRoute).rows[0].comparisonEligibleForAcceptance, false, 'different chosen circuits cannot become paired before/after evidence');
+for (const [field, value] of [['fps', 60], ['warmupSeconds', 30], ['measuredSeconds', 240]]) {
+  const changedSampling = compareTrainingReports(fixture, { ...fixture, runs: fixture.runs.map((run) => ({ ...run, [field]: value })) });
+  assert.strictEqual(changedSampling.comparableProtocol, false, `${field}: actual sampling mismatch cannot count as a matched comparison`);
+  assert(changedSampling.rows.every((row) => row.pairedChangePercent === null && !row.comparisonEligibleForAcceptance), `${field}: mismatched sampling suppresses paired conclusions`);
+}
+assert.strictEqual(compareTrainingReports(fixture, { ...fixture, runnerSourceHash: undefined }).comparableProtocol, false, 'missing source provenance cannot establish a matched comparison');
+const mainFixture = { ...fixture, spawnProfileSourceHash: 'same-spawns', layoutSourceHash: 'same-layout', runs: fixture.runs.map((run) => ({ ...run, routeScope: 'main' })) };
+const optionalFixture = { ...mainFixture, runs: mainFixture.runs.map((run) => ({ ...run, routeScope: 'optional', leaderXpPerMinute: run.leaderXpPerMinute * 1.15, damageTakenPerMinute: run.damageTakenPerMinute * 1.2 })) };
+const branchComparison = compareTrainingRouteScopes(mainFixture, optionalFixture);
+assert(branchComparison.rows.every((row) => row.eligibleForComparison && row.moderateRewardPremium), 'same-runtime main/optional routes report actual paired risk and reward separately');
+const partyMainFixture = { ...mainFixture, runs: mainFixture.runs.map((run) => ({ ...run, party: true, partyDeaths: 1, partyDownMemberSeconds: 8 })) };
+const partyOptionalFixture = { ...partyMainFixture, runs: partyMainFixture.runs.map((run) => ({ ...run, routeScope: 'optional', partyDeaths: 2, partyDownMemberSeconds: 16 })) };
+const partyBranch = compareTrainingRouteScopes(partyMainFixture, partyOptionalFixture).rows[0];
+assert.strictEqual(partyBranch.mainCompanionDowns, 3, 'companion downs sum distinct measured transitions across the three seed runs');
+assert.strictEqual(partyBranch.optionalCompanionDownMemberSeconds, 16, 'combined companion recovery time is reported as mean member-seconds per run');
+assert(partyBranch.higherCompanionRecoveryBurden && partyBranch.higherMeasuredPressure, 'more companion recoveries indicate party pressure even if leader damage is unchanged');
+assert.strictEqual(compareTrainingRouteScopes(mainFixture, { ...optionalFixture, spawnProfileSourceHash: 'different-spawns' }).comparableProtocol, false, 'branch comparison cannot silently mix authored populations');
+assert(toCsv([{ mapId: 'a', pairedChangePercent: null }, { mapId: 'b', pairedChangePercent: 12 }]).includes('pairedChangePercent'), 'nullable before columns survive CSV export');
+const runCli = (workers) => {
+  const result = require('child_process').spawnSync(process.execPath, [require.resolve('../../build/analyze-project-starfall-training.js'), '--maps=rustcoilRuins', '--level=17', '--classes=fighter,mage', '--seeds=137', '--no-party', '--warmup=2', '--seconds=8', `--workers=${workers}`, '--json'], { encoding: 'utf8', windowsHide: true });
+  assert.strictEqual(result.status, 0, result.stderr);
+  return JSON.parse(result.stdout).runs;
+};
+assert.deepStrictEqual(runCli(1), runCli(2), 'fresh scenario processes and virtual wall/monotonic clocks make results independent of worker count and order');
+process.stdout.write('Starfall training measurement tests passed: deterministic real combat, rewards, population weights, units, cohorts and controls.\n');

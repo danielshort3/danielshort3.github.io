@@ -28,7 +28,7 @@
     block-size: 2px;
     overflow: hidden;
     pointer-events: none;
-    background: color-mix(in srgb, var(--panel-color, #155dfc) 15%, transparent);
+    background: color-mix(in srgb, var(--panel-color, #005fed) 15%, transparent);
   }
 
   .site-route-progress[hidden],
@@ -42,7 +42,7 @@
     position: absolute;
     inset: 0;
     inline-size: 38%;
-    background: var(--panel-color, #155dfc);
+    background: var(--panel-color, #005fed);
     transform: translateX(-120%);
     animation: site-route-progress 900ms ease-in-out infinite;
   }
@@ -66,7 +66,7 @@
     gap: .75rem;
     margin: .75rem clamp(.75rem, 2vw, 1.25rem) 0;
     padding: .7rem .9rem;
-    border: 1px solid color-mix(in srgb, var(--panel-color, #155dfc) 30%, #d7dee8);
+    border: 1px solid color-mix(in srgb, var(--panel-color, #005fed) 30%, #d7dee8);
     border-radius: .65rem;
     color: #233044;
     background: #f8fafc;
@@ -78,7 +78,7 @@
     padding: .35rem .75rem;
     border: 1px solid currentColor;
     border-radius: 999px;
-    color: var(--panel-color, #155dfc);
+    color: var(--panel-color, #005fed);
     background: #fff;
     font: inherit;
     font-weight: 700;

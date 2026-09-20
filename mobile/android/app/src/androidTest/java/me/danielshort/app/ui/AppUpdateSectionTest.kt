@@ -67,4 +67,20 @@ class AppUpdateSectionTest {
     compose.onNodeWithText("Check again").assertIsDisplayed()
     compose.onNodeWithText("Install update").assertDoesNotExist()
   }
+
+  @Test fun globalNoticeExposesUpdatesWithoutInterruptingLaunchForErrors() {
+    val state = mutableStateOf<AppUpdateState>(AppUpdateState.Checking)
+    var openedSettings = 0
+    compose.setContent { MaterialTheme { AppUpdateNoticeContent(state.value, { openedSettings++ }) } }
+    compose.onNodeWithText("View update").assertDoesNotExist()
+    compose.runOnIdle { state.value = AppUpdateState.Error("Connection unavailable", UpdateRetryAction.CHECK) }
+    compose.onNodeWithText("Connection unavailable").assertDoesNotExist()
+    compose.runOnIdle { state.value = AppUpdateState.Available(offer) }
+    compose.onNodeWithText("App update available · ${offer.versionName}").assertIsDisplayed()
+    compose.onNodeWithText("View update").performClick()
+    assertEquals(1, openedSettings)
+    compose.runOnIdle { state.value = AppUpdateState.Ready(offer) }
+    compose.onNodeWithText("App update ready · ${offer.versionName}").assertIsDisplayed()
+    compose.onNodeWithText("Install update").assertDoesNotExist()
+  }
 }

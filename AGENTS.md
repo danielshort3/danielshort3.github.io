@@ -1,9 +1,14 @@
 # Repository Guidelines
 
+## Start Here
+Use [docs/REPOSITORY_MAP.md](docs/REPOSITORY_MAP.md) to locate the relevant website or Android feature, authoritative sources, generated outputs, and focused checks before doing a broad repository search. Verify the relevant files before editing. Update the map when moving entry points or changing source ownership/build responsibilities; do not add temporary task history or live deployment status.
+
 ## Project Structure & Module Organization
-Source HTML lives at the root (`index.html`, `portfolio.html`, `contact.html`), while assets stay under `css/`, `js/` (grouped by area like `js/navigation/`), `img/`, and `documents/`. Build helpers sit in `build/` (`build-css.js`, `copy-to-public.js`, `resize_logo.py`). The CSS bundle lands in `dist/styles.[hash].css`, and deployable artifacts are mirrored into `public/`. Add new asset folders only after updating `build/copy-to-public.js` so they are included in the deployment.
+Managed page and catalog content lives under `content/`; authored tool/demo HTML lives under `pages/` and `demos/`. Many root pages, project pages, and catalog scripts are generated, so consult the repository map before editing HTML or data arrays. Assets stay under `css/`, `js/` (grouped by area like `js/navigation/`), `img/`, and `documents/`. Build helpers sit in `build/`, bundled assets land in `dist/`, and deployable artifacts are mirrored into `public/`. Add new asset folders only after updating `build/copy-to-public.js` so they are included in the deployment. The native Android app lives under `mobile/android/` and has its own Gradle build.
 
 ## Templates & Scaffolding
+For Project Starfall asset, animation, or combat-feedback work, first read the [confirmed art direction](docs/project-starfall/ASSET_GENERATION_GUIDE.md#confirmed-art-direction-and-references) and [Combat visual language v1](docs/project-starfall/ASSET_GENERATION_GUIDE.md#combat-visual-language-v1), then use the [asset prompt templates](asset-sources/project-starfall/prompts/README.md). Preserve the clean illustrated finish, compact character identities, anatomy-appropriate movement, meaning-first colors, readable anticipation/contact timing, and separate actor/FX layers; keep current export contracts until a migration is explicitly scoped.
+
 Use the no-deps templates under `build/templates/` to keep new work consistent:
 - Tools: `build/templates/tool-page.template.html` + `build/templates/tool-script.template.js`
 - Site pages: `build/templates/page.template.html`
@@ -46,7 +51,7 @@ Session metadata:
 - Backend support is `PATCH /api/tools/state` (see `api/_lib/tools-endpoints/state.js` and `js/accounts/tools-state.js`).
 
 ## Build, Test, and Development Commands
-Run `npm run build:css` to compose all `css/styles.css` imports into the hashed bundle. `npm run build:icons` regenerates favicons from `img/ui/logo.png`. `npm run build` runs the CSS build and copies site assets into `public/`. Lightweight project checks live in `npm test`. After any build, open `public/index.html` (or the root files) in a browser or serve `public/` through any static server for validation. CI (`.github/workflows/ci.yml`) runs `npm run build && npm test` on push to `main` and on PRs.
+Run `npm run build:css` to compose all `css/styles.css` imports into the hashed bundle. `npm run build:icons` derives the optical favicon from the approved DS SVG master, then regenerates its PNG and ICO exports. `npm run build` runs the CSS build and copies site assets into `public/`. Lightweight project checks live in `npm test`. After any build, open `public/index.html` (or the root files) in a browser or serve `public/` through any static server for validation. CI (`.github/workflows/ci.yml`) runs `npm run build && npm test` on push to `main` and on PRs.
 
 ## Color Scheme
 The shared site is intentionally light-only. Do not add automatic `prefers-color-scheme: dark` overrides or page-level theme scope attributes. Individual games and demos may keep their own deliberately dark visual designs when those styles are isolated from the shared site shell.

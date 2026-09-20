@@ -1,0 +1,513 @@
+{
+  "candidate": "C:\\Users\\clopt\\Documents\\coding\\Personal_Projects\\danielshort3.github.io\\output\\starfall-animation-samples\\oracle-cast-study.png",
+  "sourceSha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8",
+  "dimensions": [
+    1774,
+    887
+  ],
+  "measured": [
+    {
+      "visible": {
+        "left": 65,
+        "top": 88,
+        "right": 390,
+        "bottom": 439
+      },
+      "rootX": 216,
+      "rootY": 440,
+      "pixels": 73855
+    },
+    {
+      "visible": {
+        "left": 86,
+        "top": 122,
+        "right": 391,
+        "bottom": 439
+      },
+      "rootX": 237.5,
+      "rootY": 440,
+      "pixels": 61957
+    },
+    {
+      "visible": {
+        "left": 87,
+        "top": 169,
+        "right": 362,
+        "bottom": 439
+      },
+      "rootX": 222,
+      "rootY": 440,
+      "pixels": 50742
+    },
+    {
+      "visible": {
+        "left": 59,
+        "top": 88,
+        "right": 383,
+        "bottom": 437
+      },
+      "rootX": 212,
+      "rootY": 438,
+      "pixels": 73726
+    },
+    {
+      "visible": {
+        "left": 55,
+        "top": 46,
+        "right": 402,
+        "bottom": 399
+      },
+      "rootX": 227,
+      "rootY": 400,
+      "pixels": 73974
+    },
+    {
+      "visible": {
+        "left": 69,
+        "top": 55,
+        "right": 413,
+        "bottom": 398
+      },
+      "rootX": 228,
+      "rootY": 399,
+      "pixels": 73066
+    },
+    {
+      "visible": {
+        "left": 70,
+        "top": 63,
+        "right": 388,
+        "bottom": 399
+      },
+      "rootX": 222.5,
+      "rootY": 400,
+      "pixels": 69236
+    },
+    {
+      "visible": {
+        "left": 65,
+        "top": 63,
+        "right": 376,
+        "bottom": 399
+      },
+      "rootX": 218.5,
+      "rootY": 400,
+      "pixels": 69018
+    }
+  ],
+  "sourceRects": [
+    {
+      "left": 0,
+      "top": 0,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "left": 444,
+      "top": 0,
+      "width": 443,
+      "height": 444
+    },
+    {
+      "left": 887,
+      "top": 0,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "left": 1331,
+      "top": 0,
+      "width": 443,
+      "height": 444
+    },
+    {
+      "left": 0,
+      "top": 444,
+      "width": 444,
+      "height": 443
+    },
+    {
+      "left": 444,
+      "top": 444,
+      "width": 443,
+      "height": 443
+    },
+    {
+      "left": 887,
+      "top": 444,
+      "width": 444,
+      "height": 443
+    },
+    {
+      "left": 1331,
+      "top": 444,
+      "width": 443,
+      "height": 443
+    }
+  ],
+  "frames": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 444,
+      "h": 444,
+      "rootX": 216,
+      "rootY": 440,
+      "visible": {
+        "left": 65,
+        "top": 88,
+        "right": 390,
+        "bottom": 439
+      }
+    },
+    {
+      "x": 444,
+      "y": 0,
+      "w": 443,
+      "h": 444,
+      "rootX": 237.5,
+      "rootY": 440,
+      "visible": {
+        "left": 86,
+        "top": 122,
+        "right": 391,
+        "bottom": 439
+      }
+    },
+    {
+      "x": 887,
+      "y": 0,
+      "w": 444,
+      "h": 444,
+      "rootX": 222,
+      "rootY": 440,
+      "visible": {
+        "left": 87,
+        "top": 169,
+        "right": 362,
+        "bottom": 439
+      }
+    },
+    {
+      "x": 1331,
+      "y": 0,
+      "w": 443,
+      "h": 444,
+      "rootX": 212,
+      "rootY": 438,
+      "visible": {
+        "left": 59,
+        "top": 88,
+        "right": 383,
+        "bottom": 437
+      }
+    },
+    {
+      "x": 0,
+      "y": 444,
+      "w": 444,
+      "h": 443,
+      "rootX": 227,
+      "rootY": 400,
+      "visible": {
+        "left": 55,
+        "top": 46,
+        "right": 402,
+        "bottom": 399
+      }
+    },
+    {
+      "x": 444,
+      "y": 444,
+      "w": 443,
+      "h": 443,
+      "rootX": 228,
+      "rootY": 399,
+      "visible": {
+        "left": 69,
+        "top": 55,
+        "right": 413,
+        "bottom": 398
+      }
+    },
+    {
+      "x": 887,
+      "y": 444,
+      "w": 444,
+      "h": 443,
+      "rootX": 222.5,
+      "rootY": 400,
+      "visible": {
+        "left": 70,
+        "top": 63,
+        "right": 388,
+        "bottom": 399
+      }
+    },
+    {
+      "x": 1331,
+      "y": 444,
+      "w": 443,
+      "h": 443,
+      "rootX": 218.5,
+      "rootY": 400,
+      "visible": {
+        "left": 65,
+        "top": 63,
+        "right": 376,
+        "bottom": 399
+      }
+    }
+  ],
+  "uniformScale": 0.24671345811051693,
+  "method": "Largest opaque component bounds; bottom 7 percent foot-band midpoint and lowest contact pixel. One fixed scale for all frames; per-frame translation only. No generated in-between frames or morphing.",
+  "encoding": "WebP quality 90, alpha quality 100; approved raw actor PNG unchanged",
+  "effects": [
+    {
+      "image": "healFx",
+      "start": 0.35,
+      "duration": 0.7,
+      "holds": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 256.2886133032694,
+          "h": 256.2886133032694,
+          "rootX": 128.72153325817362,
+          "rootY": 145.46110484780158,
+          "visible": {
+            "left": 70.4216459977452,
+            "top": 85.42953776775647,
+            "right": 184.71251409244644,
+            "bottom": 198.56595264937994
+          }
+        },
+        {
+          "x": 256.2886133032694,
+          "y": 0,
+          "w": 255.71138669673053,
+          "h": 256.2886133032694,
+          "rootX": 128.72153325817362,
+          "rootY": 145.46110484780158,
+          "visible": {
+            "left": 45.02367531003382,
+            "top": 58.299887260428406,
+            "right": 204.33821871476889,
+            "bottom": 209.53325817361892
+          }
+        },
+        {
+          "x": 512,
+          "y": 0,
+          "w": 256.2886133032694,
+          "h": 256.2886133032694,
+          "rootX": 133.91657271702366,
+          "rootY": 144.88387824126266,
+          "visible": {
+            "left": 40.40586245772266,
+            "top": 52.52762119503946,
+            "right": 227.42728297632468,
+            "bottom": 236.0856820744081
+          }
+        },
+        {
+          "x": 768.2886133032694,
+          "y": 0,
+          "w": 255.71138669673053,
+          "h": 256.2886133032694,
+          "rootX": 129.8759864712514,
+          "rootY": 145.46110484780158,
+          "visible": {
+            "left": 32.32468996617813,
+            "top": 48.48703494926719,
+            "right": 226.27282976324688,
+            "bottom": 242.43517474633595
+          }
+        },
+        {
+          "x": 0,
+          "y": 256.2886133032694,
+          "w": 256.2886133032694,
+          "h": 255.71138669673053,
+          "rootX": 129.2987598647125,
+          "rootY": 115.44532130777903,
+          "visible": {
+            "left": 20.20293122886133,
+            "top": 16.739571589627957,
+            "right": 238.97181510710257,
+            "bottom": 215.88275084554678
+          }
+        },
+        {
+          "x": 256.2886133032694,
+          "y": 256.2886133032694,
+          "w": 255.71138669673053,
+          "h": 255.71138669673053,
+          "rootX": 128.72153325817362,
+          "rootY": 120.06313416009019,
+          "visible": {
+            "left": 28.861330326944756,
+            "top": 9.235625704622322,
+            "right": 229.15896279594136,
+            "bottom": 200.8748590755355
+          }
+        },
+        {
+          "x": 512,
+          "y": 256.2886133032694,
+          "w": 256.2886133032694,
+          "h": 255.71138669673053,
+          "rootX": 133.91657271702366,
+          "rootY": 120.06313416009019,
+          "visible": {
+            "left": 51.95039458850056,
+            "top": 46.17812852311161,
+            "right": 214.1510710259301,
+            "bottom": 200.2976324689966
+          }
+        },
+        {
+          "x": 768.2886133032694,
+          "y": 256.2886133032694,
+          "w": 255.71138669673053,
+          "h": 255.71138669673053,
+          "rootX": 128.72153325817362,
+          "rootY": 120.06313416009019,
+          "visible": {
+            "left": 48.48703494926719,
+            "top": 53.10484780157835,
+            "right": 208.37880496054115,
+            "bottom": 197.98872604284102
+          }
+        }
+      ],
+      "scale": 0.5302399406332454,
+      "offsetX": 0,
+      "offsetY": -56,
+      "opacity": 1,
+      "fadeIn": 0.04,
+      "fadeOut": 0.14
+    }
+  ],
+  "effectSource": "C:\\Users\\clopt\\Documents\\coding\\Personal_Projects\\danielshort3.github.io\\output\\starfall-animation-samples\\oracle-healing-fx-study.png",
+  "effectSourceSha256": "ca85357f4b383cbcde432e9e073e9a33f0019bb1de67ca75837f71b8d6642a69",
+  "effectEncoding": "1024-pixel-wide nearest-neighbor preview texture, WebP quality 94, alpha quality 100; raw effect PNG unchanged",
+  "effectRegistration": {
+    "source": "oracle-healing-fx-study.png",
+    "sourceSha256": "ca85357f4b383cbcde432e9e073e9a33f0019bb1de67ca75837f71b8d6642a69",
+    "coordinateSpace": "Local coordinates within each measured sourceRect; source pixels before the shared rendering scale.",
+    "anchors": [
+      {
+        "x": 223,
+        "y": 252
+      },
+      {
+        "x": 223,
+        "y": 252
+      },
+      {
+        "x": 232,
+        "y": 251
+      },
+      {
+        "x": 225,
+        "y": 252
+      },
+      {
+        "x": 224,
+        "y": 200
+      },
+      {
+        "x": 223,
+        "y": 208
+      },
+      {
+        "x": 232,
+        "y": 208
+      },
+      {
+        "x": 223,
+        "y": 208
+      }
+    ],
+    "globalSourceCenters": [
+      {
+        "x": 223,
+        "y": 252
+      },
+      {
+        "x": 667,
+        "y": 252
+      },
+      {
+        "x": 1119,
+        "y": 251
+      },
+      {
+        "x": 1556,
+        "y": 252
+      },
+      {
+        "x": 224,
+        "y": 644
+      },
+      {
+        "x": 667,
+        "y": 652
+      },
+      {
+        "x": 1119,
+        "y": 652
+      },
+      {
+        "x": 1554,
+        "y": 652
+      }
+    ],
+    "method": [
+      "Frames 0-3: enclosed transparent-hole component measured at alpha thresholds 64 and 128. Both thresholds agree within about 0.2 source pixels; rounded centroids supply the stable ring center, without plus-mark mass.",
+      "Frames 4-5: ring gaps connect the hole to the background, so fit a circle to the inner ring boundary sampled radially. Require three consecutive alpha>=128 samples and reject radial outliers. Fitted centers are (224.19,199.87) and (222.89,207.67); median radial residuals about 2.32 and 1.96 source pixels.",
+      "Frames 6-7: preserve frame 5's logical vertical ring origin at local y208 while the ring dissolves. Local x232 and x223 follow the corresponding column's radial fragment arrangement. Do not recenter by rising plus signs or all-pixel bounds."
+    ],
+    "notes": [
+      "Anchors change drawing translation only. Keep one effect scale across all eight frames; no per-frame fit or resizing.",
+      "Late-phase anchors are logical continuity points, not measured intact-circle centers. The drawn ring is not a perfect mathematical circle.",
+      "First-row ring centers are near y252; second-row centers are near y200-208. Nominal cell centers would introduce a packing jump."
+    ]
+  },
+  "originalSource": "C:\\Users\\clopt\\Documents\\coding\\Personal_Projects\\danielshort3.github.io\\img\\project-starfall\\animations\\enemies\\icebloom-oracle-compact-sheet.png",
+  "originalSourceSha256": "9e27e3cb0f90a712cc61f14d63ac41ea0ceb1178470f177c6f94e817b5d039c2",
+  "currentRuntimeCastSeconds": 0.58,
+  "staging": "Both sides use 0.35 seconds ready, 0.58 seconds casting, and 0.27 seconds recovery/idle. The 1.2-second replay is for review; native healing cooldown is 2.8 seconds. Current buff row 5 has pose durations 1/12, 1/12, and 0.58-2/12 seconds. The proposed eight-frame healing aura is a separate layer starting with the cast and lasting 0.7 seconds, matching the runtime healing-effect lifetime. The current side retains its baked aura; this is not a capture of the whole game renderer.",
+  "afterCycleSeconds": 1.2,
+  "holds": [
+    210,
+    48,
+    48,
+    48,
+    76,
+    64,
+    64,
+    162
+  ],
+  "beforeCycleSeconds": 1.2,
+  "fragment": "C:\\Users\\clopt\\.codex\\visualizations\\2026\\09\\19\\01a0bb26-35be-7a93-9773-ce24aa252f30\\oracle-healing-cast.html",
+  "fragmentBytes": 928663,
+  "limitations": "This is a visual study for feedback, not a production-ready atlas or a guarantee of seamless animation.",
+  "approvedActorPreservation": {
+    "rawPngHashIdentical": true,
+    "frameRectanglesAndAnchorsIdentical": true,
+    "uniformScaleIdentical": true,
+    "poseTimingIdentical": true
+  }
+}

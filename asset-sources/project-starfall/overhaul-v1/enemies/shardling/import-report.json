@@ -1,0 +1,1965 @@
+{
+  "fileId": "shardling",
+  "sourceSha256": "975217f04d12e0bade8b364476a60586afcc89a4542c3d738f0e3bf3d90904b1",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    193,
+    381,
+    550,
+    719,
+    893,
+    1071,
+    1256,
+    1448
+  ],
+  "sharedScale": 0.8512,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 108,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/shardling-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 911011,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 22,
+        "top": 50,
+        "width": 145,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 126,
+        "width": 145,
+        "height": 127,
+        "pixels": 11550
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 177
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 22,
+        "top": 42,
+        "right": 144,
+        "bottom": 149,
+        "width": 123,
+        "height": 108,
+        "pixels": 8378,
+        "edgePixels": 0
+      },
+      "sha256": "047e6b23d209a08dff05ee2b3db1dac4d979f7ffaee7c8b7ab074f8f9ac2c4ee"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 204,
+        "top": 48,
+        "width": 141,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 128,
+        "width": 141,
+        "height": 129,
+        "pixels": 11465
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 177
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 40,
+        "right": 142,
+        "bottom": 149,
+        "width": 120,
+        "height": 110,
+        "pixels": 8357,
+        "edgePixels": 0
+      },
+      "sha256": "95647ef89db57b27f593fe4b4b048847f4b0a56a11e1f207288dd28c05d4ca82"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 384,
+        "top": 48,
+        "width": 143,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 128,
+        "width": 143,
+        "height": 129,
+        "pixels": 11596
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 177
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 40,
+        "right": 143,
+        "bottom": 149,
+        "width": 122,
+        "height": 110,
+        "pixels": 8455,
+        "edgePixels": 0
+      },
+      "sha256": "6712beceed986f318a8647265b585851d8c63eb31e4e50eb53cfd8f4a37f6234"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 562,
+        "top": 49,
+        "width": 140,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 127,
+        "width": 140,
+        "height": 128,
+        "pixels": 11258
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 177
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 19,
+        "top": 41,
+        "right": 137,
+        "bottom": 149,
+        "width": 119,
+        "height": 109,
+        "pixels": 8198,
+        "edgePixels": 0
+      },
+      "sha256": "ed8020d361d8cc770dea3e48520f6457a7233a9896520e284dfa1e1598505b84"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 745,
+        "top": 49,
+        "width": 144,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 127,
+        "width": 144,
+        "height": 128,
+        "pixels": 11646
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 177
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 21,
+        "top": 41,
+        "right": 143,
+        "bottom": 149,
+        "width": 123,
+        "height": 109,
+        "pixels": 8511,
+        "edgePixels": 0
+      },
+      "sha256": "a52e7c18334e69af5dc5f42a51dad65d53a7761bc8fbcf79b08b0ac8c6a1399b"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 925,
+        "top": 50,
+        "width": 141,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 126,
+        "width": 141,
+        "height": 127,
+        "pixels": 11326
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 177
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 42,
+        "right": 139,
+        "bottom": 149,
+        "width": 120,
+        "height": 108,
+        "pixels": 8226,
+        "edgePixels": 0
+      },
+      "sha256": "e831cc40b28a4dae84eafa1a7a6ff2e9524dae8d3a2931dc2355e191f8fcd07c"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 25,
+        "top": 244,
+        "width": 144,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 120,
+        "width": 144,
+        "height": 121,
+        "pixels": 10955
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 361
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 50,
+        "right": 146,
+        "bottom": 152,
+        "width": 123,
+        "height": 103,
+        "pixels": 8010,
+        "edgePixels": 0
+      },
+      "sha256": "51bdeeda5e380bd897fee938757c8fe862c0d744858b86a76c0e4f85fbae5d3d"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 203,
+        "top": 226,
+        "width": 141,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 129,
+        "width": 141,
+        "height": 130,
+        "pixels": 11088
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 361
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 35,
+        "right": 141,
+        "bottom": 145,
+        "width": 120,
+        "height": 111,
+        "pixels": 8097,
+        "edgePixels": 0
+      },
+      "sha256": "c892ac0fffbc7b56a455ca7805ae6f353d937e9663bf16e2d6c7e882e995868a"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 379,
+        "top": 208,
+        "width": 144,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 127,
+        "width": 144,
+        "height": 128,
+        "pixels": 11010
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 361
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 17,
+        "top": 20,
+        "right": 139,
+        "bottom": 128,
+        "width": 123,
+        "height": 109,
+        "pixels": 8053,
+        "edgePixels": 0
+      },
+      "sha256": "3689ee0595933aa1659b4ee06fbd09241e969514726ecd64b715870efcf8f37c"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 564,
+        "top": 210,
+        "width": 140,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 126,
+        "width": 140,
+        "height": 127,
+        "pixels": 10581
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 361
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 21,
+        "right": 139,
+        "bottom": 128,
+        "width": 119,
+        "height": 108,
+        "pixels": 7664,
+        "edgePixels": 0
+      },
+      "sha256": "152997638516c25c323da8598e52c900d547c471070c52e5bf015598ae80d4ba"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 746,
+        "top": 236,
+        "width": 144,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 124,
+        "width": 144,
+        "height": 125,
+        "pixels": 11246
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 361
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 44,
+        "right": 144,
+        "bottom": 149,
+        "width": 123,
+        "height": 106,
+        "pixels": 8224,
+        "edgePixels": 0
+      },
+      "sha256": "7232e72618e47b873e19f1fa0ded3d169bafc16e66c9e0cd81b4961b28ce73f6"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 924,
+        "top": 238,
+        "width": 144,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 123,
+        "width": 144,
+        "height": 124,
+        "pixels": 11145
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 361
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 45,
+        "right": 141,
+        "bottom": 150,
+        "width": 123,
+        "height": 106,
+        "pixels": 8165,
+        "edgePixels": 0
+      },
+      "sha256": "deacdd58540c7ad7f19ca0921cf03dc769124b17b15aa984d17681990ce1e7ab"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 24,
+        "top": 397,
+        "width": 145,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 132,
+        "width": 145,
+        "height": 133,
+        "pixels": 11890
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 530
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 37,
+        "right": 145,
+        "bottom": 149,
+        "width": 123,
+        "height": 113,
+        "pixels": 8588,
+        "edgePixels": 0
+      },
+      "sha256": "78c9c8af7079a8499d5ec04b30fbb668df794143824aeb84d41866dd394bb75d"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 202,
+        "top": 405,
+        "width": 143,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 123,
+        "width": 143,
+        "height": 124,
+        "pixels": 11118
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 530
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 21,
+        "top": 44,
+        "right": 142,
+        "bottom": 149,
+        "width": 122,
+        "height": 106,
+        "pixels": 8133,
+        "edgePixels": 0
+      },
+      "sha256": "057a848c229ae4c02c08a1a4a77ee69e961f89af7c8712b49b6507ce3cfb722e"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 381,
+        "top": 408,
+        "width": 144,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 122,
+        "width": 144,
+        "height": 123,
+        "pixels": 11216
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 530
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 19,
+        "top": 46,
+        "right": 141,
+        "bottom": 150,
+        "width": 123,
+        "height": 105,
+        "pixels": 8180,
+        "edgePixels": 0
+      },
+      "sha256": "97bad16bfd891ac8fbc2d22e2111ce1617c2968320f04ae50775a3cff398d6af"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 565,
+        "top": 406,
+        "width": 143,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 124,
+        "width": 143,
+        "height": 125,
+        "pixels": 11579
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 530
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 44,
+        "right": 143,
+        "bottom": 149,
+        "width": 122,
+        "height": 106,
+        "pixels": 8460,
+        "edgePixels": 0
+      },
+      "sha256": "66d3e434a391b89ee26938fc0b5e91c26b7c9a81976e4aeb227c20f4778bc07a"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 742,
+        "top": 414,
+        "width": 143,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 115,
+        "width": 143,
+        "height": 116,
+        "pixels": 10933
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 530
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 18,
+        "top": 51,
+        "right": 139,
+        "bottom": 149,
+        "width": 122,
+        "height": 99,
+        "pixels": 7972,
+        "edgePixels": 0
+      },
+      "sha256": "8045e3a4bdddfb36ea6003b7c437f06eb6311b3228298534d43e35fa52346999"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 925,
+        "top": 417,
+        "width": 142,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 112,
+        "width": 142,
+        "height": 113,
+        "pixels": 10624
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 530
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 54,
+        "right": 140,
+        "bottom": 149,
+        "width": 121,
+        "height": 96,
+        "pixels": 7724,
+        "edgePixels": 0
+      },
+      "sha256": "7723dc3b67157c7cce73026fdc2b5182a43e2697d99af9e6dc17bc7e2415dafb"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 24,
+        "top": 574,
+        "width": 154,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 126,
+        "width": 154,
+        "height": 127,
+        "pixels": 12276
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 701
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 42,
+        "right": 153,
+        "bottom": 149,
+        "width": 131,
+        "height": 108,
+        "pixels": 8899,
+        "edgePixels": 0
+      },
+      "sha256": "06fcbc931bb6b8208f7b6591583dc2d324775f1a7b6679470d3defdead3ff7aa"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 202,
+        "top": 585,
+        "width": 154,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 115,
+        "width": 154,
+        "height": 116,
+        "pixels": 12019
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 701
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 21,
+        "top": 51,
+        "right": 151,
+        "bottom": 149,
+        "width": 131,
+        "height": 99,
+        "pixels": 8766,
+        "edgePixels": 0
+      },
+      "sha256": "d99530ebc835ec886c75398a7faf2c61a1e51cf6e5c8c657b2105c3fdf90e2f7"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 383,
+        "top": 586,
+        "width": 151,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 115,
+        "width": 151,
+        "height": 116,
+        "pixels": 11201
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 701
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 21,
+        "top": 52,
+        "right": 149,
+        "bottom": 150,
+        "width": 129,
+        "height": 99,
+        "pixels": 8188,
+        "edgePixels": 0
+      },
+      "sha256": "4fc8bb6734fbf6218c51843c5a267fc153c1051cb60ffd5354097d9593170c34"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 563,
+        "top": 574,
+        "width": 148,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 126,
+        "width": 148,
+        "height": 127,
+        "pixels": 11409
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 701
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 42,
+        "right": 145,
+        "bottom": 149,
+        "width": 126,
+        "height": 108,
+        "pixels": 8287,
+        "edgePixels": 0
+      },
+      "sha256": "077db250197359d32ef1783f09068724ecdd6668854b362f8d617fac3d5dd883"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 743,
+        "top": 574,
+        "width": 140,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 126,
+        "width": 140,
+        "height": 127,
+        "pixels": 11198
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 701
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 19,
+        "top": 42,
+        "right": 137,
+        "bottom": 149,
+        "width": 119,
+        "height": 108,
+        "pixels": 8121,
+        "edgePixels": 0
+      },
+      "sha256": "1497b90ec21034a8e719f71c40e86c84221fd943bb4ae60580b489ab59b8e745"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 920,
+        "top": 569,
+        "width": 143,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 132,
+        "width": 143,
+        "height": 133,
+        "pixels": 11715
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 701
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 16,
+        "top": 38,
+        "right": 137,
+        "bottom": 150,
+        "width": 122,
+        "height": 113,
+        "pixels": 8536,
+        "edgePixels": 0
+      },
+      "sha256": "3128b16a955faf8951d1299aa8a11cbd533fcecb6e39e1d8db79098c9233d5a0"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 25,
+        "top": 736,
+        "width": 141,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 135,
+        "width": 141,
+        "height": 136,
+        "pixels": 11444
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 872
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 34,
+        "right": 143,
+        "bottom": 149,
+        "width": 120,
+        "height": 116,
+        "pixels": 8346,
+        "edgePixels": 0
+      },
+      "sha256": "ae84d3f1fe3ebfe4a6f1694a198865469642de3ec905ef6c28c12083e6be1358"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 213,
+        "top": 742,
+        "width": 141,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 128,
+        "width": 141,
+        "height": 129,
+        "pixels": 10920
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 872
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 30,
+        "top": 39,
+        "right": 149,
+        "bottom": 148,
+        "width": 120,
+        "height": 110,
+        "pixels": 7953,
+        "edgePixels": 0
+      },
+      "sha256": "6e5780c307d406aff4b54eabb109b2fb7587348b2ce125426f76ecf01949b52e"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 391,
+        "top": 743,
+        "width": 139,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 128,
+        "width": 139,
+        "height": 129,
+        "pixels": 11161
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 872
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 40,
+        "right": 145,
+        "bottom": 149,
+        "width": 118,
+        "height": 110,
+        "pixels": 8130,
+        "edgePixels": 0
+      },
+      "sha256": "bdbe7c083c27b332f31d04346b116288ea6a840b784ab22be0427fbc4661b0b2"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 564,
+        "top": 756,
+        "width": 142,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 115,
+        "width": 142,
+        "height": 116,
+        "pixels": 10494
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 872
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 51,
+        "right": 141,
+        "bottom": 149,
+        "width": 121,
+        "height": 99,
+        "pixels": 7649,
+        "edgePixels": 0
+      },
+      "sha256": "4967d3cd33afce57d0875a8fb53b8f5e33e73b308100397e439484b636366362"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 744,
+        "top": 749,
+        "width": 140,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 122,
+        "width": 140,
+        "height": 123,
+        "pixels": 10580
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 872
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 45,
+        "right": 138,
+        "bottom": 149,
+        "width": 119,
+        "height": 105,
+        "pixels": 7724,
+        "edgePixels": 0
+      },
+      "sha256": "0a6974a32583d1ea063a00c53148ec5a2d4776a31b1a794bcba4809c8eca8af8"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 924,
+        "top": 745,
+        "width": 138,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 126,
+        "width": 138,
+        "height": 127,
+        "pixels": 10820
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 872
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 42,
+        "right": 135,
+        "bottom": 149,
+        "width": 117,
+        "height": 108,
+        "pixels": 7837,
+        "edgePixels": 0
+      },
+      "sha256": "48b8220348649f31ee45b4e3956441e7b597dd6dfebefbab6fb7003f9cd81bae"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 24,
+        "top": 916,
+        "width": 147,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 129,
+        "width": 147,
+        "height": 130,
+        "pixels": 12017
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1046
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 39,
+        "right": 146,
+        "bottom": 149,
+        "width": 124,
+        "height": 111,
+        "pixels": 8772,
+        "edgePixels": 0
+      },
+      "sha256": "c075dbc638f9f9829b2d66676ea34fa0c0c3d84130467795c961a7086cf74e91"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 210,
+        "top": 931,
+        "width": 138,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 114,
+        "width": 138,
+        "height": 115,
+        "pixels": 10009
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1046
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 52,
+        "right": 143,
+        "bottom": 149,
+        "width": 116,
+        "height": 98,
+        "pixels": 7271,
+        "edgePixels": 0
+      },
+      "sha256": "b949b2f6a7b027936676bf62ad53a26e56531019072146bdbc8370a4df8e9b6f"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 385,
+        "top": 918,
+        "width": 139,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 127,
+        "width": 139,
+        "height": 128,
+        "pixels": 11344
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1046
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 41,
+        "right": 140,
+        "bottom": 149,
+        "width": 118,
+        "height": 109,
+        "pixels": 8256,
+        "edgePixels": 0
+      },
+      "sha256": "3532124fd810a22d6ea2b8edb197ba19fda3a2cf53145f821dc47a9b63f91f98"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 565,
+        "top": 914,
+        "width": 141,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 131,
+        "width": 141,
+        "height": 132,
+        "pixels": 11787
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1046
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 38,
+        "right": 141,
+        "bottom": 149,
+        "width": 120,
+        "height": 112,
+        "pixels": 8541,
+        "edgePixels": 0
+      },
+      "sha256": "193876fbc3314cb46742f2bbe3bad39afcb0d3ddb0ff07054d771866254b2fc2"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 744,
+        "top": 922,
+        "width": 145,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 123,
+        "width": 145,
+        "height": 124,
+        "pixels": 11579
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1046
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 44,
+        "right": 142,
+        "bottom": 149,
+        "width": 123,
+        "height": 106,
+        "pixels": 8469,
+        "edgePixels": 0
+      },
+      "sha256": "13847a260a58251d670088f58fae1ba789e1b3fe53c24c231c0a0ab560284972"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 924,
+        "top": 922,
+        "width": 142,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 123,
+        "width": 142,
+        "height": 124,
+        "pixels": 10868
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1046
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 44,
+        "right": 139,
+        "bottom": 149,
+        "width": 121,
+        "height": 106,
+        "pixels": 7962,
+        "edgePixels": 0
+      },
+      "sha256": "65eb79149035b9353be96b37bf4ba370f5499b9edcf8d57206d72844a0778b90"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 25,
+        "top": 1100,
+        "width": 143,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 127,
+        "width": 143,
+        "height": 128,
+        "pixels": 11445
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1227
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 42,
+        "right": 145,
+        "bottom": 150,
+        "width": 122,
+        "height": 109,
+        "pixels": 8352,
+        "edgePixels": 0
+      },
+      "sha256": "7c31fa651189352f8ea412e5fb2291704ac3ac8473c6a9d12e75e37449e85c5f"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 209,
+        "top": 1096,
+        "width": 143,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 130,
+        "width": 143,
+        "height": 131,
+        "pixels": 11613
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1227
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 38,
+        "right": 148,
+        "bottom": 149,
+        "width": 122,
+        "height": 112,
+        "pixels": 8494,
+        "edgePixels": 0
+      },
+      "sha256": "823665e494975e2d1e6052722f419d858df019ceaca91b82c4db51570a579021"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 391,
+        "top": 1100,
+        "width": 139,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 126,
+        "width": 139,
+        "height": 127,
+        "pixels": 10981
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1227
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 42,
+        "right": 145,
+        "bottom": 149,
+        "width": 118,
+        "height": 108,
+        "pixels": 7959,
+        "edgePixels": 0
+      },
+      "sha256": "b8c50329ec62a4142d61a5027384d498b1e4e8a27488a9d5e47b6cbc9ce8f017"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 563,
+        "top": 1105,
+        "width": 140,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 121,
+        "width": 140,
+        "height": 122,
+        "pixels": 10516
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1227
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 46,
+        "right": 138,
+        "bottom": 149,
+        "width": 119,
+        "height": 104,
+        "pixels": 7659,
+        "edgePixels": 0
+      },
+      "sha256": "80d706b4c6e29b93dc6868421925315e5bbc6518d8f81213e75022e0dbb0e593"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 744,
+        "top": 1099,
+        "width": 142,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 126,
+        "width": 142,
+        "height": 127,
+        "pixels": 11173
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1227
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 41,
+        "right": 140,
+        "bottom": 148,
+        "width": 121,
+        "height": 108,
+        "pixels": 8125,
+        "edgePixels": 0
+      },
+      "sha256": "6b70c914c902cb3b880a0274065f0f2a5109e9124764cbc511b4b80e40da74a2"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 925,
+        "top": 1104,
+        "width": 141,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 120,
+        "width": 141,
+        "height": 121,
+        "pixels": 10694
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1227
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 45,
+        "right": 139,
+        "bottom": 147,
+        "width": 120,
+        "height": 103,
+        "pixels": 7751,
+        "edgePixels": 0
+      },
+      "sha256": "71356ac0419032cd20c48cf5e8056bd3cfb9bf8fa96c0973a01afa1e2461bbf1"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 28,
+        "top": 1284,
+        "width": 137,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 127,
+        "width": 137,
+        "height": 128,
+        "pixels": 10465
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1413
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 40,
+        "right": 143,
+        "bottom": 148,
+        "width": 117,
+        "height": 109,
+        "pixels": 7649,
+        "edgePixels": 0
+      },
+      "sha256": "953399e3f8c36112512205297f11a0950f82f99460b5ccee88a855fb6c0d5c75"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 211,
+        "top": 1287,
+        "width": 133,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 125,
+        "width": 133,
+        "height": 126,
+        "pixels": 10428
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1413
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 43,
+        "right": 141,
+        "bottom": 149,
+        "width": 113,
+        "height": 107,
+        "pixels": 7538,
+        "edgePixels": 0
+      },
+      "sha256": "c5fb4c9de58443fbf317116f970a677dd9066456831174d29debff3be6d98b4c"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 388,
+        "top": 1302,
+        "width": 135,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 110,
+        "width": 135,
+        "height": 111,
+        "pixels": 9738
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1413
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 56,
+        "right": 139,
+        "bottom": 149,
+        "width": 115,
+        "height": 94,
+        "pixels": 7087,
+        "edgePixels": 0
+      },
+      "sha256": "574766929973929c834875c8a176a197c78f04668e42c8aeb15f4338a0087ce6"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 557,
+        "top": 1304,
+        "width": 144,
+        "height": 107
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 106,
+        "width": 144,
+        "height": 107,
+        "pixels": 10161
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1413
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 15,
+        "top": 57,
+        "right": 137,
+        "bottom": 147,
+        "width": 123,
+        "height": 91,
+        "pixels": 7426,
+        "edgePixels": 0
+      },
+      "sha256": "baf0714796db412219d6d8b93b89f4fb4a876a0bec5d1d8f5ccf7798e36ed826"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 732,
+        "top": 1316,
+        "width": 160,
+        "height": 97
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 96,
+        "width": 160,
+        "height": 97,
+        "pixels": 10501
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1413
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 10,
+        "top": 67,
+        "right": 145,
+        "bottom": 149,
+        "width": 136,
+        "height": 83,
+        "pixels": 7704,
+        "edgePixels": 0
+      },
+      "sha256": "35d72c1983e949bd1413b9cc5dd46b2414835be2a4ea3742d1d9f895e8b0ab42"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 915,
+        "top": 1348,
+        "width": 154,
+        "height": 67
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 66,
+        "width": 154,
+        "height": 67,
+        "pixels": 7080
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/shardling/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1413
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 11,
+        "top": 95,
+        "right": 141,
+        "bottom": 151,
+        "width": 131,
+        "height": 57,
+        "pixels": 5131,
+        "edgePixels": 0
+      },
+      "sha256": "4a0c0fb974e5649976283d9ebaa446f05ba00faf3d6aa4b7302c467a4903c318"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}
