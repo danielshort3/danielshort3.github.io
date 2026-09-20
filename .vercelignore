@@ -21,7 +21,23 @@ google_maps_api_key.txt
 /tmp
 /.venv-resume
 /_local
-/mobile
+# Only the release feed and its dependency-free validator enter the build context.
+# Keep native source, APKs, signing files, and Gradle output excluded.
+/mobile/*
+!/mobile/android
+/mobile/android/*
+!/mobile/android/scripts
+/mobile/android/scripts/*
+!/mobile/android/scripts/prepare-app-update.cjs
+!/mobile/android/scripts/app-update-format.cjs
+!/mobile/android/releases
+/mobile/android/releases/*
+!/mobile/android/releases/review
+!/mobile/android/releases/stable
+/mobile/android/releases/review/*
+/mobile/android/releases/stable/*
+!/mobile/android/releases/review/latest.json
+!/mobile/android/releases/stable/latest.json
 
 # Local-only artifacts / large folders
 /archive
