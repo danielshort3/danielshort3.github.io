@@ -727,8 +727,11 @@ function renderHomeAboutConnection(connection) {
   const project = connection.project || {};
   const credit = connection.imageCredit;
   const id = String(connection.id || '').trim();
+  const responsiveImage = connection.imageSrcSet
+    ? ` srcset="${escapeHtml(connection.imageSrcSet)}" sizes="${escapeHtml(connection.imageSizes || '58px')}"`
+    : '';
   const icon = connection.image
-    ? `<img src="${escapeHtml(connection.image)}" alt="" width="${escapeHtml(connection.imageWidth || 128)}" height="${escapeHtml(connection.imageHeight || 128)}" loading="eager" decoding="async">`
+    ? `<img src="${escapeHtml(connection.image)}"${responsiveImage} alt="" width="${escapeHtml(connection.imageWidth || 128)}" height="${escapeHtml(connection.imageHeight || 128)}" loading="lazy" decoding="async" fetchpriority="low">`
     : (HOME_ABOUT_ICONS[connection.icon] || '');
   const analytics = project.contentType && project.contentId
     ? ` data-content-open="true" data-content-id="${escapeHtml(project.contentId)}" data-content-type="${escapeHtml(project.contentType)}" data-resource-type="${escapeHtml(project.resourceType || project.contentType)}" data-source-surface="home_about"`
@@ -743,7 +746,7 @@ function renderHomeAboutConnection(connection) {
     '                  </div>',
     `                  <span class="home-about__connector" aria-hidden="true">${HOME_ABOUT_ICONS.arrow}</span>`,
     `                  <a class="home-about__project" href="${escapeHtml(normalizeHref(project.href))}"${analytics}>`,
-    `                    <strong>${escapeHtml(project.title || 'Explore project')}</strong>`,
+    `                    <strong>${escapeHtml(project.title || 'Explore project')}<span class="home-about__project-arrow" aria-hidden="true">${HOME_ABOUT_ICONS.arrow}</span></strong>`,
     project.summary ? `                    <span>${escapeHtml(project.summary)}</span>` : '',
     '                  </a>',
     '                </li>'

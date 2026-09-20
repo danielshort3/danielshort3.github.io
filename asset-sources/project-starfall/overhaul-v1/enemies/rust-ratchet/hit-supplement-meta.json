@@ -1,0 +1,11 @@
+{
+  "generator": "built-in image_gen",
+  "source": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-53b6883c-b39b-4e79-9fb2-c81f857b5a7e.png",
+  "prompt": "hit-supplement-prompt.md",
+  "purpose": "Supply missing authored hit row only",
+  "selected": "hit-supplement.png",
+  "sha256": "64a1a5862a48aafc748c0c85719d78bb7cd9ef8f03c5b752d96a6fa3bc9b59f1",
+  "width": 1536,
+  "height": 1024,
+  "hasAlpha": true
+}

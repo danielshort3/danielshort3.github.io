@@ -1,0 +1,2139 @@
+{
+  "fileId": "briar-stag",
+  "sourceSha256": "e148c27fee8c9238589fa88b4d959870fe5411e9f8662984df066763df1a9f3d",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    185,
+    369,
+    552,
+    732,
+    920,
+    1106,
+    1291,
+    1448
+  ],
+  "sharedScale": 0.6448484848484849,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 103,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/briar-stag-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 812657,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 45,
+        "top": 12,
+        "width": 139,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 159,
+        "width": 139,
+        "height": 160,
+        "pixels": 11296
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 172
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 51,
+        "top": 47,
+        "right": 140,
+        "bottom": 149,
+        "width": 90,
+        "height": 103,
+        "pixels": 4785,
+        "edgePixels": 0
+      },
+      "sha256": "5440555a170c03865981d66253e384a7f2c5e4f6ca099999f242dfb661cfcb94"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 235,
+        "top": 12,
+        "width": 137,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 159,
+        "width": 137,
+        "height": 160,
+        "pixels": 11626
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 277.703007518797,
+        "y": 172
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 52,
+        "top": 47,
+        "right": 139,
+        "bottom": 149,
+        "width": 88,
+        "height": 103,
+        "pixels": 4863,
+        "edgePixels": 0
+      },
+      "sha256": "7f9e9b4660741e4aa92e71071b159fade55e21e6aa7c983a766947b186dfb05e"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 414,
+        "top": 13,
+        "width": 134,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 158,
+        "width": 134,
+        "height": 159,
+        "pixels": 11407
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 455.6015037593985,
+        "y": 172
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 53,
+        "top": 47,
+        "right": 138,
+        "bottom": 149,
+        "width": 86,
+        "height": 103,
+        "pixels": 4821,
+        "edgePixels": 0
+      },
+      "sha256": "1ed09cb52fdedaa4160961c7329667e613a8b4c08f5b15b23af5e67411c1fee9"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 593,
+        "top": 12,
+        "width": 135,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 159,
+        "width": 135,
+        "height": 160,
+        "pixels": 11285
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 635.0507518796992,
+        "y": 172
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 53,
+        "top": 47,
+        "right": 139,
+        "bottom": 149,
+        "width": 87,
+        "height": 103,
+        "pixels": 4754,
+        "edgePixels": 0
+      },
+      "sha256": "c6282d01b3427fffba65d1f64a9b23b91ea5fafbafd06bc176a44bd07dc55d7f"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 762,
+        "top": 12,
+        "width": 137,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 160,
+        "width": 137,
+        "height": 161,
+        "pixels": 11165
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 803.6447368421053,
+        "y": 172
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 53,
+        "top": 47,
+        "right": 140,
+        "bottom": 150,
+        "width": 88,
+        "height": 104,
+        "pixels": 4710,
+        "edgePixels": 0
+      },
+      "sha256": "27c76ac4d99b377115e75b0cc1744ae34f3d686f3ca766972a8177f370dacf72"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 943,
+        "top": 13,
+        "width": 132,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 158,
+        "width": 132,
+        "height": 159,
+        "pixels": 10937
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 983.093984962406,
+        "y": 172
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 54,
+        "top": 47,
+        "right": 138,
+        "bottom": 149,
+        "width": 85,
+        "height": 103,
+        "pixels": 4639,
+        "edgePixels": 0
+      },
+      "sha256": "afa0607af495447b7ab43cc550a28c5094b72530a9d8e268bacbe176ef3e9e8e"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 39,
+        "top": 196,
+        "width": 140,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 160,
+        "width": 140,
+        "height": 161,
+        "pixels": 11460
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 357
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 47,
+        "top": 46,
+        "right": 136,
+        "bottom": 149,
+        "width": 90,
+        "height": 104,
+        "pixels": 4842,
+        "edgePixels": 0
+      },
+      "sha256": "47cfc558afce4da3830e9329cc6879168ad77e5f27cface631fb75fea4b9ce68"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 217,
+        "top": 198,
+        "width": 147,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 158,
+        "width": 147,
+        "height": 159,
+        "pixels": 11217
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 357
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 45,
+        "top": 47,
+        "right": 139,
+        "bottom": 149,
+        "width": 95,
+        "height": 103,
+        "pixels": 4765,
+        "edgePixels": 0
+      },
+      "sha256": "7c2276f738d53e30742d11ca0246c049dbd6a8be64597ab8a9b3d0529cf4ae82"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 398,
+        "top": 197,
+        "width": 147,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 159,
+        "width": 147,
+        "height": 160,
+        "pixels": 10950
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 357
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 45,
+        "top": 47,
+        "right": 139,
+        "bottom": 149,
+        "width": 95,
+        "height": 103,
+        "pixels": 4626,
+        "edgePixels": 0
+      },
+      "sha256": "bb07e5f85eddabaa832a174085361f1ec2bac92ea556e69775e646240df66e34"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 587,
+        "top": 201,
+        "width": 143,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 154,
+        "width": 143,
+        "height": 155,
+        "pixels": 10903
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 357
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 50,
+        "top": 49,
+        "right": 141,
+        "bottom": 148,
+        "width": 92,
+        "height": 100,
+        "pixels": 4591,
+        "edgePixels": 0
+      },
+      "sha256": "50f22ad1df0eaea9552e223e6da54b9bf519112e5177d789e3f4c29c221d3a0b"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 771,
+        "top": 196,
+        "width": 135,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 160,
+        "width": 135,
+        "height": 161,
+        "pixels": 11670
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 357
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 52,
+        "top": 46,
+        "right": 138,
+        "bottom": 149,
+        "width": 87,
+        "height": 104,
+        "pixels": 4929,
+        "edgePixels": 0
+      },
+      "sha256": "2dbd9185d1c2d627c359818c933e49f455c412a0767e738e04484dd50baed5a8"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 941,
+        "top": 199,
+        "width": 132,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 157,
+        "width": 132,
+        "height": 158,
+        "pixels": 10635
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 357
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 45,
+        "top": 48,
+        "right": 129,
+        "bottom": 149,
+        "width": 85,
+        "height": 102,
+        "pixels": 4469,
+        "edgePixels": 0
+      },
+      "sha256": "32d041d4e1fe70b8fc54dac4ebcd130b29e819cbcea60864738e885ef7026853"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 32,
+        "top": 380,
+        "width": 147,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 159,
+        "width": 147,
+        "height": 160,
+        "pixels": 11638
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 540
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 42,
+        "top": 47,
+        "right": 136,
+        "bottom": 149,
+        "width": 95,
+        "height": 103,
+        "pixels": 4902,
+        "edgePixels": 0
+      },
+      "sha256": "5acbec27cc7b2577cc4f75e647f1d29e98588ff717f522d1659a39f0fcd4b3a0"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 204,
+        "top": 395,
+        "width": 165,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 144,
+        "width": 165,
+        "height": 145,
+        "pixels": 11153
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 540
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 36,
+        "top": 56,
+        "right": 141,
+        "bottom": 149,
+        "width": 106,
+        "height": 94,
+        "pixels": 4723,
+        "edgePixels": 0
+      },
+      "sha256": "a79d07b538f7367261e8399e8c9b095808a5b80a62a0851378df304cf814cd33"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 382,
+        "top": 395,
+        "width": 174,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 145,
+        "width": 174,
+        "height": 146,
+        "pixels": 11655
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 540
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 56,
+        "right": 146,
+        "bottom": 149,
+        "width": 112,
+        "height": 94,
+        "pixels": 4876,
+        "edgePixels": 0
+      },
+      "sha256": "71f183840f842ab25ba15150f291711f2c7392fc821b65e65ccdbe61f0b12d34"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 574,
+        "top": 392,
+        "width": 157,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 147,
+        "width": 157,
+        "height": 148,
+        "pixels": 11005
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 540
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 42,
+        "top": 55,
+        "right": 142,
+        "bottom": 149,
+        "width": 101,
+        "height": 95,
+        "pixels": 4607,
+        "edgePixels": 0
+      },
+      "sha256": "78900913d0c5658b698368542fab5779e3c0a095ed682cb03e0432b7457a3608"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 746,
+        "top": 420,
+        "width": 175,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 119,
+        "width": 175,
+        "height": 120,
+        "pixels": 11491
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 540
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 73,
+        "right": 148,
+        "bottom": 149,
+        "width": 113,
+        "height": 77,
+        "pixels": 4824,
+        "edgePixels": 0
+      },
+      "sha256": "3c1db14770149eed7297fafbbf1898d9835859ed6d6d43b585f2e861e1d4a998"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 936,
+        "top": 403,
+        "width": 144,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 137,
+        "width": 144,
+        "height": 138,
+        "pixels": 10074
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 540
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 42,
+        "top": 62,
+        "right": 134,
+        "bottom": 150,
+        "width": 93,
+        "height": 89,
+        "pixels": 4250,
+        "edgePixels": 0
+      },
+      "sha256": "d7bc6ee2fda33ad0a6305f4ab45cf93485f4ca3d4b1adfc76eff769a83185873"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 24,
+        "top": 564,
+        "width": 161,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 160,
+        "width": 161,
+        "height": 161,
+        "pixels": 11052
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 725
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 37,
+        "top": 46,
+        "right": 140,
+        "bottom": 149,
+        "width": 104,
+        "height": 104,
+        "pixels": 4651,
+        "edgePixels": 0
+      },
+      "sha256": "860c37868da9ee18ac9118497780fee0d2709e37aa753a08329bb84c93be477e"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 225,
+        "top": 571,
+        "width": 137,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 153,
+        "width": 137,
+        "height": 154,
+        "pixels": 10575
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 725
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 50,
+        "top": 51,
+        "right": 137,
+        "bottom": 149,
+        "width": 88,
+        "height": 99,
+        "pixels": 4413,
+        "edgePixels": 0
+      },
+      "sha256": "fa2f57db66b57271193364db2390ab19de378642ff2a7eeff0fab7e562064dc3"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 392,
+        "top": 562,
+        "width": 161,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 155,
+        "width": 161,
+        "height": 156,
+        "pixels": 11431
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 725
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 45,
+        "right": 144,
+        "bottom": 145,
+        "width": 104,
+        "height": 101,
+        "pixels": 4839,
+        "edgePixels": 0
+      },
+      "sha256": "12f438a002d4d77d65b087a59369a43221377bfa35d3a039daaffbd47f6070c4"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 581,
+        "top": 564,
+        "width": 164,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 154,
+        "width": 164,
+        "height": 155,
+        "pixels": 11668
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 725
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 46,
+        "top": 46,
+        "right": 151,
+        "bottom": 145,
+        "width": 106,
+        "height": 100,
+        "pixels": 4920,
+        "edgePixels": 0
+      },
+      "sha256": "9837e242e1b4de7c8f650a17abd99406c5d64de72188aacdb96039c85e52ec7c"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 776,
+        "top": 577,
+        "width": 128,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 127,
+        "bottom": 148,
+        "width": 128,
+        "height": 149,
+        "pixels": 10616
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 725
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 55,
+        "top": 55,
+        "right": 137,
+        "bottom": 150,
+        "width": 83,
+        "height": 96,
+        "pixels": 4514,
+        "edgePixels": 0
+      },
+      "sha256": "7ba070b3d2761d6a9dd36fe5aa5654c1cf6b49a12d243561a618643014db8aae"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 943,
+        "top": 564,
+        "width": 120,
+        "height": 162
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 119,
+        "bottom": 161,
+        "width": 120,
+        "height": 162,
+        "pixels": 10929
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 725
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 46,
+        "top": 46,
+        "right": 122,
+        "bottom": 149,
+        "width": 77,
+        "height": 104,
+        "pixels": 4539,
+        "edgePixels": 0
+      },
+      "sha256": "b674831ae524f3911dd5b47596ccbf8e8690c929a140a908a617e9d4be3d0b23"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 45,
+        "top": 741,
+        "width": 117,
+        "height": 174
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 116,
+        "bottom": 173,
+        "width": 117,
+        "height": 174,
+        "pixels": 11930
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 915
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 51,
+        "top": 38,
+        "right": 125,
+        "bottom": 149,
+        "width": 75,
+        "height": 112,
+        "pixels": 4976,
+        "edgePixels": 0
+      },
+      "sha256": "4e6bde0ae81c6f582f876ce82b89a0c0b7a9c98a764d2b9ea82dfdd2d70e25bf"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 227,
+        "top": 751,
+        "width": 130,
+        "height": 164
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 163,
+        "width": 130,
+        "height": 164,
+        "pixels": 11939
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 915
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 51,
+        "top": 44,
+        "right": 134,
+        "bottom": 149,
+        "width": 84,
+        "height": 106,
+        "pixels": 5029,
+        "edgePixels": 0
+      },
+      "sha256": "1714cdfcb9b2d56ee017ce096eaa9d6c12a8fa43738f17314735a7bf37ffeb2f"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 415,
+        "top": 739,
+        "width": 123,
+        "height": 176
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 175,
+        "width": 123,
+        "height": 176,
+        "pixels": 12017
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 915
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 56,
+        "top": 37,
+        "right": 134,
+        "bottom": 149,
+        "width": 79,
+        "height": 113,
+        "pixels": 5000,
+        "edgePixels": 0
+      },
+      "sha256": "4da83255ba92fe22bd5a64c0c42d98840ee70248931b7e66f3536ea3b815a9a0"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 590,
+        "top": 738,
+        "width": 120,
+        "height": 177
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 119,
+        "bottom": 176,
+        "width": 120,
+        "height": 177,
+        "pixels": 11914
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 915
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 52,
+        "top": 36,
+        "right": 128,
+        "bottom": 149,
+        "width": 77,
+        "height": 114,
+        "pixels": 4998,
+        "edgePixels": 0
+      },
+      "sha256": "6851f495aa2feac3eb32965bf828c4bbf483500c56b433e4f3424ab85fa61f19"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 768,
+        "top": 746,
+        "width": 133,
+        "height": 169
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 168,
+        "width": 133,
+        "height": 169,
+        "pixels": 12057
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 915
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 50,
+        "top": 41,
+        "right": 135,
+        "bottom": 149,
+        "width": 86,
+        "height": 109,
+        "pixels": 5085,
+        "edgePixels": 0
+      },
+      "sha256": "96fe72ea7b73190707ad4ccb33c3a6331f818accfd742da9103a57cba44bd8a2"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 942,
+        "top": 752,
+        "width": 127,
+        "height": 162
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 161,
+        "width": 127,
+        "height": 162,
+        "pixels": 11200
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 915
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 46,
+        "top": 45,
+        "right": 127,
+        "bottom": 148,
+        "width": 82,
+        "height": 104,
+        "pixels": 4697,
+        "edgePixels": 0
+      },
+      "sha256": "9774ddf8e4fe737d8a760ed7399718fbac0fcd0945444b2b2c04ea7897edfdbc"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 41,
+        "top": 932,
+        "width": 139,
+        "height": 164
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 163,
+        "width": 139,
+        "height": 164,
+        "pixels": 12083
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1096
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 48,
+        "top": 44,
+        "right": 137,
+        "bottom": 149,
+        "width": 90,
+        "height": 106,
+        "pixels": 5125,
+        "edgePixels": 0
+      },
+      "sha256": "5f1308d9f4b61b1748d86fd19055106d627ec75db98da239288a41e2059d81ef"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 234,
+        "top": 929,
+        "width": 118,
+        "height": 167
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 117,
+        "bottom": 166,
+        "width": 118,
+        "height": 167,
+        "pixels": 11733
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1096
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 56,
+        "top": 42,
+        "right": 131,
+        "bottom": 149,
+        "width": 76,
+        "height": 108,
+        "pixels": 4958,
+        "edgePixels": 0
+      },
+      "sha256": "77e363086b224a67b9e58d3f4c75ac147febe1edb79378c16e3ed5531219a0b6"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 411,
+        "top": 929,
+        "width": 129,
+        "height": 167
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 128,
+        "bottom": 166,
+        "width": 129,
+        "height": 167,
+        "pixels": 11817
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1096
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 53,
+        "top": 42,
+        "right": 135,
+        "bottom": 149,
+        "width": 83,
+        "height": 108,
+        "pixels": 4989,
+        "edgePixels": 0
+      },
+      "sha256": "b72c32bb6db6c6244c53f4438a5adabdc5fb1f946bb3b7bd200b51f65244c5b5"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 593,
+        "top": 924,
+        "width": 126,
+        "height": 172
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 125,
+        "bottom": 171,
+        "width": 126,
+        "height": 172,
+        "pixels": 12043
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1096
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 54,
+        "top": 39,
+        "right": 134,
+        "bottom": 149,
+        "width": 81,
+        "height": 111,
+        "pixels": 5069,
+        "edgePixels": 0
+      },
+      "sha256": "e1434744336491a9b2304cd4220c030cc3bd17e97678905af19131bb5195e227"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 769,
+        "top": 937,
+        "width": 128,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 127,
+        "bottom": 158,
+        "width": 128,
+        "height": 159,
+        "pixels": 11150
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1096
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 51,
+        "top": 47,
+        "right": 133,
+        "bottom": 149,
+        "width": 83,
+        "height": 103,
+        "pixels": 4723,
+        "edgePixels": 0
+      },
+      "sha256": "9296d067c63b59fc2f13f72fd37723c275d5086a970d65b290ef7cbf70001d17"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 936,
+        "top": 937,
+        "width": 131,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 158,
+        "width": 131,
+        "height": 159,
+        "pixels": 11227
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1096
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 42,
+        "top": 47,
+        "right": 125,
+        "bottom": 149,
+        "width": 84,
+        "height": 103,
+        "pixels": 4764,
+        "edgePixels": 0
+      },
+      "sha256": "b368cbcc2b20c32d568a2cccdac570e25780caaf336666a7fb1d06964312980b"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 36,
+        "top": 1118,
+        "width": 144,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 153,
+        "width": 144,
+        "height": 154,
+        "pixels": 11234
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1273
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 45,
+        "top": 50,
+        "right": 137,
+        "bottom": 148,
+        "width": 93,
+        "height": 99,
+        "pixels": 4738,
+        "edgePixels": 0
+      },
+      "sha256": "1bc614376246496428916a4be07ea4d9f8dd4415461a8360da8aee8eb4d0502b"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 210,
+        "top": 1138,
+        "width": 155,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 134,
+        "width": 155,
+        "height": 135,
+        "pixels": 10755
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1273
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 63,
+        "right": 139,
+        "bottom": 149,
+        "width": 100,
+        "height": 87,
+        "pixels": 4527,
+        "edgePixels": 0
+      },
+      "sha256": "2d7bd378145e62c5e1b509a728b3dbec1041754e636fce972296026073a6f883"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 398,
+        "top": 1130,
+        "width": 153,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 141,
+        "width": 153,
+        "height": 142,
+        "pixels": 10913
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1273
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 45,
+        "top": 58,
+        "right": 143,
+        "bottom": 149,
+        "width": 99,
+        "height": 92,
+        "pixels": 4633,
+        "edgePixels": 0
+      },
+      "sha256": "c67c57f13aa2bf430ce2d93801d36b84d5d625200279f784cb791c4dbc33568d"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 580,
+        "top": 1154,
+        "width": 164,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 118,
+        "width": 164,
+        "height": 119,
+        "pixels": 11438
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1273
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 46,
+        "top": 73,
+        "right": 151,
+        "bottom": 149,
+        "width": 106,
+        "height": 77,
+        "pixels": 4848,
+        "edgePixels": 0
+      },
+      "sha256": "eae9aa0aac25491df3b9316f5ab4f072c61f65549c45e2192359f46c10bb5083"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 766,
+        "top": 1132,
+        "width": 161,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 140,
+        "width": 161,
+        "height": 141,
+        "pixels": 11099
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1273
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 49,
+        "top": 59,
+        "right": 152,
+        "bottom": 149,
+        "width": 104,
+        "height": 91,
+        "pixels": 4695,
+        "edgePixels": 0
+      },
+      "sha256": "359f5bd4179650b568e59b8bacba4b50e886e70012136227c9569ac774dbad07"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 943,
+        "top": 1116,
+        "width": 129,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 128,
+        "bottom": 156,
+        "width": 129,
+        "height": 157,
+        "pixels": 10911
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1273
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 46,
+        "top": 49,
+        "right": 128,
+        "bottom": 149,
+        "width": 83,
+        "height": 101,
+        "pixels": 4562,
+        "edgePixels": 0
+      },
+      "sha256": "3dee3be38a68e3cc589af29d77231982c9b60f9f52e12543a6ed22cb0727ee1e"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 37,
+        "top": 1308,
+        "width": 141,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 124,
+        "width": 141,
+        "height": 125,
+        "pixels": 9618
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1433
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 46,
+        "top": 69,
+        "right": 136,
+        "bottom": 149,
+        "width": 91,
+        "height": 81,
+        "pixels": 4068,
+        "edgePixels": 0
+      },
+      "sha256": "ce962abf3df51809b992dfebc858094d0e8b48f8143a6cb685b3aea26846b4ca"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 207,
+        "top": 1311,
+        "width": 169,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 121,
+        "width": 169,
+        "height": 122,
+        "pixels": 10240
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1433
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 71,
+        "right": 146,
+        "bottom": 149,
+        "width": 109,
+        "height": 79,
+        "pixels": 4335,
+        "edgePixels": 0
+      },
+      "sha256": "c1ec578efcddcf4eb8fe1e5670012e09b87f8e8c3111cda1f131bcbc30b92312"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 382,
+        "top": 1353,
+        "width": 177,
+        "height": 80
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 79,
+        "width": 177,
+        "height": 80,
+        "pixels": 9001
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1433
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 98,
+        "right": 148,
+        "bottom": 149,
+        "width": 114,
+        "height": 52,
+        "pixels": 3836,
+        "edgePixels": 0
+      },
+      "sha256": "caaeb115c986348856dbe4b7faf1e44403537cc591b9ee0693dcc715d8641da2"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 577,
+        "top": 1349,
+        "width": 172,
+        "height": 85
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 84,
+        "width": 172,
+        "height": 85,
+        "pixels": 8903
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1433
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 44,
+        "top": 96,
+        "right": 154,
+        "bottom": 150,
+        "width": 111,
+        "height": 55,
+        "pixels": 3748,
+        "edgePixels": 0
+      },
+      "sha256": "f00c0dfc44dd7f6434d7df8b7a75f62907931866a9fd6ffb1c40e6c7b70997b8"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 750,
+        "top": 1352,
+        "width": 166,
+        "height": 81
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 80,
+        "width": 166,
+        "height": 81,
+        "pixels": 8137
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1433
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 38,
+        "top": 98,
+        "right": 144,
+        "bottom": 149,
+        "width": 107,
+        "height": 52,
+        "pixels": 3403,
+        "edgePixels": 0
+      },
+      "sha256": "48bc963e3e4fc65be0e3831fbf730aff57f03cccfd4dc5f83c118edd8d4dbae2"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 921,
+        "top": 1368,
+        "width": 154,
+        "height": 65
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 64,
+        "width": 154,
+        "height": 65,
+        "pixels": 7458
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/briar-stag/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1433
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 108,
+        "right": 130,
+        "bottom": 149,
+        "width": 99,
+        "height": 42,
+        "pixels": 3130,
+        "edgePixels": 0
+      },
+      "sha256": "76015ce98ca85c6dbb71b161a7f385a6ec6a2e6b8f1a9361357501de1fe1305d"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  },
+  "registrationReview": {
+    "status": "reviewed-horizontal",
+    "scope": "idle-horizontal only",
+    "method": "Reviewed stable anatomical-core translation against idle frame 0, corroborated by whole-silhouette translation and fixed-guide contact sheets. No bounding-box centering. Only X anchors changed; authored Y, all drawing pixels and fixed identity scale are preserved.",
+    "landmark": "torso and planted leg root; antler tips and leaf ornaments are excluded",
+    "referenceFrame": 0,
+    "fixedSharedScale": 0.6448484848484849,
+    "sourceUnchanged": true,
+    "actionsChanged": [
+      "idle"
+    ],
+    "visualVerification": "Before/after fixed-guide strips inspected for the declared rigid anatomical landmarks and last-to-first horizontal closure. All six poses retain their authored vertical variation. This review does not certify other action rows or all shape and transition quality.",
+    "evidence": "output/enemy-idle-alignment/briar-stag/alignment-evidence.json",
+    "corrections": [
+      {
+        "frame": 0,
+        "measuredPriorBodyDriftX": 0,
+        "outputTranslationX": 0,
+        "previousAnchor": {
+          "x": 90.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 90.5,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 1,
+        "measuredPriorBodyDriftX": 4,
+        "outputTranslationX": -4,
+        "previousAnchor": {
+          "x": 271.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 277.703007518797,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 2,
+        "measuredPriorBodyDriftX": 2,
+        "outputTranslationX": -2,
+        "previousAnchor": {
+          "x": 452.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 455.6015037593985,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 3,
+        "measuredPriorBodyDriftX": 1,
+        "outputTranslationX": -1,
+        "previousAnchor": {
+          "x": 633.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 635.0507518796992,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 4,
+        "measuredPriorBodyDriftX": -7,
+        "outputTranslationX": 7,
+        "previousAnchor": {
+          "x": 814.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 803.6447368421053,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 5,
+        "measuredPriorBodyDriftX": -8,
+        "outputTranslationX": 8,
+        "previousAnchor": {
+          "x": 995.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 983.093984962406,
+          "y": 172
+        },
+        "scaleFactor": 1
+      }
+    ]
+  },
+  "nominalGridAnchorCount": 42
+}

@@ -1,0 +1,6983 @@
+[
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/town-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          75,
+          106,
+          435,
+          370
+        ],
+        "pixels": 75405,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          483,
+          125,
+          862,
+          370
+        ],
+        "pixels": 84853,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          909,
+          128,
+          1287,
+          370
+        ],
+        "pixels": 84311,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1336,
+          107,
+          1695,
+          370
+        ],
+        "pixels": 75238,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          88,
+          468,
+          418,
+          793
+        ],
+        "pixels": 107244,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          515,
+          468,
+          846,
+          793
+        ],
+        "pixels": 107585,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          919,
+          494,
+          1285,
+          753
+        ],
+        "pixels": 51430,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1346,
+          534,
+          1699,
+          745
+        ],
+        "pixels": 37573,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/meadow-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          28,
+          101,
+          415,
+          365
+        ],
+        "pixels": 84369,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          466,
+          121,
+          865,
+          365
+        ],
+        "pixels": 88719,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          908,
+          121,
+          1308,
+          366
+        ],
+        "pixels": 89296,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1361,
+          101,
+          1745,
+          366
+        ],
+        "pixels": 83840,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          49,
+          467,
+          391,
+          807
+        ],
+        "pixels": 116143,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          493,
+          467,
+          836,
+          807
+        ],
+        "pixels": 116773,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          906,
+          503,
+          1314,
+          753
+        ],
+        "pixels": 59232,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1371,
+          476,
+          1720,
+          801
+        ],
+        "pixels": 51975,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/thorn-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          38,
+          82,
+          435,
+          363
+        ],
+        "pixels": 84782,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          471,
+          103,
+          869,
+          357
+        ],
+        "pixels": 90297,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          904,
+          105,
+          1302,
+          357
+        ],
+        "pixels": 90219,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1337,
+          86,
+          1728,
+          370
+        ],
+        "pixels": 84665,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          55,
+          453,
+          427,
+          815
+        ],
+        "pixels": 135105,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          484,
+          453,
+          856,
+          815
+        ],
+        "pixels": 135078,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          909,
+          462,
+          1301,
+          733
+        ],
+        "pixels": 66982,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1349,
+          504,
+          1724,
+          793
+        ],
+        "pixels": 70739,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/gearworks-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          33,
+          116,
+          418,
+          389
+        ],
+        "pixels": 84889,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          468,
+          145,
+          861,
+          389
+        ],
+        "pixels": 87718,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          911,
+          138,
+          1305,
+          389
+        ],
+        "pixels": 89927,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1355,
+          120,
+          1739,
+          389
+        ],
+        "pixels": 84938,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          48,
+          468,
+          408,
+          816
+        ],
+        "pixels": 124520,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          481,
+          470,
+          850,
+          816
+        ],
+        "pixels": 127561,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          912,
+          476,
+          1305,
+          785
+        ],
+        "pixels": 78993,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1358,
+          560,
+          1740,
+          804
+        ],
+        "pixels": 55278,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/cinder-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          43,
+          104,
+          408,
+          371
+        ],
+        "pixels": 76106,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          481,
+          126,
+          852,
+          371
+        ],
+        "pixels": 81725,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          923,
+          119,
+          1292,
+          371
+        ],
+        "pixels": 81848,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1366,
+          101,
+          1731,
+          371
+        ],
+        "pixels": 77464,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          61,
+          478,
+          404,
+          803
+        ],
+        "pixels": 111363,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          492,
+          479,
+          834,
+          804
+        ],
+        "pixels": 110308,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          923,
+          501,
+          1292,
+          758
+        ],
+        "pixels": 49918,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1367,
+          501,
+          1730,
+          819
+        ],
+        "pixels": 42892,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/frost-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          50,
+          109,
+          415,
+          412
+        ],
+        "pixels": 85020,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          487,
+          164,
+          860,
+          409
+        ],
+        "pixels": 89155,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          924,
+          164,
+          1294,
+          409
+        ],
+        "pixels": 88243,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1354,
+          125,
+          1715,
+          411
+        ],
+        "pixels": 86118,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          78,
+          492,
+          414,
+          820
+        ],
+        "pixels": 110118,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          492,
+          492,
+          851,
+          823
+        ],
+        "pixels": 118515,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          919,
+          533,
+          1308,
+          762
+        ],
+        "pixels": 61746,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1356,
+          564,
+          1712,
+          797
+        ],
+        "pixels": 42011,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/storm-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          36,
+          86,
+          428,
+          404
+        ],
+        "pixels": 94616,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          476,
+          100,
+          861,
+          402
+        ],
+        "pixels": 101752,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          912,
+          90,
+          1298,
+          402
+        ],
+        "pixels": 104116,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1349,
+          101,
+          1740,
+          404
+        ],
+        "pixels": 98215,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          56,
+          455,
+          423,
+          797
+        ],
+        "pixels": 125221,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          485,
+          455,
+          851,
+          797
+        ],
+        "pixels": 125171,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          914,
+          456,
+          1296,
+          756
+        ],
+        "pixels": 74799,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1358,
+          497,
+          1725,
+          764
+        ],
+        "pixels": 51670,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/astral-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          37,
+          85,
+          430,
+          397
+        ],
+        "pixels": 97317,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          482,
+          87,
+          861,
+          397
+        ],
+        "pixels": 104053,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          911,
+          87,
+          1290,
+          397
+        ],
+        "pixels": 103708,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1344,
+          87,
+          1737,
+          397
+        ],
+        "pixels": 99683,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          67,
+          469,
+          431,
+          823
+        ],
+        "pixels": 129107,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          486,
+          462,
+          855,
+          829
+        ],
+        "pixels": 135240,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          915,
+          468,
+          1287,
+          732
+        ],
+        "pixels": 63616,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1339,
+          540,
+          1714,
+          793
+        ],
+        "pixels": 46801,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/rift-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          38,
+          69,
+          418,
+          394
+        ],
+        "pixels": 87703,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          477,
+          102,
+          857,
+          394
+        ],
+        "pixels": 95982,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          918,
+          100,
+          1299,
+          394
+        ],
+        "pixels": 96722,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1358,
+          68,
+          1737,
+          394
+        ],
+        "pixels": 89591,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          49,
+          463,
+          418,
+          822
+        ],
+        "pixels": 132899,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          482,
+          463,
+          855,
+          822
+        ],
+        "pixels": 134558,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          921,
+          489,
+          1295,
+          790
+        ],
+        "pixels": 61367,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1360,
+          491,
+          1724,
+          813
+        ],
+        "pixels": 54885,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/quarry-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 450,
+        "height": 443
+      },
+      {
+        "left": 450,
+        "top": 0,
+        "width": 437,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 437,
+        "height": 443
+      },
+      {
+        "left": 1324,
+        "top": 0,
+        "width": 450,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 450,
+        "height": 444
+      },
+      {
+        "left": 450,
+        "top": 443,
+        "width": 437,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 437,
+        "height": 444
+      },
+      {
+        "left": 1324,
+        "top": 443,
+        "width": 450,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          58,
+          86,
+          447,
+          418
+        ],
+        "pixels": 105186,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          477,
+          100,
+          872,
+          418
+        ],
+        "pixels": 120026,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          902,
+          97,
+          1298,
+          418
+        ],
+        "pixels": 120586,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1327,
+          86,
+          1716,
+          418
+        ],
+        "pixels": 105215,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          85,
+          455,
+          432,
+          795
+        ],
+        "pixels": 117767,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          496,
+          455,
+          849,
+          795
+        ],
+        "pixels": 120039,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          905,
+          534,
+          1290,
+          745
+        ],
+        "pixels": 52544,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1332,
+          541,
+          1691,
+          760
+        ],
+        "pixels": 39199,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/ashglass-terrain-continuity-v2.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          40,
+          109,
+          416,
+          374
+        ],
+        "pixels": 74279,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          486,
+          110,
+          853,
+          374
+        ],
+        "pixels": 97065,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          921,
+          109,
+          1289,
+          375
+        ],
+        "pixels": 97429,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1357,
+          110,
+          1733,
+          375
+        ],
+        "pixels": 72508,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          54,
+          466,
+          416,
+          795
+        ],
+        "pixels": 119391,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          486,
+          466,
+          851,
+          795
+        ],
+        "pixels": 120637,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          923,
+          467,
+          1288,
+          760
+        ],
+        "pixels": 64826,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1359,
+          632,
+          1732,
+          790
+        ],
+        "pixels": 24147,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/bandit-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 443,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 443,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          57,
+          108,
+          435,
+          409
+        ],
+        "pixels": 86132,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          473,
+          97,
+          871,
+          404
+        ],
+        "pixels": 103575,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          903,
+          103,
+          1299,
+          403
+        ],
+        "pixels": 102727,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1338,
+          103,
+          1717,
+          409
+        ],
+        "pixels": 89144,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          66,
+          469,
+          434,
+          822
+        ],
+        "pixels": 129432,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          491,
+          468,
+          857,
+          822
+        ],
+        "pixels": 129436,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          916,
+          541,
+          1314,
+          755
+        ],
+        "pixels": 46513,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1356,
+          543,
+          1728,
+          794
+        ],
+        "pixels": 44862,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/town-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 336
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 336,
+        "width": 362,
+        "height": 388
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          59,
+          163,
+          283,
+          312
+        ],
+        "pixels": 17828,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          387,
+          120,
+          672,
+          320
+        ],
+        "pixels": 41742,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          735,
+          15,
+          1054,
+          325
+        ],
+        "pixels": 58490,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1109,
+          158,
+          1428,
+          321
+        ],
+        "pixels": 33478,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1525,
+          143,
+          1748,
+          323
+        ],
+        "pixels": 27730,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1881,
+          34,
+          2096,
+          323
+        ],
+        "pixels": 28772,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          74,
+          339,
+          260,
+          675
+        ],
+        "pixels": 33946,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          427,
+          492,
+          634,
+          680
+        ],
+        "pixels": 33325,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          758,
+          442,
+          1031,
+          678
+        ],
+        "pixels": 37076,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1105,
+          435,
+          1414,
+          663
+        ],
+        "pixels": 19254,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1523,
+          391,
+          1777,
+          679
+        ],
+        "pixels": 27694,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1870,
+          416,
+          2122,
+          682
+        ],
+        "pixels": 44806,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/meadow-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          79,
+          189,
+          291,
+          331
+        ],
+        "pixels": 18429,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          407,
+          119,
+          683,
+          333
+        ],
+        "pixels": 44314,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          746,
+          25,
+          1055,
+          341
+        ],
+        "pixels": 61647,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1117,
+          170,
+          1433,
+          338
+        ],
+        "pixels": 37604,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1537,
+          177,
+          1767,
+          336
+        ],
+        "pixels": 24734,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1902,
+          35,
+          2105,
+          336
+        ],
+        "pixels": 33887,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          75,
+          377,
+          291,
+          695
+        ],
+        "pixels": 40945,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          430,
+          536,
+          662,
+          691
+        ],
+        "pixels": 28357,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          774,
+          448,
+          1014,
+          691
+        ],
+        "pixels": 36494,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1104,
+          445,
+          1432,
+          678
+        ],
+        "pixels": 22560,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1543,
+          417,
+          1781,
+          691
+        ],
+        "pixels": 36088,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1887,
+          425,
+          2113,
+          691
+        ],
+        "pixels": 38439,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/thorn-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 352
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 352,
+        "width": 362,
+        "height": 372
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          48,
+          134,
+          308,
+          327
+        ],
+        "pixels": 30304,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          393,
+          134,
+          693,
+          331
+        ],
+        "pixels": 44892,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          741,
+          17,
+          1060,
+          339
+        ],
+        "pixels": 61618,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1105,
+          165,
+          1429,
+          335
+        ],
+        "pixels": 34367,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1504,
+          124,
+          1768,
+          337
+        ],
+        "pixels": 36400,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1889,
+          56,
+          2082,
+          344
+        ],
+        "pixels": 30036,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          64,
+          355,
+          298,
+          698
+        ],
+        "pixels": 43554,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          442,
+          519,
+          635,
+          692
+        ],
+        "pixels": 30933,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          765,
+          446,
+          1044,
+          691
+        ],
+        "pixels": 40350,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1124,
+          405,
+          1407,
+          681
+        ],
+        "pixels": 22721,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1515,
+          407,
+          1747,
+          690
+        ],
+        "pixels": 34803,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1868,
+          433,
+          2103,
+          690
+        ],
+        "pixels": 37435,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/gearworks-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 357
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 348,
+        "height": 362
+      },
+      {
+        "left": 710,
+        "top": 0,
+        "width": 376,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 354
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 360
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 357,
+        "width": 362,
+        "height": 367
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 348,
+        "height": 362
+      },
+      {
+        "left": 710,
+        "top": 362,
+        "width": 376,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 354,
+        "width": 362,
+        "height": 370
+      },
+      {
+        "left": 1448,
+        "top": 360,
+        "width": 362,
+        "height": 364
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          65,
+          173,
+          288,
+          322
+        ],
+        "pixels": 19882,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          386,
+          119,
+          659,
+          324
+        ],
+        "pixels": 41224,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          713,
+          11,
+          1047,
+          325
+        ],
+        "pixels": 65381,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1095,
+          175,
+          1423,
+          325
+        ],
+        "pixels": 34320,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1513,
+          126,
+          1750,
+          325
+        ],
+        "pixels": 30048,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1894,
+          49,
+          2110,
+          325
+        ],
+        "pixels": 27798,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          86,
+          360,
+          271,
+          688
+        ],
+        "pixels": 36881,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          421,
+          470,
+          660,
+          688
+        ],
+        "pixels": 48803,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          765,
+          388,
+          1047,
+          689
+        ],
+        "pixels": 48454,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1120,
+          357,
+          1416,
+          683
+        ],
+        "pixels": 29877,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1510,
+          363,
+          1789,
+          688
+        ],
+        "pixels": 33214,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1889,
+          368,
+          2101,
+          688
+        ],
+        "pixels": 39696,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/cinder-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 357
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 351,
+        "height": 362
+      },
+      {
+        "left": 713,
+        "top": 0,
+        "width": 373,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 372,
+        "height": 362
+      },
+      {
+        "left": 1458,
+        "top": 0,
+        "width": 352,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 357,
+        "width": 362,
+        "height": 367
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 351,
+        "height": 362
+      },
+      {
+        "left": 713,
+        "top": 362,
+        "width": 373,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 372,
+        "height": 362
+      },
+      {
+        "left": 1458,
+        "top": 362,
+        "width": 352,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          57,
+          98,
+          273,
+          315
+        ],
+        "pixels": 21448,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          383,
+          115,
+          652,
+          322
+        ],
+        "pixels": 35776,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          716,
+          19,
+          1049,
+          330
+        ],
+        "pixels": 56697,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1111,
+          123,
+          1455,
+          326
+        ],
+        "pixels": 38867,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1549,
+          146,
+          1748,
+          327
+        ],
+        "pixels": 20986,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1892,
+          76,
+          2108,
+          328
+        ],
+        "pixels": 27965,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          69,
+          360,
+          249,
+          686
+        ],
+        "pixels": 35416,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          396,
+          465,
+          640,
+          684
+        ],
+        "pixels": 49259,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          747,
+          401,
+          1005,
+          677
+        ],
+        "pixels": 38146,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1100,
+          412,
+          1452,
+          656
+        ],
+        "pixels": 21785,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1541,
+          408,
+          1784,
+          677
+        ],
+        "pixels": 32404,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1885,
+          397,
+          2106,
+          680
+        ],
+        "pixels": 29123,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/frost-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 350
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 359
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 350,
+        "width": 362,
+        "height": 374
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 359,
+        "width": 362,
+        "height": 365
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          64,
+          164,
+          304,
+          321
+        ],
+        "pixels": 19135,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          415,
+          126,
+          678,
+          323
+        ],
+        "pixels": 35098,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          754,
+          28,
+          1046,
+          328
+        ],
+        "pixels": 43989,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1120,
+          179,
+          1425,
+          330
+        ],
+        "pixels": 29830,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1500,
+          129,
+          1768,
+          330
+        ],
+        "pixels": 27399,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1896,
+          60,
+          2099,
+          328
+        ],
+        "pixels": 28959,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          90,
+          353,
+          278,
+          685
+        ],
+        "pixels": 38224,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          430,
+          492,
+          659,
+          681
+        ],
+        "pixels": 35694,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          758,
+          437,
+          1044,
+          680
+        ],
+        "pixels": 35959,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1124,
+          362,
+          1407,
+          690
+        ],
+        "pixels": 29004,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1525,
+          403,
+          1785,
+          689
+        ],
+        "pixels": 38914,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1873,
+          385,
+          2115,
+          691
+        ],
+        "pixels": 41647,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/storm-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 352
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 360,
+        "height": 362
+      },
+      {
+        "left": 722,
+        "top": 0,
+        "width": 364,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 352,
+        "width": 362,
+        "height": 372
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 360,
+        "height": 362
+      },
+      {
+        "left": 722,
+        "top": 362,
+        "width": 364,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          50,
+          98,
+          293,
+          324
+        ],
+        "pixels": 27279,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          391,
+          114,
+          680,
+          329
+        ],
+        "pixels": 41709,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          725,
+          13,
+          1042,
+          339
+        ],
+        "pixels": 56588,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1098,
+          142,
+          1435,
+          331
+        ],
+        "pixels": 39347,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1545,
+          130,
+          1747,
+          341
+        ],
+        "pixels": 28845,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1896,
+          49,
+          2111,
+          337
+        ],
+        "pixels": 31479,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          67,
+          355,
+          276,
+          690
+        ],
+        "pixels": 40988,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          422,
+          482,
+          644,
+          674
+        ],
+        "pixels": 36748,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          741,
+          418,
+          1020,
+          686
+        ],
+        "pixels": 40073,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1103,
+          372,
+          1439,
+          710
+        ],
+        "pixels": 28212,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1542,
+          372,
+          1801,
+          690
+        ],
+        "pixels": 33682,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1897,
+          404,
+          2104,
+          677
+        ],
+        "pixels": 31087,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/astral-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          43,
+          192,
+          297,
+          335
+        ],
+        "pixels": 22331,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          399,
+          136,
+          688,
+          344
+        ],
+        "pixels": 43620,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          742,
+          27,
+          1070,
+          345
+        ],
+        "pixels": 57638,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1110,
+          132,
+          1420,
+          339
+        ],
+        "pixels": 40821,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1508,
+          126,
+          1774,
+          337
+        ],
+        "pixels": 34601,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1894,
+          23,
+          2096,
+          339
+        ],
+        "pixels": 28219,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          100,
+          366,
+          262,
+          690
+        ],
+        "pixels": 36126,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          430,
+          487,
+          646,
+          684
+        ],
+        "pixels": 39659,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          786,
+          420,
+          1028,
+          683
+        ],
+        "pixels": 37830,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1127,
+          376,
+          1430,
+          692
+        ],
+        "pixels": 24152,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1531,
+          380,
+          1775,
+          688
+        ],
+        "pixels": 32601,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1902,
+          392,
+          2109,
+          684
+        ],
+        "pixels": 31351,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/rift-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 358
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 336,
+        "height": 362
+      },
+      {
+        "left": 698,
+        "top": 0,
+        "width": 388,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 380,
+        "height": 362
+      },
+      {
+        "left": 1466,
+        "top": 0,
+        "width": 354,
+        "height": 362
+      },
+      {
+        "left": 1820,
+        "top": 0,
+        "width": 352,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 358,
+        "width": 362,
+        "height": 366
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 336,
+        "height": 362
+      },
+      {
+        "left": 698,
+        "top": 362,
+        "width": 388,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 380,
+        "height": 362
+      },
+      {
+        "left": 1466,
+        "top": 362,
+        "width": 354,
+        "height": 362
+      },
+      {
+        "left": 1820,
+        "top": 362,
+        "width": 352,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          45,
+          162,
+          315,
+          334
+        ],
+        "pixels": 24849,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          377,
+          120,
+          684,
+          340
+        ],
+        "pixels": 45828,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          701,
+          10,
+          1065,
+          342
+        ],
+        "pixels": 72802,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1092,
+          131,
+          1463,
+          339
+        ],
+        "pixels": 40883,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1517,
+          147,
+          1817,
+          341
+        ],
+        "pixels": 31654,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1908,
+          37,
+          2099,
+          341
+        ],
+        "pixels": 32278,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          68,
+          361,
+          280,
+          698
+        ],
+        "pixels": 38204,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          411,
+          500,
+          637,
+          696
+        ],
+        "pixels": 40381,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          737,
+          418,
+          1055,
+          693
+        ],
+        "pixels": 44399,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1111,
+          397,
+          1446,
+          686
+        ],
+        "pixels": 33751,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1534,
+          407,
+          1801,
+          689
+        ],
+        "pixels": 39015,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1875,
+          407,
+          2134,
+          691
+        ],
+        "pixels": 41279,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/quarry-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 358
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 358,
+        "width": 362,
+        "height": 366
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          79,
+          164,
+          287,
+          337
+        ],
+        "pixels": 19273,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          390,
+          143,
+          663,
+          334
+        ],
+        "pixels": 37520,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          727,
+          20,
+          1068,
+          337
+        ],
+        "pixels": 65607,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1112,
+          172,
+          1428,
+          339
+        ],
+        "pixels": 35679,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1533,
+          139,
+          1747,
+          335
+        ],
+        "pixels": 23889,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1898,
+          40,
+          2092,
+          339
+        ],
+        "pixels": 29352,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          79,
+          361,
+          270,
+          684
+        ],
+        "pixels": 31854,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          425,
+          498,
+          631,
+          680
+        ],
+        "pixels": 33698,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          753,
+          410,
+          1027,
+          682
+        ],
+        "pixels": 44153,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1106,
+          370,
+          1421,
+          667
+        ],
+        "pixels": 24416,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1530,
+          398,
+          1785,
+          688
+        ],
+        "pixels": 34577,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1886,
+          377,
+          2099,
+          677
+        ],
+        "pixels": 32937,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/ashglass-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          73,
+          99,
+          266,
+          346
+        ],
+        "pixels": 18170,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          404,
+          146,
+          688,
+          346
+        ],
+        "pixels": 33840,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          799,
+          29,
+          998,
+          345
+        ],
+        "pixels": 17548,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1129,
+          211,
+          1406,
+          346
+        ],
+        "pixels": 24333,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1551,
+          161,
+          1720,
+          353
+        ],
+        "pixels": 12199,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1899,
+          226,
+          2108,
+          353
+        ],
+        "pixels": 14881,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          41,
+          391,
+          322,
+          689
+        ],
+        "pixels": 39832,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          420,
+          503,
+          665,
+          688
+        ],
+        "pixels": 38423,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          778,
+          443,
+          1016,
+          686
+        ],
+        "pixels": 34360,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1120,
+          509,
+          1428,
+          691
+        ],
+        "pixels": 23878,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1496,
+          469,
+          1790,
+          686
+        ],
+        "pixels": 32355,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1877,
+          541,
+          2130,
+          676
+        ],
+        "pixels": 23163,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/bandit-props.png",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 354
+      },
+      {
+        "left": 362,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 0,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 0,
+        "top": 354,
+        "width": 362,
+        "height": 370
+      },
+      {
+        "left": 362,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 724,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1086,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1448,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      },
+      {
+        "left": 1810,
+        "top": 362,
+        "width": 362,
+        "height": 362
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          70,
+          157,
+          294,
+          319
+        ],
+        "pixels": 19434,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          391,
+          129,
+          681,
+          324
+        ],
+        "pixels": 35593,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          729,
+          20,
+          1065,
+          341
+        ],
+        "pixels": 60282,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1120,
+          147,
+          1418,
+          330
+        ],
+        "pixels": 32967,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1523,
+          178,
+          1754,
+          338
+        ],
+        "pixels": 23215,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1892,
+          67,
+          2091,
+          334
+        ],
+        "pixels": 27963,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          80,
+          357,
+          276,
+          694
+        ],
+        "pixels": 34996,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          422,
+          471,
+          650,
+          676
+        ],
+        "pixels": 41662,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          762,
+          427,
+          1043,
+          674
+        ],
+        "pixels": 35815,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1110,
+          388,
+          1424,
+          666
+        ],
+        "pixels": 18913,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1535,
+          383,
+          1772,
+          682
+        ],
+        "pixels": 32732,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1885,
+          403,
+          2092,
+          670
+        ],
+        "pixels": 31066,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/town-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          59,
+          85,
+          575,
+          575
+        ],
+        "pixels": 144270,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          688,
+          85,
+          1194,
+          576
+        ],
+        "pixels": 143993,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          60,
+          676,
+          568,
+          1167
+        ],
+        "pixels": 144604,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          688,
+          679,
+          1194,
+          1167
+        ],
+        "pixels": 140868,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/meadow-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          56,
+          61,
+          585,
+          578
+        ],
+        "pixels": 146447,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          670,
+          69,
+          1198,
+          578
+        ],
+        "pixels": 145161,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          59,
+          647,
+          578,
+          1181
+        ],
+        "pixels": 148108,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          674,
+          656,
+          1196,
+          1181
+        ],
+        "pixels": 147790,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/thorn-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          57,
+          88,
+          581,
+          589
+        ],
+        "pixels": 149425,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          674,
+          82,
+          1196,
+          588
+        ],
+        "pixels": 141197,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          52,
+          657,
+          579,
+          1165
+        ],
+        "pixels": 151435,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          674,
+          656,
+          1202,
+          1165
+        ],
+        "pixels": 144478,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/gearworks-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          63,
+          48,
+          565,
+          554
+        ],
+        "pixels": 146184,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          690,
+          49,
+          1187,
+          554
+        ],
+        "pixels": 143946,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          63,
+          671,
+          564,
+          1175
+        ],
+        "pixels": 144465,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          691,
+          670,
+          1188,
+          1175
+        ],
+        "pixels": 142715,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/cinder-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          86,
+          123,
+          570,
+          588
+        ],
+        "pixels": 123021,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          684,
+          107,
+          1170,
+          588
+        ],
+        "pixels": 123713,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          87,
+          661,
+          571,
+          1146
+        ],
+        "pixels": 123997,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          685,
+          676,
+          1172,
+          1146
+        ],
+        "pixels": 124572,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/frost-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          89,
+          116,
+          573,
+          592
+        ],
+        "pixels": 122586,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          681,
+          115,
+          1174,
+          592
+        ],
+        "pixels": 125953,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          85,
+          663,
+          571,
+          1143
+        ],
+        "pixels": 124373,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          679,
+          662,
+          1171,
+          1143
+        ],
+        "pixels": 125965,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/storm-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          56,
+          69,
+          572,
+          589
+        ],
+        "pixels": 141881,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          685,
+          69,
+          1198,
+          589
+        ],
+        "pixels": 140393,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          57,
+          660,
+          574,
+          1189
+        ],
+        "pixels": 148701,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          683,
+          660,
+          1197,
+          1189
+        ],
+        "pixels": 142790,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/astral-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          59,
+          66,
+          583,
+          565
+        ],
+        "pixels": 140561,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          671,
+          65,
+          1194,
+          565
+        ],
+        "pixels": 140038,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          59,
+          677,
+          583,
+          1177
+        ],
+        "pixels": 140293,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          671,
+          677,
+          1194,
+          1178
+        ],
+        "pixels": 139583,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/rift-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          67,
+          105,
+          577,
+          597
+        ],
+        "pixels": 134906,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          676,
+          105,
+          1186,
+          596
+        ],
+        "pixels": 134739,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          67,
+          676,
+          578,
+          1166
+        ],
+        "pixels": 131697,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          676,
+          677,
+          1186,
+          1165
+        ],
+        "pixels": 134237,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/quarry-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          78,
+          94,
+          588,
+          574
+        ],
+        "pixels": 134268,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          668,
+          94,
+          1178,
+          574
+        ],
+        "pixels": 132545,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          78,
+          660,
+          589,
+          1140
+        ],
+        "pixels": 134198,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          666,
+          661,
+          1178,
+          1140
+        ],
+        "pixels": 131828,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/ashglass-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          44,
+          239,
+          590,
+          522
+        ],
+        "pixels": 90998,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          666,
+          239,
+          1208,
+          522
+        ],
+        "pixels": 89910,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          44,
+          682,
+          579,
+          1159
+        ],
+        "pixels": 145072,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          675,
+          682,
+          1207,
+          1159
+        ],
+        "pixels": 134791,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/bandit-ramps.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 0,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 0,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      },
+      {
+        "left": 627,
+        "top": 627,
+        "width": 627,
+        "height": 627
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          52,
+          60,
+          591,
+          583
+        ],
+        "pixels": 159026,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          663,
+          60,
+          1203,
+          584
+        ],
+        "pixels": 156779,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          52,
+          656,
+          592,
+          1188
+        ],
+        "pixels": 159955,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          663,
+          659,
+          1204,
+          1188
+        ],
+        "pixels": 162658,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/structures/town-landmarks.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 479,
+        "height": 441
+      },
+      {
+        "left": 479,
+        "top": 0,
+        "width": 408,
+        "height": 440
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 443,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 441,
+        "width": 479,
+        "height": 446
+      },
+      {
+        "left": 479,
+        "top": 440,
+        "width": 408,
+        "height": 447
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 443,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          29,
+          19,
+          476,
+          416
+        ],
+        "pixels": 114634,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          501,
+          78,
+          859,
+          418
+        ],
+        "pixels": 84085,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          905,
+          20,
+          1317,
+          418
+        ],
+        "pixels": 98854,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1350,
+          42,
+          1756,
+          418
+        ],
+        "pixels": 109880,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          36,
+          444,
+          434,
+          845
+        ],
+        "pixels": 71436,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          500,
+          443,
+          839,
+          845
+        ],
+        "pixels": 93125,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          899,
+          523,
+          1296,
+          844
+        ],
+        "pixels": 92862,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1343,
+          457,
+          1764,
+          845
+        ],
+        "pixels": 81209,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/structures/crossing-landmarks.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 444,
+        "top": 0,
+        "width": 424,
+        "height": 443
+      },
+      {
+        "left": 868,
+        "top": 0,
+        "width": 462,
+        "height": 443
+      },
+      {
+        "left": 1330,
+        "top": 0,
+        "width": 444,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      },
+      {
+        "left": 444,
+        "top": 443,
+        "width": 424,
+        "height": 444
+      },
+      {
+        "left": 868,
+        "top": 443,
+        "width": 462,
+        "height": 444
+      },
+      {
+        "left": 1330,
+        "top": 443,
+        "width": 444,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          22,
+          32,
+          441,
+          405
+        ],
+        "pixels": 102814,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          477,
+          87,
+          862,
+          407
+        ],
+        "pixels": 92030,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          922,
+          135,
+          1309,
+          407
+        ],
+        "pixels": 75742,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1356,
+          89,
+          1748,
+          408
+        ],
+        "pixels": 87250,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          38,
+          581,
+          393,
+          829
+        ],
+        "pixels": 64142,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          480,
+          450,
+          849,
+          830
+        ],
+        "pixels": 74226,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          871,
+          543,
+          1321,
+          826
+        ],
+        "pixels": 94789,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1342,
+          496,
+          1759,
+          828
+        ],
+        "pixels": 61728,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  {
+    "source": "asset-sources/project-starfall/overhaul-v1/scenery/modular/shop-interior-terrain.png",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "rects": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 461,
+        "height": 443
+      },
+      {
+        "left": 461,
+        "top": 0,
+        "width": 426,
+        "height": 443
+      },
+      {
+        "left": 887,
+        "top": 0,
+        "width": 424,
+        "height": 443
+      },
+      {
+        "left": 1311,
+        "top": 0,
+        "width": 463,
+        "height": 443
+      },
+      {
+        "left": 0,
+        "top": 443,
+        "width": 461,
+        "height": 444
+      },
+      {
+        "left": 461,
+        "top": 443,
+        "width": 426,
+        "height": 444
+      },
+      {
+        "left": 887,
+        "top": 443,
+        "width": 424,
+        "height": 444
+      },
+      {
+        "left": 1311,
+        "top": 443,
+        "width": 463,
+        "height": 444
+      }
+    ],
+    "metrics": [
+      {
+        "bbox": [
+          53,
+          186,
+          458,
+          402
+        ],
+        "pixels": 76098,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          483,
+          199,
+          872,
+          389
+        ],
+        "pixels": 72444,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          897,
+          199,
+          1285,
+          389
+        ],
+        "pixels": 72198,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1314,
+          186,
+          1721,
+          402
+        ],
+        "pixels": 76151,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          112,
+          495,
+          389,
+          763
+        ],
+        "pixels": 74411,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          545,
+          492,
+          824,
+          763
+        ],
+        "pixels": 76112,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          951,
+          593,
+          1273,
+          707
+        ],
+        "pixels": 25484,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "bbox": [
+          1393,
+          611,
+          1650,
+          709
+        ],
+        "pixels": 14199,
+        "contacts": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  }
+]

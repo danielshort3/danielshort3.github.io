@@ -1,0 +1,154 @@
+{
+  "width": 1448,
+  "height": 1086,
+  "channels": 4,
+  "grid": [
+    4,
+    3
+  ],
+  "cellSize": 362,
+  "transparent": 1019180,
+  "partial": 552401,
+  "opaque": 947,
+  "hash": "7c7e8385e56a676c1b15f935dc7110d6cdd79b679f2fcee9c8d449680591739e",
+  "cells": [
+    {
+      "row": 0,
+      "col": 0,
+      "bounds": [
+        69,
+        53,
+        297,
+        361
+      ],
+      "visiblePixels": 41201
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "bounds": [
+        82,
+        53,
+        296,
+        361
+      ],
+      "visiblePixels": 39339
+    },
+    {
+      "row": 0,
+      "col": 2,
+      "bounds": [
+        100,
+        53,
+        289,
+        361
+      ],
+      "visiblePixels": 35190
+    },
+    {
+      "row": 0,
+      "col": 3,
+      "bounds": [
+        94,
+        53,
+        290,
+        361
+      ],
+      "visiblePixels": 38757
+    },
+    {
+      "row": 1,
+      "col": 0,
+      "bounds": [
+        67,
+        0,
+        301,
+        316
+      ],
+      "visiblePixels": 39843
+    },
+    {
+      "row": 1,
+      "col": 1,
+      "bounds": [
+        91,
+        0,
+        290,
+        337
+      ],
+      "visiblePixels": 38334
+    },
+    {
+      "row": 1,
+      "col": 2,
+      "bounds": [
+        71,
+        0,
+        289,
+        346
+      ],
+      "visiblePixels": 41263
+    },
+    {
+      "row": 1,
+      "col": 3,
+      "bounds": [
+        89,
+        0,
+        292,
+        339
+      ],
+      "visiblePixels": 36930
+    },
+    {
+      "row": 2,
+      "col": 0,
+      "bounds": [
+        110,
+        14,
+        289,
+        318
+      ],
+      "visiblePixels": 33691
+    },
+    {
+      "row": 2,
+      "col": 1,
+      "bounds": [
+        77,
+        14,
+        292,
+        318
+      ],
+      "visiblePixels": 38900
+    },
+    {
+      "row": 2,
+      "col": 2,
+      "bounds": [
+        63,
+        18,
+        300,
+        310
+      ],
+      "visiblePixels": 40047
+    },
+    {
+      "row": 2,
+      "col": 3,
+      "bounds": [
+        95,
+        14,
+        287,
+        323
+      ],
+      "visiblePixels": 37155
+    }
+  ],
+  "reviewStatus": "rejected-not-included",
+  "reasons": [
+    "Same near-side leading boot repeats instead of clean bilateral half-cycle",
+    "First-row boots cross nominal362px row boundary",
+    "Requested1024x768 export size not honored"
+  ]
+}

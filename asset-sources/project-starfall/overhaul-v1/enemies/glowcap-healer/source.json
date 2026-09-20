@@ -1,0 +1,97 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "glowcap-healer",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-791f21e4-6464-4a2a-ad30-e346daef05ba.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/glowcap-healer.png",
+    "img/project-starfall/animations/enemies/glowcap-healer-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Raw reviewed; reuse protected approved poses during import; raw protected image unchanged.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/glowcap-healer-sheet.png",
+    "portrait": "img/project-starfall/enemies/glowcap-healer.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "695f5f60f60769ff269c7231369e5fe2d0451037f4e471c36482146252a5ab66",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "baseReferenceHeight": 135,
+  "supplementalRows": {
+    "idle": {
+      "repoPath": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "columns": 4,
+      "rows": 2,
+      "neutralIndex": 0,
+      "indices": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        7
+      ],
+      "anchors": [
+        {
+          "x": 221,
+          "y": 417
+        },
+        {
+          "x": 669,
+          "y": 417
+        },
+        {
+          "x": 1108,
+          "y": 419
+        },
+        {
+          "x": 221,
+          "y": 850
+        },
+        {
+          "x": 664.5,
+          "y": 850
+        },
+        {
+          "x": 1556,
+          "y": 850
+        }
+      ],
+      "sha256": "6a5466fefd53d0b308b9ef071674fefe72a1ee9584849c76cb72c1024d3826e2"
+    }
+  },
+  "rowPoseOrder": {
+    "buff": [
+      0,
+      1,
+      2,
+      4,
+      3,
+      5
+    ]
+  },
+  "protectedReuse": {
+    "source": "output/starfall-animation-samples/glowcap-spring-study.png",
+    "sha256": "6a5466fefd53d0b308b9ef071674fefe72a1ee9584849c76cb72c1024d3826e2",
+    "unchanged": true,
+    "registration": "Approved anatomical/foot-band anchors; one fixed resolution scale per source; repeated final boar drawings are explicit held commitment/recovery, not manufactured motion."
+  }
+}

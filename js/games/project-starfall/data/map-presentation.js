@@ -99,6 +99,7 @@
     function freezeSceneObject(config) {
       const source = config || {};
       return Object.freeze({
+        structureTheme: String(source.structureTheme || 'townLandmarks'),
         rearStructures: freezeSceneEntries(source.rearStructures),
         stationFacades: freezeSceneEntries(source.stationFacades),
         streetProps: freezeSceneEntries(source.streetProps),
@@ -208,18 +209,19 @@
 
     const MAP_TOWN_SCENES = Object.freeze({
       starfallCrossing: createTownScene({
+        structureTheme: 'crossingLandmarks',
         rearStructures: [
-          { cell: 'fracturedObservatoryCore', x: 48, w: 680, h: 326, footOffset: 4, label: 'Fracture Survey Array' },
-          { cell: 'expeditionDepot', x: 1260, w: 560, h: 286, footOffset: 4, label: 'Repair Gantry' },
-          { cell: 'frontierGate', x: 1854, w: 430, h: 244, footOffset: 2, label: 'Greenroot Frontier Gate' },
-          { cell: 'lensWorkshop', x: 2740, w: 600, h: 292, footOffset: 4, label: 'Beacon Foundry' }
+          { cell: 'fracturedObservatoryCore', x: 140, w: 366, h: 366, footOffset: 4, label: 'Fracture Survey Array' },
+          { cell: 'expeditionDepot', x: 1310, w: 306, h: 306, footOffset: 4, label: 'Expedition Depot' },
+          { cell: 'frontierGate', x: 1935, w: 268, h: 268, footOffset: 2, label: 'Greenroot Frontier Gate' },
+          { cell: 'lensWorkshop', x: 2920, w: 318, h: 318, footOffset: 4, label: 'Beacon Lens Workshop' }
         ],
         stationFacades: [
-          { stationId: 'storage', cell: 'expeditionDepot', dx: -72, w: 188, h: 138, footOffset: 4 },
-          { stationId: 'shop', cell: 'lensWorkshop', dx: -68, w: 184, h: 140, footOffset: 4 },
-          { stationId: 'slots', cell: 'expeditionDepot', dx: -62, w: 178, h: 138, footOffset: 3 },
-          { stationId: 'upgrade', cell: 'lensWorkshop', dx: -72, w: 194, h: 146, footOffset: 4 },
-          { stationId: 'class', cell: 'fracturedObservatoryCore', dx: -110, w: 286, h: 176, footOffset: 4 }
+          { stationId: 'storage', cell: 'crossingStorageKiosk', dx: -72, w: 156, h: 156, footOffset: 4 },
+          { stationId: 'shop', cell: 'crossingSupplyCounter', dx: -68, w: 156, h: 156, footOffset: 4 },
+          { stationId: 'slots', cell: 'crossingSupplyCounter', dx: -62, w: 142, h: 142, footOffset: 3 },
+          { stationId: 'upgrade', cell: 'crossingRepairWorkbench', dx: -72, w: 164, h: 164, footOffset: 4 },
+          { stationId: 'class', cell: 'crossingTrainingPavilion', dx: -88, w: 196, h: 196, footOffset: 4 }
         ],
         streetProps: [
           { kind: 'sign', x: 250, w: 44, h: 54, footOffset: 2 },
@@ -511,7 +513,7 @@
           { label: 'Ashglass Bridge', x: 0, w: 1800, tier: 'crossing' },
           { label: 'Vent Side Pocket', x: 1800, w: 1200, tier: 'side-pocket' },
           { label: 'Glass Shelf', x: 3000, w: 1200, tier: 'hazard' },
-          { label: 'Elite Storm Pocket', x: 4200, w: 1000, tier: 'elite' }
+          { id: 'ashglassPass_elite_storm_pocket', label: 'Obsidian Elite Pocket', x: 4200, w: 1000, tier: 'elite' }
         ],
         portalRoles: {
           ashglass_cinder_refuge: 'ash bridge return',
@@ -521,7 +523,7 @@
           { kind: 'crystal', x: 520, w: 920, label: 'Ashglass Bridge' },
           { kind: 'glow', x: 2180, w: 580, label: 'Vent Side Pocket' },
           { kind: 'tall', x: 3420, w: 620, label: 'Glass Shelf' },
-          { kind: 'rock', x: 4540, w: 440, label: 'Elite Storm Pocket' }
+          { kind: 'rock', x: 4540, w: 440, label: 'Obsidian Elite Pocket' }
         ],
         spawnZoneLabels: [
           { label: 'Bridge walkers', platformTier: 'low' },
@@ -604,7 +606,7 @@
           { label: 'Northeast Rift Quadrant', x: 1300, w: 1300, tier: 'quadrant' },
           { label: 'Southeast Rift Quadrant', x: 2600, w: 1300, tier: 'quadrant' },
           { label: 'Southwest Rift Quadrant', x: 3900, w: 900, tier: 'quadrant' },
-          { label: 'Rift Core Regroup', x: 4800, w: 400, tier: 'surge' }
+          { id: 'endlessRift_rift_core_regroup', label: 'Optional Rift Surge', x: 4800, w: 400, tier: 'surge' }
         ],
         portalRoles: {
           rift_eclipse: 'eclipse frontier return'
@@ -837,7 +839,7 @@
           { id: 'endlessRift_northeast_rift_quadrant', label: 'Northeast Rift Quadrant', role: 'quadrant', weight: 1 },
           { id: 'endlessRift_southeast_rift_quadrant', label: 'Southeast Rift Quadrant', role: 'quadrant', weight: 1 },
           { id: 'endlessRift_southwest_rift_quadrant', label: 'Southwest Rift Quadrant', role: 'quadrant', weight: 1 },
-          { id: 'endlessRift_rift_core_regroup', label: 'Rift Core Regroup', role: 'surge', weight: 1.5 }
+          { id: 'endlessRift_rift_core_regroup', label: 'Optional Rift Surge', role: 'surge', weight: 1.5 }
         ],
         activeSectionIds: ['endlessRift_northwest_rift_quadrant', 'endlessRift_northeast_rift_quadrant', 'endlessRift_southeast_rift_quadrant', 'endlessRift_southwest_rift_quadrant'],
         objectiveSectionId: 'endlessRift_rift_core_regroup',
@@ -915,7 +917,7 @@
       return Object.freeze(sourceSections.map((section, index) => {
         const label = String(section.label || `Section ${index + 1}`);
         return Object.freeze({
-          id: `${map.id}_${normalizeDesignToken(label, `section_${index + 1}`)}`,
+          id: String(section.id || `${map.id}_${normalizeDesignToken(label, `section_${index + 1}`)}`),
           label,
           x: Math.round(Math.max(0, Number(section.x || 0))),
           w: Math.round(Math.max(1, Number(section.w || worldWidth / sourceSections.length))),

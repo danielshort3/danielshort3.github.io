@@ -36,6 +36,7 @@
     contrib_doc_click: ['section', 'title', 'kind'],
     contrib_timeline_toggle: ['section', 'year', 'expanded'],
     client_error: ['kind', 'page_path'],
+    web_vital: ['metric_name', 'metric_value', 'metric_rating', 'page_path'],
     chatbot_launcher_opened: ['source'],
     chatbot_starter_prompts_hidden: [],
     chatbot_reset: [],
@@ -116,7 +117,8 @@
     scroll_depth: 'content',
     contrib_doc_click: 'content',
     contrib_timeline_toggle: 'content',
-    client_error: 'reliability'
+    client_error: 'reliability',
+    web_vital: 'performance'
   });
 
   const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
@@ -370,6 +372,9 @@
     link_type: safeToken,
     link_url: safeLinkUrl,
     method: safeToken,
+    metric_name: value => ['LCP', 'INP', 'CLS'].includes(value) ? value : '',
+    metric_value: value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 3600000 ? Math.round(value * 10000) / 10000 : undefined,
+    metric_rating: value => ['good', 'needs-improvement', 'poor'].includes(value) ? value : '',
     milestone_id: safeToken,
     outcome: safeToken,
     page_location: safePageLocation,
@@ -524,6 +529,7 @@
       event: eventName,
       ...sanitizeEventParams(eventName, params)
     };
+    if (eventName === 'web_vital' && (!eventData.metric_name || eventData.metric_value === undefined || !eventData.metric_rating)) return false;
     addActivityFields(eventName, eventData);
     window.dataLayer.push(eventData);
     return true;
@@ -649,6 +655,14 @@
   }
 
   window.gaEvent = send;
+  // Freeze attribution before any soft navigation changes the document shell.
+  const vitalEntryContext = Object.freeze({ ...getCommonContext(), page_path: safePath(getRouteContext().pathname) });
+  window.sendWebVital = (metric) => send('web_vital', {
+    metric_name: metric?.name,
+    metric_value: metric?.value,
+    metric_rating: metric?.rating,
+    ...vitalEntryContext
+  });
 
   window.trackProjectView = (id, options = {}) => {
     const projectId = String(id || '').trim();

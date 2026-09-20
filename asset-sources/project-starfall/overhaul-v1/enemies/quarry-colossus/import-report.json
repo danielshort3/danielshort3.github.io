@@ -1,0 +1,1965 @@
+{
+  "fileId": "quarry-colossus",
+  "sourceSha256": "62f12c0721ad66b449af73f241107f01dc5ffe2d59ad9b769692dca7222d8696",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    178,
+    351,
+    544,
+    723,
+    903,
+    1085,
+    1262,
+    1448
+  ],
+  "sharedScale": 0.6504803493449781,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 90,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/quarry-colossus-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 629107,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 15,
+        "top": 27,
+        "width": 160,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 138,
+        "width": 160,
+        "height": 139,
+        "pixels": 15499
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 166
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 60,
+        "right": 134,
+        "bottom": 149,
+        "width": 104,
+        "height": 90,
+        "pixels": 6576,
+        "edgePixels": 0
+      },
+      "sha256": "ed9f1687a36e10a831a150693c06dd79369236922a3e539bc33191310c025405"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 191,
+        "top": 29,
+        "width": 164,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 136,
+        "width": 164,
+        "height": 137,
+        "pixels": 15625
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 166
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 61,
+        "right": 134,
+        "bottom": 149,
+        "width": 107,
+        "height": 89,
+        "pixels": 6685,
+        "edgePixels": 0
+      },
+      "sha256": "9f5b7f546e3442075735ac61664b3b59417fa4e70d87e77ab1ba2323400d9f3b"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 371,
+        "top": 25,
+        "width": 164,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 140,
+        "width": 164,
+        "height": 141,
+        "pixels": 15984
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 166
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 27,
+        "top": 58,
+        "right": 133,
+        "bottom": 149,
+        "width": 107,
+        "height": 92,
+        "pixels": 6847,
+        "edgePixels": 0
+      },
+      "sha256": "a7de841d2b8da1160fec52f1d522fd11aea563689cc861854949bbaa5260da9f"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 553,
+        "top": 24,
+        "width": 158,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 140,
+        "width": 158,
+        "height": 141,
+        "pixels": 15673
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 166
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 58,
+        "right": 130,
+        "bottom": 149,
+        "width": 103,
+        "height": 92,
+        "pixels": 6696,
+        "edgePixels": 0
+      },
+      "sha256": "77a5d0896f5c452a963922dfbf5c3c566538eb629c46ec9ed504105c54df0300"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 735,
+        "top": 36,
+        "width": 165,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 129,
+        "width": 165,
+        "height": 130,
+        "pixels": 15641
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 166
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 65,
+        "right": 134,
+        "bottom": 149,
+        "width": 107,
+        "height": 85,
+        "pixels": 6715,
+        "edgePixels": 0
+      },
+      "sha256": "7d319b80dc6beb540f1af8505a7b334cacde41e0b8d2579492a2644aae7b94c0"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 916,
+        "top": 25,
+        "width": 160,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 140,
+        "width": 160,
+        "height": 141,
+        "pixels": 15502
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 166
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 58,
+        "right": 131,
+        "bottom": 149,
+        "width": 104,
+        "height": 92,
+        "pixels": 6624,
+        "edgePixels": 0
+      },
+      "sha256": "01dd48846024caa671760ba4d5a029498112918dd2c26cffa67a54baee7c4bc4"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 12,
+        "top": 189,
+        "width": 171,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 155,
+        "width": 171,
+        "height": 156,
+        "pixels": 16251
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 346
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 48,
+        "right": 139,
+        "bottom": 148,
+        "width": 111,
+        "height": 101,
+        "pixels": 6879,
+        "edgePixels": 0
+      },
+      "sha256": "7e01c616b6d8f02045c286ba9ec39eadeec50c56c1f30ab2f5b26b52de1ee3cf"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 208,
+        "top": 196,
+        "width": 157,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 149,
+        "width": 157,
+        "height": 150,
+        "pixels": 15854
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 346
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 52,
+        "right": 140,
+        "bottom": 149,
+        "width": 102,
+        "height": 98,
+        "pixels": 6804,
+        "edgePixels": 0
+      },
+      "sha256": "5e55237fcc837e5a5c892928b0ad4b9be9eca5e8e3ba81c95588c86f1da4187e"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 385,
+        "top": 195,
+        "width": 135,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 149,
+        "width": 135,
+        "height": 150,
+        "pixels": 14244
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 346
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 52,
+        "right": 123,
+        "bottom": 149,
+        "width": 88,
+        "height": 98,
+        "pixels": 6112,
+        "edgePixels": 0
+      },
+      "sha256": "72cf115434af5ce1e60de124843f9d3fe91505c8fc16c6aba283c9143acae1b6"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 554,
+        "top": 189,
+        "width": 164,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 156,
+        "width": 164,
+        "height": 157,
+        "pixels": 17161
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 346
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 48,
+        "right": 134,
+        "bottom": 149,
+        "width": 107,
+        "height": 102,
+        "pixels": 7343,
+        "edgePixels": 0
+      },
+      "sha256": "f0bb229759ab168f15c461e9e6017619cd48e2db152c5f03b1bbae3ef156e73a"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 735,
+        "top": 193,
+        "width": 176,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 154,
+        "width": 176,
+        "height": 155,
+        "pixels": 16641
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 346
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 50,
+        "right": 141,
+        "bottom": 150,
+        "width": 114,
+        "height": 101,
+        "pixels": 7092,
+        "edgePixels": 0
+      },
+      "sha256": "9d058d55352e3edce69d8ad1e0a0d4a0ed932e85391d251d0987d0a8e6d1c676"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 924,
+        "top": 192,
+        "width": 150,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 153,
+        "width": 150,
+        "height": 154,
+        "pixels": 15387
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 346
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 50,
+        "right": 130,
+        "bottom": 149,
+        "width": 98,
+        "height": 100,
+        "pixels": 6599,
+        "edgePixels": 0
+      },
+      "sha256": "24c151999d29ce1f4a31ed3237072251569a5cf79c39f168ada6c4641409f34b"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 14,
+        "top": 374,
+        "width": 163,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 152,
+        "width": 163,
+        "height": 153,
+        "pixels": 17146
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 530
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 49,
+        "right": 135,
+        "bottom": 148,
+        "width": 106,
+        "height": 100,
+        "pixels": 7358,
+        "edgePixels": 0
+      },
+      "sha256": "4445da6e2b3b5afc0f92f4529139baaea2ce4108f927d294557a972f997a64ca"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 197,
+        "top": 376,
+        "width": 167,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 151,
+        "width": 167,
+        "height": 152,
+        "pixels": 16437
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 530
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 50,
+        "right": 140,
+        "bottom": 148,
+        "width": 109,
+        "height": 99,
+        "pixels": 7023,
+        "edgePixels": 0
+      },
+      "sha256": "cc8e19cda5347867fd693660b0d20d619c074f969edbe3e005a3e1c2ba385d20"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 384,
+        "top": 377,
+        "width": 160,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 150,
+        "width": 160,
+        "height": 151,
+        "pixels": 15648
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 530
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 50,
+        "right": 138,
+        "bottom": 147,
+        "width": 104,
+        "height": 98,
+        "pixels": 6635,
+        "edgePixels": 0
+      },
+      "sha256": "ce22853b49a2726fbaeb4a8b246eccbb2832b15ea7c9789a31849e79eb9c9121"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 553,
+        "top": 354,
+        "width": 155,
+        "height": 176
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 175,
+        "width": 155,
+        "height": 176,
+        "pixels": 18665
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 530
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 36,
+        "right": 128,
+        "bottom": 149,
+        "width": 101,
+        "height": 114,
+        "pixels": 7961,
+        "edgePixels": 0
+      },
+      "sha256": "0acaf20369027fd43d69be118097774dc1220e424bcd533acb81deda65b0ab00"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 732,
+        "top": 381,
+        "width": 194,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 193,
+        "bottom": 148,
+        "width": 194,
+        "height": 149,
+        "pixels": 17723
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 530
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 53,
+        "right": 151,
+        "bottom": 149,
+        "width": 126,
+        "height": 97,
+        "pixels": 7539,
+        "edgePixels": 0
+      },
+      "sha256": "8d4797b476a77b86413b6ac8f5b20b95e3c18261e5fddb8d43e46301d7fd8034"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 929,
+        "top": 377,
+        "width": 147,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 152,
+        "width": 147,
+        "height": 153,
+        "pixels": 14851
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 530
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 37,
+        "top": 50,
+        "right": 132,
+        "bottom": 149,
+        "width": 96,
+        "height": 100,
+        "pixels": 6386,
+        "edgePixels": 0
+      },
+      "sha256": "9aa160779a7a4af4a4ceeac5303a735ab415737c530bd6e6b2011d510d70eb4c"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 12,
+        "top": 569,
+        "width": 166,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 141,
+        "width": 166,
+        "height": 142,
+        "pixels": 16011
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 709
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 59,
+        "right": 136,
+        "bottom": 150,
+        "width": 108,
+        "height": 92,
+        "pixels": 6803,
+        "edgePixels": 0
+      },
+      "sha256": "7ba1d80bb24e1fa006c4691c13e35a1f32ac17221482fe8849ed69679be30c72"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 197,
+        "top": 564,
+        "width": 166,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 147,
+        "width": 166,
+        "height": 148,
+        "pixels": 15805
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 709
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 56,
+        "right": 139,
+        "bottom": 151,
+        "width": 108,
+        "height": 96,
+        "pixels": 6719,
+        "edgePixels": 0
+      },
+      "sha256": "6ce3e615e05c0343e296cb9a288188fb0209c050a1d69c754101d69eae320ee8"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 385,
+        "top": 569,
+        "width": 152,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 138,
+        "width": 152,
+        "height": 139,
+        "pixels": 14662
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 709
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 59,
+        "right": 134,
+        "bottom": 148,
+        "width": 99,
+        "height": 90,
+        "pixels": 6254,
+        "edgePixels": 0
+      },
+      "sha256": "77429b862dfe1dce72d2ba4dc1589b967af8028ef7006f33134033a23b4c14c4"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 550,
+        "top": 558,
+        "width": 176,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 147,
+        "width": 176,
+        "height": 148,
+        "pixels": 17862
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 709
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 52,
+        "right": 139,
+        "bottom": 147,
+        "width": 114,
+        "height": 96,
+        "pixels": 7553,
+        "edgePixels": 0
+      },
+      "sha256": "efe25a8dcf818758f253fdf75f771dcf4d071a22c3a1ebc912f426a015539940"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 739,
+        "top": 558,
+        "width": 168,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 150,
+        "width": 168,
+        "height": 151,
+        "pixels": 17711
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 709
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 52,
+        "right": 139,
+        "bottom": 149,
+        "width": 109,
+        "height": 98,
+        "pixels": 7499,
+        "edgePixels": 0
+      },
+      "sha256": "f594380be901ad2f2a9f366b95a3d668d945947f159376f5765d724546ee2b79"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 917,
+        "top": 563,
+        "width": 158,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 143,
+        "width": 158,
+        "height": 144,
+        "pixels": 16047
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 709
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 55,
+        "right": 131,
+        "bottom": 148,
+        "width": 103,
+        "height": 94,
+        "pixels": 6857,
+        "edgePixels": 0
+      },
+      "sha256": "e4c7b78cc7f132d42590c3d57d2de31f8ea4339cdf1db3afb49f32e04a36e687"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 16,
+        "top": 748,
+        "width": 189,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 188,
+        "bottom": 140,
+        "width": 189,
+        "height": 141,
+        "pixels": 16635
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 888
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 59,
+        "right": 154,
+        "bottom": 150,
+        "width": 123,
+        "height": 92,
+        "pixels": 7128,
+        "edgePixels": 0
+      },
+      "sha256": "bd3f07217a7966834d227593f23a800dc969fc0d8aaed3aea33ecb325bca450e"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 208,
+        "top": 735,
+        "width": 160,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 152,
+        "width": 160,
+        "height": 153,
+        "pixels": 15340
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 888
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 50,
+        "right": 142,
+        "bottom": 149,
+        "width": 104,
+        "height": 100,
+        "pixels": 6587,
+        "edgePixels": 0
+      },
+      "sha256": "685475ac92e86b63fbda8fdc3b9aa0113fc451745919b2552fe9e12351aa4886"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 383,
+        "top": 734,
+        "width": 178,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 177,
+        "bottom": 153,
+        "width": 178,
+        "height": 154,
+        "pixels": 16740
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 888
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 50,
+        "right": 150,
+        "bottom": 149,
+        "width": 116,
+        "height": 100,
+        "pixels": 7138,
+        "edgePixels": 0
+      },
+      "sha256": "28be22959a8fc64a647fe4b934e8fabf5a3f68780681db687e7d8b08746a4133"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 573,
+        "top": 739,
+        "width": 155,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 148,
+        "width": 155,
+        "height": 149,
+        "pixels": 15927
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 888
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 141,
+        "bottom": 149,
+        "width": 101,
+        "height": 97,
+        "pixels": 6788,
+        "edgePixels": 0
+      },
+      "sha256": "6acf4c83462e104e7ea75a0fc0829c227f47502fccafde9f342e57f8422ae75f"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 741,
+        "top": 740,
+        "width": 158,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 147,
+        "width": 158,
+        "height": 148,
+        "pixels": 15944
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 888
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 54,
+        "right": 134,
+        "bottom": 149,
+        "width": 103,
+        "height": 96,
+        "pixels": 6802,
+        "edgePixels": 0
+      },
+      "sha256": "d2d248a8a07ba2c33abc02214bc4d49f811e37f43dc5e939e3f4ed235f93bff2"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 917,
+        "top": 743,
+        "width": 158,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 144,
+        "width": 158,
+        "height": 145,
+        "pixels": 16270
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 888
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 56,
+        "right": 131,
+        "bottom": 149,
+        "width": 103,
+        "height": 94,
+        "pixels": 6947,
+        "edgePixels": 0
+      },
+      "sha256": "02d3fb8d3520987def8e3b272b399310ec5ad6a312dc698c73a1ce6a5735c1b9"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 12,
+        "top": 923,
+        "width": 167,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 147,
+        "width": 167,
+        "height": 148,
+        "pixels": 16922
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1070
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 54,
+        "right": 137,
+        "bottom": 149,
+        "width": 109,
+        "height": 96,
+        "pixels": 7252,
+        "edgePixels": 0
+      },
+      "sha256": "96e92e26233fb26b0fe370f3f6886cbd016ffca06d2d7fd0852a8c16f9b5d9fa"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 200,
+        "top": 922,
+        "width": 156,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 147,
+        "width": 156,
+        "height": 148,
+        "pixels": 15484
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1070
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 33,
+        "top": 54,
+        "right": 133,
+        "bottom": 149,
+        "width": 101,
+        "height": 96,
+        "pixels": 6551,
+        "edgePixels": 0
+      },
+      "sha256": "19b9a28daecb1c624288b7505b4304ba8ef5378fa1a6f4c12d9386990d296c6c"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 387,
+        "top": 918,
+        "width": 144,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 151,
+        "width": 144,
+        "height": 152,
+        "pixels": 14695
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1070
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 37,
+        "top": 51,
+        "right": 130,
+        "bottom": 149,
+        "width": 94,
+        "height": 99,
+        "pixels": 6300,
+        "edgePixels": 0
+      },
+      "sha256": "5f60d8a6f8dca8f680de5ff89ca362848597248b820fc3ddbc864ada0dc1b19f"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 547,
+        "top": 918,
+        "width": 172,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 150,
+        "width": 172,
+        "height": 151,
+        "pixels": 16936
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1070
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 51,
+        "right": 135,
+        "bottom": 148,
+        "width": 112,
+        "height": 98,
+        "pixels": 7227,
+        "edgePixels": 0
+      },
+      "sha256": "af4602e1f2df35ff05edc48a70167d9f7cfe685a486d04c372c09145d7fb8904"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 737,
+        "top": 917,
+        "width": 168,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 151,
+        "width": 168,
+        "height": 152,
+        "pixels": 16862
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1070
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 50,
+        "right": 138,
+        "bottom": 148,
+        "width": 109,
+        "height": 99,
+        "pixels": 7184,
+        "edgePixels": 0
+      },
+      "sha256": "1154b68bfc09ba6196a5111bb6d7338a8aca858187baf06df1292a759aa7dae8"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 923,
+        "top": 919,
+        "width": 152,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 148,
+        "width": 152,
+        "height": 149,
+        "pixels": 15793
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1070
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 52,
+        "right": 131,
+        "bottom": 148,
+        "width": 99,
+        "height": 97,
+        "pixels": 6741,
+        "edgePixels": 0
+      },
+      "sha256": "e90e0470b7f959e901351076e2d517e8b9c4ed7dee5453a965722a4d2189e4c6"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 17,
+        "top": 1102,
+        "width": 167,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 146,
+        "width": 167,
+        "height": 147,
+        "pixels": 16485
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1249
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 54,
+        "right": 140,
+        "bottom": 149,
+        "width": 109,
+        "height": 96,
+        "pixels": 7058,
+        "edgePixels": 0
+      },
+      "sha256": "670c1dcb546496fc67b22aee739ccef3d3601881a1fcf119fe51858f204f1540"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 205,
+        "top": 1106,
+        "width": 153,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 142,
+        "width": 153,
+        "height": 143,
+        "pixels": 15302
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1249
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 37,
+        "top": 57,
+        "right": 136,
+        "bottom": 149,
+        "width": 100,
+        "height": 93,
+        "pixels": 6556,
+        "edgePixels": 0
+      },
+      "sha256": "3856aa4649fa4c6dcb853793620f20664eb5bb6956d1cd67e583a3fad50883c4"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 384,
+        "top": 1106,
+        "width": 156,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 143,
+        "width": 156,
+        "height": 144,
+        "pixels": 14610
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1249
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 57,
+        "right": 135,
+        "bottom": 150,
+        "width": 101,
+        "height": 94,
+        "pixels": 6254,
+        "edgePixels": 0
+      },
+      "sha256": "300d032888bc0486796a6573be85b1c701635674857d3843d1569ed673742b92"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 565,
+        "top": 1102,
+        "width": 158,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 146,
+        "width": 158,
+        "height": 147,
+        "pixels": 15924
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1249
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 54,
+        "right": 137,
+        "bottom": 149,
+        "width": 103,
+        "height": 96,
+        "pixels": 6827,
+        "edgePixels": 0
+      },
+      "sha256": "c546aa4dda282d80a3aebee919b1ee64b6a38360b6ed7e0889b00912d904517f"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 737,
+        "top": 1098,
+        "width": 166,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 150,
+        "width": 166,
+        "height": 151,
+        "pixels": 17054
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1249
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 52,
+        "right": 137,
+        "bottom": 149,
+        "width": 108,
+        "height": 98,
+        "pixels": 7242,
+        "edgePixels": 0
+      },
+      "sha256": "bcf1b5827f06b53ed5c96c380293819931c92688d13df2e20274d0465b905d3b"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 922,
+        "top": 1099,
+        "width": 154,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 148,
+        "width": 154,
+        "height": 149,
+        "pixels": 16061
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1249
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 52,
+        "right": 131,
+        "bottom": 148,
+        "width": 100,
+        "height": 97,
+        "pixels": 6841,
+        "edgePixels": 0
+      },
+      "sha256": "d58bc51f0455b27a6ac939656335d88faa63668eb57040fceabdde3086e0cffd"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 15,
+        "top": 1274,
+        "width": 164,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 149,
+        "width": 164,
+        "height": 150,
+        "pixels": 16134
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1425
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 52,
+        "right": 137,
+        "bottom": 149,
+        "width": 107,
+        "height": 98,
+        "pixels": 6919,
+        "edgePixels": 0
+      },
+      "sha256": "2ca8874f41396b381e5fa8c7ba6cb980be3fdb9c49f5ab76667748bc9eebaebd"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 203,
+        "top": 1284,
+        "width": 147,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 141,
+        "width": 147,
+        "height": 142,
+        "pixels": 14679
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1425
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 58,
+        "right": 130,
+        "bottom": 149,
+        "width": 96,
+        "height": 92,
+        "pixels": 6295,
+        "edgePixels": 0
+      },
+      "sha256": "f103a6274516110a834647396eaf9c1b366d0ca7a68848a9665f233fb01fe7e3"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 371,
+        "top": 1303,
+        "width": 160,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 121,
+        "width": 160,
+        "height": 122,
+        "pixels": 12832
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1425
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 27,
+        "top": 71,
+        "right": 130,
+        "bottom": 149,
+        "width": 104,
+        "height": 79,
+        "pixels": 5454,
+        "edgePixels": 0
+      },
+      "sha256": "98dbc54d9c871070286f67d2686a57ede56932f78006dc504cb4eef611c1ee42"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 550,
+        "top": 1316,
+        "width": 169,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 109,
+        "width": 169,
+        "height": 110,
+        "pixels": 12121
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1425
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 79,
+        "right": 135,
+        "bottom": 150,
+        "width": 110,
+        "height": 72,
+        "pixels": 5209,
+        "edgePixels": 0
+      },
+      "sha256": "9d1f77abece0a427be40c30baa57bb573eacddc3da8fc35c6b790c7a8fd6e250"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 732,
+        "top": 1319,
+        "width": 165,
+        "height": 105
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 104,
+        "width": 165,
+        "height": 105,
+        "pixels": 11614
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1425
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 81,
+        "right": 132,
+        "bottom": 148,
+        "width": 107,
+        "height": 68,
+        "pixels": 4908,
+        "edgePixels": 0
+      },
+      "sha256": "9c5fcd37a3e00560c55c8588b47c34106017bf36aa853a6508ae5453ca0e7364"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 908,
+        "top": 1335,
+        "width": 167,
+        "height": 86
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 85,
+        "width": 167,
+        "height": 86,
+        "pixels": 10356
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/quarry-colossus/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1425
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 91,
+        "right": 131,
+        "bottom": 146,
+        "width": 109,
+        "height": 56,
+        "pixels": 4433,
+        "edgePixels": 0
+      },
+      "sha256": "317ae6827a5012481505e95ddd6c7fc6fbe2cc9473a954380f19eb6ab1dce663"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

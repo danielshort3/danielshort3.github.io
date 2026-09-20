@@ -1,0 +1,35 @@
+{
+  "source": "oracle-healing-fx-study.png",
+  "sourceSha256": "ca85357f4b383cbcde432e9e073e9a33f0019bb1de67ca75837f71b8d6642a69",
+  "coordinateSpace": "Local coordinates within each measured sourceRect; source pixels before the shared rendering scale.",
+  "anchors": [
+    { "x": 223, "y": 252 },
+    { "x": 223, "y": 252 },
+    { "x": 232, "y": 251 },
+    { "x": 225, "y": 252 },
+    { "x": 224, "y": 200 },
+    { "x": 223, "y": 208 },
+    { "x": 232, "y": 208 },
+    { "x": 223, "y": 208 }
+  ],
+  "globalSourceCenters": [
+    { "x": 223, "y": 252 },
+    { "x": 667, "y": 252 },
+    { "x": 1119, "y": 251 },
+    { "x": 1556, "y": 252 },
+    { "x": 224, "y": 644 },
+    { "x": 667, "y": 652 },
+    { "x": 1119, "y": 652 },
+    { "x": 1554, "y": 652 }
+  ],
+  "method": [
+    "Frames 0-3: enclosed transparent-hole component measured at alpha thresholds 64 and 128. Both thresholds agree within about 0.2 source pixels; rounded centroids supply the stable ring center, without plus-mark mass.",
+    "Frames 4-5: ring gaps connect the hole to the background, so fit a circle to the inner ring boundary sampled radially. Require three consecutive alpha>=128 samples and reject radial outliers. Fitted centers are (224.19,199.87) and (222.89,207.67); median radial residuals about 2.32 and 1.96 source pixels.",
+    "Frames 6-7: preserve frame 5's logical vertical ring origin at local y208 while the ring dissolves. Local x232 and x223 follow the corresponding column's radial fragment arrangement. Do not recenter by rising plus signs or all-pixel bounds."
+  ],
+  "notes": [
+    "Anchors change drawing translation only. Keep one effect scale across all eight frames; no per-frame fit or resizing.",
+    "Late-phase anchors are logical continuity points, not measured intact-circle centers. The drawn ring is not a perfect mathematical circle.",
+    "First-row ring centers are near y252; second-row centers are near y200-208. Nominal cell centers would introduce a packing jump."
+  ]
+}

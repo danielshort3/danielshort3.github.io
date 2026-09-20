@@ -1678,6 +1678,20 @@ async function validateAll() {
 
 async function main(argv) {
   const args = Array.isArray(argv) ? argv : process.argv.slice(2);
+  const overhaulLedger = path.join(ROOT, 'asset-sources/project-starfall/overhaul-v1/players/ledger.json');
+  if (fs.existsSync(overhaulLedger)) {
+    if (args.includes('--validate')) {
+      const ledger = JSON.parse(fs.readFileSync(overhaulLedger, 'utf8'));
+      for (const output of ledger.outputs) {
+        const image = await sharp(path.join(ROOT, output.path)).metadata();
+        if (!image.hasAlpha) throw new Error(`Overhaul output lost alpha: ${output.path}`);
+      }
+      console.log('Validated authoritative illustrated player/pet exports.');
+    } else {
+      await require('./process-project-starfall-overhaul-players').main();
+    }
+    return;
+  }
   if (args.includes('--validate')) {
     await validateAll();
     return;

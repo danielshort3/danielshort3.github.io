@@ -1250,7 +1250,8 @@ function renderAudienceConfigJs(settings, audiences) {
       resumeNavSubtitle: audience.resumeNavSubtitle,
       resumePreviewSubtitle: audience.resumePreviewSubtitle,
       resumeDownloadSubtitle: audience.resumeDownloadSubtitle,
-      brandNavPrimary: audience.brandNavPrimary
+      brandNavPrimary: audience.brandNavPrimary,
+      ...(audience.brandTagline ? { brandTagline: audience.brandTagline } : {})
     };
     return acc;
   }, {});

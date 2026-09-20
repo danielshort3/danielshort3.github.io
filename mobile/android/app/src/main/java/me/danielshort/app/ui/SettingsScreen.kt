@@ -23,7 +23,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.danielshort.app.BuildConfig
+import me.danielshort.app.SiteApplication
 import me.danielshort.app.data.ContentRepository
+import me.danielshort.app.data.AppSettings
 import me.danielshort.app.nativefeatures.NativeFeatureHeader
 import java.text.DateFormat
 import java.util.Date
@@ -39,8 +41,13 @@ fun SettingsScreen(repository: ContentRepository, onBack: () -> Unit) {
   var confirmClear by remember { mutableStateOf(false) }
   Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
     NativeFeatureHeader("Settings", "Make the app work your way.", onBack)
+    val application = context.applicationContext as SiteApplication
+    AppUpdateSection(application.appUpdates, application.automaticAppInstaller, options.automaticAppUpdates) {
+      AppUpdatePreferences(options, repository.settings::update)
+    }
+    HorizontalDivider()
     Text("Content updates", modifier = Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-    SettingSwitch("Automatic updates", "Check for published content on launch and in the background.", options.automaticUpdates) {
+    SettingSwitch("Automatic content updates", "Check for published content on launch and in the background.", options.automaticUpdates) {
       repository.settings.update(options.copy(automaticUpdates = it))
     }
     SettingSwitch("Save mobile data", "Use unmetered networks for automatic content updates.", options.unmeteredOnly, options.automaticUpdates) {
@@ -51,7 +58,7 @@ fun SettingsScreen(repository: ContentRepository, onBack: () -> Unit) {
     }
     Text(if (content.lastChecked == 0L) "Using bundled content" else "Last checked ${DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(content.lastChecked))}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     HorizontalDivider()
-    SettingSwitch("Reduce motion", "Use quieter animation in native games and simulations.", options.reduceMotion) {
+    SettingSwitch("Reduce motion", "Limit interface motion and extra game effects.", options.reduceMotion) {
       repository.settings.update(options.copy(reduceMotion = it))
     }
     HorizontalDivider()
@@ -73,6 +80,19 @@ fun SettingsScreen(repository: ContentRepository, onBack: () -> Unit) {
     Spacer(Modifier.height(12.dp))
   }
   if (confirmClear) AlertDialog(onDismissRequest = { confirmClear = false }, title = { Text("Clear saved projects?") }, text = { Text("This removes your local bookmarks. Your game progress and generated files are kept.") }, confirmButton = { TextButton(onClick = { repository.clearSavedProjects(); confirmClear = false; notice = "Saved projects cleared" }) { Text("Clear bookmarks") } }, dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Cancel") } })
+}
+
+@Composable
+internal fun AppUpdatePreferences(options: AppSettings, onChange: (AppSettings) -> Unit) {
+  SettingSwitch("Check for app updates on launch", "Look for a new app version when you open the app.", options.checkAppUpdatesOnLaunch || options.automaticAppUpdates, !options.automaticAppUpdates) {
+    onChange(options.copy(checkAppUpdatesOnLaunch = it))
+  }
+  SettingSwitch("Automatic app updates", "Download verified updates and install while the app is idle when Android permits. Otherwise, you confirm installation.", options.automaticAppUpdates) {
+    onChange(options.copy(automaticAppUpdates = it, checkAppUpdatesOnLaunch = if (it) true else options.checkAppUpdatesOnLaunch))
+  }
+  SettingSwitch("Save mobile data for app updates", "Use unmetered networks for automatic app downloads. Manual downloads work on any connection.", options.appUpdatesUnmeteredOnly, options.automaticAppUpdates) {
+    onChange(options.copy(appUpdatesUnmeteredOnly = it))
+  }
 }
 
 @Composable

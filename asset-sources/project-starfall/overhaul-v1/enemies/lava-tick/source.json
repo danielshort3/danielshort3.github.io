@@ -1,0 +1,368 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "lava-tick",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-110b5da8-a822-49dd-b095-68c295a59081.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/lava-tick.png",
+    "img/project-starfall/animations/enemies/lava-tick-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": false,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Mainraw7rows retained. Missinghit supplied as6genuineauthoredposes, fixedscalepernewsource, no fabricatedmotion.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19",
+    "registrationFollowup": "Horizontal source anchors reviewed against the dorsal shell crown and independent shell-region correspondence. Original generated pose/art and existing vertical motion retained."
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/lava-tick-sheet.png",
+    "portrait": "img/project-starfall/enemies/lava-tick.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "19e7ba025435362876a0f7edd36b6d0fc49a57479dfc0c0189be779b098588cc",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "sourceRows": 7,
+  "sourceRowMap": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    null,
+    6
+  ],
+  "supplementalRows": {
+    "hit": {
+      "file": "hit-supplement.png",
+      "columns": 3,
+      "rows": 2,
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "neutralIndex": 5,
+      "sha256": "b5d43052ca33ee1e5918ee59f402dbf1e1aee11c52ca090a8d314b2d110da3fc"
+    }
+  },
+  "sharedScale": 0.7965775401069519,
+  "frames": {
+    "0": {
+      "anchor": {
+        "x": 96.77685284640172,
+        "y": 179
+      }
+    },
+    "1": {
+      "anchor": {
+        "x": 267.73388829215895,
+        "y": 179
+      }
+    },
+    "2": {
+      "anchor": {
+        "x": 449.98925886143934,
+        "y": 179
+      }
+    },
+    "3": {
+      "anchor": {
+        "x": 625.9677765843179,
+        "y": 179
+      }
+    },
+    "4": {
+      "anchor": {
+        "x": 811.9892588614393,
+        "y": 179
+      }
+    },
+    "5": {
+      "anchor": {
+        "x": 990.4785177228787,
+        "y": 179
+      }
+    },
+    "6": {
+      "anchor": {
+        "x": 95.52148227712138,
+        "y": 139
+      }
+    },
+    "7": {
+      "anchor": {
+        "x": 275.26611170784105,
+        "y": 139
+      }
+    },
+    "8": {
+      "anchor": {
+        "x": 457.5214822771214,
+        "y": 139
+      }
+    },
+    "9": {
+      "anchor": {
+        "x": 638.5214822771213,
+        "y": 139
+      }
+    },
+    "10": {
+      "anchor": {
+        "x": 822.0322234156821,
+        "y": 139
+      }
+    },
+    "11": {
+      "anchor": {
+        "x": 991.733888292159,
+        "y": 139
+      }
+    },
+    "12": {
+      "anchor": {
+        "x": 95.52148227712138,
+        "y": 150
+      }
+    },
+    "13": {
+      "anchor": {
+        "x": 274.01074113856066,
+        "y": 150
+      }
+    },
+    "14": {
+      "anchor": {
+        "x": 453.75537056928033,
+        "y": 150
+      }
+    },
+    "15": {
+      "anchor": {
+        "x": 633.5,
+        "y": 150
+      }
+    },
+    "16": {
+      "anchor": {
+        "x": 814.5,
+        "y": 150
+      }
+    },
+    "17": {
+      "anchor": {
+        "x": 991.733888292159,
+        "y": 150
+      }
+    },
+    "18": {
+      "anchor": {
+        "x": 101.79833512352309,
+        "y": 152
+      }
+    },
+    "19": {
+      "anchor": {
+        "x": 285.3090762620838,
+        "y": 152
+      }
+    },
+    "20": {
+      "anchor": {
+        "x": 468.81981740064447,
+        "y": 152
+      }
+    },
+    "21": {
+      "anchor": {
+        "x": 646.0537056928034,
+        "y": 152
+      }
+    },
+    "22": {
+      "anchor": {
+        "x": 819.5214822771213,
+        "y": 152
+      }
+    },
+    "23": {
+      "anchor": {
+        "x": 991.733888292159,
+        "y": 152
+      }
+    },
+    "24": {
+      "anchor": {
+        "x": 96.77685284640172,
+        "y": 144
+      }
+    },
+    "25": {
+      "anchor": {
+        "x": 286.56444683136414,
+        "y": 144
+      }
+    },
+    "26": {
+      "anchor": {
+        "x": 455.01074113856066,
+        "y": 144
+      }
+    },
+    "27": {
+      "anchor": {
+        "x": 632.2446294307197,
+        "y": 144
+      }
+    },
+    "28": {
+      "anchor": {
+        "x": 817.0107411385607,
+        "y": 144
+      }
+    },
+    "29": {
+      "anchor": {
+        "x": 996.7553705692803,
+        "y": 144
+      }
+    },
+    "30": {
+      "anchor": {
+        "x": 93.01074113856069,
+        "y": 148
+      }
+    },
+    "31": {
+      "anchor": {
+        "x": 279.03222341568204,
+        "y": 148
+      }
+    },
+    "32": {
+      "anchor": {
+        "x": 456.26611170784105,
+        "y": 148
+      }
+    },
+    "33": {
+      "anchor": {
+        "x": 638.5214822771213,
+        "y": 148
+      }
+    },
+    "34": {
+      "anchor": {
+        "x": 818.266111707841,
+        "y": 148
+      }
+    },
+    "35": {
+      "anchor": {
+        "x": 991.733888292159,
+        "y": 148
+      }
+    },
+    "36": {
+      "anchor": {
+        "x": 258.6343835779926,
+        "y": 445
+      }
+    },
+    "37": {
+      "anchor": {
+        "x": 770.2687671559852,
+        "y": 447
+      }
+    },
+    "38": {
+      "anchor": {
+        "x": 1259.0375343119704,
+        "y": 448
+      }
+    },
+    "39": {
+      "anchor": {
+        "x": 274.1343835779926,
+        "y": 888
+      }
+    },
+    "40": {
+      "anchor": {
+        "x": 786.3171917889963,
+        "y": 892
+      }
+    },
+    "41": {
+      "anchor": {
+        "x": 1266.451575366989,
+        "y": 893
+      }
+    },
+    "42": {
+      "anchor": {
+        "x": 95.52148227712138,
+        "y": 220
+      }
+    },
+    "43": {
+      "anchor": {
+        "x": 268.98925886143934,
+        "y": 220
+      }
+    },
+    "44": {
+      "anchor": {
+        "x": 457.5214822771214,
+        "y": 220
+      }
+    },
+    "45": {
+      "anchor": {
+        "x": 638.5214822771213,
+        "y": 220
+      }
+    },
+    "46": {
+      "anchor": {
+        "x": 817.0107411385607,
+        "y": 220
+      }
+    },
+    "47": {
+      "anchor": {
+        "x": 987.9677765843179,
+        "y": 220
+      }
+    }
+  },
+  "registrationReview": {
+    "status": "reviewed-horizontal",
+    "reviewedAt": "2026-09-20",
+    "scope": "All 48 Lava Tick poses in idle, move, telegraph, attack, projectile, buff, hit and defeat. Horizontal registration only; no new artwork.",
+    "landmark": "Rigid dorsal carapace crown, measured from the upper five solid contour rows in the reviewed body region. Excludes head horns, jaw and feet; not the complete silhouette or alpha bounding box.",
+    "sourceCoordinates": "Each frames[index].anchor is absolute in that frame sourcePath coordinate space. Main-source rows use the existing derived row image coordinate space; hit poses use the supplemental image coordinate space.",
+    "corrections": "Explicit per-pose horizontal anchors remove erroneous source-grid placement. All vertical anchors, authored crouch/rise/recoil shapes, jaw/leg motion and the original shared scale remain unchanged. Pixel artwork is only translated within each existing 160px cell.",
+    "evidencePath": "output/lava-tick-alignment/evidence.json",
+    "comparisonPath": "output/lava-tick-alignment/comparison-all-actions.png",
+    "limitations": "This resolves horizontal carapace registration. Generated fissure texture, shell shape and pose-to-pose anatomical differences remain visible; it does not certify all poses or all game animations as perfectly seamless."
+  }
+}

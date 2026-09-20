@@ -28,6 +28,8 @@
     'consent-blocked',
     'has-mobile-site-dock',
     'has-mobile-site-masthead',
+    'has-mobile-scroll-chrome',
+    'is-mobile-chrome-hidden',
     'is-mobile-site-dock-hidden'
   ]);
   const ROUTE_DATA_PREFIXES = [

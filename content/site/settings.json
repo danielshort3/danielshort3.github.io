@@ -14,10 +14,10 @@
   ],
   "profileImage": "https://www.danielshort.me/img/hero/head-avatar-384.jpg",
   "ogImage": {
-    "url": "https://www.danielshort.me/img/brand/07-website-hero-light-version.png",
-    "width": "1672",
-    "height": "941",
+    "url": "https://www.danielshort.me/img/brand/personal-social-card.png",
+    "width": "1200",
+    "height": "630",
     "type": "image/png",
-    "alt": "Daniel Short DS brand mark with an analytics interface background"
+    "alt": "Daniel Short — Solving everyday problems with data and thoughtful tools. Navy and blue DS logo beside five colored website tabs."
   }
 }

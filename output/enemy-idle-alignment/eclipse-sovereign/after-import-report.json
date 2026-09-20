@@ -1,0 +1,2114 @@
+{
+  "fileId": "eclipse-sovereign",
+  "sourceSha256": "d9ee5d98f1d828beb76b692d04cae3563fe7a32391d3866c55f995d6e1833182",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    173,
+    338,
+    511,
+    690,
+    865,
+    1042,
+    1223,
+    1448
+  ],
+  "sharedScale": 0.6130041152263375,
+  "floating": true,
+  "registration": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 91,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/eclipse-sovereign-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 633069,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 19,
+        "top": 12,
+        "width": 155,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 147,
+        "width": 155,
+        "height": 148,
+        "pixels": 12023
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 86
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 35,
+        "right": 130,
+        "bottom": 125,
+        "width": 95,
+        "height": 91,
+        "pixels": 4593,
+        "edgePixels": 0
+      },
+      "sha256": "c5eb35503e2949049a188931498ad25bafbaf5f2c248173d7aa905eb1ed32ea5"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 180,
+        "top": 11,
+        "width": 158,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 149,
+        "width": 158,
+        "height": 150,
+        "pixels": 12491
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 253.55558539205157,
+        "y": 86
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 34,
+        "right": 131,
+        "bottom": 125,
+        "width": 97,
+        "height": 92,
+        "pixels": 4756,
+        "edgePixels": 0
+      },
+      "sha256": "2eae6f3edb2a62c6b71e700fa61f3d278544fbd1333b77c47c6552ba848d6332"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 359,
+        "top": 12,
+        "width": 157,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 148,
+        "width": 157,
+        "height": 149,
+        "pixels": 12224
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 429.6616541353383,
+        "y": 86
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 37,
+        "top": 35,
+        "right": 132,
+        "bottom": 125,
+        "width": 96,
+        "height": 91,
+        "pixels": 4617,
+        "edgePixels": 0
+      },
+      "sha256": "52b358f3c5f43ffe69f7ee8c7e2322984c3c69dd46930f32606f7a83fb601faf"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 529,
+        "top": 12,
+        "width": 158,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 147,
+        "width": 158,
+        "height": 148,
+        "pixels": 12321
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 602.5051020408164,
+        "y": 86
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 35,
+        "right": 131,
+        "bottom": 125,
+        "width": 97,
+        "height": 91,
+        "pixels": 4718,
+        "edgePixels": 0
+      },
+      "sha256": "ccd5fcb8a16b76e445626077d001c3c2b4ff04bf0e2621e9b3aaab834e3d24da"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 707,
+        "top": 13,
+        "width": 164,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 146,
+        "width": 164,
+        "height": 147,
+        "pixels": 12454
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 781.8737916219119,
+        "y": 86
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 35,
+        "right": 134,
+        "bottom": 124,
+        "width": 101,
+        "height": 90,
+        "pixels": 4779,
+        "edgePixels": 0
+      },
+      "sha256": "b5b1fa6b31ef623b91214aaefa2f50ef1b3df40e65427ae7cc3df86346a66a40"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 884,
+        "top": 11,
+        "width": 158,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 148,
+        "width": 158,
+        "height": 149,
+        "pixels": 12379
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 956.3485499462943,
+        "y": 86
+      },
+      "anchorSource": "explicit-pose-landmark",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 34,
+        "right": 132,
+        "bottom": 124,
+        "width": 97,
+        "height": 91,
+        "pixels": 4712,
+        "edgePixels": 0
+      },
+      "sha256": "d260d99fdd9aeaf729ff163413a7ace42e324df6a07e512859d1e3bdd670883a"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 19,
+        "top": 0,
+        "width": 155,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 153,
+        "width": 155,
+        "height": 154,
+        "pixels": 12587
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 77.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 32,
+        "right": 130,
+        "bottom": 125,
+        "width": 95,
+        "height": 94,
+        "pixels": 4798,
+        "edgePixels": 0
+      },
+      "sha256": "565d03c7dcf12581038058ee8bbe6bc5fe65648447ad0ea2af67e06a05d2f0f1"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 185,
+        "top": 0,
+        "width": 174,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 153,
+        "width": 174,
+        "height": 154,
+        "pixels": 13353
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 77.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 32,
+        "right": 133,
+        "bottom": 125,
+        "width": 107,
+        "height": 94,
+        "pixels": 5118,
+        "edgePixels": 0
+      },
+      "sha256": "2e35aa0e01150ab09b5a1f87c6b96c1f41f3411a97312903c6addc103ae7837a"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 358,
+        "top": 0,
+        "width": 175,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 155,
+        "width": 175,
+        "height": 156,
+        "pixels": 13633
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 77.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 32,
+        "right": 128,
+        "bottom": 127,
+        "width": 107,
+        "height": 96,
+        "pixels": 5217,
+        "edgePixels": 0
+      },
+      "sha256": "4ba03aba253ccda5ab799800c4bd1fae76e99ca72bceb20ce2aedfdeec952023"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 537,
+        "top": 0,
+        "width": 162,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 154,
+        "width": 162,
+        "height": 155,
+        "pixels": 13390
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 77.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 32,
+        "right": 119,
+        "bottom": 126,
+        "width": 99,
+        "height": 95,
+        "pixels": 5079,
+        "edgePixels": 0
+      },
+      "sha256": "82f6a1ece597f6cc40f43b27fcc9d6ee9f788cbbf3f2bc805bb2fbab30f9f66c"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 709,
+        "top": 0,
+        "width": 175,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 154,
+        "width": 175,
+        "height": 155,
+        "pixels": 13628
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 77.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 15,
+        "top": 32,
+        "right": 121,
+        "bottom": 126,
+        "width": 107,
+        "height": 95,
+        "pixels": 5183,
+        "edgePixels": 0
+      },
+      "sha256": "0002394d015adea07a320df549530ca1d040ac44c5484730accccfe28620a64f"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 890,
+        "top": 0,
+        "width": 168,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 153,
+        "width": 168,
+        "height": 154,
+        "pixels": 13101
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 77.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 15,
+        "top": 32,
+        "right": 117,
+        "bottom": 125,
+        "width": 103,
+        "height": 94,
+        "pixels": 4989,
+        "edgePixels": 0
+      },
+      "sha256": "310c2ea8865bd5eb5c8fe40d75c4085e6016a761b449396115cabbf56fd9637b"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 19,
+        "top": 5,
+        "width": 158,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 159,
+        "width": 158,
+        "height": 160,
+        "pixels": 13188
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 85.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 31,
+        "right": 132,
+        "bottom": 128,
+        "width": 97,
+        "height": 98,
+        "pixels": 5025,
+        "edgePixels": 0
+      },
+      "sha256": "dfe7467cb8133a65e02aa225d4aacf2f9690519a1686a29e1a12e15b38db5966"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 194,
+        "top": 4,
+        "width": 164,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 159,
+        "width": 164,
+        "height": 160,
+        "pixels": 13360
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 85.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 30,
+        "right": 132,
+        "bottom": 127,
+        "width": 101,
+        "height": 98,
+        "pixels": 5117,
+        "edgePixels": 0
+      },
+      "sha256": "41f469db7b5c541e5569bb6962b383afb9d4685b85a59b519e21d74f56cb3cd7"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 368,
+        "top": 5,
+        "width": 164,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 160,
+        "width": 164,
+        "height": 161,
+        "pixels": 14490
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 85.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 31,
+        "right": 128,
+        "bottom": 129,
+        "width": 101,
+        "height": 99,
+        "pixels": 5550,
+        "edgePixels": 0
+      },
+      "sha256": "8f9488dc42b96fcb2e5b7f02b7a832c8a053a4d00b01db2da725c941015773dc"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 544,
+        "top": 1,
+        "width": 167,
+        "height": 172
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 171,
+        "width": 167,
+        "height": 172,
+        "pixels": 14681
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 85.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 28,
+        "right": 126,
+        "bottom": 132,
+        "width": 102,
+        "height": 105,
+        "pixels": 5529,
+        "edgePixels": 0
+      },
+      "sha256": "8a446b9e11fbff6e222ba123cc65affe28527f3c3247c2c7c1102474663ce6b1"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 721,
+        "top": 3,
+        "width": 165,
+        "height": 165
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 164,
+        "width": 165,
+        "height": 165,
+        "pixels": 14728
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 85.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 29,
+        "right": 123,
+        "bottom": 129,
+        "width": 101,
+        "height": 101,
+        "pixels": 5573,
+        "edgePixels": 0
+      },
+      "sha256": "e30fbf5cc0999f8c4df994fe1f36108054cb0fb2d4b0a8b51b4ae1085c5a4b55"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 901,
+        "top": 4,
+        "width": 176,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 160,
+        "width": 176,
+        "height": 161,
+        "pixels": 14234
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 85.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 30,
+        "right": 129,
+        "bottom": 128,
+        "width": 108,
+        "height": 99,
+        "pixels": 5442,
+        "edgePixels": 0
+      },
+      "sha256": "42c77a84763815182e62a567a9c69e53681136e0d426ed183560037881194ac7"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 19,
+        "top": 3,
+        "width": 193,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 192,
+        "bottom": 159,
+        "width": 193,
+        "height": 160,
+        "pixels": 14527
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 29,
+        "right": 153,
+        "bottom": 126,
+        "width": 118,
+        "height": 98,
+        "pixels": 5501,
+        "edgePixels": 0
+      },
+      "sha256": "03a971c7e18786b9377d522b76f47daeea8b660a3e21505f7002064d554b99d0"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 206,
+        "top": 6,
+        "width": 166,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 159,
+        "width": 166,
+        "height": 160,
+        "pixels": 13636
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 31,
+        "right": 141,
+        "bottom": 128,
+        "width": 102,
+        "height": 98,
+        "pixels": 5205,
+        "edgePixels": 0
+      },
+      "sha256": "ac92602de1958f16c47007519512a1033239df8a88d6e6e2765cae81f75aa6e2"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 371,
+        "top": 9,
+        "width": 176,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 156,
+        "width": 176,
+        "height": 157,
+        "pixels": 14158
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 33,
+        "right": 137,
+        "bottom": 128,
+        "width": 108,
+        "height": 96,
+        "pixels": 5386,
+        "edgePixels": 0
+      },
+      "sha256": "1371267b491842cfa44c9fdcdad07590f978edf9b9775827ac0dbff90eea6e2b"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 549,
+        "top": 4,
+        "width": 180,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 179,
+        "bottom": 160,
+        "width": 180,
+        "height": 161,
+        "pixels": 13880
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 30,
+        "right": 137,
+        "bottom": 128,
+        "width": 110,
+        "height": 99,
+        "pixels": 5304,
+        "edgePixels": 0
+      },
+      "sha256": "bc08b499abc9fcb9763fa6f0a10cbde0b197a12d88b1eee268de4d6240a3e20a"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 728,
+        "top": 8,
+        "width": 167,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 157,
+        "width": 167,
+        "height": 158,
+        "pixels": 13411
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 32,
+        "right": 128,
+        "bottom": 128,
+        "width": 102,
+        "height": 97,
+        "pixels": 5129,
+        "edgePixels": 0
+      },
+      "sha256": "0874fd932b9df5ae6b81657e5273092c9f18758a1dce4f20e94f506207dc46e0"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 909,
+        "top": 6,
+        "width": 162,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 156,
+        "width": 162,
+        "height": 157,
+        "pixels": 13160
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 31,
+        "right": 125,
+        "bottom": 126,
+        "width": 99,
+        "height": 96,
+        "pixels": 4978,
+        "edgePixels": 0
+      },
+      "sha256": "0959a7313d88ceb9d14c13eaff504ae1c65e074b8ff0757b5493c6553a45189e"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 17,
+        "top": 3,
+        "width": 186,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 185,
+        "bottom": 159,
+        "width": 186,
+        "height": 160,
+        "pixels": 13858
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 83
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 31,
+        "right": 148,
+        "bottom": 128,
+        "width": 114,
+        "height": 98,
+        "pixels": 5260,
+        "edgePixels": 0
+      },
+      "sha256": "6549d6cd65a213ad39f8d402978fe8bd8771b5d30b333a09ae95488ebd24965e"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 196,
+        "top": 5,
+        "width": 189,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 188,
+        "bottom": 157,
+        "width": 189,
+        "height": 158,
+        "pixels": 13708
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 83
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 32,
+        "right": 149,
+        "bottom": 128,
+        "width": 116,
+        "height": 97,
+        "pixels": 5235,
+        "edgePixels": 0
+      },
+      "sha256": "0c6eeb8fc707ad68a239cb2dcb3e07076b085a2b01c984c7561b40f48f8d4432"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 380,
+        "top": 3,
+        "width": 167,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 158,
+        "width": 167,
+        "height": 159,
+        "pixels": 13870
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 83
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 31,
+        "right": 137,
+        "bottom": 127,
+        "width": 102,
+        "height": 97,
+        "pixels": 5212,
+        "edgePixels": 0
+      },
+      "sha256": "2fab0ce715f0ca2814100e29ef5b23c3b58ca48848c6ed428dd1bbc7a9d2a65a"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 557,
+        "top": 6,
+        "width": 163,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 155,
+        "width": 163,
+        "height": 156,
+        "pixels": 13316
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 83
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 33,
+        "right": 132,
+        "bottom": 128,
+        "width": 100,
+        "height": 96,
+        "pixels": 5089,
+        "edgePixels": 0
+      },
+      "sha256": "087ef36e14ab80f0502895185597930edf2da2e501513353bf501e47add06101"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 738,
+        "top": 0,
+        "width": 156,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 159,
+        "width": 156,
+        "height": 160,
+        "pixels": 13250
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 83
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 29,
+        "right": 128,
+        "bottom": 126,
+        "width": 96,
+        "height": 98,
+        "pixels": 5063,
+        "edgePixels": 0
+      },
+      "sha256": "03438571c8eb4e6d1d8a56818744f6bdd6b91dae26c7b67e4b062882a95a14ca"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 912,
+        "top": 2,
+        "width": 161,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 157,
+        "width": 161,
+        "height": 158,
+        "pixels": 13502
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 83
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 30,
+        "right": 127,
+        "bottom": 126,
+        "width": 99,
+        "height": 97,
+        "pixels": 5165,
+        "edgePixels": 0
+      },
+      "sha256": "f8dbcf5df406a8c5dde9f8c58908063f121b973e9da2e364945afaadbf6f444d"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 18,
+        "top": 2,
+        "width": 165,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 162,
+        "width": 165,
+        "height": 163,
+        "pixels": 13995
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 84.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 29,
+        "right": 136,
+        "bottom": 128,
+        "width": 101,
+        "height": 100,
+        "pixels": 5325,
+        "edgePixels": 0
+      },
+      "sha256": "a829c66992ca32a5ddc24f58858df280e5b72fdd05b3dbfbfe7a5f77aacb7aeb"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 194,
+        "top": 2,
+        "width": 166,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 162,
+        "width": 166,
+        "height": 163,
+        "pixels": 14281
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 84.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 29,
+        "right": 133,
+        "bottom": 128,
+        "width": 102,
+        "height": 100,
+        "pixels": 5441,
+        "edgePixels": 0
+      },
+      "sha256": "eaf307c4556498023a016982548c21b990264b81faceba7ef263b4acb1893ed5"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 376,
+        "top": 5,
+        "width": 159,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 160,
+        "width": 159,
+        "height": 161,
+        "pixels": 13773
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 84.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 31,
+        "right": 129,
+        "bottom": 129,
+        "width": 97,
+        "height": 99,
+        "pixels": 5261,
+        "edgePixels": 0
+      },
+      "sha256": "887d741d862a0b0beb44e8d92cb547b8031d050220df02336ac551775a2383d3"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 550,
+        "top": 1,
+        "width": 170,
+        "height": 165
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 164,
+        "width": 170,
+        "height": 165,
+        "pixels": 15849
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 84.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 29,
+        "right": 132,
+        "bottom": 129,
+        "width": 104,
+        "height": 101,
+        "pixels": 5989,
+        "edgePixels": 0
+      },
+      "sha256": "acac15db10ed1ad7bd2fec4ae1d30a10d87a15248e1ab2156f880feec6bd5bfb"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 726,
+        "top": 2,
+        "width": 171,
+        "height": 168
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 167,
+        "width": 171,
+        "height": 168,
+        "pixels": 14840
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 84.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 29,
+        "right": 130,
+        "bottom": 131,
+        "width": 105,
+        "height": 103,
+        "pixels": 5658,
+        "edgePixels": 0
+      },
+      "sha256": "34f274aefe6e8ae6b91b747fc9d342afa6a7c6fdfa7c294d05b6a0ff9a9b5eb8"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 908,
+        "top": 3,
+        "width": 165,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 162,
+        "width": 165,
+        "height": 163,
+        "pixels": 13969
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 84.5
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 30,
+        "right": 126,
+        "bottom": 129,
+        "width": 101,
+        "height": 100,
+        "pixels": 5315,
+        "edgePixels": 0
+      },
+      "sha256": "9d4b0784e6d24f81b153f7948756a6445b032b6bd50cf5147ce2ded2693ddfca"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 21,
+        "top": 0,
+        "width": 160,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 162,
+        "width": 160,
+        "height": 163,
+        "pixels": 13669
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 27,
+        "right": 134,
+        "bottom": 126,
+        "width": 98,
+        "height": 100,
+        "pixels": 5207,
+        "edgePixels": 0
+      },
+      "sha256": "30c8017c424d1007fe51cabd431dc4694dc1ebba1bdd1882cc4c93676b721b4e"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 191,
+        "top": 4,
+        "width": 175,
+        "height": 164
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 163,
+        "width": 175,
+        "height": 164,
+        "pixels": 14481
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 31,
+        "top": 30,
+        "right": 136,
+        "bottom": 130,
+        "width": 106,
+        "height": 101,
+        "pixels": 5537,
+        "edgePixels": 0
+      },
+      "sha256": "f895b14ff50971ca267516d6994bd99f96baafc2fe65d25a0b5115a3fd84e041"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 377,
+        "top": 4,
+        "width": 154,
+        "height": 167
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 166,
+        "width": 154,
+        "height": 167,
+        "pixels": 13277
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 34,
+        "top": 30,
+        "right": 127,
+        "bottom": 131,
+        "width": 94,
+        "height": 102,
+        "pixels": 5007,
+        "edgePixels": 0
+      },
+      "sha256": "03bccf5d18e73e76654247c49b22db73a019396b254541a292469c450d9e51b9"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 536,
+        "top": 0,
+        "width": 173,
+        "height": 164
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 163,
+        "width": 173,
+        "height": 164,
+        "pixels": 13758
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 27,
+        "right": 125,
+        "bottom": 127,
+        "width": 106,
+        "height": 101,
+        "pixels": 5278,
+        "edgePixels": 0
+      },
+      "sha256": "5b5d261670f5cf8cbbef0cce80a5b799dddc0456764c5debdc32f59490bbc0d9"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 720,
+        "top": 5,
+        "width": 172,
+        "height": 166
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 165,
+        "width": 172,
+        "height": 166,
+        "pixels": 13880
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 30,
+        "right": 126,
+        "bottom": 131,
+        "width": 105,
+        "height": 102,
+        "pixels": 5284,
+        "edgePixels": 0
+      },
+      "sha256": "1955a6784ea50594ef4fa99dda8cbf7c7341810cd13151bc7b1d8df421e6b833"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 908,
+        "top": 4,
+        "width": 156,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 162,
+        "width": 156,
+        "height": 163,
+        "pixels": 13672
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 86
+      },
+      "anchorSource": "nominal-source-grid",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 30,
+        "right": 121,
+        "bottom": 129,
+        "width": 96,
+        "height": 100,
+        "pixels": 5228,
+        "edgePixels": 0
+      },
+      "sha256": "9ea5d4ee1e88eb9b4502723d9f6bbf2cd1bb8840bad90bad431d70f58f194c81"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 67,
+        "top": 93,
+        "width": 396,
+        "height": 463
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 395,
+        "bottom": 462,
+        "width": 396,
+        "height": 463,
+        "pixels": 101996
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/defeat-supplement.png",
+      "scaleFactor": 0.31965442764578833,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 265,
+        "y": 324.5
+      },
+      "anchorSource": "supplement-bounds-fallback",
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 35,
+        "right": 118,
+        "bottom": 125,
+        "width": 78,
+        "height": 91,
+        "pixels": 4112,
+        "edgePixels": 0
+      },
+      "sha256": "0e2bf727ebc17d261594bdc7ca0b4ad9537790a6b3e603b9696e1e89e3666f75"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 590,
+        "top": 134,
+        "width": 402,
+        "height": 442
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 401,
+        "bottom": 441,
+        "width": 402,
+        "height": 442,
+        "pixels": 90667
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/defeat-supplement.png",
+      "scaleFactor": 0.31965442764578833,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 791,
+        "y": 355
+      },
+      "anchorSource": "supplement-bounds-fallback",
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 37,
+        "right": 119,
+        "bottom": 123,
+        "width": 79,
+        "height": 87,
+        "pixels": 3650,
+        "edgePixels": 0
+      },
+      "sha256": "8a79a822504e7272bf10d05e1db48c12d83bfcbf8f937781c819bf3d0953afec"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 1060,
+        "top": 217,
+        "width": 433,
+        "height": 367
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 432,
+        "bottom": 366,
+        "width": 433,
+        "height": 367,
+        "pixels": 83436
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/defeat-supplement.png",
+      "scaleFactor": 0.31965442764578833,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1276.5,
+        "y": 400.5
+      },
+      "anchorSource": "supplement-bounds-fallback",
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 44,
+        "right": 122,
+        "bottom": 115,
+        "width": 85,
+        "height": 72,
+        "pixels": 3347,
+        "edgePixels": 0
+      },
+      "sha256": "8ac482a140d1efad24c1c8a81f884f540aee3f7e86ffed31c6e0bad7110bb843"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 57,
+        "top": 699,
+        "width": 461,
+        "height": 270
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 460,
+        "bottom": 269,
+        "width": 461,
+        "height": 270,
+        "pixels": 69771
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/defeat-supplement.png",
+      "scaleFactor": 0.31965442764578833,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 287.5,
+        "y": 834
+      },
+      "anchorSource": "supplement-bounds-fallback",
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 54,
+        "right": 124,
+        "bottom": 106,
+        "width": 90,
+        "height": 53,
+        "pixels": 2785,
+        "edgePixels": 0
+      },
+      "sha256": "853c8ade1ba4d0de05247e09dcb069a46daf0333f7fd75617624c4233799ff4d"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 571,
+        "top": 741,
+        "width": 444,
+        "height": 227
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 443,
+        "bottom": 226,
+        "width": 444,
+        "height": 227,
+        "pixels": 57973
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/defeat-supplement.png",
+      "scaleFactor": 0.31965442764578833,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 793,
+        "y": 854.5
+      },
+      "anchorSource": "supplement-bounds-fallback",
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 58,
+        "right": 122,
+        "bottom": 101,
+        "width": 87,
+        "height": 44,
+        "pixels": 2312,
+        "edgePixels": 0
+      },
+      "sha256": "7019070c4de2fc469dc105f7890af43f6f49c13dd783e8f345e85b2bc8d276ce"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 1076,
+        "top": 746,
+        "width": 441,
+        "height": 226
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 440,
+        "bottom": 225,
+        "width": 441,
+        "height": 226,
+        "pixels": 54801
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-sovereign/defeat-supplement.png",
+      "scaleFactor": 0.31965442764578833,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1296.5,
+        "y": 859
+      },
+      "anchorSource": "supplement-bounds-fallback",
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 37,
+        "top": 58,
+        "right": 122,
+        "bottom": 101,
+        "width": 86,
+        "height": 44,
+        "pixels": 2161,
+        "edgePixels": 0
+      },
+      "sha256": "3daf8243019059ec9fe09ccf2121d5d58694ce0512ef213038fb031ea81f80a7"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {},
+  "registrationReview": {
+    "status": "reviewed-horizontal",
+    "scope": "idle-horizontal only",
+    "method": "Reviewed stable anatomical-core translation against idle frame 0, corroborated by whole-silhouette translation and fixed-guide contact sheets. No bounding-box centering. Only X anchors changed; authored Y, all drawing pixels and fixed identity scale are preserved.",
+    "landmark": "crown, faceplate and upper torso together; staff and trailing robe are excluded as independent extremities",
+    "referenceFrame": 0,
+    "fixedSharedScale": 0.6130041152263375,
+    "sourceUnchanged": true,
+    "actionsChanged": [
+      "idle"
+    ],
+    "visualVerification": "Before/after fixed-guide strips inspected for the declared rigid anatomical landmarks and last-to-first horizontal closure. All six poses retain their authored vertical variation. This review does not certify other action rows or all shape and transition quality.",
+    "evidence": "output/enemy-idle-alignment/eclipse-sovereign/alignment-evidence.json",
+    "corrections": [
+      {
+        "frame": 0,
+        "measuredPriorBodyDriftX": 0,
+        "outputTranslationX": 0,
+        "previousAnchor": {
+          "x": 90.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 90.5,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 1,
+        "measuredPriorBodyDriftX": -11,
+        "outputTranslationX": 11,
+        "previousAnchor": {
+          "x": 271.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 253.55558539205157,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 2,
+        "measuredPriorBodyDriftX": -14,
+        "outputTranslationX": 14,
+        "previousAnchor": {
+          "x": 452.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 429.6616541353383,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 3,
+        "measuredPriorBodyDriftX": -19,
+        "outputTranslationX": 19,
+        "previousAnchor": {
+          "x": 633.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 602.5051020408164,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 4,
+        "measuredPriorBodyDriftX": -20,
+        "outputTranslationX": 20,
+        "previousAnchor": {
+          "x": 814.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 781.8737916219119,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 5,
+        "measuredPriorBodyDriftX": -24,
+        "outputTranslationX": 24,
+        "previousAnchor": {
+          "x": 995.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 956.3485499462943,
+          "y": 86
+        },
+        "scaleFactor": 1
+      }
+    ]
+  },
+  "nominalGridAnchorCount": 36
+}

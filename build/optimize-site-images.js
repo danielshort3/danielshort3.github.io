@@ -12,6 +12,10 @@ const sharp = require('sharp');
 
 const root = path.resolve(__dirname, '..');
 const jobs = [
+  ...['about-ai-network-v1', 'about-family-frame-v1', 'about-french-horn-sheet-music-v1'].map(name => ({
+    source: `img/hero/${name}.webp`,
+    outputs: [192, 384].map(width => ({ suffix: `-${width}`, extension: '.webp', format: 'webp', width, options: { quality: 88, effort: 6, smartSubsample: true } }))
+  })),
   {
     source: 'img/brand/27-hero-mobile-light.png',
     outputs: [

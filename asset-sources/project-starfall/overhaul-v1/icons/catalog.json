@@ -1,0 +1,2385 @@
+{
+  "version": 1,
+  "owner": "build/project-starfall-overhaul-icons.js",
+  "references": [
+    "output/starfall-animation-samples/glowcap-spring-study.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/review-v2/player-run-study.png"
+  ],
+  "batches": [
+    {
+      "id": "items-consumables-materials",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 4,
+      "size": 64,
+      "entries": [
+        {
+          "id": "coins",
+          "output": "img/project-starfall/items/icons/coins.png"
+        },
+        {
+          "id": "town_return_scroll",
+          "output": "img/project-starfall/items/icons/town-return-scroll.png"
+        },
+        {
+          "id": "guard_tonic",
+          "output": "img/project-starfall/items/icons/guard-tonic.png"
+        },
+        {
+          "id": "swiftstep_oil",
+          "output": "img/project-starfall/items/icons/swiftstep-oil.png"
+        },
+        {
+          "id": "magnet_charm",
+          "output": "img/project-starfall/items/icons/magnet-charm.png"
+        },
+        {
+          "id": "pet_whistle",
+          "output": "img/project-starfall/items/icons/pet-whistle.png"
+        },
+        {
+          "id": "cube_fragment",
+          "output": "img/project-starfall/items/icons/cube-fragment.png"
+        },
+        {
+          "id": "base_skill_manual",
+          "output": "img/project-starfall/items/icons/base-skill-manual.png"
+        },
+        {
+          "id": "advanced_skill_manual",
+          "output": "img/project-starfall/items/icons/advanced-skill-manual.png"
+        },
+        {
+          "id": "skill_reset_scroll",
+          "output": "img/project-starfall/items/icons/skill-reset-scroll.png"
+        },
+        {
+          "id": "stat_reset_scroll",
+          "output": "img/project-starfall/items/icons/stat-reset-scroll.png"
+        },
+        {
+          "id": "admin_worldwright_console",
+          "output": "img/project-starfall/items/icons/admin-worldwright-console.png"
+        },
+        {
+          "id": "upgrade_dust",
+          "output": "img/project-starfall/items/icons/upgrade-dust.png"
+        },
+        {
+          "id": "upgrade_catalyst",
+          "output": "img/project-starfall/items/icons/upgrade-catalyst.png"
+        },
+        {
+          "id": "warding_scroll",
+          "output": "img/project-starfall/items/icons/warding-scroll.png"
+        },
+        {
+          "id": "refinement_core",
+          "output": "img/project-starfall/items/icons/refinement-core.png"
+        },
+        {
+          "id": "gel_drop",
+          "output": "img/project-starfall/items/icons/gel-drop.png"
+        },
+        {
+          "id": "ore_chunks",
+          "output": "img/project-starfall/items/icons/ore-chunks.png"
+        },
+        {
+          "id": "line_catalyst",
+          "output": "img/project-starfall/items/icons/line-catalyst.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-consumables-materials.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-potion-tiers",
+      "kind": "item icons",
+      "columns": 4,
+      "rows": 3,
+      "size": 64,
+      "entries": [
+        {
+          "id": "minor_health_potion",
+          "output": "img/project-starfall/items/icons/minor-health-potion.png"
+        },
+        {
+          "id": "standard_health_potion",
+          "output": "img/project-starfall/items/icons/standard-health-potion.png"
+        },
+        {
+          "id": "greater_health_potion",
+          "output": "img/project-starfall/items/icons/greater-health-potion.png"
+        },
+        {
+          "id": "superior_health_potion",
+          "output": "img/project-starfall/items/icons/superior-health-potion.png"
+        },
+        {
+          "id": "minor_resource_tonic",
+          "output": "img/project-starfall/items/icons/minor-resource-tonic.png"
+        },
+        {
+          "id": "standard_resource_tonic",
+          "output": "img/project-starfall/items/icons/standard-resource-tonic.png"
+        },
+        {
+          "id": "greater_resource_tonic",
+          "output": "img/project-starfall/items/icons/greater-resource-tonic.png"
+        },
+        {
+          "id": "superior_resource_tonic",
+          "output": "img/project-starfall/items/icons/superior-resource-tonic.png"
+        },
+        {
+          "id": "camp_ration",
+          "output": "img/project-starfall/items/icons/camp-ration.png"
+        },
+        {
+          "id": "field_ration",
+          "output": "img/project-starfall/items/icons/field-ration.png"
+        },
+        {
+          "id": "expedition_ration",
+          "output": "img/project-starfall/items/icons/expedition-ration.png"
+        },
+        {
+          "id": "hero_ration",
+          "output": "img/project-starfall/items/icons/hero-ration.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-potion-tiers.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-mob-materials-core",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 4,
+      "size": 64,
+      "entries": [
+        {
+          "id": "dew_bead",
+          "output": "img/project-starfall/items/icons/dew-bead.png"
+        },
+        {
+          "id": "moss_hide",
+          "output": "img/project-starfall/items/icons/moss-hide.png"
+        },
+        {
+          "id": "thorn_fiber",
+          "output": "img/project-starfall/items/icons/thorn-fiber.png"
+        },
+        {
+          "id": "vine_fiber",
+          "output": "img/project-starfall/items/icons/vine-fiber.png"
+        },
+        {
+          "id": "bristle_hide",
+          "output": "img/project-starfall/items/icons/bristle-hide.png"
+        },
+        {
+          "id": "briar_antler",
+          "output": "img/project-starfall/items/icons/briar-antler.png"
+        },
+        {
+          "id": "dust_claw",
+          "output": "img/project-starfall/items/icons/dust-claw.png"
+        },
+        {
+          "id": "clockwork_scrap",
+          "output": "img/project-starfall/items/icons/clockwork-scrap.png"
+        },
+        {
+          "id": "charged_coil",
+          "output": "img/project-starfall/items/icons/charged-coil.png"
+        },
+        {
+          "id": "scrap_plate",
+          "output": "img/project-starfall/items/icons/scrap-plate.png"
+        },
+        {
+          "id": "ember_dust",
+          "output": "img/project-starfall/items/icons/ember-dust.png"
+        },
+        {
+          "id": "ash_carapace",
+          "output": "img/project-starfall/items/icons/ash-carapace.png"
+        },
+        {
+          "id": "molten_fang",
+          "output": "img/project-starfall/items/icons/molten-fang.png"
+        },
+        {
+          "id": "cinder_gland",
+          "output": "img/project-starfall/items/icons/cinder-gland.png"
+        },
+        {
+          "id": "bandit_cloth",
+          "output": "img/project-starfall/items/icons/bandit-cloth.png"
+        },
+        {
+          "id": "throwing_knife_scrap",
+          "output": "img/project-starfall/items/icons/throwing-knife-scrap.png"
+        },
+        {
+          "id": "glow_spores",
+          "output": "img/project-starfall/items/icons/glow-spores.png"
+        },
+        {
+          "id": "bramble_crown",
+          "output": "img/project-starfall/items/icons/bramble-crown.png"
+        },
+        {
+          "id": "titan_core",
+          "output": "img/project-starfall/items/icons/titan-core.png"
+        },
+        {
+          "id": "colossus_ore",
+          "output": "img/project-starfall/items/icons/colossus-ore.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-mob-materials-core.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-mob-materials-late",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 4,
+      "size": 64,
+      "entries": [
+        {
+          "id": "emberjaw_badge",
+          "output": "img/project-starfall/items/icons/emberjaw-badge.png"
+        },
+        {
+          "id": "rime_shard",
+          "output": "img/project-starfall/items/icons/rime-shard.png"
+        },
+        {
+          "id": "frozen_hide",
+          "output": "img/project-starfall/items/icons/frozen-hide.png"
+        },
+        {
+          "id": "glacier_core",
+          "output": "img/project-starfall/items/icons/glacier-core.png"
+        },
+        {
+          "id": "snowglare_dust",
+          "output": "img/project-starfall/items/icons/snowglare-dust.png"
+        },
+        {
+          "id": "icebloom_petal",
+          "output": "img/project-starfall/items/icons/icebloom-petal.png"
+        },
+        {
+          "id": "gale_feather",
+          "output": "img/project-starfall/items/icons/gale-feather.png"
+        },
+        {
+          "id": "storm_fletching",
+          "output": "img/project-starfall/items/icons/storm-fletching.png"
+        },
+        {
+          "id": "thunder_horn",
+          "output": "img/project-starfall/items/icons/thunder-horn.png"
+        },
+        {
+          "id": "cloud_silk",
+          "output": "img/project-starfall/items/icons/cloud-silk.png"
+        },
+        {
+          "id": "runic_page",
+          "output": "img/project-starfall/items/icons/runic-page.png"
+        },
+        {
+          "id": "lumen_plate",
+          "output": "img/project-starfall/items/icons/lumen-plate.png"
+        },
+        {
+          "id": "void_dust",
+          "output": "img/project-starfall/items/icons/void-dust.png"
+        },
+        {
+          "id": "eclipse_silk",
+          "output": "img/project-starfall/items/icons/eclipse-silk.png"
+        },
+        {
+          "id": "rift_splinter",
+          "output": "img/project-starfall/items/icons/rift-splinter.png"
+        },
+        {
+          "id": "rimewarden_sigil",
+          "output": "img/project-starfall/items/icons/rimewarden-sigil.png"
+        },
+        {
+          "id": "stormbreak_plume",
+          "output": "img/project-starfall/items/icons/stormbreak-plume.png"
+        },
+        {
+          "id": "archivist_index",
+          "output": "img/project-starfall/items/icons/archivist-index.png"
+        },
+        {
+          "id": "sovereign_corona",
+          "output": "img/project-starfall/items/icons/sovereign-corona.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-mob-materials-late.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-coin-stacks",
+      "kind": "item icons",
+      "columns": 4,
+      "rows": 1,
+      "size": 64,
+      "entries": [
+        {
+          "id": "coins_small",
+          "output": "img/project-starfall/items/icons/coins-small.png"
+        },
+        {
+          "id": "coins_medium",
+          "output": "img/project-starfall/items/icons/coins-medium.png"
+        },
+        {
+          "id": "coins_large",
+          "output": "img/project-starfall/items/icons/coins-large.png"
+        },
+        {
+          "id": "coins_huge",
+          "output": "img/project-starfall/items/icons/coins-huge.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-coin-stacks.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png"
+      ]
+    },
+    {
+      "id": "items-rate-coupons",
+      "kind": "item icons",
+      "columns": 2,
+      "rows": 3,
+      "size": 64,
+      "entries": [
+        {
+          "id": "xp_coupon_1_2_1h",
+          "output": "img/project-starfall/items/icons/xp-coupon-1-2-1h.png",
+          "description": "small square cream paper ticket with clipped corners and one central gold upward chevron seal, bronze rim and 1 small rivets for tier; simple crisp illustrated game icon, absolutely no text"
+        },
+        {
+          "id": "xp_coupon_1_5_1h",
+          "output": "img/project-starfall/items/icons/xp-coupon-1-5-1h.png",
+          "description": "small square cream paper ticket with clipped corners and one central gold upward chevron seal, silver rim and 2 small rivets for tier; simple crisp illustrated game icon, absolutely no text"
+        },
+        {
+          "id": "xp_coupon_2_0_1h",
+          "output": "img/project-starfall/items/icons/xp-coupon-2-0-1h.png",
+          "description": "small square cream paper ticket with clipped corners and one central gold upward chevron seal, gold rim and 3 small rivets for tier; simple crisp illustrated game icon, absolutely no text"
+        },
+        {
+          "id": "drop_coupon_1_2_1h",
+          "output": "img/project-starfall/items/icons/drop-coupon-1-2-1h.png",
+          "description": "small square cream paper ticket with clipped corners and one central gold treasure chest seal, bronze rim and 1 small rivets for tier; simple crisp illustrated game icon, absolutely no text"
+        },
+        {
+          "id": "drop_coupon_1_5_1h",
+          "output": "img/project-starfall/items/icons/drop-coupon-1-5-1h.png",
+          "description": "small square cream paper ticket with clipped corners and one central gold treasure chest seal, silver rim and 2 small rivets for tier; simple crisp illustrated game icon, absolutely no text"
+        },
+        {
+          "id": "drop_coupon_2_0_1h",
+          "output": "img/project-starfall/items/icons/drop-coupon-2-0-1h.png",
+          "description": "small square cream paper ticket with clipped corners and one central gold treasure chest seal, gold rim and 3 small rivets for tier; simple crisp illustrated game icon, absolutely no text"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-rate-coupons.md",
+      "extractionPolygons": [
+        [
+          [
+            147,
+            117
+          ],
+          [
+            381,
+            117
+          ],
+          [
+            446,
+            179
+          ],
+          [
+            446,
+            225
+          ],
+          [
+            431,
+            239
+          ],
+          [
+            431,
+            347
+          ],
+          [
+            446,
+            360
+          ],
+          [
+            446,
+            406
+          ],
+          [
+            384,
+            469
+          ],
+          [
+            145,
+            469
+          ],
+          [
+            85,
+            406
+          ],
+          [
+            85,
+            361
+          ],
+          [
+            99,
+            347
+          ],
+          [
+            99,
+            239
+          ],
+          [
+            85,
+            225
+          ],
+          [
+            85,
+            180
+          ]
+        ],
+        [
+          [
+            640,
+            117
+          ],
+          [
+            874,
+            117
+          ],
+          [
+            939,
+            179
+          ],
+          [
+            939,
+            225
+          ],
+          [
+            924,
+            239
+          ],
+          [
+            924,
+            347
+          ],
+          [
+            939,
+            360
+          ],
+          [
+            939,
+            406
+          ],
+          [
+            877,
+            469
+          ],
+          [
+            638,
+            469
+          ],
+          [
+            578,
+            406
+          ],
+          [
+            578,
+            361
+          ],
+          [
+            592,
+            347
+          ],
+          [
+            592,
+            239
+          ],
+          [
+            578,
+            225
+          ],
+          [
+            578,
+            180
+          ]
+        ],
+        [
+          [
+            147,
+            591
+          ],
+          [
+            381,
+            591
+          ],
+          [
+            446,
+            653
+          ],
+          [
+            446,
+            699
+          ],
+          [
+            431,
+            713
+          ],
+          [
+            431,
+            821
+          ],
+          [
+            446,
+            834
+          ],
+          [
+            446,
+            880
+          ],
+          [
+            384,
+            943
+          ],
+          [
+            145,
+            943
+          ],
+          [
+            85,
+            880
+          ],
+          [
+            85,
+            835
+          ],
+          [
+            99,
+            821
+          ],
+          [
+            99,
+            713
+          ],
+          [
+            85,
+            699
+          ],
+          [
+            85,
+            654
+          ]
+        ],
+        [
+          [
+            640,
+            591
+          ],
+          [
+            874,
+            591
+          ],
+          [
+            939,
+            653
+          ],
+          [
+            939,
+            699
+          ],
+          [
+            924,
+            713
+          ],
+          [
+            924,
+            821
+          ],
+          [
+            939,
+            834
+          ],
+          [
+            939,
+            880
+          ],
+          [
+            877,
+            943
+          ],
+          [
+            638,
+            943
+          ],
+          [
+            578,
+            880
+          ],
+          [
+            578,
+            835
+          ],
+          [
+            592,
+            821
+          ],
+          [
+            592,
+            713
+          ],
+          [
+            578,
+            699
+          ],
+          [
+            578,
+            654
+          ]
+        ],
+        [
+          [
+            147,
+            1065
+          ],
+          [
+            381,
+            1065
+          ],
+          [
+            446,
+            1127
+          ],
+          [
+            446,
+            1173
+          ],
+          [
+            431,
+            1187
+          ],
+          [
+            431,
+            1295
+          ],
+          [
+            446,
+            1308
+          ],
+          [
+            446,
+            1354
+          ],
+          [
+            384,
+            1417
+          ],
+          [
+            145,
+            1417
+          ],
+          [
+            85,
+            1354
+          ],
+          [
+            85,
+            1309
+          ],
+          [
+            99,
+            1295
+          ],
+          [
+            99,
+            1187
+          ],
+          [
+            85,
+            1173
+          ],
+          [
+            85,
+            1128
+          ]
+        ],
+        [
+          [
+            640,
+            1065
+          ],
+          [
+            874,
+            1065
+          ],
+          [
+            939,
+            1127
+          ],
+          [
+            939,
+            1173
+          ],
+          [
+            924,
+            1187
+          ],
+          [
+            924,
+            1295
+          ],
+          [
+            939,
+            1308
+          ],
+          [
+            939,
+            1354
+          ],
+          [
+            877,
+            1417
+          ],
+          [
+            638,
+            1417
+          ],
+          [
+            578,
+            1354
+          ],
+          [
+            578,
+            1309
+          ],
+          [
+            592,
+            1295
+          ],
+          [
+            592,
+            1187
+          ],
+          [
+            578,
+            1173
+          ],
+          [
+            578,
+            1128
+          ]
+        ]
+      ],
+      "extractionNotes": "Manual silhouette mask follows physical clipped-corner ticket outline; background-only extraction after built-in model repeatedly returned an opaque atmospheric backdrop. No art painted or recolored. Raw unchanged.",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-slot-prisms-plinko",
+      "kind": "item icons",
+      "columns": 3,
+      "rows": 3,
+      "size": 64,
+      "entries": [
+        {
+          "id": "equipment_slot_coupon",
+          "output": "img/project-starfall/items/icons/equipment-slot-coupon.png"
+        },
+        {
+          "id": "usable_slot_coupon",
+          "output": "img/project-starfall/items/icons/usable-slot-coupon.png"
+        },
+        {
+          "id": "etc_slot_coupon",
+          "output": "img/project-starfall/items/icons/etc-slot-coupon.png"
+        },
+        {
+          "id": "card_slot_coupon",
+          "output": "img/project-starfall/items/icons/card-slot-coupon.png"
+        },
+        {
+          "id": "potential_cube",
+          "output": "img/project-starfall/items/icons/potential-cube.png"
+        },
+        {
+          "id": "preservation_cube",
+          "output": "img/project-starfall/items/icons/preservation-cube.png"
+        },
+        {
+          "id": "plinko_ball_basic",
+          "output": "img/project-starfall/items/icons/plinko-ball-basic.png"
+        },
+        {
+          "id": "plinko_ball_polished",
+          "output": "img/project-starfall/items/icons/plinko-ball-polished.png"
+        },
+        {
+          "id": "plinko_ball_meteor",
+          "output": "img/project-starfall/items/icons/plinko-ball-meteor.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-slot-prisms-plinko.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-shop-boss-forest",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 5,
+      "size": 64,
+      "entries": [
+        {
+          "id": "training_sword",
+          "output": "img/project-starfall/items/icons/training-sword.png"
+        },
+        {
+          "id": "training_wand",
+          "output": "img/project-starfall/items/icons/training-wand.png"
+        },
+        {
+          "id": "training_bow",
+          "output": "img/project-starfall/items/icons/training-bow.png"
+        },
+        {
+          "id": "copper_sword",
+          "output": "img/project-starfall/items/icons/copper-sword.png"
+        },
+        {
+          "id": "birch_wand",
+          "output": "img/project-starfall/items/icons/birch-wand.png"
+        },
+        {
+          "id": "simple_bow",
+          "output": "img/project-starfall/items/icons/simple-bow.png"
+        },
+        {
+          "id": "stitched_vest",
+          "output": "img/project-starfall/items/icons/stitched-vest.png"
+        },
+        {
+          "id": "traveler_boots",
+          "output": "img/project-starfall/items/icons/traveler-boots.png"
+        },
+        {
+          "id": "plain_ring",
+          "output": "img/project-starfall/items/icons/plain-ring.png"
+        },
+        {
+          "id": "iron_sword",
+          "output": "img/project-starfall/items/icons/iron-sword.png"
+        },
+        {
+          "id": "iron_axe",
+          "output": "img/project-starfall/items/icons/iron-axe.png"
+        },
+        {
+          "id": "apprentice_staff",
+          "output": "img/project-starfall/items/icons/apprentice-staff.png"
+        },
+        {
+          "id": "oak_longbow",
+          "output": "img/project-starfall/items/icons/oak-longbow.png"
+        },
+        {
+          "id": "guardian_tower_shield",
+          "output": "img/project-starfall/items/icons/guardian-tower-shield.png"
+        },
+        {
+          "id": "berserker_war_grip",
+          "output": "img/project-starfall/items/icons/berserker-war-grip.png"
+        },
+        {
+          "id": "ember_core",
+          "output": "img/project-starfall/items/icons/ember-core.png"
+        },
+        {
+          "id": "rune_etched_focus",
+          "output": "img/project-starfall/items/icons/rune-etched-focus.png"
+        },
+        {
+          "id": "deadeye_scope",
+          "output": "img/project-starfall/items/icons/deadeye-scope.png"
+        },
+        {
+          "id": "trap_kit",
+          "output": "img/project-starfall/items/icons/trap-kit.png"
+        },
+        {
+          "id": "thorncrown_greatsword",
+          "output": "img/project-starfall/items/icons/thorncrown-greatsword.png"
+        },
+        {
+          "id": "thornroot_staff",
+          "output": "img/project-starfall/items/icons/thornroot-staff.png"
+        },
+        {
+          "id": "briarstring_longbow",
+          "output": "img/project-starfall/items/icons/briarstring-longbow.png"
+        },
+        {
+          "id": "briar_crown",
+          "output": "img/project-starfall/items/icons/briar-crown.png"
+        },
+        {
+          "id": "barkplate_harness",
+          "output": "img/project-starfall/items/icons/barkplate-harness.png"
+        },
+        {
+          "id": "grasping_thorn_gloves",
+          "output": "img/project-starfall/items/icons/grasping-thorn-gloves.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-shop-boss-forest.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-world-drops",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 4,
+      "size": 64,
+      "entries": [
+        {
+          "id": "adventurer_cutlass",
+          "output": "img/project-starfall/items/icons/adventurer-cutlass.png"
+        },
+        {
+          "id": "balanced_focus",
+          "output": "img/project-starfall/items/icons/balanced-focus.png"
+        },
+        {
+          "id": "wanderer_charm",
+          "output": "img/project-starfall/items/icons/wanderer-charm.png"
+        },
+        {
+          "id": "fieldguard_helm",
+          "output": "img/project-starfall/items/icons/fieldguard-helm.png"
+        },
+        {
+          "id": "trailwoven_gloves",
+          "output": "img/project-starfall/items/icons/trailwoven-gloves.png"
+        },
+        {
+          "id": "vanguard_blade",
+          "output": "img/project-starfall/items/icons/vanguard-blade.png"
+        },
+        {
+          "id": "bulwark_plate",
+          "output": "img/project-starfall/items/icons/bulwark-plate.png"
+        },
+        {
+          "id": "breaker_gauntlets",
+          "output": "img/project-starfall/items/icons/breaker-gauntlets.png"
+        },
+        {
+          "id": "sentinel_greaves",
+          "output": "img/project-starfall/items/icons/sentinel-greaves.png"
+        },
+        {
+          "id": "starglass_staff",
+          "output": "img/project-starfall/items/icons/starglass-staff.png"
+        },
+        {
+          "id": "runewoven_robes",
+          "output": "img/project-starfall/items/icons/runewoven-robes.png"
+        },
+        {
+          "id": "channeler_gloves",
+          "output": "img/project-starfall/items/icons/channeler-gloves.png"
+        },
+        {
+          "id": "aetherstep_boots",
+          "output": "img/project-starfall/items/icons/aetherstep-boots.png"
+        },
+        {
+          "id": "ranger_recurve",
+          "output": "img/project-starfall/items/icons/ranger-recurve.png"
+        },
+        {
+          "id": "pathfinder_leathers",
+          "output": "img/project-starfall/items/icons/pathfinder-leathers.png"
+        },
+        {
+          "id": "deadeye_wraps",
+          "output": "img/project-starfall/items/icons/deadeye-wraps.png"
+        },
+        {
+          "id": "windrunner_boots",
+          "output": "img/project-starfall/items/icons/windrunner-boots.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-world-drops.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-boss-core-storm",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 5,
+      "size": 64,
+      "entries": [
+        {
+          "id": "rootstep_greaves",
+          "output": "img/project-starfall/items/icons/rootstep-greaves.png",
+          "sourceIndex": 0
+        },
+        {
+          "id": "emberjaw_cleaver",
+          "output": "img/project-starfall/items/icons/emberjaw-cleaver.png",
+          "sourceIndex": 1
+        },
+        {
+          "id": "magma_scepter",
+          "output": "img/project-starfall/items/icons/magma-scepter.png",
+          "sourceIndex": 2
+        },
+        {
+          "id": "cindercoil_bow",
+          "output": "img/project-starfall/items/icons/cindercoil-bow.png",
+          "sourceIndex": 3
+        },
+        {
+          "id": "ashen_jaw_helm",
+          "output": "img/project-starfall/items/icons/ashen-jaw-helm.png",
+          "sourceIndex": 4
+        },
+        {
+          "id": "furnaceplate",
+          "output": "img/project-starfall/items/icons/furnaceplate.png",
+          "sourceIndex": 5
+        },
+        {
+          "id": "lavaforged_gauntlets",
+          "output": "img/project-starfall/items/icons/lavaforged-gauntlets.png",
+          "sourceIndex": 6
+        },
+        {
+          "id": "scorchtrail_boots",
+          "output": "img/project-starfall/items/icons/scorchtrail-boots.png",
+          "sourceIndex": 7
+        },
+        {
+          "id": "gearcleaver",
+          "output": "img/project-starfall/items/icons/gearcleaver.png",
+          "sourceIndex": 8
+        },
+        {
+          "id": "chrono_staff",
+          "output": "img/project-starfall/items/icons/chrono-staff.png",
+          "sourceIndex": 9
+        },
+        {
+          "id": "titan_visor",
+          "output": "img/project-starfall/items/icons/titan-visor.png",
+          "sourceIndex": 11
+        },
+        {
+          "id": "clockplate_harness",
+          "output": "img/project-starfall/items/icons/clockplate-harness.png",
+          "sourceIndex": 12
+        },
+        {
+          "id": "gyro_gauntlets",
+          "output": "img/project-starfall/items/icons/gyro-gauntlets.png",
+          "sourceIndex": 13
+        },
+        {
+          "id": "springstep_boots",
+          "output": "img/project-starfall/items/icons/springstep-boots.png",
+          "sourceIndex": 14
+        },
+        {
+          "id": "colossus_maul",
+          "output": "img/project-starfall/items/icons/colossus-maul.png",
+          "sourceIndex": 15
+        },
+        {
+          "id": "geode_scepter",
+          "output": "img/project-starfall/items/icons/geode-scepter.png",
+          "sourceIndex": 16
+        },
+        {
+          "id": "oreline_greatbow",
+          "output": "img/project-starfall/items/icons/oreline-greatbow.png",
+          "sourceIndex": 17
+        },
+        {
+          "id": "deepcore_helm",
+          "output": "img/project-starfall/items/icons/deepcore-helm.png",
+          "sourceIndex": 18
+        },
+        {
+          "id": "bedrock_plate",
+          "output": "img/project-starfall/items/icons/bedrock-plate.png",
+          "sourceIndex": 19
+        },
+        {
+          "id": "quarry_fists",
+          "output": "img/project-starfall/items/icons/quarry-fists.png",
+          "sourceIndex": 20
+        },
+        {
+          "id": "stonewake_boots",
+          "output": "img/project-starfall/items/icons/stonewake-boots.png",
+          "sourceIndex": 21
+        },
+        {
+          "id": "stormtalon_saber",
+          "output": "img/project-starfall/items/icons/stormtalon-saber.png",
+          "sourceIndex": 22
+        },
+        {
+          "id": "cloudspine_rod",
+          "output": "img/project-starfall/items/icons/cloudspine-rod.png",
+          "sourceIndex": 23
+        },
+        {
+          "id": "skybreaker_bow",
+          "output": "img/project-starfall/items/icons/skybreaker-bow.png",
+          "sourceIndex": 24
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-boss-core-storm.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-boss-astral-eclipse",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 4,
+      "size": 64,
+      "entries": [
+        {
+          "id": "rocfeather_mask",
+          "output": "img/project-starfall/items/icons/rocfeather-mask.png"
+        },
+        {
+          "id": "tempest_mantle",
+          "output": "img/project-starfall/items/icons/tempest-mantle.png"
+        },
+        {
+          "id": "lightning_grip_gloves",
+          "output": "img/project-starfall/items/icons/lightning-grip-gloves.png"
+        },
+        {
+          "id": "gale_boots",
+          "output": "img/project-starfall/items/icons/gale-boots.png"
+        },
+        {
+          "id": "index_blade",
+          "output": "img/project-starfall/items/icons/index-blade.png"
+        },
+        {
+          "id": "starbound_codex",
+          "output": "img/project-starfall/items/icons/starbound-codex.png"
+        },
+        {
+          "id": "cometstring_bow",
+          "output": "img/project-starfall/items/icons/cometstring-bow.png"
+        },
+        {
+          "id": "archivist_crown",
+          "output": "img/project-starfall/items/icons/archivist-crown.png"
+        },
+        {
+          "id": "astral_robes",
+          "output": "img/project-starfall/items/icons/astral-robes.png"
+        },
+        {
+          "id": "scribe_gloves",
+          "output": "img/project-starfall/items/icons/scribe-gloves.png"
+        },
+        {
+          "id": "orbit_boots",
+          "output": "img/project-starfall/items/icons/orbit-boots.png"
+        },
+        {
+          "id": "eclipse_edge",
+          "output": "img/project-starfall/items/icons/eclipse-edge.png"
+        },
+        {
+          "id": "umbral_starstaff",
+          "output": "img/project-starfall/items/icons/umbral-starstaff.png"
+        },
+        {
+          "id": "corona_longbow",
+          "output": "img/project-starfall/items/icons/corona-longbow.png"
+        },
+        {
+          "id": "sovereign_crown",
+          "output": "img/project-starfall/items/icons/sovereign-crown.png"
+        },
+        {
+          "id": "eclipse_plate",
+          "output": "img/project-starfall/items/icons/eclipse-plate.png"
+        },
+        {
+          "id": "penumbra_gloves",
+          "output": "img/project-starfall/items/icons/penumbra-gloves.png"
+        },
+        {
+          "id": "sunfall_boots",
+          "output": "img/project-starfall/items/icons/sunfall-boots.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-boss-astral-eclipse.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-star-cards",
+      "kind": "item icons",
+      "columns": 3,
+      "rows": 2,
+      "size": 64,
+      "entries": [
+        {
+          "id": "white_star_card",
+          "output": "img/project-starfall/items/icons/white-star-card.png",
+          "description": "white star card, a small ornate collectible card with one large inset star in its named color"
+        },
+        {
+          "id": "green_star_card",
+          "output": "img/project-starfall/items/icons/green-star-card.png",
+          "description": "green star card, a small ornate collectible card with one large inset star in its named color"
+        },
+        {
+          "id": "blue_star_card",
+          "output": "img/project-starfall/items/icons/blue-star-card.png",
+          "description": "blue star card, a small ornate collectible card with one large inset star in its named color"
+        },
+        {
+          "id": "purple_star_card",
+          "output": "img/project-starfall/items/icons/purple-star-card.png",
+          "description": "purple star card, a small ornate collectible card with one large inset star in its named color"
+        },
+        {
+          "id": "orange_star_card",
+          "output": "img/project-starfall/items/icons/orange-star-card.png",
+          "description": "orange star card, a small ornate collectible card with one large inset star in its named color"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-star-cards.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "items-regional-equipment-1",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 3,
+      "size": 64,
+      "entries": [
+        {
+          "id": "duelist_parry_medal",
+          "output": "img/project-starfall/items/icons/duelist-parry-medal.png"
+        },
+        {
+          "id": "storm_charge_focus",
+          "output": "img/project-starfall/items/icons/storm-charge-focus.png"
+        },
+        {
+          "id": "beast_bond_charm",
+          "output": "img/project-starfall/items/icons/beast-bond-charm.png"
+        },
+        {
+          "id": "rustcoil_field_helm",
+          "output": "img/project-starfall/items/icons/rustcoil-field-helm.png"
+        },
+        {
+          "id": "rustcoil_work_vest",
+          "output": "img/project-starfall/items/icons/rustcoil-work-vest.png"
+        },
+        {
+          "id": "rustcoil_grip_gloves",
+          "output": "img/project-starfall/items/icons/rustcoil-grip-gloves.png"
+        },
+        {
+          "id": "cinder_steel_sword",
+          "output": "img/project-starfall/items/icons/cinder-steel-sword.png"
+        },
+        {
+          "id": "cinder_steel_scepter",
+          "output": "img/project-starfall/items/icons/cinder-steel-scepter.png"
+        },
+        {
+          "id": "cinder_ashwood_bow",
+          "output": "img/project-starfall/items/icons/cinder-ashwood-bow.png"
+        },
+        {
+          "id": "cinder_reinforced_mail",
+          "output": "img/project-starfall/items/icons/cinder-reinforced-mail.png"
+        },
+        {
+          "id": "cinder_forge_boots",
+          "output": "img/project-starfall/items/icons/cinder-forge-boots.png"
+        },
+        {
+          "id": "cinder_ember_band",
+          "output": "img/project-starfall/items/icons/cinder-ember-band.png"
+        },
+        {
+          "id": "frostfen_silver_saber",
+          "output": "img/project-starfall/items/icons/frostfen-silver-saber.png"
+        },
+        {
+          "id": "frostfen_moonlit_staff",
+          "output": "img/project-starfall/items/icons/frostfen-moonlit-staff.png"
+        },
+        {
+          "id": "frostfen_frostpine_bow",
+          "output": "img/project-starfall/items/icons/frostfen-frostpine-bow.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-regional-equipment-1.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "items-regional-equipment-2",
+      "kind": "item icons",
+      "columns": 5,
+      "rows": 3,
+      "size": 64,
+      "entries": [
+        {
+          "id": "frostfen_iceguard_coat",
+          "output": "img/project-starfall/items/icons/frostfen-iceguard-coat.png"
+        },
+        {
+          "id": "frostfen_snowstep_boots",
+          "output": "img/project-starfall/items/icons/frostfen-snowstep-boots.png"
+        },
+        {
+          "id": "frostfen_rime_ring",
+          "output": "img/project-starfall/items/icons/frostfen-rime-ring.png"
+        },
+        {
+          "id": "stormbreak_stormforged_blade",
+          "output": "img/project-starfall/items/icons/stormbreak-stormforged-blade.png"
+        },
+        {
+          "id": "stormbreak_thunder_rod",
+          "output": "img/project-starfall/items/icons/stormbreak-thunder-rod.png"
+        },
+        {
+          "id": "stormbreak_gale_longbow",
+          "output": "img/project-starfall/items/icons/stormbreak-gale-longbow.png"
+        },
+        {
+          "id": "stormbreak_tempest_mantle",
+          "output": "img/project-starfall/items/icons/stormbreak-tempest-mantle.png"
+        },
+        {
+          "id": "stormbreak_cloudrunner_boots",
+          "output": "img/project-starfall/items/icons/stormbreak-cloudrunner-boots.png"
+        },
+        {
+          "id": "stormbreak_lightning_charm",
+          "output": "img/project-starfall/items/icons/stormbreak-lightning-charm.png"
+        },
+        {
+          "id": "astral_index_blade",
+          "output": "img/project-starfall/items/icons/astral-index-blade.png"
+        },
+        {
+          "id": "astral_star_lens_staff",
+          "output": "img/project-starfall/items/icons/astral-star-lens-staff.png"
+        },
+        {
+          "id": "astral_comet_bow",
+          "output": "img/project-starfall/items/icons/astral-comet-bow.png"
+        },
+        {
+          "id": "astral_starwoven_robes",
+          "output": "img/project-starfall/items/icons/astral-starwoven-robes.png"
+        },
+        {
+          "id": "astral_orbitstep_boots",
+          "output": "img/project-starfall/items/icons/astral-orbitstep-boots.png"
+        },
+        {
+          "id": "astral_lens_amulet",
+          "output": "img/project-starfall/items/icons/astral-lens-amulet.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/items-regional-equipment-2.md",
+      "references": [
+        "output/starfall-animation-samples/glowcap-spring-study.png",
+        "output/starfall-animation-samples/oracle-cast-study.png"
+      ]
+    },
+    {
+      "id": "skills-fighter-base",
+      "kind": "skill icons",
+      "columns": 3,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "fighter-heavy-strike",
+          "output": "img/project-starfall/skills/base/fighter-heavy-strike.png",
+          "description": "Heavy Strike. Actual gameplay: Trainer strike for close-range Momentum. Repeated hits on one target add extra stagger. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "fighter-dash-slash",
+          "output": "img/project-starfall/skills/base/fighter-dash-slash.png",
+          "description": "Dash Slash. Actual gameplay: Mobility slash for crossing gaps, dodging through lanes, and clipping enemies while moving. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "fighter-guard",
+          "output": "img/project-starfall/skills/base/fighter-guard.png",
+          "description": "Guard. Actual gameplay: Defensive window that reduces incoming damage and turns pressure into Momentum. Primary semantic art: cyan protective shell and shield. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "fighter-ground-slam",
+          "output": "img/project-starfall/skills/base/fighter-ground-slam.png",
+          "description": "Ground Slam. Actual gameplay: Mobbing slam that staggers clustered enemies and rewards hitting three or more targets. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "fighter-power-break",
+          "output": "img/project-starfall/skills/base/fighter-power-break.png",
+          "description": "Power Break. Actual gameplay: Setup strike that cracks a durable target so later attacks hit harder. Primary semantic art: violet impairment mark, with coral damage contact if the effect deals damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "fighter-momentum-burst",
+          "output": "img/project-starfall/skills/base/fighter-momentum-burst.png",
+          "description": "Momentum Burst. Actual gameplay: Momentum finisher that spends stored resource for a stronger shockwave payoff. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-fighter-base.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-mage-base",
+      "kind": "skill icons",
+      "columns": 3,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "mage-magic-bolt",
+          "output": "img/project-starfall/skills/base/mage-magic-bolt.png",
+          "description": "Magic Bolt. Actual gameplay: Trainer projectile that safely builds Energy at range. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "mage-blink",
+          "output": "img/project-starfall/skills/base/mage-blink.png",
+          "description": "Blink. Actual gameplay: Mobility teleport for changing platforms or escaping pressure without adding burst damage. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "mage-arcane-burst",
+          "output": "img/project-starfall/skills/base/mage-arcane-burst.png",
+          "description": "Arcane Burst. Actual gameplay: Mobbing blast that clears nearby enemies more efficiently than Magic Bolt. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "mage-mana-shield",
+          "output": "img/project-starfall/skills/base/mage-mana-shield.png",
+          "description": "Mana Shield. Actual gameplay: Defensive conversion that spends MP to absorb incoming damage. Primary semantic art: cyan protective shell and shield. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "mage-spell-mark",
+          "output": "img/project-starfall/skills/base/mage-spell-mark.png",
+          "description": "Spell Mark. Actual gameplay: Setup mark that makes the next major spell payoff stronger. Primary semantic art: violet impairment mark, with coral damage contact if the effect deals damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "mage-energy-release",
+          "output": "img/project-starfall/skills/base/mage-energy-release.png",
+          "description": "Energy Release. Actual gameplay: Energy finisher that detonates around marked targets and spends stored resource for scale. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-mage-base.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-archer-base",
+      "kind": "skill icons",
+      "columns": 3,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "archer-quick-shot",
+          "output": "img/project-starfall/skills/base/archer-quick-shot.png",
+          "description": "Quick Shot. Actual gameplay: Trainer shot that builds Focus quickly without needing setup. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "archer-roll-shot",
+          "output": "img/project-starfall/skills/base/archer-roll-shot.png",
+          "description": "Roll Shot. Actual gameplay: Mobility roll that creates a firing lane instead of replacing damage skills. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "archer-marked-shot",
+          "output": "img/project-starfall/skills/base/archer-marked-shot.png",
+          "description": "Marked Shot. Actual gameplay: Setup shot that marks a priority enemy for Focus spender payoff. Primary semantic art: violet impairment mark, with coral damage contact if the effect deals damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "archer-piercing-arrow",
+          "output": "img/project-starfall/skills/base/archer-piercing-arrow.png",
+          "description": "Piercing Arrow. Actual gameplay: Mobbing arrow that travels through enemies lined up in a lane. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "archer-eagle-stance",
+          "output": "img/project-starfall/skills/base/archer-eagle-stance.png",
+          "description": "Eagle Stance. Actual gameplay: Bossing buff window for longer range, better crits, and cleaner marked-target pressure. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "archer-focused-volley",
+          "output": "img/project-starfall/skills/base/archer-focused-volley.png",
+          "description": "Focused Volley. Actual gameplay: Focus finisher that concentrates multiple damage lines into a marked target. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-archer-base.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-guardian-advanced",
+      "kind": "skill icons",
+      "columns": 4,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "guardian-shield-bash",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-shield-bash.png",
+          "description": "Shield Bash. Actual gameplay: Low-cooldown guarded strike for Guardian training. Staggers enemies and builds Stored Impact for larger counters. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "guardian-shield-dash",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-shield-dash.png",
+          "description": "Shield Dash. Actual gameplay: Dash forward behind your shield to claim space or cross short gaps. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "guardian-impact-guard",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-impact-guard.png",
+          "description": "Impact Guard. Actual gameplay: Block incoming damage and convert part of it into Stored Impact. Primary semantic art: cyan protective shell and shield. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "guardian-oath-barrier",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-oath-barrier.png",
+          "description": "Oath Barrier. Actual gameplay: Create a temporary shield for yourself, stronger with Stored Impact. Primary semantic art: cyan protective shell and shield. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "guardian-retaliation-wave",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-retaliation-wave.png",
+          "description": "Retaliation Wave. Actual gameplay: Release Stored Impact in a forward shockwave. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "guardian-hold-the-line",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-hold-the-line.png",
+          "description": "Hold the Line. Actual gameplay: Permanently improve block, defense, and Momentum control while holding ground. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "guardian-verdict",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-verdict.png",
+          "description": "Guardian's Verdict. Actual gameplay: Spend all Stored Impact to create a defensive explosion and personal shield. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "guardian-shield-wall",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-shield-wall.png",
+          "description": "Shield Wall. Actual gameplay: Self-buff prototype: damage reduction, shield, knockback resistance, and Momentum when hit. Primary semantic art: cyan protective shell and shield. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-guardian-advanced.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-berserker-advanced",
+      "kind": "skill icons",
+      "columns": 4,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "berserker-blood-cleave",
+          "output": "img/project-starfall/skills/advanced/berserker/berserker-blood-cleave.png",
+          "description": "Blood Cleave. Actual gameplay: Low-cooldown risk cleave for Berserker training. Damage rises as HP drops and is best against durable targets. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "berserker-rage-surge",
+          "output": "img/project-starfall/skills/advanced/berserker/berserker-rage-surge.png",
+          "description": "Rage Surge. Actual gameplay: Increase attack speed and damage while reducing defense. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "berserker-reckless-leap",
+          "output": "img/project-starfall/skills/advanced/berserker/berserker-reckless-leap.png",
+          "description": "Reckless Leap. Actual gameplay: Leap aggressively across gaps or into position. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "berserker-crimson-recovery",
+          "output": "img/project-starfall/skills/advanced/berserker/berserker-crimson-recovery.png",
+          "description": "Crimson Recovery. Actual gameplay: Damage enemies and heal for a portion of damage dealt. Primary semantic art: mint healing plus prominently paired with a separate coral blade slash; dual healing and damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "berserker-pain-to-power",
+          "output": "img/project-starfall/skills/advanced/berserker/berserker-pain-to-power.png",
+          "description": "Pain to Power. Actual gameplay: Permanently improve power and Rage generation as wounds become fuel. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "berserker-last-stand",
+          "output": "img/project-starfall/skills/advanced/berserker/berserker-last-stand.png",
+          "description": "Last Stand. Actual gameplay: Lethal damage leaves you at 1 HP briefly and greatly increases damage. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "berserker-war-cry",
+          "output": "img/project-starfall/skills/advanced/berserker/berserker-war-cry.png",
+          "description": "War Cry. Actual gameplay: Self-buff prototype: attack power, Rage generation, and small lifesteal. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-berserker-advanced.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-fire-mage-advanced",
+      "kind": "skill icons",
+      "columns": 4,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "fire-mage-fireball",
+          "output": "img/project-starfall/skills/advanced/fire-mage/fire-mage-fireball.png",
+          "description": "Fireball. Actual gameplay: Low-cooldown fire projectile for Fire Mage training. Explodes on impact and starts burn spread setups. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 0
+        },
+        {
+          "id": "fire-mage-flame-trail",
+          "output": "img/project-starfall/skills/advanced/fire-mage/fire-mage-flame-trail.png",
+          "description": "Flame Trail. Actual gameplay: Dash forward and leave a burning trail behind. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 1
+        },
+        {
+          "id": "fire-mage-burning-mark",
+          "output": "img/project-starfall/skills/advanced/fire-mage/fire-mage-burning-mark.png",
+          "description": "Burning Mark. Actual gameplay: Mark an enemy with burn. Fire skills spread the burn. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 2
+        },
+        {
+          "id": "fire-mage-wildfire",
+          "output": "img/project-starfall/skills/advanced/fire-mage/fire-mage-wildfire.png",
+          "description": "Wildfire. Actual gameplay: Burn spreads between nearby enemies. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 4
+        },
+        {
+          "id": "fire-mage-inferno-burst",
+          "output": "img/project-starfall/skills/advanced/fire-mage/fire-mage-inferno-burst.png",
+          "description": "Inferno Burst. Actual gameplay: Consume all Heat for a large explosion. At max Heat, harms the caster slightly. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 5
+        },
+        {
+          "id": "fire-mage-ignition-aura",
+          "output": "img/project-starfall/skills/advanced/fire-mage/fire-mage-ignition-aura.png",
+          "description": "Ignition Aura. Actual gameplay: Self-buff prototype: fire damage, burn power, Heat generation, and longer burns. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 6
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-fire-mage-advanced.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-rune-mage-advanced",
+      "kind": "skill icons",
+      "columns": 4,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "rune-mage-rune-mark",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-rune-mark.png",
+          "description": "Rune Mark. Actual gameplay: Low-cooldown rune bolt for Rune Mage training. Marks and links targets for later detonations. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "rune-mage-rune-blink",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-rune-blink.png",
+          "description": "Rune Blink. Actual gameplay: Blink through a short rune fold to reposition without breaking setup flow. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "rune-mage-ground-glyph",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-ground-glyph.png",
+          "description": "Ground Glyph. Actual gameplay: Place a wide rune field that damages enemies, slows and weakens enemies inside it, and grants modest recovery and casting haste while you stand within it. Primary semantic art: mint healing plus within a gold enhancement ring, violet enemy slow marks and small coral damaging outer points; clearly separated meanings. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "rune-mage-arcane-link",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-arcane-link.png",
+          "description": "Arcane Link. Actual gameplay: Link two runes so damage to one partially affects another. Primary semantic art: violet impairment mark, with coral damage contact if the effect deals damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "rune-mage-rune-detonation",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-rune-detonation.png",
+          "description": "Rune Detonation. Actual gameplay: Detonate active runes for burst damage. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "rune-mage-mana-seal",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-mana-seal.png",
+          "description": "Mana Seal. Actual gameplay: Seal an enemy briefly, reducing movement or casting. Primary semantic art: violet impairment mark, with coral damage contact if the effect deals damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "rune-mage-grand-inscription",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-grand-inscription.png",
+          "description": "Grand Inscription. Actual gameplay: Place a massive inscription field with stronger recovery, haste, enemy slow, and Rune Mark explosion bonuses while you stand within it. Primary semantic art: mint healing plus within a gold enhancement ring, violet enemy slow marks and small coral damaging outer points; clearly separated meanings. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "rune-mage-rune-circle",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-rune-circle.png",
+          "description": "Rune Circle. Actual gameplay: Self-buff prototype with selectable Power, Guard, Focus, Cleanse, or Haste rune modes. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-rune-mage-advanced.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-sniper-advanced",
+      "kind": "skill icons",
+      "columns": 4,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "sniper-aimed-shot",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-aimed-shot.png",
+          "description": "Aimed Shot. Actual gameplay: Low-cooldown precision shot for Sniper training. Strongest when held at range or aimed into weak points. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "sniper-combat-roll",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-combat-roll.png",
+          "description": "Combat Roll. Actual gameplay: Roll backward into a clean firing lane while briefly avoiding damage. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "sniper-weak-point-mark",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-weak-point-mark.png",
+          "description": "Weak Point Mark. Actual gameplay: Mark a target weak point. The next heavy shot deals bonus damage. Primary semantic art: violet impairment mark, with coral damage contact if the effect deals damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "sniper-steady-breath",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-steady-breath.png",
+          "description": "Steady Breath. Actual gameplay: Permanently improve range, precision damage, and steady Aim control. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "sniper-pierce-armor",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-pierce-armor.png",
+          "description": "Pierce Armor. Actual gameplay: Shot that lowers enemy defense, stronger against marked enemies. Primary semantic art: violet impairment mark, with coral damage contact if the effect deals damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "sniper-execution-shot",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-execution-shot.png",
+          "description": "Execution Shot. Actual gameplay: Massive damage against low-health or weak-point-marked enemies. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "sniper-one-perfect-shot",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-one-perfect-shot.png",
+          "description": "One Perfect Shot. Actual gameplay: Consume all Aim to fire a huge single-target attack. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "sniper-eagle-eye",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-eagle-eye.png",
+          "description": "Eagle Eye. Actual gameplay: Self-buff prototype: precision chance, precision damage, range, and Aim generation. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-sniper-advanced.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-trapper-advanced",
+      "kind": "skill icons",
+      "columns": 4,
+      "rows": 2,
+      "size": 256,
+      "entries": [
+        {
+          "id": "trapper-snare-trap",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-snare-trap.png",
+          "description": "Snare Trap. Actual gameplay: Low-cooldown trap for Trapper training. Arms quickly, slows enemies, and sets up manual detonations. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "trapper-grapple-dash",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-grapple-dash.png",
+          "description": "Grapple Dash. Actual gameplay: Fire a short grapple line and dash into a better trap angle. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "trapper-spike-trap",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-spike-trap.png",
+          "description": "Spike Trap. Actual gameplay: Place a trap that deals damage when stepped on. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "trapper-lure-shot",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-lure-shot.png",
+          "description": "Lure Shot. Actual gameplay: Fire a shot that draws enemies toward a target area. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "trapper-tripwire",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-tripwire.png",
+          "description": "Tripwire. Actual gameplay: Place a line trap that triggers when enemies cross it. Primary semantic art: violet impairment mark, with coral damage contact if the effect deals damage. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "trapper-detonate",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-detonate.png",
+          "description": "Detonate. Actual gameplay: Manually trigger active traps. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "trapper-kill-zone",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-kill-zone.png",
+          "description": "Kill Zone. Actual gameplay: Place a large trap field that chains trap activations. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "trapper-tactical-field",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-tactical-field.png",
+          "description": "Tactical Field. Actual gameplay: Self-buff prototype: trap damage, arming speed, damage reduction inside field, and Focus on trap trigger. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-trapper-advanced.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-duelist-storm-beast-advanced",
+      "kind": "skill icons",
+      "columns": 3,
+      "rows": 3,
+      "size": 256,
+      "entries": [
+        {
+          "id": "duelist/duelist-quick-cut",
+          "output": "img/project-starfall/skills/advanced/duelist/duelist-quick-cut.png",
+          "description": "Quick Cut. Actual gameplay: Low-cooldown precise cut for Duelist training. Repeated hits on one target build Tempo. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "duelist/duelist-flash-step",
+          "output": "img/project-starfall/skills/advanced/duelist/duelist-flash-step.png",
+          "description": "Flash Step. Actual gameplay: Dash through a short opening while preserving Tempo for follow-up attacks. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "duelist/duelist-rallying-flourish",
+          "output": "img/project-starfall/skills/advanced/duelist/duelist-rallying-flourish.png",
+          "description": "Rallying Flourish. Actual gameplay: Self-buff prototype: haste, precision chance, and Tempo generation after chained attacks. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "storm-mage/storm-mage-chain-bolt",
+          "output": "img/project-starfall/skills/advanced/storm-mage/storm-mage-chain-bolt.png",
+          "description": "Chain Bolt. Actual gameplay: Low-cooldown lightning chain for Storm Mage training. Each jump loses power, rewarding deliberate target order while preserving strong clustered clear and lower single-target boss value. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "storm-mage/storm-mage-static-shift",
+          "output": "img/project-starfall/skills/advanced/storm-mage/storm-mage-static-shift.png",
+          "description": "Static Shift. Actual gameplay: Blink through static current to reposition without breaking spell flow. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "storm-mage/storm-mage-stormfront",
+          "output": "img/project-starfall/skills/advanced/storm-mage/storm-mage-stormfront.png",
+          "description": "Stormfront. Actual gameplay: Self-buff prototype: faster Charge generation, bonus area damage, and lightning chain reach. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "beast-archer/beast-archer-companion-strike",
+          "output": "img/project-starfall/skills/advanced/beast-archer/beast-archer-companion-strike.png",
+          "description": "Companion Strike. Actual gameplay: Low-cooldown coordinated shot for Beast Archer training. Marks targets for companion pressure and sustain. Primary semantic art: coral sharp damage impact and slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "beast-archer/beast-archer-pounce-roll",
+          "output": "img/project-starfall/skills/advanced/beast-archer/beast-archer-pounce-roll.png",
+          "description": "Pounce Roll. Actual gameplay: Roll into a pounce lane, repositioning while your companion covers the retreat. Primary semantic art: pearl motion arcs; any actual damage is a small coral slash. Element/class color only a small secondary accent, never green damage or red buff."
+        },
+        {
+          "id": "beast-archer/beast-archer-pack-call",
+          "output": "img/project-starfall/skills/advanced/beast-archer/beast-archer-pack-call.png",
+          "description": "Pack Call. Actual gameplay: Self-buff prototype: Bond generation, max HP, and steady MP recovery during coordinated attacks. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff."
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-duelist-storm-beast-advanced.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "skills-mastery",
+      "kind": "skill icons",
+      "columns": 4,
+      "rows": 3,
+      "size": 256,
+      "entries": [
+        {
+          "id": "fighter-damage-mastery",
+          "output": "img/project-starfall/skills/base/fighter-damage-mastery.png",
+          "description": "Fighter Damage Mastery. Actual gameplay: Permanently tighten Fighter damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 0
+        },
+        {
+          "id": "mage-damage-mastery",
+          "output": "img/project-starfall/skills/base/mage-damage-mastery.png",
+          "description": "Mage Damage Mastery. Actual gameplay: Permanently tighten Mage damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 1
+        },
+        {
+          "id": "archer-damage-mastery",
+          "output": "img/project-starfall/skills/base/archer-damage-mastery.png",
+          "description": "Archer Damage Mastery. Actual gameplay: Permanently tighten Archer damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 2
+        },
+        {
+          "id": "guardian-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/guardian/guardian-damage-mastery.png",
+          "description": "Guardian Damage Mastery. Actual gameplay: Permanently tighten Guardian damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 3
+        },
+        {
+          "id": "berserker-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/berserker/berserker-damage-mastery.png",
+          "description": "Berserker Damage Mastery. Actual gameplay: Permanently tighten Berserker damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 4
+        },
+        {
+          "id": "duelist-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/duelist/duelist-damage-mastery.png",
+          "description": "Duelist Damage Mastery. Actual gameplay: Permanently tighten Duelist damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 5
+        },
+        {
+          "id": "fire-mage-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/fire-mage/fire-mage-damage-mastery.png",
+          "description": "Fire Mage Damage Mastery. Actual gameplay: Permanently tighten Fire Mage damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 6
+        },
+        {
+          "id": "rune-mage-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/rune-mage/rune-mage-damage-mastery.png",
+          "description": "Rune Mage Damage Mastery. Actual gameplay: Permanently tighten Rune Mage damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 7
+        },
+        {
+          "id": "storm-mage-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/storm-mage/storm-mage-damage-mastery.png",
+          "description": "Storm Mage Damage Mastery. Actual gameplay: Permanently tighten Storm Mage damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 8
+        },
+        {
+          "id": "trapper-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/trapper/trapper-damage-mastery.png",
+          "description": "Trapper Damage Mastery. Actual gameplay: Permanently tighten Trapper damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 10
+        },
+        {
+          "id": "beast-archer-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/beast-archer/beast-archer-damage-mastery.png",
+          "description": "Beast Archer Damage Mastery. Actual gameplay: Permanently tighten Beast Archer damage rolls by raising the minimum damage floor. Primary semantic art: gold upward buff chevrons surrounding the skill-specific physical emblem. Element/class color only a small secondary accent, never green damage or red buff.",
+          "sourceIndex": 11
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/skills-mastery.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "monster-cards",
+      "kind": "monster card icons",
+      "columns": 7,
+      "rows": 3,
+      "size": 64,
+      "entries": [
+        {
+          "id": "gel_spark",
+          "output": "img/project-starfall/cards/icons/gel_spark.png",
+          "description": "Gel Spark, collectible talisman card whose central emblem depicts gel spark, Ooze and Starter motif; no text"
+        },
+        {
+          "id": "mossguard_oath",
+          "output": "img/project-starfall/cards/icons/mossguard_oath.png",
+          "description": "Mossguard Oath, collectible talisman card whose central emblem depicts mossguard oath, Guard and Forest motif; no text"
+        },
+        {
+          "id": "thorn_focus",
+          "output": "img/project-starfall/cards/icons/thorn_focus.png",
+          "description": "Thorn Focus, collectible talisman card whose central emblem depicts thorn focus, Focus and Forest motif; no text"
+        },
+        {
+          "id": "bristle_charge",
+          "output": "img/project-starfall/cards/icons/bristle_charge.png",
+          "description": "Bristle Charge, collectible talisman card whose central emblem depicts bristle charge, Beast and Mobility motif; no text"
+        },
+        {
+          "id": "clockwork_patience",
+          "output": "img/project-starfall/cards/icons/clockwork_patience.png",
+          "description": "Clockwork Patience, collectible talisman card whose central emblem depicts clockwork patience, Construct and Guard motif; no text"
+        },
+        {
+          "id": "ember_glint",
+          "output": "img/project-starfall/cards/icons/ember_glint.png",
+          "description": "Ember Glint, collectible talisman card whose central emblem depicts ember glint, Cinder and Burn motif; no text"
+        },
+        {
+          "id": "hunter_tempo",
+          "output": "img/project-starfall/cards/icons/hunter_tempo.png",
+          "description": "Hunter Tempo, collectible talisman card whose central emblem depicts hunter tempo, Bandit and Crit motif; no text"
+        },
+        {
+          "id": "frost_thread",
+          "output": "img/project-starfall/cards/icons/frost_thread.png",
+          "description": "Frost Thread, collectible talisman card whose central emblem depicts frost thread, Frost and Guard motif; no text"
+        },
+        {
+          "id": "vinebinder_loop",
+          "output": "img/project-starfall/cards/icons/vinebinder_loop.png",
+          "description": "Vinebinder Loop, collectible talisman card whose central emblem depicts vinebinder loop, Forest and Mobbing motif; no text"
+        },
+        {
+          "id": "rustcoil_lens",
+          "output": "img/project-starfall/cards/icons/rustcoil_lens.png",
+          "description": "Rustcoil Lens, collectible talisman card whose central emblem depicts rustcoil lens, Construct and Break motif; no text"
+        },
+        {
+          "id": "ashflare_core",
+          "output": "img/project-starfall/cards/icons/ashflare_core.png",
+          "description": "Ashflare Core, collectible talisman card whose central emblem depicts ashflare core, Cinder and Burn motif; no text"
+        },
+        {
+          "id": "storm_fletching",
+          "output": "img/project-starfall/cards/icons/storm_fletching.png",
+          "description": "Storm Fletching, collectible talisman card whose central emblem depicts storm fletching, Storm and Ranged motif; no text"
+        },
+        {
+          "id": "cloudcall_vellum",
+          "output": "img/project-starfall/cards/icons/cloudcall_vellum.png",
+          "description": "Cloudcall Vellum, collectible talisman card whose central emblem depicts cloudcall vellum, Support and Resource motif; no text"
+        },
+        {
+          "id": "astral_index",
+          "output": "img/project-starfall/cards/icons/astral_index.png",
+          "description": "Astral Index, collectible talisman card whose central emblem depicts astral index, Astral and Crit motif; no text"
+        },
+        {
+          "id": "bramble_heart",
+          "output": "img/project-starfall/cards/icons/bramble_heart.png",
+          "description": "Bramble Heart, collectible talisman card whose central emblem depicts bramble heart, Boss and Guard motif; no text"
+        },
+        {
+          "id": "titan_gearheart",
+          "output": "img/project-starfall/cards/icons/titan_gearheart.png",
+          "description": "Titan Gearheart, collectible talisman card whose central emblem depicts titan gearheart, Boss and Break motif; no text"
+        },
+        {
+          "id": "mimic_cache",
+          "output": "img/project-starfall/cards/icons/mimic_cache.png",
+          "description": "Mimic Cache, collectible talisman card whose central emblem depicts mimic cache, Treasure and Hybrid motif; no text"
+        },
+        {
+          "id": "rift_splinter",
+          "output": "img/project-starfall/cards/icons/rift_splinter.png",
+          "description": "Rift Splinter, collectible talisman card whose central emblem depicts rift splinter, Rift and Damage motif; no text"
+        },
+        {
+          "id": "stormbreak_plume",
+          "output": "img/project-starfall/cards/icons/stormbreak_plume.png",
+          "description": "Stormbreak Plume, collectible talisman card whose central emblem depicts stormbreak plume, Storm and Mobility motif; no text"
+        },
+        {
+          "id": "archivist_star",
+          "output": "img/project-starfall/cards/icons/archivist_star.png",
+          "description": "Archivist Star, collectible talisman card whose central emblem depicts archivist star, Astral and Relic motif; no text"
+        },
+        {
+          "id": "eclipse_corona",
+          "output": "img/project-starfall/cards/icons/eclipse_corona.png",
+          "description": "Eclipse Corona, collectible talisman card whose central emblem depicts eclipse corona, Eclipse and Relic motif; no text"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/monster-cards.md",
+      "chromaKey": "#00ff00",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png"
+      ]
+    },
+    {
+      "id": "menu-icons",
+      "kind": "menu icons",
+      "columns": 6,
+      "rows": 3,
+      "size": 64,
+      "entries": [
+        {
+          "id": "character",
+          "output": "img/project-starfall/ui/menu-icons/character.png",
+          "description": "compact adventurer bust"
+        },
+        {
+          "id": "equipment",
+          "output": "img/project-starfall/ui/menu-icons/equipment.png",
+          "description": "steel helmet and leather shoulder guard"
+        },
+        {
+          "id": "partyPanel",
+          "output": "img/project-starfall/ui/menu-icons/party-panel.png",
+          "description": "three adventurer silhouettes"
+        },
+        {
+          "id": "inventory",
+          "output": "img/project-starfall/ui/menu-icons/inventory.png",
+          "description": "leather satchel"
+        },
+        {
+          "id": "skills",
+          "output": "img/project-starfall/ui/menu-icons/skills.png",
+          "description": "open grimoire with star spark"
+        },
+        {
+          "id": "quests",
+          "output": "img/project-starfall/ui/menu-icons/quests.png",
+          "description": "parchment scroll and wax seal"
+        },
+        {
+          "id": "worldmap",
+          "output": "img/project-starfall/ui/menu-icons/worldmap.png",
+          "description": "folded parchment map and compass"
+        },
+        {
+          "id": "monsters",
+          "output": "img/project-starfall/ui/menu-icons/monsters.png",
+          "description": "friendly green monster head silhouette"
+        },
+        {
+          "id": "shop",
+          "output": "img/project-starfall/ui/menu-icons/shop.png",
+          "description": "wooden merchant stall and coin"
+        },
+        {
+          "id": "upgrade",
+          "output": "img/project-starfall/ui/menu-icons/upgrade.png",
+          "description": "blacksmith hammer and anvil"
+        },
+        {
+          "id": "daily",
+          "output": "img/project-starfall/ui/menu-icons/beta.png",
+          "description": "calendar page with a gold star, no numerals"
+        },
+        {
+          "id": "cashShop",
+          "output": "img/project-starfall/ui/menu-icons/cash-shop.png",
+          "description": "gemstone in a gold coffer"
+        },
+        {
+          "id": "guide",
+          "output": "img/project-starfall/ui/menu-icons/guide.png",
+          "description": "open guidebook and compass"
+        },
+        {
+          "id": "log",
+          "output": "img/project-starfall/ui/menu-icons/log.png",
+          "description": "rolled journal and quill"
+        },
+        {
+          "id": "settings",
+          "output": "img/project-starfall/ui/menu-icons/settings.png",
+          "description": "brass gear"
+        },
+        {
+          "id": "keybinds",
+          "output": "img/project-starfall/ui/menu-icons/keybinds.png",
+          "description": "three dark keycaps without letters"
+        },
+        {
+          "id": "admin",
+          "output": "img/project-starfall/ui/menu-icons/admin.png",
+          "description": "ornate steward key"
+        },
+        {
+          "id": "logout",
+          "output": "img/project-starfall/ui/menu-icons/logout.png",
+          "description": "open wooden door with a simple outward arrow"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/menu-icons.md",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png",
+        "output/starfall-animation-samples/glowcap-spring-study.png"
+      ]
+    },
+    {
+      "id": "ui-splashScreen",
+      "kind": "screen",
+      "width": 1672,
+      "height": 941,
+      "description": "A sweeping vista of a welcoming frontier guild town below a luminous fallen-star crystal. Forest paths lead toward distant mysterious mountains; a tiny compact brown-haired adventurer in a cream shirt stands at the left foreground looking outward. Adventure and discovery, balanced rich color, no combat. Foreground foliage and stone are clean illustrated forms.",
+      "entries": [
+        {
+          "id": "splashScreen",
+          "output": "img/project-starfall/ui/splash-screen.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/ui-splashScreen.md",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png",
+        "output/starfall-animation-samples/glowcap-spring-study.png"
+      ]
+    },
+    {
+      "id": "ui-startScreen",
+      "kind": "screen",
+      "width": 1672,
+      "height": 941,
+      "description": "A welcoming blue-and-gold frontier guild lodge overlooking a peaceful fantasy crossroads town at golden hour. Warm lanterns, crafted timber, hanging banners with simple star motifs, a distant cyan fallen-star crystal and mysterious mountain silhouettes. No people in the center; an inviting path leads into the scene. Detailed but quiet behind the central login/start controls.",
+      "entries": [
+        {
+          "id": "startScreen",
+          "output": "img/project-starfall/ui/start-screen.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/ui-startScreen.md",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png",
+        "output/starfall-animation-samples/glowcap-spring-study.png"
+      ]
+    },
+    {
+      "id": "ui-characterSelectScreen",
+      "kind": "screen",
+      "width": 1672,
+      "height": 941,
+      "description": "An elegant open-air frontier guild courtyard at dawn with warm stone paving, wooden arcades, blue-and-gold banners and small cyan star crystals. Leave a broad open central paved stage across the lower half for character slots that will be rendered by the game. No characters, no individual pedestals, no interface elements. Soft atmospheric mountains beyond.",
+      "entries": [
+        {
+          "id": "characterSelectScreen",
+          "output": "img/project-starfall/ui/character-select-screen.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/ui-characterSelectScreen.md",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png",
+        "output/starfall-animation-samples/glowcap-spring-study.png"
+      ]
+    },
+    {
+      "id": "ui-pedestal",
+      "kind": "pedestal",
+      "width": 512,
+      "height": 160,
+      "entries": [
+        {
+          "id": "pedestal",
+          "output": "img/project-starfall/ui/character-slot-pedestal.png"
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/ui-pedestal.md",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png",
+        "output/starfall-animation-samples/glowcap-spring-study.png"
+      ]
+    },
+    {
+      "id": "icon-semantic-corrections",
+      "kind": "combat icon corrections",
+      "columns": 3,
+      "rows": 1,
+      "size": 256,
+      "chromaKey": "#00ff00",
+      "entries": [
+        {
+          "id": "ratchet_repeater",
+          "output": "img/project-starfall/items/icons/ratchet-repeater.png",
+          "size": 64,
+          "description": "A compact brass-and-wood MECHANICAL CROSSBOW with visibly curved BOW LIMBS, taut BOWSTRING, arrow bolt rail, ratchet gear, and crank. This item is a bow, absolutely NO firearm, gun barrel, rifle, pistol, bullet, or cannon. Physical inventory object."
+        },
+        {
+          "id": "sniper-damage-mastery",
+          "output": "img/project-starfall/skills/advanced/sniper/sniper-damage-mastery.png",
+          "description": "A tall precision LONGBOW with BOWSTRING and one arrow, a small sight mounted on the wooden riser, with three gold upward buff chevrons. Absolutely NO firearm or rifle. Permanent archery mastery.",
+          "size": 256
+        },
+        {
+          "id": "fire-mage-heat-vent",
+          "output": "img/project-starfall/skills/advanced/fire-mage/fire-mage-heat-vent.png",
+          "description": "A sharp CORAL damage cone of flame vented forward from a neutral stone nozzle; one SMALL BLUE resource droplet below shows spent Heat resource. Coral #F06A60 is primary, orange secondary, blue #668FFF resource. NO purple ring, no violet impairment symbol.",
+          "size": 256
+        }
+      ],
+      "promptPath": "asset-sources/project-starfall/overhaul-v1/icons/prompts/icon-semantic-corrections.md",
+      "references": [
+        "output/starfall-animation-samples/review-v2/player-run-study.png",
+        "output/starfall-animation-samples/glowcap-spring-study.png"
+      ]
+    }
+  ]
+}

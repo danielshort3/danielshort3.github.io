@@ -1,0 +1,48 @@
+{
+  "source": "Built-in image generation; session run and strike sources preserved byte-for-byte.",
+  "layout": "player 8x10 cells160; pet6x6 cells160",
+  "outputs": [
+    {
+      "path": "img/project-starfall/animations/players/generic-player-sheet.png",
+      "sha256": "c17b194197f86b1b3c12206271142143144a0594be9fdea99117367cc5bd1869"
+    },
+    {
+      "path": "img/project-starfall/characters/generic-player.png",
+      "sha256": "06f048751dddca0edfa77c7f57c527304ad688a57694b589398ab70d999071f9"
+    },
+    {
+      "path": "img/project-starfall/animations/pets/starfall-fox-sheet.png",
+      "sha256": "38275044df6d43ed39782c05eeb6c1751b74a13896e74c771e99a0a6494e7a0b"
+    }
+  ],
+  "sources": [
+    {
+      "path": "asset-sources/project-starfall/overhaul-v1/players/player-idle-climb.png",
+      "sha256": "3578771a24bac197a4919f2e2066895bc2e7e2b479e4d692854e257d58043510"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sha256": "a66c44ee4d402b388bbcc4298667e2da7594c9bc5e05c43c93e3da2949e5c963"
+    },
+    {
+      "path": "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
+      "sha256": "8ea5d014f33f09a9e7b35fe0f9cfdec6b4aa5c4a2340ef65749e3b9f0ec12150"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sha256": "d717a8ad49d8f14774648400ab81cdc38dbbc2871de818572f96aa6d7b511a0a"
+    },
+    {
+      "path": "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
+      "sha256": "ee46088df2d233298ccaa32268eea86f47eb8c042c6b577a8f865bc463c2cbdd"
+    },
+    {
+      "path": "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
+      "sha256": "dc7087bb6e67c435dbc677938d4d4f3f0737bb9c6593e861b2cf954932f8ea75"
+    },
+    {
+      "path": "asset-sources/project-starfall/overhaul-v1/players/starfall-fox.png",
+      "sha256": "0ab43e9c8c89e452492cb4a3ec77a32eb916d1b52c995714114a7f1c3d094973"
+    }
+  ]
+}

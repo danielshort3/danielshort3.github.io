@@ -11,7 +11,8 @@ const ROOT = path.resolve(__dirname, '..', '..');
 async function main() {
   const map = Data.MAPS.find((candidate) => candidate.id === 'starfallCrossing');
   assert(map && map.safeZone, 'Starfall Crossing should remain the public safe-zone hub');
-  assert.notStrictEqual(map.backgroundMode, 'panorama');
+  assert.strictEqual(map.backgroundMode, 'panorama',
+    'the authored Crossing backdrop should use cover-scaled panorama rendering');
   assert.deepStrictEqual(map.palette, ['#f7d28a', '#7ec8d8', '#f8f0dc']);
 
   assert.strictEqual(map.platforms.length, 17,
@@ -47,9 +48,9 @@ async function main() {
   const scene = map.townScene;
   const sceneCells = scene.rearStructures.concat(scene.stationFacades).map((entry) => entry.cell);
   const landmarkLabels = new Set(scene.rearStructures.map((entry) => entry.label));
-  assert(['Fracture Survey Array', 'Repair Gantry', 'Greenroot Frontier Gate']
+  assert(['Fracture Survey Array', 'Expedition Depot', 'Greenroot Frontier Gate', 'Beacon Lens Workshop']
     .every((label) => landmarkLabels.has(label)),
-  'Crossing should read as a fractured observatory, repair gantry, and frontier gate');
+  'Crossing should read as a fractured observatory, expedition depot, lens workshop, and frontier gate');
   assert.deepStrictEqual(scene.rearStructures.map((entry) => entry.cell),
     ['fracturedObservatoryCore', 'expeditionDepot', 'frontierGate', 'lensWorkshop'],
     'Crossing should compose its four purpose-built fractured-frontier structure cells');

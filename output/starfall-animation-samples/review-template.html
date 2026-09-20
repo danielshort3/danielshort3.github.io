@@ -1,0 +1,224 @@
+<div id="starfall-sample-review">
+  <style>
+    #starfall-sample-review .sample-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+    #starfall-sample-review .sample-view { min-width: 0; }
+    #starfall-sample-review .sample-label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    #starfall-sample-review canvas { display: block; width: 100%; aspect-ratio: 4 / 3; }
+    #starfall-sample-review .sample-timeline { margin-top: 16px; }
+    #starfall-sample-review .sample-note { margin-top: 12px; }
+    #starfall-sample-review .sample-palette { position: absolute; visibility: hidden; pointer-events: none; }
+    @media (max-width: 420px) { #starfall-sample-review .sample-comparison { grid-template-columns: 1fr; } }
+  </style>
+  <div class="viz-controls">
+    <label class="form-label">Animation
+      <select class="form-select" data-sample>
+        <option value="oracle">Icebloom Oracle · idle</option>
+        <option value="fox">Fox · idle</option>
+      </select>
+    </label>
+    <label class="form-label">Speed
+      <select class="form-select" data-speed>
+        <option value="0.25">¼ speed</option>
+        <option value="0.5">½ speed</option>
+        <option value="1" selected>Normal</option>
+      </select>
+    </label>
+    <label class="form-label">Size
+      <select class="form-select" data-zoom>
+        <option value="1">Game size</option>
+        <option value="2" selected>2× game size</option>
+      </select>
+    </label>
+  </div>
+  <div class="sample-comparison">
+    <div class="sample-view">
+      <div class="sample-label"><span>Before</span><span class="text-small tabular-nums" data-before-frame></span></div>
+      <canvas data-before role="img" aria-label="Original animation with current game timing and alignment">Original animation</canvas>
+    </div>
+    <div class="sample-view">
+      <div class="sample-label"><span>Sample correction</span><span class="text-small tabular-nums" data-after-frame></span></div>
+      <canvas data-after role="img" aria-label="Corrected sample animation synchronized with original">Corrected sample animation</canvas>
+    </div>
+  </div>
+  <div class="viz-row">
+    <button class="btn btn-primary" type="button" data-play>Pause</button>
+    <button class="btn" type="button" data-step>Next frame</button>
+    <label class="form-check"><input class="form-check-input" type="checkbox" data-guides checked><span class="form-check-label">Alignment guides</span></label>
+    <label class="form-check"><input class="form-check-input" type="checkbox" data-facing><span class="form-check-label">Face left</span></label>
+  </div>
+  <label class="form-label sample-timeline">Loop position <span class="tabular-nums" data-phase>0%</span>
+    <input class="form-range" type="range" min="0" max="999" value="0" data-scrub aria-label="Loop position">
+  </label>
+  <div class="text-small sample-note" aria-live="polite" data-note></div>
+  <span class="sample-palette" aria-hidden="true" data-palette></span>
+  <script type="application/json" data-review-data>__REVIEW_DATA__</script>
+  <script>
+    (() => {
+      const root = document.getElementById('starfall-sample-review');
+      const data = JSON.parse(root.querySelector('[data-review-data]').textContent);
+      const controls = Object.fromEntries(['sample', 'speed', 'zoom', 'play', 'step', 'guides', 'facing', 'scrub', 'phase', 'note', 'palette'].map((name) => [name, root.querySelector(`[data-${name}]`)]));
+      const canvases = [root.querySelector('[data-before]'), root.querySelector('[data-after]')];
+      const labels = [root.querySelector('[data-before-frame]'), root.querySelector('[data-after-frame]')];
+      const defaults = { sample: 'oracle', speed: 1, zoom: 2, guides: true, facing: false, playing: !matchMedia('(prefers-reduced-motion: reduce)').matches };
+      let state = { ...defaults };
+      let elapsed = 0;
+      let last = 0;
+      let loaded = false;
+      const images = {};
+      const resolveColor = (name) => {
+        controls.palette.style.color = `var(--${name})`;
+        return getComputedStyle(controls.palette).color;
+      };
+      let colors;
+      const updateColors = () => {
+        colors = { ground: resolveColor('muted'), line: resolveColor('border'), guide: resolveColor('muted-foreground') };
+        draw();
+      };
+      function syncControls() {
+        controls.sample.value = state.sample;
+        controls.speed.value = String(state.speed);
+        controls.zoom.value = String(state.zoom);
+        controls.guides.checked = state.guides;
+        controls.facing.checked = state.facing;
+        controls.play.textContent = state.playing ? 'Pause' : 'Play';
+        controls.play.setAttribute('aria-pressed', String(state.playing));
+        controls.note.textContent = data.samples[state.sample].note;
+      }
+      function applySaved(saved) {
+        const value = saved && saved.modelContent;
+        const ui = saved && saved.privateContent;
+        if (value && data.samples[value.sample]) state.sample = value.sample;
+        if (value && [0.25, 0.5, 1].includes(value.speed)) state.speed = value.speed;
+        if (ui) {
+          if ([1, 2].includes(ui.zoom)) state.zoom = ui.zoom;
+          if (typeof ui.guides === 'boolean') state.guides = ui.guides;
+          if (typeof ui.facing === 'boolean') state.facing = ui.facing;
+          if (typeof ui.playing === 'boolean') state.playing = ui.playing;
+        }
+        elapsed = 0;
+        syncControls();
+        draw();
+      }
+      function save() {
+        if (window.openai && window.openai.setWidgetState) {
+          window.openai.setWidgetState({ modelContent: { sample: state.sample, speed: state.speed }, privateContent: { zoom: state.zoom, guides: state.guides, facing: state.facing, playing: state.playing } }).catch(() => {});
+        }
+      }
+      function sampleFrame(clip, seconds) {
+        const holds = clip.holds || new Array(clip.frames.length).fill(1);
+        const ticks = holds.reduce((sum, n) => sum + n, 0);
+        let tick = Math.floor((seconds % clip.duration) / clip.duration * ticks);
+        for (let i = 0; i < holds.length; i += 1) {
+          if (tick < holds[i]) return i;
+          tick -= holds[i];
+        }
+        return 0;
+      }
+      function drawSprite(canvas, clip, time, label) {
+        const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+        const width = Math.max(1, canvas.clientWidth);
+        const height = width * 0.75;
+        if (canvas.width !== Math.round(width * pixelRatio) || canvas.height !== Math.round(height * pixelRatio)) {
+          canvas.width = Math.round(width * pixelRatio);
+          canvas.height = Math.round(height * pixelRatio);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(canvas.width / 320, 0, 0, canvas.height / 240, 0, 0);
+        ctx.clearRect(0, 0, 320, 240);
+        const groundY = 212;
+        ctx.fillStyle = colors.ground;
+        ctx.fillRect(0, groundY, 320, 28);
+        ctx.strokeStyle = colors.line;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, groundY + 0.5);
+        ctx.lineTo(320, groundY + 0.5);
+        ctx.stroke();
+        if (state.guides) {
+          ctx.strokeStyle = colors.guide;
+          ctx.globalAlpha = 0.4;
+          ctx.setLineDash([3, 4]);
+          ctx.beginPath();
+          ctx.moveTo(160, 20);
+          ctx.lineTo(160, 226);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.globalAlpha = 1;
+        }
+        const index = sampleFrame(clip, time);
+        const frame = clip.frames[index];
+        const scale = clip.scale * state.zoom;
+        const image = images[clip.image];
+        ctx.save();
+        ctx.translate(160, groundY);
+        ctx.scale(state.facing ? -1 : 1, 1);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(image, frame.x, frame.y, frame.w, frame.h, -frame.rootX * scale, -frame.rootY * scale, frame.w * scale, frame.h * scale);
+        ctx.restore();
+        label.textContent = `${index + 1} / ${clip.frames.length}`;
+        canvas.dataset.frame = String(index);
+      }
+      function draw() {
+        if (!loaded || !colors) return;
+        const sample = data.samples[state.sample];
+        const phase = elapsed / sample.before.duration % 1;
+        drawSprite(canvases[0], sample.before, elapsed, labels[0]);
+        drawSprite(canvases[1], sample.after, phase * sample.after.duration, labels[1]);
+        controls.scrub.value = String(Math.min(999, Math.floor(phase * 1000)));
+        controls.phase.textContent = `${Math.round(phase * 100)}%`;
+      }
+      function changed() {
+        syncControls();
+        draw();
+        save();
+      }
+      controls.sample.addEventListener('change', () => { state.sample = controls.sample.value; elapsed = 0; changed(); });
+      controls.speed.addEventListener('change', () => { state.speed = Number(controls.speed.value); changed(); });
+      controls.zoom.addEventListener('change', () => { state.zoom = Number(controls.zoom.value); changed(); });
+      controls.guides.addEventListener('change', () => { state.guides = controls.guides.checked; changed(); });
+      controls.facing.addEventListener('change', () => { state.facing = controls.facing.checked; changed(); });
+      controls.play.addEventListener('click', () => { state.playing = !state.playing; changed(); });
+      controls.scrub.addEventListener('input', () => { state.playing = false; elapsed = Number(controls.scrub.value) / 1000 * data.samples[state.sample].before.duration; syncControls(); draw(); });
+      controls.scrub.addEventListener('change', save);
+      controls.step.addEventListener('click', () => {
+        state.playing = false;
+        const sample = data.samples[state.sample];
+        const phases = new Set([0]);
+        [sample.before, sample.after].forEach((clip) => {
+          const holds = clip.holds || new Array(clip.frames.length).fill(1);
+          const total = holds.reduce((a, b) => a + b, 0);
+          let sum = 0;
+          holds.forEach((hold) => { phases.add(sum / total); sum += hold; });
+        });
+        const current = elapsed / sample.before.duration % 1;
+        const next = [...phases].sort((a, b) => a - b).find((phase) => phase > current + 0.0001) || 0;
+        elapsed = (next + 0.000001) * sample.before.duration;
+        changed();
+      });
+      window.addEventListener('openai:set_globals', (event) => {
+        if (event.detail && event.detail.globals && event.detail.globals.widgetState) applySaved(event.detail.globals.widgetState);
+      });
+      new ResizeObserver(draw).observe(root);
+      new MutationObserver(updateColors).observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-theme'] });
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateColors);
+      applySaved(window.openai && window.openai.widgetState);
+      updateColors();
+      Promise.all(Object.entries(data.images).map(([id, src]) => new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => { images[id] = image; resolve(); };
+        image.onerror = reject;
+        image.src = src;
+      }))).then(() => {
+        loaded = true;
+        root.dataset.ready = 'true';
+        draw();
+        requestAnimationFrame(function tick(now) {
+          if (last && state.playing && !document.hidden) elapsed += Math.min((now - last) / 1000, 0.1) * state.speed;
+          last = now;
+          draw();
+          requestAnimationFrame(tick);
+        });
+      }).catch(() => { controls.note.textContent = 'The animation images could not load.'; controls.note.setAttribute('role', 'alert'); });
+    })();
+  </script>
+</div>

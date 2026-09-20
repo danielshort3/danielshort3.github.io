@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -52,7 +52,7 @@ jobs:
 
       - name: Test rendered desktop and mobile flows
         run: npm run test:browser
-        timeout-minutes: 8
+        timeout-minutes: 12
         env:
           BROWSER_ARTIFACT_DIR: ${{ runner.temp }}/site-browser-smoke
 
@@ -62,4 +62,62 @@ jobs:
         with:
           name: browser-smoke
           path: ${{ runner.temp }}/site-browser-smoke
+          if-no-files-found: ignore
+
+  release-quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install pinned release browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Cross-browser accessibility, interaction and reviewed screenshots
+        run: npm run test:release
+        timeout-minutes: 12
+      - name: Existing frame routes and enlarged typography in all engines
+        if: always()
+        run: node tests/release/geometry.cjs
+        timeout-minutes: 8
+      - name: Recovery and consent regression checks
+        if: always()
+        run: npm run test:recovery
+        timeout-minutes: 5
+      - name: Upload release evidence, including screenshot diffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-quality
+          path: |
+            tmp/release-results/
+            tmp/release-report/
+            tmp/release-geometry/
+            tmp/quality/
+          if-no-files-found: ignore
+
+  mobile-performance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Three-run mobile Lighthouse medians
+        run: npm run performance:lab
+        timeout-minutes: 12
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-lighthouse
+          path: tmp/quality/lighthouse/
           if-no-files-found: ignore

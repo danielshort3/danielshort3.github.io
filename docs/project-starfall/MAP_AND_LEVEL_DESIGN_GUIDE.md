@@ -33,7 +33,7 @@ Primary files reviewed:
 
 Project Starfall is a 2D side-scrolling action RPG prototype with MMO-inspired structure. The GDD defines a side-view 2D action perspective, readable party positioning, skill timing, dodge windows, multi-platform fields, vertical routes, ladders, environmental hazards, boss arenas, towns, dungeons, and repeatable field maps.
 
-The visual target from the GDD and `img/project-starfall/asset-prompts.md` is "Starlit Frontier Fantasy": luminous, readable, painterly fantasy with clean silhouettes, blue/gold star magic, warm guild-town details, crafted structures, runes, lanterns, crystals, and strong foreground/background separation. Maps should feel hand-placed and adventure-readable, not procedural.
+The authoritative visual target is [the Asset Generation Guide](ASSET_GENERATION_GUIDE.md): clean illustrated fantasy, expressive compact characters, warm adventure, and readable danger. Use controlled shading and crisp nearby surfaces, with softer atmospheric distance. Preserve functional combat colors and anticipation timing. Historical prompts do not override these rules. Maps should feel authored, with materials and landmarks appropriate to their region.
 
 ### Current Level Design Style
 
@@ -86,7 +86,7 @@ The world map and minimap are player-facing summaries of this contract. Keep gro
 
 ### How Players Move Through Maps
 
-Player movement is side-scroller traversal through horizontal lanes, jumps, drops, climbables, and slope connections. The engine uses default jump-link limits around 128 px vertical jump and 300 px drop. Camera behavior in `viewport.js` targets the player with a forward-biased X anchor and smoothed Y movement. Because the camera follows vertical movement, long chains of slopes can create constant subtle camera bobbing.
+Player movement is side-scroller traversal through horizontal lanes, jumps, drops, climbables, and slope connections. The graph admits candidate links up to roughly 128 px vertical jump and 300 px drop, but those are search bounds, not promises of player reach. Runtime routing filters candidates by actual jump velocity, speed and body width under conservative 30 FPS integration. Camera behavior in `viewport.js` targets the player with a forward-biased X anchor and smoothed Y movement. Because the camera follows vertical movement, long chains of slopes can create constant subtle camera bobbing.
 
 Movement readability depends on clear flat landings, predictable route options, and combat spaces where the player can read enemies without fighting terrain.
 
@@ -94,25 +94,14 @@ Movement readability depends on clear flat landings, predictable route options, 
 
 Map generation previously used slopes as standard connectors between nearly every lane. The current builders cap that pattern and combine ramps with climbables, drops, hops, and broad flat tiers. New maps should keep that variety instead of reintroducing a ramp at every lane change.
 
-Current slope counts from the built map data:
-
-| Map Type | Current Slope Pattern | Design Risk |
-| --- | --- | --- |
-| Town hubs | 4 slopes with 8-9 broad flats | Keep services flat and ramps outside interaction clusters. |
-| Starter/standard fields | 5-6 slopes with at least 10 broad flats | Good baseline; use ramps for section transitions, not every tier change. |
-| Party/farm fields | 6 slopes with 10-13 broad flats | Maintain clear regroup pockets and lane-specific mob territories. |
-| Vertical/deep fields | 6 slopes plus climbables | Let ladders, vines, lifts, ledges, and drops carry most vertical identity. |
-| Endless Rift | 5 slopes with 14 broad flats | Preserve quadrant breaks, floating islands, and rune-style transitions. |
-| Dungeon/boss arenas | 4 slopes with 7 broad flats | Keep the primary boss lane flat and mechanic-readable. |
-
-Current slope grades are also aggressive in some biomes. Greenroot has gentler 64-128 px rises over about 260 px width. Cinder, Quarry, Stormbreak, and Endless Rift often use 160-180 px rises over 240-300 px, which is visually steep and should feel dramatic, not routine.
+Use `npm run validate:starfall:maps` for current per-map slope counts, grades, broad flats, and connector diagnostics. Counts are validation limits, not a requirement to give every biome the same route shape. Prefer flat combat pockets connected by a deliberate mixture of ramps, short bridges, climbables, and drops.
 
 ### Current Map Readability
 
 The screenshot/contact-sheet assets show that Project Starfall is strongest when maps have:
 
 - Wide flat playable lanes.
-- Readable painterly silhouettes.
+- Readable illustrated silhouettes.
 - Clear foreground terrain against atmospheric backgrounds.
 - Distinct biome palettes.
 - Strong horizontal shelf structure.
@@ -121,7 +110,7 @@ Readability gets weaker when too many ramps appear close together, because the p
 
 ### Current Visual Polish
 
-The terrain and prop atlases are strong enough to support polished maps. The environment sheets under `img/project-starfall/environment/terrain/`, `props/`, and `ramps/` are biome-specific and consistent with the GDD. The issue is not asset quality; it is composition.
+Review asset quality and composition together at gameplay size. A valid PNG can still use the wrong materials, stretch a building, imply a false foothold, or hide a hazard. Ashglass uses a dedicated basalt/volcanic-glass kit; Crossing selects its own functional landmark atlas through `townScene.structureTheme`. Keep other approved artwork unless contextual evidence identifies a mismatch.
 
 Important implementation note: `data/environment.js` registers biome ramp atlases and `project-starfall-renderer-pixi.js` now renders slope cells from those atlases in `drawRampPlatformTerrain()`, retaining the fallback only when an asset is unavailable. Slope budgets still matter: repeated ramps create visual rhythm and camera movement even when the artwork is polished.
 
@@ -1113,7 +1102,7 @@ Use these prompts when generating new map-related art. Keep prompts consistent w
 ### Master Map Style Prompt
 
 ```text
-Project Starfall 2D side-scrolling action RPG environment, Starlit Frontier Fantasy, clean luminous painterly fantasy, crisp playable silhouettes, readable side-view platformer terrain, hand-authored map shapes, broad flat combat lanes, intentional ledges and cliffs, sparse meaningful slopes, blue and gold star magic accents where appropriate, warm crafted materials, atmospheric parallax background, clear foreground/background separation, game-ready terrain, professional 2D platformer readability, no UI, no characters unless requested.
+Project Starfall 2D side-scrolling action RPG environment, Starlit Frontier Fantasy, clean illustrated fantasy, crisp outlines, controlled shading and restrained texture, crisp playable silhouettes, readable side-view platformer terrain, hand-authored map shapes, broad flat combat lanes, intentional ledges and cliffs, sparse meaningful slopes, blue and gold star magic accents where appropriate, warm crafted materials, atmospheric parallax background, clear foreground/background separation, game-ready terrain, professional 2D platformer readability, no UI, no characters unless requested.
 ```
 
 ### Master Negative Prompt
@@ -1125,7 +1114,7 @@ random generated hills, excessive slopes, rolling terrain everywhere, noisy terr
 ### Tileset Prompt
 
 ```text
-Create a game-ready Project Starfall biome tileset for [BIOME NAME], 2D side-scroller side-view, 64 px tile logic, clean readable collision tops, painterly but crisp, includes flat top tiles, left and right caps, inner fills, underside tiles, cliff faces, corner transitions, short ledge pieces, long platform body variants, subtle biome-specific accent tiles, consistent lighting from upper left, seamless tile edges, no characters, no UI. Style must match Starlit Frontier Fantasy: luminous, readable, hand-crafted, not procedural.
+Create a game-ready Project Starfall biome tileset for [BIOME NAME], 2D side-scroller side-view, 64 px tile logic, clean readable collision tops, crisp outlines and controlled shading, includes flat top tiles, left and right caps, inner fills, underside tiles, cliff faces, corner transitions, short ledge pieces, long platform body variants, subtle biome-specific accent tiles, consistent lighting from upper left, seamless tile edges, no characters, no UI. Style must match Starlit Frontier Fantasy: warm adventure, illustrated materials, restrained magical accents and readable gameplay surfaces.
 ```
 
 ### Slope Tile Prompt
@@ -1137,13 +1126,13 @@ Create a small Project Starfall slope tile set for [BIOME NAME], side-view 2D pl
 ### Cliff Tile Prompt
 
 ```text
-Create Project Starfall cliff terrain tiles for [BIOME NAME], side-view 2D action RPG, strong vertical silhouettes, clean top ledges, readable cliff faces, interior fill variation, underside shadow pieces, corner caps, painterly fantasy detail inside the terrain mass, crisp playable edges, seamless tiles, consistent lighting, no excessive bumps along collision.
+Create Project Starfall cliff terrain tiles for [BIOME NAME], side-view 2D action RPG, strong vertical silhouettes, clean top ledges, readable cliff faces, interior fill variation, underside shadow pieces, corner caps, controlled illustrated material detail inside the terrain mass, crisp playable edges, seamless tiles, consistent lighting, no excessive bumps along collision.
 ```
 
 ### Platform Prompt
 
 ```text
-Create Project Starfall platform assets for [BIOME NAME], side-view 2D platformer, flat readable gameplay tops, left/right caps, long center pieces, short ledges, underside pieces, optional one-way platform variant that is visually distinct from solid ground, biome-specific materials, crisp silhouette, clean collision expectation, painterly luminous fantasy style, seamless edges.
+Create Project Starfall platform assets for [BIOME NAME], side-view 2D platformer, flat readable gameplay tops, left/right caps, long center pieces, short ledges, underside pieces, optional one-way platform variant that is visually distinct from solid ground, biome-specific materials, crisp silhouette, clean collision expectation, clean illustrated fantasy with controlled shading and restrained magical accents, seamless edges.
 ```
 
 ### Background Prompt
@@ -1155,13 +1144,13 @@ Create a parallax background layer for Project Starfall [BIOME NAME], side-view 
 ### Foreground Decoration Prompt
 
 ```text
-Create Project Starfall foreground decoration props for [BIOME NAME], transparent background, side-view 2D game assets, roots/rocks/rails/crystals/banners/machinery/runes as appropriate, designed to frame gameplay without covering platform edges, clean silhouettes, painterly fantasy, consistent lighting, no collision ambiguity, no large opaque clutter.
+Create Project Starfall foreground decoration props for [BIOME NAME], transparent background, side-view 2D game assets, roots/rocks/rails/crystals/banners/machinery/runes as appropriate, designed to frame gameplay without covering platform edges, clean silhouettes, illustrated fantasy with controlled shading, consistent lighting, no collision ambiguity, no large opaque clutter.
 ```
 
 ### Prop Prompt
 
 ```text
-Create Project Starfall biome props for [BIOME NAME], 2D side-scroller RPG, game-ready object sheet, includes small, medium, and landmark props, clean silhouettes, readable at gameplay zoom, transparent background, consistent palette and lighting, crafted/luminous fantasy style, props should support level storytelling without cluttering the playable path.
+Create Project Starfall biome props for [BIOME NAME], 2D side-scroller RPG, game-ready object sheet, includes small, medium, and landmark props, clean silhouettes, readable at gameplay zoom, transparent background, consistent palette and lighting, clean illustrated fantasy with warm materials and restrained magical accents, props should support level storytelling without cluttering the playable path.
 ```
 
 ### Hazard Prompt
@@ -1279,3 +1268,23 @@ Use this checklist before calling a map complete.
 - One strong slope is better than four forgettable slopes.
 - A flat platform with a good landmark is more professional than a noisy hill.
 - If a terrain shape does not teach, test, guide, rest, reward, or reveal, simplify it.
+
+## 12. Connected training loops and measured acceptance
+
+Every public repeatable field needs several connected combat pockets, a low-pressure regroup segment, and an optional harder branch. The authored trainingRoute.mainPlatformIds is the ordered ordinary circuit; optionalPlatformIds identifies the harder detour. Keep the full routePlatformIds exploration route for traversal checks. Compare main and optional runs separately, using the same resolved route plans for earlier/current encounter profiles; a high-level optional branch must not inflate an ordinary low-level route comparison. Preserve town services, dungeon mechanics, and boss arenas as distinct map purposes. Keep portal, quest, map, and platform identities stable; append connectors where possible and verify restored positions recover onto valid ground.
+
+Author section-specific enemy weights and physical roles in map publication. Cap simultaneous support enemies where mutual healing could prevent clears; probability alone does not enforce that cap. Party population must fit available footing and safe spawn clearance. Deferred occupied spawns count toward quotas. Ordinary mobile groups can pursue through nearby permitted links within their leash and then walk home; stationary/boss encounters stay bounded. Route caches include traversal permissions and physical jump capability. Graph jump candidates must fit the actor's jump velocity, horizontal speed and body width under conservative 30 FPS integration; test actual landings at 30/60/120 FPS. Append reliable access when an old perch depended on an impossible jump. A returning enemy should reach home before reacquiring a player at the boundary.
+
+Use actual group populations, weighted rosters and respawn cadences in previews and formula estimates. A wave population divided by kills per minute gives minutes: multiply by 60 before comparing against delays in seconds. Formula output remains explicitly an estimate and cannot establish measured XP throughput.
+
+The observed training harness runs real engine movement, combat, healing, damage, deaths, loot, and respawns. The standard protocol uses 60 seconds of warmup, 300 measured seconds, 30 FPS, and three fixed seeds; separate movement regressions cover 30/60/120 FPS. Compare overlapping map ranges at the same level, equipment budget, and legal skill ranks with account/admin boosts disabled. Report each eligible solo class and a fixed melee/ranged/magic companion party, identifying the built-in companion stat model separately from human-player equipment. Hold benchmark level and mastery bonuses constant while recording actual earned XP. Use fresh scenario processes and fixed wall/monotonic clocks; verify results do not depend on worker order. Paired reports must share runtime/controller hashes, frame rate and measurement windows. Report route coverage and controller stalls with XP/minute, rewards, kills, damage, consumables, deaths, travel and respawn-only waiting. Record companion knockouts and combined down member-seconds separately from leader deaths. The comparison starts with 99 level-appropriate health potions and resource tonics; report actual consumption and cost, since the starting stock is not constrained by the equipment budget. Incomplete route coverage is a diagnostic limitation, never a passing balance result.
+
+Acceptance targets: ordinary comparable routes within ±15% of their cohort median; dangerous routes 10–20% ahead; investigate a route exceeding alternatives by 25% for every class. Repeatable loops target no more than 30% travel and 10% respawn-only waiting. These are measured review gates, not guarantees implied by a valid map definition. Exploration and boss encounters have separate objectives. Tune geometry and encounters before rewards. Optional authored `trainingXpMultiplier` defaults to 1 and is constrained to 0.85–1.15 for normal, non-elite public-field kills. The engine's `getTrainingXpMultiplier` delegates exclusion through `isBossEnemy`, which includes random elites as well as boss behavior. Boss and elite XP therefore remain unchanged, alongside dungeon, trial, endless, rare-drop, and one-time rewards. Distinguish the authored normal-kill scalar from the observed aggregate XP change: protected elite rewards and integer rounding prevent an exact map-wide percentage reduction. A map-wide adjustment does not directly repair an optional branch's premium relative to its own main circuit.
+
+## 13. Shared scenery geometry and contextual review
+
+`engine/scenery-placement.js` owns deterministic Canvas/Pixi prop placement and decoration blockers. Anchor the visible prop foot to the platform surface sampled at its center. Flexible plants may use narrow root support; rigid props need a sufficiently level full base. Omit unsupported broad props on steep or narrow surfaces. Spawn clearance uses the surface range over its footprint. Preserve the reserved world/HUD boundary dimensions while extending scenery and fading into the HUD.
+
+Inspect arrival, middle, elevated, and exit views for every map. Deep review covers Crossing, Verge, Thornpath, Rustcoil, Cinder/Ashglass, Glacier, Stormbreak, Astral and Eclipse in both renderers, desktop/mobile, and reduced-effects mode. Check visible terrain edges, sprite silhouettes, overlap, accurate danger cues, and distant architectural depth. Background floors and bridges must read as distant scenery. Capture before/after scenes from explicitly identified assets and runtime versions; stale local outputs cannot validate a new source asset.
+
+Focused commands: `npm run test:starfall:maps`, `npm run test:starfall:enemies`, `npm run validate:starfall:maps`, and `npm run analyze:starfall:training -- --output=<report.json>`. The measured CLI supports scoped map, level and class runs; keep shortened smoke runs separate from standard acceptance reports.

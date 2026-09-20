@@ -1,0 +1,46 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "rimeback-brute",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-5500d9cb-6ecd-4934-99bb-e828dd2de83b.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/rimeback-brute.png",
+    "img/project-starfall/animations/enemies/rimeback-brute-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": false,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Touching actor row excluded; supplemental authored poses replace the whole row with one constant source scale.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/rimeback-brute-sheet.png",
+    "portrait": "img/project-starfall/enemies/rimeback-brute.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "2234a1ab57633294730e513d0721b86d0b94ba9484592671f185a22f29258359",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "supplementalRows": {
+    "attack": {
+      "file": "action-supplement.png",
+      "columns": 3,
+      "rows": 2,
+      "neutralIndex": 5,
+      "sha256": "fd712298a49ed7208aff1c364415eecc096cb905dc2e770280bd3663a4b73a00"
+    }
+  }
+}

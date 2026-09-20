@@ -1,3 +1,4 @@
+import '../../js/common/session-drafts.js';
 import '../../js/accounts/tools-config.js';
 import '../../js/accounts/tools-auth.js';
 import '../../js/accounts/tools-state.js';

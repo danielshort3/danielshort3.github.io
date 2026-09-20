@@ -1,0 +1,17 @@
+{
+  "file": "defeat-supplement.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-35be-7a93-9773-ce24aa252f30\\exec-f82ee5ba-9b4c-4896-9dd3-66e72f96a956.png",
+  "generator": "built-in image_gen",
+  "columns": 3,
+  "rows": 2,
+  "prompt": "defeat-supplement.prompt.md",
+  "row": "defeat",
+  "poseOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ]
+}

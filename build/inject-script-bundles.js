@@ -233,6 +233,7 @@ function processHtml(html, relPath) {
     if (isProjectStarfall && (
       /^<script\s+defer\s+src="js\/games\/project-starfall\/.+\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
       || isManagedLine(trimmed, 'project-starfall')
+      || /^<script\s+defer\s+src="js\/vendor\/pixi-unsafe-eval\.min\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
     )) {
       return;
     }
@@ -240,6 +241,9 @@ function processHtml(html, relPath) {
     if (isProjectStarfall && /^<script\s+defer\s+src="js\/vendor\/pixi\.min\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)) {
       out.push(line);
       if (!projectStarfallInserted) {
+        // Pixi's matching official polyfill interprets shader synchronization
+        // without dynamic code generation, preserving the site's strict CSP.
+        out.push(`${indent}<script defer src="js/vendor/pixi-unsafe-eval.min.js?v=8.18.1"></script>`);
         out.push(`${indent}<script defer src="${managedHrefs.projectStarfall}"></script>`);
         projectStarfallInserted = true;
       }

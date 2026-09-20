@@ -1,0 +1,851 @@
+{
+  "evidenceKind": "bounded-cinder-candidate-findings",
+  "adopted": false,
+  "comparableControlProtocol": true,
+  "candidateRuns": 51,
+  "eligibleRows": 17,
+  "maximumStallSeconds": 5.033,
+  "allFullCoverage": true,
+  "rows": [
+    {
+      "level": 19,
+      "mode": "fighter",
+      "controlXpPerMinute": 11059.533,
+      "candidateXpPerMinute": 10417.867,
+      "xpChangePercent": -5.802,
+      "controlTravelPercent": 35.637,
+      "candidateTravelPercent": 33.485,
+      "leaderDamageTakenPerMinute": 128.267,
+      "consumableCostPerMinute": 957.667,
+      "publishedPeerReferences": [
+        {
+          "mapId": "rustcoilRuins",
+          "xpPerMinute": 8744.533,
+          "candidateCinderAdvantagePercent": 19.136,
+          "peerAdvantageOverCandidateCinderPercent": -16.062
+        },
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 8828.8,
+          "candidateCinderAdvantagePercent": 17.999,
+          "peerAdvantageOverCandidateCinderPercent": -15.253
+        }
+      ]
+    },
+    {
+      "level": 19,
+      "mode": "mage",
+      "controlXpPerMinute": 11498.4,
+      "candidateXpPerMinute": 10717.2,
+      "xpChangePercent": -6.794,
+      "controlTravelPercent": 33.219,
+      "candidateTravelPercent": 31.822,
+      "leaderDamageTakenPerMinute": 243.6,
+      "consumableCostPerMinute": 1127.667,
+      "publishedPeerReferences": [
+        {
+          "mapId": "rustcoilRuins",
+          "xpPerMinute": 8413.4,
+          "candidateCinderAdvantagePercent": 27.383,
+          "peerAdvantageOverCandidateCinderPercent": -21.496
+        },
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 9700.2,
+          "candidateCinderAdvantagePercent": 10.484,
+          "peerAdvantageOverCandidateCinderPercent": -9.489
+        }
+      ]
+    },
+    {
+      "level": 19,
+      "mode": "archer",
+      "controlXpPerMinute": 12081.333,
+      "candidateXpPerMinute": 11768.333,
+      "xpChangePercent": -2.591,
+      "controlTravelPercent": 35.381,
+      "candidateTravelPercent": 34.929,
+      "leaderDamageTakenPerMinute": 219.933,
+      "consumableCostPerMinute": 1252.333,
+      "publishedPeerReferences": [
+        {
+          "mapId": "rustcoilRuins",
+          "xpPerMinute": 8301.8,
+          "candidateCinderAdvantagePercent": 41.756,
+          "peerAdvantageOverCandidateCinderPercent": -29.456
+        },
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 6366.467,
+          "candidateCinderAdvantagePercent": 84.849,
+          "peerAdvantageOverCandidateCinderPercent": -45.902
+        }
+      ]
+    },
+    {
+      "level": 19,
+      "mode": "party",
+      "controlXpPerMinute": 11439.267,
+      "candidateXpPerMinute": 10892.467,
+      "xpChangePercent": -4.78,
+      "controlTravelPercent": 39.341,
+      "candidateTravelPercent": 35.007,
+      "leaderDamageTakenPerMinute": 86.467,
+      "consumableCostPerMinute": 929.333,
+      "publishedPeerReferences": [
+        {
+          "mapId": "rustcoilRuins",
+          "xpPerMinute": 8833.333,
+          "candidateCinderAdvantagePercent": 23.311,
+          "peerAdvantageOverCandidateCinderPercent": -18.904
+        },
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 10100.133,
+          "candidateCinderAdvantagePercent": 7.845,
+          "peerAdvantageOverCandidateCinderPercent": -7.274
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "fighter",
+      "controlXpPerMinute": 12165.2,
+      "candidateXpPerMinute": 12458.933,
+      "xpChangePercent": 2.415,
+      "controlTravelPercent": 50.493,
+      "candidateTravelPercent": 46.466,
+      "leaderDamageTakenPerMinute": 57.667,
+      "consumableCostPerMinute": 850,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 13520.667,
+          "candidateCinderAdvantagePercent": -7.853,
+          "peerAdvantageOverCandidateCinderPercent": 8.522
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 13322.867,
+          "candidateCinderAdvantagePercent": -6.485,
+          "peerAdvantageOverCandidateCinderPercent": 6.934
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "mage",
+      "controlXpPerMinute": 14842.867,
+      "candidateXpPerMinute": 13347.6,
+      "xpChangePercent": -10.074,
+      "controlTravelPercent": 40.378,
+      "candidateTravelPercent": 41.167,
+      "leaderDamageTakenPerMinute": 128,
+      "consumableCostPerMinute": 912.333,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 14496.267,
+          "candidateCinderAdvantagePercent": -7.924,
+          "peerAdvantageOverCandidateCinderPercent": 8.606
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 12782.2,
+          "candidateCinderAdvantagePercent": 4.423,
+          "peerAdvantageOverCandidateCinderPercent": -4.236
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "archer",
+      "controlXpPerMinute": 14421.533,
+      "candidateXpPerMinute": 14605.2,
+      "xpChangePercent": 1.274,
+      "controlTravelPercent": 40.441,
+      "candidateTravelPercent": 39.719,
+      "leaderDamageTakenPerMinute": 162.467,
+      "consumableCostPerMinute": 1099.333,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 11558.067,
+          "candidateCinderAdvantagePercent": 26.364,
+          "peerAdvantageOverCandidateCinderPercent": -20.863
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 14282.733,
+          "candidateCinderAdvantagePercent": 2.258,
+          "peerAdvantageOverCandidateCinderPercent": -2.208
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "guardian",
+      "controlXpPerMinute": 12420.8,
+      "candidateXpPerMinute": 12307.6,
+      "xpChangePercent": -0.911,
+      "controlTravelPercent": 37.263,
+      "candidateTravelPercent": 37.53,
+      "leaderDamageTakenPerMinute": 85.867,
+      "consumableCostPerMinute": 527,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 12532.933,
+          "candidateCinderAdvantagePercent": -1.798,
+          "peerAdvantageOverCandidateCinderPercent": 1.831
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 11381.533,
+          "candidateCinderAdvantagePercent": 8.137,
+          "peerAdvantageOverCandidateCinderPercent": -7.524
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "berserker",
+      "controlXpPerMinute": 12340.2,
+      "candidateXpPerMinute": 11556.533,
+      "xpChangePercent": -6.351,
+      "controlTravelPercent": 41.578,
+      "candidateTravelPercent": 37.696,
+      "leaderDamageTakenPerMinute": 22.867,
+      "consumableCostPerMinute": 736.667,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 12437.733,
+          "candidateCinderAdvantagePercent": -7.085,
+          "peerAdvantageOverCandidateCinderPercent": 7.625
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 12708.867,
+          "candidateCinderAdvantagePercent": -9.067,
+          "peerAdvantageOverCandidateCinderPercent": 9.971
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "duelist",
+      "controlXpPerMinute": 12799.933,
+      "candidateXpPerMinute": 12010.333,
+      "xpChangePercent": -6.169,
+      "controlTravelPercent": 38.633,
+      "candidateTravelPercent": 39.159,
+      "leaderDamageTakenPerMinute": 128.067,
+      "consumableCostPerMinute": 833,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 12869.2,
+          "candidateCinderAdvantagePercent": -6.674,
+          "peerAdvantageOverCandidateCinderPercent": 7.151
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 12029.2,
+          "candidateCinderAdvantagePercent": -0.157,
+          "peerAdvantageOverCandidateCinderPercent": 0.157
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "fireMage",
+      "controlXpPerMinute": 13482.133,
+      "candidateXpPerMinute": 13185.6,
+      "xpChangePercent": -2.199,
+      "controlTravelPercent": 42.726,
+      "candidateTravelPercent": 37.133,
+      "leaderDamageTakenPerMinute": 213.867,
+      "consumableCostPerMinute": 986,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 14655.067,
+          "candidateCinderAdvantagePercent": -10.027,
+          "peerAdvantageOverCandidateCinderPercent": 11.144
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 11855.6,
+          "candidateCinderAdvantagePercent": 11.218,
+          "peerAdvantageOverCandidateCinderPercent": -10.087
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "runeMage",
+      "controlXpPerMinute": 13427.067,
+      "candidateXpPerMinute": 13113.067,
+      "xpChangePercent": -2.339,
+      "controlTravelPercent": 48.222,
+      "candidateTravelPercent": 44.278,
+      "leaderDamageTakenPerMinute": 109.533,
+      "consumableCostPerMinute": 974.667,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 13573.733,
+          "candidateCinderAdvantagePercent": -3.394,
+          "peerAdvantageOverCandidateCinderPercent": 3.513
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 13173.933,
+          "candidateCinderAdvantagePercent": -0.462,
+          "peerAdvantageOverCandidateCinderPercent": 0.464
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "stormMage",
+      "controlXpPerMinute": 13016.8,
+      "candidateXpPerMinute": 12307.467,
+      "xpChangePercent": -5.449,
+      "controlTravelPercent": 35.855,
+      "candidateTravelPercent": 33.619,
+      "leaderDamageTakenPerMinute": 180.533,
+      "consumableCostPerMinute": 974.667,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 13129.4,
+          "candidateCinderAdvantagePercent": -6.26,
+          "peerAdvantageOverCandidateCinderPercent": 6.678
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 10308.333,
+          "candidateCinderAdvantagePercent": 19.393,
+          "peerAdvantageOverCandidateCinderPercent": -16.243
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "sniper",
+      "controlXpPerMinute": 11625.067,
+      "candidateXpPerMinute": 10681.133,
+      "xpChangePercent": -8.12,
+      "controlTravelPercent": 24.1,
+      "candidateTravelPercent": 23.47,
+      "leaderDamageTakenPerMinute": 540.667,
+      "consumableCostPerMinute": 974.667,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 7714.333,
+          "candidateCinderAdvantagePercent": 38.458,
+          "peerAdvantageOverCandidateCinderPercent": -27.776
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 9017.333,
+          "candidateCinderAdvantagePercent": 18.451,
+          "peerAdvantageOverCandidateCinderPercent": -15.577
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "trapper",
+      "controlXpPerMinute": 12570.4,
+      "candidateXpPerMinute": 12260.533,
+      "xpChangePercent": -2.465,
+      "controlTravelPercent": 32.182,
+      "candidateTravelPercent": 30.241,
+      "leaderDamageTakenPerMinute": 200.933,
+      "consumableCostPerMinute": 765,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 11730.6,
+          "candidateCinderAdvantagePercent": 4.518,
+          "peerAdvantageOverCandidateCinderPercent": -4.322
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 10997.533,
+          "candidateCinderAdvantagePercent": 11.484,
+          "peerAdvantageOverCandidateCinderPercent": -10.301
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "beastArcher",
+      "controlXpPerMinute": 13161.2,
+      "candidateXpPerMinute": 12407.2,
+      "xpChangePercent": -5.729,
+      "controlTravelPercent": 28.785,
+      "candidateTravelPercent": 28.2,
+      "leaderDamageTakenPerMinute": 374.4,
+      "consumableCostPerMinute": 923.667,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 8256.267,
+          "candidateCinderAdvantagePercent": 50.276,
+          "peerAdvantageOverCandidateCinderPercent": -33.456
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 11094.667,
+          "candidateCinderAdvantagePercent": 11.83,
+          "peerAdvantageOverCandidateCinderPercent": -10.579
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "mode": "party",
+      "controlXpPerMinute": 13329.067,
+      "candidateXpPerMinute": 12855,
+      "xpChangePercent": -3.557,
+      "controlTravelPercent": 52.004,
+      "candidateTravelPercent": 49.8,
+      "leaderDamageTakenPerMinute": 54,
+      "consumableCostPerMinute": 765,
+      "publishedPeerReferences": [
+        {
+          "mapId": "banditRidgeCamp",
+          "xpPerMinute": 15065.867,
+          "candidateCinderAdvantagePercent": -14.675,
+          "peerAdvantageOverCandidateCinderPercent": 17.198
+        },
+        {
+          "mapId": "orebackQuarry",
+          "xpPerMinute": 15447.267,
+          "candidateCinderAdvantagePercent": -16.781,
+          "peerAdvantageOverCandidateCinderPercent": 20.165
+        }
+      ]
+    }
+  ],
+  "counterfactualCohortImpact": {
+    "caveat": "Candidate Cinder measurements are paired with a fresh same-source control. Other-map peer means remain from the preserved published matrix; only five nontraining NPC art fields changed, and all51 Cinder controls replay exactly. This is a decision aid, not a rerun of the full cohort matrix.",
+    "priorXpFailures": 31,
+    "candidateXpFailures": 30,
+    "rows": [
+      {
+        "mapId": "rustcoilRuins",
+        "level": 19,
+        "mode": "fighter",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": -8.732
+      },
+      {
+        "mapId": "rustcoilRuins",
+        "level": 19,
+        "mode": "mage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": -12.042
+      },
+      {
+        "mapId": "rustcoilRuins",
+        "level": 19,
+        "mode": "archer",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -17.272
+      },
+      {
+        "mapId": "rustcoilRuins",
+        "level": 19,
+        "mode": "party",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": -10.439
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 19,
+        "mode": "fighter",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 8.732
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 19,
+        "mode": "mage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 12.042
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 19,
+        "mode": "archer",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 17.272
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 19,
+        "mode": "party",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 10.439
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 19,
+        "mode": "fighter",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -7.853
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 19,
+        "mode": "mage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 1.41
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 19,
+        "mode": "archer",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -36.558
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 19,
+        "mode": "party",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 2.405
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "fighter",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "mage",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "archer",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "guardian",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "berserker",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "duelist",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "fireMage",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "runeMage",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "stormMage",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "sniper",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "trapper",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "beastArcher",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "cinderHollow",
+        "level": 28,
+        "mode": "party",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 0
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "fighter",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 8.522
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "mage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 8.606
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "archer",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -20.863
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "guardian",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 1.831
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "berserker",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 7.625
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "duelist",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 7.151
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "fireMage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 11.144
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "runeMage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 3.513
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "stormMage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 6.678
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "sniper",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -27.776
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "trapper",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -4.322
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "beastArcher",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -33.456
+      },
+      {
+        "mapId": "banditRidgeCamp",
+        "level": 28,
+        "mode": "party",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": true,
+        "candidateReferenceDeviationPercent": 17.198
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "fighter",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 6.934
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "mage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -4.236
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "archer",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -2.208
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "guardian",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -7.524
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "berserker",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 9.971
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "duelist",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 0.157
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "fireMage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -10.087
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "runeMage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 0.464
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "stormMage",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -16.243
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "sniper",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -15.577
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "trapper",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -10.301
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "beastArcher",
+        "priorXpWithinTarget": false,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": -10.579
+      },
+      {
+        "mapId": "orebackQuarry",
+        "level": 28,
+        "mode": "party",
+        "priorXpWithinTarget": true,
+        "candidateXpWithinTarget": false,
+        "candidateReferenceDeviationPercent": 20.165
+      }
+    ]
+  }
+}

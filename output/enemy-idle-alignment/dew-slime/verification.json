@@ -1,0 +1,202 @@
+{
+  "fileId": "dew-slime",
+  "scope": "idle-horizontal only",
+  "rawSourceSha256": "43a4a5ae7dec0ab206b43b545f39977ea045036d4149d80d23db5c183e5c4e51",
+  "rawSourceUnchanged": true,
+  "sharedScaleBefore": 0.7731111111111111,
+  "sharedScaleAfter": 0.7731111111111111,
+  "sharedScaleUnchanged": true,
+  "allVerticalAnchorsUnchanged": true,
+  "other42FramePixelsUnchanged": true,
+  "idleIntegerTranslations": [
+    {
+      "frame": 0,
+      "dx": 0,
+      "exactIntegerTranslation": true
+    },
+    {
+      "frame": 1,
+      "dx": 2,
+      "exactIntegerTranslation": true
+    },
+    {
+      "frame": 2,
+      "dx": 3,
+      "exactIntegerTranslation": true
+    },
+    {
+      "frame": 3,
+      "dx": 5,
+      "exactIntegerTranslation": true
+    },
+    {
+      "frame": 4,
+      "dx": 7,
+      "exactIntegerTranslation": true
+    },
+    {
+      "frame": 5,
+      "dx": 8,
+      "exactIntegerTranslation": true
+    }
+  ],
+  "landmarkFits": [
+    {
+      "referenceBox": [
+        86,
+        106,
+        47,
+        29
+      ],
+      "before": [
+        {
+          "x": 0,
+          "y": 0,
+          "error": 0
+        },
+        {
+          "x": -2,
+          "y": 0,
+          "error": 0.004552751660623589
+        },
+        {
+          "x": -2,
+          "y": -2,
+          "error": 0.011011058121150148
+        },
+        {
+          "x": -4,
+          "y": 4,
+          "error": 0.06516448071958064
+        },
+        {
+          "x": -7,
+          "y": 0,
+          "error": 0.005148034462218492
+        },
+        {
+          "x": -8,
+          "y": -1,
+          "error": 0.007836207378142711
+        }
+      ],
+      "after": [
+        {
+          "x": 0,
+          "y": 0,
+          "error": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "error": 0.004552751660623589
+        },
+        {
+          "x": 1,
+          "y": -2,
+          "error": 0.011011058121150148
+        },
+        {
+          "x": 1,
+          "y": 4,
+          "error": 0.06516448071958064
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "error": 0.005148034462218492
+        },
+        {
+          "x": 0,
+          "y": -1,
+          "error": 0.007836207378142711
+        }
+      ],
+      "seamErrorBefore": 0.18788558036305206,
+      "seamErrorAfter": 0.010547520612957686,
+      "horizontalSeamBefore": -8,
+      "horizontalSeamAfter": 0
+    },
+    {
+      "referenceBox": [
+        40,
+        134,
+        90,
+        15
+      ],
+      "before": [
+        {
+          "x": 0,
+          "y": 0,
+          "error": 0
+        },
+        {
+          "x": -1,
+          "y": 0,
+          "error": 0.008745804667686898
+        },
+        {
+          "x": -2,
+          "y": 0,
+          "error": 0.02601547999550946
+        },
+        {
+          "x": -2,
+          "y": 1,
+          "error": 0.016925226270249706
+        },
+        {
+          "x": -6,
+          "y": 0,
+          "error": 0.00633323687768607
+        },
+        {
+          "x": -7,
+          "y": 0,
+          "error": 0.005989379455263342
+        }
+      ],
+      "after": [
+        {
+          "x": 0,
+          "y": 0,
+          "error": 0
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "error": 0.008745804667686898
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "error": 0.02601547999550946
+        },
+        {
+          "x": 3,
+          "y": 1,
+          "error": 0.016925226270249706
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "error": 0.00633323687768607
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "error": 0.005989379455263342
+        }
+      ],
+      "seamErrorBefore": 0.0470255836750641,
+      "seamErrorAfter": 0.0087314120585392,
+      "horizontalSeamBefore": -7,
+      "horizontalSeamAfter": 1
+    }
+  ],
+  "visualReview": "Before and after six-pose contact strips inspected with fixed guides. Rigid torso/face stays fixed; authored breathing, material flex, blinking and vertical changes retained. The original poses are not regenerated or resampled differently.",
+  "limitations": "Only horizontal idle registration. Correlation residuals reflect existing pose/articulation differences; does not certify anatomical consistency or other action rows.",
+  "productionImported": true,
+  "productionSheetSha256": "cfdda5bf39e174517518a1ef2da2ad80e8db1f40c807363850bceef30f8acfe1",
+  "productionVerifiedAt": "2026-09-20T00:18:59.862Z"
+}

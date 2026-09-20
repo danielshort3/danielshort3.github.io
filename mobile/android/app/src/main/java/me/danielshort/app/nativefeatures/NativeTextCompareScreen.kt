@@ -2,7 +2,10 @@ package me.danielshort.app.nativefeatures
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -55,6 +60,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun NativeTextCompareScreen(onBack: () -> Unit) {
   var before by rememberSaveable { mutableStateOf("") }
   var after by rememberSaveable { mutableStateOf("") }
@@ -82,34 +88,42 @@ fun NativeTextCompareScreen(onBack: () -> Unit) {
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
     NativeFeatureHeader("Text Compare", "Spot changes between two pieces of text.", onBack)
-    OutlinedTextField(
-      value = before,
-      onValueChange = {
-        before = it.take(MAX_COMPARE_LENGTH)
-        requested = false
-        result = null
-        copied = false
-      },
-      label = { Text("Before") },
-      placeholder = { Text(if (usingExample) EXAMPLE_BEFORE else "Enter text") },
-      minLines = 3,
-      maxLines = 7,
-      modifier = Modifier.fillMaxWidth()
-    )
-    OutlinedTextField(
-      value = after,
-      onValueChange = {
-        after = it.take(MAX_COMPARE_LENGTH)
-        requested = false
-        result = null
-        copied = false
-      },
-      label = { Text("After") },
-      placeholder = { Text(if (usingExample) EXAMPLE_AFTER else "Enter text") },
-      minLines = 3,
-      maxLines = 7,
-      modifier = Modifier.fillMaxWidth()
-    )
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+      val twoColumns = maxWidth >= 720.dp * LocalDensity.current.fontScale
+      val editorWidth = if (twoColumns) (maxWidth - 16.dp) / 2 else maxWidth
+      // Keep both editors in the same composition as the window changes size.
+      FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp), maxItemsInEachRow = if (twoColumns) 2 else 1) {
+        OutlinedTextField(
+          value = before,
+          onValueChange = {
+            before = it.take(MAX_COMPARE_LENGTH)
+            requested = false
+            result = null
+            copied = false
+          },
+          label = { Text("Before") },
+          placeholder = { Text(if (usingExample) EXAMPLE_BEFORE else "Enter text") },
+          minLines = if (twoColumns) 6 else 3,
+          maxLines = 7,
+          modifier = Modifier.width(editorWidth)
+        )
+        OutlinedTextField(
+          value = after,
+          onValueChange = {
+            after = it.take(MAX_COMPARE_LENGTH)
+            requested = false
+            result = null
+            copied = false
+          },
+          label = { Text("After") },
+          placeholder = { Text(if (usingExample) EXAMPLE_AFTER else "Enter text") },
+          minLines = if (twoColumns) 6 else 3,
+          maxLines = 7,
+          modifier = Modifier.width(editorWidth)
+        )
+      }
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
       Button(onClick = {
         focusManager.clearFocus()
@@ -196,9 +210,9 @@ fun NativeTextCompareScreen(onBack: () -> Unit) {
 }
 
 @Composable
-internal fun NativeFeatureHeader(title: String, subtitle: String, onBack: () -> Unit) {
+internal fun NativeFeatureHeader(title: String, subtitle: String, onBack: () -> Unit, showBack: Boolean = true) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    IconButton(onClick = onBack) {
+    if (showBack) IconButton(onClick = onBack) {
       Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
     }
     Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,

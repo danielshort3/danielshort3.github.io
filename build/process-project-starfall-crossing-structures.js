@@ -143,6 +143,11 @@ async function validateAtlas() {
 }
 
 async function main() {
+  const overhaul = require('./process-project-starfall-overhaul-scenery.js');
+  if (overhaul.isEnabled('structures')) {
+    await overhaul.processGroup('structures', { validate: process.argv.includes('--validate') });
+    return;
+  }
   if (!process.argv.includes('--validate')) await buildAtlas();
   const result = await validateAtlas();
   process.stdout.write(`Validated Crossing town landmarks ${result.width}x${result.height} (${result.cells} cells)\n`);

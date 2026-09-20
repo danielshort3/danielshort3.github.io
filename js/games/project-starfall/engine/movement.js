@@ -829,6 +829,11 @@
   }
 
   function createDropThroughState(body, duration, platform, currentTime) {
+    const supportLeft = Number(body && body.x || 0);
+    const supportWidth = Math.max(0, Number(body && body.w || 0));
+    const gradient = platform && platform.shape === 'slope' && Number.isFinite(Number(platform.y2)) && Number(platform.w) > 0
+      ? (Number(platform.y2) - Number(platform.y)) / Number(platform.w) : 0;
+    const supportY = Number(platform && platform.y || 0) + (supportLeft - Number(platform && platform.x || 0)) * gradient;
     return {
       dropThroughUntil: currentTime + Math.max(0, Number(duration || 0.28) || 0.28),
       dropThroughPlatformId: platform && platform.id || normalizeId(body && body.groundedPlatformId),
@@ -836,7 +841,15 @@
         ? Number(platform.index)
         : Number.isFinite(Number(body && body.groundedPlatformIndex))
           ? Number(body.groundedPlatformIndex)
-          : -1
+          : -1,
+      // Record the supporting plane over the complete original foot span, so
+      // overlapping or adjoining definitions cannot catch this drop a frame later.
+      // Two endpoint samples distinguish coincident ramps from a lower ramp
+      // that merely meets the source floor at one end.
+      dropThroughSurface: platform && supportWidth > 0 ? {
+        x: supportLeft, w: supportWidth, shape: 'slope',
+        y: supportY, y2: supportY + supportWidth * gradient
+      } : null
     };
   }
 
@@ -853,7 +866,7 @@
     const surfaceY = getPlatformSurfaceY(platform, centerX);
     return {
       surfaceY,
-      canLand: previousBottom <= surfaceY + 10 && bottom >= surfaceY && bodyY < surfaceY + 4
+      canLand: previousBottom <= surfaceY + 10 && bottom >= surfaceY
     };
   }
 
@@ -861,9 +874,16 @@
     if (!body || !platform || !platform.dropThrough) return false;
     if (Number(body.dropThroughUntil || 0) <= Number(nowSeconds || 0)) return false;
     const platformId = normalizeId(body.dropThroughPlatformId);
-    if (platformId) return platform.id === platformId;
+    if (platformId && platform.id === platformId) return true;
     const platformIndex = Number(body.dropThroughPlatformIndex);
-    return Number.isFinite(platformIndex) && platformIndex >= 0 && platform.index === platformIndex;
+    if (!platformId && Number.isFinite(platformIndex) && platformIndex >= 0 && platform.index === platformIndex) return true;
+    const surface = body.dropThroughSurface;
+    if (!surface || !(Number(surface.w) > 0)) return false;
+    const left = Math.max(Number(surface.x), Number(platform.x));
+    const right = Math.min(Number(surface.x) + Number(surface.w), Number(platform.x) + Number(platform.w));
+    if (!(right > left)) return false;
+    return Math.abs(getPlatformSurfaceY(surface, left) - getPlatformSurfaceY(platform, left)) <= 0.01 &&
+      Math.abs(getPlatformSurfaceY(surface, right) - getPlatformSurfaceY(platform, right)) <= 0.01;
   }
 
   const api = {

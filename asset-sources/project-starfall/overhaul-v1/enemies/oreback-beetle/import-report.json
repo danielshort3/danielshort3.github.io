@@ -1,0 +1,1965 @@
+{
+  "fileId": "oreback-beetle",
+  "sourceSha256": "21442c8bb107ac05459566a0afc997424262f9d61f7ec0776c5b5aa45ecf0d9f",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    186,
+    356,
+    531,
+    708,
+    894,
+    1077,
+    1254,
+    1448
+  ],
+  "sharedScale": 0.7127272727272728,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 82,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/oreback-beetle-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 721591,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 12,
+        "top": 49,
+        "width": 160,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 114,
+        "width": 160,
+        "height": 115,
+        "pixels": 13600
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 163
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 69,
+        "right": 137,
+        "bottom": 150,
+        "width": 114,
+        "height": 82,
+        "pixels": 6957,
+        "edgePixels": 0
+      },
+      "sha256": "ec9396d64c135a84e7e59a7d01a0e0d33e4f319d56f9b0db209c123ccd51f171"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 193,
+        "top": 48,
+        "width": 160,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 114,
+        "width": 160,
+        "height": 115,
+        "pixels": 13735
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 163
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 68,
+        "right": 137,
+        "bottom": 149,
+        "width": 114,
+        "height": 82,
+        "pixels": 6999,
+        "edgePixels": 0
+      },
+      "sha256": "913acac9c55aa1bb4d38d31a91469de10536e72d135369f845504d979ab896d5"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 374,
+        "top": 48,
+        "width": 159,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 114,
+        "width": 159,
+        "height": 115,
+        "pixels": 13634
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 163
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 68,
+        "right": 136,
+        "bottom": 149,
+        "width": 113,
+        "height": 82,
+        "pixels": 6945,
+        "edgePixels": 0
+      },
+      "sha256": "f78cffe6489fa67983ec6e04b8b640743cb281ef2aafa064140b6f2f70d20d21"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 552,
+        "top": 42,
+        "width": 161,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 121,
+        "width": 161,
+        "height": 122,
+        "pixels": 14325
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 163
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 64,
+        "right": 136,
+        "bottom": 150,
+        "width": 115,
+        "height": 87,
+        "pixels": 7337,
+        "edgePixels": 0
+      },
+      "sha256": "fc58ab1b48e59419c7eb6ece095f44be50b9339757ae2ce4a70ae372f8f27307"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 733,
+        "top": 53,
+        "width": 160,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 109,
+        "width": 160,
+        "height": 110,
+        "pixels": 13077
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 163
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 72,
+        "right": 135,
+        "bottom": 149,
+        "width": 114,
+        "height": 78,
+        "pixels": 6658,
+        "edgePixels": 0
+      },
+      "sha256": "539e1726145fab3b711be676f35b7899f7c3ad07419b8eab8d89c7eb62d2518e"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 917,
+        "top": 47,
+        "width": 157,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 115,
+        "width": 157,
+        "height": 116,
+        "pixels": 13528
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 163
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 67,
+        "right": 135,
+        "bottom": 149,
+        "width": 112,
+        "height": 83,
+        "pixels": 6951,
+        "edgePixels": 0
+      },
+      "sha256": "608fb4facc8759f6a3f3480cc22f8be90576cf44cf17daa7ffecfeaa06534c49"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 12,
+        "top": 211,
+        "width": 162,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 114,
+        "width": 162,
+        "height": 115,
+        "pixels": 13715
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 327
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 67,
+        "right": 138,
+        "bottom": 148,
+        "width": 115,
+        "height": 82,
+        "pixels": 7000,
+        "edgePixels": 0
+      },
+      "sha256": "d379408fe995529dd73c2508672e5834c3ee7112a8eae963c52cfad56b805e17"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 189,
+        "top": 208,
+        "width": 168,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 117,
+        "width": 168,
+        "height": 118,
+        "pixels": 14129
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 327
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 21,
+        "top": 65,
+        "right": 140,
+        "bottom": 148,
+        "width": 120,
+        "height": 84,
+        "pixels": 7234,
+        "edgePixels": 0
+      },
+      "sha256": "f488a21f657c1a1e1ae92a112848e34a32bf504fe9635c1a871419848bf80d41"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 370,
+        "top": 210,
+        "width": 168,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 116,
+        "width": 168,
+        "height": 117,
+        "pixels": 14076
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 327
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 21,
+        "top": 67,
+        "right": 140,
+        "bottom": 149,
+        "width": 120,
+        "height": 83,
+        "pixels": 7203,
+        "edgePixels": 0
+      },
+      "sha256": "a9806070e4bcefc20f34c18aed3590e856f844f09320753967da4e669053122d"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 558,
+        "top": 209,
+        "width": 161,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 118,
+        "width": 161,
+        "height": 119,
+        "pixels": 14305
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 327
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 66,
+        "right": 140,
+        "bottom": 150,
+        "width": 115,
+        "height": 85,
+        "pixels": 7316,
+        "edgePixels": 0
+      },
+      "sha256": "0bf409d6361ad8b6d1ae49ef122282afb5bbd7c7c64f95c84565532c90582882"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 729,
+        "top": 208,
+        "width": 170,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 117,
+        "width": 170,
+        "height": 118,
+        "pixels": 14379
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 327
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 19,
+        "top": 65,
+        "right": 139,
+        "bottom": 148,
+        "width": 121,
+        "height": 84,
+        "pixels": 7313,
+        "edgePixels": 0
+      },
+      "sha256": "8eb9a3213e3fda0329afd12e24c6b6bf2a75883bbe2b6119faf4fc129de0433f"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 916,
+        "top": 211,
+        "width": 164,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 115,
+        "width": 164,
+        "height": 116,
+        "pixels": 13772
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 327
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 67,
+        "right": 139,
+        "bottom": 149,
+        "width": 117,
+        "height": 83,
+        "pixels": 7076,
+        "edgePixels": 0
+      },
+      "sha256": "d5f3b363c9b97bff161914e3e83d914690f394d59a5eaec4c130c3ab3e4bc015"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 13,
+        "top": 384,
+        "width": 163,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 118,
+        "width": 163,
+        "height": 119,
+        "pixels": 14547
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 504
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 25,
+        "top": 64,
+        "right": 140,
+        "bottom": 148,
+        "width": 116,
+        "height": 85,
+        "pixels": 7433,
+        "edgePixels": 0
+      },
+      "sha256": "65499eb90bf4ad056f9fe981119164450ad5763ead4755bf0faa6e6d11616175"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 194,
+        "top": 385,
+        "width": 161,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 117,
+        "width": 161,
+        "height": 118,
+        "pixels": 14077
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 504
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 25,
+        "top": 65,
+        "right": 139,
+        "bottom": 148,
+        "width": 115,
+        "height": 84,
+        "pixels": 7200,
+        "edgePixels": 0
+      },
+      "sha256": "aa61a7ca6dc7fdf1418bcd73e588aeef9a43ad24192e4754eba4aa4fe32160d9"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 372,
+        "top": 383,
+        "width": 167,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 120,
+        "width": 167,
+        "height": 121,
+        "pixels": 14295
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 504
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 64,
+        "right": 141,
+        "bottom": 149,
+        "width": 119,
+        "height": 86,
+        "pixels": 7286,
+        "edgePixels": 0
+      },
+      "sha256": "aaa810b2619d00261821d812d7749bfcb9fdb7d5bd9de9ad5a865ed2d3a0a129"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 551,
+        "top": 390,
+        "width": 171,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 114,
+        "width": 171,
+        "height": 115,
+        "pixels": 13981
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 504
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 69,
+        "right": 142,
+        "bottom": 150,
+        "width": 122,
+        "height": 82,
+        "pixels": 7134,
+        "edgePixels": 0
+      },
+      "sha256": "96b8d1e3c5ba1099b4d15abeb6b96b007db89a652bfab6f27822890395f6b941"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 734,
+        "top": 388,
+        "width": 169,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 116,
+        "width": 169,
+        "height": 117,
+        "pixels": 14104
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 504
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 67,
+        "right": 142,
+        "bottom": 149,
+        "width": 120,
+        "height": 83,
+        "pixels": 7130,
+        "edgePixels": 0
+      },
+      "sha256": "1339a416da8540bc22d4474d4f2383a88daaaf703aa18c85e138def051cca0a2"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 911,
+        "top": 392,
+        "width": 164,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 111,
+        "width": 164,
+        "height": 112,
+        "pixels": 13241
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 504
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 70,
+        "right": 136,
+        "bottom": 149,
+        "width": 117,
+        "height": 80,
+        "pixels": 6774,
+        "edgePixels": 0
+      },
+      "sha256": "12a99d3619b10a91e90c8742b8f408d6375264a526b4226c6ee5cd8b82827542"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 7,
+        "top": 563,
+        "width": 188,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 187,
+        "bottom": 119,
+        "width": 188,
+        "height": 120,
+        "pixels": 15670
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 683
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 20,
+        "top": 64,
+        "right": 153,
+        "bottom": 149,
+        "width": 134,
+        "height": 86,
+        "pixels": 8062,
+        "edgePixels": 0
+      },
+      "sha256": "079a7aa5537946159a48d2b64f00355b581d6181b2a00a6485397c8e1269eed5"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 199,
+        "top": 557,
+        "width": 172,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 124,
+        "width": 172,
+        "height": 125,
+        "pixels": 14812
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 683
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 60,
+        "right": 150,
+        "bottom": 148,
+        "width": 123,
+        "height": 89,
+        "pixels": 7595,
+        "edgePixels": 0
+      },
+      "sha256": "347d6ed7cc39aac92f166ad284059148447600b3871ab1d0a81e1c30b79a3a89"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 373,
+        "top": 562,
+        "width": 169,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 119,
+        "width": 169,
+        "height": 120,
+        "pixels": 14645
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 683
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 64,
+        "right": 142,
+        "bottom": 149,
+        "width": 120,
+        "height": 86,
+        "pixels": 7528,
+        "edgePixels": 0
+      },
+      "sha256": "9dbd28cac363a61b7871583c1d377dbe38afdcbb5251febcc91017f9a53d398c"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 557,
+        "top": 564,
+        "width": 164,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 117,
+        "width": 164,
+        "height": 118,
+        "pixels": 13998
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 683
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 65,
+        "right": 141,
+        "bottom": 148,
+        "width": 117,
+        "height": 84,
+        "pixels": 7138,
+        "edgePixels": 0
+      },
+      "sha256": "b4078d76c4a6bc481a0ed97f57373b574cf12ae297292d6f9d7dca1276a97934"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 733,
+        "top": 563,
+        "width": 165,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 119,
+        "width": 165,
+        "height": 120,
+        "pixels": 14331
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 683
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 64,
+        "right": 139,
+        "bottom": 149,
+        "width": 118,
+        "height": 86,
+        "pixels": 7386,
+        "edgePixels": 0
+      },
+      "sha256": "c0cd2a4746de01a77dc854dfa10a8f15515fc9478f1bf1db666d851aadaef9c8"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 916,
+        "top": 563,
+        "width": 159,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 119,
+        "width": 159,
+        "height": 120,
+        "pixels": 13982
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 683
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 64,
+        "right": 135,
+        "bottom": 149,
+        "width": 113,
+        "height": 86,
+        "pixels": 7196,
+        "edgePixels": 0
+      },
+      "sha256": "7e0608ec04738bd101403da506ddb3a2c995c5f945ae7cde6fcd2a736026840b"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 14,
+        "top": 732,
+        "width": 155,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 135,
+        "width": 155,
+        "height": 136,
+        "pixels": 15565
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 868
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 25,
+        "top": 53,
+        "right": 134,
+        "bottom": 149,
+        "width": 110,
+        "height": 97,
+        "pixels": 7940,
+        "edgePixels": 0
+      },
+      "sha256": "92f8ee776de3787b48af51d8836974e37a32d3b9c3476ea3914e08baae38bcde"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 199,
+        "top": 742,
+        "width": 155,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 125,
+        "width": 155,
+        "height": 126,
+        "pixels": 14865
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 868
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 60,
+        "right": 137,
+        "bottom": 149,
+        "width": 110,
+        "height": 90,
+        "pixels": 7599,
+        "edgePixels": 0
+      },
+      "sha256": "7dc417531bf6eaef7b44ff39ba9b56376cf894f916344f3c0dc495f22d9d936f"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 374,
+        "top": 746,
+        "width": 159,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 121,
+        "width": 159,
+        "height": 122,
+        "pixels": 14084
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 868
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 63,
+        "right": 136,
+        "bottom": 149,
+        "width": 113,
+        "height": 87,
+        "pixels": 7183,
+        "edgePixels": 0
+      },
+      "sha256": "6ff5df1eb7fb5c09117901f43cfc362cd3b729b8fa1f631ecfb4d0561cfdb804"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 549,
+        "top": 747,
+        "width": 168,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 120,
+        "width": 168,
+        "height": 121,
+        "pixels": 14653
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 868
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 64,
+        "right": 139,
+        "bottom": 149,
+        "width": 120,
+        "height": 86,
+        "pixels": 7504,
+        "edgePixels": 0
+      },
+      "sha256": "357f76264100b5b784c4991e5c3e210dd8a9929daebc4a1c8f6c5d7642077cc8"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 732,
+        "top": 750,
+        "width": 164,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 117,
+        "width": 164,
+        "height": 118,
+        "pixels": 14073
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 868
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 21,
+        "top": 66,
+        "right": 137,
+        "bottom": 149,
+        "width": 117,
+        "height": 84,
+        "pixels": 7193,
+        "edgePixels": 0
+      },
+      "sha256": "3995185923cde87c41eaa5c89cec99a1ceaa2abfcba9aa20551a73660f3198ed"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 914,
+        "top": 746,
+        "width": 161,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 121,
+        "width": 161,
+        "height": 122,
+        "pixels": 14295
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 868
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 63,
+        "right": 136,
+        "bottom": 149,
+        "width": 115,
+        "height": 87,
+        "pixels": 7321,
+        "edgePixels": 0
+      },
+      "sha256": "7fa6de448a167ac97338d66629f0fa034113bb7d6384d1f8d928b8e856c359e4"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 10,
+        "top": 919,
+        "width": 167,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 128,
+        "width": 167,
+        "height": 129,
+        "pixels": 15864
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1048
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 58,
+        "right": 141,
+        "bottom": 149,
+        "width": 119,
+        "height": 92,
+        "pixels": 8107,
+        "edgePixels": 0
+      },
+      "sha256": "c2ac29a9568d9e816cbb6b9125289b3e2d861f49da1f8cd6df42fc5ab4f05ef9"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 189,
+        "top": 925,
+        "width": 171,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 122,
+        "width": 171,
+        "height": 123,
+        "pixels": 15482
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1048
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 21,
+        "top": 62,
+        "right": 142,
+        "bottom": 149,
+        "width": 122,
+        "height": 88,
+        "pixels": 7941,
+        "edgePixels": 0
+      },
+      "sha256": "2e4508d9f85d271e7673acd961987c2e7ced0443181964f0b37af0b92d88fd3d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 367,
+        "top": 925,
+        "width": 170,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 122,
+        "width": 170,
+        "height": 123,
+        "pixels": 15254
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1048
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 19,
+        "top": 62,
+        "right": 139,
+        "bottom": 149,
+        "width": 121,
+        "height": 88,
+        "pixels": 7831,
+        "edgePixels": 0
+      },
+      "sha256": "ab70c8d147b816dfaf122034a4c13ee23f536bcceec6d39a1f324569ad96aa73"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 547,
+        "top": 935,
+        "width": 176,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 113,
+        "width": 176,
+        "height": 114,
+        "pixels": 14435
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1048
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 18,
+        "top": 69,
+        "right": 142,
+        "bottom": 149,
+        "width": 125,
+        "height": 81,
+        "pixels": 7307,
+        "edgePixels": 0
+      },
+      "sha256": "311eca05e523cb4047853a0c8b4ccec345a1957bb84bf425576a9497af6ac8a4"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 736,
+        "top": 925,
+        "width": 164,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 121,
+        "width": 164,
+        "height": 122,
+        "pixels": 14709
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1048
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 62,
+        "right": 140,
+        "bottom": 148,
+        "width": 117,
+        "height": 87,
+        "pixels": 7514,
+        "edgePixels": 0
+      },
+      "sha256": "673bcba07ba5379db754cc0b5898c4593b10db3f40ff087aba075ed2d9627d66"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 916,
+        "top": 925,
+        "width": 158,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 120,
+        "width": 158,
+        "height": 121,
+        "pixels": 14070
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1048
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 62,
+        "right": 135,
+        "bottom": 147,
+        "width": 113,
+        "height": 86,
+        "pixels": 7214,
+        "edgePixels": 0
+      },
+      "sha256": "5b61b4ea3a4200d79978ab56ede061efd756042894087f65f51fdfc6feed3d2d"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 10,
+        "top": 1106,
+        "width": 172,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 118,
+        "width": 172,
+        "height": 119,
+        "pixels": 13607
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1226
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 64,
+        "right": 145,
+        "bottom": 148,
+        "width": 123,
+        "height": 85,
+        "pixels": 6983,
+        "edgePixels": 0
+      },
+      "sha256": "ec32111bc93297f93db8338fed8be186b2e8ca46c997ab602c5689dc21a0bb39"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 190,
+        "top": 1104,
+        "width": 169,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 120,
+        "width": 169,
+        "height": 121,
+        "pixels": 14782
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1226
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 63,
+        "right": 141,
+        "bottom": 148,
+        "width": 120,
+        "height": 86,
+        "pixels": 7487,
+        "edgePixels": 0
+      },
+      "sha256": "b93f27b70fcd853e5e64756237bdc78f86ef7d54caf5ddf9f6dd9518c86e4159"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 372,
+        "top": 1104,
+        "width": 164,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 121,
+        "width": 164,
+        "height": 122,
+        "pixels": 14936
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1226
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 63,
+        "right": 139,
+        "bottom": 149,
+        "width": 117,
+        "height": 87,
+        "pixels": 7630,
+        "edgePixels": 0
+      },
+      "sha256": "7c5697c5df8ac3cf8c13377cb31b0b2d5129325313e084bcd4b6c933b4c8da95"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 551,
+        "top": 1109,
+        "width": 169,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 116,
+        "width": 169,
+        "height": 117,
+        "pixels": 13781
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1226
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 67,
+        "right": 140,
+        "bottom": 149,
+        "width": 120,
+        "height": 83,
+        "pixels": 6959,
+        "edgePixels": 0
+      },
+      "sha256": "28aa0b0afb2ed0ac0909c0d404378e3d6dd4e4d406edd436823ef24870267260"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 735,
+        "top": 1105,
+        "width": 164,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 120,
+        "width": 164,
+        "height": 121,
+        "pixels": 14488
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1226
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 64,
+        "right": 139,
+        "bottom": 149,
+        "width": 117,
+        "height": 86,
+        "pixels": 7393,
+        "edgePixels": 0
+      },
+      "sha256": "211bc08403ba281758c9d4e121835948d89272d273381d83d599aca32f2eb468"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 917,
+        "top": 1106,
+        "width": 160,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 119,
+        "width": 160,
+        "height": 120,
+        "pixels": 14055
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1226
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 64,
+        "right": 137,
+        "bottom": 149,
+        "width": 114,
+        "height": 86,
+        "pixels": 7246,
+        "edgePixels": 0
+      },
+      "sha256": "ec18b77658aecc84cab539dee39288dbc85decd80ba517c93d4fad718692ba87"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 17,
+        "top": 1282,
+        "width": 168,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 131,
+        "width": 168,
+        "height": 132,
+        "pixels": 15507
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1414
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 56,
+        "right": 147,
+        "bottom": 149,
+        "width": 120,
+        "height": 94,
+        "pixels": 7940,
+        "edgePixels": 0
+      },
+      "sha256": "18a41aa866adf90385128361e2ecd1c1a45f3fe327bd706d908ecdcfaefdf018"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 190,
+        "top": 1288,
+        "width": 167,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 125,
+        "width": 167,
+        "height": 126,
+        "pixels": 14755
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1414
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 60,
+        "right": 140,
+        "bottom": 149,
+        "width": 119,
+        "height": 90,
+        "pixels": 7545,
+        "edgePixels": 0
+      },
+      "sha256": "efaa661439906d9c8111f62195a3e0087de154de7c8c28c7b9a695edf55471b5"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 366,
+        "top": 1305,
+        "width": 170,
+        "height": 108
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 107,
+        "width": 170,
+        "height": 108,
+        "pixels": 13019
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1414
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 18,
+        "top": 72,
+        "right": 138,
+        "bottom": 148,
+        "width": 121,
+        "height": 77,
+        "pixels": 6630,
+        "edgePixels": 0
+      },
+      "sha256": "88abc62d09478cff974586cb79d85bce5bbdda44fae44057b5a326b297bc7b7b"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 548,
+        "top": 1313,
+        "width": 175,
+        "height": 100
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 99,
+        "width": 175,
+        "height": 100,
+        "pixels": 11471
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1414
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 19,
+        "top": 78,
+        "right": 143,
+        "bottom": 148,
+        "width": 125,
+        "height": 71,
+        "pixels": 5858,
+        "edgePixels": 0
+      },
+      "sha256": "f8526570573c58452beae8b5d7f7ce126f3e83e4d4d1b1923d66a005888ad603"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 732,
+        "top": 1313,
+        "width": 165,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 100,
+        "width": 165,
+        "height": 101,
+        "pixels": 11149
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1414
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 21,
+        "top": 78,
+        "right": 138,
+        "bottom": 149,
+        "width": 118,
+        "height": 72,
+        "pixels": 5718,
+        "edgePixels": 0
+      },
+      "sha256": "8d2459534f939f7d72406589fc3cb6a195b8f638d6bee9a75788c30fa76ea824"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 906,
+        "top": 1319,
+        "width": 169,
+        "height": 95
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 94,
+        "width": 169,
+        "height": 95,
+        "pixels": 10269
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/oreback-beetle/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1414
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 16,
+        "top": 82,
+        "right": 135,
+        "bottom": 149,
+        "width": 120,
+        "height": 68,
+        "pixels": 5286,
+        "edgePixels": 0
+      },
+      "sha256": "aeb6a895232a7c15578db5ff6531a1ddb85c61ef8c251526865c5345e2b3d962"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

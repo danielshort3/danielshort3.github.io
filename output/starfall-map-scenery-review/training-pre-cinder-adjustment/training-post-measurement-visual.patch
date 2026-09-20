@@ -1,0 +1,66 @@
+diff --git "a/C:\\Users\\clopt\\AppData\\Local\\Temp\\starfall-map-pass\\training\\pre-npc-art\\project-starfall-engine.js" b/js/games/project-starfall/project-starfall-engine.js
+index e1edf17f..a0607f5a 100644
+--- "a/C:\\Users\\clopt\\AppData\\Local\\Temp\\starfall-map-pass\\training\\pre-npc-art\\project-starfall-engine.js"
++++ b/js/games/project-starfall/project-starfall-engine.js
+@@ -2187,12 +2187,13 @@
+   const CREATE_MAP_HUNT_NPC_DEFINITION = getEngineQuestNpcHelper('createMapHuntNpcDefinition');
+   function createMapHuntNpcDefinition(map) {
+     if (CREATE_MAP_HUNT_NPC_DEFINITION) {
+-      return CREATE_MAP_HUNT_NPC_DEFINITION(map);
++      return CREATE_MAP_HUNT_NPC_DEFINITION(map, { asset: Data.GENERIC_PLAYER_ASSET });
+     }
+     const palette = Array.isArray(map && map.palette) ? map.palette : [];
+     return {
+       id: `${map && map.id || 'map'}_hunt_warden`,
+       name: `${map && map.name || 'Map'} Warden`,
++      asset: Data.GENERIC_PLAYER_ASSET || '',
+       x: 320,
+       platformIndex: 0,
+       questIds: [],
+diff --git "a/C:\\Users\\clopt\\AppData\\Local\\Temp\\starfall-map-pass\\training\\pre-npc-art\\quest-npcs.js" b/js/games/project-starfall/engine/quest-npcs.js
+index 8f310bae..f9e232ae 100644
+--- "a/C:\\Users\\clopt\\AppData\\Local\\Temp\\starfall-map-pass\\training\\pre-npc-art\\quest-npcs.js"
++++ b/js/games/project-starfall/engine/quest-npcs.js
+@@ -4,6 +4,7 @@
+   const CoreIds = (typeof require === 'function' ? require('../core/ids.js') : null) || global.ProjectStarfallCore || {};
+   const CoreMath = (typeof require === 'function' ? require('../core/math.js') : null) || global.ProjectStarfallCore || {};
+   const CoreGeometry = (typeof require === 'function' ? require('../core/geometry.js') : null) || global.ProjectStarfallCore || {};
++  const DataAssets = (typeof require === 'function' ? require('../data/assets.js') : null) || (global.ProjectStarfallDataModules || {}).assets || {};
+   const EngineModules = global.ProjectStarfallEngineModules || {};
+   const EngineViewport = (typeof require === 'function' ? require('./viewport.js') : null) || EngineModules.viewport || {};
+   const normalizeId = CoreIds.normalizeId || function normalizeIdFallback(value) {
+@@ -55,11 +56,13 @@
+     });
+   }
+ 
+-  function createMapHuntNpcDefinition(map) {
++  function createMapHuntNpcDefinition(map, options) {
++    const settings = options || {};
+     const palette = Array.isArray(map && map.palette) ? map.palette : [];
+     return {
+       id: `${map && map.id || 'map'}_hunt_warden`,
+       name: `${map && map.name || 'Map'} Warden`,
++      asset: settings.asset || DataAssets.GENERIC_PLAYER_ASSET || '',
+       x: 320,
+       platformIndex: 0,
+       questIds: [],
+diff --git "a/C:\\Users\\clopt\\AppData\\Local\\Temp\\starfall-map-pass\\training\\pre-npc-art\\map-runtime.js" b/js/games/project-starfall/engine/map-runtime.js
+index 0280c7a5..fe0efb6e 100644
+--- "a/C:\\Users\\clopt\\AppData\\Local\\Temp\\starfall-map-pass\\training\\pre-npc-art\\map-runtime.js"
++++ b/js/games/project-starfall/engine/map-runtime.js
+@@ -4,6 +4,7 @@
+   const CoreIds = (typeof require === 'function' ? require('../core/ids.js') : null) || global.ProjectStarfallCore || {};
+   const CoreMath = (typeof require === 'function' ? require('../core/math.js') : null) || global.ProjectStarfallCore || {};
+   const CoreGeometry = (typeof require === 'function' ? require('../core/geometry.js') : null) || global.ProjectStarfallCore || {};
++  const DataAssets = (typeof require === 'function' ? require('../data/assets.js') : null) || (global.ProjectStarfallDataModules || {}).assets || {};
+   const EngineModules = global.ProjectStarfallEngineModules || {};
+   const EngineViewport = (typeof require === 'function' ? require('./viewport.js') : null) || EngineModules.viewport || {};
+   const EnginePortals = EngineModules.portals || {};
+@@ -743,6 +744,7 @@
+           return {
+             id: `${sourceMap && sourceMap.id || 'map'}_hunt_warden`,
+             name: `${sourceMap && sourceMap.name || 'Map'} Warden`,
++            asset: DataAssets.GENERIC_PLAYER_ASSET || '',
+             x: 320,
+             platformIndex: 0,
+             questIds: [],

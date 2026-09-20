@@ -26,6 +26,7 @@ async function settle(page, category, view = 'overview') {
 }
 
 async function select(page, category) {
+  if (await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden'))) await page.keyboard.press('Tab');
   await page.locator(buttonSelector).click();
   await page.locator(`[data-mobile-explore-category="${category}"]`).click();
   await settle(page, category);
@@ -64,10 +65,11 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert(await page.evaluate(() => Boolean(document.activeElement.closest('[data-home-accordion-item="about"]'))),
       'Tab from About enters its visible content instead of jumping to Projects below it.');
     assert(await page.evaluate(() => scrollY < 700), 'Entering About content avoids the former multi-screen jump.');
-    await page.locator('[data-home-accordion-item="about"] a').last().focus();
+    assert.equal(await page.locator('[data-site-tab]:visible').count(), 1, 'The active mobile rail remains above its content; other sections use the bottom navigation.');
+    await page.locator('[data-mobile-section="about"]').focus();
     await page.keyboard.press('Tab');
-    assert(await page.locator('[data-site-tab="projects"]').evaluate(node => node === document.activeElement),
-      'The next section follows the active content in reading order.');
+    assert(await page.locator('[data-mobile-section="projects"]').evaluate(node => node === document.activeElement),
+      'The bottom navigation presents ordinary section links in category order.');
 
     stage = 'disclosure';
     await button.click();

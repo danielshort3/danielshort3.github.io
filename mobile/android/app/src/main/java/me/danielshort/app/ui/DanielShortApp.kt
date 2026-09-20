@@ -12,8 +12,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -27,10 +29,12 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
@@ -52,15 +56,15 @@ import me.danielshort.app.nativefeatures.demos.NativeProjectDemoScreen
 import me.danielshort.app.nativefeatures.demos.NATIVE_DEMO_IDS
 import me.danielshort.app.nativefeatures.recording.NativeScreenRecorder
 
-private val Navy = Color(0xFF0B2340)
-private val Blue = Color(0xFF1859FF)
-private val Teal = Color(0xFF008797)
-private val Orange = Color(0xFFC44A00)
+private val Navy = Color(0xFF091F3B)
+private val Blue = Color(0xFF155DFC)
+private val Teal = Color(0xFF087F8C)
+private val Orange = Color(0xFFC94B0A)
 private val Slate = Color(0xFF334155)
 private val Muted = Color(0xFF586B82)
 private val Line = Color(0xFFDCE4ED)
 private val Paper = Color(0xFFF5F8FB)
-private enum class Section(val label: String, val color: Color, val icon: ImageVector) {
+internal enum class Section(val label: String, val color: Color, val icon: ImageVector) {
   ABOUT("About", Navy, Icons.Outlined.Person),
   PROJECTS("Projects", Blue, Icons.Outlined.FolderOpen),
   TOOLS("Tools", Teal, Icons.Outlined.Build),
@@ -70,7 +74,11 @@ private enum class Section(val label: String, val color: Color, val icon: ImageV
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DanielShortApp(repository: ContentRepository) {
+fun DanielShortApp(
+  repository: ContentRepository,
+  onSafeToInstall: (Boolean) -> Unit = {},
+  globalNotice: @Composable (onOpenSettings: () -> Unit) -> Unit = {}
+) {
   val state by repository.state.collectAsStateWithLifecycle()
   val saved by repository.favorites.collectAsStateWithLifecycle()
   val settings by repository.settings.state.collectAsStateWithLifecycle()
@@ -84,11 +92,30 @@ fun DanielShortApp(repository: ContentRepository) {
   val screenState = rememberSaveableStateHolder()
   val content = state.content
   val project = content?.projects?.find { it.id == projectId }
+  val safeToInstallCallback by rememberUpdatedState(onSafeToInstall)
+  DisposableEffect(nativeFeature, projectId) {
+    safeToInstallCallback(nativeFeature == null && projectId == null)
+    onDispose { safeToInstallCallback(false) }
+  }
   MaterialTheme(colorScheme = lightColorScheme(primary = section.color, onPrimary = Color.White, primaryContainer = section.color.copy(alpha = .10f), onPrimaryContainer = Navy, secondary = Teal, secondaryContainer = section.color.copy(alpha = .10f), onSecondaryContainer = Navy, background = Color.White, surface = Color.White, surfaceTint = section.color, surfaceContainer = Paper, surfaceContainerLow = Paper, onSurface = Navy, onBackground = Navy, surfaceVariant = Paper, onSurfaceVariant = Muted, outline = Line, outlineVariant = Line)) {
+    CompositionLocalProvider(LocalNativeReduceMotion provides settings.reduceMotion) {
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White, contentColor = Navy) {
+    AdaptiveSiteLayout(
+      selected = section,
+      onSection = { selectedName = it.name; projectId = null; nativeFeature = null }
+    ) { wide ->
     if (nativeFeature != null) {
       BackHandler { nativeFeature = null }
       val back = { nativeFeature = null }
+      val feature = nativeFeature!!
+      val featureWidth = when {
+        feature == "settings" -> 760.dp
+        feature.startsWith("game:") || feature == "roulette" -> 1200.dp
+        else -> 1000.dp
+      }
+      Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+      Box(Modifier.widthIn(max = featureWidth).fillMaxSize().testTag("native-feature-panel")) {
+      screenState.SaveableStateProvider("native:$feature") {
       when {
         nativeFeature == "settings" -> SettingsScreen(repository, back)
         nativeFeature == "tool:text-compare" || nativeFeature == "text-compare" -> NativeTextCompareScreen(back)
@@ -98,14 +125,17 @@ fun DanielShortApp(repository: ContentRepository) {
         nativeFeature!!.startsWith("game:") -> NativeGamesScreen(nativeFeature!!.substringAfter(":"), back, settings.reduceMotion)
         nativeFeature!!.startsWith("demo:") -> NativeProjectDemoScreen(nativeFeature!!.substringAfter(":"), back)
       }
-      return@Surface
-    }
+      }
+      }
+      }
+    } else {
     BackHandler(projectId != null) { projectId = null }
     LaunchedEffect(state.message) { if (state.message.isNotBlank()) snackbar.showSnackbar(state.message) }
-    Scaffold(
-      snackbarHost = { SnackbarHost(snackbar) },
+    ScrollChromeLayout(
+      screenKey = "${section.name}:${project?.id.orEmpty()}",
+      snackbar = { SnackbarHost(snackbar) },
       topBar = {
-        Column {
+        Column(Modifier.background(Color.White)) {
           TopAppBar(title = {
             if (project != null) Text("Project", style = MaterialTheme.typography.titleLarge)
             else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -124,29 +154,45 @@ fun DanielShortApp(repository: ContentRepository) {
               else IconButton(onClick = { scope.launch { repository.refresh(force = true) } }) { Icon(Icons.Outlined.Refresh, "Refresh website content") }
             }
           }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White))
+          globalNotice { nativeFeature = "settings" }
           HorizontalDivider(thickness = 2.dp, color = section.color.copy(alpha = .35f))
         }
       },
-      bottomBar = {
+      bottomBar = if (wide) null else {
+        {
+        Column(Modifier.background(Color.White)) {
+        HorizontalDivider(color = Line)
         NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
           Section.entries.forEach { tab ->
-            NavigationBarItem(selected = section == tab, onClick = { selectedName = tab.name; projectId = null }, icon = { Icon(tab.icon, contentDescription = tab.label) }, label = { Text(tab.label, fontSize = 11.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = tab.color, selectedTextColor = tab.color, indicatorColor = tab.color.copy(alpha = .1f), unselectedIconColor = Muted, unselectedTextColor = Muted))
+            NavigationBarItem(selected = section == tab, onClick = { selectedName = tab.name; projectId = null }, icon = { Icon(tab.icon, contentDescription = null) }, label = { Text(tab.label, fontSize = 11.sp, fontWeight = if (section == tab) FontWeight.Bold else FontWeight.Medium) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = tab.color, selectedTextColor = tab.color, indicatorColor = Color.Transparent, unselectedIconColor = Muted, unselectedTextColor = Muted))
           }
         }
+        }
+      }
       }
     ) { padding ->
-      val body = Modifier.fillMaxSize().padding(padding)
+      val reading = project != null || section == Section.ABOUT || section == Section.CONTACT
+      Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+      val body = Modifier.widthIn(max = if (reading) 760.dp else 1080.dp).fillMaxSize()
+      val contentPadding = PaddingValues(start = 22.dp, end = 22.dp,
+        top = padding.calculateTopPadding() + 22.dp, bottom = padding.calculateBottomPadding() + 22.dp)
       if (content == null) {
         Box(body, contentAlignment = Alignment.Center) { if (state.refreshing) CircularProgressIndicator() else Text("Preparing your content…", color = Muted) }
       } else if (project != null) {
-        ProjectDetail(project, content.site, body, onDemo = { nativeFeature = "demo:${project.id}" })
+        screenState.SaveableStateProvider("project:${project.id}") {
+        ProjectDetail(project, content.site, body, contentPadding, onDemo = { nativeFeature = "demo:${project.id}" })
+        }
       } else screenState.SaveableStateProvider(section.name) { when (section) {
-        Section.ABOUT -> AboutScreen(content, body, onProjects = { selectedName = Section.PROJECTS.name })
-        Section.PROJECTS -> ProjectsScreen(content.projects, saved, body, onProject = { projectId = it })
-        Section.TOOLS -> CatalogScreen("Useful little utilities", "Practical tools for everyday tasks.", content.tools, Teal, body, NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"), "Open tool", onNative = { nativeFeature = "tool:$it" })
-        Section.GAMES -> CatalogScreen("Play and explore", "Games, simulations, and small experiments.", content.games, Orange, body, NATIVE_GAME_IDS + "roulette", "Play in app", onNative = { nativeFeature = "game:$it" })
-        Section.CONTACT -> ContactScreen(content.site, content.about.location, body)
+        Section.ABOUT -> AboutScreen(content, body, contentPadding, onProjects = { selectedName = Section.PROJECTS.name })
+        Section.PROJECTS -> ProjectsScreen(content.projects, saved, body, contentPadding, onProject = { projectId = it })
+        Section.TOOLS -> CatalogScreen("Useful little utilities", "Practical tools for everyday tasks.", content.tools, Teal, body, contentPadding, NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"), "Open tool", onNative = { nativeFeature = "tool:$it" })
+        Section.GAMES -> CatalogScreen("Play and explore", "Games, simulations, and small experiments.", content.games, Orange, body, contentPadding, NATIVE_GAME_IDS + "roulette", "Play in app", onNative = { nativeFeature = "game:$it" })
+        Section.CONTACT -> ContactScreen(content.site, content.about.location, body, contentPadding)
       } }
+      }
+    }
+    }
+    }
     }
     }
   }
@@ -154,15 +200,18 @@ fun DanielShortApp(repository: ContentRepository) {
 
 @Composable
 private fun Heading(title: String, subtitle: String = "") {
+  Column {
   Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = Navy)
   if (subtitle.isNotBlank()) { Spacer(Modifier.height(8.dp)); Text(subtitle, style = MaterialTheme.typography.bodyLarge, color = Muted) }
+  HorizontalDivider(Modifier.padding(top = 18.dp), thickness = 2.dp, color = MaterialTheme.colorScheme.primary)
+  }
 }
 
 @Composable
-private fun AboutScreen(content: SiteContent, modifier: Modifier, onProjects: () -> Unit) {
+private fun AboutScreen(content: SiteContent, modifier: Modifier, contentPadding: PaddingValues, onProjects: () -> Unit) {
   val about = content.about
   val context = LocalContext.current
-  LazyColumn(modifier, contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+  LazyColumn(modifier, contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(24.dp)) {
     item {
       Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(86.dp).clip(RoundedCornerShape(18.dp)).background(Paper), contentAlignment = Alignment.Center) {
@@ -214,20 +263,24 @@ private fun Milestones(title: String, entries: List<Milestone>, context: Context
 }
 
 @Composable
-private fun ProjectsScreen(projects: List<Project>, saved: Set<String>, modifier: Modifier, onProject: (String) -> Unit) {
+private fun ProjectsScreen(projects: List<Project>, saved: Set<String>, modifier: Modifier, contentPadding: PaddingValues, onProject: (String) -> Unit) {
   var query by rememberSaveable { mutableStateOf("") }
   var savedOnly by rememberSaveable { mutableStateOf(false) }
+  val inputFocus = LocalChromeInputFocus.current
   val filtered = projects.filter { (!savedOnly || it.id in saved) && (it.title + " " + it.summary + " " + it.tags.joinToString(" ")).contains(query.trim(), ignoreCase = true) }
-  LazyColumn(modifier, contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-    item { Heading("Projects", "A collection of ideas put into practice.") }
-    item {
-      OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), label = { Text("Search projects") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, "Clear search") } }, singleLine = true, shape = RoundedCornerShape(12.dp))
+  LazyVerticalGrid(columns = GridCells.Adaptive(adaptiveCardMinWidth()), modifier = modifier.testTag("projects-list"),
+    contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(14.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+    item(key = "heading", span = { GridItemSpan(maxLineSpan) }) { Heading("Projects", "A collection of ideas put into practice.") }
+    item(key = "filters", span = { GridItemSpan(maxLineSpan) }) {
+      Column {
+      OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth().testTag("project-search").onFocusChanged { inputFocus(it.isFocused) }, label = { Text("Search projects") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, "Clear search") } }, singleLine = true, shape = RoundedCornerShape(12.dp))
       Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(selected = !savedOnly, onClick = { savedOnly = false }, label = { Text("All ${projects.size}") })
         FilterChip(selected = savedOnly, onClick = { savedOnly = true }, label = { Text("Saved ${saved.count { id -> projects.any { it.id == id } }}") }, leadingIcon = { Icon(Icons.Outlined.BookmarkBorder, null, Modifier.size(16.dp)) })
       }
+      }
     }
-    if (filtered.isEmpty()) item { EmptyResult(if (savedOnly) "No saved projects yet" else "No projects found", if (savedOnly) "Open a project and use the bookmark to keep it here." else "Try a different title, topic, or tool.") }
+    if (filtered.isEmpty()) item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { EmptyResult(if (savedOnly) "No saved projects yet" else "No projects found", if (savedOnly) "Open a project and use the bookmark to keep it here." else "Try a different title, topic, or tool.") }
     items(filtered, key = { it.id }) { project ->
       OutlinedCard(onClick = { onProject(project.id) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, Line), colors = CardDefaults.outlinedCardColors(containerColor = Color.White)) {
         Row(Modifier.padding(17.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -252,19 +305,20 @@ private fun NativeThumbnail(url: String, title: String, color: Color) {
 }
 
 @Composable
-private fun CatalogScreen(title: String, subtitle: String, entries: List<CatalogItem>, accent: Color, modifier: Modifier, nativeIds: Set<String>, nativeLabel: String, onNative: (String) -> Unit) {
+private fun CatalogScreen(title: String, subtitle: String, entries: List<CatalogItem>, accent: Color, modifier: Modifier, contentPadding: PaddingValues, nativeIds: Set<String>, nativeLabel: String, onNative: (String) -> Unit) {
   val context = LocalContext.current
   var query by rememberSaveable(title) { mutableStateOf("") }
+  val inputFocus = LocalChromeInputFocus.current
   val filtered = entries.filter { (it.title + " " + it.summary + " " + it.category).contains(query.trim(), ignoreCase = true) }
-  LazyColumn(modifier, contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-    item { Heading(title, subtitle) }
-    item { OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), label = { Text("Search") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, singleLine = true, shape = RoundedCornerShape(12.dp)) }
-    if (filtered.isEmpty()) item { EmptyResult("No matches", "Try another name or topic.") }
+  LazyVerticalGrid(columns = GridCells.Adaptive(adaptiveCardMinWidth()), modifier = modifier.testTag("catalog-list"),
+    contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+    item(key = "heading", span = { GridItemSpan(maxLineSpan) }) { Heading(title, subtitle) }
+    item(key = "search", span = { GridItemSpan(maxLineSpan) }) { OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth().testTag("catalog-search").onFocusChanged { inputFocus(it.isFocused) }, label = { Text("Search") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, singleLine = true, shape = RoundedCornerShape(12.dp)) }
+    if (filtered.isEmpty()) item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { EmptyResult("No matches", "Try another name or topic.") }
     items(filtered, key = { it.id }) { entry ->
       val isNative = entry.id in nativeIds
-      OutlinedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, Line), colors = CardDefaults.outlinedCardColors(containerColor = Color.White)) {
-        Column(Modifier.padding(17.dp)) {
-          Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+      OutlinedCard(onClick = { if (isNative) onNative(entry.id) else openWeb(context, entry.url) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, Line), colors = CardDefaults.outlinedCardColors(containerColor = Color.White)) {
+          Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
             NativeThumbnail(entry.iconUrl, entry.title, accent)
             Column(Modifier.weight(1f)) {
               Text(entry.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
@@ -275,21 +329,21 @@ private fun CatalogScreen(title: String, subtitle: String, entries: List<Catalog
                 else -> entry.summary
               }
               Text(summary, color = Muted, style = MaterialTheme.typography.bodyMedium)
+              Text(if (isNative) nativeLabel else "Open in browser", color = accent, style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 9.dp))
             }
+            Icon(if (isNative) Icons.AutoMirrored.Outlined.ArrowForward else Icons.AutoMirrored.Outlined.OpenInNew,
+              contentDescription = null, modifier = Modifier.size(18.dp), tint = accent)
           }
-          Spacer(Modifier.height(10.dp))
-          if (isNative) Button(onClick = { onNative(entry.id) }, colors = ButtonDefaults.buttonColors(containerColor = accent), shape = RoundedCornerShape(10.dp)) { Text(nativeLabel) }
-          else TextButton(onClick = { openWeb(context, entry.url) }) { Text("Open in browser", color = accent); Spacer(Modifier.width(7.dp)); Icon(Icons.AutoMirrored.Outlined.OpenInNew, null, Modifier.size(16.dp), tint = accent) }
-        }
       }
     }
   }
 }
 
 @Composable
-private fun ProjectDetail(project: Project, site: SiteInfo, modifier: Modifier, onDemo: () -> Unit) {
+private fun ProjectDetail(project: Project, site: SiteInfo, modifier: Modifier, contentPadding: PaddingValues, onDemo: () -> Unit) {
   val context = LocalContext.current
-  LazyColumn(modifier, contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(22.dp)) {
+  LazyColumn(modifier, contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(22.dp)) {
     item { Heading(project.title, project.summary) }
     if (project.id in NATIVE_DEMO_IDS) item {
       Button(onClick = onDemo, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Text("Open demo") }
@@ -325,9 +379,9 @@ private fun BulletSection(title: String, lines: List<String>) { SectionTitle(tit
 private fun EmptyResult(title: String, body: String) { Column(Modifier.fillMaxWidth().padding(vertical = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Outlined.Search, null, Modifier.size(34.dp), tint = Muted); Text(title, Modifier.padding(top = 12.dp), fontWeight = FontWeight.Bold); Text(body, Modifier.padding(top = 8.dp), color = Muted) } }
 
 @Composable
-private fun ContactScreen(site: SiteInfo, location: String, modifier: Modifier) {
+private fun ContactScreen(site: SiteInfo, location: String, modifier: Modifier, contentPadding: PaddingValues) {
   val context = LocalContext.current
-  LazyColumn(modifier, contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+  LazyColumn(modifier, contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(20.dp)) {
     item { Heading("Say hello", "A project, a question, or an idea — I’d like to hear it.") }
     item { ContactCard("Send a message", site.email, Icons.Outlined.MailOutline) { email(context, site.email, "Hello from the Android app") } }
     if (site.githubUrl.isNotBlank()) item { ContactCard("GitHub", "Explore the code behind the projects", Icons.Outlined.Code) { openWeb(context, site.githubUrl) } }

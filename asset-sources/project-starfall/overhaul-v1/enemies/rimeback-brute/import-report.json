@@ -1,0 +1,1965 @@
+{
+  "fileId": "rimeback-brute",
+  "sourceSha256": "2234a1ab57633294730e513d0721b86d0b94ba9484592671f185a22f29258359",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    173,
+    357,
+    536,
+    720,
+    894,
+    1079,
+    1260,
+    1448
+  ],
+  "sharedScale": 0.6574683544303798,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 93,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/rimeback-brute-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 573936,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 16,
+        "top": 17,
+        "width": 145,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 141,
+        "width": 145,
+        "height": 142,
+        "pixels": 15311
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 161
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 55,
+        "right": 125,
+        "bottom": 147,
+        "width": 95,
+        "height": 93,
+        "pixels": 6603,
+        "edgePixels": 0
+      },
+      "sha256": "7f9ee2ec0e32ad8c03c25eae610ea4ff96f979ab2fa4fb95cefce7a5522b5423"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 194,
+        "top": 15,
+        "width": 152,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 146,
+        "width": 152,
+        "height": 147,
+        "pixels": 16915
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 161
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 54,
+        "right": 128,
+        "bottom": 150,
+        "width": 100,
+        "height": 97,
+        "pixels": 7397,
+        "edgePixels": 0
+      },
+      "sha256": "86040daddc10ff3206fd90ff0a2dc454561c7a700684d2f232c576f31d77863a"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 376,
+        "top": 17,
+        "width": 147,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 141,
+        "width": 147,
+        "height": 142,
+        "pixels": 15448
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 161
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 55,
+        "right": 126,
+        "bottom": 147,
+        "width": 97,
+        "height": 93,
+        "pixels": 6757,
+        "edgePixels": 0
+      },
+      "sha256": "18a87550ae9a389fb6d611bdb98e126794a995ac9ed131a65d9dc781d1028360"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 555,
+        "top": 16,
+        "width": 149,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 144,
+        "width": 149,
+        "height": 145,
+        "pixels": 16165
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 161
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 55,
+        "right": 125,
+        "bottom": 149,
+        "width": 98,
+        "height": 95,
+        "pixels": 7018,
+        "edgePixels": 0
+      },
+      "sha256": "ec31746f42bad7d97345c81928e86090c6c9f39090193f96ec4ac68835cd1422"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 737,
+        "top": 15,
+        "width": 150,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 145,
+        "width": 150,
+        "height": 146,
+        "pixels": 16231
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 161
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 29,
+        "top": 54,
+        "right": 127,
+        "bottom": 149,
+        "width": 99,
+        "height": 96,
+        "pixels": 7109,
+        "edgePixels": 0
+      },
+      "sha256": "efabdb0c9ac3e942677c2859a10cc5ad0ee398bde0454fcd8d6e3f56bdedf627"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 917,
+        "top": 16,
+        "width": 150,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 144,
+        "width": 150,
+        "height": 145,
+        "pixels": 16030
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 161
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 55,
+        "right": 126,
+        "bottom": 149,
+        "width": 99,
+        "height": 95,
+        "pixels": 7007,
+        "edgePixels": 0
+      },
+      "sha256": "30ad5c8979194e885795191b3003e7ae8a64c42125498a3ba441de375b526056"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 12,
+        "top": 14,
+        "width": 154,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 156,
+        "width": 154,
+        "height": 157,
+        "pixels": 17372
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 170
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 47,
+        "right": 128,
+        "bottom": 149,
+        "width": 101,
+        "height": 103,
+        "pixels": 7513,
+        "edgePixels": 0
+      },
+      "sha256": "5b4ceaefbc6e1e2b0b61c915ca6bc80ba836821e3ebb4772c5ea0f0511a86eec"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 184,
+        "top": 13,
+        "width": 164,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 152,
+        "width": 164,
+        "height": 153,
+        "pixels": 17315
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 170
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 47,
+        "right": 129,
+        "bottom": 147,
+        "width": 108,
+        "height": 101,
+        "pixels": 7575,
+        "edgePixels": 0
+      },
+      "sha256": "fb171545338aeebaadbc7e811702c982273209fbb41d8002d1371eb32eb14e2c"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 366,
+        "top": 12,
+        "width": 163,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 157,
+        "width": 163,
+        "height": 158,
+        "pixels": 18154
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 170
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 46,
+        "right": 129,
+        "bottom": 149,
+        "width": 107,
+        "height": 104,
+        "pixels": 7899,
+        "edgePixels": 0
+      },
+      "sha256": "3f66a0126c472ed5f5401f4349edc92102591502a9c136b91e7a3313adb856c6"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 550,
+        "top": 14,
+        "width": 170,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 152,
+        "width": 170,
+        "height": 153,
+        "pixels": 17509
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 170
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 47,
+        "right": 136,
+        "bottom": 147,
+        "width": 112,
+        "height": 101,
+        "pixels": 7668,
+        "edgePixels": 0
+      },
+      "sha256": "032b19999d666ded710554c58e56a1bd88637d4f08d62afc920ed529f9bf4e04"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 736,
+        "top": 15,
+        "width": 158,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 150,
+        "width": 158,
+        "height": 151,
+        "pixels": 17291
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 170
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 48,
+        "right": 131,
+        "bottom": 146,
+        "width": 104,
+        "height": 99,
+        "pixels": 7526,
+        "edgePixels": 0
+      },
+      "sha256": "e43d79b5f8694deb2b873b0bdf314d05b53712977f0135372654a8417bf8d0e1"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 912,
+        "top": 12,
+        "width": 161,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 157,
+        "width": 161,
+        "height": 158,
+        "pixels": 17609
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 170
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 46,
+        "right": 130,
+        "bottom": 149,
+        "width": 106,
+        "height": 104,
+        "pixels": 7677,
+        "edgePixels": 0
+      },
+      "sha256": "5b93efc2e4ce750ad26c7d3c263c36a62f98dbd53394add182c622a475e57c7c"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 13,
+        "top": 14,
+        "width": 154,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 149,
+        "width": 154,
+        "height": 150,
+        "pixels": 17223
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 168
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 49,
+        "right": 129,
+        "bottom": 147,
+        "width": 101,
+        "height": 99,
+        "pixels": 7533,
+        "edgePixels": 0
+      },
+      "sha256": "b55f58b388674efb8a28332d42805a2442ce6288e82cbac5f0fd0c5b5e9e9485"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 183,
+        "top": 14,
+        "width": 166,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 153,
+        "width": 166,
+        "height": 154,
+        "pixels": 17507
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 168
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 49,
+        "right": 130,
+        "bottom": 149,
+        "width": 109,
+        "height": 101,
+        "pixels": 7589,
+        "edgePixels": 0
+      },
+      "sha256": "c7a3a4eef3d0fd03feed363d38f85183446cc874a0d7433c99579dacfe3c946a"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 371,
+        "top": 14,
+        "width": 154,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 153,
+        "width": 154,
+        "height": 154,
+        "pixels": 16797
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 168
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 49,
+        "right": 126,
+        "bottom": 149,
+        "width": 101,
+        "height": 101,
+        "pixels": 7254,
+        "edgePixels": 0
+      },
+      "sha256": "d0452d614b518df99e5b2b4d2b633dd1b20872d6c87edfef885db1baeaaf6039"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 545,
+        "top": 18,
+        "width": 174,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 149,
+        "width": 174,
+        "height": 150,
+        "pixels": 17176
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 168
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 51,
+        "right": 135,
+        "bottom": 149,
+        "width": 114,
+        "height": 99,
+        "pixels": 7519,
+        "edgePixels": 0
+      },
+      "sha256": "5c7c839aa908d5504eb688471b4a7634568c7463f20e00393e448967fea40aae"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 732,
+        "top": 15,
+        "width": 162,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 151,
+        "width": 162,
+        "height": 152,
+        "pixels": 17375
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 168
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 49,
+        "right": 132,
+        "bottom": 148,
+        "width": 107,
+        "height": 100,
+        "pixels": 7596,
+        "edgePixels": 0
+      },
+      "sha256": "a984dec002f665bc6a611073a76df521ddcc96c7418d55ce872274260ec77ba0"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 906,
+        "top": 19,
+        "width": 171,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 146,
+        "width": 171,
+        "height": 147,
+        "pixels": 16834
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 168
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 52,
+        "right": 132,
+        "bottom": 148,
+        "width": 112,
+        "height": 97,
+        "pixels": 7356,
+        "edgePixels": 0
+      },
+      "sha256": "db835c0d909040c0a512bfa161201cb663be5ffbf0aa134887de678f1607a63d"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 51,
+        "top": 152,
+        "width": 474,
+        "height": 310
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 473,
+        "bottom": 309,
+        "width": 474,
+        "height": 310,
+        "pixels": 84109
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/action-supplement.png",
+      "scaleFactor": 0.44654088050314467,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 288,
+        "y": 462
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 10,
+        "top": 59,
+        "right": 148,
+        "bottom": 149,
+        "width": 139,
+        "height": 91,
+        "pixels": 7362,
+        "edgePixels": 0
+      },
+      "sha256": "c8e691b3b690d22aa320b89468be4ec1053408ee1f8497189e6896f11676f4c6"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 583,
+        "top": 161,
+        "width": 454,
+        "height": 301
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 453,
+        "bottom": 300,
+        "width": 454,
+        "height": 301,
+        "pixels": 81481
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/action-supplement.png",
+      "scaleFactor": 0.44654088050314467,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 810,
+        "y": 462
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 13,
+        "top": 62,
+        "right": 145,
+        "bottom": 149,
+        "width": 133,
+        "height": 88,
+        "pixels": 7100,
+        "edgePixels": 0
+      },
+      "sha256": "03b0ebd40c933bc08366be4fbb53b5bbb752ac3e064dee046f4d4f3732735196"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 1108,
+        "top": 148,
+        "width": 395,
+        "height": 314
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 394,
+        "bottom": 313,
+        "width": 395,
+        "height": 314,
+        "pixels": 80743
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/action-supplement.png",
+      "scaleFactor": 0.44654088050314467,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1305.5,
+        "y": 462
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 58,
+        "right": 137,
+        "bottom": 149,
+        "width": 116,
+        "height": 92,
+        "pixels": 7056,
+        "edgePixels": 0
+      },
+      "sha256": "eac56bc55f105f505a210824de1ed43f61c3e98cbf39d58b9859474a9f8a424e"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 83,
+        "top": 587,
+        "width": 418,
+        "height": 320
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 417,
+        "bottom": 319,
+        "width": 418,
+        "height": 320,
+        "pixels": 85555
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/action-supplement.png",
+      "scaleFactor": 0.44654088050314467,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 292,
+        "y": 907
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 19,
+        "top": 56,
+        "right": 141,
+        "bottom": 149,
+        "width": 123,
+        "height": 94,
+        "pixels": 7508,
+        "edgePixels": 0
+      },
+      "sha256": "345d3053fec16f5a91cf134925e91a5366ecfdff86d4eaf4fb9f997a72027305"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 606,
+        "top": 595,
+        "width": 353,
+        "height": 314
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 352,
+        "bottom": 313,
+        "width": 353,
+        "height": 314,
+        "pixels": 77912
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/action-supplement.png",
+      "scaleFactor": 0.44654088050314467,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 782.5,
+        "y": 909
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 58,
+        "right": 131,
+        "bottom": 149,
+        "width": 104,
+        "height": 92,
+        "pixels": 6858,
+        "edgePixels": 0
+      },
+      "sha256": "382f6dad1599bb035bd074bf43ce3d013cac423ad71ad57c3adada8c2687ec0b"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 1116,
+        "top": 592,
+        "width": 346,
+        "height": 318
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 345,
+        "bottom": 317,
+        "width": 346,
+        "height": 318,
+        "pixels": 78795
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/action-supplement.png",
+      "scaleFactor": 0.44654088050314467,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1289,
+        "y": 910
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 57,
+        "right": 130,
+        "bottom": 149,
+        "width": 102,
+        "height": 93,
+        "pixels": 6946,
+        "edgePixels": 0
+      },
+      "sha256": "9a91d988d106f9d139f3a13e6207bc9d1cd0af4481641db070e035c428ca4490"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 12,
+        "top": 15,
+        "width": 179,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 150,
+        "width": 179,
+        "height": 151,
+        "pixels": 16733
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 51,
+        "right": 145,
+        "bottom": 149,
+        "width": 118,
+        "height": 99,
+        "pixels": 7302,
+        "edgePixels": 0
+      },
+      "sha256": "a2af5d8607022e14f874d093c7e1b159b44df8852fe9a26d0205225702a5d9f2"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 196,
+        "top": 16,
+        "width": 152,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 144,
+        "width": 152,
+        "height": 145,
+        "pixels": 15392
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 30,
+        "top": 52,
+        "right": 129,
+        "bottom": 146,
+        "width": 100,
+        "height": 95,
+        "pixels": 6687,
+        "edgePixels": 0
+      },
+      "sha256": "bafd06e8b02518cd97d009415de4ebfbb6e346ea908c56e6e9bf98e3a790036f"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 373,
+        "top": 12,
+        "width": 168,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 147,
+        "width": 168,
+        "height": 148,
+        "pixels": 15872
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 49,
+        "right": 137,
+        "bottom": 145,
+        "width": 110,
+        "height": 97,
+        "pixels": 6865,
+        "edgePixels": 0
+      },
+      "sha256": "035a514b5263984b82520b0983f74610a66c4822d3d80258da041056f3f26212"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 553,
+        "top": 13,
+        "width": 155,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 151,
+        "width": 155,
+        "height": 152,
+        "pixels": 17096
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 50,
+        "right": 128,
+        "bottom": 149,
+        "width": 102,
+        "height": 100,
+        "pixels": 7434,
+        "edgePixels": 0
+      },
+      "sha256": "46b1d25042f052d65fc95eb7438008680e5b7bd7cc1f0c5dc96ed19f796eee33"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 736,
+        "top": 15,
+        "width": 155,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 150,
+        "width": 155,
+        "height": 151,
+        "pixels": 16913
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 51,
+        "right": 129,
+        "bottom": 149,
+        "width": 102,
+        "height": 99,
+        "pixels": 7361,
+        "edgePixels": 0
+      },
+      "sha256": "fc84d49f96adca073d85d90734386ebf55bb79f7f20dd2e15eb7ab8be94dc5fa"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 917,
+        "top": 14,
+        "width": 151,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 150,
+        "width": 151,
+        "height": 151,
+        "pixels": 16857
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 51,
+        "right": 126,
+        "bottom": 149,
+        "width": 99,
+        "height": 99,
+        "pixels": 7287,
+        "edgePixels": 0
+      },
+      "sha256": "2a14f7a696f07cb7adbd3be5cf436063cb4477b38c8df49fea5910df89eb8148"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 18,
+        "top": 20,
+        "width": 153,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 147,
+        "width": 153,
+        "height": 148,
+        "pixels": 16662
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 168
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 53,
+        "right": 132,
+        "bottom": 149,
+        "width": 101,
+        "height": 97,
+        "pixels": 7303,
+        "edgePixels": 0
+      },
+      "sha256": "19f1d40a0d9cc967d4ae4ab8c9f157ea3f8238d08862b17b03c81e6378c4156b"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 193,
+        "top": 21,
+        "width": 153,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 145,
+        "width": 153,
+        "height": 146,
+        "pixels": 16493
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 168
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 53,
+        "right": 128,
+        "bottom": 148,
+        "width": 101,
+        "height": 96,
+        "pixels": 7218,
+        "edgePixels": 0
+      },
+      "sha256": "a5b0aa32f6e4257f31da7b76f7af86a79ee9c57808928a83adb4963986d8717d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 374,
+        "top": 10,
+        "width": 169,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 157,
+        "width": 169,
+        "height": 158,
+        "pixels": 17645
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 168
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 46,
+        "right": 138,
+        "bottom": 149,
+        "width": 111,
+        "height": 104,
+        "pixels": 7676,
+        "edgePixels": 0
+      },
+      "sha256": "826be17ad75a05d07a633a1566f5fa980cb9a024db07f623519bb2aa33f1e15c"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 559,
+        "top": 8,
+        "width": 165,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 159,
+        "width": 165,
+        "height": 160,
+        "pixels": 18250
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 168
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 45,
+        "right": 138,
+        "bottom": 149,
+        "width": 108,
+        "height": 105,
+        "pixels": 7897,
+        "edgePixels": 0
+      },
+      "sha256": "d3d47adf6fafaf5351095a5c2e6c47de14eba30f7dea39d117eaf27fa7905c26"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 735,
+        "top": 21,
+        "width": 158,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 149,
+        "width": 158,
+        "height": 150,
+        "pixels": 17252
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 168
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 53,
+        "right": 131,
+        "bottom": 151,
+        "width": 104,
+        "height": 99,
+        "pixels": 7534,
+        "edgePixels": 0
+      },
+      "sha256": "782ed373d6ccbfd56cd7e03dbd7a384717d3bff69150fe8497ab3ed7eafda773"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 917,
+        "top": 20,
+        "width": 152,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 150,
+        "width": 152,
+        "height": 151,
+        "pixels": 16963
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 168
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 53,
+        "right": 127,
+        "bottom": 151,
+        "width": 100,
+        "height": 99,
+        "pixels": 7376,
+        "edgePixels": 0
+      },
+      "sha256": "552ee85e038cb60c1ef884e9bfe7e44e44132e8bebc10efc2fc1c4bf4cd80307"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 13,
+        "top": 15,
+        "width": 158,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 152,
+        "width": 158,
+        "height": 153,
+        "pixels": 17340
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 168
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 49,
+        "right": 132,
+        "bottom": 149,
+        "width": 104,
+        "height": 101,
+        "pixels": 7581,
+        "edgePixels": 0
+      },
+      "sha256": "6077fac4179fbf526a8d0cf056d7e9465b651a5e13f28f640bfc7d99ba53ad51"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 190,
+        "top": 20,
+        "width": 163,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 148,
+        "width": 163,
+        "height": 149,
+        "pixels": 17660
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 168
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 53,
+        "right": 132,
+        "bottom": 150,
+        "width": 107,
+        "height": 98,
+        "pixels": 7668,
+        "edgePixels": 0
+      },
+      "sha256": "b4cb1b5bc2b3b92ae33dbe8c00ecdc8149477c5f8c94d77ef736c1603f83361a"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 372,
+        "top": 24,
+        "width": 170,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 143,
+        "width": 170,
+        "height": 144,
+        "pixels": 16850
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 168
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 27,
+        "top": 55,
+        "right": 138,
+        "bottom": 149,
+        "width": 112,
+        "height": 95,
+        "pixels": 7372,
+        "edgePixels": 0
+      },
+      "sha256": "5e6c22b294e1da52e908830cd9cd111ec0c8002be59e452038e966a6d26fa705"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 561,
+        "top": 18,
+        "width": 152,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 145,
+        "width": 152,
+        "height": 146,
+        "pixels": 16334
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 168
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 32,
+        "top": 51,
+        "right": 131,
+        "bottom": 146,
+        "width": 100,
+        "height": 96,
+        "pixels": 7099,
+        "edgePixels": 0
+      },
+      "sha256": "913bd3d75da38bca8f4758453f2191205c3ae39afedd251d90443ce038f1a909"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 739,
+        "top": 15,
+        "width": 151,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 153,
+        "width": 151,
+        "height": 154,
+        "pixels": 17008
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 168
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 49,
+        "right": 128,
+        "bottom": 149,
+        "width": 99,
+        "height": 101,
+        "pixels": 7368,
+        "edgePixels": 0
+      },
+      "sha256": "178e45ccaf029260f74022452b5df588858bd4f3e783f3418dd7f5195cc4a372"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 915,
+        "top": 15,
+        "width": 153,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 152,
+        "width": 153,
+        "height": 153,
+        "pixels": 17640
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 168
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 49,
+        "right": 127,
+        "bottom": 149,
+        "width": 101,
+        "height": 101,
+        "pixels": 7719,
+        "edgePixels": 0
+      },
+      "sha256": "c0c891f1a4f9c56c72296bddb12fde079fe4892d214249f5453bf0c7a3cd87de"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 13,
+        "top": 12,
+        "width": 156,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 155,
+        "width": 156,
+        "height": 156,
+        "pixels": 17860
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 170
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 46,
+        "right": 131,
+        "bottom": 148,
+        "width": 103,
+        "height": 103,
+        "pixels": 7813,
+        "edgePixels": 0
+      },
+      "sha256": "d26a6fe74095d24e9d0cf9b1c56a0ffd6a870a36544c1c9a4abe89ea1b2d976f"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 193,
+        "top": 23,
+        "width": 158,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 145,
+        "width": 158,
+        "height": 146,
+        "pixels": 16146
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 170
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 53,
+        "right": 131,
+        "bottom": 148,
+        "width": 104,
+        "height": 96,
+        "pixels": 7028,
+        "edgePixels": 0
+      },
+      "sha256": "c3eee77bc441e88a0461c7e6ff59b18c94289200a0b645c026cb7f56679c8ffe"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 371,
+        "top": 23,
+        "width": 159,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 145,
+        "width": 159,
+        "height": 146,
+        "pixels": 16401
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 170
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 53,
+        "right": 130,
+        "bottom": 148,
+        "width": 105,
+        "height": 96,
+        "pixels": 7182,
+        "edgePixels": 0
+      },
+      "sha256": "0c30572a3edd436df01d7406709b2af1de8c454d9b424087b72dc76626ec356e"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 552,
+        "top": 43,
+        "width": 169,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 126,
+        "width": 169,
+        "height": 127,
+        "pixels": 15293
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 170
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 67,
+        "right": 136,
+        "bottom": 149,
+        "width": 111,
+        "height": 83,
+        "pixels": 6630,
+        "edgePixels": 0
+      },
+      "sha256": "bd4b82c973fa3d1968bf9293ce547a8065a7e31dffb4cb272c1af2617997abc5"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 730,
+        "top": 56,
+        "width": 174,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 113,
+        "width": 174,
+        "height": 114,
+        "pixels": 13647
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 170
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 75,
+        "right": 137,
+        "bottom": 149,
+        "width": 114,
+        "height": 75,
+        "pixels": 5923,
+        "edgePixels": 0
+      },
+      "sha256": "fe9b95df2e10cd6a1e89d32292411bab78902faacf96fe237d1b55211841e198"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 911,
+        "top": 61,
+        "width": 172,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 108,
+        "width": 172,
+        "height": 109,
+        "pixels": 12504
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rimeback-brute/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 170
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 78,
+        "right": 136,
+        "bottom": 149,
+        "width": 113,
+        "height": 72,
+        "pixels": 5486,
+        "edgePixels": 0
+      },
+      "sha256": "e719e1805c02ccce28f406dc9778027317bdb9a366bf964552f940b519a4279f"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

@@ -1,0 +1,1990 @@
+{
+  "fileId": "slimelet",
+  "sourceSha256": "7337042f125ef9bda957ec472c9199bd5d98c9eb97b270984855d7c6b71c6add",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    191,
+    382,
+    553,
+    725,
+    890,
+    1082,
+    1263,
+    1448
+  ],
+  "sharedScale": 0.8051891891891892,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 102,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/slimelet-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 989503,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 25,
+        "top": 49,
+        "width": 147,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 126,
+        "width": 147,
+        "height": 127,
+        "pixels": 11385
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 175
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 49,
+        "right": 144,
+        "bottom": 150,
+        "width": 118,
+        "height": 102,
+        "pixels": 7380,
+        "edgePixels": 0
+      },
+      "sha256": "508ce2bdf5a71fa3c688a4b24f2d590f2ddcc0fcc65dd5b22c490fef8d7c222b"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 205,
+        "top": 54,
+        "width": 148,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 120,
+        "width": 148,
+        "height": 121,
+        "pixels": 11502
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 175
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 53,
+        "right": 144,
+        "bottom": 149,
+        "width": 119,
+        "height": 97,
+        "pixels": 7439,
+        "edgePixels": 0
+      },
+      "sha256": "b51afcf8e56a36f65120e0630de20723a8b6b6f3b32a6bd57520b1620f44f171"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 386,
+        "top": 44,
+        "width": 146,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 126,
+        "width": 146,
+        "height": 127,
+        "pixels": 11573
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 175
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 45,
+        "right": 143,
+        "bottom": 146,
+        "width": 118,
+        "height": 102,
+        "pixels": 7589,
+        "edgePixels": 0
+      },
+      "sha256": "191a1b94135631669cb66d99601413f1e8fc75db17583941f873296bf8bf7f09"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 560,
+        "top": 62,
+        "width": 144,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 112,
+        "width": 144,
+        "height": 113,
+        "pixels": 10127
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 175
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 59,
+        "right": 136,
+        "bottom": 149,
+        "width": 116,
+        "height": 91,
+        "pixels": 6597,
+        "edgePixels": 0
+      },
+      "sha256": "c35d9ac7b9ae959981db5390575e71688f7672020c508c8848b9149902b36772"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 738,
+        "top": 51,
+        "width": 146,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 124,
+        "width": 146,
+        "height": 125,
+        "pixels": 11225
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 175
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 18,
+        "top": 50,
+        "right": 135,
+        "bottom": 150,
+        "width": 118,
+        "height": 101,
+        "pixels": 7371,
+        "edgePixels": 0
+      },
+      "sha256": "b61a67a9c07c21f6ff34f819f2780644718013713c13d99095b19724aef9b94f"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 918,
+        "top": 51,
+        "width": 146,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 123,
+        "width": 146,
+        "height": 124,
+        "pixels": 11196
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 175
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 18,
+        "top": 50,
+        "right": 135,
+        "bottom": 149,
+        "width": 118,
+        "height": 100,
+        "pixels": 7324,
+        "edgePixels": 0
+      },
+      "sha256": "e6cd4700042bc07b503405a0e8ee13dae5a8ae9945ac77640560a6e0b7a02ac7"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 28,
+        "top": 262,
+        "width": 147,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 105,
+        "width": 147,
+        "height": 106,
+        "pixels": 9706
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 363
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 69,
+        "right": 147,
+        "bottom": 153,
+        "width": 118,
+        "height": 85,
+        "pixels": 6283,
+        "edgePixels": 0
+      },
+      "sha256": "1146fa389626a6f3fdda4e7d442ee930c8cd7be8b0bd4045c36db19704e4d328"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 205,
+        "top": 272,
+        "width": 152,
+        "height": 96
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 95,
+        "width": 152,
+        "height": 96,
+        "pixels": 8855
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 363
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 77,
+        "right": 147,
+        "bottom": 153,
+        "width": 122,
+        "height": 77,
+        "pixels": 5719,
+        "edgePixels": 0
+      },
+      "sha256": "fc975b7fea51ffcd2fa364c6d95f63adb1bb8350edfeee21f8da02ec90f5cd21"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 400,
+        "top": 210,
+        "width": 127,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 147,
+        "width": 127,
+        "height": 148,
+        "pixels": 11172
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 363
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 27,
+        "right": 139,
+        "bottom": 145,
+        "width": 102,
+        "height": 119,
+        "pixels": 7240,
+        "edgePixels": 0
+      },
+      "sha256": "6616c3f6fbb280e519c0c2901c4bd05d2dac87a9705aaceef807464eca4f990a"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 563,
+        "top": 206,
+        "width": 142,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 121,
+        "width": 142,
+        "height": 122,
+        "pixels": 10437
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 363
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 24,
+        "right": 136,
+        "bottom": 121,
+        "width": 114,
+        "height": 98,
+        "pixels": 6760,
+        "edgePixels": 0
+      },
+      "sha256": "471433411a75baa1248f25878d7e4a38176deec6719f6f1cf585558c63b28f7c"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 737,
+        "top": 233,
+        "width": 142,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 118,
+        "width": 142,
+        "height": 119,
+        "pixels": 10919
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 363
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 18,
+        "top": 45,
+        "right": 131,
+        "bottom": 140,
+        "width": 114,
+        "height": 96,
+        "pixels": 7117,
+        "edgePixels": 0
+      },
+      "sha256": "e167d4504d6abe935abb10f03b002a7b5b647b0028d2542c2a23d4b85a7216b4"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 915,
+        "top": 243,
+        "width": 148,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 119,
+        "width": 148,
+        "height": 120,
+        "pixels": 10725
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 363
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 15,
+        "top": 53,
+        "right": 133,
+        "bottom": 149,
+        "width": 119,
+        "height": 97,
+        "pixels": 7044,
+        "edgePixels": 0
+      },
+      "sha256": "bd3234974db749780bbbde28fa38fe89a7389ce576c9d9f1e7c050f56271ad19"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 23,
+        "top": 402,
+        "width": 144,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 124,
+        "width": 144,
+        "height": 125,
+        "pixels": 11141
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 530
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 47,
+        "right": 141,
+        "bottom": 147,
+        "width": 116,
+        "height": 101,
+        "pixels": 7290,
+        "edgePixels": 0
+      },
+      "sha256": "823b974441a72b0a1310d47d8efb955f4f458da068cc51d72098abf082b5b525"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 207,
+        "top": 396,
+        "width": 143,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 130,
+        "width": 143,
+        "height": 131,
+        "pixels": 10969
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 530
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 42,
+        "right": 142,
+        "bottom": 146,
+        "width": 115,
+        "height": 105,
+        "pixels": 7114,
+        "edgePixels": 0
+      },
+      "sha256": "fc38c2f1c85c8e87f4eee4b9dbe0ce1a9151591c54de078ca84dfabb0d96c053"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 381,
+        "top": 431,
+        "width": 149,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 98,
+        "width": 149,
+        "height": 99,
+        "pixels": 9600
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 530
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 70,
+        "right": 141,
+        "bottom": 149,
+        "width": 120,
+        "height": 80,
+        "pixels": 6291,
+        "edgePixels": 0
+      },
+      "sha256": "c2d239ad9ffba0e4204be4741144e634a13d599d98901c19e40b656b585d32c3"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 561,
+        "top": 432,
+        "width": 146,
+        "height": 98
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 97,
+        "width": 146,
+        "height": 98,
+        "pixels": 9316
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 530
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 71,
+        "right": 139,
+        "bottom": 149,
+        "width": 118,
+        "height": 79,
+        "pixels": 6104,
+        "edgePixels": 0
+      },
+      "sha256": "ca94d8acde6b3e0b54a6553b54b15a3a04f39c31ab19f28aec2c4850616ad2fa"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 739,
+        "top": 453,
+        "width": 148,
+        "height": 77
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 76,
+        "width": 148,
+        "height": 77,
+        "pixels": 7968
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 530
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 88,
+        "right": 137,
+        "bottom": 149,
+        "width": 119,
+        "height": 62,
+        "pixels": 5184,
+        "edgePixels": 0
+      },
+      "sha256": "eba6e540c83bc379b62b97b7815369694907195b59b1429159999f68a47ded1c"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 915,
+        "top": 410,
+        "width": 151,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 120,
+        "width": 151,
+        "height": 121,
+        "pixels": 11337
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 530
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 15,
+        "top": 53,
+        "right": 136,
+        "bottom": 149,
+        "width": 122,
+        "height": 97,
+        "pixels": 7422,
+        "edgePixels": 0
+      },
+      "sha256": "d828fb0281666839247533658f40437e831ca543d0e2b936c89f1f608df29a0f"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 20,
+        "top": 574,
+        "width": 144,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 121,
+        "width": 144,
+        "height": 122,
+        "pixels": 10688
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 697
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 51,
+        "right": 138,
+        "bottom": 148,
+        "width": 116,
+        "height": 98,
+        "pixels": 6962,
+        "edgePixels": 0
+      },
+      "sha256": "f2ecb3f58c4674594ab0d813fea9fb189df493f7a2503bb62c3767948bd87fcb"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 195,
+        "top": 584,
+        "width": 150,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 115,
+        "width": 150,
+        "height": 116,
+        "pixels": 11296
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 697
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 18,
+        "top": 59,
+        "right": 138,
+        "bottom": 151,
+        "width": 121,
+        "height": 93,
+        "pixels": 7358,
+        "edgePixels": 0
+      },
+      "sha256": "86d789170b8f19de7079b32f9cb6a6028a59ea49c3b4eb80e824c0a980b4b66c"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 370,
+        "top": 581,
+        "width": 171,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 116,
+        "width": 171,
+        "height": 117,
+        "pixels": 11895
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 697
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 14,
+        "top": 57,
+        "right": 151,
+        "bottom": 150,
+        "width": 138,
+        "height": 94,
+        "pixels": 7773,
+        "edgePixels": 0
+      },
+      "sha256": "7ba0d08ea3823b634065dc15e0ac93e8852a01b6443d7b2f17596f9f975d0e88"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 554,
+        "top": 586,
+        "width": 172,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 110,
+        "width": 172,
+        "height": 111,
+        "pixels": 11575
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 697
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 16,
+        "top": 61,
+        "right": 153,
+        "bottom": 149,
+        "width": 138,
+        "height": 89,
+        "pixels": 7471,
+        "edgePixels": 0
+      },
+      "sha256": "b91a28fe7df08db3710df0963136a82bb0e26a5d86674e95d2ba43e38adf1e58"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 742,
+        "top": 585,
+        "width": 159,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 110,
+        "width": 159,
+        "height": 111,
+        "pixels": 10962
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 697
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 60,
+        "right": 149,
+        "bottom": 148,
+        "width": 128,
+        "height": 89,
+        "pixels": 7119,
+        "edgePixels": 0
+      },
+      "sha256": "17d10a301fff4afa46fddcabceef41e8b2a674d8c223d8d94f57d21397dd72cb"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 922,
+        "top": 576,
+        "width": 146,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 119,
+        "width": 146,
+        "height": 120,
+        "pixels": 10648
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 697
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 53,
+        "right": 138,
+        "bottom": 149,
+        "width": 118,
+        "height": 97,
+        "pixels": 6974,
+        "edgePixels": 0
+      },
+      "sha256": "0687f5ea14b6211da707072f58c28597aa065833a0eac0236b9c49439176fc4d"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 25,
+        "top": 755,
+        "width": 138,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 117,
+        "width": 138,
+        "height": 118,
+        "pixels": 10417
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 873
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 55,
+        "right": 137,
+        "bottom": 149,
+        "width": 111,
+        "height": 95,
+        "pixels": 6771,
+        "edgePixels": 0
+      },
+      "sha256": "15ac20583b0947abd6ac9c7e1c29e0eee6a38c6ff4ac9714b2798477ba7871b0"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 209,
+        "top": 758,
+        "width": 136,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 114,
+        "width": 136,
+        "height": 115,
+        "pixels": 10038
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 873
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 57,
+        "right": 139,
+        "bottom": 149,
+        "width": 110,
+        "height": 93,
+        "pixels": 6589,
+        "edgePixels": 0
+      },
+      "sha256": "233d68f13dfbe8f2f71ada939c50a1cfedc04c45209fb1191343eaeeda211dc0"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 388,
+        "top": 756,
+        "width": 136,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 118,
+        "width": 136,
+        "height": 119,
+        "pixels": 10446
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 873
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 56,
+        "right": 137,
+        "bottom": 151,
+        "width": 110,
+        "height": 96,
+        "pixels": 6849,
+        "edgePixels": 0
+      },
+      "sha256": "1d657cca2c276b524ee7497e29eaf8e8ed66ecad8914fca5f52ccd2bda8c97d4"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 559,
+        "top": 759,
+        "width": 152,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 114,
+        "width": 152,
+        "height": 115,
+        "pixels": 10651
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 873
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 20,
+        "top": 58,
+        "right": 141,
+        "bottom": 150,
+        "width": 122,
+        "height": 93,
+        "pixels": 6981,
+        "edgePixels": 0
+      },
+      "sha256": "139ffde323ccb473f6b1bc31c24df9d1875daece58339aa1f937f6724d32ec29"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 748,
+        "top": 762,
+        "width": 144,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 110,
+        "width": 144,
+        "height": 111,
+        "pixels": 10022
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 873
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 61,
+        "right": 141,
+        "bottom": 149,
+        "width": 116,
+        "height": 89,
+        "pixels": 6509,
+        "edgePixels": 0
+      },
+      "sha256": "e8dfccb30f9f3803f2bd218ecdcfe36193ff4df72f3d9ae8130afe4c827e37a9"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 920,
+        "top": 750,
+        "width": 143,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 122,
+        "width": 143,
+        "height": 123,
+        "pixels": 10903
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 873
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 51,
+        "right": 133,
+        "bottom": 149,
+        "width": 115,
+        "height": 99,
+        "pixels": 7070,
+        "edgePixels": 0
+      },
+      "sha256": "0ded66d23f1c37e3418dc3885949bfd97dab4c374c194a3d88a07ce8b7ede52d"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 24,
+        "top": 932,
+        "width": 145,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 123,
+        "width": 145,
+        "height": 124,
+        "pixels": 11130
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1056
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 50,
+        "right": 142,
+        "bottom": 149,
+        "width": 117,
+        "height": 100,
+        "pixels": 7276,
+        "edgePixels": 0
+      },
+      "sha256": "683d6855fc5657b9658adbfef32fbc0adb286471fdc69b1f4914faa669522a0c"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 208,
+        "top": 912,
+        "width": 144,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 143,
+        "width": 144,
+        "height": 144,
+        "pixels": 12947
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1056
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 34,
+        "right": 144,
+        "bottom": 149,
+        "width": 116,
+        "height": 116,
+        "pixels": 8433,
+        "edgePixels": 0
+      },
+      "sha256": "01baa3de140c6c954ff80cb3864dc64185bd81fcb2e5fb44b678a4e1562b821b"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 392,
+        "top": 904,
+        "width": 134,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 152,
+        "width": 134,
+        "height": 153,
+        "pixels": 13205
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1056
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 28,
+        "right": 138,
+        "bottom": 150,
+        "width": 108,
+        "height": 123,
+        "pixels": 8600,
+        "edgePixels": 0
+      },
+      "sha256": "8ffaf04bd73f3ef1df969bf9fc450ec91379ad1bd5be7313b68ffcba8d70e11f"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 566,
+        "top": 933,
+        "width": 142,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 123,
+        "width": 142,
+        "height": 124,
+        "pixels": 11195
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1056
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 51,
+        "right": 139,
+        "bottom": 150,
+        "width": 114,
+        "height": 100,
+        "pixels": 7308,
+        "edgePixels": 0
+      },
+      "sha256": "fadc84f8072dc1995811483a2865d974982e8b7ee32b4bbb4464a8f73c01adb3"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 742,
+        "top": 932,
+        "width": 146,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 123,
+        "width": 146,
+        "height": 124,
+        "pixels": 11133
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1056
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 50,
+        "right": 139,
+        "bottom": 149,
+        "width": 118,
+        "height": 100,
+        "pixels": 7288,
+        "edgePixels": 0
+      },
+      "sha256": "87a2f6088a66404d730c8118070e7fdfaca1cb933172da8d3a439c0a9247d3bc"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 922,
+        "top": 936,
+        "width": 141,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 118,
+        "width": 141,
+        "height": 119,
+        "pixels": 10674
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1056
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 53,
+        "right": 134,
+        "bottom": 148,
+        "width": 114,
+        "height": 96,
+        "pixels": 6987,
+        "edgePixels": 0
+      },
+      "sha256": "b2123b5883d033687c2ae88cf9dea27bfcc665bb9e28d22e2a5991c0e8afc032"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 28,
+        "top": 1112,
+        "width": 144,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 121,
+        "width": 144,
+        "height": 122,
+        "pixels": 11428
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1237
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 49,
+        "right": 145,
+        "bottom": 146,
+        "width": 116,
+        "height": 98,
+        "pixels": 7446,
+        "edgePixels": 0
+      },
+      "sha256": "7aab740a5bcfe84ad41daec948e9e545290abb5d6573cf2e330f84962bc70586"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 214,
+        "top": 1106,
+        "width": 133,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 131,
+        "width": 133,
+        "height": 132,
+        "pixels": 12188
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1237
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 45,
+        "right": 140,
+        "bottom": 150,
+        "width": 107,
+        "height": 106,
+        "pixels": 7917,
+        "edgePixels": 0
+      },
+      "sha256": "e6422014bdf00199e1bcf35887d52b5c4ee78f550a77db9db443418cb24e6b2e"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 377,
+        "top": 1128,
+        "width": 152,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 108,
+        "width": 152,
+        "height": 109,
+        "pixels": 10988
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1237
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 19,
+        "top": 62,
+        "right": 140,
+        "bottom": 149,
+        "width": 122,
+        "height": 88,
+        "pixels": 7175,
+        "edgePixels": 0
+      },
+      "sha256": "f5783eaf542ff2fbac70b1a2eb615955fca10f61397b600b1d9dba0798803c00"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 557,
+        "top": 1142,
+        "width": 155,
+        "height": 96
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 95,
+        "width": 155,
+        "height": 96,
+        "pixels": 9358
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1237
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 18,
+        "top": 74,
+        "right": 142,
+        "bottom": 150,
+        "width": 125,
+        "height": 77,
+        "pixels": 6087,
+        "edgePixels": 0
+      },
+      "sha256": "11380d38854f43daf02030ced9c7be31e7c1bdd93a3d4937d47c271d34f291e4"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 737,
+        "top": 1115,
+        "width": 149,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 121,
+        "width": 149,
+        "height": 122,
+        "pixels": 11317
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1237
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 18,
+        "top": 52,
+        "right": 137,
+        "bottom": 149,
+        "width": 120,
+        "height": 98,
+        "pixels": 7358,
+        "edgePixels": 0
+      },
+      "sha256": "1b34481a94da6bf35e52ce110cd4b900f9bee02f8729d57498ee9491166c08a6"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 919,
+        "top": 1110,
+        "width": 147,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 123,
+        "width": 147,
+        "height": 124,
+        "pixels": 11256
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1237
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 18,
+        "top": 48,
+        "right": 135,
+        "bottom": 147,
+        "width": 118,
+        "height": 100,
+        "pixels": 7340,
+        "edgePixels": 0
+      },
+      "sha256": "9969036a9f09b8dd8160a8d2192ec1efade386e2fb098584e5ceca4f8cdf32b7"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 24,
+        "top": 1287,
+        "width": 147,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 121,
+        "width": 147,
+        "height": 122,
+        "pixels": 11212
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1412
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 49,
+        "right": 143,
+        "bottom": 146,
+        "width": 118,
+        "height": 98,
+        "pixels": 7252,
+        "edgePixels": 0
+      },
+      "sha256": "cf410d314a314a3803ee0fbaf4ae4dcc2f04b4b88c417743f55b7f56b078a96f"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 202,
+        "top": 1293,
+        "width": 150,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 115,
+        "width": 150,
+        "height": 116,
+        "pixels": 10593
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1412
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 54,
+        "right": 144,
+        "bottom": 146,
+        "width": 121,
+        "height": 93,
+        "pixels": 6917,
+        "edgePixels": 0
+      },
+      "sha256": "79159a5297ef2848378cc1231963c7344aa8c0c3faa97bba3f793d66feb9eb5b"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 377,
+        "top": 1317,
+        "width": 155,
+        "height": 93
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 92,
+        "width": 155,
+        "height": 93,
+        "pixels": 8821
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1412
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 19,
+        "top": 74,
+        "right": 143,
+        "bottom": 148,
+        "width": 125,
+        "height": 75,
+        "pixels": 5754,
+        "edgePixels": 0
+      },
+      "sha256": "e8ec9399a8e4e03132dea42f29712a3a94be5ed297893c131886239dac7655bd"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 549,
+        "top": 1351,
+        "width": 167,
+        "height": 61
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 60,
+        "width": 167,
+        "height": 61,
+        "pixels": 7537
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1412
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 12,
+        "top": 101,
+        "right": 145,
+        "bottom": 149,
+        "width": 134,
+        "height": 49,
+        "pixels": 4887,
+        "edgePixels": 0
+      },
+      "sha256": "c2910ca6d9fb41b06de8fcc3554a7f26ea822f1fc852a651e75035da5e550c57"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 734,
+        "top": 1360,
+        "width": 161,
+        "height": 54
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 53,
+        "width": 161,
+        "height": 54,
+        "pixels": 6268
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1412
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 15,
+        "top": 108,
+        "right": 144,
+        "bottom": 150,
+        "width": 130,
+        "height": 43,
+        "pixels": 4092,
+        "edgePixels": 0
+      },
+      "sha256": "cfcf1d6dd492b787869899b4da607fae8d488a93cd7388a478ec9ec4e342b957"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 910,
+        "top": 1375,
+        "width": 158,
+        "height": 39
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 38,
+        "width": 158,
+        "height": 39,
+        "pixels": 4398
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/slimelet/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1412
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 11,
+        "top": 120,
+        "right": 137,
+        "bottom": 150,
+        "width": 127,
+        "height": 31,
+        "pixels": 2862,
+        "edgePixels": 0
+      },
+      "sha256": "ed44da1549a79ee355c50433385dfb0f3bbbbf75a41c96c63a669388249e03f8"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

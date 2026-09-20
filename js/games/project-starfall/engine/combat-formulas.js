@@ -158,7 +158,15 @@
     return Math.max(1, Math.round((24 + 8 * normalizedLevel + Math.pow(normalizedLevel, 1.2)) * expMult));
   }
 
+  function getTrainingXpMultiplier(map, isBoss, isTrial) {
+    if (!map || map.safeZone || map.isDungeon || map.bossRoom || isBoss || isTrial ||
+        !['starterField', 'trainingField', 'deepField'].includes(map.layoutRole)) return 1;
+    const multiplier = Number(map.trainingXpMultiplier == null ? 1 : map.trainingXpMultiplier);
+    return Number.isFinite(multiplier) ? Math.max(0.85, Math.min(1.15, multiplier)) : 1;
+  }
+
   const api = {
+    getTrainingXpMultiplier,
     DAMAGE_FLOOR_BASE_PERCENT,
     DAMAGE_FLOOR_MAX_PERCENT,
     PASSIVE_HP_REGEN_RATE,

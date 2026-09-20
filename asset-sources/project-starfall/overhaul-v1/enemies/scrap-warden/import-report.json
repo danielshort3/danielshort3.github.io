@@ -1,0 +1,1965 @@
+{
+  "fileId": "scrap-warden",
+  "sourceSha256": "d21ad50d49b46cb4ec23bdccdbae666daac91acc741b2c6cde82aca2738d8c4d",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    184,
+    367,
+    543,
+    723,
+    902,
+    1087,
+    1264,
+    1448
+  ],
+  "sharedScale": 0.6180912863070539,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 91,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/scrap-warden-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 792362,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 24,
+        "top": 24,
+        "width": 134,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 147,
+        "width": 134,
+        "height": 148,
+        "pixels": 13566
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 172
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 59,
+        "right": 121,
+        "bottom": 149,
+        "width": 83,
+        "height": 91,
+        "pixels": 5239,
+        "edgePixels": 0
+      },
+      "sha256": "a0ce863decb6f4ddc0ba20262df52f702a6ace4599316e197144af2c67b8dfc2"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 216,
+        "top": 25,
+        "width": 127,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 146,
+        "width": 127,
+        "height": 147,
+        "pixels": 13007
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 172
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 46,
+        "top": 59,
+        "right": 123,
+        "bottom": 149,
+        "width": 78,
+        "height": 91,
+        "pixels": 5014,
+        "edgePixels": 0
+      },
+      "sha256": "6440f5bec7dc632b899a65a04a731fb9c38f142f1cbf087e5144f50b42636182"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 398,
+        "top": 27,
+        "width": 124,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 123,
+        "bottom": 144,
+        "width": 124,
+        "height": 145,
+        "pixels": 13179
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 172
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 46,
+        "top": 60,
+        "right": 122,
+        "bottom": 149,
+        "width": 77,
+        "height": 90,
+        "pixels": 5118,
+        "edgePixels": 0
+      },
+      "sha256": "c4a954b35cfd6b7cadb386dc8276863932d9aa282f2bd9bb9583af115a3ed4c5"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 575,
+        "top": 26,
+        "width": 127,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 145,
+        "width": 127,
+        "height": 146,
+        "pixels": 13265
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 172
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 44,
+        "top": 60,
+        "right": 121,
+        "bottom": 149,
+        "width": 78,
+        "height": 90,
+        "pixels": 5072,
+        "edgePixels": 0
+      },
+      "sha256": "98ab33f21b94683363fbb4c0bcae9a0c2299f919cb08b0a75d463ea85d8766f4"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 758,
+        "top": 25,
+        "width": 128,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 127,
+        "bottom": 145,
+        "width": 128,
+        "height": 146,
+        "pixels": 12657
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 172
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 59,
+        "right": 123,
+        "bottom": 148,
+        "width": 79,
+        "height": 90,
+        "pixels": 4854,
+        "edgePixels": 0
+      },
+      "sha256": "6dcd33a42c51c61749d25d65a688d99199735af809d9fd994462befae381fbf4"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 930,
+        "top": 25,
+        "width": 134,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 146,
+        "width": 134,
+        "height": 147,
+        "pixels": 13478
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 172
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 59,
+        "right": 122,
+        "bottom": 149,
+        "width": 83,
+        "height": 91,
+        "pixels": 5219,
+        "edgePixels": 0
+      },
+      "sha256": "f9cb330c3711d7a5f6831104e1273c78dcc9c814f1ad03fce5ec80ee29cf6473"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 28,
+        "top": 196,
+        "width": 135,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 156,
+        "width": 135,
+        "height": 157,
+        "pixels": 13784
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 353
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 123,
+        "bottom": 149,
+        "width": 83,
+        "height": 97,
+        "pixels": 5302,
+        "edgePixels": 0
+      },
+      "sha256": "bcb02ccd313b53545ce916840dff92e6896678a821562f0968485f9fdb94ae41"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 208,
+        "top": 196,
+        "width": 136,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 155,
+        "width": 136,
+        "height": 156,
+        "pixels": 14027
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 353
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 124,
+        "bottom": 148,
+        "width": 84,
+        "height": 96,
+        "pixels": 5380,
+        "edgePixels": 0
+      },
+      "sha256": "ca8a9ed9a832921f71641276738451f876bc9f3bc5b5e481b24dfc93cf6eff54"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 395,
+        "top": 197,
+        "width": 134,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 155,
+        "width": 134,
+        "height": 156,
+        "pixels": 14197
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 353
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 44,
+        "top": 54,
+        "right": 126,
+        "bottom": 149,
+        "width": 83,
+        "height": 96,
+        "pixels": 5481,
+        "edgePixels": 0
+      },
+      "sha256": "2c0450e11ed41a4a23b8d8d2a83ddd3b6205e017d0e9a6038b64cd2e5bbc2c4f"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 573,
+        "top": 197,
+        "width": 138,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 158,
+        "width": 138,
+        "height": 159,
+        "pixels": 14272
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 353
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 43,
+        "top": 54,
+        "right": 127,
+        "bottom": 151,
+        "width": 85,
+        "height": 98,
+        "pixels": 5451,
+        "edgePixels": 0
+      },
+      "sha256": "2623130ee2fd45b843a63017ce0b0d73b3e60422d4f4bcdcd3dd94027fb766f9"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 756,
+        "top": 197,
+        "width": 136,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 158,
+        "width": 136,
+        "height": 159,
+        "pixels": 14241
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 353
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 44,
+        "top": 54,
+        "right": 127,
+        "bottom": 151,
+        "width": 84,
+        "height": 98,
+        "pixels": 5458,
+        "edgePixels": 0
+      },
+      "sha256": "6189916cb702b39fd6a592974a121be970346093e63adbadedb20c92f327f1b0"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 934,
+        "top": 196,
+        "width": 133,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 156,
+        "width": 133,
+        "height": 157,
+        "pixels": 13769
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 353
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 42,
+        "top": 53,
+        "right": 123,
+        "bottom": 149,
+        "width": 82,
+        "height": 97,
+        "pixels": 5303,
+        "edgePixels": 0
+      },
+      "sha256": "9bc1b8d5de1bab7cac1a446464598e68f402b4e90cd8d836d2912da4922097e2"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 32,
+        "top": 377,
+        "width": 126,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 125,
+        "bottom": 153,
+        "width": 126,
+        "height": 154,
+        "pixels": 13832
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 531
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 44,
+        "top": 55,
+        "right": 121,
+        "bottom": 149,
+        "width": 78,
+        "height": 95,
+        "pixels": 5330,
+        "edgePixels": 0
+      },
+      "sha256": "34d86fb18f484738caec8c08eb1576df17bda3a7be58e7e6893761f23bb9c714"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 205,
+        "top": 383,
+        "width": 135,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 147,
+        "width": 135,
+        "height": 148,
+        "pixels": 13055
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 531
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 59,
+        "right": 121,
+        "bottom": 149,
+        "width": 83,
+        "height": 91,
+        "pixels": 4966,
+        "edgePixels": 0
+      },
+      "sha256": "121d78b2253352dabe7d18e3a8438cefc07717c44e1a6ad3a4d2de5b57cc3ea2"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 388,
+        "top": 392,
+        "width": 138,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 139,
+        "width": 138,
+        "height": 140,
+        "pixels": 12274
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 531
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 64,
+        "right": 124,
+        "bottom": 150,
+        "width": 85,
+        "height": 87,
+        "pixels": 4771,
+        "edgePixels": 0
+      },
+      "sha256": "3710ccf20934b31b7e02bbe51756f794b3f32741d9ca5f64411ac71599e1e8ae"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 577,
+        "top": 380,
+        "width": 137,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 150,
+        "width": 137,
+        "height": 151,
+        "pixels": 12598
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 531
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 45,
+        "top": 57,
+        "right": 129,
+        "bottom": 149,
+        "width": 85,
+        "height": 93,
+        "pixels": 4878,
+        "edgePixels": 0
+      },
+      "sha256": "a3c6b26e9eb5d4f07111c5691e397eb26f5250b4c3f15c5998193953eed14c0a"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 753,
+        "top": 384,
+        "width": 162,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 146,
+        "width": 162,
+        "height": 147,
+        "pixels": 13927
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 531
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 42,
+        "top": 59,
+        "right": 141,
+        "bottom": 149,
+        "width": 100,
+        "height": 91,
+        "pixels": 5367,
+        "edgePixels": 0
+      },
+      "sha256": "027582362c03121cdf29d61942cb0a2e22db7f1f3e50ae5565c294309510c6bd"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 941,
+        "top": 381,
+        "width": 137,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 149,
+        "width": 137,
+        "height": 150,
+        "pixels": 13768
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 531
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 46,
+        "top": 57,
+        "right": 130,
+        "bottom": 149,
+        "width": 85,
+        "height": 93,
+        "pixels": 5336,
+        "edgePixels": 0
+      },
+      "sha256": "a5894e0b105fcd12105f572a5d208b86f1e0bbf912afcd1f4ab20c112fbd2cee"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 21,
+        "top": 558,
+        "width": 175,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 150,
+        "width": 175,
+        "height": 151,
+        "pixels": 15653
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 709
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 57,
+        "right": 144,
+        "bottom": 149,
+        "width": 108,
+        "height": 93,
+        "pixels": 6009,
+        "edgePixels": 0
+      },
+      "sha256": "2e1e8b66b6658198cb2daf4de40df1a20389c1b706b4393a0904c33b5ac87505"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 212,
+        "top": 561,
+        "width": 180,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 179,
+        "bottom": 147,
+        "width": 180,
+        "height": 148,
+        "pixels": 15688
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 709
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 43,
+        "top": 59,
+        "right": 153,
+        "bottom": 149,
+        "width": 111,
+        "height": 91,
+        "pixels": 6004,
+        "edgePixels": 0
+      },
+      "sha256": "98751680f915746fdcbac3933ff9024602cf4a5c7da4a7b3bf1aafa64ade2ab6"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 409,
+        "top": 557,
+        "width": 136,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 151,
+        "width": 136,
+        "height": 152,
+        "pixels": 13202
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 709
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 53,
+        "top": 56,
+        "right": 136,
+        "bottom": 149,
+        "width": 84,
+        "height": 94,
+        "pixels": 5086,
+        "edgePixels": 0
+      },
+      "sha256": "412d40cbeb9aa9074c805ef830ea1e1741858a5b8e6150310c28858e305db402"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 580,
+        "top": 555,
+        "width": 134,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 153,
+        "width": 134,
+        "height": 154,
+        "pixels": 13683
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 709
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 47,
+        "top": 55,
+        "right": 129,
+        "bottom": 149,
+        "width": 83,
+        "height": 95,
+        "pixels": 5274,
+        "edgePixels": 0
+      },
+      "sha256": "03ca1a7c2b2396062596e2f6a54a0ff62f920f8e680c48c8ddc3d85578f4c9cb"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 756,
+        "top": 553,
+        "width": 135,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 155,
+        "width": 135,
+        "height": 156,
+        "pixels": 14302
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 709
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 44,
+        "top": 54,
+        "right": 126,
+        "bottom": 149,
+        "width": 83,
+        "height": 96,
+        "pixels": 5460,
+        "edgePixels": 0
+      },
+      "sha256": "8d8862001f9db8b4ca93d12e32deab270860adadcdbbaa8c49883c174be7bbc7"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 941,
+        "top": 559,
+        "width": 124,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 123,
+        "bottom": 149,
+        "width": 124,
+        "height": 150,
+        "pixels": 13387
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 709
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 46,
+        "top": 57,
+        "right": 122,
+        "bottom": 149,
+        "width": 77,
+        "height": 93,
+        "pixels": 5195,
+        "edgePixels": 0
+      },
+      "sha256": "015c20e38311a88b6e216df549302c4a82ea4934fb523b2a0e8780963162259f"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 40,
+        "top": 736,
+        "width": 134,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 153,
+        "width": 134,
+        "height": 154,
+        "pixels": 12147
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 890
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 49,
+        "top": 55,
+        "right": 131,
+        "bottom": 149,
+        "width": 83,
+        "height": 95,
+        "pixels": 4696,
+        "edgePixels": 0
+      },
+      "sha256": "515d044940e5856782398b41a10ebcb4208c9eb7ad23431cb0159d969ae3a9a6"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 222,
+        "top": 741,
+        "width": 121,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 148,
+        "width": 121,
+        "height": 149,
+        "pixels": 13440
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 890
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 49,
+        "top": 58,
+        "right": 123,
+        "bottom": 149,
+        "width": 75,
+        "height": 92,
+        "pixels": 5178,
+        "edgePixels": 0
+      },
+      "sha256": "501eb0c782715854369e08aebcd26ec14f4eb9ef20f6963f5310b5a25e33f6c2"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 394,
+        "top": 739,
+        "width": 137,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 150,
+        "width": 137,
+        "height": 151,
+        "pixels": 14326
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 890
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 44,
+        "top": 57,
+        "right": 128,
+        "bottom": 149,
+        "width": 85,
+        "height": 93,
+        "pixels": 5561,
+        "edgePixels": 0
+      },
+      "sha256": "64dcacf05612cb8b8e6dc66f204568a57ca14b9b6d8bc219719f9031fa7ab90e"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 576,
+        "top": 737,
+        "width": 135,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 151,
+        "width": 135,
+        "height": 152,
+        "pixels": 14101
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 890
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 44,
+        "top": 55,
+        "right": 126,
+        "bottom": 148,
+        "width": 83,
+        "height": 94,
+        "pixels": 5414,
+        "edgePixels": 0
+      },
+      "sha256": "1b54e68935e99992724bc1d8ceb5749629dd2cc538858a4f74f9debc6b5ada67"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 760,
+        "top": 739,
+        "width": 132,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 150,
+        "width": 132,
+        "height": 151,
+        "pixels": 14195
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 890
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 46,
+        "top": 57,
+        "right": 127,
+        "bottom": 149,
+        "width": 82,
+        "height": 93,
+        "pixels": 5508,
+        "edgePixels": 0
+      },
+      "sha256": "07b52acfb40f5c51cbb2696590635da338e8d8ec300ea91f5cd6aceff89570dc"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 935,
+        "top": 738,
+        "width": 130,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 150,
+        "width": 130,
+        "height": 151,
+        "pixels": 13745
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 890
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 43,
+        "top": 56,
+        "right": 122,
+        "bottom": 148,
+        "width": 80,
+        "height": 93,
+        "pixels": 5251,
+        "edgePixels": 0
+      },
+      "sha256": "6795c70b85656788519a16a90c01fc4799f691ed66ed2985a907d41f1c1fe798"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 43,
+        "top": 914,
+        "width": 120,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 119,
+        "bottom": 159,
+        "width": 120,
+        "height": 160,
+        "pixels": 12873
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1071
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 51,
+        "top": 53,
+        "right": 124,
+        "bottom": 151,
+        "width": 74,
+        "height": 99,
+        "pixels": 4973,
+        "edgePixels": 0
+      },
+      "sha256": "5f992e6596386b33affdfcd47b45d031b131685ac52c27c4b09a5fb7aef12d4d"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 217,
+        "top": 937,
+        "width": 137,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 133,
+        "width": 137,
+        "height": 134,
+        "pixels": 12418
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1071
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 46,
+        "top": 67,
+        "right": 130,
+        "bottom": 149,
+        "width": 85,
+        "height": 83,
+        "pixels": 4803,
+        "edgePixels": 0
+      },
+      "sha256": "d794aca9b132457592b26efcdaf223837dd901dec75ac4bdd1f75335a12281f6"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 394,
+        "top": 945,
+        "width": 141,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 125,
+        "width": 141,
+        "height": 126,
+        "pixels": 11987
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1071
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 44,
+        "top": 72,
+        "right": 130,
+        "bottom": 149,
+        "width": 87,
+        "height": 78,
+        "pixels": 4625,
+        "edgePixels": 0
+      },
+      "sha256": "b213286a9dd9d1b91b2c06a359f2b74483a25fea81b5957f11c63d7fed39ee33"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 576,
+        "top": 933,
+        "width": 143,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 138,
+        "width": 143,
+        "height": 139,
+        "pixels": 12812
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1071
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 44,
+        "top": 65,
+        "right": 131,
+        "bottom": 150,
+        "width": 88,
+        "height": 86,
+        "pixels": 4935,
+        "edgePixels": 0
+      },
+      "sha256": "0427a0dbb90076653a2ae795675b8d964a7140ab259df755bfe11eb1347621d6"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 772,
+        "top": 929,
+        "width": 119,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 118,
+        "bottom": 141,
+        "width": 119,
+        "height": 142,
+        "pixels": 12427
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1071
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 54,
+        "top": 62,
+        "right": 127,
+        "bottom": 149,
+        "width": 74,
+        "height": 88,
+        "pixels": 4834,
+        "edgePixels": 0
+      },
+      "sha256": "e3e261eacff6df1775db9ec25778e9be75767f34d90d14a6091727fa308a59c6"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 934,
+        "top": 919,
+        "width": 131,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 150,
+        "width": 131,
+        "height": 151,
+        "pixels": 13459
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1071
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 42,
+        "top": 56,
+        "right": 122,
+        "bottom": 148,
+        "width": 81,
+        "height": 93,
+        "pixels": 5199,
+        "edgePixels": 0
+      },
+      "sha256": "03a55c8723e808b56f456f9fe0b111729b88f91ba20f278de1754ff1f70ab488"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 22,
+        "top": 1104,
+        "width": 148,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 141,
+        "width": 148,
+        "height": 142,
+        "pixels": 13034
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1249
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 60,
+        "right": 128,
+        "bottom": 147,
+        "width": 91,
+        "height": 88,
+        "pixels": 5046,
+        "edgePixels": 0
+      },
+      "sha256": "2c98eb7408c5ae826966909e9faf18c2272d7cb03eceea828c199d0af9d4e119"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 205,
+        "top": 1109,
+        "width": 153,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 138,
+        "width": 153,
+        "height": 139,
+        "pixels": 13479
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1249
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 63,
+        "right": 133,
+        "bottom": 148,
+        "width": 95,
+        "height": 86,
+        "pixels": 5228,
+        "edgePixels": 0
+      },
+      "sha256": "26a932ecd1ade9675aa536bb075d156d643fc9e374ec8f8a66cc8bdc5ef29d3f"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 392,
+        "top": 1102,
+        "width": 143,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 146,
+        "width": 143,
+        "height": 147,
+        "pixels": 13597
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1249
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 43,
+        "top": 59,
+        "right": 130,
+        "bottom": 149,
+        "width": 88,
+        "height": 91,
+        "pixels": 5240,
+        "edgePixels": 0
+      },
+      "sha256": "b1dbcecf779ffd977518458318d40324179cf04ef4ce0945750049a142ba3a3a"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 584,
+        "top": 1103,
+        "width": 130,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 145,
+        "width": 130,
+        "height": 146,
+        "pixels": 13200
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1249
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 49,
+        "top": 60,
+        "right": 128,
+        "bottom": 149,
+        "width": 80,
+        "height": 90,
+        "pixels": 5058,
+        "edgePixels": 0
+      },
+      "sha256": "9473ce3e15483c17beb4babdc353e0bad4a2fd7d4000bcfbc1c2d8bca54e3998"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 765,
+        "top": 1101,
+        "width": 124,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 123,
+        "bottom": 145,
+        "width": 124,
+        "height": 146,
+        "pixels": 12957
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1249
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 49,
+        "top": 59,
+        "right": 125,
+        "bottom": 148,
+        "width": 77,
+        "height": 90,
+        "pixels": 5023,
+        "edgePixels": 0
+      },
+      "sha256": "0bd3125d744b84b6d5f32d2a7399c0eebd665a363a58199cd313aa6851ab413d"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 935,
+        "top": 1099,
+        "width": 130,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 149,
+        "width": 130,
+        "height": 150,
+        "pixels": 13424
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1249
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 43,
+        "top": 57,
+        "right": 122,
+        "bottom": 149,
+        "width": 80,
+        "height": 93,
+        "pixels": 5202,
+        "edgePixels": 0
+      },
+      "sha256": "1bb2c9d535cdd4cccbc1372dd2df906bda77712c90ca35bc0dc0da96d80d25a5"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 33,
+        "top": 1285,
+        "width": 133,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 143,
+        "width": 133,
+        "height": 144,
+        "pixels": 13561
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1431
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 44,
+        "top": 60,
+        "right": 125,
+        "bottom": 148,
+        "width": 82,
+        "height": 89,
+        "pixels": 5208,
+        "edgePixels": 0
+      },
+      "sha256": "ea8a40ba751bb6ba0141e29233db128a9b6470fde0169bcd23991646ae124ce0"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 219,
+        "top": 1278,
+        "width": 136,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 151,
+        "width": 136,
+        "height": 152,
+        "pixels": 14300
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1431
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 48,
+        "top": 55,
+        "right": 131,
+        "bottom": 148,
+        "width": 84,
+        "height": 94,
+        "pixels": 5487,
+        "edgePixels": 0
+      },
+      "sha256": "75723ac4bc059fd9e16750a89f6f072dbf9184f5ebd1629aaae8564f06edfac4"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 385,
+        "top": 1297,
+        "width": 152,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 133,
+        "width": 152,
+        "height": 134,
+        "pixels": 12976
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1431
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 67,
+        "right": 131,
+        "bottom": 149,
+        "width": 94,
+        "height": 83,
+        "pixels": 5012,
+        "edgePixels": 0
+      },
+      "sha256": "e8a81f5574f5f61b3556a5572e510c3865317f1f32f332f7e3f035779b61dc43"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 565,
+        "top": 1311,
+        "width": 159,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 120,
+        "width": 159,
+        "height": 121,
+        "pixels": 12167
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1431
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 76,
+        "right": 135,
+        "bottom": 150,
+        "width": 98,
+        "height": 75,
+        "pixels": 4701,
+        "edgePixels": 0
+      },
+      "sha256": "493815db666d8026f7784ae99a58756f6fcdbf91d3628364bc023100657ab95b"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 741,
+        "top": 1327,
+        "width": 163,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 103,
+        "width": 163,
+        "height": 104,
+        "pixels": 10797
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1431
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 35,
+        "top": 86,
+        "right": 135,
+        "bottom": 149,
+        "width": 101,
+        "height": 64,
+        "pixels": 4175,
+        "edgePixels": 0
+      },
+      "sha256": "c5e64897fc14fba05cfdcbcc56a1ec02b42c9e58bc9d9186d8e888c156077a95"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 926,
+        "top": 1325,
+        "width": 147,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 103,
+        "width": 147,
+        "height": 104,
+        "pixels": 9547
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/scrap-warden/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1431
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 37,
+        "top": 84,
+        "right": 127,
+        "bottom": 147,
+        "width": 91,
+        "height": 64,
+        "pixels": 3692,
+        "edgePixels": 0
+      },
+      "sha256": "3c2ba05f27a0c18d28dd8462524ea51e4b77107539bb321ce2276e07e9a6d97f"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

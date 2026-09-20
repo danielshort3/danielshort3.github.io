@@ -334,7 +334,7 @@
     min-height: 9.5rem;
     overflow: hidden;
     background:
-      radial-gradient(circle at 78% 16%, rgba(21, 93, 252, 0.18), transparent 38%),
+      radial-gradient(circle at 78% 16%, color-mix(in srgb, var(--brand-signal-blue, #005fed) 18%, transparent), transparent 38%),
       linear-gradient(135deg, #eef4ff, #f9fbff);
   }
 

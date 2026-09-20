@@ -1,0 +1,1965 @@
+{
+  "fileId": "icebloom-oracle",
+  "sourceSha256": "7ec7ad0c6742654f62a25bac41c3f20ccb1aa189ddaea65c96950171a8c95149",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    180,
+    355,
+    526,
+    700,
+    875,
+    1052,
+    1230,
+    1448
+  ],
+  "sharedScale": 0.6993427230046948,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 101,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/icebloom-oracle-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 768001,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 28,
+        "top": 23,
+        "width": 132,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 143,
+        "width": 132,
+        "height": 144,
+        "pixels": 12733
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 168
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 49,
+        "right": 127,
+        "bottom": 149,
+        "width": 92,
+        "height": 101,
+        "pixels": 6288,
+        "edgePixels": 0
+      },
+      "sha256": "29e3384f4640d6fa165864a8c2c0186bccbaea37527fcbd29f0d251445375402"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 205,
+        "top": 18,
+        "width": 138,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 151,
+        "width": 138,
+        "height": 152,
+        "pixels": 13349
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 168
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 33,
+        "top": 45,
+        "right": 129,
+        "bottom": 150,
+        "width": 97,
+        "height": 106,
+        "pixels": 6619,
+        "edgePixels": 0
+      },
+      "sha256": "54c596dc083a6e529e6b6e37d91ee27287f8765b9fc9220ad70233507c40807c"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 388,
+        "top": 23,
+        "width": 130,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 144,
+        "width": 130,
+        "height": 145,
+        "pixels": 13003
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 168
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 49,
+        "right": 125,
+        "bottom": 149,
+        "width": 91,
+        "height": 101,
+        "pixels": 6399,
+        "edgePixels": 0
+      },
+      "sha256": "6c8fe1df227407354620e8d20f0ec8dd71ff4dc48aca76d3a283f87f99632ea6"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 566,
+        "top": 23,
+        "width": 137,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 144,
+        "width": 137,
+        "height": 145,
+        "pixels": 13371
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 168
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 49,
+        "right": 128,
+        "bottom": 149,
+        "width": 96,
+        "height": 101,
+        "pixels": 6587,
+        "edgePixels": 0
+      },
+      "sha256": "09c2239f0b82f4066bbb67956ff30d6e87aa46d38570c1796a6e3f770e2ed909"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 748,
+        "top": 22,
+        "width": 137,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 145,
+        "width": 137,
+        "height": 146,
+        "pixels": 13248
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 168
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 48,
+        "right": 128,
+        "bottom": 149,
+        "width": 96,
+        "height": 102,
+        "pixels": 6528,
+        "edgePixels": 0
+      },
+      "sha256": "3869d33d53151fc6fa03017aff0c7fe66e7e1786f134c5f2cac4f7ef485232e5"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 929,
+        "top": 23,
+        "width": 133,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 146,
+        "width": 133,
+        "height": 147,
+        "pixels": 13059
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 168
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 49,
+        "right": 125,
+        "bottom": 151,
+        "width": 93,
+        "height": 103,
+        "pixels": 6432,
+        "edgePixels": 0
+      },
+      "sha256": "6e8c67167566cebef27aeea6ffb8a2864bdcfc3bd0ba825b9b6a61097a8e99f9"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 32,
+        "top": 11,
+        "width": 134,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 150,
+        "width": 134,
+        "height": 151,
+        "pixels": 13270
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 42,
+        "right": 132,
+        "bottom": 147,
+        "width": 94,
+        "height": 106,
+        "pixels": 6565,
+        "edgePixels": 0
+      },
+      "sha256": "f3b35684747a40159d6452dab2d11aa09f8d9c7593d31a4a7739fdd14a0176d1"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 211,
+        "top": 9,
+        "width": 144,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 155,
+        "width": 144,
+        "height": 156,
+        "pixels": 13645
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 41,
+        "right": 138,
+        "bottom": 149,
+        "width": 101,
+        "height": 109,
+        "pixels": 6724,
+        "edgePixels": 0
+      },
+      "sha256": "12a41c78415012276e7357a4b53898b104224a9abb9a3f191834c534b6f38ebb"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 394,
+        "top": 10,
+        "width": 140,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 153,
+        "width": 140,
+        "height": 154,
+        "pixels": 13142
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 39,
+        "top": 42,
+        "right": 136,
+        "bottom": 149,
+        "width": 98,
+        "height": 108,
+        "pixels": 6480,
+        "edgePixels": 0
+      },
+      "sha256": "92d6c0b5c887b8ab5bce966cb5b28648d8b98a0a2591e32398b054cabf62c31b"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 576,
+        "top": 11,
+        "width": 135,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 154,
+        "width": 135,
+        "height": 155,
+        "pixels": 13479
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 42,
+        "right": 133,
+        "bottom": 149,
+        "width": 94,
+        "height": 108,
+        "pixels": 6566,
+        "edgePixels": 0
+      },
+      "sha256": "8b64973b2e252b894f14f921abb24c258302e4f26a1235aae24a6ea060a510be"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 751,
+        "top": 11,
+        "width": 139,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 153,
+        "width": 139,
+        "height": 154,
+        "pixels": 12989
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 42,
+        "right": 132,
+        "bottom": 149,
+        "width": 97,
+        "height": 108,
+        "pixels": 6407,
+        "edgePixels": 0
+      },
+      "sha256": "de60b3dea513d3ecb8433bc0e1a0a397ef66f078de57eadb20b5d38e4aa9c99a"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 933,
+        "top": 11,
+        "width": 132,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 152,
+        "width": 132,
+        "height": 153,
+        "pixels": 13189
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 42,
+        "right": 127,
+        "bottom": 148,
+        "width": 92,
+        "height": 107,
+        "pixels": 6463,
+        "edgePixels": 0
+      },
+      "sha256": "bca8654c441820d3584532102b737276c6b739f175361420ddccbe32972cb710"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 28,
+        "top": 7,
+        "width": 136,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 152,
+        "width": 136,
+        "height": 153,
+        "pixels": 13890
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 160
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 43,
+        "right": 130,
+        "bottom": 149,
+        "width": 95,
+        "height": 107,
+        "pixels": 6808,
+        "edgePixels": 0
+      },
+      "sha256": "218c19dbc6030e022af32fa7abff50e7750c725be044d7175e9bd8e85c679866"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 216,
+        "top": 14,
+        "width": 132,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 145,
+        "width": 132,
+        "height": 146,
+        "pixels": 12952
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 160
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 48,
+        "right": 132,
+        "bottom": 149,
+        "width": 92,
+        "height": 102,
+        "pixels": 6343,
+        "edgePixels": 0
+      },
+      "sha256": "58a6692cd9f9e18d5105498e2a04828ccd0ecb8eb2a8460b25a4d08377859654"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 398,
+        "top": 17,
+        "width": 132,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 143,
+        "width": 132,
+        "height": 144,
+        "pixels": 12160
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 160
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 42,
+        "top": 50,
+        "right": 133,
+        "bottom": 150,
+        "width": 92,
+        "height": 101,
+        "pixels": 6008,
+        "edgePixels": 0
+      },
+      "sha256": "eefe61bb2e4bddf1730390f95f0ad319c3ec69ae43b627972fe9b4a7fb078257"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 577,
+        "top": 17,
+        "width": 131,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 143,
+        "width": 131,
+        "height": 144,
+        "pixels": 12479
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 160
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 50,
+        "right": 131,
+        "bottom": 150,
+        "width": 92,
+        "height": 101,
+        "pixels": 6175,
+        "edgePixels": 0
+      },
+      "sha256": "01075a6d3a9c7f2a973d3e44de3fc830d8b5d441e36695f251756f1b8fc48228"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 756,
+        "top": 15,
+        "width": 131,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 144,
+        "width": 131,
+        "height": 145,
+        "pixels": 12431
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 160
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 49,
+        "right": 130,
+        "bottom": 149,
+        "width": 92,
+        "height": 101,
+        "pixels": 6156,
+        "edgePixels": 0
+      },
+      "sha256": "8284dbce986f547169bd83a3084280e6af829aeffec69c06f7dcead0039252b1"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 932,
+        "top": 15,
+        "width": 131,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 144,
+        "width": 131,
+        "height": 145,
+        "pixels": 12031
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 160
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 49,
+        "right": 127,
+        "bottom": 149,
+        "width": 92,
+        "height": 101,
+        "pixels": 5956,
+        "edgePixels": 0
+      },
+      "sha256": "21895623b077bfab8e2c4d6badd94172b821d7c803c3f1365ea6e09c4d26797f"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 28,
+        "top": 7,
+        "width": 169,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 156,
+        "width": 169,
+        "height": 157,
+        "pixels": 14596
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 40,
+        "right": 153,
+        "bottom": 149,
+        "width": 118,
+        "height": 110,
+        "pixels": 7193,
+        "edgePixels": 0
+      },
+      "sha256": "541acb521ca145f9c2acd164a557f2b4bcbff641713672b72206dce8e5a6454f"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 217,
+        "top": 10,
+        "width": 154,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 154,
+        "width": 154,
+        "height": 155,
+        "pixels": 13579
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 42,
+        "top": 42,
+        "right": 149,
+        "bottom": 149,
+        "width": 108,
+        "height": 108,
+        "pixels": 6706,
+        "edgePixels": 0
+      },
+      "sha256": "231792242ae30e6c44ed8a000e2a11acac26d158a41236d5f31ed4840152073b"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 397,
+        "top": 14,
+        "width": 133,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 151,
+        "width": 133,
+        "height": 152,
+        "pixels": 13121
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 44,
+        "right": 133,
+        "bottom": 149,
+        "width": 93,
+        "height": 106,
+        "pixels": 6443,
+        "edgePixels": 0
+      },
+      "sha256": "9164768fa5314c0bb84c581b00c1b40988ed3414b7ca1395930c222cf8cac703"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 570,
+        "top": 12,
+        "width": 138,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 151,
+        "width": 138,
+        "height": 152,
+        "pixels": 13835
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 43,
+        "right": 132,
+        "bottom": 148,
+        "width": 97,
+        "height": 106,
+        "pixels": 6860,
+        "edgePixels": 0
+      },
+      "sha256": "edd9f25101a8730ba0a3a65dad78c5ce32301d6342a71e0547511051f477727a"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 751,
+        "top": 11,
+        "width": 136,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 152,
+        "width": 136,
+        "height": 153,
+        "pixels": 13610
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 42,
+        "right": 130,
+        "bottom": 148,
+        "width": 95,
+        "height": 107,
+        "pixels": 6674,
+        "edgePixels": 0
+      },
+      "sha256": "7a9a0c1b9edbcc113bbdddc8b00d3fe0b832b6b31146feb2dc224fe9d4cbdb6d"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 927,
+        "top": 10,
+        "width": 132,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 154,
+        "width": 132,
+        "height": 155,
+        "pixels": 13343
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 42,
+        "right": 123,
+        "bottom": 149,
+        "width": 92,
+        "height": 108,
+        "pixels": 6509,
+        "edgePixels": 0
+      },
+      "sha256": "fe62ceb1e6ab897f011dce1c511c6d66aa1a294a1852befb48fb95f665ac83d5"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 28,
+        "top": 11,
+        "width": 151,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 152,
+        "width": 151,
+        "height": 153,
+        "pixels": 13977
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 42,
+        "right": 141,
+        "bottom": 148,
+        "width": 106,
+        "height": 107,
+        "pixels": 6910,
+        "edgePixels": 0
+      },
+      "sha256": "3422814d69469c9825291d5a7442113f61415f0fe0cca24b00330004fae86b8a"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 214,
+        "top": 10,
+        "width": 133,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 155,
+        "width": 133,
+        "height": 156,
+        "pixels": 13135
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 42,
+        "right": 132,
+        "bottom": 150,
+        "width": 93,
+        "height": 109,
+        "pixels": 6438,
+        "edgePixels": 0
+      },
+      "sha256": "a10468bb7d2423723874314e951bcdcdc2077d60d5e0e1453466a62998561ea5"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 394,
+        "top": 12,
+        "width": 134,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 151,
+        "width": 134,
+        "height": 152,
+        "pixels": 13298
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 39,
+        "top": 43,
+        "right": 132,
+        "bottom": 148,
+        "width": 94,
+        "height": 106,
+        "pixels": 6567,
+        "edgePixels": 0
+      },
+      "sha256": "6867cf5a6797af27e0fc0575b08ad616a9ce4accf8d74d8b8061e6e8a5a0cf32"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 571,
+        "top": 9,
+        "width": 135,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 155,
+        "width": 135,
+        "height": 156,
+        "pixels": 13927
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 41,
+        "right": 129,
+        "bottom": 149,
+        "width": 94,
+        "height": 109,
+        "pixels": 6816,
+        "edgePixels": 0
+      },
+      "sha256": "a3a8e4e5dd8382a00b16d9ecdfa260ef4e59791fa330bdb7952f6a23fccde6f0"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 748,
+        "top": 10,
+        "width": 136,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 153,
+        "width": 136,
+        "height": 154,
+        "pixels": 13521
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 42,
+        "right": 127,
+        "bottom": 149,
+        "width": 95,
+        "height": 108,
+        "pixels": 6675,
+        "edgePixels": 0
+      },
+      "sha256": "ddc06d414a61826448a04333fb867a834b4ccc2892dc59bfc812ee59606d3734"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 928,
+        "top": 15,
+        "width": 135,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 149,
+        "width": 135,
+        "height": 150,
+        "pixels": 13294
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 45,
+        "right": 126,
+        "bottom": 149,
+        "width": 94,
+        "height": 105,
+        "pixels": 6551,
+        "edgePixels": 0
+      },
+      "sha256": "43d4442dd2ca862e816483b6a7cdd7f00b4e0323bdf503f17feeafed138efe6c"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 64,
+        "top": 87,
+        "width": 328,
+        "height": 354
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 327,
+        "bottom": 353,
+        "width": 328,
+        "height": 354,
+        "pixels": 75413
+      },
+      "sourcePath": "output/starfall-animation-samples/oracle-cast-study.png",
+      "scaleFactor": 0.4067796610169492,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 216,
+        "y": 441
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 49,
+        "right": 129,
+        "bottom": 149,
+        "width": 93,
+        "height": 101,
+        "pixels": 6229,
+        "edgePixels": 0
+      },
+      "sha256": "6c632531b129fc7d8fb1ad7470514ec148f32c64d3d05cb92dbb70def1e2a3c6"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 530,
+        "top": 121,
+        "width": 307,
+        "height": 320
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 306,
+        "bottom": 319,
+        "width": 307,
+        "height": 320,
+        "pixels": 62992
+      },
+      "sourcePath": "output/starfall-animation-samples/oracle-cast-study.png",
+      "scaleFactor": 0.4067796610169492,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 682,
+        "y": 441
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 37,
+        "top": 59,
+        "right": 123,
+        "bottom": 149,
+        "width": 87,
+        "height": 91,
+        "pixels": 5163,
+        "edgePixels": 0
+      },
+      "sha256": "8e9d9b995e548b56740aef47d8cc2a9831dd9bdfad09fa373666d50ebd696c93"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 973,
+        "top": 169,
+        "width": 277,
+        "height": 271
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 276,
+        "bottom": 270,
+        "width": 277,
+        "height": 271,
+        "pixels": 51601
+      },
+      "sourcePath": "output/starfall-animation-samples/oracle-cast-study.png",
+      "scaleFactor": 0.4067796610169492,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1109.5,
+        "y": 440
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 73,
+        "right": 119,
+        "bottom": 149,
+        "width": 79,
+        "height": 77,
+        "pixels": 4247,
+        "edgePixels": 0
+      },
+      "sha256": "3be3b409bb75c77995bad89148f5a10743dd2defb87d0d910d3e02219d118893"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 1389,
+        "top": 88,
+        "width": 326,
+        "height": 351
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 325,
+        "bottom": 350,
+        "width": 326,
+        "height": 351,
+        "pixels": 75181
+      },
+      "sourcePath": "output/starfall-animation-samples/oracle-cast-study.png",
+      "scaleFactor": 0.4067796610169492,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1543,
+        "y": 439
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 50,
+        "right": 128,
+        "bottom": 149,
+        "width": 93,
+        "height": 100,
+        "pixels": 6215,
+        "edgePixels": 0
+      },
+      "sha256": "355bade269e601147c81d0194b461c2922b9ad71b79ccafb8bcda614eadfbf6f"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 54,
+        "top": 490,
+        "width": 350,
+        "height": 354
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 349,
+        "bottom": 353,
+        "width": 350,
+        "height": 354,
+        "pixels": 75296
+      },
+      "sourcePath": "output/starfall-animation-samples/oracle-cast-study.png",
+      "scaleFactor": 0.4067796610169492,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 227,
+        "y": 844
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 49,
+        "right": 130,
+        "bottom": 149,
+        "width": 100,
+        "height": 101,
+        "pixels": 6214,
+        "edgePixels": 0
+      },
+      "sha256": "901bf8ca485c337dc7861e30123f0d18f8e4a3ce7aa52fd1e0ec119cdefb66d8"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 1395,
+        "top": 506,
+        "width": 314,
+        "height": 338
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 313,
+        "bottom": 337,
+        "width": 314,
+        "height": 338,
+        "pixels": 70451
+      },
+      "sourcePath": "output/starfall-animation-samples/oracle-cast-study.png",
+      "scaleFactor": 0.4067796610169492,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1549,
+        "y": 844
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 54,
+        "right": 124,
+        "bottom": 149,
+        "width": 89,
+        "height": 96,
+        "pixels": 5751,
+        "edgePixels": 0
+      },
+      "sha256": "6ab7d953fe225448631e1a1b7fce82d5cf8887888010671961fcdafa18c72e0d"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 36,
+        "top": 9,
+        "width": 135,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 153,
+        "width": 135,
+        "height": 154,
+        "pixels": 13522
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 164
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 42,
+        "top": 42,
+        "right": 135,
+        "bottom": 149,
+        "width": 94,
+        "height": 108,
+        "pixels": 6685,
+        "edgePixels": 0
+      },
+      "sha256": "1f0fe530c8891f606b04496abb321773706c0326d20926e8e1e1fd214292e0ae"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 224,
+        "top": 12,
+        "width": 140,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 150,
+        "width": 140,
+        "height": 151,
+        "pixels": 13536
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 164
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 47,
+        "top": 44,
+        "right": 144,
+        "bottom": 149,
+        "width": 98,
+        "height": 106,
+        "pixels": 6699,
+        "edgePixels": 0
+      },
+      "sha256": "037ea11f1963498ad9a67c4a2f487c10a38653b7b1cd299b490b6d6e8e532f34"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 401,
+        "top": 19,
+        "width": 134,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 143,
+        "width": 134,
+        "height": 144,
+        "pixels": 13002
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 164
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 44,
+        "top": 49,
+        "right": 137,
+        "bottom": 149,
+        "width": 94,
+        "height": 101,
+        "pixels": 6430,
+        "edgePixels": 0
+      },
+      "sha256": "4cef5fa6c5b87c68c9ea115c11cf662607b5738c23aca4698a59b2a9d1863d3c"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 568,
+        "top": 17,
+        "width": 135,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 146,
+        "width": 135,
+        "height": 147,
+        "pixels": 13383
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 164
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 34,
+        "top": 47,
+        "right": 127,
+        "bottom": 149,
+        "width": 94,
+        "height": 103,
+        "pixels": 6600,
+        "edgePixels": 0
+      },
+      "sha256": "ab7e9856fc3fdd54f57a7dc29f65e51b81b4ac8b935a3ac8ce7160b92a94a674"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 750,
+        "top": 11,
+        "width": 138,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 154,
+        "width": 138,
+        "height": 155,
+        "pixels": 13919
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 164
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 35,
+        "top": 43,
+        "right": 131,
+        "bottom": 150,
+        "width": 97,
+        "height": 108,
+        "pixels": 6901,
+        "edgePixels": 0
+      },
+      "sha256": "3a156d36e12ee17746c021c41c7cf7891c866472bab25c463655ced07259da18"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 931,
+        "top": 11,
+        "width": 134,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 152,
+        "width": 134,
+        "height": 153,
+        "pixels": 13423
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 164
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 35,
+        "top": 43,
+        "right": 128,
+        "bottom": 149,
+        "width": 94,
+        "height": 107,
+        "pixels": 6617,
+        "edgePixels": 0
+      },
+      "sha256": "4a7efb2cc400971ce5a0bfe8d43d6fad3f0837cf17d2f25b38620f2b27551ded"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 30,
+        "top": 11,
+        "width": 140,
+        "height": 165
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 164,
+        "width": 140,
+        "height": 165,
+        "pixels": 14670
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 176
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 35,
+        "right": 135,
+        "bottom": 149,
+        "width": 98,
+        "height": 115,
+        "pixels": 7221,
+        "edgePixels": 0
+      },
+      "sha256": "614ab19fb4bcee3ea921fb766f59a499162403e3d54f461af7f8444d2a84c48c"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 222,
+        "top": 22,
+        "width": 133,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 152,
+        "width": 133,
+        "height": 153,
+        "pixels": 13041
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 176
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 45,
+        "top": 42,
+        "right": 137,
+        "bottom": 148,
+        "width": 93,
+        "height": 107,
+        "pixels": 6406,
+        "edgePixels": 0
+      },
+      "sha256": "7528f00d5655f73b46d9159913bad3360a34dc8dfbf2d0d845950681706a90f8"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 397,
+        "top": 33,
+        "width": 129,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 128,
+        "bottom": 142,
+        "width": 129,
+        "height": 143,
+        "pixels": 12536
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 176
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 50,
+        "right": 130,
+        "bottom": 149,
+        "width": 90,
+        "height": 100,
+        "pixels": 6151,
+        "edgePixels": 0
+      },
+      "sha256": "fe4fe8a1027c1b9b2f5cb87d9e6a1bd3e65cad0619e8a0a22dd16cd369ddc0eb"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 573,
+        "top": 54,
+        "width": 141,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 121,
+        "width": 141,
+        "height": 122,
+        "pixels": 11320
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 176
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 65,
+        "right": 136,
+        "bottom": 149,
+        "width": 99,
+        "height": 85,
+        "pixels": 5604,
+        "edgePixels": 0
+      },
+      "sha256": "599ad242aeed40163e1eeb1be1b64583c17801ab443f4fc9a758eceb1c00fa88"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 744,
+        "top": 72,
+        "width": 148,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 103,
+        "width": 148,
+        "height": 104,
+        "pixels": 10691
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 176
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 77,
+        "right": 134,
+        "bottom": 149,
+        "width": 104,
+        "height": 73,
+        "pixels": 5298,
+        "edgePixels": 0
+      },
+      "sha256": "50924bd73caad7826aff5e6ecc019d7ff6434aa60bf2a11ff9a5521c86b4f1f5"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 915,
+        "top": 94,
+        "width": 158,
+        "height": 80
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 79,
+        "width": 158,
+        "height": 80,
+        "pixels": 8702
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 176
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 93,
+        "right": 133,
+        "bottom": 148,
+        "width": 110,
+        "height": 56,
+        "pixels": 4286,
+        "edgePixels": 0
+      },
+      "sha256": "154593d3fb2f57c8922854f4c7d81547c51f23069dda657489238e804f828294"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

@@ -1,0 +1,1965 @@
+{
+  "fileId": "thunder-ram",
+  "sourceSha256": "02fc33ed7624a0b5922bd01a65c34444ccd9a159afad4709060495459c6c0d40",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    181,
+    346,
+    523,
+    696,
+    858,
+    1049,
+    1234,
+    1448
+  ],
+  "sharedScale": 0.4981939799331104,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 63,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/thunder-ram-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 722108,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 18,
+        "top": 31,
+        "width": 159,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 125,
+        "width": 159,
+        "height": 126,
+        "pixels": 13597
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 158
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 44,
+        "top": 87,
+        "right": 122,
+        "bottom": 149,
+        "width": 79,
+        "height": 63,
+        "pixels": 3422,
+        "edgePixels": 0
+      },
+      "sha256": "a7db2a1934d718038ace29a24b39b6c352fb58d3959d96db0ba736d500a52891"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 199,
+        "top": 20,
+        "width": 155,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 137,
+        "width": 155,
+        "height": 138,
+        "pixels": 14580
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 158
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 44,
+        "top": 81,
+        "right": 120,
+        "bottom": 149,
+        "width": 77,
+        "height": 69,
+        "pixels": 3683,
+        "edgePixels": 0
+      },
+      "sha256": "0db801ed2df6a76ba321fa4647625b11e8b5c298b3138f14faf616db7097e0e0"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 377,
+        "top": 32,
+        "width": 159,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 125,
+        "width": 159,
+        "height": 126,
+        "pixels": 13909
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 158
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 42,
+        "top": 87,
+        "right": 120,
+        "bottom": 149,
+        "width": 79,
+        "height": 63,
+        "pixels": 3517,
+        "edgePixels": 0
+      },
+      "sha256": "1468fde3056d545f09763923e8ee919168e0c06c759767783b3ab1f2c7108619"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 557,
+        "top": 32,
+        "width": 160,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 125,
+        "width": 160,
+        "height": 126,
+        "pixels": 13760
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 158
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 42,
+        "top": 87,
+        "right": 121,
+        "bottom": 149,
+        "width": 80,
+        "height": 63,
+        "pixels": 3474,
+        "edgePixels": 0
+      },
+      "sha256": "682f2bc6bee0fe1a9fe963515ccdb3112e92eb543deaa36cdb009c3ac284513a"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 736,
+        "top": 33,
+        "width": 160,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 128,
+        "width": 160,
+        "height": 129,
+        "pixels": 13833
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 158
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 41,
+        "top": 88,
+        "right": 120,
+        "bottom": 151,
+        "width": 80,
+        "height": 64,
+        "pixels": 3488,
+        "edgePixels": 0
+      },
+      "sha256": "b12aec19d2f6f431e8ea01345de9d7098c349988083a322a8d9abd23fba2cc25"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 917,
+        "top": 33,
+        "width": 153,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 125,
+        "width": 153,
+        "height": 126,
+        "pixels": 13467
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 158
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 41,
+        "top": 88,
+        "right": 116,
+        "bottom": 150,
+        "width": 76,
+        "height": 63,
+        "pixels": 3395,
+        "edgePixels": 0
+      },
+      "sha256": "8dd7cd4ad0916d5bb42a2d23da418442ef61250b60915de51a214a33bb2b21c3"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 17,
+        "top": 199,
+        "width": 165,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 123,
+        "width": 165,
+        "height": 124,
+        "pixels": 14111
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 326
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 43,
+        "top": 87,
+        "right": 124,
+        "bottom": 148,
+        "width": 82,
+        "height": 62,
+        "pixels": 3564,
+        "edgePixels": 0
+      },
+      "sha256": "737122c2107c58a0a104ff5bdb3c14414e501c0d2d227545c6e4a2716ca92522"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 204,
+        "top": 204,
+        "width": 167,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 122,
+        "width": 167,
+        "height": 123,
+        "pixels": 13889
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 326
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 46,
+        "top": 89,
+        "right": 128,
+        "bottom": 149,
+        "width": 83,
+        "height": 61,
+        "pixels": 3462,
+        "edgePixels": 0
+      },
+      "sha256": "7439911da714939d5fa6003cf9349f146d1345aadc5ac7ea11700e82fe85024e"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 383,
+        "top": 203,
+        "width": 165,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 120,
+        "width": 165,
+        "height": 121,
+        "pixels": 13455
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 326
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 45,
+        "top": 89,
+        "right": 126,
+        "bottom": 148,
+        "width": 82,
+        "height": 60,
+        "pixels": 3357,
+        "edgePixels": 0
+      },
+      "sha256": "b73baa571db6732e4f247c196cbd92d7ba6b093b520e88aef094787e4d695836"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 562,
+        "top": 204,
+        "width": 162,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 121,
+        "width": 162,
+        "height": 122,
+        "pixels": 13518
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 326
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 44,
+        "top": 89,
+        "right": 124,
+        "bottom": 149,
+        "width": 81,
+        "height": 61,
+        "pixels": 3408,
+        "edgePixels": 0
+      },
+      "sha256": "9cb6ef484ff231780dcd83c689d4eb43ba2d91ebec72aa39852afbd889efb636"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 737,
+        "top": 201,
+        "width": 164,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 123,
+        "width": 164,
+        "height": 124,
+        "pixels": 13377
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 326
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 41,
+        "top": 88,
+        "right": 122,
+        "bottom": 149,
+        "width": 82,
+        "height": 62,
+        "pixels": 3378,
+        "edgePixels": 0
+      },
+      "sha256": "f78c7e349f9a799de46db737f8112286edec18bc730604ca77c0a029abe9de2f"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 913,
+        "top": 205,
+        "width": 159,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 121,
+        "width": 159,
+        "height": 122,
+        "pixels": 13428
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 326
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 90,
+        "right": 117,
+        "bottom": 150,
+        "width": 79,
+        "height": 61,
+        "pixels": 3387,
+        "edgePixels": 0
+      },
+      "sha256": "5e390523197078140ad1199d2d4ec5abbaf731f6421060cb1ffeed605ac3a39e"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 12,
+        "top": 365,
+        "width": 160,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 134,
+        "width": 160,
+        "height": 135,
+        "pixels": 14815
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 501
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 82,
+        "right": 120,
+        "bottom": 148,
+        "width": 80,
+        "height": 67,
+        "pixels": 3735,
+        "edgePixels": 0
+      },
+      "sha256": "cce7a7f2338659b96260d89c4007daa338bcb2177e7b6f0a8e23433128421872"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 191,
+        "top": 382,
+        "width": 165,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 118,
+        "width": 165,
+        "height": 119,
+        "pixels": 13602
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 501
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 91,
+        "right": 121,
+        "bottom": 149,
+        "width": 82,
+        "height": 59,
+        "pixels": 3388,
+        "edgePixels": 0
+      },
+      "sha256": "1a222833d22a53e3d70cdbac717233482304dda25b6bb3ea2d7952c1174c2a63"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 379,
+        "top": 394,
+        "width": 158,
+        "height": 107
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 106,
+        "width": 158,
+        "height": 107,
+        "pixels": 12881
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 501
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 43,
+        "top": 97,
+        "right": 121,
+        "bottom": 149,
+        "width": 79,
+        "height": 53,
+        "pixels": 3252,
+        "edgePixels": 0
+      },
+      "sha256": "bf1ead2abd0361a968e4185180757ce04a9430569b6bb0e471f9e53365463e72"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 559,
+        "top": 397,
+        "width": 159,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 103,
+        "width": 159,
+        "height": 104,
+        "pixels": 12447
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 501
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 43,
+        "top": 98,
+        "right": 121,
+        "bottom": 149,
+        "width": 79,
+        "height": 52,
+        "pixels": 3141,
+        "edgePixels": 0
+      },
+      "sha256": "da1cbbb87755ec4d149daa6dd57c86436bc9d0bc1031b8313916889ea47744ec"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 742,
+        "top": 389,
+        "width": 165,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 111,
+        "width": 165,
+        "height": 112,
+        "pixels": 13675
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 501
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 44,
+        "top": 94,
+        "right": 125,
+        "bottom": 149,
+        "width": 82,
+        "height": 56,
+        "pixels": 3452,
+        "edgePixels": 0
+      },
+      "sha256": "865df40baf40bc34ea73fac728c696604fc4e3e2515bb116ac3dd78f0a5d9340"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 918,
+        "top": 392,
+        "width": 160,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 108,
+        "width": 160,
+        "height": 109,
+        "pixels": 12791
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 501
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 41,
+        "top": 96,
+        "right": 120,
+        "bottom": 149,
+        "width": 80,
+        "height": 54,
+        "pixels": 3221,
+        "edgePixels": 0
+      },
+      "sha256": "8c2671f1edb0cddeef5b76c67a5407bd0e8ee0aef9b5bad16bd38673bd001026"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 26,
+        "top": 544,
+        "width": 195,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 194,
+        "bottom": 134,
+        "width": 195,
+        "height": 135,
+        "pixels": 17026
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 679
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 48,
+        "top": 83,
+        "right": 144,
+        "bottom": 149,
+        "width": 97,
+        "height": 67,
+        "pixels": 4254,
+        "edgePixels": 0
+      },
+      "sha256": "213a9fb85c0b1a8e192d421963a0734529c05415892910181421c7f89c88366b"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 222,
+        "top": 546,
+        "width": 192,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 191,
+        "bottom": 131,
+        "width": 192,
+        "height": 132,
+        "pixels": 16919
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 679
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 55,
+        "top": 84,
+        "right": 150,
+        "bottom": 149,
+        "width": 96,
+        "height": 66,
+        "pixels": 4264,
+        "edgePixels": 0
+      },
+      "sha256": "fa098ae7092ea5d4afe20455dad2b9208c6b053212ae9eb17155c34337b2e6c0"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 431,
+        "top": 549,
+        "width": 171,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 129,
+        "width": 171,
+        "height": 130,
+        "pixels": 15004
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 679
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 69,
+        "top": 85,
+        "right": 153,
+        "bottom": 149,
+        "width": 85,
+        "height": 65,
+        "pixels": 3782,
+        "edgePixels": 0
+      },
+      "sha256": "129ea4753bfd30a2a8cd7846b442fa4d01aa7a9380796ec24b67cea38d6c74a9"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 603,
+        "top": 556,
+        "width": 148,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 122,
+        "width": 148,
+        "height": 123,
+        "pixels": 12507
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 679
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 65,
+        "top": 89,
+        "right": 138,
+        "bottom": 149,
+        "width": 74,
+        "height": 61,
+        "pixels": 3162,
+        "edgePixels": 0
+      },
+      "sha256": "9e96bb9bb2265f048721346a1b87f7cacd51c02541ca58c3ceab6feaf1168f31"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 759,
+        "top": 556,
+        "width": 150,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 122,
+        "width": 150,
+        "height": 123,
+        "pixels": 12793
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 679
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 52,
+        "top": 89,
+        "right": 126,
+        "bottom": 149,
+        "width": 75,
+        "height": 61,
+        "pixels": 3221,
+        "edgePixels": 0
+      },
+      "sha256": "b4cd3bfde29720a626555e1c58e1d5d43c85db9bde145d3670441ac53abd26d6"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 918,
+        "top": 555,
+        "width": 156,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 123,
+        "width": 156,
+        "height": 124,
+        "pixels": 13343
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 679
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 41,
+        "top": 88,
+        "right": 118,
+        "bottom": 149,
+        "width": 78,
+        "height": 62,
+        "pixels": 3368,
+        "edgePixels": 0
+      },
+      "sha256": "a71050adbb006a9ce8dbed3615730120582ec0c6d251681d53605625e6ac8b46"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 17,
+        "top": 713,
+        "width": 160,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 132,
+        "width": 160,
+        "height": 133,
+        "pixels": 14075
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 845
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 43,
+        "top": 84,
+        "right": 122,
+        "bottom": 149,
+        "width": 80,
+        "height": 66,
+        "pixels": 3546,
+        "edgePixels": 0
+      },
+      "sha256": "3a6fa1a61ede565be529526d60adf75ae46a44acb60da0a591cefb50afbf081e"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 203,
+        "top": 722,
+        "width": 154,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 123,
+        "width": 154,
+        "height": 124,
+        "pixels": 13859
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 845
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 46,
+        "top": 89,
+        "right": 122,
+        "bottom": 150,
+        "width": 77,
+        "height": 62,
+        "pixels": 3501,
+        "edgePixels": 0
+      },
+      "sha256": "50de13e117bc3ebf00d380089ef3f4ad44c82c3670ac94604815d2ff55de2c8b"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 378,
+        "top": 723,
+        "width": 156,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 120,
+        "width": 156,
+        "height": 121,
+        "pixels": 12866
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 845
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 43,
+        "top": 89,
+        "right": 120,
+        "bottom": 148,
+        "width": 78,
+        "height": 60,
+        "pixels": 3246,
+        "edgePixels": 0
+      },
+      "sha256": "3b0f7d9cb29ae6f6eb34d6c2e784bdd256e18cdae76bd222a7a921116969674f"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 557,
+        "top": 727,
+        "width": 156,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 116,
+        "width": 156,
+        "height": 117,
+        "pixels": 12768
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 845
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 42,
+        "top": 91,
+        "right": 119,
+        "bottom": 148,
+        "width": 78,
+        "height": 58,
+        "pixels": 3218,
+        "edgePixels": 0
+      },
+      "sha256": "6fb59ef4bb848816630764008f830cca7ebc577a7bd462b20495cf9b0bfc6814"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 738,
+        "top": 731,
+        "width": 164,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 113,
+        "width": 164,
+        "height": 114,
+        "pixels": 13173
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 845
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 42,
+        "top": 93,
+        "right": 123,
+        "bottom": 149,
+        "width": 82,
+        "height": 57,
+        "pixels": 3321,
+        "edgePixels": 0
+      },
+      "sha256": "2a530cc0f3ef21cbbcc9f4a68a696507ac11a25cc9e4c32aeaba1218dc9b0e63"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 916,
+        "top": 725,
+        "width": 156,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 119,
+        "width": 156,
+        "height": 120,
+        "pixels": 12976
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 845
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 90,
+        "right": 117,
+        "bottom": 149,
+        "width": 78,
+        "height": 60,
+        "pixels": 3277,
+        "edgePixels": 0
+      },
+      "sha256": "c5ebdf87239380e0f5589570308942a55071cfd3b268f6008faf93916e2894a4"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 20,
+        "top": 872,
+        "width": 157,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 159,
+        "width": 157,
+        "height": 160,
+        "pixels": 16608
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1032
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 45,
+        "top": 70,
+        "right": 122,
+        "bottom": 149,
+        "width": 78,
+        "height": 80,
+        "pixels": 4173,
+        "edgePixels": 0
+      },
+      "sha256": "b6cff27a0e6181725f233621cf047b25e8892a59e092e3e06606bbf3420846ff"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 202,
+        "top": 870,
+        "width": 154,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 160,
+        "width": 154,
+        "height": 161,
+        "pixels": 16797
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1032
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 45,
+        "top": 69,
+        "right": 121,
+        "bottom": 148,
+        "width": 77,
+        "height": 80,
+        "pixels": 4229,
+        "edgePixels": 0
+      },
+      "sha256": "54ef5f4a35f79c2cb33411a048e35eef51feb69d21e0f80d6d96d53191d4ec7d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 383,
+        "top": 874,
+        "width": 149,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 156,
+        "width": 149,
+        "height": 157,
+        "pixels": 16058
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1032
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 45,
+        "top": 71,
+        "right": 118,
+        "bottom": 148,
+        "width": 74,
+        "height": 78,
+        "pixels": 3993,
+        "edgePixels": 0
+      },
+      "sha256": "a7c8fa906166b97be169392aa1419e9b5dc032fd9bd757df904c26e005fd1661"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 559,
+        "top": 870,
+        "width": 145,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 162,
+        "width": 145,
+        "height": 163,
+        "pixels": 16299
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1032
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 43,
+        "top": 69,
+        "right": 114,
+        "bottom": 149,
+        "width": 72,
+        "height": 81,
+        "pixels": 4055,
+        "edgePixels": 0
+      },
+      "sha256": "01ae51d12a381112e8f15034ed222361ca05198ba3076c92e5f05096c4b7d7ad"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 739,
+        "top": 887,
+        "width": 161,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 144,
+        "width": 161,
+        "height": 145,
+        "pixels": 15835
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1032
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 42,
+        "top": 78,
+        "right": 121,
+        "bottom": 149,
+        "width": 80,
+        "height": 72,
+        "pixels": 3940,
+        "edgePixels": 0
+      },
+      "sha256": "25f845f7b5acfe9558353f19bc098e1622bb2b0250828ad7f46146b6f85ec9f5"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 914,
+        "top": 900,
+        "width": 157,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 131,
+        "width": 157,
+        "height": 132,
+        "pixels": 14286
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1032
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 84,
+        "right": 116,
+        "bottom": 149,
+        "width": 78,
+        "height": 66,
+        "pixels": 3602,
+        "edgePixels": 0
+      },
+      "sha256": "e6cb260043c1c57ee272b8751a403d6d9edf2bf485e9f1bc35971d5bf8943ff4"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 16,
+        "top": 1080,
+        "width": 166,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 126,
+        "width": 166,
+        "height": 127,
+        "pixels": 14106
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1210
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 43,
+        "top": 85,
+        "right": 125,
+        "bottom": 147,
+        "width": 83,
+        "height": 63,
+        "pixels": 3553,
+        "edgePixels": 0
+      },
+      "sha256": "e72e4680d4239457c5f7fae0477aefd76da61376ef6cf8d8c4f72099942832e4"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 197,
+        "top": 1065,
+        "width": 160,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 144,
+        "width": 160,
+        "height": 145,
+        "pixels": 15041
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1210
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 43,
+        "top": 78,
+        "right": 122,
+        "bottom": 149,
+        "width": 80,
+        "height": 72,
+        "pixels": 3791,
+        "edgePixels": 0
+      },
+      "sha256": "4637fe0bada896c9693f6d9a4bd96c08ca19ea5e19f2e291debcf60f01ea0cb1"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 378,
+        "top": 1093,
+        "width": 154,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 113,
+        "width": 154,
+        "height": 114,
+        "pixels": 13188
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1210
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 43,
+        "top": 92,
+        "right": 119,
+        "bottom": 148,
+        "width": 77,
+        "height": 57,
+        "pixels": 3333,
+        "edgePixels": 0
+      },
+      "sha256": "d5f126f70c3df41c12fc205b7eb3bc2ce33a926db97b15b05ec0dc1c085c02d3"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 561,
+        "top": 1105,
+        "width": 159,
+        "height": 105
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 104,
+        "width": 159,
+        "height": 105,
+        "pixels": 13066
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1210
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 44,
+        "top": 98,
+        "right": 122,
+        "bottom": 149,
+        "width": 79,
+        "height": 52,
+        "pixels": 3241,
+        "edgePixels": 0
+      },
+      "sha256": "dbf6a5e6b0c42de3cef63dd127efc955d2a148990ef6df65c578c62cf2ac77f9"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 736,
+        "top": 1102,
+        "width": 162,
+        "height": 108
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 107,
+        "width": 162,
+        "height": 108,
+        "pixels": 12831
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1210
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 41,
+        "top": 96,
+        "right": 121,
+        "bottom": 149,
+        "width": 81,
+        "height": 54,
+        "pixels": 3245,
+        "edgePixels": 0
+      },
+      "sha256": "0c64f16abce4ff4cbfe7b384195cb52b961cc43b402ae6c90cee2b11c0bfd3ae"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 916,
+        "top": 1084,
+        "width": 154,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 122,
+        "width": 154,
+        "height": 123,
+        "pixels": 13409
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1210
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 87,
+        "right": 116,
+        "bottom": 147,
+        "width": 77,
+        "height": 61,
+        "pixels": 3370,
+        "edgePixels": 0
+      },
+      "sha256": "f50e945a2266dac88817466cb75a1d09dbaf80c66d856fecaf2f08e4063a6664"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 20,
+        "top": 1257,
+        "width": 172,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 127,
+        "width": 172,
+        "height": 128,
+        "pixels": 15167
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1397
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 45,
+        "top": 80,
+        "right": 130,
+        "bottom": 143,
+        "width": 86,
+        "height": 64,
+        "pixels": 3831,
+        "edgePixels": 0
+      },
+      "sha256": "a9a9df76e708221dfc858166a792f5f8d1df0b703b7a49b736d6a1efc27506ab"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 191,
+        "top": 1287,
+        "width": 171,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 105,
+        "width": 171,
+        "height": 106,
+        "pixels": 13183
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1397
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 95,
+        "right": 124,
+        "bottom": 147,
+        "width": 85,
+        "height": 53,
+        "pixels": 3333,
+        "edgePixels": 0
+      },
+      "sha256": "a9384c0f4d01ff012f530d583f7c847ffd627acb9d87449931262331279f775a"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 368,
+        "top": 1294,
+        "width": 168,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 102,
+        "width": 168,
+        "height": 103,
+        "pixels": 13031
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1397
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 99,
+        "right": 121,
+        "bottom": 149,
+        "width": 84,
+        "height": 51,
+        "pixels": 3285,
+        "edgePixels": 0
+      },
+      "sha256": "6a3bcdb949d5a2b94b97ec835833812504724aea7d575a3c6b720418e74de0d0"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 542,
+        "top": 1307,
+        "width": 170,
+        "height": 95
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 94,
+        "width": 170,
+        "height": 95,
+        "pixels": 11481
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1397
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 34,
+        "top": 105,
+        "right": 118,
+        "bottom": 151,
+        "width": 85,
+        "height": 47,
+        "pixels": 2895,
+        "edgePixels": 0
+      },
+      "sha256": "b8ebfabda25852cc3e6b0888f034340ef74567d6d5c33139f8a57d3361e37c61"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 726,
+        "top": 1314,
+        "width": 169,
+        "height": 90
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 89,
+        "width": 169,
+        "height": 90,
+        "pixels": 11370
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1397
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 109,
+        "right": 119,
+        "bottom": 153,
+        "width": 84,
+        "height": 45,
+        "pixels": 2867,
+        "edgePixels": 0
+      },
+      "sha256": "9bb11e15795efca7aa0558dea6044339405ba3707e9971273b06f31a3c357b31"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 905,
+        "top": 1315,
+        "width": 169,
+        "height": 82
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 81,
+        "width": 169,
+        "height": 82,
+        "pixels": 9504
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thunder-ram/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1397
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 35,
+        "top": 109,
+        "right": 118,
+        "bottom": 149,
+        "width": 84,
+        "height": 41,
+        "pixels": 2401,
+        "edgePixels": 0
+      },
+      "sha256": "84a8ccab3b6ea27733cf37f6a88347df79e4abb258f149eb63cfbd6456d82067"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

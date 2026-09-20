@@ -1,0 +1,15 @@
+{
+  "generator": "built-in image_gen",
+  "generationSourcePath": "C:/Users/clopt/.codex/generated_images/01a0bb26-35be-7a93-9773-ce24aa252f30/exec-df93b10e-0d12-4874-946e-67b5918ee585.png",
+  "prompt": "telegraph-supplement-prompt.md",
+  "source": "telegraph-supplement.png",
+  "sha256": "380105a343e1eb86ae95afeb4624c00605c99281d300c1febea85b9c0ea3ecf8",
+  "dimensions": {
+    "width": 1536,
+    "height": 1024
+  },
+  "columns": 3,
+  "rows": 2,
+  "reference": "source.png",
+  "visualReview": "Inspected six distinct preparation/committed poses with exactly one dagger. Parent confirmed flattened-white alpha inspection."
+}

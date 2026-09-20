@@ -1,0 +1,37 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "cinder-spitter",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-a6bf77e9-9063-45fb-9ad9-6ad802ffcece.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/cinder-spitter.png",
+    "img/project-starfall/animations/enemies/cinder-spitter-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": false,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Raw inspected: identity and actor-only articulation accepted pending registration.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/cinder-spitter-sheet.png",
+    "portrait": "img/project-starfall/enemies/cinder-spitter.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "26e136025df218ddba788024e7e16cdcca944f3da50567da303e885608f9bcdc",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  }
+}

@@ -8,6 +8,13 @@ const MEASUREMENT_ID = 'G-0VL37MQ62P';
 
 const tagGroups = [
   {
+    tagId: '51',
+    triggerId: '52',
+    name: 'Web Vitals',
+    trigger: '^web_vital$',
+    eventSettingsVariable: 'EVS - Web vital parameters'
+  },
+  {
     tagId: '6',
     triggerId: '5',
     name: 'Home Explore Select',
@@ -125,7 +132,11 @@ const dataLayerVariables = [
   ['46', 'page_title'],
   ['47', 'page_referrer'],
   ['48', 'analytics_debug'],
-  ['49', 'traffic_type']
+  ['49', 'traffic_type'],
+  ['53', 'metric_name'],
+  ['54', 'metric_value'],
+  ['55', 'metric_rating'],
+  ['56', 'page_path']
 ];
 
 // Undefined values stay undefined in GTM: debug_mode=false still enables GA4
@@ -324,7 +335,11 @@ const containerVersion = {
   variable: [
     ...dataLayerVariables.map(makeDataLayerVariable),
     eventSettingsVariable,
-    virtualPageSettingsVariable
+    virtualPageSettingsVariable,
+    makeEventSettingsVariable('57', 'EVS - Web vital parameters', [
+      ...['metric_name', 'metric_value', 'metric_rating', 'page_path', 'page_id', 'audience'].map(name => [name, name]),
+      ...qaParameters
+    ], 402)
   ],
   builtInVariable: [
     { accountId: ACCOUNT_ID, containerId: CONTAINER_ID, type: 'PAGE_URL', name: 'Page URL' },

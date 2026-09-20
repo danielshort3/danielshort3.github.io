@@ -1,0 +1,1965 @@
+{
+  "fileId": "astral-archivist",
+  "sourceSha256": "e9515fd9369e0e6b1bdc06d7e29b4ed28fc886a96b103ac5b7dacec3067f547b",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    213,
+    385,
+    561,
+    733,
+    905,
+    1086,
+    1262,
+    1448
+  ],
+  "sharedScale": 0.5621132075471698,
+  "floating": true,
+  "registration": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 84,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/astral-archivist-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 596769,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 23,
+        "top": 52,
+        "width": 156,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 149,
+        "width": 156,
+        "height": 150,
+        "pixels": 16578
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 127
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 42,
+        "top": 38,
+        "right": 129,
+        "bottom": 121,
+        "width": 88,
+        "height": 84,
+        "pixels": 5300,
+        "edgePixels": 0
+      },
+      "sha256": "751db404f973d8fced246b4e3a15d59e8a212a3cf12097e216acfc79d5763aa6"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 196,
+        "top": 52,
+        "width": 164,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 149,
+        "width": 164,
+        "height": 150,
+        "pixels": 15889
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 127
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 38,
+        "right": 129,
+        "bottom": 121,
+        "width": 92,
+        "height": 84,
+        "pixels": 5037,
+        "edgePixels": 0
+      },
+      "sha256": "24c245144283553a269256c6914976a9efa2425ceaa64acb6f359bcc1d15dd73"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 379,
+        "top": 52,
+        "width": 163,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 149,
+        "width": 163,
+        "height": 150,
+        "pixels": 16015
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 127
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 39,
+        "top": 38,
+        "right": 130,
+        "bottom": 121,
+        "width": 92,
+        "height": 84,
+        "pixels": 5134,
+        "edgePixels": 0
+      },
+      "sha256": "5f0d9bbf6f41a3ada203941450e9e3ce0bc69982a288470e41d206ae491ee9ac"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 560,
+        "top": 55,
+        "width": 159,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 145,
+        "width": 159,
+        "height": 146,
+        "pixels": 15579
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 127
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 39,
+        "top": 40,
+        "right": 127,
+        "bottom": 121,
+        "width": 89,
+        "height": 82,
+        "pixels": 4949,
+        "edgePixels": 0
+      },
+      "sha256": "bc85101c9525f0ea95cf6fecb247e181ea077e988597594ffe7137cc9e72f423"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 741,
+        "top": 48,
+        "width": 162,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 153,
+        "width": 162,
+        "height": 154,
+        "pixels": 15743
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 127
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 36,
+        "right": 129,
+        "bottom": 122,
+        "width": 91,
+        "height": 87,
+        "pixels": 5068,
+        "edgePixels": 0
+      },
+      "sha256": "7c2e2791d5463e1f4be8877cad6c10d5c733c92454ec966d47877d199be9e367"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 917,
+        "top": 51,
+        "width": 157,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 150,
+        "width": 157,
+        "height": 151,
+        "pixels": 16089
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 127
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 37,
+        "right": 123,
+        "bottom": 121,
+        "width": 88,
+        "height": 85,
+        "pixels": 5134,
+        "edgePixels": 0
+      },
+      "sha256": "27e328525c5725039141943619dc583a4a9bc7b9ec53ca18ee17395b56ec104f"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 16,
+        "top": 11,
+        "width": 171,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 145,
+        "width": 171,
+        "height": 146,
+        "pixels": 15978
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 88
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 37,
+        "right": 133,
+        "bottom": 118,
+        "width": 96,
+        "height": 82,
+        "pixels": 5083,
+        "edgePixels": 0
+      },
+      "sha256": "662050846a1f11c060ee4788f8c6c725511876f8c84cc0c089419c26d1749a81"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 189,
+        "top": 14,
+        "width": 170,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 147,
+        "width": 170,
+        "height": 148,
+        "pixels": 15558
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 88
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 38,
+        "right": 129,
+        "bottom": 120,
+        "width": 96,
+        "height": 83,
+        "pixels": 4990,
+        "edgePixels": 0
+      },
+      "sha256": "3a49e5835eb842ca3f3d5bf5fe18433b9a81c44c962c874ab1cb14c7dba4ceff"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 370,
+        "top": 15,
+        "width": 172,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 145,
+        "width": 172,
+        "height": 146,
+        "pixels": 15356
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 88
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 34,
+        "top": 39,
+        "right": 130,
+        "bottom": 120,
+        "width": 97,
+        "height": 82,
+        "pixels": 4923,
+        "edgePixels": 0
+      },
+      "sha256": "d4a6a6ac3726af331407cd9fbdaa8d6e3ae9a7d18466ea41ac24b275db93a7f7"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 553,
+        "top": 19,
+        "width": 166,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 141,
+        "width": 166,
+        "height": 142,
+        "pixels": 15133
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 88
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 41,
+        "right": 127,
+        "bottom": 120,
+        "width": 93,
+        "height": 80,
+        "pixels": 4835,
+        "edgePixels": 0
+      },
+      "sha256": "62a677d292f3cbe5b3a1f232b1a4451f98813dae18c1c53a57486bb4fab50030"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 738,
+        "top": 15,
+        "width": 172,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 145,
+        "width": 172,
+        "height": 146,
+        "pixels": 15787
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 88
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 37,
+        "top": 39,
+        "right": 133,
+        "bottom": 120,
+        "width": 97,
+        "height": 82,
+        "pixels": 5066,
+        "edgePixels": 0
+      },
+      "sha256": "55dee837a6ba71624176a8e712ad1ed8225bb85cdcb4f839e2db2f617df4f5b5"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 915,
+        "top": 16,
+        "width": 157,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 145,
+        "width": 157,
+        "height": 146,
+        "pixels": 15048
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 88
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 35,
+        "top": 40,
+        "right": 122,
+        "bottom": 121,
+        "width": 88,
+        "height": 82,
+        "pixels": 4775,
+        "edgePixels": 0
+      },
+      "sha256": "7424dd3e0be51f42032b8357205aacd84cba49d904052211afcf8effd680904b"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 16,
+        "top": 15,
+        "width": 163,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 147,
+        "width": 163,
+        "height": 148,
+        "pixels": 15774
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 89
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 38,
+        "right": 129,
+        "bottom": 120,
+        "width": 92,
+        "height": 83,
+        "pixels": 5050,
+        "edgePixels": 0
+      },
+      "sha256": "12f08c9f788ca9b150b0cda0ca61f657ef1c316f834b2623abfd8538c905413b"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 193,
+        "top": 18,
+        "width": 179,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 146,
+        "width": 179,
+        "height": 147,
+        "pixels": 15945
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 89
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 36,
+        "top": 40,
+        "right": 136,
+        "bottom": 122,
+        "width": 101,
+        "height": 83,
+        "pixels": 5117,
+        "edgePixels": 0
+      },
+      "sha256": "98af79b4e8d510343ed40743a986aded1120ff666175dde232520d42854850f9"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 381,
+        "top": 8,
+        "width": 151,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 158,
+        "width": 151,
+        "height": 159,
+        "pixels": 16069
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 89
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 34,
+        "right": 124,
+        "bottom": 122,
+        "width": 85,
+        "height": 89,
+        "pixels": 5139,
+        "edgePixels": 0
+      },
+      "sha256": "8fa07cfda9b55118ca746c9631aa4b849597bb63d3c5f903f51c913397bc5a3b"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 556,
+        "top": 15,
+        "width": 160,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 149,
+        "width": 160,
+        "height": 150,
+        "pixels": 16081
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 89
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 38,
+        "right": 125,
+        "bottom": 121,
+        "width": 90,
+        "height": 84,
+        "pixels": 5130,
+        "edgePixels": 0
+      },
+      "sha256": "a4cba7cd96419631687c2e8a2022842cf87b13bbd352c232644da7dfd46d38fa"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 724,
+        "top": 7,
+        "width": 176,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 157,
+        "width": 176,
+        "height": 158,
+        "pixels": 16780
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 89
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 29,
+        "top": 34,
+        "right": 127,
+        "bottom": 122,
+        "width": 99,
+        "height": 89,
+        "pixels": 5363,
+        "edgePixels": 0
+      },
+      "sha256": "48479f37c691151c6274cc46c0a1d3154a71f89a49d6fa4d039fc73c87be2792"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 910,
+        "top": 8,
+        "width": 156,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 156,
+        "width": 156,
+        "height": 157,
+        "pixels": 15894
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 89
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 34,
+        "right": 119,
+        "bottom": 121,
+        "width": 88,
+        "height": 88,
+        "pixels": 5091,
+        "edgePixels": 0
+      },
+      "sha256": "a65830b4e796efc53fcd7145d223bd23412a495f0bc665cd2290124d1d1f20e1"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 17,
+        "top": 11,
+        "width": 174,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 148,
+        "width": 174,
+        "height": 149,
+        "pixels": 15980
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 89
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 36,
+        "right": 136,
+        "bottom": 119,
+        "width": 98,
+        "height": 84,
+        "pixels": 5118,
+        "edgePixels": 0
+      },
+      "sha256": "86f311c1bc91fdaabc92bc443ea66060f47f8506ebf14c37dabdd55c8d73f062"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 191,
+        "top": 16,
+        "width": 167,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 146,
+        "width": 167,
+        "height": 147,
+        "pixels": 15560
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 89
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 39,
+        "right": 128,
+        "bottom": 121,
+        "width": 94,
+        "height": 83,
+        "pixels": 5003,
+        "edgePixels": 0
+      },
+      "sha256": "b8b8e1ecca5caf6f66026c414fa3f16a1118284685f0f58915a44a0633f0189f"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 363,
+        "top": 17,
+        "width": 169,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 146,
+        "width": 169,
+        "height": 147,
+        "pixels": 16359
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 89
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 40,
+        "right": 124,
+        "bottom": 122,
+        "width": 95,
+        "height": 83,
+        "pixels": 5245,
+        "edgePixels": 0
+      },
+      "sha256": "b67fb3af3fa07bf4e5bee58a9e005fa55ac08a2c675abb2aa95582d9209053b6"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 548,
+        "top": 16,
+        "width": 170,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 145,
+        "width": 170,
+        "height": 146,
+        "pixels": 15720
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 89
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 32,
+        "top": 39,
+        "right": 127,
+        "bottom": 120,
+        "width": 96,
+        "height": 82,
+        "pixels": 5036,
+        "edgePixels": 0
+      },
+      "sha256": "7832827997c955ace99db0c44ff3b2c876c008c5733de6c8afd9469d3a27db2f"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 722,
+        "top": 16,
+        "width": 169,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 145,
+        "width": 169,
+        "height": 146,
+        "pixels": 16085
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 89
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 39,
+        "right": 122,
+        "bottom": 120,
+        "width": 95,
+        "height": 82,
+        "pixels": 5117,
+        "edgePixels": 0
+      },
+      "sha256": "309b0c9a9c105326ac70ec5f4c75302e347babbba4192fbefe8a38aff65e2626"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 908,
+        "top": 14,
+        "width": 163,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 145,
+        "width": 163,
+        "height": 146,
+        "pixels": 15789
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 89
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 38,
+        "right": 122,
+        "bottom": 119,
+        "width": 92,
+        "height": 82,
+        "pixels": 5067,
+        "edgePixels": 0
+      },
+      "sha256": "47cf10ab28a400b92e4405c6d4ae071e436a3068d54652d272a867c6b35ad99d"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 18,
+        "top": 18,
+        "width": 205,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 204,
+        "bottom": 140,
+        "width": 205,
+        "height": 141,
+        "pixels": 14905
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 89
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 40,
+        "right": 153,
+        "bottom": 118,
+        "width": 115,
+        "height": 79,
+        "pixels": 4730,
+        "edgePixels": 0
+      },
+      "sha256": "0c523b5711d5760a9f7034db16c7642383f3f5d3c6e1c6fa1c5ec41f74f1be80"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 192,
+        "top": 9,
+        "width": 177,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 150,
+        "width": 177,
+        "height": 151,
+        "pixels": 15997
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 89
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 35,
+        "right": 133,
+        "bottom": 119,
+        "width": 99,
+        "height": 85,
+        "pixels": 5093,
+        "edgePixels": 0
+      },
+      "sha256": "84468435066a27d7448ac647cf929b502bd7eacbad7fb908c6e6e921bf20210d"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 375,
+        "top": 19,
+        "width": 175,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 144,
+        "width": 175,
+        "height": 145,
+        "pixels": 15944
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 89
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 41,
+        "right": 133,
+        "bottom": 122,
+        "width": 98,
+        "height": 82,
+        "pixels": 5140,
+        "edgePixels": 0
+      },
+      "sha256": "496b3655310b5e78284dd84bb68c01afb4a46871d361306f3bd79b975dbe999e"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 555,
+        "top": 13,
+        "width": 163,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 147,
+        "width": 163,
+        "height": 148,
+        "pixels": 15847
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 89
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 37,
+        "right": 127,
+        "bottom": 119,
+        "width": 92,
+        "height": 83,
+        "pixels": 5083,
+        "edgePixels": 0
+      },
+      "sha256": "ff5ebbd5c4358cb24df4326ed8151cfba3b7ae803b9052346ad0711c60df52f6"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 737,
+        "top": 16,
+        "width": 161,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 145,
+        "width": 161,
+        "height": 146,
+        "pixels": 16104
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 89
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 39,
+        "right": 126,
+        "bottom": 120,
+        "width": 91,
+        "height": 82,
+        "pixels": 5172,
+        "edgePixels": 0
+      },
+      "sha256": "68a648b41f3e8cef478ac8c3940d2f4ce67f4d4c5613b79449880023d2cf8909"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 913,
+        "top": 18,
+        "width": 155,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 146,
+        "width": 155,
+        "height": 147,
+        "pixels": 15963
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 89
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 34,
+        "top": 40,
+        "right": 120,
+        "bottom": 122,
+        "width": 87,
+        "height": 83,
+        "pixels": 5136,
+        "edgePixels": 0
+      },
+      "sha256": "872c94f6c8e3545708482b5bf332be5c6ecb88c230625ae43b28c74903840675"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 20,
+        "top": 18,
+        "width": 159,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 150,
+        "width": 159,
+        "height": 151,
+        "pixels": 15800
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 93.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 40,
+        "top": 38,
+        "right": 128,
+        "bottom": 122,
+        "width": 89,
+        "height": 85,
+        "pixels": 5030,
+        "edgePixels": 0
+      },
+      "sha256": "6279bdfb6bd3eda33d49ba80a0f415ccec750ac373121c37d9b5e8e5e9839a8a"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 190,
+        "top": 10,
+        "width": 159,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 160,
+        "width": 159,
+        "height": 161,
+        "pixels": 17286
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 93.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 33,
+        "right": 122,
+        "bottom": 123,
+        "width": 89,
+        "height": 91,
+        "pixels": 5542,
+        "edgePixels": 0
+      },
+      "sha256": "d86963455899101618966f8eb45f32c545dc840c98cf8cc1817298633bad7ba5"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 376,
+        "top": 20,
+        "width": 164,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 149,
+        "width": 164,
+        "height": 150,
+        "pixels": 16656
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 93.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 37,
+        "top": 39,
+        "right": 128,
+        "bottom": 122,
+        "width": 92,
+        "height": 84,
+        "pixels": 5281,
+        "edgePixels": 0
+      },
+      "sha256": "adc53af7b532839ec80ef115be33689eeed65cdde30e1dd7eaf418aae46b868d"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 550,
+        "top": 19,
+        "width": 163,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 148,
+        "width": 163,
+        "height": 149,
+        "pixels": 16558
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 93.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 38,
+        "right": 124,
+        "bottom": 121,
+        "width": 92,
+        "height": 84,
+        "pixels": 5318,
+        "edgePixels": 0
+      },
+      "sha256": "074f98897ab4ff6781c1b3766dda58dad82fcb16c3fa8938891007f92cb2e146"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 726,
+        "top": 6,
+        "width": 163,
+        "height": 164
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 163,
+        "width": 163,
+        "height": 164,
+        "pixels": 16887
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 93.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 31,
+        "right": 121,
+        "bottom": 122,
+        "width": 92,
+        "height": 92,
+        "pixels": 5423,
+        "edgePixels": 0
+      },
+      "sha256": "fd1e781520a55cfb088ca552cacc7cfafee4da05af76c37cfcd8bbca5fa26320"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 911,
+        "top": 30,
+        "width": 159,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 142,
+        "width": 159,
+        "height": 143,
+        "pixels": 15385
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 93.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 44,
+        "right": 121,
+        "bottom": 123,
+        "width": 89,
+        "height": 80,
+        "pixels": 4864,
+        "edgePixels": 0
+      },
+      "sha256": "21476260b2a39f904ee4757035291ea6dd7f415936e2838af65c8cee587dbc34"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 18,
+        "top": 5,
+        "width": 157,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 157,
+        "width": 157,
+        "height": 158,
+        "pixels": 15493
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 90.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 32,
+        "right": 126,
+        "bottom": 120,
+        "width": 88,
+        "height": 89,
+        "pixels": 4959,
+        "edgePixels": 0
+      },
+      "sha256": "d8c15e1ba13039abb16be45664b3f9ff840e3094fb3b29e4019b5c84a46fc541"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 190,
+        "top": 23,
+        "width": 163,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 138,
+        "width": 163,
+        "height": 139,
+        "pixels": 14990
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 90.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 42,
+        "right": 125,
+        "bottom": 119,
+        "width": 92,
+        "height": 78,
+        "pixels": 4812,
+        "edgePixels": 0
+      },
+      "sha256": "6b424ec512b8bd598b76c052a159164988d748332dac488cdf48eef14ce0aadf"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 379,
+        "top": 19,
+        "width": 161,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 142,
+        "width": 161,
+        "height": 143,
+        "pixels": 14989
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 90.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 39,
+        "top": 40,
+        "right": 129,
+        "bottom": 119,
+        "width": 91,
+        "height": 80,
+        "pixels": 4833,
+        "edgePixels": 0
+      },
+      "sha256": "8ee5fd6105d35e7e97db295bae43d0dbbdee5dc84adba5d8fc6cb081e25e50d1"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 550,
+        "top": 12,
+        "width": 152,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 147,
+        "width": 152,
+        "height": 148,
+        "pixels": 15484
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 90.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 36,
+        "right": 117,
+        "bottom": 118,
+        "width": 85,
+        "height": 83,
+        "pixels": 4909,
+        "edgePixels": 0
+      },
+      "sha256": "482b04a71f11ac0be34c096d6c270bec9622ca8d1d0da15e420195ec25398530"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 733,
+        "top": 21,
+        "width": 155,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 143,
+        "width": 155,
+        "height": 144,
+        "pixels": 15195
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 90.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 41,
+        "right": 120,
+        "bottom": 121,
+        "width": 87,
+        "height": 81,
+        "pixels": 4851,
+        "edgePixels": 0
+      },
+      "sha256": "9f8a5c47e1bb629d699455e8ae4954b49f89516a6731dd4ff91d42a76a88b627"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 908,
+        "top": 12,
+        "width": 163,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 148,
+        "width": 163,
+        "height": 149,
+        "pixels": 16107
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 90.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 36,
+        "right": 122,
+        "bottom": 119,
+        "width": 92,
+        "height": 84,
+        "pixels": 5173,
+        "edgePixels": 0
+      },
+      "sha256": "f4b9b14974e4709633f4798f543288a19e462c69a1007b1ee0adb514e065e7c6"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 65,
+        "top": 113,
+        "width": 376,
+        "height": 389
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 375,
+        "bottom": 388,
+        "width": 376,
+        "height": 389,
+        "pixels": 88446
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/defeat-supplement.png",
+      "scaleFactor": 0.3856041131105398,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 253,
+        "y": 307.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 38,
+        "right": 119,
+        "bottom": 121,
+        "width": 81,
+        "height": 84,
+        "pixels": 4241,
+        "edgePixels": 0
+      },
+      "sha256": "10d24c7029bcb77db49f2b27fdebcebca04cc6d5acfba9d5eb36ec20f3e8c93f"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 582,
+        "top": 175,
+        "width": 364,
+        "height": 357
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 363,
+        "bottom": 356,
+        "width": 364,
+        "height": 357,
+        "pixels": 84659
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/defeat-supplement.png",
+      "scaleFactor": 0.3856041131105398,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 764,
+        "y": 353.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 41,
+        "right": 119,
+        "bottom": 117,
+        "width": 79,
+        "height": 77,
+        "pixels": 4099,
+        "edgePixels": 0
+      },
+      "sha256": "f2410ca0ea0d822d89239cc2471fa7240055956b0f23f345ef46a7d4e2ee6f5c"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 1086,
+        "top": 267,
+        "width": 386,
+        "height": 283
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 385,
+        "bottom": 282,
+        "width": 386,
+        "height": 283,
+        "pixels": 72953
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/defeat-supplement.png",
+      "scaleFactor": 0.3856041131105398,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1279,
+        "y": 408.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 49,
+        "right": 121,
+        "bottom": 109,
+        "width": 84,
+        "height": 61,
+        "pixels": 3543,
+        "edgePixels": 0
+      },
+      "sha256": "1554fa28fee0dc41fd67087d2925c76fc03b304b77420cf6772ad5b7245b888d"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 44,
+        "top": 730,
+        "width": 450,
+        "height": 237
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 449,
+        "bottom": 236,
+        "width": 450,
+        "height": 237,
+        "pixels": 70509
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/defeat-supplement.png",
+      "scaleFactor": 0.3856041131105398,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 269,
+        "y": 848.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 54,
+        "right": 128,
+        "bottom": 104,
+        "width": 98,
+        "height": 51,
+        "pixels": 3430,
+        "edgePixels": 0
+      },
+      "sha256": "f7599b91b580ec8f679dafab3b7e54461ab5a4ea49761ed7838721195f9be5cd"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 570,
+        "top": 781,
+        "width": 423,
+        "height": 188
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 422,
+        "bottom": 187,
+        "width": 423,
+        "height": 188,
+        "pixels": 60352
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/defeat-supplement.png",
+      "scaleFactor": 0.3856041131105398,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 781.5,
+        "y": 875
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 60,
+        "right": 125,
+        "bottom": 100,
+        "width": 92,
+        "height": 41,
+        "pixels": 2951,
+        "edgePixels": 0
+      },
+      "sha256": "37323535bea8581366f26c0f5b6a55ffbde0b42a830831a2e5a13cddb5e62805"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 1064,
+        "top": 786,
+        "width": 433,
+        "height": 183
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 432,
+        "bottom": 182,
+        "width": 433,
+        "height": 183,
+        "pixels": 58090
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/astral-archivist/defeat-supplement.png",
+      "scaleFactor": 0.3856041131105398,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1280.5,
+        "y": 877.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 33,
+        "top": 60,
+        "right": 126,
+        "bottom": 99,
+        "width": 94,
+        "height": 40,
+        "pixels": 2862,
+        "edgePixels": 0
+      },
+      "sha256": "edac23d591a678748fb18c1d053973086628a08a56038ba344d4453cf48dd806"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

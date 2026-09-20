@@ -4,8 +4,9 @@
 
   const CONTACT_CONTEXT_KEY = 'contactOrigin';
   const MAX_CONTEXT_AGE_MS = 15 * 60 * 1000;
+  const SUBMISSION_DEADLINE_MS = 25000;
+  const DELIVERY_UNKNOWN = 'We couldn’t confirm delivery. Your message may have been sent. Your draft is still here.';
   const ROUTE_CONTENT_SELECTOR = '[data-site-route-body], [data-site-route-content], [data-personal-detail-content]';
-  const drafts = new Map();
   let activeContact = null;
 
   const query = (root, selector) => root?.querySelector?.(selector) || null;
@@ -109,19 +110,20 @@
     const form = query(modal, '#contact-form');
     const statusEl = query(modal, '#contact-status');
     const altContact = query(modal, '#contact-alt');
-    const resetBtn = query(form, '[data-contact-reset]');
     const submitBtn = query(form, '[type="submit"]');
+    const submitLabel = query(submitBtn, '.btn-label');
     const successPanel = query(modal, '#contact-success');
     const newMessageBtn = query(successPanel, '[data-contact-new]');
     const endpoint = form?.dataset.endpoint || form?.getAttribute('action') || '';
     const nameInput = query(form, '#contact-name');
     const emailInput = query(form, '#contact-email');
     const messageInput = query(form, '#contact-message');
-    const draftKey = String(document.body?.dataset.audience || 'personal');
+    const draftKey = `contact:${String(document.body?.dataset.audience || 'personal')}`;
     const draftInputs = { name: nameInput, email: emailInput, message: messageInput };
-    const previousDraft = drafts.get(draftKey);
-    if (previousDraft) Object.entries(draftInputs).forEach(([key, input]) => {
-      if (input && !input.value) input.value = previousDraft[key] || '';
+    const previousDraft = window.SiteSessionDrafts?.read(draftKey);
+    const canRestore = previousDraft && Object.values(draftInputs).every((input) => !input?.value);
+    if (canRestore) Object.entries(draftInputs).forEach(([key, input]) => {
+      if (input && typeof previousDraft[key] === 'string') input.value = previousDraft[key];
     });
     const fieldConfigs = [
       { input: nameInput, indicator: query(modal, '#contact-name-required') },
@@ -131,11 +133,37 @@
     let prevFocus = null;
     let sending = false;
     let submitController = null;
+    let submissionToken = 0;
+    let submissionTimer = 0;
+    let draftTimer = 0;
+    let hasFailure = false;
+    let restoredDraft = Boolean(canRestore);
+    let dismissDraftNotice = null;
+    let releaseDraftNotice = null;
     let hashOpenTimer = 0;
     let disposed = false;
     const modalAccessibility = typeof window.createModalAccessibility === 'function'
       ? window.createModalAccessibility(modal)
       : null;
+    const persistDraft = () => {
+      if (draftTimer) window.clearTimeout(draftTimer);
+      draftTimer = 0;
+      const fields = Object.fromEntries(Object.entries(draftInputs).map(([key, input]) => [key, input?.value || '']));
+      if (Object.values(fields).some((value) => value.trim())) window.SiteSessionDrafts?.write(draftKey, fields);
+      else window.SiteSessionDrafts?.remove(draftKey);
+    };
+    const clearDraft = () => {
+      if (draftTimer) window.clearTimeout(draftTimer);
+      draftTimer = 0;
+      restoredDraft = false;
+      dismissDraftNotice?.();
+      dismissDraftNotice = null;
+      window.SiteSessionDrafts?.remove(draftKey);
+    };
+    const scheduleDraft = () => {
+      if (draftTimer) window.clearTimeout(draftTimer);
+      draftTimer = window.setTimeout(persistDraft, 500);
+    };
 
     fieldConfigs.forEach((config) => {
       if (config.indicator) config.defaultIndicator = config.indicator.textContent.trim() || '- Required';
@@ -182,6 +210,10 @@
       if (!submitBtn) return;
       submitBtn.disabled = sending || !endpoint;
       submitBtn.classList.toggle('is-busy', sending);
+      if (submitLabel) submitLabel.textContent = sending ? 'Sending…' : hasFailure ? 'Retry' : 'Send Message';
+      Object.values(draftInputs).forEach((input) => { if (input) input.readOnly = sending; });
+      const discardDraft = content?.querySelector('.draft-recovery-notice button');
+      if (discardDraft) discardDraft.disabled = sending;
     };
     const showFieldError = (config, invalid = false) => {
       if (!config?.input) return;
@@ -234,7 +266,7 @@
         modal.classList.toggle('contact-success', show);
         if (show) {
           if (body) body.scrollTop = 0;
-          successPanel.focus();
+          if (modal.classList.contains('active')) successPanel.focus();
         }
       };
       if (window.SiteMotion && modal.classList.contains('active')) window.SiteMotion.swap(body, update);
@@ -243,9 +275,11 @@
     const clearInputs = () => {
       form?.reset();
       fieldConfigs.forEach(clearFieldError);
+      clearDraft();
     };
     const prepareForm = () => {
-      sending = false;
+      if (sending) return;
+      hasFailure = false;
       form?.setAttribute('aria-busy', 'false');
       toggleSuccess(false);
       setStatus('');
@@ -265,7 +299,9 @@
         focusDialog();
         return;
       }
-      if (modal.dataset.motionState !== 'closing') prepareForm();
+      // Closing the dialog does not finish its request. Retain its pending or
+      // failed state on reopen so a second request cannot accidentally be sent.
+      if (!sending && !hasFailure && !modal.classList.contains('contact-success') && modal.dataset.motionState !== 'closing') prepareForm();
       trackContactEvent('contact_modal_open', { page_path: currentPathname() });
       if (!modal.contains(document.activeElement)) prevFocus = document.activeElement;
       modalAccessibility?.show();
@@ -276,11 +312,27 @@
       modalAccessibility?.isolateBackground();
       content.addEventListener('keydown', trap);
       window.requestAnimationFrame(focusDialog);
+      if (restoredDraft) {
+        restoredDraft = false;
+        dismissDraftNotice = window.SiteSessionDrafts?.notice({ container: content.querySelector('.modal-body') || content, duration: 0, reserve: true, onDiscard: () => {
+          if (sending) return false;
+          clearInputs();
+          setStatus('');
+          nameInput?.focus();
+        } });
+        releaseDraftNotice = dismissDraftNotice?.release || null;
+      }
     };
     const close = ({ restoreFocus = true, immediate = false } = {}) => {
       if (!content || !modal.classList.contains('active')) return;
       trackContactEvent('contact_modal_close', { page_path: currentPathname() });
+      persistDraft();
+      dismissDraftNotice?.();
+      dismissDraftNotice = null;
       const onFinish = () => {
+        releaseDraftNotice?.();
+        releaseDraftNotice = null;
+        dismissDraftNotice = null;
         content.removeEventListener('keydown', trap);
         if (restoreFocus) {
           if (prevFocus && prevFocus !== document.body && document.contains(prevFocus)) {
@@ -325,7 +377,12 @@
         return;
       }
       trackContactEvent('contact_form_submit', { page_path: currentPathname() });
+      persistDraft();
+      dismissDraftNotice?.();
+      dismissDraftNotice = null;
       sending = true;
+      hasFailure = false;
+      const token = ++submissionToken;
       form.setAttribute('aria-busy', 'true');
       setStatus('Sending message…', 'info', { focus: true });
       updateSubmitState();
@@ -342,28 +399,46 @@
           pageTitle: pageContext.title || '',
           company: String(formData.get('company') || '').trim()
         };
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          ...(submitController ? { signal: submitController.signal } : {})
+        const request = (async () => {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            ...(submitController ? { signal: submitController.signal } : {})
+          });
+          const data = await response.json().catch(() => null);
+          return { response, data };
+        })();
+        const timeout = new Promise((_, reject) => {
+          submissionTimer = window.setTimeout(() => {
+            reject(new Error(DELIVERY_UNKNOWN));
+            submitController?.abort();
+          }, SUBMISSION_DEADLINE_MS);
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.error) throw new Error(data.error || 'Unable to send message.');
-        if (disposed) return;
+        const { response, data } = await Promise.race([request, timeout]);
+        if (disposed || token !== submissionToken) return;
+        if (!response.ok || data?.ok !== true || data?.error) {
+          const rejected = response.status >= 400 && response.status < 500 && data?.code !== 'CONTACT_DELIVERY_UNKNOWN';
+          throw new Error(rejected ? 'Your message was not accepted. Check the form or email me directly.' : DELIVERY_UNKNOWN);
+        }
         clearInputs();
         setStatus('');
         trackContactEvent('contact_form_success', { page_path: currentPathname() });
         toggleSuccess(true);
       } catch (error) {
-        if (disposed || submitController?.signal.aborted) return;
-        console.error('Contact form submit failed', error);
+        if (disposed || token !== submissionToken) return;
+        hasFailure = true;
+        persistDraft();
         trackContactEvent('contact_form_error', {
           page_path: currentPathname(),
-          reason: String(error?.message || 'unknown').slice(0, 120)
+          reason: error?.message === DELIVERY_UNKNOWN ? 'delivery_unknown' : 'rejected'
         });
-        setStatus(error?.message || 'Something went wrong. Please email me directly.', 'error', { focus: true });
+        const message = error?.message === 'Your message was not accepted. Check the form or email me directly.' ? error.message : DELIVERY_UNKNOWN;
+        setStatus(message, 'error', { focus: modal.classList.contains('active') });
       } finally {
+        if (token !== submissionToken) return;
+        window.clearTimeout(submissionTimer);
+        submissionTimer = 0;
         submitController = null;
         sending = false;
         if (!disposed) {
@@ -381,20 +456,18 @@
       if (sending) event.preventDefault();
     });
     listen(window, 'hashchange', openIfHashMatches);
-    listen(form, 'input', updateSubmitState);
+    listen(form, 'input', () => { updateSubmitState(); scheduleDraft(); });
+    listen(window, 'pagehide', persistDraft);
+    listen(document, 'site:route-before-leave', persistDraft);
     fieldConfigs.forEach((config) => {
       listen(config.input, 'input', () => {
         if (config.input?.getAttribute('aria-invalid') === 'true') validateField(config);
       });
       listen(config.input, 'blur', () => validateField(config));
     });
-    listen(resetBtn, 'click', () => {
-      clearInputs();
-      setStatus('');
-      nameInput?.focus();
-    });
     listen(form, 'submit', handleSubmit);
     listen(newMessageBtn, 'click', () => {
+      prepareForm();
       toggleSuccess(false);
       clearInputs();
       setStatus('');
@@ -411,12 +484,18 @@
       get sending() { return sending; },
       dispose() {
         if (disposed) return;
-        drafts.set(draftKey, Object.fromEntries(Object.entries(draftInputs).map(([key, input]) => [key, input?.value || ''])));
+        persistDraft();
+        dismissDraftNotice?.();
         if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
         hashOpenTimer = 0;
         submitController?.abort();
         submitController = null;
+        submissionToken += 1;
+        window.clearTimeout(submissionTimer);
+        submissionTimer = 0;
         close({ restoreFocus: false, immediate: true });
+        releaseDraftNotice?.();
+        releaseDraftNotice = null;
         modalAccessibility?.dispose();
         disposed = true;
         content?.removeEventListener('keydown', trap);

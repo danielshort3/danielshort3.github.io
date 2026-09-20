@@ -1,0 +1,1965 @@
+{
+  "fileId": "ember-wisp",
+  "sourceSha256": "a1de2341470f3406ffef82cec8a9086231eac7540368cc6bad1c794add1b344b",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    180,
+    345,
+    506,
+    669,
+    826,
+    1008,
+    1189,
+    1448
+  ],
+  "sharedScale": 0.7337931034482759,
+  "floating": true,
+  "registration": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 105,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/ember-wisp-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 906012,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 31,
+        "top": 26,
+        "width": 143,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 142,
+        "width": 143,
+        "height": 143,
+        "pixels": 10738
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 97.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 28,
+        "right": 140,
+        "bottom": 132,
+        "width": 105,
+        "height": 105,
+        "pixels": 5818,
+        "edgePixels": 0
+      },
+      "sha256": "d53da526bf0150df054d736d6a21ccb4e3a6cb9d9ad3ffffda85c6c4f81b4804"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 214,
+        "top": 20,
+        "width": 141,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 148,
+        "width": 141,
+        "height": 149,
+        "pixels": 10957
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 97.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 23,
+        "right": 140,
+        "bottom": 131,
+        "width": 103,
+        "height": 109,
+        "pixels": 5870,
+        "edgePixels": 0
+      },
+      "sha256": "842b9d9b10202f02a9ac170af58346518982153fb72ac2c741ed84341a6d589d"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 388,
+        "top": 21,
+        "width": 143,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 147,
+        "width": 143,
+        "height": 148,
+        "pixels": 10992
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 97.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 24,
+        "right": 137,
+        "bottom": 132,
+        "width": 105,
+        "height": 109,
+        "pixels": 5985,
+        "edgePixels": 0
+      },
+      "sha256": "48e3b7059c620db54c20b9d62042b2df0c4042c852ff5a2062d12ce1d3049856"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 571,
+        "top": 21,
+        "width": 138,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 146,
+        "width": 138,
+        "height": 147,
+        "pixels": 10381
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 97.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 34,
+        "top": 24,
+        "right": 134,
+        "bottom": 131,
+        "width": 101,
+        "height": 108,
+        "pixels": 5625,
+        "edgePixels": 0
+      },
+      "sha256": "ed976475492c4da8d4ef5adf796eb6fcedc24f229ce120132a4056556cd668cb"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 748,
+        "top": 25,
+        "width": 141,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 144,
+        "width": 141,
+        "height": 145,
+        "pixels": 10894
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 97.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 27,
+        "right": 133,
+        "bottom": 132,
+        "width": 103,
+        "height": 106,
+        "pixels": 5853,
+        "edgePixels": 0
+      },
+      "sha256": "1d146a19a0583094856d72bb17a2847d36b117f550f5e48a3a072fd08a8c28ba"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 924,
+        "top": 26,
+        "width": 137,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 143,
+        "width": 137,
+        "height": 144,
+        "pixels": 10452
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 97.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 28,
+        "right": 128,
+        "bottom": 133,
+        "width": 101,
+        "height": 106,
+        "pixels": 5707,
+        "edgePixels": 0
+      },
+      "sha256": "5c39e472d79d13d6aa262eb4a926e08a762c30a1f994783f84032c6922034483"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 32,
+        "top": 190,
+        "width": 143,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 141,
+        "width": 143,
+        "height": 142,
+        "pixels": 10884
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 262.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 27,
+        "right": 141,
+        "bottom": 130,
+        "width": 105,
+        "height": 104,
+        "pixels": 5889,
+        "edgePixels": 0
+      },
+      "sha256": "4d7b8b7b0d1ee7e65994491f431de9318ac4ac25b75cca7a757bbb3f59ccac72"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 209,
+        "top": 193,
+        "width": 151,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 138,
+        "width": 151,
+        "height": 139,
+        "pixels": 11094
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 262.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 29,
+        "right": 144,
+        "bottom": 130,
+        "width": 111,
+        "height": 102,
+        "pixels": 6005,
+        "edgePixels": 0
+      },
+      "sha256": "8cad548de780a6151c94cc79907cf57ff7568165db3cd3fb010df807695b472d"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 389,
+        "top": 195,
+        "width": 152,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 134,
+        "width": 152,
+        "height": 135,
+        "pixels": 10967
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 262.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 30,
+        "right": 144,
+        "bottom": 128,
+        "width": 112,
+        "height": 99,
+        "pixels": 5968,
+        "edgePixels": 0
+      },
+      "sha256": "da6784dd3c060b2dc1115c33e4abfcb5848c4faa68a65650c6c5739885479259"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 562,
+        "top": 192,
+        "width": 153,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 141,
+        "width": 153,
+        "height": 142,
+        "pixels": 11321
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 262.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 28,
+        "right": 139,
+        "bottom": 131,
+        "width": 112,
+        "height": 104,
+        "pixels": 6097,
+        "edgePixels": 0
+      },
+      "sha256": "2dc1b4707d4ebc00cbffff0e786782ceb8d91fc2b3e78c0b7b029b5ff3fd5ce9"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 741,
+        "top": 200,
+        "width": 156,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 130,
+        "width": 156,
+        "height": 131,
+        "pixels": 10739
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 262.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 34,
+        "right": 139,
+        "bottom": 129,
+        "width": 114,
+        "height": 96,
+        "pixels": 5792,
+        "edgePixels": 0
+      },
+      "sha256": "2ad5709e8a00a26d495dc599a1e3f1652bd64f70586d1b24b90e3d9584f92e47"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 926,
+        "top": 190,
+        "width": 141,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 143,
+        "width": 141,
+        "height": 144,
+        "pixels": 10849
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 262.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 27,
+        "right": 131,
+        "bottom": 132,
+        "width": 103,
+        "height": 106,
+        "pixels": 5898,
+        "edgePixels": 0
+      },
+      "sha256": "97ae290c53fcb9687291a2a74e435a787a8340ba52cf657df38baa904b9ef316"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 34,
+        "top": 357,
+        "width": 141,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 138,
+        "width": 141,
+        "height": 139,
+        "pixels": 10607
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 431.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 25,
+        "right": 141,
+        "bottom": 126,
+        "width": 103,
+        "height": 102,
+        "pixels": 5722,
+        "edgePixels": 0
+      },
+      "sha256": "50807d3e7e721b32f073cef652bc02f7f7321b9da84a77dfdfc98389c37b7647"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 218,
+        "top": 358,
+        "width": 136,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 138,
+        "width": 136,
+        "height": 139,
+        "pixels": 11038
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 431.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 26,
+        "right": 140,
+        "bottom": 127,
+        "width": 100,
+        "height": 102,
+        "pixels": 5987,
+        "edgePixels": 0
+      },
+      "sha256": "7e9743784fc26484bc130ade9995b029ade49852f1c945d0ac7a82d09d25fcf5"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 406,
+        "top": 365,
+        "width": 127,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 132,
+        "width": 127,
+        "height": 133,
+        "pixels": 9929
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 431.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 46,
+        "top": 31,
+        "right": 138,
+        "bottom": 128,
+        "width": 93,
+        "height": 98,
+        "pixels": 5401,
+        "edgePixels": 0
+      },
+      "sha256": "e3f42a852e911b627c2e32f9afc81fa3cfdb437e41714d7d322013bd8ff281d9"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 577,
+        "top": 376,
+        "width": 129,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 128,
+        "bottom": 121,
+        "width": 129,
+        "height": 122,
+        "pixels": 9636
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 431.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 39,
+        "top": 39,
+        "right": 133,
+        "bottom": 128,
+        "width": 95,
+        "height": 90,
+        "pixels": 5260,
+        "edgePixels": 0
+      },
+      "sha256": "4f807cb24d23cefafd316fbee9f1c4647c3cbca458e08b4b2129b2bd92425335"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 759,
+        "top": 371,
+        "width": 121,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 126,
+        "width": 121,
+        "height": 127,
+        "pixels": 9408
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 431.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 36,
+        "right": 127,
+        "bottom": 128,
+        "width": 89,
+        "height": 93,
+        "pixels": 5103,
+        "edgePixels": 0
+      },
+      "sha256": "787f30419dc985528b3e8a788e7d21197a17c219cc4a9e04356a17f20358845a"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 922,
+        "top": 356,
+        "width": 139,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 142,
+        "width": 139,
+        "height": 143,
+        "pixels": 10827
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 431.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 25,
+        "right": 127,
+        "bottom": 129,
+        "width": 102,
+        "height": 105,
+        "pixels": 5853,
+        "edgePixels": 0
+      },
+      "sha256": "52f4af3685632fe6f7fd34ea5ba002e0b1ef1bd20e226f219590410388e66b81"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 25,
+        "top": 513,
+        "width": 167,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 141,
+        "width": 167,
+        "height": 142,
+        "pixels": 11579
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 589.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 24,
+        "right": 154,
+        "bottom": 127,
+        "width": 123,
+        "height": 104,
+        "pixels": 6289,
+        "edgePixels": 0
+      },
+      "sha256": "687735c5525ff506166aba9d1058b9bfe0773fc046213b6723ae69eb13af7f7b"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 214,
+        "top": 522,
+        "width": 153,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 137,
+        "width": 153,
+        "height": 138,
+        "pixels": 11352
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 589.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 30,
+        "right": 149,
+        "bottom": 130,
+        "width": 112,
+        "height": 101,
+        "pixels": 6117,
+        "edgePixels": 0
+      },
+      "sha256": "6fb79d6179bc0c5dedaef71f513ffc4e67d6f21bc243e77c2fca8d2988193ca7"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 402,
+        "top": 513,
+        "width": 132,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 145,
+        "width": 132,
+        "height": 146,
+        "pixels": 10536
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 589.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 43,
+        "top": 24,
+        "right": 139,
+        "bottom": 130,
+        "width": 97,
+        "height": 107,
+        "pixels": 5707,
+        "edgePixels": 0
+      },
+      "sha256": "f17f0e809aed84a002aea77ba3afe38833154c0b5b5fb4c55cb2733f908ebdec"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 574,
+        "top": 519,
+        "width": 139,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 140,
+        "width": 139,
+        "height": 141,
+        "pixels": 10521
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 589.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 28,
+        "right": 137,
+        "bottom": 130,
+        "width": 102,
+        "height": 103,
+        "pixels": 5681,
+        "edgePixels": 0
+      },
+      "sha256": "a5e8d124d35717a880de3f92c60c876e1e0ecbf9a7366e28c3ca2e1f1a1c9fa7"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 750,
+        "top": 522,
+        "width": 145,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 138,
+        "width": 145,
+        "height": 139,
+        "pixels": 10883
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 589.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 30,
+        "right": 138,
+        "bottom": 131,
+        "width": 106,
+        "height": 102,
+        "pixels": 5868,
+        "edgePixels": 0
+      },
+      "sha256": "b07f9b06021287f84429f7590ca19ea0649a5c35030c08c46d1a646a4632e4c2"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 928,
+        "top": 518,
+        "width": 137,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 138,
+        "width": 137,
+        "height": 139,
+        "pixels": 10207
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 589.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 28,
+        "right": 130,
+        "bottom": 129,
+        "width": 101,
+        "height": 102,
+        "pixels": 5563,
+        "edgePixels": 0
+      },
+      "sha256": "9f7a09ee38652c60028125db3f3f5c91f7aa75042827eb94c7c306dd0126c10b"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 38,
+        "top": 680,
+        "width": 135,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 134,
+        "width": 135,
+        "height": 135,
+        "pixels": 10408
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 749.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 29,
+        "right": 139,
+        "bottom": 127,
+        "width": 99,
+        "height": 99,
+        "pixels": 5621,
+        "edgePixels": 0
+      },
+      "sha256": "4d587d521792657550fc4105b1a4adbe2a5d9e9e1119a0564c807e0ee4f950b5"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 224,
+        "top": 683,
+        "width": 133,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 135,
+        "width": 133,
+        "height": 136,
+        "pixels": 10443
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 749.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 45,
+        "top": 31,
+        "right": 142,
+        "bottom": 130,
+        "width": 98,
+        "height": 100,
+        "pixels": 5679,
+        "edgePixels": 0
+      },
+      "sha256": "3d49af965f1ddfb1b043556cad993735184ae6f331592a4689ec2ab97b98bae3"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 405,
+        "top": 677,
+        "width": 124,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 123,
+        "bottom": 134,
+        "width": 124,
+        "height": 135,
+        "pixels": 10205
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 749.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 45,
+        "top": 27,
+        "right": 135,
+        "bottom": 125,
+        "width": 91,
+        "height": 99,
+        "pixels": 5513,
+        "edgePixels": 0
+      },
+      "sha256": "3c10cd6908363aa399d126c5f81e80bc2ecfc352d84cdc430f55ebb5fb1f40c1"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 578,
+        "top": 683,
+        "width": 128,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 127,
+        "bottom": 132,
+        "width": 128,
+        "height": 133,
+        "pixels": 9885
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 749.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 39,
+        "top": 31,
+        "right": 132,
+        "bottom": 128,
+        "width": 94,
+        "height": 98,
+        "pixels": 5395,
+        "edgePixels": 0
+      },
+      "sha256": "0a9ca2d8d564f5f47caf76dec9ee7c840b3a51fd9108b7aa4bfe56c1180aee15"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 752,
+        "top": 680,
+        "width": 135,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 138,
+        "width": 135,
+        "height": 139,
+        "pixels": 10253
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 749.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 29,
+        "right": 132,
+        "bottom": 130,
+        "width": 99,
+        "height": 102,
+        "pixels": 5539,
+        "edgePixels": 0
+      },
+      "sha256": "e02606b1518963727f45ca43653bcba3286a1dcb42c0866762366c5bb479e6f6"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 927,
+        "top": 680,
+        "width": 136,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 137,
+        "width": 136,
+        "height": 138,
+        "pixels": 10074
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 749.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 29,
+        "right": 129,
+        "bottom": 129,
+        "width": 100,
+        "height": 101,
+        "pixels": 5483,
+        "edgePixels": 0
+      },
+      "sha256": "68ce30f029084d8472ce29a32d5ffe6b81a695e32a4c45083454ab177a437909"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 29,
+        "top": 845,
+        "width": 144,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 143,
+        "width": 144,
+        "height": 144,
+        "pixels": 11012
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 921.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 24,
+        "right": 140,
+        "bottom": 129,
+        "width": 106,
+        "height": 106,
+        "pixels": 5989,
+        "edgePixels": 0
+      },
+      "sha256": "0ec6ebc5ee0555a6dafece4d4c40e9c2cd7b612961fb31913f00c4198cb38ef9"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 211,
+        "top": 853,
+        "width": 140,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 136,
+        "width": 140,
+        "height": 137,
+        "pixels": 10673
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 921.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 36,
+        "top": 30,
+        "right": 138,
+        "bottom": 130,
+        "width": 103,
+        "height": 101,
+        "pixels": 5819,
+        "edgePixels": 0
+      },
+      "sha256": "4c4913c00692c2752e3cd200c8e56bf38eb0007f8eed822bc32b2827caf490ff"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 391,
+        "top": 833,
+        "width": 145,
+        "height": 162
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 161,
+        "width": 145,
+        "height": 162,
+        "pixels": 12164
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 921.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 15,
+        "right": 140,
+        "bottom": 133,
+        "width": 106,
+        "height": 119,
+        "pixels": 6567,
+        "edgePixels": 0
+      },
+      "sha256": "8dd507d26a783677d06feeb973844e560ad0c8bebd0916b27c29dd3730ad6518"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 561,
+        "top": 833,
+        "width": 155,
+        "height": 162
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 161,
+        "width": 155,
+        "height": 162,
+        "pixels": 12530
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 921.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 15,
+        "right": 140,
+        "bottom": 133,
+        "width": 114,
+        "height": 119,
+        "pixels": 6783,
+        "edgePixels": 0
+      },
+      "sha256": "d4cceb49ff4e9ad468b82db6422202a92ee3b81074f3c502e56a07f86b9779f2"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 747,
+        "top": 853,
+        "width": 141,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 141,
+        "width": 141,
+        "height": 142,
+        "pixels": 10623
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 921.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 30,
+        "right": 132,
+        "bottom": 133,
+        "width": 103,
+        "height": 104,
+        "pixels": 5721,
+        "edgePixels": 0
+      },
+      "sha256": "f8953b8f701e7b7e9c7639f9bbf32f598d63afc1a3513afae8cd0886f4b0d08a"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 923,
+        "top": 852,
+        "width": 141,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 142,
+        "width": 141,
+        "height": 143,
+        "pixels": 10707
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 921.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 29,
+        "right": 129,
+        "bottom": 133,
+        "width": 103,
+        "height": 105,
+        "pixels": 5790,
+        "edgePixels": 0
+      },
+      "sha256": "184adeee4d4f75d8231c681db24d81d324678fcfb893cdbc6d232c1293c2a831"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 34,
+        "top": 1022,
+        "width": 141,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 143,
+        "width": 141,
+        "height": 144,
+        "pixels": 10948
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1097.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 25,
+        "right": 141,
+        "bottom": 130,
+        "width": 103,
+        "height": 106,
+        "pixels": 5933,
+        "edgePixels": 0
+      },
+      "sha256": "cda1a2231bee88c7ce929bdf42044e88cb581c96b55bf0950c98396632a765ba"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 215,
+        "top": 1020,
+        "width": 136,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 145,
+        "width": 136,
+        "height": 146,
+        "pixels": 10896
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1097.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 23,
+        "right": 138,
+        "bottom": 129,
+        "width": 100,
+        "height": 107,
+        "pixels": 5901,
+        "edgePixels": 0
+      },
+      "sha256": "bc07aa073b97898a737c41c580b35c1801228c638dbeb85b2e123a25f1c3e2a9"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 391,
+        "top": 1023,
+        "width": 140,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 146,
+        "width": 140,
+        "height": 147,
+        "pixels": 11067
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1097.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 25,
+        "right": 137,
+        "bottom": 132,
+        "width": 103,
+        "height": 108,
+        "pixels": 5999,
+        "edgePixels": 0
+      },
+      "sha256": "da6bf10c79fccd30fe03f624cf18a49560df15591ccf41745b7068e9d84ebb44"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 569,
+        "top": 1027,
+        "width": 135,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 142,
+        "width": 135,
+        "height": 143,
+        "pixels": 10445
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1097.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 28,
+        "right": 131,
+        "bottom": 132,
+        "width": 99,
+        "height": 105,
+        "pixels": 5654,
+        "edgePixels": 0
+      },
+      "sha256": "ea0807a330a3a46fb01cf03a3a885fcc0984d7e70cb44e72a128db266a824136"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 750,
+        "top": 1025,
+        "width": 138,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 144,
+        "width": 138,
+        "height": 145,
+        "pixels": 10767
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1097.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 27,
+        "right": 133,
+        "bottom": 132,
+        "width": 101,
+        "height": 106,
+        "pixels": 5776,
+        "edgePixels": 0
+      },
+      "sha256": "01e3ec840fc9222b4b0bfe256e62a179ad8568a3b2ce23d0b91598f0a8539322"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 927,
+        "top": 1025,
+        "width": 139,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 144,
+        "width": 139,
+        "height": 145,
+        "pixels": 11076
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1097.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 27,
+        "right": 131,
+        "bottom": 132,
+        "width": 102,
+        "height": 106,
+        "pixels": 5981,
+        "edgePixels": 0
+      },
+      "sha256": "acdc1627701afac947e14f6810b0f2349afbd14941f40b6b05d096defced6300"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 28,
+        "top": 1207,
+        "width": 140,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 151,
+        "width": 140,
+        "height": 152,
+        "pixels": 11813
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1303
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 34,
+        "top": 10,
+        "right": 136,
+        "bottom": 121,
+        "width": 103,
+        "height": 112,
+        "pixels": 6431,
+        "edgePixels": 0
+      },
+      "sha256": "d856314780277374660abb159c6d7c0e32b7ba871353571dd577d387e184c73a"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 216,
+        "top": 1214,
+        "width": 135,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 145,
+        "width": 135,
+        "height": 146,
+        "pixels": 10621
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1303
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 15,
+        "right": 137,
+        "bottom": 121,
+        "width": 99,
+        "height": 107,
+        "pixels": 5731,
+        "edgePixels": 0
+      },
+      "sha256": "b31c645f9aa98035dbf5b286e4e6d2ac8b7d2aeac7f4bc4463fcc48cee56931e"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 401,
+        "top": 1233,
+        "width": 127,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 127,
+        "width": 127,
+        "height": 128,
+        "pixels": 9071
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1303
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 42,
+        "top": 29,
+        "right": 134,
+        "bottom": 122,
+        "width": 93,
+        "height": 94,
+        "pixels": 4920,
+        "edgePixels": 0
+      },
+      "sha256": "f7f938676f2a8254fab870f5cec01bbdb49e1cc2ea6d03d15ec9c4de058b4be4"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 584,
+        "top": 1243,
+        "width": 113,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 112,
+        "bottom": 119,
+        "width": 113,
+        "height": 120,
+        "pixels": 7664
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1303
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 44,
+        "top": 36,
+        "right": 126,
+        "bottom": 123,
+        "width": 83,
+        "height": 88,
+        "pixels": 4152,
+        "edgePixels": 0
+      },
+      "sha256": "eae7d9b09f4ccb9db8166156bf352b1304c5c12d652dbb151199a060195cead1"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 767,
+        "top": 1264,
+        "width": 105,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 104,
+        "bottom": 98,
+        "width": 105,
+        "height": 99,
+        "pixels": 5975
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1303
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 51,
+        "right": 121,
+        "bottom": 123,
+        "width": 77,
+        "height": 73,
+        "pixels": 3252,
+        "edgePixels": 0
+      },
+      "sha256": "47e8a217f347f7b0d7614cb43211c2101e1f43beb3282a2b9a5a5069f9ecc958"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 946,
+        "top": 1271,
+        "width": 94,
+        "height": 88
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 93,
+        "bottom": 87,
+        "width": 94,
+        "height": 88,
+        "pixels": 4804
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ember-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1303
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 44,
+        "top": 57,
+        "right": 112,
+        "bottom": 121,
+        "width": 69,
+        "height": 65,
+        "pixels": 2628,
+        "edgePixels": 0
+      },
+      "sha256": "ccfacc89ff22183dffe66fc76821afcc455b7585f189a466fe98f7ef017e2922"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

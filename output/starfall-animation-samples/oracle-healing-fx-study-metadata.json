@@ -1,0 +1,300 @@
+{
+  "reviewStatus": "separate-healing-fx-study-pending-composite-review",
+  "tool": "built-in image_gen",
+  "width": 1774,
+  "height": 887,
+  "hasAlpha": true,
+  "transparentPixels": 1195967,
+  "grid": {
+    "columns": 4,
+    "rows": 2,
+    "cellWidth": 443.5,
+    "cellHeight": 443.5
+  },
+  "intendedPhases": [
+    "form with two plus marks",
+    "grow with three plus marks",
+    "bloom halo",
+    "peak with four plus marks",
+    "outward pulse with six plus marks",
+    "fragments and rising plus marks",
+    "sparse fading marks",
+    "fading points"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "sourceRect": {
+        "left": 0,
+        "top": 0,
+        "width": 444,
+        "height": 444
+      },
+      "nominalCenter": {
+        "x": 222,
+        "y": 222
+      },
+      "visibleBounds": {
+        "left": 122,
+        "top": 149,
+        "right": 318,
+        "bottom": 343
+      },
+      "visibleBoundsCenter": {
+        "x": 220,
+        "y": 246
+      },
+      "alphaWeightedCentroid": {
+        "x": 220.94,
+        "y": 248.16
+      },
+      "visibleWidth": 197,
+      "visibleHeight": 195,
+      "visiblePixels": 17098,
+      "edgePixels": 0,
+      "eightPixelGutterPixels": 0,
+      "visiblePixelsInNominalCenter40PercentDiameter": 11547
+    },
+    {
+      "index": 1,
+      "sourceRect": {
+        "left": 444,
+        "top": 0,
+        "width": 443,
+        "height": 444
+      },
+      "nominalCenter": {
+        "x": 665.5,
+        "y": 222
+      },
+      "visibleBounds": {
+        "left": 522,
+        "top": 101,
+        "right": 796,
+        "bottom": 361
+      },
+      "visibleBoundsCenter": {
+        "x": 659,
+        "y": 231
+      },
+      "alphaWeightedCentroid": {
+        "x": 666.58,
+        "y": 243.78
+      },
+      "visibleWidth": 275,
+      "visibleHeight": 261,
+      "visiblePixels": 27811,
+      "edgePixels": 0,
+      "eightPixelGutterPixels": 0,
+      "visiblePixelsInNominalCenter40PercentDiameter": 10992
+    },
+    {
+      "index": 2,
+      "sourceRect": {
+        "left": 887,
+        "top": 0,
+        "width": 444,
+        "height": 444
+      },
+      "nominalCenter": {
+        "x": 1109,
+        "y": 222
+      },
+      "visibleBounds": {
+        "left": 957,
+        "top": 92,
+        "right": 1280,
+        "bottom": 408
+      },
+      "visibleBoundsCenter": {
+        "x": 1118.5,
+        "y": 250
+      },
+      "alphaWeightedCentroid": {
+        "x": 1119.06,
+        "y": 249.38
+      },
+      "visibleWidth": 324,
+      "visibleHeight": 317,
+      "visiblePixels": 41665,
+      "edgePixels": 0,
+      "eightPixelGutterPixels": 0,
+      "visiblePixelsInNominalCenter40PercentDiameter": 9253
+    },
+    {
+      "index": 3,
+      "sourceRect": {
+        "left": 1331,
+        "top": 0,
+        "width": 443,
+        "height": 444
+      },
+      "nominalCenter": {
+        "x": 1552.5,
+        "y": 222
+      },
+      "visibleBounds": {
+        "left": 1387,
+        "top": 85,
+        "right": 1722,
+        "bottom": 419
+      },
+      "visibleBoundsCenter": {
+        "x": 1554.5,
+        "y": 252
+      },
+      "alphaWeightedCentroid": {
+        "x": 1554.6,
+        "y": 252.01
+      },
+      "visibleWidth": 336,
+      "visibleHeight": 335,
+      "visiblePixels": 49375,
+      "edgePixels": 0,
+      "eightPixelGutterPixels": 0,
+      "visiblePixelsInNominalCenter40PercentDiameter": 8932
+    },
+    {
+      "index": 4,
+      "sourceRect": {
+        "left": 0,
+        "top": 444,
+        "width": 444,
+        "height": 443
+      },
+      "nominalCenter": {
+        "x": 222,
+        "y": 665.5
+      },
+      "visibleBounds": {
+        "left": 35,
+        "top": 473,
+        "right": 413,
+        "bottom": 817
+      },
+      "visibleBoundsCenter": {
+        "x": 224,
+        "y": 645
+      },
+      "alphaWeightedCentroid": {
+        "x": 223.55,
+        "y": 647.12
+      },
+      "visibleWidth": 379,
+      "visibleHeight": 345,
+      "visiblePixels": 41498,
+      "edgePixels": 0,
+      "eightPixelGutterPixels": 0,
+      "visiblePixelsInNominalCenter40PercentDiameter": 1154
+    },
+    {
+      "index": 5,
+      "sourceRect": {
+        "left": 444,
+        "top": 444,
+        "width": 443,
+        "height": 443
+      },
+      "nominalCenter": {
+        "x": 665.5,
+        "y": 665.5
+      },
+      "visibleBounds": {
+        "left": 494,
+        "top": 460,
+        "right": 839,
+        "bottom": 791
+      },
+      "visibleBoundsCenter": {
+        "x": 666.5,
+        "y": 625.5
+      },
+      "alphaWeightedCentroid": {
+        "x": 666.6,
+        "y": 621.56
+      },
+      "visibleWidth": 346,
+      "visibleHeight": 332,
+      "visiblePixels": 25414,
+      "edgePixels": 0,
+      "eightPixelGutterPixels": 0,
+      "visiblePixelsInNominalCenter40PercentDiameter": 611
+    },
+    {
+      "index": 6,
+      "sourceRect": {
+        "left": 887,
+        "top": 444,
+        "width": 444,
+        "height": 443
+      },
+      "nominalCenter": {
+        "x": 1109,
+        "y": 665.5
+      },
+      "visibleBounds": {
+        "left": 977,
+        "top": 524,
+        "right": 1257,
+        "bottom": 790
+      },
+      "visibleBoundsCenter": {
+        "x": 1117,
+        "y": 657
+      },
+      "alphaWeightedCentroid": {
+        "x": 1118.64,
+        "y": 654.03
+      },
+      "visibleWidth": 281,
+      "visibleHeight": 267,
+      "visiblePixels": 10879,
+      "edgePixels": 0,
+      "eightPixelGutterPixels": 0,
+      "visiblePixelsInNominalCenter40PercentDiameter": 191
+    },
+    {
+      "index": 7,
+      "sourceRect": {
+        "left": 1331,
+        "top": 444,
+        "width": 443,
+        "height": 443
+      },
+      "nominalCenter": {
+        "x": 1552.5,
+        "y": 665.5
+      },
+      "visibleBounds": {
+        "left": 1416,
+        "top": 536,
+        "right": 1690,
+        "bottom": 785
+      },
+      "visibleBoundsCenter": {
+        "x": 1553,
+        "y": 660.5
+      },
+      "alphaWeightedCentroid": {
+        "x": 1553.01,
+        "y": 656.25
+      },
+      "visibleWidth": 275,
+      "visibleHeight": 250,
+      "visiblePixels": 3068,
+      "edgePixels": 0,
+      "eightPixelGutterPixels": 0,
+      "visiblePixelsInNominalCenter40PercentDiameter": 0
+    }
+  ],
+  "composition": "Behind the unchanged approved oracle-cast-study.png; preserve nominal frame centers unless explicit registration corrects measured source placement.",
+  "limitations": [
+    "Requested exact export dimensions were not honored.",
+    "Central holes are present, but nominal40percent diameter is not fully transparent in all frames; composite review must keep the face clear.",
+    "Some low-alpha fringe and isolated pixels remain; measured bounds can include them.",
+    "Source halo placement is not mathematically identical across rows; metadata separates nominal grid centers from observed bounds/centroids.",
+    "Not a seamless loop: this is a one-shot healing pulse ending with fading particles."
+  ],
+  "approvedCharacterSha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8",
+  "sha256": "ca85357f4b383cbcde432e9e073e9a33f0019bb1de67ca75837f71b8d6642a69"
+}

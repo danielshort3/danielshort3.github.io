@@ -11,13 +11,92 @@
 
   const EMPTY_OBJECT = Object.freeze({});
   const EMPTY_ARRAY = Object.freeze([]);
+  const FIELD_REGROUP_PLATFORMS = Object.freeze({
+    greenrootMeadow: 'greenroot_meadow_solid_lane_05',
+    thornpathThicket: 'thornpath_fork_beacon_perch',
+    rustcoilRuins: 'rustcoil_warden_starcoil_service_bridge',
+    cinderHollow: 'cinder_hollow_solid_lane_11',
+    banditRidgeCamp: 'bandit_ridge_camp_regroup_plateau',
+    orebackQuarry: 'oreback_quarry_solid_lane_10',
+    ashglassPass: 'ashglass_pass_hop_01',
+    frostfenOutskirts: 'frostfen_shelf_shelter_pocket',
+    glacierSpine: 'glacier_spine_solid_lane_08',
+    stormbreakCliffs: 'stormbreak_cliffs_solid_lane_10',
+    astralArchive: 'astral_archive_island_02',
+    eclipseFrontier: 'eclipse_frontier_island_02',
+    endlessRift: 'endless_rift_hop_01'
+  });
+
+  function laneCircuit(prefix, main, optional) {
+    const ids = (numbers) => Object.freeze(numbers.map((number) => `${prefix}_solid_lane_${String(number).padStart(2, '0')}`));
+    return Object.freeze({ mainPlatformIds: ids(main), optionalPlatformIds: ids(optional) });
+  }
+
+  // Ordinary circuits use adjacent lower/middle hunting pockets and return via
+  // existing ramps, lifts and ground lanes. Upper perches and the distant final
+  // encounter form deliberate excursions; a full-map sweep remains useful for
+  // exploration and validation, but is not the only repeatable hunting route.
+  const FIELD_TRAINING_CIRCUITS = Object.freeze({
+    greenrootMeadow: laneCircuit('greenroot_meadow', [1, 3, 2], [2, 4, 6]),
+    thornpathThicket: Object.freeze({
+      mainPlatformIds: Object.freeze(['thornpath_rootfall_lane', 'thornpath_rootfall_relay_shelf', 'thornpath_relay_mid_deck', 'thornpath_relay_lower_walk']),
+      optionalPlatformIds: Object.freeze(['thornpath_relay_lower_walk', 'thornpath_relay_high_bough', 'thornpath_relay_shard_perch', 'thornpath_fork_observatory_branch', 'thornpath_fork_ridge_branch', 'thornpath_fork_lower_lane'])
+    }),
+    rustcoilRuins: Object.freeze({
+      mainPlatformIds: Object.freeze(['rustcoil_yard_ratchet_lane', 'rustcoil_yard_service_gantry', 'rustcoil_switchworks_west_catwalk', 'rustcoil_switchworks_return_deck', 'rustcoil_switchworks_conveyor']),
+      optionalPlatformIds: Object.freeze(['rustcoil_switchworks_conveyor', 'rustcoil_warden_return_belt', 'rustcoil_warden_gear_ring', 'rustcoil_warden_relay_dais', 'rustcoil_warden_starcoil_perch'])
+    }),
+    cinderHollow: laneCircuit('cinder_hollow', [1, 2, 5, 4], [4, 5, 6, 9, 8, 7]),
+    banditRidgeCamp: Object.freeze({
+      mainPlatformIds: Object.freeze(['bandit_ridge_camp_lower_barricade_lane', 'bandit_ridge_camp_lower_flank', 'bandit_ridge_camp_thrower_perch_west', 'bandit_ridge_camp_thrower_deck']),
+      optionalPlatformIds: Object.freeze(['bandit_ridge_camp_thrower_deck', 'bandit_ridge_camp_thrower_perch_east', 'bandit_ridge_camp_rope_bridge', 'bandit_ridge_camp_bridge_approach', 'bandit_ridge_camp_bridge_return_lane'])
+    }),
+    orebackQuarry: laneCircuit('oreback_quarry', [1, 2, 5, 4], [4, 5, 6, 9, 8, 7]),
+    ashglassPass: laneCircuit('ashglass_pass', [1, 2, 5, 4], [4, 5, 6, 10, 9, 8, 7]),
+    frostfenOutskirts: Object.freeze({
+      mainPlatformIds: Object.freeze(['frostfen_marsh_runway', 'frostfen_marsh_windbreak', 'frostfen_rimeglass_shelf', 'frostfen_shelf_lower_run']),
+      optionalPlatformIds: Object.freeze(['frostfen_shelf_lower_run', 'frostfen_shelf_upper_drift', 'frostfen_oracle_grove_shelf', 'frostfen_oracle_bloom_perch', 'frostfen_oracle_exit_shelf', 'frostfen_oracle_recovery_run'])
+    }),
+    glacierSpine: laneCircuit('glacier_spine', [1, 2, 6, 5], [5, 6, 7, 11, 10, 9]),
+    stormbreakCliffs: Object.freeze({
+      mainPlatformIds: laneCircuit('stormbreak_cliffs', [1, 2, 5, 4], []).mainPlatformIds,
+      optionalPlatformIds: Object.freeze(['stormbreak_cliffs_solid_lane_04', 'stormbreak_cliffs_solid_lane_05', 'stormbreak_cliffs_solid_lane_06', 'stormbreak_cliffs_hop_01', 'stormbreak_cliffs_solid_lane_09', 'stormbreak_cliffs_solid_lane_08', 'stormbreak_cliffs_solid_lane_07'])
+    }),
+    astralArchive: laneCircuit('astral_archive', [1, 2, 5, 4], [4, 5, 6, 9, 8, 7]),
+    eclipseFrontier: laneCircuit('eclipse_frontier', [1, 2, 5, 4], [4, 5, 6, 9, 8, 7]),
+    // Keep all four quadrant territories in the ordinary Rift rotation, so its
+    // anti-camping and completed-cycle mechanics retain their intended meaning.
+    endlessRift: laneCircuit('endless_rift', [1, 2, 5, 6, 9, 8, 11, 10], [8, 9, 12])
+  });
+
+  // Section identities stay stable; the roster expresses the actual encounter
+  // rather than copying every biome enemy into every pocket.
+  function encounter(sectionSuffix, label, roster, population, options) {
+    return Object.assign({ sectionSuffix, label, population, respawnSeconds: 5, leash: 560,
+      enemyWeights: roster.map(([enemyId, weight]) => ({ enemyId, weight })) }, options || {});
+  }
 
   const FEATURED_SPAWN_GROUP_PROFILES = Object.freeze({
     greenrootMeadow: Object.freeze([
       { sectionSuffix: 'arrival_shelf', label: 'Arrival Shelf', enemyWeights: [{ enemyId: 'glassback', weight: 6 }, { enemyId: 'faultSkitter', weight: 3 }], population: 2, respawnSeconds: 6, leash: 380 },
-      { sectionSuffix: 'glass_basin', label: 'Glass Basin', enemyWeights: [{ enemyId: 'glassback', weight: 4 }, { enemyId: 'faultSkitter', weight: 3 }, { enemyId: 'riftLantern', weight: 1 }], population: 3, respawnSeconds: 6, leash: 460 },
+      { sectionSuffix: 'glass_basin', label: 'Glass Basin', enemyWeights: [{ enemyId: 'glassback', weight: 4 }, { enemyId: 'faultSkitter', weight: 3 }, { enemyId: 'riftLantern', weight: 1 }], population: 4, respawnSeconds: 6, leash: 460 },
       { sectionSuffix: 'fractured_bridge', label: 'Fractured Bridge', enemyWeights: [{ enemyId: 'glassback', weight: 3 }, { enemyId: 'riftLantern', weight: 3 }, { enemyId: 'faultSkitter', weight: 2 }], population: 3, respawnSeconds: 7, leash: 520 },
-      { sectionSuffix: 'beacon_approach', label: 'Beacon Approach', enemyWeights: [{ enemyId: 'glassback', weight: 2 }, { enemyId: 'riftLantern', weight: 3 }, { enemyId: 'faultSkitter', weight: 2 }], population: 2, respawnSeconds: 7, leash: 420 }
+      { sectionSuffix: 'beacon_approach', label: 'Beacon Approach', enemyWeights: [{ enemyId: 'glassback', weight: 3 }, { enemyId: 'riftLantern', weight: 4 }], population: 2, respawnSeconds: 7, leash: 420 }
+    ]),
+    thornpathThicket: Object.freeze([
+      encounter('meadow_return', 'Rootfall Ground Packs', [['dewSlime', 5], ['vineSnapper', 3], ['mossback', 2]], 8),
+      encounter('fracture_canopy', 'Canopy Ambush', [['thornSprout', 4], ['vineSnapper', 5], ['dewSlime', 1]], 10),
+      encounter('observatory_fork', 'Briar Guard Branch', [['briarStag', 5], ['mossback', 3], ['vineSnapper', 2]], 8, { respawnSeconds: 6 })
+    ]),
+    rustcoilRuins: Object.freeze([
+      encounter('surveyor_yard', 'Ratchet Patrol', [['rustRatchet', 7], ['clockbug', 3]], 10),
+      encounter('coil_switchworks', 'Coil Crossfire', [['coilSentry', 4], ['rustRatchet', 4], ['clockbug', 2]], 10),
+      encounter('warden_gearwell', 'Warden Gearwell', [['scrapWarden', 5], ['clockbug', 3], ['coilSentry', 2]], 8, { respawnSeconds: 6 })
+    ]),
+    cinderHollow: Object.freeze([
+      encounter('ash_floor_loop', 'Ash Floor Ground Packs', [['ashCrawler', 6], ['lavaTick', 4]], 9),
+      encounter('vent_shortcut', 'Lava Tick Vent Run', [['lavaTick', 7], ['cinderSpitter', 3]], 8),
+      encounter('flyer_turns', 'Ember Crossfire', [['cinderSpitter', 5], ['lavaTick', 3], ['emberWisp', 2]], 7, { respawnSeconds: 6 })
     ]),
     banditRidgeCamp: Object.freeze([
       {
@@ -46,7 +125,7 @@
         sectionSuffix: 'high_rope_bridge',
         label: 'Rope Bridge',
         platformIds: ['bandit_ridge_camp_bridge_approach', 'bandit_ridge_camp_rope_bridge', 'bandit_ridge_camp_bridge_return_lane'],
-        enemyWeights: [{ enemyId: 'banditThrower', weight: 6 }, { enemyId: 'vineSnapper', weight: 3 }, { enemyId: 'briarStag', weight: 1 }],
+        enemyWeights: [{ enemyId: 'banditThrower', weight: 5 }, { enemyId: 'banditCutter', weight: 2 }, { enemyId: 'briarStag', weight: 3 }],
         population: 10,
         maxPopulation: 14,
         partyBonusPerMember: 2,
@@ -57,14 +136,53 @@
     orebackQuarry: Object.freeze([
       { sectionSuffix: 'ore_cart_lane', label: 'Ore Cart Beetles', enemyWeights: [{ enemyId: 'orebackBeetle', weight: 8 }, { enemyId: 'scrapWarden', weight: 2 }], population: 8, respawnSeconds: 5, leash: 500 },
       { sectionSuffix: 'scaffold_sentries', label: 'Scaffold Sentries', enemyWeights: [{ enemyId: 'coilSentry', weight: 7 }, { enemyId: 'orebackBeetle', weight: 3 }], population: 7, respawnSeconds: 6, leash: 380 },
-      { sectionSuffix: 'mushroom_pocket', label: 'Glowcap Pocket', enemyWeights: [{ enemyId: 'glowcapHealer', weight: 6 }, { enemyId: 'orebackBeetle', weight: 4 }], population: 7, respawnSeconds: 6, leash: 420 },
+      { sectionSuffix: 'mushroom_pocket', label: 'Glowcap Support Pocket', enemyWeights: [{ enemyId: 'glowcapHealer', weight: 2 }, { enemyId: 'orebackBeetle', weight: 8 }], enemyMaxAlive: { glowcapHealer: 1 }, population: 7, respawnSeconds: 6, leash: 420 },
       { sectionSuffix: 'mine_event_pocket', label: 'Mimic Mine', enemyWeights: [{ enemyId: 'orebackBeetle', weight: 5 }, { enemyId: 'scrapWarden', weight: 3 }, { enemyId: 'crackedMimic', weight: 1 }], population: 4, respawnSeconds: 8, leash: 360 }
+    ]),
+    ashglassPass: Object.freeze([
+      encounter('ashglass_bridge', 'Basalt Bridge Patrol', [['ashCrawler', 5], ['lavaTick', 5]], 9),
+      encounter('vent_side_pocket', 'Vent Crossfire', [['cinderSpitter', 7], ['lavaTick', 3]], 8),
+      encounter('glass_shelf', 'Glass Shelf Airspace', [['emberWisp', 7], ['orebackBeetle', 3]], 8),
+      encounter('elite_storm_pocket', 'Obsidian Elite Pocket', [['orebackBeetle', 6], ['cinderSpitter', 3], ['crackedMimic', 1]], 5, { respawnSeconds: 7, leash: 420 })
+    ]),
+    frostfenOutskirts: Object.freeze([
+      encounter('frozen_marsh', 'Frozen Marsh Scouts', [['frostlingScout', 6], ['shardling', 4]], 11),
+      encounter('rimeglass_shelf', 'Rimeglass Airspace', [['snowglareWisp', 5], ['rimebackBrute', 3], ['shardling', 2]], 11),
+      encounter('oracle_grove', 'Oracle Grove Guards', [['icebloomOracle', 2], ['frostlingScout', 5], ['rimebackBrute', 3]], 9,
+        { enemyMaxAlive: { icebloomOracle: 1 }, respawnSeconds: 6, leash: 440 })
+    ]),
+    glacierSpine: Object.freeze([
+      encounter('entry', 'Lower Ridge Scouts', [['frostlingScout', 5], ['shardling', 3], ['rimebackBrute', 2]], 11,
+        { partyScaling: 'section-count', partyBonusPerMember: 1, maxPopulation: 13 }),
+      encounter('deep_route', 'Glacier Sentry Circuit', [['rimebackBrute', 2], ['snowglareWisp', 5], ['glacierSentinel', 2], ['frostlingScout', 1]], 12,
+        { partyScaling: 'section-count', partyBonusPerMember: 2, maxPopulation: 16 }),
+      encounter('exit', 'High Ridge Elite Guard', [['snowglareWisp', 4], ['rimebackBrute', 3], ['glacierSentinel', 2], ['icebloomOracle', 1], ['crackedMimic', 1]], 9,
+        { partyScaling: 'section-count', partyBonusPerMember: 1, maxPopulation: 11, enemyMaxAlive: { icebloomOracle: 1 }, respawnSeconds: 6 })
     ]),
     stormbreakCliffs: Object.freeze([
       { sectionSuffix: 'low_ram_lane', label: 'Thunder Ram Lane', enemyWeights: [{ enemyId: 'thunderRam', weight: 8 }, { enemyId: 'cloudcallAcolyte', weight: 2 }], population: 9, respawnSeconds: 5, leash: 500 },
       { sectionSuffix: 'mid_archer_bridge', label: 'Archer Bridge', enemyWeights: [{ enemyId: 'stormboundArcher', weight: 7 }, { enemyId: 'cloudcallAcolyte', weight: 3 }], population: 8, respawnSeconds: 5, leash: 440 },
-      { sectionSuffix: 'high_harrier_airspace', label: 'Harrier Airspace', enemyWeights: [{ enemyId: 'galeHarrier', weight: 8 }, { enemyId: 'stormboundArcher', weight: 2 }], population: 9, respawnSeconds: 5, leash: 540, actorTraversal: { mode: 'air', allowLadders: false, allowRamps: true, stayInTerritory: true } },
+      { sectionSuffix: 'high_harrier_airspace', label: 'Harrier Airspace', enemyWeights: [{ enemyId: 'galeHarrier', weight: 8 }, { enemyId: 'stormboundArcher', weight: 2 }], population: 9, respawnSeconds: 5, leash: 540, actorTraversal: { mode: 'air', allowLadders: false, allowRamps: true, stayInTerritory: false } },
       { sectionSuffix: 'lightning_rod_objective', label: 'Lightning Rod', enemyWeights: [{ enemyId: 'cloudcallAcolyte', weight: 6 }, { enemyId: 'thunderRam', weight: 3 }, { enemyId: 'crackedMimic', weight: 1 }], population: 6, respawnSeconds: 7, leash: 380 }
+    ]),
+    astralArchive: Object.freeze([
+      encounter('entry', 'Reading Room Guards', [['lumenSentinel', 6], ['indexScribe', 4]], 11),
+      encounter('training_loop', 'Index Shelf Crossfire', [['indexScribe', 7], ['voidMote', 3]], 13),
+      encounter('exit', 'Sealed Archive Pocket', [['voidMote', 5], ['lumenSentinel', 4], ['crackedMimic', 1]], 10, { respawnSeconds: 6 })
+    ]),
+    eclipseFrontier: Object.freeze([
+      encounter('solar_outpost', 'Solar Sentinel Patrol', [['lumenSentinel', 6], ['eclipseDuelist', 4]], 9),
+      encounter('lunar_outpost', 'Lunar Airspace', [['voidMote', 7], ['indexScribe', 3]], 8),
+      encounter('eclipse_gate', 'Gate Crossfire', [['indexScribe', 5], ['eclipseDuelist', 5]], 9),
+      encounter('elite_pocket', 'Eclipse Elite Guard', [['eclipseDuelist', 5], ['lumenSentinel', 4], ['crackedMimic', 1]], 8, { respawnSeconds: 6 })
+    ]),
+    endlessRift: Object.freeze([
+      encounter('northwest_rift_quadrant', 'Western Sentinel Circuit', [['lumenSentinel', 6], ['indexScribe', 4]], 8),
+      encounter('northeast_rift_quadrant', 'Upper Rift Airspace', [['voidMote', 7], ['eclipseDuelist', 3]], 8),
+      encounter('southeast_rift_quadrant', 'Eastern Duelist Circuit', [['eclipseDuelist', 6], ['indexScribe', 4]], 8),
+      encounter('southwest_rift_quadrant', 'Lower Rift Crossfire', [['indexScribe', 6], ['voidMote', 4]], 8),
+      encounter('rift_core_regroup', 'Optional Rift Surge', [['riftAberration', 7], ['crackedMimic', 1], ['lumenSentinel', 2]], 4,
+        { platformIds: ['endless_rift_solid_lane_12'], respawnSeconds: 7, leash: 380 })
     ])
   });
 
@@ -174,7 +292,8 @@
         }
       }
       const declaredPlatformIds = (source.platformIds || EMPTY_ARRAY).map(String).filter(Boolean);
-      const platformIds = Array.from(new Set(declaredPlatformIds.concat(platformIndices.map((platformIndex) => getPublishedPlatformId(map, platformIndex)))));
+      const platformIds = Array.from(new Set(declaredPlatformIds.length ? declaredPlatformIds : platformIndices.map((platformIndex) => getPublishedPlatformId(map, platformIndex))))
+        .filter((platformId) => platformId !== FIELD_REGROUP_PLATFORMS[map.id]);
       const enemyWeights = normalizeSpawnEnemyWeights(source.enemyWeights || source.enemies, map.enemies);
       if (!platformIds.length || !enemyWeights.length) return null;
       return Object.freeze({
@@ -183,13 +302,20 @@
         sectionId,
         platformIds: Object.freeze(platformIds),
         enemyWeights,
+        enemyMaxAlive: Object.freeze(Object.assign({}, ...enemyWeights
+          .filter((entry) => ['glowcapHealer', 'icebloomOracle', 'cloudcallAcolyte'].includes(entry.enemyId))
+          .map((entry) => ({ [entry.enemyId]: 1 })), source.enemyMaxAlive || {})),
         population: Math.max(1, Math.floor(Number(source.population || 0)) || 1),
         respawnSeconds: Math.max(1, Math.min(60, Number(source.respawnSeconds || map.waveDelay || 5) || 5)),
         leash: Math.max(90, Math.min(2400, Number(source.leash || 480) || 480)),
         partyScaling: String(source.partyScaling || map.partyScaling || map.designIntent && map.designIntent.partyScaling || 'none'),
         maxPopulation: Math.max(1, Math.floor(Number(source.maxPopulation || 0)) || Math.ceil(Math.max(1, Number(source.population || 1)) * 1.5)),
         partyBonusPerMember: Math.max(0, Math.min(4, Number(source.partyBonusPerMember == null ? 1 : source.partyBonusPerMember) || 0)),
-        actorTraversal: normalizeActorTraversal(source.actorTraversal)
+        actorTraversal: normalizeActorTraversal(source.actorTraversal || {
+          allowRamps: true,
+          allowLadders: ['banditRidgeCamp', 'rustcoilRuins', 'astralArchive', 'eclipseFrontier', 'endlessRift'].includes(map.id),
+          stayInTerritory: !!(map.isDungeon || map.bossRoom)
+        })
       });
     }).filter(Boolean);
     return Object.freeze(normalized);
@@ -253,7 +379,9 @@
           })
         : null;
       const spawnSections = createSpawnSections(map, fieldComposition, designIntent);
-      const spawnPoints = attachSpawnSectionsToPoints(map, spawnSections);
+      const spawnPoints = Object.freeze(attachSpawnSectionsToPoints(map, spawnSections).map((point) =>
+        map.id === 'greenrootMeadow' && point.sectionId === 'greenrootMeadow_glass_basin'
+          ? Object.freeze(Object.assign({}, point, { weight: 1 })) : point));
       const spawnGroups = normalizeSpawnGroups(Object.assign({}, map, { designIntent }), spawnSections, spawnPoints);
       const townServicePlan = map.safeZone && !map.shopInterior ? getTownServicePlan(map.id) : null;
       return Object.freeze(Object.assign({}, map, {
@@ -272,10 +400,21 @@
         townServicePlan,
         townScene,
         fieldComposition,
-        asset: mapAssets[map.id] || '',
-        environment: mapEnvironmentProfiles[map.id] || mapEnvironmentProfiles.greenrootMeadow,
+        asset: mapAssets[map.id] || map.asset || '',
+        backgroundMode: 'panorama',
+        environment: mapEnvironmentProfiles[map.id] || map.environment || mapEnvironmentProfiles.greenrootMeadow,
         spawnPoints,
         spawnGroups,
+        trainingXpMultiplier: map.id === 'cinderHollow' ? 0.93 : map.trainingXpMultiplier,
+        trainingRoute: FIELD_REGROUP_PLATFORMS[map.id] ? Object.freeze({
+          regroupPlatformId: FIELD_REGROUP_PLATFORMS[map.id],
+          mainRegroupPlatformId: getPublishedPlatformId(map, 0),
+          mainRegroupX: 110,
+          mainPlatformIds: FIELD_TRAINING_CIRCUITS[map.id].mainPlatformIds,
+          optionalPlatformIds: FIELD_TRAINING_CIRCUITS[map.id].optionalPlatformIds,
+          combatGroupIds: Object.freeze(spawnGroups.map((group) => group.id)),
+          optionalGroupId: spawnGroups.length ? spawnGroups[spawnGroups.length - 1].id : ''
+        }) : null,
         stations: (map.stations || []).map((station) => attachAsset(Object.assign({}, getStationServiceIntent(station.id), station), stationAssets[station.id])),
         questNpcs: (map.questNpcs || []).map((npc) => Object.freeze(Object.assign({
           asset: defaultQuestNpcAsset

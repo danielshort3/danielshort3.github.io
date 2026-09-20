@@ -10,7 +10,9 @@ Project tests, grouped by domain. Run the full chain from the repo root with
 | `tools/` | Site tooling & accounts: chatbot proxy, campaign tracker, transcribe, text-compare, UTM, QR, tools auth, job-app bridge/attachments | `*.test.js` |
 | `site/` | Cross-site contracts: resume/portfolio recommendations, responsive density | `*.test.js` |
 | `infra/` | AWS: credentials, data migrations | `*.test.js` |
+| `release/` | Three-browser accessibility and interaction checks, deterministic visual baselines, promoted frame/typography checks | `playwright.config.cjs`, `*.spec.cjs`, `geometry.cjs`, `baselines/` |
 
 Notes:
 - Files that read repo sources anchor the root via `path.resolve(__dirname, '..', '..')` (two levels up from their subdirectory). Keep that depth when moving a file.
 - `project-starfall-balance-harness.js` is shared by the Starfall map/loop tests and `build/analyze-project-starfall-balance.js`.
+- Run `npm run test:release` after building. See [release-quality instructions](../docs/RELEASE_QUALITY.md) for browser setup, explicit baseline review, fixtures and the separate manual screen-reader checklist.

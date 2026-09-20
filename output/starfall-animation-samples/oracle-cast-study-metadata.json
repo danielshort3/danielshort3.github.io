@@ -1,0 +1,235 @@
+{
+  "reviewStatus": "healing-bloom-study-pending-playback-review",
+  "tool": "built-in image_gen",
+  "width": 1774,
+  "height": 887,
+  "hasAlpha": true,
+  "transparentPixels": 934628,
+  "grid": {
+    "columns": 4,
+    "rows": 2,
+    "cellWidth": 443.5,
+    "cellHeight": 443.5
+  },
+  "intendedPoses": [
+    "ready",
+    "draw-in windup",
+    "deep anticipation",
+    "rising release",
+    "full healing bloom",
+    "follow-through",
+    "settle",
+    "near ready"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "sourceRect": {
+        "left": 0,
+        "top": 0,
+        "width": 444,
+        "height": 444
+      },
+      "visibleBounds": {
+        "left": 64,
+        "top": 87,
+        "right": 391,
+        "bottom": 440
+      },
+      "localBounds": {
+        "left": 64,
+        "top": 87,
+        "right": 391,
+        "bottom": 440
+      },
+      "visibleWidth": 328,
+      "visibleHeight": 354,
+      "visiblePixels": 75385,
+      "edgePixels": 0
+    },
+    {
+      "index": 1,
+      "sourceRect": {
+        "left": 444,
+        "top": 0,
+        "width": 443,
+        "height": 444
+      },
+      "visibleBounds": {
+        "left": 530,
+        "top": 121,
+        "right": 836,
+        "bottom": 440
+      },
+      "localBounds": {
+        "left": 86,
+        "top": 121,
+        "right": 392,
+        "bottom": 440
+      },
+      "visibleWidth": 307,
+      "visibleHeight": 320,
+      "visiblePixels": 62978,
+      "edgePixels": 0
+    },
+    {
+      "index": 2,
+      "sourceRect": {
+        "left": 887,
+        "top": 0,
+        "width": 444,
+        "height": 444
+      },
+      "visibleBounds": {
+        "left": 973,
+        "top": 169,
+        "right": 1249,
+        "bottom": 439
+      },
+      "localBounds": {
+        "left": 86,
+        "top": 169,
+        "right": 362,
+        "bottom": 439
+      },
+      "visibleWidth": 277,
+      "visibleHeight": 271,
+      "visiblePixels": 51585,
+      "edgePixels": 0
+    },
+    {
+      "index": 3,
+      "sourceRect": {
+        "left": 1331,
+        "top": 0,
+        "width": 443,
+        "height": 444
+      },
+      "visibleBounds": {
+        "left": 1389,
+        "top": 88,
+        "right": 1714,
+        "bottom": 438
+      },
+      "localBounds": {
+        "left": 58,
+        "top": 88,
+        "right": 383,
+        "bottom": 438
+      },
+      "visibleWidth": 326,
+      "visibleHeight": 351,
+      "visiblePixels": 75156,
+      "edgePixels": 0
+    },
+    {
+      "index": 4,
+      "sourceRect": {
+        "left": 0,
+        "top": 444,
+        "width": 444,
+        "height": 443
+      },
+      "visibleBounds": {
+        "left": 54,
+        "top": 490,
+        "right": 403,
+        "bottom": 843
+      },
+      "localBounds": {
+        "left": 54,
+        "top": 46,
+        "right": 403,
+        "bottom": 399
+      },
+      "visibleWidth": 350,
+      "visibleHeight": 354,
+      "visiblePixels": 75273,
+      "edgePixels": 0
+    },
+    {
+      "index": 5,
+      "sourceRect": {
+        "left": 444,
+        "top": 444,
+        "width": 443,
+        "height": 443
+      },
+      "visibleBounds": {
+        "left": 513,
+        "top": 498,
+        "right": 857,
+        "bottom": 842
+      },
+      "localBounds": {
+        "left": 69,
+        "top": 54,
+        "right": 413,
+        "bottom": 398
+      },
+      "visibleWidth": 345,
+      "visibleHeight": 345,
+      "visiblePixels": 74534,
+      "edgePixels": 0
+    },
+    {
+      "index": 6,
+      "sourceRect": {
+        "left": 887,
+        "top": 444,
+        "width": 444,
+        "height": 443
+      },
+      "visibleBounds": {
+        "left": 956,
+        "top": 506,
+        "right": 1275,
+        "bottom": 843
+      },
+      "localBounds": {
+        "left": 69,
+        "top": 62,
+        "right": 388,
+        "bottom": 399
+      },
+      "visibleWidth": 320,
+      "visibleHeight": 338,
+      "visiblePixels": 70629,
+      "edgePixels": 0
+    },
+    {
+      "index": 7,
+      "sourceRect": {
+        "left": 1331,
+        "top": 444,
+        "width": 443,
+        "height": 443
+      },
+      "visibleBounds": {
+        "left": 1395,
+        "top": 506,
+        "right": 1708,
+        "bottom": 843
+      },
+      "localBounds": {
+        "left": 64,
+        "top": 62,
+        "right": 377,
+        "bottom": 399
+      },
+      "visibleWidth": 314,
+      "visibleHeight": 338,
+      "visiblePixels": 70427,
+      "edgePixels": 0
+    }
+  ],
+  "limitations": [
+    "Requested export size was not honored; measured rounded source rectangles are provided.",
+    "Planted drawings still need explicit root and foot baseline registration with one common scale.",
+    "Leaf feet retain lobed shape from reference; avoid counting every leaf tip as another limb.",
+    "Primary crown petal arrangement looks consistent across frames, but small edge and collar details require animated review.",
+    "No proof of exact frame-to-frame anatomy or seamless loop before playback and user review.",
+    "The current runtime heal lock is0.58seconds; this art study does not change runtime timing."
+  ],
+  "sha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8"
+}

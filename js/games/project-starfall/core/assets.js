@@ -3,8 +3,8 @@
 
   const DEFAULT_ASSET_FRAME_CACHE_LIMIT = 512;
   const defaultAssetFrameCache = new Map();
-  const CLASSIC_ASSET_REQUEST_VERSION = 'classic-eb8de4e1';
-  const CLASSIC_ASSET_REQUEST_PATH = /^\/?img\/project-starfall\/(?:characters\/(?:generic-player|fighter|guardian|berserker|duelist|mage|fire-mage|rune-mage|storm-mage|archer|sniper|trapper|beast-archer)\.png|animations\/players\/(?:generic-player|fighter|guardian|berserker|duelist|mage|fire-mage|rune-mage|storm-mage|archer|sniper|trapper|beast-archer)-sheet\.png|equipment-atlases\/[^/]+-atlas\.png|environment\/structures\/town-landmarks\.png|maps\/(?:starfall-crossing|greenroot-meadow|eclipse-throne)\.webp|ui\/start-screen\.(?:png|webp|avif))$/;
+  const CLASSIC_ASSET_REQUEST_VERSION = 'illustrated-v1-maps-20260919';
+  const CLASSIC_ASSET_REQUEST_PATH = /^\/?img\/project-starfall\/(?!.*(?:\/source\/|\/backups\/))[^?#]+\.(?:png|webp|avif)$/;
 
   function getAssetRequestUrl(assetPath) {
     const value = String(assetPath || '').trim();

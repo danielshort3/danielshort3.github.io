@@ -94,14 +94,14 @@ async function runCase({ browser, base, artifactDir, width, height, route = '/po
     await assertCenteredFields(page, `${label} long message`);
     // Exercise the supported textarea resize affordance inside the scrolling dialog.
     await page.locator('#contact-message').evaluate(element => { element.style.height = '520px'; });
-    const reset = page.locator('[data-contact-reset]');
-    await reset.scrollIntoViewIfNeeded();
-    assert(await reset.isVisible(), `${label}: actions remain reachable after resizing the message.`);
-    await reset.focus();
+    const submit = page.locator('#contact-form [type="submit"]');
+    await submit.scrollIntoViewIfNeeded();
+    assert(await submit.isVisible(), `${label}: actions remain reachable after resizing the message.`);
+    await submit.focus();
     await page.screenshot({ path: path.join(artifactDir, `contact-form-${label}-scrolled.png`) });
     await assertCenteredFields(page, `${label} resized message`);
-    await reset.click();
-    assert.equal(await page.locator('#contact-message').inputValue(), '', `${label}: Clear form still works.`);
+    assert.equal(await page.locator('[data-contact-reset]').count(), 0, `${label}: no destructive Clear form action.`);
+    assert.equal(await page.locator('#contact-message').inputValue(), message.slice(0, 3990), `${label}: resizing preserves the draft.`);
     await page.keyboard.press('Escape');
     await dialog.waitFor({ state: 'hidden' });
     assert.equal(await launcher.evaluate(element => document.activeElement === element), true, `${label}: closing restores focus to the launcher.`);

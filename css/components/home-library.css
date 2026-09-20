@@ -174,7 +174,7 @@
     min-height: 44px;
     padding: 8px 12px;
     border: 1px solid #dce3ec;
-    border-radius: 6px;
+    border-radius: var(--radius-control, 8px);
     color: #334155;
     background: #f8fafc;
     font-size: .8125rem;
@@ -215,7 +215,7 @@
     overflow: hidden;
     padding: 12px;
     border: 1px solid #dce3ec;
-    border-radius: 8px;
+    border-radius: var(--radius-card, 10px);
     color: #091f3b;
     background: #ffffff;
     box-shadow: none;
@@ -983,7 +983,7 @@
 
   body.personal-accordion-page[data-personal-category="tools"] .home-library__card,
   body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .home-library__card {
-    border-radius: 6px;
+    border-radius: var(--radius-card, 10px);
     box-shadow: none;
   }
 
@@ -1012,13 +1012,13 @@
 
   body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-bar :is(.btn-primary, .btn-secondary, .btn-ghost),
   body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-trigger {
-    min-block-size: 36px;
-    padding: 6px 10px;
-    border-color: #087f8c;
-    border-radius: 6px;
-    background: #087f8c;
-    color: #ffffff;
-    font-size: .8rem;
+    min-block-size: var(--control-height, 44px);
+    padding: var(--control-padding, 10px 14px);
+    border-color: var(--surface-border, #dce3ec);
+    border-radius: var(--radius-control, 8px);
+    background: #ffffff;
+    color: #405b7b;
+    font-size: var(--control-font-size, .875rem);
     box-shadow: none;
   }
 
@@ -1115,11 +1115,11 @@
     gap: 8px;
     padding: 0 11px 0 8px;
     border: 1px solid color-mix(in srgb, var(--panel-color) 58%, #cbd5e1 42%);
-    border-radius: 6px;
+    border-radius: var(--radius-control, 8px);
     color: color-mix(in srgb, var(--panel-color) 80%, #091f3b 20%);
     font-family: var(--font-ui, "Inter", system-ui, sans-serif);
-    font-size: .8rem;
-    font-weight: 790;
+    font-size: var(--control-font-size, .875rem);
+    font-weight: 600;
     line-height: 1.2;
   }
 
@@ -1253,13 +1253,13 @@
   }
 
   .site-frame .home-library__copy strong {
-    font-size: .9375rem;
-    line-height: 1.3;
+    font-size: 1rem;
+    line-height: 1.4;
   }
 
   .site-frame .home-library__copy > span:not(.home-library__access) {
-    font-size: .8125rem;
-    line-height: 1.4;
+    font-size: .875rem;
+    line-height: 1.5;
   }
 
   @container site-content (min-width: 760px) {
@@ -1307,8 +1307,8 @@
       height: 64px;
     }
 
-    .site-frame .home-library__copy strong { font-size: .875rem; }
-    .site-frame .home-library__copy > span:not(.home-library__access) { font-size: .75rem; }
+    .site-frame .home-library__copy strong { font-size: 1rem; }
+    .site-frame .home-library__copy > span:not(.home-library__access) { font-size: .875rem; }
     .site-frame .home-library__jump-links { gap: 4px; }
     .site-frame .home-library__jump-links a { padding-inline: 9px; }
   }

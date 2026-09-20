@@ -1,0 +1,1965 @@
+{
+  "fileId": "gale-harrier",
+  "sourceSha256": "a20cb43c75de1aaeadb58ddc6498c0b7e3da85ef4bc12cce66d6f12be4341cb6",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    181,
+    362,
+    540,
+    719,
+    892,
+    1078,
+    1258,
+    1448
+  ],
+  "sharedScale": 0.8176687116564416,
+  "floating": true,
+  "registration": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 108,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/gale-harrier-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 574608,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 24,
+        "top": 28,
+        "width": 123,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 131,
+        "width": 123,
+        "height": 132,
+        "pixels": 9506
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 94
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 26,
+        "right": 126,
+        "bottom": 133,
+        "width": 101,
+        "height": 108,
+        "pixels": 6431,
+        "edgePixels": 0
+      },
+      "sha256": "d4bc3e8eff9304b17c0ee764509097b32fe585808608cbae8df936803dd11b1b"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 206,
+        "top": 28,
+        "width": 125,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 124,
+        "bottom": 130,
+        "width": 125,
+        "height": 131,
+        "pixels": 9684
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 94
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 26,
+        "right": 127,
+        "bottom": 132,
+        "width": 102,
+        "height": 107,
+        "pixels": 6464,
+        "edgePixels": 0
+      },
+      "sha256": "95bfb42ebd985f2616a267161f11b40ea0b034cd2acbd45f7a0779e159cf2dc2"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 390,
+        "top": 27,
+        "width": 121,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 136,
+        "width": 121,
+        "height": 137,
+        "pixels": 9268
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 94
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 25,
+        "right": 127,
+        "bottom": 136,
+        "width": 99,
+        "height": 112,
+        "pixels": 6216,
+        "edgePixels": 0
+      },
+      "sha256": "74a730983de81911b37bfc7518b7c2fac091425d366609dadee5653230d21b4a"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 567,
+        "top": 28,
+        "width": 126,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 125,
+        "bottom": 133,
+        "width": 126,
+        "height": 134,
+        "pixels": 9912
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 94
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 26,
+        "right": 128,
+        "bottom": 135,
+        "width": 103,
+        "height": 110,
+        "pixels": 6691,
+        "edgePixels": 0
+      },
+      "sha256": "a190d10e7fb5eef7d1ef350945a08831e239f3bd472733185d2e7a6cad1e8cb5"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 750,
+        "top": 28,
+        "width": 126,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 125,
+        "bottom": 130,
+        "width": 126,
+        "height": 131,
+        "pixels": 9759
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 94
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 26,
+        "right": 129,
+        "bottom": 132,
+        "width": 103,
+        "height": 107,
+        "pixels": 6540,
+        "edgePixels": 0
+      },
+      "sha256": "65270a6e15133986b7c7a9233cf636afd586b51516a0f44b844354d64d38acc3"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 934,
+        "top": 28,
+        "width": 121,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 130,
+        "width": 121,
+        "height": 131,
+        "pixels": 9469
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 94
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 26,
+        "right": 128,
+        "bottom": 132,
+        "width": 99,
+        "height": 107,
+        "pixels": 6355,
+        "edgePixels": 0
+      },
+      "sha256": "581d0e9a5a1d925ea59df892ff9624c235a84f2498a2028ee5d5d0a117e97d2a"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 22,
+        "top": 197,
+        "width": 141,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 141,
+        "width": 141,
+        "height": 142,
+        "pixels": 11202
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 271.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 19,
+        "right": 138,
+        "bottom": 134,
+        "width": 115,
+        "height": 116,
+        "pixels": 7481,
+        "edgePixels": 0
+      },
+      "sha256": "03d3f742ce17114ec4de5cd2b9002511cfec99bf8c3bc13f5748a7eb6dadea39"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 202,
+        "top": 197,
+        "width": 142,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 139,
+        "width": 142,
+        "height": 140,
+        "pixels": 10939
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 271.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 19,
+        "right": 138,
+        "bottom": 132,
+        "width": 116,
+        "height": 114,
+        "pixels": 7315,
+        "edgePixels": 0
+      },
+      "sha256": "33c8993f9fc91ae1591fc12ae99e488d415f429b15a91f31e80ca729fc64b39f"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 374,
+        "top": 214,
+        "width": 147,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 126,
+        "width": 147,
+        "height": 127,
+        "pixels": 10367
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 271.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 16,
+        "top": 33,
+        "right": 135,
+        "bottom": 136,
+        "width": 120,
+        "height": 104,
+        "pixels": 6968,
+        "edgePixels": 0
+      },
+      "sha256": "c51aa592903628083110f203666793b10976ddb25a18bd5c19bc670e839e04cc"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 558,
+        "top": 215,
+        "width": 142,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 126,
+        "width": 142,
+        "height": 127,
+        "pixels": 10888
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 271.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 18,
+        "top": 34,
+        "right": 133,
+        "bottom": 137,
+        "width": 116,
+        "height": 104,
+        "pixels": 7308,
+        "edgePixels": 0
+      },
+      "sha256": "3c871296c0b39519de3359098c6630760dd5a88fe22db8ffc54d439260a372dd"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 741,
+        "top": 199,
+        "width": 138,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 138,
+        "width": 138,
+        "height": 139,
+        "pixels": 10371
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 271.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 21,
+        "right": 132,
+        "bottom": 134,
+        "width": 113,
+        "height": 114,
+        "pixels": 6986,
+        "edgePixels": 0
+      },
+      "sha256": "fdcab31aaf265f4e50bb7690f7818a7cdaec5aaf6adb620ac36765112593a475"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 928,
+        "top": 200,
+        "width": 133,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 142,
+        "width": 133,
+        "height": 143,
+        "pixels": 10785
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 271.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 22,
+        "right": 133,
+        "bottom": 138,
+        "width": 109,
+        "height": 117,
+        "pixels": 7263,
+        "edgePixels": 0
+      },
+      "sha256": "ead79d998b16eea248beeb0d979de6fc5b3090b8e4cee261d8100f21c2166f16"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 19,
+        "top": 393,
+        "width": 141,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 125,
+        "width": 141,
+        "height": 126,
+        "pixels": 10463
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 453.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 22,
+        "top": 31,
+        "right": 136,
+        "bottom": 133,
+        "width": 115,
+        "height": 103,
+        "pixels": 7016,
+        "edgePixels": 0
+      },
+      "sha256": "4c09ee87fd5c23c41314a48ed71bdc402f5c276583715c3a3c4d00b9c95f4d6d"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 198,
+        "top": 385,
+        "width": 140,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 136,
+        "width": 140,
+        "height": 137,
+        "pixels": 10261
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 453.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 20,
+        "top": 24,
+        "right": 133,
+        "bottom": 135,
+        "width": 114,
+        "height": 112,
+        "pixels": 6870,
+        "edgePixels": 0
+      },
+      "sha256": "84066cddd420f61a2b5bdf37c3b423b3c0584bda65a9692feb3953a3914ccdc1"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 374,
+        "top": 387,
+        "width": 146,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 130,
+        "width": 146,
+        "height": 131,
+        "pixels": 10799
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 453.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 16,
+        "top": 26,
+        "right": 134,
+        "bottom": 132,
+        "width": 119,
+        "height": 107,
+        "pixels": 7237,
+        "edgePixels": 0
+      },
+      "sha256": "48104260b24f17bd41e146fb7b80856091ab180433f9f2969727fda8a324a0e2"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 565,
+        "top": 382,
+        "width": 132,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 135,
+        "width": 132,
+        "height": 136,
+        "pixels": 10656
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 453.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 22,
+        "right": 131,
+        "bottom": 132,
+        "width": 108,
+        "height": 111,
+        "pixels": 7158,
+        "edgePixels": 0
+      },
+      "sha256": "d9111bebc6fd74bdc5b786395d02064f99178e9aa41042bfa8b47c10e60469ca"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 741,
+        "top": 387,
+        "width": 137,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 138,
+        "width": 137,
+        "height": 139,
+        "pixels": 10940
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 453.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 26,
+        "right": 131,
+        "bottom": 139,
+        "width": 112,
+        "height": 114,
+        "pixels": 7371,
+        "edgePixels": 0
+      },
+      "sha256": "11c82d56ea8c7211ef96caded202754f73b96e51bade7acc791c4f8f1c43fa57"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 923,
+        "top": 381,
+        "width": 136,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 139,
+        "width": 136,
+        "height": 140,
+        "pixels": 11489
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 453.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 21,
+        "right": 131,
+        "bottom": 134,
+        "width": 111,
+        "height": 114,
+        "pixels": 7692,
+        "edgePixels": 0
+      },
+      "sha256": "08e8743fdbef5bdf7862a316562bb9769a0bce92d6ed87b0307fefb530be5dca"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 28,
+        "top": 557,
+        "width": 144,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 140,
+        "width": 144,
+        "height": 141,
+        "pixels": 10872
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 629
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 21,
+        "right": 146,
+        "bottom": 135,
+        "width": 118,
+        "height": 115,
+        "pixels": 7316,
+        "edgePixels": 0
+      },
+      "sha256": "9fc0b02691fb232734241d4edd5a88dd90a723f366c33ae8eac31990c3354596"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 203,
+        "top": 570,
+        "width": 132,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 126,
+        "width": 132,
+        "height": 127,
+        "pixels": 9950
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 629
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 32,
+        "right": 131,
+        "bottom": 135,
+        "width": 108,
+        "height": 104,
+        "pixels": 6682,
+        "edgePixels": 0
+      },
+      "sha256": "fe5d433f2155965fdc28b6fe91ca44211da03d9f34507f92e8ff772c77e9acea"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 378,
+        "top": 557,
+        "width": 145,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 140,
+        "width": 145,
+        "height": 141,
+        "pixels": 11358
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 629
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 19,
+        "top": 21,
+        "right": 137,
+        "bottom": 135,
+        "width": 119,
+        "height": 115,
+        "pixels": 7661,
+        "edgePixels": 0
+      },
+      "sha256": "899043d140836be81d049fcfbb4fcbdb97c5e89718347f6f36d01fdcdfc07e2b"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 563,
+        "top": 554,
+        "width": 135,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 137,
+        "width": 135,
+        "height": 138,
+        "pixels": 11356
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 629
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 19,
+        "right": 131,
+        "bottom": 131,
+        "width": 110,
+        "height": 113,
+        "pixels": 7627,
+        "edgePixels": 0
+      },
+      "sha256": "2ec5f70d7ccbc79c0adcc78852afab760b08a5587f173139a4fc56b38b8b4ead"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 748,
+        "top": 565,
+        "width": 130,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 132,
+        "width": 130,
+        "height": 133,
+        "pixels": 10067
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 629
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 28,
+        "right": 131,
+        "bottom": 136,
+        "width": 106,
+        "height": 109,
+        "pixels": 6775,
+        "edgePixels": 0
+      },
+      "sha256": "1a872d94de13929a89ff08b2fbfaf573afb62cc56975bde767a3754c85c7b7e3"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 928,
+        "top": 561,
+        "width": 127,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 135,
+        "width": 127,
+        "height": 136,
+        "pixels": 9902
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 629
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 24,
+        "right": 128,
+        "bottom": 134,
+        "width": 104,
+        "height": 111,
+        "pixels": 6652,
+        "edgePixels": 0
+      },
+      "sha256": "7a5915d17deafd25e5589074b430007a9cae0e04a986ca50a96a0b30bf11c833"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 26,
+        "top": 742,
+        "width": 129,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 128,
+        "bottom": 135,
+        "width": 129,
+        "height": 136,
+        "pixels": 10066
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 811.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 23,
+        "right": 131,
+        "bottom": 133,
+        "width": 105,
+        "height": 111,
+        "pixels": 6720,
+        "edgePixels": 0
+      },
+      "sha256": "99316ecc0a3cc1e0d0d85a09e00d940dd41737ff0801222f3c8c4c9db4e63908"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 201,
+        "top": 744,
+        "width": 138,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 134,
+        "width": 138,
+        "height": 135,
+        "pixels": 10143
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 811.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 25,
+        "right": 134,
+        "bottom": 134,
+        "width": 113,
+        "height": 110,
+        "pixels": 6805,
+        "edgePixels": 0
+      },
+      "sha256": "fddc2f719ea997cc035578e3a2d1a3cc1db70c298a35a30073c69d40d4654ea4"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 386,
+        "top": 739,
+        "width": 131,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 139,
+        "width": 131,
+        "height": 140,
+        "pixels": 10672
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 811.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 21,
+        "right": 132,
+        "bottom": 134,
+        "width": 107,
+        "height": 114,
+        "pixels": 7135,
+        "edgePixels": 0
+      },
+      "sha256": "333a7550c15238ec4c7477f8206fa3a07235c8fa96998eff6e2d12bde28a4d7f"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 567,
+        "top": 752,
+        "width": 132,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 124,
+        "width": 132,
+        "height": 125,
+        "pixels": 10551
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 811.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 31,
+        "right": 133,
+        "bottom": 132,
+        "width": 108,
+        "height": 102,
+        "pixels": 7079,
+        "edgePixels": 0
+      },
+      "sha256": "94e895ea0144c0261c347d73386467d30eec8b5772924fd7643d38101b4ce5a3"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 747,
+        "top": 742,
+        "width": 132,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 139,
+        "width": 132,
+        "height": 140,
+        "pixels": 10890
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 811.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 23,
+        "right": 132,
+        "bottom": 136,
+        "width": 108,
+        "height": 114,
+        "pixels": 7288,
+        "edgePixels": 0
+      },
+      "sha256": "d917bcffd038cc26481d06c0f3727c9221176a779a98dcb3cd85cb384ca86930"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 932,
+        "top": 741,
+        "width": 125,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 124,
+        "bottom": 134,
+        "width": 125,
+        "height": 135,
+        "pixels": 9821
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 811.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 22,
+        "right": 129,
+        "bottom": 131,
+        "width": 102,
+        "height": 110,
+        "pixels": 6550,
+        "edgePixels": 0
+      },
+      "sha256": "d7d4b61a31b91b7b013d7e0815accde406f3efc3ed365f52f5b907990f14df45"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 17,
+        "top": 920,
+        "width": 139,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 138,
+        "width": 139,
+        "height": 139,
+        "pixels": 10622
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 989
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 20,
+        "top": 24,
+        "right": 133,
+        "bottom": 137,
+        "width": 114,
+        "height": 114,
+        "pixels": 7165,
+        "edgePixels": 0
+      },
+      "sha256": "2dad5322931abddb6fe83789592816a5e5aa72d74672458e3a2e314c770048a9"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 201,
+        "top": 918,
+        "width": 137,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 139,
+        "width": 137,
+        "height": 140,
+        "pixels": 11124
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 989
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 22,
+        "right": 133,
+        "bottom": 135,
+        "width": 112,
+        "height": 114,
+        "pixels": 7429,
+        "edgePixels": 0
+      },
+      "sha256": "bf328118c56022cb8b4c61e770434b45f2baa8c31b9e802daa96d9ae4759d2f7"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 373,
+        "top": 901,
+        "width": 163,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 160,
+        "width": 163,
+        "height": 161,
+        "pixels": 14717
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 989
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 15,
+        "top": 8,
+        "right": 147,
+        "bottom": 139,
+        "width": 133,
+        "height": 132,
+        "pixels": 9903,
+        "edgePixels": 0
+      },
+      "sha256": "076cce991e225bc485422b954537141d752be14d722f46131aea978c4642f21e"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 555,
+        "top": 901,
+        "width": 157,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 162,
+        "width": 157,
+        "height": 163,
+        "pixels": 14412
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 989
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 16,
+        "top": 8,
+        "right": 143,
+        "bottom": 140,
+        "width": 128,
+        "height": 133,
+        "pixels": 9599,
+        "edgePixels": 0
+      },
+      "sha256": "743af434495eacfb8aaa5d454c5d79bc750c5c29c1d2b24607cef3d79c5a0ed2"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 751,
+        "top": 919,
+        "width": 137,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 142,
+        "width": 137,
+        "height": 143,
+        "pixels": 11200
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 989
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 23,
+        "right": 139,
+        "bottom": 139,
+        "width": 112,
+        "height": 117,
+        "pixels": 7507,
+        "edgePixels": 0
+      },
+      "sha256": "8de23ed11e4e242093020edfb0e5315dc51fb7f1e79f4de8033cd4e383bc53d0"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 927,
+        "top": 918,
+        "width": 130,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 141,
+        "width": 130,
+        "height": 142,
+        "pixels": 10785
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 989
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 22,
+        "right": 129,
+        "bottom": 137,
+        "width": 106,
+        "height": 116,
+        "pixels": 7220,
+        "edgePixels": 0
+      },
+      "sha256": "4ea2a5b77ecd4306f21b5b0e1cf0834c1ef1f0815dc2495d69f5bb8381e364c0"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 21,
+        "top": 1093,
+        "width": 140,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 132,
+        "width": 140,
+        "height": 133,
+        "pixels": 10365
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1167.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 19,
+        "right": 136,
+        "bottom": 127,
+        "width": 114,
+        "height": 109,
+        "pixels": 6977,
+        "edgePixels": 0
+      },
+      "sha256": "372d2ead0792b1f98df462427beeb0a58a7d4dc362bda4f67c7d6e5639c02d87"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 209,
+        "top": 1093,
+        "width": 131,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 139,
+        "width": 131,
+        "height": 140,
+        "pixels": 10221
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1167.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 19,
+        "right": 135,
+        "bottom": 132,
+        "width": 107,
+        "height": 114,
+        "pixels": 6832,
+        "edgePixels": 0
+      },
+      "sha256": "35862dbee536fcfbb4ed06b13b7d745f065239ed8388de48612e2c308f3100ee"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 395,
+        "top": 1092,
+        "width": 123,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 135,
+        "width": 123,
+        "height": 136,
+        "pixels": 9482
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1167.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 18,
+        "right": 133,
+        "bottom": 128,
+        "width": 101,
+        "height": 111,
+        "pixels": 6407,
+        "edgePixels": 0
+      },
+      "sha256": "d216d0aa2cfe9d017b6032b70e5469c249d0cf1828727997de62fa6b427d1c29"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 575,
+        "top": 1099,
+        "width": 121,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 136,
+        "width": 121,
+        "height": 137,
+        "pixels": 9260
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1167.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 32,
+        "top": 24,
+        "right": 130,
+        "bottom": 135,
+        "width": 99,
+        "height": 112,
+        "pixels": 6231,
+        "edgePixels": 0
+      },
+      "sha256": "52ad229a67aef8317e9eea6b9ad629c53ee4c495d7f418cff264d3656e9b1b08"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 755,
+        "top": 1099,
+        "width": 127,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 136,
+        "width": 127,
+        "height": 137,
+        "pixels": 10266
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1167.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 24,
+        "right": 134,
+        "bottom": 135,
+        "width": 104,
+        "height": 112,
+        "pixels": 6885,
+        "edgePixels": 0
+      },
+      "sha256": "4d402caee49b7d5b2786da7f3eb2278d7e5dbd1f0092b57cd1e47e21cd2c91ce"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 933,
+        "top": 1105,
+        "width": 124,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 123,
+        "bottom": 130,
+        "width": 124,
+        "height": 131,
+        "pixels": 9761
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1167.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 29,
+        "right": 129,
+        "bottom": 135,
+        "width": 101,
+        "height": 107,
+        "pixels": 6518,
+        "edgePixels": 0
+      },
+      "sha256": "111efa92b41b6850753ac49bee899600974a92a7e089ce76aea9cb99ecabf768"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 21,
+        "top": 1280,
+        "width": 140,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 126,
+        "width": 140,
+        "height": 127,
+        "pixels": 9997
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1360
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 15,
+        "right": 136,
+        "bottom": 118,
+        "width": 114,
+        "height": 104,
+        "pixels": 6718,
+        "edgePixels": 0
+      },
+      "sha256": "389d91e4e5b5455556e1f3d5be31dfab381ebd4dd8d2adcc22615032523d3b22"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 205,
+        "top": 1280,
+        "width": 134,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 128,
+        "width": 134,
+        "height": 129,
+        "pixels": 9327
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1360
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 15,
+        "right": 135,
+        "bottom": 119,
+        "width": 110,
+        "height": 105,
+        "pixels": 6288,
+        "edgePixels": 0
+      },
+      "sha256": "f5658f244135e20042fa22ed156768e9611d4248a84fd40fd22c9b1524bed23a"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 384,
+        "top": 1287,
+        "width": 136,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 122,
+        "width": 136,
+        "height": 123,
+        "pixels": 9243
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1360
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 20,
+        "right": 134,
+        "bottom": 120,
+        "width": 111,
+        "height": 101,
+        "pixels": 6249,
+        "edgePixels": 0
+      },
+      "sha256": "0da1cf4c0a1437fffeda6d3cb1cdac7a50bc00221bf7965100513fccfec9f7a2"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 566,
+        "top": 1311,
+        "width": 132,
+        "height": 98
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 97,
+        "width": 132,
+        "height": 98,
+        "pixels": 8554
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1360
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 40,
+        "right": 132,
+        "bottom": 119,
+        "width": 108,
+        "height": 80,
+        "pixels": 5750,
+        "edgePixels": 0
+      },
+      "sha256": "87374717d998f55ec957792cf904acf6ee6fe60ef61e47d10f8d3ce4e0742f0f"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 741,
+        "top": 1315,
+        "width": 132,
+        "height": 93
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 92,
+        "width": 132,
+        "height": 93,
+        "pixels": 8286
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1360
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 43,
+        "right": 127,
+        "bottom": 118,
+        "width": 108,
+        "height": 76,
+        "pixels": 5556,
+        "edgePixels": 0
+      },
+      "sha256": "c88cbc4e84596eddbd245f11bf8089f5465c8b8511ce89937d255e593167495f"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 920,
+        "top": 1336,
+        "width": 134,
+        "height": 71
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 70,
+        "width": 134,
+        "height": 71,
+        "pixels": 7547
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/gale-harrier/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1360
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 18,
+        "top": 60,
+        "right": 127,
+        "bottom": 117,
+        "width": 110,
+        "height": 58,
+        "pixels": 5094,
+        "edgePixels": 0
+      },
+      "sha256": "f66a5d5399e23051ca0b051ccc956e8f3c8002ccdd82493477bbe67cf397c132"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

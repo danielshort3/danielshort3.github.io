@@ -1,0 +1,37 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "gale-harrier",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-8f4a3a8d-bd06-4e43-9b77-4fdeb26773af.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/gale-harrier.png",
+    "img/project-starfall/animations/enemies/gale-harrier-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": true,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Eight rows, coherent identity; alpha fringe and packed registration checks pending.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/gale-harrier-sheet.png",
+    "portrait": "img/project-starfall/enemies/gale-harrier.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "a20cb43c75de1aaeadb58ddc6498c0b7e3da85ef4bc12cce66d6f12be4341cb6",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  }
+}

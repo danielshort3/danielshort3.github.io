@@ -10,7 +10,7 @@ const EquipmentAttachments = require('../../js/games/project-starfall/engine/equ
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const FRAME_SIZE = 160;
-const SHEET_WIDTH = 960;
+const SHEET_WIDTH = 1280;
 const FAMILY_IDS = Object.freeze(['fighter', 'mage', 'archer']);
 const CLASS_FAMILIES = Object.freeze({
   fighter: 'fighter',
@@ -155,7 +155,8 @@ async function main() {
       assert(bounds.minX > 0 && bounds.maxX < FRAME_SIZE - 1 && bounds.minY > 0 && bounds.maxY < FRAME_SIZE - 1,
         rowId + ' frame ' + frameIndex + ' should fit inside its transparent cell');
       if (rowId === 'idle' || rowId === 'run') {
-        assert(Math.abs(bounds.maxY - registration.groundY) <= 2,
+          const flightOffset = rowId === 'run' ? [0, 0, 2, 5, 0, 0, 2, 5][frameIndex] : 0;
+          assert(Math.abs(bounds.maxY - registration.groundY + flightOffset) <= 2,
           rowId + ' frame ' + frameIndex + ' should preserve registered ground contact');
         assert(registration.originX >= bounds.minX && registration.originX <= bounds.maxX,
           rowId + ' frame ' + frameIndex + ' should preserve its registered origin');

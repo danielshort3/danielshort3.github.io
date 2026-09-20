@@ -19,7 +19,7 @@
 
   :root:has(body.personal-accordion-page[data-personal-category="projects"]),
   body.personal-accordion-page[data-personal-category="projects"] {
-    --personal-scrollbar-color: #155dfc;
+    --personal-scrollbar-color: var(--category-projects, #005fed);
   }
 
   :root:has(body.personal-accordion-page[data-personal-category="tools"]),
@@ -590,9 +590,8 @@
     background: var(--personal-shell-canvas);
   }
 
-  body.personal-accordion-page .personal-accordion a {
-    text-decoration: none;
-  }
+  /* Keep inline prose links distinguishable from nearby text. Cards, buttons
+     and navigation own their decoration in their respective components. */
 
   body.personal-accordion-page .personal-accordion__rail,
   body.personal-accordion-page .personal-accordion__rail:is(:hover, :focus-visible) {
@@ -651,7 +650,7 @@
   body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero h1::after {
     width: min(150px, 34vw);
     margin-top: 10px;
-    background: linear-gradient(90deg, #155dfc 0%, rgba(21, 93, 252, .24) 72%, transparent 100%);
+    background: linear-gradient(90deg, var(--category-projects, #005fed) 0%, color-mix(in srgb, var(--category-projects, #005fed) 24%, transparent) 72%, transparent 100%);
   }
 
   body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-body {
@@ -675,13 +674,13 @@
   }
 
   body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-link {
-    border-color: color-mix(in srgb, #155dfc 22%, #cbd5e1 78%);
+    border-color: color-mix(in srgb, var(--category-projects, #005fed) 22%, #cbd5e1 78%);
     background: #f8fafc;
   }
 
   body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-link:is(:hover, :focus-visible) {
-    border-color: #155dfc;
-    background: color-mix(in srgb, #155dfc 5%, #ffffff 95%);
+    border-color: var(--category-projects, #005fed);
+    background: color-mix(in srgb, var(--category-projects, #005fed) 5%, #ffffff 95%);
     box-shadow: none;
   }
 
@@ -751,7 +750,7 @@
     }
 
     body.personal-accordion-page[data-personal-chrome="compact"] .nav-search-button:focus-visible {
-      outline: 3px solid #155dfc;
+      outline: 3px solid var(--category-projects, #005fed);
       outline-offset: 2px;
     }
   }
@@ -1001,7 +1000,7 @@
   }
 
   body.project-demo-wrapper-page .project-demo-wrapper-iframe:focus-visible {
-    outline: 3px solid var(--panel-color, #155dfc);
+    outline: 3px solid var(--panel-color, #005fed);
     outline-offset: -3px;
   }
 

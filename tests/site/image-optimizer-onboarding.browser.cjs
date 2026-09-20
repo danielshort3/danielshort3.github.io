@@ -54,6 +54,8 @@ async function runImageOptimizerChecks({ browser, base, artifactDir }) {
       assert.equal(await page.locator('#imgopt-filelist .imgopt-file').count(), 1);
       await page.locator('#imgopt-process').click();
       await page.locator('#imgopt-results a[download]').first().waitFor();
+      assert.equal(await page.locator('#imgopt-status').getAttribute('data-tone'), 'success', 'A completed optimization has the shared success state.');
+      assert.match(await page.locator('#imgopt-status').innerText(), /^Done\./, 'Success remains understandable without color.');
       const downloading = page.waitForEvent('download');
       await page.locator('#imgopt-results a[download]').first().click();
       const download = await downloading;
@@ -66,13 +68,31 @@ async function runImageOptimizerChecks({ browser, base, artifactDir }) {
       await page.locator('#imgopt-quality').fill('70');
       assert.equal(await page.locator('#imgopt-results a[download]').count(), 0, 'Setting changes invalidate previous downloads.');
       assert(await page.locator('#imgopt-download-all').isDisabled());
+      assert.equal(await page.locator('#imgopt-status').getAttribute('data-tone'), 'info', 'Changing settings clears the old success state.');
       await page.locator('#imgopt-sample').click();
       await page.waitForFunction(() => document.querySelectorAll('#imgopt-filelist .imgopt-file').length === 2 && document.querySelector('#imgopt-status').textContent.includes('image is ready'));
       assert.equal(await page.locator('#imgopt-filelist .imgopt-file').count(), 2, 'Adding a sample does not replace selected images.');
+      // Exercise the real processing failure path without malformed uploads or external services.
+      await page.evaluate(() => {
+        window.__imgoptOriginalToBlob = HTMLCanvasElement.prototype.toBlob;
+        HTMLCanvasElement.prototype.toBlob = function (callback) { callback(null); };
+      });
+      try {
+        await page.locator('#imgopt-process').click();
+        await page.waitForFunction(() => document.querySelector('#imgopt-status').dataset.tone === 'error');
+        assert.match(await page.locator('#imgopt-status').innerText(), /Unable to encode image/, 'A failed optimization retains its textual error explanation.');
+        assert.equal(await page.locator('#imgopt-results a[download]').count(), 0, 'Failed processing cannot leave successful downloads behind.');
+      } finally {
+        await page.evaluate(() => {
+          HTMLCanvasElement.prototype.toBlob = window.__imgoptOriginalToBlob;
+          delete window.__imgoptOriginalToBlob;
+        });
+      }
       await page.locator('#imgopt-clear').click();
       assert.equal(await page.locator('#imgopt-filelist .imgopt-file').count(), 0);
       assert.equal(await page.locator('#imgopt-results a[download]').count(), 0);
       assert(await page.locator('#imgopt-process').isDisabled(), 'Clear returns the tool to its empty state.');
+      assert.equal(await page.locator('#imgopt-status').getAttribute('data-tone'), 'info', 'Clear removes the previous error state.');
       assert.deepEqual(errors, [], 'The sample and optimization flow have no page exceptions.');
       console.log(`Image Optimizer onboarding passed: ${viewport.width}px`);
     } catch (error) {

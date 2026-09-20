@@ -1,0 +1,209 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "clockbug",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-38b06d07-f350-45f4-afdb-57adced60e69.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/clockbug.png",
+    "img/project-starfall/animations/enemies/clockbug-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Raw and packed contact sheets visually inspected; 48 coherent actors, transparent gutters, no clipped silhouette, consistent identity. In-game playback QA remains required.",
+    "animationReview": "pending-runtime-integration"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/clockbug-sheet.png",
+    "portrait": "img/project-starfall/enemies/clockbug.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "d851ee38db49cafd3f918e58b29367f284e22b265b2ba34bc34f44dd1c46f3c4",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "sourcePeakColumns": {
+      "attack": 3,
+      "projectile": 3
+    },
+    "note": "Peak then authored follow-through then reverse-order preparation poses retract toward rest. No synthesized interpolation."
+  },
+  "sharedScale": 0.788148148148148,
+  "frames": {
+    "0": {
+      "anchor": {
+        "x": 90.5,
+        "y": 170
+      }
+    },
+    "1": {
+      "anchor": {
+        "x": 276.5751879699248,
+        "y": 170
+      }
+    },
+    "2": {
+      "anchor": {
+        "x": 455.0375939849624,
+        "y": 170
+      }
+    },
+    "3": {
+      "anchor": {
+        "x": 630.9624060150376,
+        "y": 170
+      }
+    },
+    "4": {
+      "anchor": {
+        "x": 806.8872180451128,
+        "y": 170
+      }
+    },
+    "5": {
+      "anchor": {
+        "x": 985.3496240601504,
+        "y": 170
+      }
+    }
+  },
+  "registrationReview": {
+    "status": "reviewed-horizontal",
+    "scope": "idle-horizontal only",
+    "method": "Reviewed stable anatomical-core translation against idle frame 0, corroborated by whole-silhouette translation and fixed-guide contact sheets. No bounding-box centering. Only X anchors changed; authored Y, all drawing pixels and fixed identity scale are preserved.",
+    "landmark": "clock dial and rigid rounded body; antenna key and moving small legs are excluded",
+    "referenceFrame": 0,
+    "fixedSharedScale": 0.788148148148148,
+    "sourceUnchanged": true,
+    "actionsChanged": [
+      "idle"
+    ],
+    "visualVerification": "Before/after fixed-guide strips inspected for the declared rigid anatomical landmarks and last-to-first horizontal closure. All six poses retain their authored vertical variation. This review does not certify other action rows or all shape and transition quality.",
+    "evidence": "output/enemy-idle-alignment/clockbug/alignment-evidence.json",
+    "corrections": [
+      {
+        "frame": 0,
+        "measuredPriorBodyDriftX": 0,
+        "outputTranslationX": 0,
+        "previousAnchor": {
+          "x": 90.5,
+          "y": 170
+        },
+        "anchor": {
+          "x": 90.5,
+          "y": 170
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 1,
+        "measuredPriorBodyDriftX": 4,
+        "outputTranslationX": -4,
+        "previousAnchor": {
+          "x": 271.5,
+          "y": 170
+        },
+        "anchor": {
+          "x": 276.5751879699248,
+          "y": 170
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 2,
+        "measuredPriorBodyDriftX": 2,
+        "outputTranslationX": -2,
+        "previousAnchor": {
+          "x": 452.5,
+          "y": 170
+        },
+        "anchor": {
+          "x": 455.0375939849624,
+          "y": 170
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 3,
+        "measuredPriorBodyDriftX": -2,
+        "outputTranslationX": 2,
+        "previousAnchor": {
+          "x": 633.5,
+          "y": 170
+        },
+        "anchor": {
+          "x": 630.9624060150376,
+          "y": 170
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 4,
+        "measuredPriorBodyDriftX": -6,
+        "outputTranslationX": 6,
+        "previousAnchor": {
+          "x": 814.5,
+          "y": 170
+        },
+        "anchor": {
+          "x": 806.8872180451128,
+          "y": 170
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 5,
+        "measuredPriorBodyDriftX": -8,
+        "outputTranslationX": 8,
+        "previousAnchor": {
+          "x": 995.5,
+          "y": 170
+        },
+        "anchor": {
+          "x": 985.3496240601504,
+          "y": 170
+        },
+        "scaleFactor": 1
+      }
+    ]
+  }
+}

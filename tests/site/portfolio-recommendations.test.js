@@ -183,8 +183,8 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     const evaluationIndex = page.indexOf('Evidence &amp; limitations');
     const demoIndex = page.indexOf('project-demo-shell');
     assert(
-      starIndex >= 0 && evaluationIndex === -1 && demoIndex > starIndex,
-      `${id} should place STAR before the demo without the disabled evidence disclosure`,
+      demoIndex >= 0 && evaluationIndex === -1 && starIndex > demoIndex,
+      `${id} should place the demo before STAR without the disabled evidence disclosure`,
     );
   });
   storyIds.forEach((id) => {
@@ -193,8 +193,8 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     const storyIndex = page.indexOf('Personal notes');
     const demoIndex = page.indexOf('project-demo-shell');
     assert(
-      starIndex >= 0 && storyIndex === -1 && demoIndex > starIndex,
-      `${id} should render STAR directly before the demo or preview without personal notes`,
+      demoIndex >= 0 && storyIndex === -1 && starIndex > demoIndex,
+      `${id} should render STAR after the demo or preview without personal notes`,
     );
   });
 

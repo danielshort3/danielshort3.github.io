@@ -220,7 +220,9 @@
         purpose: 'Admin-only comparison room for Bandit Cutter animation generation methods.',
         enemies: ['banditCutter', 'banditCutterDirect', 'banditCutterReference', 'banditCutterHybrid', 'banditCutterPuppet'],
         platforms: [[0, 520, 3600, 80], [260, 432, 420, 22], [900, 432, 420, 22], [1540, 432, 420, 22], [2180, 432, 420, 22], [2820, 432, 420, 22]],
-        climbables: [],
+        climbables: [470, 1110, 1750, 2390, 3030].map((center, index) => ({
+          id: `banditAnimationLab_rope_stand_${index + 1}`, x: center - 15, y: 432, w: 30, h: 88
+        })),
         spawnPoints: [
           { id: 'baseline_bandit', x: 470, platformIndex: 1, weight: 1 },
           { id: 'direct_bandit', x: 1110, platformIndex: 2, weight: 1 },

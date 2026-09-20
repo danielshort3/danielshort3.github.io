@@ -156,6 +156,7 @@ function harness({ value = '', output, session = '', active = '', extraFields = 
     getActiveSessionId: () => activeSession,
     setActiveSessionId: (toolId, next) => { activeSession = next; },
     buildSnapshot: () => ({ fields: { text: root.value, ...Object.fromEntries(extraFields.filter(item => item.id).map(item => [item.id, item.value])) } }),
+    serializeToolFields: () => ({ text: root.value }),
     captureToolPayload: () => { calls.capture += 1; return toolOutput ? { output: toolOutput } : {}; },
     applyToolFields: (target, fields) => {
       target.value = fields.text || '';

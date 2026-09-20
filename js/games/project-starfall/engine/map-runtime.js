@@ -4,6 +4,7 @@
   const CoreIds = (typeof require === 'function' ? require('../core/ids.js') : null) || global.ProjectStarfallCore || {};
   const CoreMath = (typeof require === 'function' ? require('../core/math.js') : null) || global.ProjectStarfallCore || {};
   const CoreGeometry = (typeof require === 'function' ? require('../core/geometry.js') : null) || global.ProjectStarfallCore || {};
+  const DataAssets = (typeof require === 'function' ? require('../data/assets.js') : null) || (global.ProjectStarfallDataModules || {}).assets || {};
   const EngineModules = global.ProjectStarfallEngineModules || {};
   const EngineViewport = (typeof require === 'function' ? require('./viewport.js') : null) || EngineModules.viewport || {};
   const EnginePortals = EngineModules.portals || {};
@@ -182,8 +183,13 @@
     const rawTop = Number(climbable.y) || 0;
     const rawBottom = rawTop + (Number(climbable.h) || 120);
     const centerX = x + w / 2;
-    const topPlatform = findSurfacePlatform(platforms, centerX, rawTop, 56, 96);
-    const bottomPlatform = findSurfacePlatform(platforms, centerX, rawBottom, 56, 96);
+    // Prefer a real footing beneath the endpoint. The nearby fallback supports
+    // legacy edge exits, but a clamped off-edge slope must not steal a flat lane.
+    const alignedPlatforms = platforms.filter((platform) => platformContainsX(platform, centerX, 0));
+    const topPlatform = findSurfacePlatform(alignedPlatforms, centerX, rawTop, 56, 96) ||
+      findSurfacePlatform(platforms, centerX, rawTop, 56, 96);
+    const bottomPlatform = findSurfacePlatform(alignedPlatforms, centerX, rawBottom, 56, 96) ||
+      findSurfacePlatform(platforms, centerX, rawBottom, 56, 96);
     const topY = topPlatform ? getPlatformSurfaceY(topPlatform, centerX) : rawTop;
     const bottomSurfaceY = bottomPlatform ? getPlatformSurfaceY(bottomPlatform, centerX) : rawBottom;
     const bottomY = bottomPlatform && bottomSurfaceY > topY ? bottomSurfaceY : rawBottom;
@@ -337,6 +343,7 @@
       const links = graph[current.index] || [];
       for (const link of links) {
         if (excludedTypes.has(link.type)) continue;
+        if (options && typeof options.allowLink === 'function' && !options.allowLink(link, current.index)) continue;
         const linkCost = Object.prototype.hasOwnProperty.call(typeCost, link.type) ? typeCost[link.type] : 9;
         const nextCost = current.cost + linkCost;
         const knownNextCost = bestCost.has(link.to) ? bestCost.get(link.to) : Infinity;
@@ -347,6 +354,43 @@
       }
     }
     return null;
+  }
+
+  function isPlatformJumpLinkTraversable(link, platforms, options) {
+    if (!link || link.type !== 'jump') return true;
+    const settings = options || {};
+    const from = platforms && platforms[link.from];
+    const to = platforms && platforms[link.to];
+    if (!from || !to) return false;
+    const halfWidth = Math.max(1, Number(settings.bodyWidth || 40)) / 2;
+    const inset = halfWidth + 2;
+    if (from.w < inset * 2 || to.w < inset * 2) return false;
+    const launchX = clamp(Number(link.exitX), from.x + inset, from.x + from.w - inset);
+    const landingX = clamp(launchX, to.x + inset, to.x + to.w - inset);
+    const targetOffset = getPlatformSurfaceY(to, landingX) - getPlatformSurfaceY(from, launchX);
+    const distance = Math.abs(landingX - launchX);
+    const dt = 1 / Math.max(1, Number(settings.fps || 30));
+    const gravity = Math.max(1, Number(settings.gravity || 1600));
+    const speed = Math.max(0, Number(settings.moveSpeed || 0));
+    let velocity = -Math.max(0, Number(settings.jumpVelocity || 0));
+    let offset = 0;
+    let clearedTarget = targetOffset >= 0;
+    // Match the runtime's gravity-before-position integration at the coarsest
+    // supported rate. Require actual clearance, without the collision snap
+    // tolerance that can make a marginal jump succeed only at higher FPS.
+    for (let frame = 1; frame <= Math.ceil(3 / dt); frame += 1) {
+      const previousOffset = offset;
+      velocity += gravity * dt;
+      offset += velocity * dt;
+      if (offset <= targetOffset - 2) clearedTarget = true;
+      if (velocity >= 0 && offset >= targetOffset) {
+        if (!clearedTarget || previousOffset > targetOffset) return false;
+        // Reserve a short launch/steering margin instead of assuming a player
+        // can instantly reach maximum horizontal speed from standing still.
+        return distance <= Math.max(0, frame * dt - 0.1) * speed;
+      }
+    }
+    return false;
   }
 
   function isRampRouteLink(link) {
@@ -530,12 +574,18 @@
       lowDowntimeSpawns: combatMap && Number(map && map.waveDelay || 0) <= 8 && spawnDensityPer1000px >= 1
     });
     const viable = combatMap && Object.values(checks).every(Boolean);
+    const authoredRoute = map && map.trainingRoute || {};
     return Object.freeze({
       id: `${map && map.id || 'map'}_training_route`,
       kind: combatMap ? map && map.isDungeon ? 'dungeon-training-loop' : 'field-training-loop' : 'service-hub',
       viable,
       loopable: !!stronglyConnected,
       routePlatformIds: Object.freeze(trainingPlatformIndices.map((index) => platforms[index] && platforms[index].id || '').filter(Boolean)),
+      mainPlatformIds: Object.freeze((authoredRoute.mainPlatformIds || []).slice()),
+      optionalPlatformIds: Object.freeze((authoredRoute.optionalPlatformIds || []).slice()),
+      mainRegroupPlatformId: String(authoredRoute.mainRegroupPlatformId || ''),
+      mainRegroupX: Number(authoredRoute.mainRegroupX || 0),
+      regroupPlatformId: String(authoredRoute.regroupPlatformId || ''),
       spawnPlatformIds: Object.freeze(spawnPlatformIndices.map((index) => platforms[index] && platforms[index].id || '').filter(Boolean)),
       platformCoverage: Number(spawnCoverage.toFixed(3)),
       enemyDensity: Number(enemyDensity.toFixed(3)),
@@ -617,6 +667,7 @@
         platformIndices: Object.freeze(platformIndices),
         spawnPointIds: Object.freeze(spawnPointIds),
         enemyWeights,
+        enemyMaxAlive: Object.freeze(Object.assign({}, source.enemyMaxAlive || {})),
         population,
         respawnSeconds: Math.max(1, Math.min(60, Number(source.respawnSeconds || map.waveDelay || 5) || 5)),
         leash: Math.max(90, Math.min(2400, Number(source.leash || 480) || 480)),
@@ -693,6 +744,7 @@
           return {
             id: `${sourceMap && sourceMap.id || 'map'}_hunt_warden`,
             name: `${sourceMap && sourceMap.name || 'Map'} Warden`,
+            asset: DataAssets.GENERIC_PLAYER_ASSET || '',
             x: 320,
             platformIndex: 0,
             questIds: [],
@@ -779,6 +831,7 @@
     addPlatformLink,
     createPlatformGraph,
     findPlatformRouteLink,
+    isPlatformJumpLinkTraversable,
     isRampRouteLink,
     getPlatformSurfaceLength,
     getPlatformTierId,
