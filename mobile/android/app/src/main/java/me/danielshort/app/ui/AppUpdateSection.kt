@@ -25,27 +25,45 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import me.danielshort.app.BuildConfig
+import me.danielshort.app.SiteApplication
 import me.danielshort.app.updates.AppUpdateManager
+import me.danielshort.app.updates.AutomaticAppInstaller
+import me.danielshort.app.updates.AutomaticInstallStatus
 import me.danielshort.app.updates.AppUpdateState
 import me.danielshort.app.updates.UpdateFailure
 import me.danielshort.app.updates.UpdateRetryAction
 import java.util.Locale
 
 @Composable
-fun AppUpdateSection(manager: AppUpdateManager) {
+fun AppUpdateSection(
+  manager: AppUpdateManager,
+  automaticInstaller: AutomaticAppInstaller? = null,
+  automaticUpdatesEnabled: Boolean = false,
+  preferences: @Composable () -> Unit = {}
+) {
   val state by manager.state.collectAsStateWithLifecycle()
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
   var installerNotice by remember { mutableStateOf("") }
   var openingInstaller by remember { mutableStateOf(false) }
+  var installationAllowed by remember { mutableStateOf(context.packageManager.canRequestPackageInstalls()) }
+  LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+    installationAllowed = context.packageManager.canRequestPackageInstalls()
+  }
+  val automaticStatus = automaticInstaller?.status?.collectAsStateWithLifecycle()?.value ?: AutomaticInstallStatus.IDLE
+  val automaticInstallBusy = automaticStatus == AutomaticInstallStatus.STAGING || automaticStatus == AutomaticInstallStatus.INSTALLING
   val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-    installerNotice = if (context.packageManager.canRequestPackageInstalls()) {
-      "Ready to install. Tap Install update to continue."
+    installationAllowed = context.packageManager.canRequestPackageInstalls()
+    installerNotice = if (installationAllowed) {
+      if (state is AppUpdateState.Ready) "Ready to install. Tap Install update to continue."
+      else "App installation is allowed. Android may still ask you to confirm an update."
     } else {
-      "Installation permission wasn’t enabled. Your verified update is still ready."
+      "Installation permission wasn’t enabled. You can allow it when you install an update."
     }
   }
   val installerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -55,17 +73,30 @@ fun AppUpdateSection(manager: AppUpdateManager) {
   }
   AppUpdateSectionContent(
     state = state,
-    installerNotice = installerNotice,
-    openingInstaller = openingInstaller,
+    installerNotice = installerNotice.ifBlank {
+      when (automaticStatus) {
+        AutomaticInstallStatus.STAGING, AutomaticInstallStatus.INSTALLING -> "Android is preparing the automatic update."
+        AutomaticInstallStatus.NEEDS_PERMISSION -> "Allow app installation to use automatic updates."
+        AutomaticInstallStatus.MANUAL_REQUIRED -> "Android needs your confirmation. Tap Install update when you’re ready."
+        AutomaticInstallStatus.FAILED -> "The automatic installation didn’t finish. You can install the verified update manually."
+        else -> ""
+      }
+    },
+    openingInstaller = openingInstaller || automaticInstallBusy,
     onCheck = { installerNotice = ""; manager.check() },
     onDownload = { installerNotice = ""; manager.download() },
     onCancel = { installerNotice = ""; manager.cancel() },
     onInstall = {
-      if (!openingInstaller) scope.launch {
+      if (!openingInstaller && !automaticInstallBusy) scope.launch {
         openingInstaller = true
         installerNotice = ""
         try {
           val apk = manager.verifiedApkForInstall()
+          if (automaticInstaller?.markManualInstallRequested() == false) {
+            installerNotice = "Android is already preparing an update. Please wait."
+            return@launch
+          }
+          (context.applicationContext as? SiteApplication)?.appUpdateCoordinator?.suppressAutomaticInstall()
           if (!context.packageManager.canRequestPackageInstalls()) {
             permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}")))
           } else {
@@ -85,6 +116,15 @@ fun AppUpdateSection(manager: AppUpdateManager) {
           openingInstaller = false
         }
       }
+    },
+    preferences = {
+      preferences()
+      if (automaticUpdatesEnabled && !installationAllowed) {
+        Text("Allow installation from this app so Android can apply automatic updates when permitted.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        TextButton(onClick = {
+          permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}")))
+        }) { Text("Allow app installation") }
+      }
     }
   )
 }
@@ -97,11 +137,13 @@ internal fun AppUpdateSectionContent(
   onCheck: () -> Unit,
   onDownload: () -> Unit,
   onCancel: () -> Unit,
-  onInstall: () -> Unit
+  onInstall: () -> Unit,
+  preferences: @Composable () -> Unit = {}
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
     Text("App updates", Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     Text("Installed · ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    preferences()
     val status = when (state) {
       is AppUpdateState.Idle -> "Check for a new version of the app."
       is AppUpdateState.Checking -> "Checking the release and verifying this app…"
@@ -112,7 +154,7 @@ internal fun AppUpdateSectionContent(
         state.usingPatch -> "Downloading patch · ${formatUpdateBytes(state.offer.downloadBytes)}…"
         else -> "Downloading full app · ${formatUpdateBytes(state.offer.downloadBytes)}…"
       }
-      is AppUpdateState.Ready -> "${state.offer.versionName} is verified and ready to install. Android will ask you to confirm."
+      is AppUpdateState.Ready -> "${state.offer.versionName} is verified and ready to install."
       is AppUpdateState.Error -> state.message
     }
     Text(status, Modifier.semantics { liveRegion = LiveRegionMode.Polite }, color = MaterialTheme.colorScheme.onSurfaceVariant)

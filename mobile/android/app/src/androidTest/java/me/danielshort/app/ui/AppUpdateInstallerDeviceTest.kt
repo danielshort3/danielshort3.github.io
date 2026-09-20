@@ -57,7 +57,7 @@ class AppUpdateInstallerDeviceTest {
       compose.onNodeWithText("Install update").performClick()
       awaitSystemWindow { it.packageName?.toString() == "com.android.settings" }
       instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
-      compose.waitUntil(10_000) { compose.onAllNodesWithText("Installation permission wasn’t enabled. Your verified update is still ready.").fetchSemanticsNodes().isNotEmpty() }
+      compose.waitUntil(10_000) { compose.onAllNodesWithText("Installation permission wasn’t enabled. You can allow it when you install an update.").fetchSemanticsNodes().isNotEmpty() }
       assertTrue(manager.state.value is AppUpdateState.Ready)
       setInstallPermission(true)
       compose.onNodeWithText("Install update").performClick()
