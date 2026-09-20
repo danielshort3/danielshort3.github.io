@@ -1,9 +1,15 @@
 (function initProjectStarfallEnemyHurtboxes(global) {
   'use strict';
 
-  const Data = (typeof require === 'function' ? require('../data/enemy-hurtboxes.js') : null) || global.ProjectStarfallEnemyHurtboxesData;
+  // Node consumers stay synchronous. The browser receives the same generated
+  // table from its hashed chunk after Start, rather than bundling it eagerly.
+  const nodeRequire = typeof module === 'object' && typeof module.require === 'function'
+    ? module.require.bind(module) : null;
+  const nodeData = nodeRequire ? nodeRequire('../data/enemy-hurtboxes.js') : null;
+  const getData = () => nodeData || global.ProjectStarfallEnemyHurtboxesData;
   const Visuals = (typeof require === 'function' ? require('./visuals.js') : null) || global.ProjectStarfallEngineModules && global.ProjectStarfallEngineModules.visuals;
   const decodedFrames = new Map();
+  let decodedData = null;
 
   function decodeFrame(encoded) {
     const bytes = typeof Buffer === 'function'
@@ -76,7 +82,12 @@
   }
 
   function createEnemyHurtbox(animation, frame, renderBox, facing) {
+    const Data = getData();
     if (!Data || !Visuals || !animation || !frame || !renderBox) return null;
+    if (Data !== decodedData) {
+      decodedFrames.clear();
+      decodedData = Data;
+    }
     const sheet = Data.sheets[animation.sheet];
     if (!sheet || Number(frame.frameWidth || animation.frameWidth) !== sheet.frameWidth || Number(frame.frameHeight || animation.frameHeight) !== sheet.frameHeight) return null;
     const row = Number(frame.row || 0);
@@ -157,7 +168,7 @@
     });
   }
 
-  const api = { createEnemyHurtbox, intersectsRect, intersectsCircle, getBounds, getAimPoint, forEachRect };
+  const api = { createEnemyHurtbox, intersectsRect, intersectsCircle, getBounds, getAimPoint, forEachRect, isReady: () => Boolean(getData()) };
   const modules = global.ProjectStarfallEngineModules || {};
   modules.enemyHurtboxes = Object.assign({}, modules.enemyHurtboxes || {}, api);
   global.ProjectStarfallEngineModules = modules;

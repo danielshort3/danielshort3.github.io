@@ -45,7 +45,6 @@ import '../../js/games/project-starfall/engine/skills.js';
 import '../../js/games/project-starfall/engine/movement.js';
 import '../../js/games/project-starfall/engine/combat-feedback.js';
 import '../../js/games/project-starfall/engine/visuals.js';
-import '../../js/games/project-starfall/data/enemy-hurtboxes.js';
 import '../../js/games/project-starfall/engine/enemy-hurtboxes.js';
 import '../../js/games/project-starfall/engine/equipment-attachments.js';
 import '../../js/games/project-starfall/engine/map-modifiers.js';
