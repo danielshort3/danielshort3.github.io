@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const { BROWSER_PROJECT_DOCUMENTS } = require('./lib/browser-project-assets');
+const { copyAppUpdateFeeds } = require('./lib/app-update-feeds.cjs');
 
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'public');
@@ -561,6 +562,7 @@ function copyStatic(){
   copyDistArtifacts(cssManifest, jsManifest);
   // Publish only the explicit native catalog, never other build or CMS files.
   copyFile(path.join(root, 'dist', 'app-content', 'v1', 'catalog.json'), path.join(outDir, 'app-content', 'v1', 'catalog.json'));
+  log(`Copied ${copyAppUpdateFeeds(root, outDir)} approved Android update feed(s).`);
   copyDir(path.join(root, 'dist', 'ai-pages'), path.join(outDir, 'dist', 'ai-pages'));
   pruneRetiredPublicArtifacts();
 

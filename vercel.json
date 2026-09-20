@@ -258,6 +258,14 @@
   ],
   "headers": [
     {
+      "source": "/app-updates/:channel/latest.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
       "source": "/app-content/v1/catalog.json",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
