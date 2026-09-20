@@ -1,0 +1,89 @@
+# Native app updates
+
+Settings contains a separate **App updates** section. **Check for updates** reads the selected channel's public manifest. The user chooses whether to download and install an available update. These checks do not change the existing automatic website-content preferences, and native updates are not downloaded automatically.
+
+The app verifies that its installed APK exactly matches a recognized release, then downloads a smaller binary patch when one is available. Otherwise it downloads the complete APK. Both paths verify the resulting APK before opening Android's installer. Android asks the user to allow installation from this app and confirm the update; the app does not silently install or execute downloaded code.
+
+The first version containing this updater must be installed manually once. Older version 0.2.0 does not contain an updater: preparing a patch from that version is useful for verification but cannot add the updater to an already installed copy by itself. Thereafter, new native versions require published, signed APK artifacts and an updated manifest. Website CSS and JavaScript are not native app patches.
+
+## Channels and trust
+
+| Channel | Android package | Manifest |
+| --- | --- | --- |
+| Review | `me.danielshort.app.debug` | `https://www.danielshort.me/app-updates/review/latest.json` |
+| Stable | `me.danielshort.app` | `https://www.danielshort.me/app-updates/stable/latest.json` |
+
+Review builds currently use the existing workstation development signing key. Preserve that identity outside source control for review updates. CI's automatically generated debug key is not interchangeable with that key. A stable distribution needs a securely maintained production signing identity; it is a separate package and cannot replace the review app in place. Do not commit signing keys or passwords.
+
+The manifest names exact APK hashes, byte sizes, package, version codes, signer identity, and any available patches. A version code alone is insufficient: several reviewed local APKs may share an old version code while containing different bytes. Recognized historical APK hashes remain in the release inventory even when no patch is retained for them, enabling a verified full download. Target version codes must always increase.
+
+An unknown installed hash is reported as an unrecognized build and cannot be patched. It may be a legitimate local development build; an unknown hash does not prove malicious modification. Approved local builds can be included explicitly as bases after checking their provenance. The checks establish correspondence to an approved APK, not proof that a rooted device or runtime is uncompromised. Split APK installations are not supported by this sideloaded whole-APK updater.
+
+Downloads use HTTPS. Artifact URLs must belong to `danielshort.me/app-updates/`, `www.danielshort.me/app-updates/`, or this repository's GitHub release downloads. The Android network implementation permits the specific GitHub download redirects needed to retrieve release assets. Files are stored privately; only a verified ready-to-install APK is shared with the installer. Installation preserves app data through Android's normal update process.
+
+## Prepare a release locally
+
+Build and test the target APK first. Set a strictly greater `versionCode` and the intended version name in `app/build.gradle.kts`. Use the same signing identity as prior versions of that channel. Preserve previous signed APKs; recreating their source does not guarantee identical bytes.
+
+The builder uses Node's standard library and Android SDK Build Tools **36.1.0**. Set `ANDROID_HOME` and `JAVA_HOME` as described in the [Android build guide](README.md). Run from the website repository root:
+
+```powershell
+node mobile/android/scripts/prepare-app-update.cjs `
+  --apk mobile/android/app/build/outputs/apk/debug/app-debug.apk `
+  --base C:/release-archive/Daniel-Short-v0.2.0-review.apk `
+  --output C:/release-staging/android-v0.3.0-review `
+  --base-url https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.3.0-review/ `
+  --channel review
+```
+
+Repeat `--base` for every available base APK that should receive a patch. Supply `--previous-manifest C:/release-archive/latest.json` to retain previously approved release hashes. The archive is trusted release input: preserve it with the same care as published APKs. Use a fresh output directory for each release.
+
+The builder:
+
+1. Runs `apksigner verify` and `aapt dump badging` for the target and all supplied bases. It rejects mismatched package/signing identities, split APKs, non-increasing versions, oversized APKs, and files changed during verification.
+2. Builds patches using rolling Adler-32 checksums and exact SHA-256 block matches. Every patch is applied again locally and must reproduce the signed target byte for byte.
+3. Includes a patch only when it is smaller than the complete APK. The full signed APK is always included.
+4. Writes immutable, hash-qualified APK/patch filenames, `latest.json`, and `SHA256SUMS.txt`. Re-running identical input is safe; conflicting output files are never overwritten.
+
+This command only stages files. It does not create a GitHub release, upload artifacts, publish the website, or change an installed app. The output is not available to phones until publication is completed.
+
+## Publication order
+
+Publication remains an explicit release step:
+
+1. Publish the staged APK and patch files at their exact versioned URLs. Keep assets immutable, retain the complete APK, and preserve the signing identity.
+2. Retrieve every published file and verify its byte length and SHA-256 against the staged manifest. A successful upload alone is insufficient.
+3. Copy the reviewed `latest.json` to `mobile/android/releases/<review|stable>/latest.json`. This designated source is the only update manifest the website build publishes; the website build does not automatically select a local APK or copy Android build outputs.
+4. Build and deploy the website. Its build copies approved manifests to `public/app-updates/<channel>/latest.json`. Publish this pointer **after** the referenced files are available.
+5. Verify the public manifest and exercise **Check for updates → Download → Install update** from a supported earlier updater-enabled APK. Confirm preserved bookmarks/settings, version increment, and normal launch after installation.
+
+If a release must be withdrawn, point the channel back only for clients that have not installed it. The updater does not downgrade installed apps. Fix an installed faulty release with a higher version code. Retain historical approved hashes so users can still update through a full APK download when a delta is unavailable.
+
+## Patch protocol: `dsupd1-gzip`
+
+The patch is a gzip stream. The decompressed bytes are:
+
+| Field | Encoding |
+| --- | --- |
+| Magic | Eight ASCII bytes `DSUPD001` |
+| Base SHA-256 | 32 raw bytes |
+| Target SHA-256 | 32 raw bytes |
+| Base byte length | Positive signed 64-bit big-endian integer |
+| Target byte length | Positive signed 64-bit big-endian integer |
+| Operations | Records below, followed by END |
+
+- **COPY:** byte `0`, nonnegative 64-bit big-endian base offset, positive 32-bit big-endian length.
+- **LITERAL:** byte `1`, positive 32-bit big-endian length, then that many literal bytes.
+- **END:** byte `255`; no decompressed trailing bytes are allowed.
+
+The generator normally matches 32 KiB source blocks and merges contiguous COPY records. The decoder does not depend on a block size. APKs and downloaded patches are capped at 256 MiB, with no more than 100,000 operations. Every source/output range is checked before copying. Base identity, complete output length, final output hash, gzip integrity, and end-of-stream are checked. Inventories contain at most 200 release records and 200 patches; manifests are bounded to 512 KiB. The installed app and builder must retain matching limits.
+
+## Focused validation
+
+```powershell
+node --test mobile/android/scripts/app-update-format.test.cjs
+```
+
+`scripts/app-update-protocol-fixture.json` supplies small base, target, compressed-patch, and decompressed-protocol bytes for Kotlin/Node interoperability checks. Tests cover inserted/shifted data, corruption, truncation, range and operation limits, wrong identities, downgrade rejection, historical hashes, approved URLs, and immutable artifact staging. Android updater tests additionally cover the real package metadata, download/install flow, cancellation, retry, and Settings UI.
+
+Review the resulting APK with `apksigner verify`, run the Android unit/device/lint checks, and check that a patch round trip equals the exact signed target. Do not claim public updating works solely from a local staging run.

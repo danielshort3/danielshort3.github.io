@@ -12,6 +12,8 @@ on:
       - 'api/_lib/cms-content-model.js'
       - 'build/build-site.js'
       - 'build/copy-to-public.js'
+      - 'build/lib/app-update-feeds.cjs'
+      - 'tests/site/app-update-feeds.test.cjs'
       - 'tests/site/mobile-content.test.js'
       - 'vercel.json'
       - 'package.json'
@@ -27,6 +29,8 @@ on:
       - 'api/_lib/cms-content-model.js'
       - 'build/build-site.js'
       - 'build/copy-to-public.js'
+      - 'build/lib/app-update-feeds.cjs'
+      - 'tests/site/app-update-feeds.test.cjs'
       - 'tests/site/mobile-content.test.js'
       - 'vercel.json'
       - 'package.json'
@@ -76,6 +80,9 @@ jobs:
 
       - name: Test public content feed
         run: node tests/site/mobile-content.test.js
+
+      - name: Test verified update format and release feed
+        run: node --test mobile/android/scripts/*.test.cjs tests/site/app-update-feeds.test.cjs
 
       - name: Test, lint, and build review APK
         working-directory: mobile/android
