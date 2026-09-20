@@ -1,0 +1,1964 @@
+{
+  "fileId": "lava-tick",
+  "sourceSha256": "19e7ba025435362876a0f7edd36b6d0fc49a57479dfc0c0189be779b098588cc",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    212,
+    384,
+    565,
+    747,
+    927,
+    1181,
+    1448
+  ],
+  "sharedScale": 0.7965775401069519,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 79,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/lava-tick-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 987035,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 16,
+        "top": 80,
+        "width": 161,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 98,
+        "width": 161,
+        "height": 99,
+        "pixels": 10528
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 179
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 21,
+        "top": 71,
+        "right": 148,
+        "bottom": 149,
+        "width": 128,
+        "height": 79,
+        "pixels": 6723,
+        "edgePixels": 0
+      },
+      "sha256": "2d3dc859a02741ca93dd7dce6ad3d80cc281f66dbb331ae927af6ef154cfd720"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 193,
+        "top": 78,
+        "width": 161,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 100,
+        "width": 161,
+        "height": 101,
+        "pixels": 10576
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 179
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 17,
+        "top": 70,
+        "right": 144,
+        "bottom": 149,
+        "width": 128,
+        "height": 80,
+        "pixels": 6694,
+        "edgePixels": 0
+      },
+      "sha256": "906afc98a6262446d7f026824b7ef32df04319982dfced7c61be8a4a94475f49"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 372,
+        "top": 80,
+        "width": 162,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 98,
+        "width": 162,
+        "height": 99,
+        "pixels": 10573
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 179
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 16,
+        "top": 71,
+        "right": 144,
+        "bottom": 149,
+        "width": 129,
+        "height": 79,
+        "pixels": 6757,
+        "edgePixels": 0
+      },
+      "sha256": "80bf8b1334e16323215dc1df71f25c4032a0b8bc7848c90a23d69d3e5d3fabbc"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 551,
+        "top": 81,
+        "width": 162,
+        "height": 100
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 99,
+        "width": 162,
+        "height": 100,
+        "pixels": 10757
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 179
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 14,
+        "top": 72,
+        "right": 142,
+        "bottom": 151,
+        "width": 129,
+        "height": 80,
+        "pixels": 6890,
+        "edgePixels": 0
+      },
+      "sha256": "f7cefa8589a9fec6c06d377120ec2d42fb4f028132797a96e6a369908ca408e0"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 730,
+        "top": 80,
+        "width": 163,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 98,
+        "width": 163,
+        "height": 99,
+        "pixels": 10670
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 179
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 13,
+        "top": 71,
+        "right": 142,
+        "bottom": 149,
+        "width": 130,
+        "height": 79,
+        "pixels": 6814,
+        "edgePixels": 0
+      },
+      "sha256": "71ff19eb453fd9856bfc9b8cf9369108a8a478b5392e33d153bfacfc277affae"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 912,
+        "top": 79,
+        "width": 158,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 98,
+        "width": 158,
+        "height": 99,
+        "pixels": 10308
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 179
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 13,
+        "top": 70,
+        "right": 138,
+        "bottom": 148,
+        "width": 126,
+        "height": 79,
+        "pixels": 6587,
+        "edgePixels": 0
+      },
+      "sha256": "dd1a73836123aefb9f381c61a74b5d5c6d74e2acd2067c79cccb602cbefc7c85"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 14,
+        "top": 38,
+        "width": 164,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 100,
+        "width": 164,
+        "height": 101,
+        "pixels": 10496
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 139
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 19,
+        "top": 70,
+        "right": 149,
+        "bottom": 149,
+        "width": 131,
+        "height": 80,
+        "pixels": 6704,
+        "edgePixels": 0
+      },
+      "sha256": "7f8bb27920e344c1eb230802c0eb13b0210298c01381604fe2f722995414e7ea"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 193,
+        "top": 34,
+        "width": 166,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 103,
+        "width": 166,
+        "height": 104,
+        "pixels": 10843
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 139
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 17,
+        "top": 66,
+        "right": 148,
+        "bottom": 148,
+        "width": 132,
+        "height": 83,
+        "pixels": 6931,
+        "edgePixels": 0
+      },
+      "sha256": "9419106a26536975e16b61605049eb77eec3f8ddc572db09594b2224a879ca2b"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 372,
+        "top": 35,
+        "width": 166,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 102,
+        "width": 166,
+        "height": 103,
+        "pixels": 10829
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 139
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 16,
+        "top": 67,
+        "right": 147,
+        "bottom": 148,
+        "width": 132,
+        "height": 82,
+        "pixels": 6873,
+        "edgePixels": 0
+      },
+      "sha256": "080222b71b341722a274d4520ffee9af216cb77643c8c5cf75baa98ca7c75f08"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 552,
+        "top": 37,
+        "width": 169,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 102,
+        "width": 169,
+        "height": 103,
+        "pixels": 10731
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 139
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 15,
+        "top": 69,
+        "right": 149,
+        "bottom": 150,
+        "width": 135,
+        "height": 82,
+        "pixels": 6870,
+        "edgePixels": 0
+      },
+      "sha256": "ee152e5283c658b993aa1f6f7e089f3e491ebd575d557d4d23ef9f08a301cc16"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 733,
+        "top": 35,
+        "width": 166,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 102,
+        "width": 166,
+        "height": 103,
+        "pixels": 10773
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 139
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 15,
+        "top": 67,
+        "right": 146,
+        "bottom": 148,
+        "width": 132,
+        "height": 82,
+        "pixels": 6847,
+        "edgePixels": 0
+      },
+      "sha256": "52a8ca2a4a2fe2151ba0c3d2a69b684dbabafe99cc913a0696126a30b34c185b"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 912,
+        "top": 35,
+        "width": 162,
+        "height": 105
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 104,
+        "width": 162,
+        "height": 105,
+        "pixels": 10946
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 139
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 13,
+        "top": 67,
+        "right": 141,
+        "bottom": 150,
+        "width": 129,
+        "height": 84,
+        "pixels": 7018,
+        "edgePixels": 0
+      },
+      "sha256": "a3cf6ebacbf94e604c7e6c8ae7a609e0c68c33c7bfd2843e5d629f8cee7f50ec"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 15,
+        "top": 33,
+        "width": 161,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 100,
+        "width": 161,
+        "height": 101,
+        "pixels": 10549
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 150
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 20,
+        "top": 57,
+        "right": 147,
+        "bottom": 136,
+        "width": 128,
+        "height": 80,
+        "pixels": 6690,
+        "edgePixels": 0
+      },
+      "sha256": "0bc1702c11a849a50568aefa8cbef1899bdf1dccfb67ec9090af0de1c98637f3"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 194,
+        "top": 41,
+        "width": 162,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 102,
+        "width": 162,
+        "height": 103,
+        "pixels": 10680
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 150
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 18,
+        "top": 63,
+        "right": 146,
+        "bottom": 144,
+        "width": 129,
+        "height": 82,
+        "pixels": 6791,
+        "edgePixels": 0
+      },
+      "sha256": "d25434271d2497020b05f821827bae0ffa36ef5c0b564a4eb93dd4e6569d2d6d"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 373,
+        "top": 56,
+        "width": 162,
+        "height": 94
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 93,
+        "width": 162,
+        "height": 94,
+        "pixels": 10374
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 150
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 17,
+        "top": 75,
+        "right": 145,
+        "bottom": 149,
+        "width": 129,
+        "height": 75,
+        "pixels": 6618,
+        "edgePixels": 0
+      },
+      "sha256": "baf9b4d965595d8639f603799a535d244e9b8023bb8ffca35a56ee9a7d039562"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 553,
+        "top": 49,
+        "width": 165,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 100,
+        "width": 165,
+        "height": 101,
+        "pixels": 11097
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 150
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 16,
+        "top": 70,
+        "right": 146,
+        "bottom": 149,
+        "width": 131,
+        "height": 80,
+        "pixels": 7017,
+        "edgePixels": 0
+      },
+      "sha256": "8668bd93d4399704f2b070f7cc562193e84655b13cb7e393d7a26402bb02019d"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 739,
+        "top": 48,
+        "width": 158,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 101,
+        "width": 158,
+        "height": 102,
+        "pixels": 10991
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 150
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 69,
+        "right": 145,
+        "bottom": 149,
+        "width": 126,
+        "height": 81,
+        "pixels": 7007,
+        "edgePixels": 0
+      },
+      "sha256": "1fd170e5580f9c1a209d64c301bb90f37c96535e3dab165b5cc87e56f4c4f67e"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 914,
+        "top": 50,
+        "width": 156,
+        "height": 98
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 97,
+        "width": 156,
+        "height": 98,
+        "pixels": 10198
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 150
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 15,
+        "top": 70,
+        "right": 138,
+        "bottom": 147,
+        "width": 124,
+        "height": 78,
+        "pixels": 6479,
+        "edgePixels": 0
+      },
+      "sha256": "052ebb993f4b384f8e8b28b3420987803b028a547616bdb69626f1006a83b80f"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 14,
+        "top": 37,
+        "width": 170,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 119,
+        "width": 170,
+        "height": 120,
+        "pixels": 12696
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 152
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 19,
+        "top": 58,
+        "right": 153,
+        "bottom": 153,
+        "width": 135,
+        "height": 96,
+        "pixels": 8127,
+        "edgePixels": 0
+      },
+      "sha256": "552bc040b0ac03f7c7c526603446538d0be0b73b76ef5c0af75207d7b7b22f5a"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 194,
+        "top": 37,
+        "width": 169,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 114,
+        "width": 169,
+        "height": 115,
+        "pixels": 12052
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 152
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 18,
+        "top": 58,
+        "right": 152,
+        "bottom": 149,
+        "width": 135,
+        "height": 92,
+        "pixels": 7723,
+        "edgePixels": 0
+      },
+      "sha256": "1d892b2504393a7583c3ab80404748c153517215e2734468c253a53b51ec09f8"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 377,
+        "top": 32,
+        "width": 168,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 119,
+        "width": 168,
+        "height": 120,
+        "pixels": 12264
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 152
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 20,
+        "top": 54,
+        "right": 153,
+        "bottom": 149,
+        "width": 134,
+        "height": 96,
+        "pixels": 7861,
+        "edgePixels": 0
+      },
+      "sha256": "096cf3be2e505b46cc01754541f5db796900647a4b82057e05b408d34accf2b9"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 562,
+        "top": 54,
+        "width": 164,
+        "height": 100
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 99,
+        "width": 164,
+        "height": 100,
+        "pixels": 10843
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 152
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 72,
+        "right": 153,
+        "bottom": 151,
+        "width": 131,
+        "height": 80,
+        "pixels": 6953,
+        "edgePixels": 0
+      },
+      "sha256": "7dca476c7f1694c2d3e2bcaf1111201cfa32922881657ad9c5348c07350aabac"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 739,
+        "top": 48,
+        "width": 160,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 100,
+        "width": 160,
+        "height": 101,
+        "pixels": 10708
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 152
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 67,
+        "right": 146,
+        "bottom": 146,
+        "width": 127,
+        "height": 80,
+        "pixels": 6766,
+        "edgePixels": 0
+      },
+      "sha256": "3e369855713fc3535e314b3bfcfab8c4732f435d5f35f4fa176635ed912dd0db"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 912,
+        "top": 50,
+        "width": 163,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 100,
+        "width": 163,
+        "height": 101,
+        "pixels": 10743
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 152
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 13,
+        "top": 69,
+        "right": 142,
+        "bottom": 148,
+        "width": 130,
+        "height": 80,
+        "pixels": 6851,
+        "edgePixels": 0
+      },
+      "sha256": "8abf852afaa9d731002d20a931f0f8da35346aa8d22ee134d8af49ff980bdc49"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 14,
+        "top": 32,
+        "width": 159,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 111,
+        "width": 159,
+        "height": 112,
+        "pixels": 11556
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 144
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 19,
+        "top": 61,
+        "right": 145,
+        "bottom": 149,
+        "width": 127,
+        "height": 89,
+        "pixels": 7388,
+        "edgePixels": 0
+      },
+      "sha256": "42cc6be4e7ef7e8adde99b95c8aa2a8b1f8fd8b1b8161aba88ac55e5ab23fb63"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 201,
+        "top": 27,
+        "width": 158,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 114,
+        "width": 158,
+        "height": 115,
+        "pixels": 11560
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 144
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 57,
+        "right": 149,
+        "bottom": 148,
+        "width": 126,
+        "height": 92,
+        "pixels": 7420,
+        "edgePixels": 0
+      },
+      "sha256": "93db3fdc4306918d34c38f8e0db6f66787e119824585726cd558bd995b364712"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 373,
+        "top": 39,
+        "width": 165,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 105,
+        "width": 165,
+        "height": 106,
+        "pixels": 11031
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 144
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 17,
+        "top": 66,
+        "right": 147,
+        "bottom": 149,
+        "width": 131,
+        "height": 84,
+        "pixels": 6973,
+        "edgePixels": 0
+      },
+      "sha256": "f8c265bc2602ecf77091cc9a24e308a9d8ed8db8c802b4c878e9a586caefdf0a"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 553,
+        "top": 46,
+        "width": 168,
+        "height": 105
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 104,
+        "width": 168,
+        "height": 105,
+        "pixels": 11302
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 144
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 16,
+        "top": 72,
+        "right": 149,
+        "bottom": 155,
+        "width": 134,
+        "height": 84,
+        "pixels": 7246,
+        "edgePixels": 0
+      },
+      "sha256": "b9777517836e3eca05f465a5a3bf01b40ca8a8b14c555070e40e3cf8cfb3e707"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 739,
+        "top": 41,
+        "width": 161,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 102,
+        "width": 161,
+        "height": 103,
+        "pixels": 10918
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 144
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 68,
+        "right": 147,
+        "bottom": 149,
+        "width": 128,
+        "height": 82,
+        "pixels": 6941,
+        "edgePixels": 0
+      },
+      "sha256": "76589999cea28cdcee296532ad0c337ed549e39b32a5c6a28a9e723f8b7dbaa9"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 916,
+        "top": 39,
+        "width": 159,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 103,
+        "width": 159,
+        "height": 104,
+        "pixels": 10706
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 144
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 17,
+        "top": 66,
+        "right": 143,
+        "bottom": 148,
+        "width": 127,
+        "height": 83,
+        "pixels": 6850,
+        "edgePixels": 0
+      },
+      "sha256": "95cf69e4f9865fedda8597b362b593927da64deeba922bda4125a39a6b3f82b8"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 17,
+        "top": 40,
+        "width": 162,
+        "height": 108
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 107,
+        "width": 162,
+        "height": 108,
+        "pixels": 11171
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 148
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 21,
+        "top": 64,
+        "right": 149,
+        "bottom": 149,
+        "width": 129,
+        "height": 86,
+        "pixels": 7106,
+        "edgePixels": 0
+      },
+      "sha256": "a8c5cdffdd2400f089cf1c24f0e0f92db98aa9a17544abc21bfcdd9d4a5fa67a"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 199,
+        "top": 34,
+        "width": 162,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 112,
+        "width": 162,
+        "height": 113,
+        "pixels": 11677
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 148
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 59,
+        "right": 150,
+        "bottom": 148,
+        "width": 129,
+        "height": 90,
+        "pixels": 7435,
+        "edgePixels": 0
+      },
+      "sha256": "fe9851ff6e5d94a5d5a993dd8c761408656bf573df6856d1e7e91972cd98ea4e"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 377,
+        "top": 40,
+        "width": 158,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 103,
+        "width": 158,
+        "height": 104,
+        "pixels": 11196
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 148
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 20,
+        "top": 64,
+        "right": 145,
+        "bottom": 146,
+        "width": 126,
+        "height": 83,
+        "pixels": 7155,
+        "edgePixels": 0
+      },
+      "sha256": "f9b0033535df97045bd68c2480598700cb5b913cb5452e63c70117f8a9af78eb"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 553,
+        "top": 46,
+        "width": 164,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 102,
+        "width": 164,
+        "height": 103,
+        "pixels": 10932
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 148
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 16,
+        "top": 69,
+        "right": 146,
+        "bottom": 150,
+        "width": 131,
+        "height": 82,
+        "pixels": 6989,
+        "edgePixels": 0
+      },
+      "sha256": "8a4dd3a8bae5d2faf06b55b440ccd40f417685afa96107fae5206e6fa29be778"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 740,
+        "top": 33,
+        "width": 157,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 114,
+        "width": 157,
+        "height": 115,
+        "pixels": 11212
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 148
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 21,
+        "top": 58,
+        "right": 145,
+        "bottom": 149,
+        "width": 125,
+        "height": 92,
+        "pixels": 7191,
+        "edgePixels": 0
+      },
+      "sha256": "cc732bcae892cb55d0819ca28002e692967c988ab84aa919e1df897812ec40fa"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 913,
+        "top": 43,
+        "width": 160,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 103,
+        "width": 160,
+        "height": 104,
+        "pixels": 10777
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 148
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 14,
+        "top": 66,
+        "right": 140,
+        "bottom": 148,
+        "width": 127,
+        "height": 83,
+        "pixels": 6883,
+        "edgePixels": 0
+      },
+      "sha256": "dfee203dd3b1139962f9868cf6ffe73d21e653cac4cc2b7ac376dd39d07f6760"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 49,
+        "top": 189,
+        "width": 432,
+        "height": 256
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 431,
+        "bottom": 255,
+        "width": 432,
+        "height": 256,
+        "pixels": 71596
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/hit-supplement.png",
+      "scaleFactor": 0.3944223107569721,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 265,
+        "y": 445
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 12,
+        "top": 70,
+        "right": 147,
+        "bottom": 149,
+        "width": 136,
+        "height": 80,
+        "pixels": 7178,
+        "edgePixels": 0
+      },
+      "sha256": "94cb155504258c4121ef057d5c6a540eb8704d19370cf57c37aa839e23c23b0f"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 587,
+        "top": 205,
+        "width": 392,
+        "height": 242
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 391,
+        "bottom": 241,
+        "width": 392,
+        "height": 242,
+        "pixels": 64310
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/hit-supplement.png",
+      "scaleFactor": 0.3944223107569721,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 783,
+        "y": 447
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 18,
+        "top": 74,
+        "right": 140,
+        "bottom": 149,
+        "width": 123,
+        "height": 76,
+        "pixels": 6427,
+        "edgePixels": 0
+      },
+      "sha256": "15f6bb62d38584ef18147a5b358f3ea3f27db7201c833f0f761f2dbd548be276"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 1081,
+        "top": 193,
+        "width": 407,
+        "height": 255
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 406,
+        "bottom": 254,
+        "width": 407,
+        "height": 255,
+        "pixels": 61781
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/hit-supplement.png",
+      "scaleFactor": 0.3944223107569721,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1284.5,
+        "y": 448
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 16,
+        "top": 70,
+        "right": 143,
+        "bottom": 149,
+        "width": 128,
+        "height": 80,
+        "pixels": 6192,
+        "edgePixels": 0
+      },
+      "sha256": "2aa836b160c06f047aed072063e93fd094ee373a6780eb1520ac77301ec3161e"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 66,
+        "top": 644,
+        "width": 429,
+        "height": 244
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 428,
+        "bottom": 243,
+        "width": 429,
+        "height": 244,
+        "pixels": 66086
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/hit-supplement.png",
+      "scaleFactor": 0.3944223107569721,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 280.5,
+        "y": 888
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 13,
+        "top": 73,
+        "right": 147,
+        "bottom": 149,
+        "width": 135,
+        "height": 77,
+        "pixels": 6673,
+        "edgePixels": 0
+      },
+      "sha256": "b730ff3ab97e4551b045ce9d6da16bd8c4ff76f1dbac101ecc1b6ae87075b4a8"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 580,
+        "top": 633,
+        "width": 419,
+        "height": 259
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 418,
+        "bottom": 258,
+        "width": 419,
+        "height": 259,
+        "pixels": 64965
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/hit-supplement.png",
+      "scaleFactor": 0.3944223107569721,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 789.5,
+        "y": 892
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 14,
+        "top": 69,
+        "right": 145,
+        "bottom": 149,
+        "width": 132,
+        "height": 81,
+        "pixels": 6528,
+        "edgePixels": 0
+      },
+      "sha256": "83d0eb8f09bb287c36ad07c79d0dc792895362b2fb79f3ae9622439e6eb0b307"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 1072,
+        "top": 642,
+        "width": 408,
+        "height": 251
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 407,
+        "bottom": 250,
+        "width": 408,
+        "height": 251,
+        "pixels": 65333
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/hit-supplement.png",
+      "scaleFactor": 0.3944223107569721,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1276,
+        "y": 893
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 16,
+        "top": 71,
+        "right": 143,
+        "bottom": 149,
+        "width": 128,
+        "height": 79,
+        "pixels": 6546,
+        "edgePixels": 0
+      },
+      "sha256": "3338a980fbe99263cb74207d305b63441984e278c0c856e5f0c8aad8016bf2a4"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 19,
+        "top": 106,
+        "width": 159,
+        "height": 107
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 106,
+        "width": 159,
+        "height": 107,
+        "pixels": 11491
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 220
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 59,
+        "right": 149,
+        "bottom": 143,
+        "width": 127,
+        "height": 85,
+        "pixels": 7347,
+        "edgePixels": 0
+      },
+      "sha256": "4ac41cf3ac1111d0009223ec88157eaf5c62786d221e5771866139cf03a0ecb7"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 194,
+        "top": 119,
+        "width": 157,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 100,
+        "width": 157,
+        "height": 101,
+        "pixels": 9990
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 220
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 18,
+        "top": 70,
+        "right": 142,
+        "bottom": 149,
+        "width": 125,
+        "height": 80,
+        "pixels": 6353,
+        "edgePixels": 0
+      },
+      "sha256": "4a89e2eb40022297147abbc658e52f0977184a036bbc960135c7deb1e780bce5"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 375,
+        "top": 113,
+        "width": 162,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 105,
+        "width": 162,
+        "height": 106,
+        "pixels": 11230
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 220
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 18,
+        "top": 65,
+        "right": 146,
+        "bottom": 148,
+        "width": 129,
+        "height": 84,
+        "pixels": 7131,
+        "edgePixels": 0
+      },
+      "sha256": "50da7b37f504b393bd85e375ef9872ac7e04d1e2c4f4e7c4e61630ef8af271e4"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 557,
+        "top": 122,
+        "width": 161,
+        "height": 98
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 97,
+        "width": 161,
+        "height": 98,
+        "pixels": 10408
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 220
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 19,
+        "top": 72,
+        "right": 146,
+        "bottom": 149,
+        "width": 128,
+        "height": 78,
+        "pixels": 6610,
+        "edgePixels": 0
+      },
+      "sha256": "7b77ca68a2844685d5a67e42d51eb0619f150ae0841fac08ce0981aeeb1b81f1"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 737,
+        "top": 124,
+        "width": 159,
+        "height": 95
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 94,
+        "width": 159,
+        "height": 95,
+        "pixels": 10201
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 220
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 18,
+        "top": 74,
+        "right": 144,
+        "bottom": 149,
+        "width": 127,
+        "height": 76,
+        "pixels": 6542,
+        "edgePixels": 0
+      },
+      "sha256": "1c77d39d84db62eec798c2f55119b643226f753eefbeebf6ef569ee5e683b47f"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 910,
+        "top": 144,
+        "width": 161,
+        "height": 78
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 77,
+        "width": 161,
+        "height": 78,
+        "pixels": 8475
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/lava-tick/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 220
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 12,
+        "top": 89,
+        "right": 139,
+        "bottom": 150,
+        "width": 128,
+        "height": 62,
+        "pixels": 5370,
+        "edgePixels": 0
+      },
+      "sha256": "21e9ff19b7f0fd74d0269893e4ea56601ca2e8e9ed16a839c8857f5121fb32e6"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

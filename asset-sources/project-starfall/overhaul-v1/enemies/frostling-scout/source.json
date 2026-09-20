@@ -1,0 +1,60 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "frostling-scout",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-72d09b0a-6b3d-4c7c-80cd-5ac30683504c.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/frostling-scout.png",
+    "img/project-starfall/animations/enemies/frostling-scout-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": false,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "One-dagger six-pose telegraph supplement replaces the duplicated-dagger original row. Buff peak reuses the valid raised single-dagger authored pose from this supplement; all source pixels retained separately.",
+    "packedSheetReview": "All eight rows inspected; supplemental telegraph and buff guard retain one dagger, fixed source scale and unclipped anatomy. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/frostling-scout-sheet.png",
+    "portrait": "img/project-starfall/enemies/frostling-scout.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "444f687092d5fb41bf66d2c069c1da28e1618468202881002d097b96d00771b3",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "sourcePoseOverrides": {
+    "33": {
+      "row": 2,
+      "column": 4
+    }
+  },
+  "supplementalRows": {
+    "telegraph": {
+      "file": "telegraph-supplement.png",
+      "columns": 3,
+      "rows": 2,
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "neutralIndex": 0,
+      "sha256": "380105a343e1eb86ae95afeb4624c00605c99281d300c1febea85b9c0ea3ecf8"
+    }
+  }
+}

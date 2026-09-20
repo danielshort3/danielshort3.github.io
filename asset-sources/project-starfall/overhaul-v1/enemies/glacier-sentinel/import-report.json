@@ -1,0 +1,1965 @@
+{
+  "fileId": "glacier-sentinel",
+  "sourceSha256": "43a3f0a577154ec8d3911c1f9c4aaf2a9fde050ce846ca706f79d3d8077cbda1",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    213,
+    389,
+    567,
+    736,
+    921,
+    1103,
+    1278,
+    1448
+  ],
+  "sharedScale": 0.633872340425532,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 91,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/glacier-sentinel-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 717580,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 20,
+        "top": 55,
+        "width": 160,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 143,
+        "width": 160,
+        "height": 144,
+        "pixels": 13362
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 199
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 59,
+        "right": 135,
+        "bottom": 149,
+        "width": 101,
+        "height": 91,
+        "pixels": 5370,
+        "edgePixels": 0
+      },
+      "sha256": "907a113fd17acfeeaa517b1ba076311c32832bccba9e22c64272f615eb9b5e48"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 199,
+        "top": 50,
+        "width": 162,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 148,
+        "width": 162,
+        "height": 149,
+        "pixels": 14103
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 199
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 56,
+        "right": 136,
+        "bottom": 149,
+        "width": 103,
+        "height": 94,
+        "pixels": 5727,
+        "edgePixels": 0
+      },
+      "sha256": "41a344ed931d4c2c9a3be5292eb6d6a8d55c0fa3f65752f198563a0e74092017"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 381,
+        "top": 51,
+        "width": 162,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 147,
+        "width": 162,
+        "height": 148,
+        "pixels": 13954
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 199
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 56,
+        "right": 137,
+        "bottom": 149,
+        "width": 103,
+        "height": 94,
+        "pixels": 5665,
+        "edgePixels": 0
+      },
+      "sha256": "6c241db2c947289ab12eac690f69034a10b540fe256d6afb3746a51769f3098c"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 563,
+        "top": 54,
+        "width": 156,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 144,
+        "width": 156,
+        "height": 145,
+        "pixels": 13611
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 199
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 58,
+        "right": 133,
+        "bottom": 149,
+        "width": 99,
+        "height": 92,
+        "pixels": 5519,
+        "edgePixels": 0
+      },
+      "sha256": "898c4510e2103971dc9578745a5b82e6920d95fae1fa0ce1e9476bae62cb5b87"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 745,
+        "top": 51,
+        "width": 162,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 147,
+        "width": 162,
+        "height": 148,
+        "pixels": 13777
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 199
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 56,
+        "right": 138,
+        "bottom": 149,
+        "width": 103,
+        "height": 94,
+        "pixels": 5600,
+        "edgePixels": 0
+      },
+      "sha256": "655f8cc33e9fee57611c330f6d86aa0c81347b4a825d28c2fab401e59dccdfcd"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 926,
+        "top": 51,
+        "width": 157,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 147,
+        "width": 157,
+        "height": 148,
+        "pixels": 13753
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 199
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 56,
+        "right": 135,
+        "bottom": 149,
+        "width": 100,
+        "height": 94,
+        "pixels": 5604,
+        "edgePixels": 0
+      },
+      "sha256": "548e8211db2bdc107f525578af95c9a73e59f4992b709b0594eb2dd11c54231a"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 20,
+        "top": 229,
+        "width": 157,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 145,
+        "width": 157,
+        "height": 146,
+        "pixels": 13503
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 375
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 57,
+        "right": 134,
+        "bottom": 149,
+        "width": 100,
+        "height": 93,
+        "pixels": 5503,
+        "edgePixels": 0
+      },
+      "sha256": "2b2a76003d2627aaa9ba87936116a648a0667526385f5fe646057851304e4a4f"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 200,
+        "top": 229,
+        "width": 148,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 145,
+        "width": 148,
+        "height": 146,
+        "pixels": 13383
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 375
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 57,
+        "right": 128,
+        "bottom": 149,
+        "width": 94,
+        "height": 93,
+        "pixels": 5471,
+        "edgePixels": 0
+      },
+      "sha256": "7a7a78de48ed536d3f8ef6eeb6578749c3b58a7c23084e547361429fb57e3f6b"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 381,
+        "top": 227,
+        "width": 143,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 147,
+        "width": 143,
+        "height": 148,
+        "pixels": 13291
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 375
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 56,
+        "right": 125,
+        "bottom": 149,
+        "width": 91,
+        "height": 94,
+        "pixels": 5412,
+        "edgePixels": 0
+      },
+      "sha256": "4a168f74de042720019c6f643b0b026f0446869640bf0c327a73d66d9a2e6a5d"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 563,
+        "top": 227,
+        "width": 161,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 147,
+        "width": 161,
+        "height": 148,
+        "pixels": 13881
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 375
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 56,
+        "right": 136,
+        "bottom": 149,
+        "width": 102,
+        "height": 94,
+        "pixels": 5629,
+        "edgePixels": 0
+      },
+      "sha256": "5159042e99e894b698e3f047d29c0c023c046996b14273cff4b8ff506fa12e56"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 745,
+        "top": 229,
+        "width": 146,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 145,
+        "width": 146,
+        "height": 146,
+        "pixels": 13258
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 375
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 57,
+        "right": 128,
+        "bottom": 149,
+        "width": 93,
+        "height": 93,
+        "pixels": 5401,
+        "edgePixels": 0
+      },
+      "sha256": "8ab523582c2950b6efbf9e2f60fbf41b16dfcf640392f57f01dc17877618fa0b"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 926,
+        "top": 230,
+        "width": 152,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 144,
+        "width": 152,
+        "height": 145,
+        "pixels": 13199
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 375
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 58,
+        "right": 131,
+        "bottom": 149,
+        "width": 96,
+        "height": 92,
+        "pixels": 5352,
+        "edgePixels": 0
+      },
+      "sha256": "6f517512f1c2a312f474d6b55b15b019955a1edef0ec130c7b3ca9257196f9ae"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 19,
+        "top": 403,
+        "width": 164,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 149,
+        "width": 164,
+        "height": 150,
+        "pixels": 14119
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 553
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 55,
+        "right": 138,
+        "bottom": 149,
+        "width": 104,
+        "height": 95,
+        "pixels": 5706,
+        "edgePixels": 0
+      },
+      "sha256": "6f300db32af83b9bd5410f2b3ac543e6f771a82687f71280257c1fed63fd4b19"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 200,
+        "top": 412,
+        "width": 153,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 140,
+        "width": 153,
+        "height": 141,
+        "pixels": 13307
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 553
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 35,
+        "top": 61,
+        "right": 131,
+        "bottom": 149,
+        "width": 97,
+        "height": 89,
+        "pixels": 5373,
+        "edgePixels": 0
+      },
+      "sha256": "71372bebeff4cc76a10c9392bb0e8d8384c7d3b7e139141abe8b246adc154793"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 381,
+        "top": 412,
+        "width": 148,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 140,
+        "width": 148,
+        "height": 141,
+        "pixels": 13332
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 553
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 61,
+        "right": 128,
+        "bottom": 149,
+        "width": 94,
+        "height": 89,
+        "pixels": 5406,
+        "edgePixels": 0
+      },
+      "sha256": "97434666bace929875f6e44b049f9193d968bf103e540f0a39d4ca602c7abf6a"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 563,
+        "top": 425,
+        "width": 162,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 127,
+        "width": 162,
+        "height": 128,
+        "pixels": 12462
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 553
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 69,
+        "right": 137,
+        "bottom": 149,
+        "width": 103,
+        "height": 81,
+        "pixels": 5057,
+        "edgePixels": 0
+      },
+      "sha256": "f41b988f7168463cfaf9e08fb318a5c921562c3d96f4c54693ef0e6c66b44f79"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 744,
+        "top": 432,
+        "width": 165,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 121,
+        "width": 165,
+        "height": 122,
+        "pixels": 12173
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 553
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 35,
+        "top": 73,
+        "right": 139,
+        "bottom": 149,
+        "width": 105,
+        "height": 77,
+        "pixels": 4957,
+        "edgePixels": 0
+      },
+      "sha256": "f52e2b69a467f63831522c5437a8838b8b1183f961297258102fc05119a6ea8d"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 926,
+        "top": 409,
+        "width": 129,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 128,
+        "bottom": 144,
+        "width": 129,
+        "height": 145,
+        "pixels": 12994
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 553
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 59,
+        "right": 117,
+        "bottom": 150,
+        "width": 82,
+        "height": 92,
+        "pixels": 5270,
+        "edgePixels": 0
+      },
+      "sha256": "3b01e5e0732b6abdef202d1a50e8b8b639819c9435c08090d26dea4734ab75f5"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 14,
+        "top": 584,
+        "width": 194,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 193,
+        "bottom": 145,
+        "width": 194,
+        "height": 146,
+        "pixels": 14576
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 731
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 57,
+        "right": 154,
+        "bottom": 149,
+        "width": 123,
+        "height": 93,
+        "pixels": 5936,
+        "edgePixels": 0
+      },
+      "sha256": "f0bd5c3ab4df71680399741941215f677a1629064297bf1c695369ae92ec2e04"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 209,
+        "top": 580,
+        "width": 174,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 150,
+        "width": 174,
+        "height": 151,
+        "pixels": 14530
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 731
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 54,
+        "right": 149,
+        "bottom": 149,
+        "width": 110,
+        "height": 96,
+        "pixels": 5903,
+        "edgePixels": 0
+      },
+      "sha256": "8089f2a0f69d6d7be29c055a1de12a20ead5517e87b09820631296dc7c95eb25"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 382,
+        "top": 581,
+        "width": 171,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 149,
+        "width": 171,
+        "height": 150,
+        "pixels": 14415
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 731
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 55,
+        "right": 142,
+        "bottom": 149,
+        "width": 108,
+        "height": 95,
+        "pixels": 5816,
+        "edgePixels": 0
+      },
+      "sha256": "0ea2feceaed4825dd92a777958889de140410c0c4d658d0b2441045babbf4b72"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 567,
+        "top": 582,
+        "width": 161,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 148,
+        "width": 161,
+        "height": 149,
+        "pixels": 14166
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 731
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 56,
+        "right": 139,
+        "bottom": 149,
+        "width": 102,
+        "height": 94,
+        "pixels": 5708,
+        "edgePixels": 0
+      },
+      "sha256": "72f9bcc1d33a77b02dc77e14cbd4edb58487b6ac9d1208880685f9a0800a2247"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 745,
+        "top": 582,
+        "width": 162,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 148,
+        "width": 162,
+        "height": 149,
+        "pixels": 14089
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 731
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 56,
+        "right": 138,
+        "bottom": 149,
+        "width": 103,
+        "height": 94,
+        "pixels": 5709,
+        "edgePixels": 0
+      },
+      "sha256": "d7d24949fa1a961cf4203a6546dae90678754382246f2bb33ea6835ecd4dd9cd"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 926,
+        "top": 583,
+        "width": 160,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 146,
+        "width": 160,
+        "height": 147,
+        "pixels": 13650
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 731
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 56,
+        "right": 136,
+        "bottom": 148,
+        "width": 101,
+        "height": 93,
+        "pixels": 5489,
+        "edgePixels": 0
+      },
+      "sha256": "8d598ec17d03d11480c68c53532e3c70a094ec102fd903df3fd6093983d324f9"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 22,
+        "top": 740,
+        "width": 140,
+        "height": 169
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 168,
+        "width": 140,
+        "height": 169,
+        "pixels": 14880
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 909
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 43,
+        "right": 125,
+        "bottom": 149,
+        "width": 89,
+        "height": 107,
+        "pixels": 6041,
+        "edgePixels": 0
+      },
+      "sha256": "9e71b3af627df0a6a299460a4d8b926d577bc267be9ced7ae5e714ea2213a7fe"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 205,
+        "top": 762,
+        "width": 167,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 147,
+        "width": 167,
+        "height": 148,
+        "pixels": 14520
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 909
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 57,
+        "right": 143,
+        "bottom": 150,
+        "width": 106,
+        "height": 94,
+        "pixels": 5883,
+        "edgePixels": 0
+      },
+      "sha256": "94ed79b2d20e72f70faa845d62e72fde38b6c926c8d41ec5665a41bdcd43ea4a"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 385,
+        "top": 763,
+        "width": 170,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 145,
+        "width": 170,
+        "height": 146,
+        "pixels": 14125
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 909
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 37,
+        "top": 57,
+        "right": 144,
+        "bottom": 149,
+        "width": 108,
+        "height": 93,
+        "pixels": 5761,
+        "edgePixels": 0
+      },
+      "sha256": "8bfd697b86f40a40fd539e88283eddede14048ce96f7d73db9f8c6ec35360841"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 564,
+        "top": 764,
+        "width": 163,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 145,
+        "width": 163,
+        "height": 146,
+        "pixels": 13748
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 909
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 58,
+        "right": 138,
+        "bottom": 150,
+        "width": 103,
+        "height": 93,
+        "pixels": 5600,
+        "edgePixels": 0
+      },
+      "sha256": "5ab5db893de1f9e52e87c82c4cdc3a717af3fdd673327a65792e4d7f7ea3006a"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 745,
+        "top": 765,
+        "width": 164,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 143,
+        "width": 164,
+        "height": 144,
+        "pixels": 13644
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 909
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 59,
+        "right": 139,
+        "bottom": 149,
+        "width": 104,
+        "height": 91,
+        "pixels": 5504,
+        "edgePixels": 0
+      },
+      "sha256": "c7b2663b925db1047b61ed36fb24aa6c5cf25995dfc6a8ed317b7877eb3a6d02"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 926,
+        "top": 764,
+        "width": 157,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 144,
+        "width": 157,
+        "height": 145,
+        "pixels": 13375
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 909
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 58,
+        "right": 135,
+        "bottom": 149,
+        "width": 100,
+        "height": 92,
+        "pixels": 5441,
+        "edgePixels": 0
+      },
+      "sha256": "5bff862f74a825e4bd9216a4712f421c255c2f026dedd384a9caf68d567bc06c"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 20,
+        "top": 947,
+        "width": 164,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 143,
+        "width": 164,
+        "height": 144,
+        "pixels": 13738
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1091
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 59,
+        "right": 138,
+        "bottom": 149,
+        "width": 104,
+        "height": 91,
+        "pixels": 5545,
+        "edgePixels": 0
+      },
+      "sha256": "9ef37f2eb0f569e833e62d2fd09d9e1314b749482c8e274ddeb925145b50a3d5"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 210,
+        "top": 950,
+        "width": 163,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 141,
+        "width": 163,
+        "height": 142,
+        "pixels": 13751
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1091
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 61,
+        "right": 143,
+        "bottom": 150,
+        "width": 103,
+        "height": 90,
+        "pixels": 5551,
+        "edgePixels": 0
+      },
+      "sha256": "f094f0331a393e7d3231342e3c03aa5aa6e45a9373d684355180eeccb29eae51"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 392,
+        "top": 945,
+        "width": 137,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 145,
+        "width": 137,
+        "height": 146,
+        "pixels": 13650
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1091
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 42,
+        "top": 57,
+        "right": 128,
+        "bottom": 149,
+        "width": 87,
+        "height": 93,
+        "pixels": 5557,
+        "edgePixels": 0
+      },
+      "sha256": "1ea4e6d468a1957b765bb7e0cee41c59907dfcfc42dc71b55bd37036507e550e"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 565,
+        "top": 931,
+        "width": 155,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 159,
+        "width": 155,
+        "height": 160,
+        "pixels": 15298
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1091
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 37,
+        "top": 49,
+        "right": 134,
+        "bottom": 149,
+        "width": 98,
+        "height": 101,
+        "pixels": 6145,
+        "edgePixels": 0
+      },
+      "sha256": "309e1de1892444952f539cb34cf317691ab997cb4298077f3ef11166a9de3b96"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 747,
+        "top": 946,
+        "width": 158,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 144,
+        "width": 158,
+        "height": 145,
+        "pixels": 13980
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1091
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 37,
+        "top": 58,
+        "right": 136,
+        "bottom": 149,
+        "width": 100,
+        "height": 92,
+        "pixels": 5652,
+        "edgePixels": 0
+      },
+      "sha256": "973eb29d6eee1ccbbc71d4752e33dbc9075dcd2f95bb149a3270bc5be145d273"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 926,
+        "top": 938,
+        "width": 157,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 151,
+        "width": 157,
+        "height": 152,
+        "pixels": 14253
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1091
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 53,
+        "right": 135,
+        "bottom": 148,
+        "width": 100,
+        "height": 96,
+        "pixels": 5817,
+        "edgePixels": 0
+      },
+      "sha256": "e56a826d89d8ee8fbf1be9e45c55b025810a21e1f2a409c6b8b080a3cd967838"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 23,
+        "top": 1113,
+        "width": 150,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 153,
+        "width": 150,
+        "height": 154,
+        "pixels": 15183
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1267
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 52,
+        "right": 131,
+        "bottom": 149,
+        "width": 95,
+        "height": 98,
+        "pixels": 6174,
+        "edgePixels": 0
+      },
+      "sha256": "719962b8ef2f4a1c4f3c38ef22b1bc3ba3c1dc7ffc9c60975bd5c359feb9596c"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 202,
+        "top": 1124,
+        "width": 151,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 142,
+        "width": 151,
+        "height": 143,
+        "pixels": 13492
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1267
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 36,
+        "top": 59,
+        "right": 131,
+        "bottom": 149,
+        "width": 96,
+        "height": 91,
+        "pixels": 5498,
+        "edgePixels": 0
+      },
+      "sha256": "66bb9fc7b885a20289e87670367085c2468768c7a3946d29bfa114e1781d36f3"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 383,
+        "top": 1126,
+        "width": 142,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 139,
+        "width": 142,
+        "height": 140,
+        "pixels": 13730
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1267
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 61,
+        "right": 125,
+        "bottom": 149,
+        "width": 90,
+        "height": 89,
+        "pixels": 5583,
+        "edgePixels": 0
+      },
+      "sha256": "1783ad657a6a31f10eeda6f3a4fc858e1f0f8d8c6f72b8d0b4cca7f73f56b4e9"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 564,
+        "top": 1128,
+        "width": 147,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 138,
+        "width": 147,
+        "height": 139,
+        "pixels": 12922
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1267
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 62,
+        "right": 128,
+        "bottom": 149,
+        "width": 93,
+        "height": 88,
+        "pixels": 5206,
+        "edgePixels": 0
+      },
+      "sha256": "eb331d4ff0a1b3d091a75fec806a682e0bbfc061c8aa86342fbc8d8ddbbd261a"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 747,
+        "top": 1125,
+        "width": 163,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 141,
+        "width": 163,
+        "height": 142,
+        "pixels": 13470
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1267
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 37,
+        "top": 60,
+        "right": 139,
+        "bottom": 149,
+        "width": 103,
+        "height": 90,
+        "pixels": 5447,
+        "edgePixels": 0
+      },
+      "sha256": "16861b1216c0d4c4e9f1c5a5eef4e9b3b481d058e0836e7882f597be336519a5"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 927,
+        "top": 1119,
+        "width": 156,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 147,
+        "width": 156,
+        "height": 148,
+        "pixels": 13754
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1267
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 37,
+        "top": 56,
+        "right": 135,
+        "bottom": 149,
+        "width": 99,
+        "height": 94,
+        "pixels": 5574,
+        "edgePixels": 0
+      },
+      "sha256": "f9f4d98d804fb28f666e4b0219cf952ad3e732dd0983109423be3d4f714151d3"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 21,
+        "top": 1288,
+        "width": 156,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 145,
+        "width": 156,
+        "height": 146,
+        "pixels": 14122
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1434
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 57,
+        "right": 134,
+        "bottom": 149,
+        "width": 99,
+        "height": 93,
+        "pixels": 5753,
+        "edgePixels": 0
+      },
+      "sha256": "9c4cc3020ff962ca8f1c12c3d8c3e262d12749b784b2be2e250b3d35c0d12b0d"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 204,
+        "top": 1299,
+        "width": 153,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 134,
+        "width": 153,
+        "height": 135,
+        "pixels": 13054
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1434
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 37,
+        "top": 64,
+        "right": 133,
+        "bottom": 149,
+        "width": 97,
+        "height": 86,
+        "pixels": 5315,
+        "edgePixels": 0
+      },
+      "sha256": "5a8afe939b5f87448949863d885db3bf11aef375bada50e630ad89c8eb7b76c9"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 384,
+        "top": 1307,
+        "width": 154,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 126,
+        "width": 154,
+        "height": 127,
+        "pixels": 12420
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1434
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 37,
+        "top": 69,
+        "right": 134,
+        "bottom": 149,
+        "width": 98,
+        "height": 81,
+        "pixels": 5067,
+        "edgePixels": 0
+      },
+      "sha256": "f5c9e55fda4206264ce40127638886c22d6f13ed64d963370aad664a8e444a04"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 563,
+        "top": 1321,
+        "width": 150,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 113,
+        "width": 150,
+        "height": 114,
+        "pixels": 11021
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1434
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 78,
+        "right": 129,
+        "bottom": 149,
+        "width": 95,
+        "height": 72,
+        "pixels": 4449,
+        "edgePixels": 0
+      },
+      "sha256": "613d0fbf26ad6f2efd8d802ff54322bde0556c14f909807e651e89629ced8338"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 741,
+        "top": 1337,
+        "width": 161,
+        "height": 97
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 96,
+        "width": 161,
+        "height": 97,
+        "pixels": 10182
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1434
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 89,
+        "right": 134,
+        "bottom": 149,
+        "width": 102,
+        "height": 61,
+        "pixels": 4102,
+        "edgePixels": 0
+      },
+      "sha256": "385d1b773fbae31529713d3d7f75d77328be96251463e830a70451c4c97148fa"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 913,
+        "top": 1340,
+        "width": 163,
+        "height": 94
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 93,
+        "width": 163,
+        "height": 94,
+        "pixels": 10649
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glacier-sentinel/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1434
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 90,
+        "right": 130,
+        "bottom": 149,
+        "width": 103,
+        "height": 60,
+        "pixels": 4355,
+        "edgePixels": 0
+      },
+      "sha256": "ba12c457353926078d7e8b108b6f3f75631146057ee0dffcad122cf7d97fdc12"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

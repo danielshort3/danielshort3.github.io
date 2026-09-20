@@ -586,12 +586,12 @@
                 <h1 class="title">Draw a Shape</h1>
                 <p class="subtitle">Draw a circle, triangle, square, hexagon, or octagon to see the model's prediction.</p>
             </div>
-            <div class="header-actions demo-status-actions">
-                <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">AWS · Connecting</span>
-            </div>
         </header>
 
         <div class="content demo-workspace">
+            <div class="demo-status-actions drawing-status">
+                <button id="health-pill" class="health-pill aws-status-badge" data-state="warming" type="button" disabled>AWS · Connecting</button>
+            </div>
             <!-- Left: canvas & tools -->
             <section class="shape-input" aria-labelledby="drawing-title">
                 <div class="drawing-input-header">
@@ -685,6 +685,7 @@
         let hasDrawn = false;
         let drawing = false;
         let serverReady = false;
+        let warming = false;
         let classifying = false;
         let hasPrediction = false;
         const classificationFeedback = document.getElementById('classification-feedback');
@@ -771,6 +772,7 @@
         }
         window.addEventListener('resize', onResize);
         window.visualViewport?.addEventListener('resize', onResize);
+        if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(canvas);
 
         // Drawing interactions (pen always on)
         canvas.addEventListener('pointerdown', e => {
@@ -1019,10 +1021,12 @@
             if (!healthPill) return;
             healthPill.dataset.state = state;
             healthPill.textContent = `AWS · ${text}`;
+            healthPill.disabled = state === 'warming' || state === 'loading';
+            healthPill.setAttribute('aria-label', `AWS ${text}. Reconnect demo.`);
         }
 
         function updateClassifyState() {
-            classifyBtn.disabled = !serverReady || !hasDrawn || classifying;
+            classifyBtn.disabled = !serverReady || !hasDrawn || classifying || warming;
             classifyBtn.textContent = classifying ? 'Classifying…' : 'Classify shape';
             eraseBtn.disabled = classifying;
             drawingPrompt.hidden = hasDrawn;
@@ -1031,45 +1035,59 @@
         }
 
         async function warmUpServer() {
-            setHealth('warming', 'Connecting');
-            const bases = candidates();
-            if (!bases.length) {
-                setHealth('err', 'No endpoint');
-                serverReady = false;
-                updateClassifyState();
-                return;
-            }
-            const warmPayload = {
-                b64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII='
-            };
-            let lastErr = null;
-            for (const base of bases) {
-                try {
-                    await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
-                    await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
-                    rememberEndpoint(base, STORAGE_KEY);
-                    serverReady = true;
-                    setHealth('ok', 'Connected');
-                    updateClassifyState();
-                    return;
-                } catch (err) {
-                    lastErr = err;
-                }
-                try {
-                    await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
-                    rememberEndpoint(base, STORAGE_KEY);
-                    serverReady = true;
-                    setHealth('ok', 'Connected');
-                    updateClassifyState();
-                    return;
-                } catch (err) {
-                    lastErr = err;
-                }
-            }
+            if (warming || classifying) return;
+            warming = true;
             serverReady = false;
-            setHealth('err', 'Unavailable');
+            classificationFeedback.hidden = true;
             updateClassifyState();
-            if (lastErr) console.error(lastErr);
+            try {
+            setHealth('warming', 'Connecting');
+                const bases = candidates();
+                if (!bases.length) {
+                    setHealth('err', 'Reconnect');
+                    classificationFeedback.textContent = 'The demo could not connect. Select Reconnect to try again.';
+                    classificationFeedback.hidden = false;
+                    serverReady = false;
+                    updateClassifyState();
+                    return;
+                }
+                const warmPayload = {
+                    b64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII='
+                };
+                let lastErr = null;
+                for (const base of bases) {
+                    try {
+                        await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+                        await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+                        rememberEndpoint(base, STORAGE_KEY);
+                        serverReady = true;
+                        setHealth('ok', 'Connected');
+                        updateClassifyState();
+                        return;
+                    } catch (err) {
+                        lastErr = err;
+                    }
+                    try {
+                        await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
+                        rememberEndpoint(base, STORAGE_KEY);
+                        serverReady = true;
+                        setHealth('ok', 'Connected');
+                        updateClassifyState();
+                        return;
+                    } catch (err) {
+                        lastErr = err;
+                    }
+                }
+                serverReady = false;
+                setHealth('err', 'Reconnect');
+                classificationFeedback.textContent = 'The demo could not connect. Select Reconnect to try again.';
+                classificationFeedback.hidden = false;
+                updateClassifyState();
+                if (lastErr) console.error(lastErr);
+            } finally {
+                warming = false;
+                updateClassifyState();
+            }
         }
 
         /* ---------- Classification flow ---------- */
@@ -1178,6 +1196,7 @@
         }
 
         classifyBtn.addEventListener('click', classify);
+        healthPill.addEventListener('click', warmUpServer);
 
         // Erase behavior
         eraseBtn.addEventListener('click', () => {
@@ -1199,6 +1218,6 @@
         // (No ResizeObserver-driven notifyResize() to prevent iframe jitter)
     </script>
     <footer></footer>
-    <script defer src="dist/site-consent.ab1759e7.js"></script>
+    <script defer src="dist/site-consent.b7aca7d5.js"></script>
 </body>
 </html>

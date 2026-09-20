@@ -98,19 +98,49 @@ engine.updateEnemies(0.25);
 assert.strictEqual(engine.projectiles.length, 0,
   'Rift Lantern should still have no projectile before the complete windup elapses');
 
+const releasePosition = { x: riftLantern.x, y: riftLantern.y };
 engine.updateEnemies(0.03);
 assert.strictEqual(engine.projectiles.length, 1,
   'Rift Lantern should create exactly one projectile after the windup elapses');
 assert.strictEqual(engine.projectiles[0].sourceEnemyId, 'riftLantern');
 assert.strictEqual(riftLantern.telegraph, 0,
   'the pre-fire telegraph should clear when the committed shot launches');
-assert.strictEqual(riftLantern.state, 'idle');
+assert.strictEqual(riftLantern.state, 'attackRecover',
+  'Rift Lantern should enter a distinct recovery when its shot launches');
+assert.strictEqual(riftLantern.attackRecovery, 0.45,
+  'Rift Lantern should retain the authored 450ms projectile recovery');
+assert.deepStrictEqual({ x: riftLantern.x, y: riftLantern.y }, releasePosition,
+  'the release frame should already hold the flyer in recovery');
 assert.strictEqual(riftLantern.attackCd, 2.1,
   'the Rift Lantern special windup should retain its existing post-fire cadence');
 
-engine.updateEnemies(0.1);
-assert.strictEqual(engine.projectiles.length, 1,
-  'the post-fire cooldown should prevent duplicate projectiles on later updates');
+const releaseFacing = riftLantern.facing;
+engine.state.player.x = 1000;
+const originalNow = Date.now;
+let recoveryTime = Date.now();
+Date.now = () => recoveryTime;
+try {
+  for (let frame = 0; frame < 4; frame += 1) {
+    recoveryTime += 100;
+    engine.updateEnemies(0.1);
+    assert.strictEqual(riftLantern.state, 'attackRecover');
+    assert.strictEqual(riftLantern.facing, releaseFacing,
+      'a dodging target must not turn the flyer during recovery');
+    assert.deepStrictEqual({ x: riftLantern.x, y: riftLantern.y }, releasePosition,
+      'the flyer must not chase horizontally or vertically during recovery');
+    assert.strictEqual(engine.projectiles.length, 1,
+      'recovery and cooldown should prevent duplicate projectiles');
+  }
+  recoveryTime += 60;
+  engine.updateEnemies(0.06);
+  assert.strictEqual(riftLantern.attackRecovery, 0);
+  assert.strictEqual(riftLantern.state, 'idle', 'the flyer resumes its normal AI after recovery');
+  assert.strictEqual(riftLantern.facing, 1, 'the recovered flyer can turn toward its new target position');
+  assert(riftLantern.x > releasePosition.x, 'the recovered flyer resumes horizontal pursuit');
+  assert.strictEqual(engine.projectiles.length, 1, 'post-fire cooldown persists beyond animation recovery');
+} finally {
+  Date.now = originalNow;
+}
 
 const genericFlyerData = data.ENEMIES.find((enemy) => enemy.behavior === 'flyer' && enemy.id !== 'riftLantern');
 if (genericFlyerData) {

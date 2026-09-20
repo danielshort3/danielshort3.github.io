@@ -113,6 +113,11 @@ function validateMap(map) {
   if (!map || !map.id) issues.push('Map is missing an id.');
   if (!platforms.length) issues.push(`${map.id} has no platforms.`);
   if (!map.shopInterior && !map.layoutRole) issues.push(`${map.id} is missing layoutRole metadata.`);
+  if (map.trainingXpMultiplier != null) {
+    const multiplier = Number(map.trainingXpMultiplier);
+    if (!Number.isFinite(multiplier) || multiplier < 0.85 || multiplier > 1.15) issues.push(`${map.id} trainingXpMultiplier must be between 0.85 and 1.15.`);
+    if (map.safeZone || map.isDungeon || map.bossRoom || !['starterField', 'trainingField', 'deepField'].includes(map.layoutRole)) issues.push(`${map.id} trainingXpMultiplier is only supported for ordinary public fields.`);
+  }
   if (!['authored', 'generated'].includes(String(map && map.geometryMode || ''))) {
     issues.push(`${map.id} is missing an explicit authored/generated geometryMode.`);
   }

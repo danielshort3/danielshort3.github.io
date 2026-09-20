@@ -1,0 +1,280 @@
+{
+  "candidate": "C:\\Users\\clopt\\Documents\\coding\\Personal_Projects\\danielshort3.github.io\\output\\starfall-animation-samples\\glowcap-spring-study.png",
+  "sourceSha256": "6a5466fefd53d0b308b9ef071674fefe72a1ee9584849c76cb72c1024d3826e2",
+  "dimensions": [
+    1774,
+    887
+  ],
+  "measured": [
+    {
+      "visible": {
+        "left": 32,
+        "top": 61,
+        "right": 396,
+        "bottom": 416
+      },
+      "rootX": 221,
+      "rootY": 417,
+      "pixels": 94046
+    },
+    {
+      "visible": {
+        "left": 28,
+        "top": 112,
+        "right": 400,
+        "bottom": 416
+      },
+      "rootX": 224.5,
+      "rootY": 417,
+      "pixels": 81351
+    },
+    {
+      "visible": {
+        "left": 24,
+        "top": 164,
+        "right": 410,
+        "bottom": 418
+      },
+      "rootX": 216,
+      "rootY": 419,
+      "pixels": 71928
+    },
+    {
+      "visible": {
+        "left": 28,
+        "top": 108,
+        "right": 396,
+        "bottom": 418
+      },
+      "rootX": 221,
+      "rootY": 419,
+      "pixels": 80968
+    },
+    {
+      "visible": {
+        "left": 39,
+        "top": 21,
+        "right": 394,
+        "bottom": 405
+      },
+      "rootX": 221,
+      "rootY": 406,
+      "pixels": 95922
+    },
+    {
+      "visible": {
+        "left": 49,
+        "top": 13,
+        "right": 399,
+        "bottom": 405
+      },
+      "rootX": 220.5,
+      "rootY": 406,
+      "pixels": 95387
+    },
+    {
+      "visible": {
+        "left": 31,
+        "top": 63,
+        "right": 399,
+        "bottom": 405
+      },
+      "rootX": 224,
+      "rootY": 406,
+      "pixels": 91344
+    },
+    {
+      "visible": {
+        "left": 31,
+        "top": 59,
+        "right": 397,
+        "bottom": 405
+      },
+      "rootX": 225,
+      "rootY": 406,
+      "pixels": 92161
+    }
+  ],
+  "sourceRects": [
+    {
+      "left": 0,
+      "top": 0,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "left": 444,
+      "top": 0,
+      "width": 443,
+      "height": 444
+    },
+    {
+      "left": 887,
+      "top": 0,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "left": 1331,
+      "top": 0,
+      "width": 443,
+      "height": 444
+    },
+    {
+      "left": 0,
+      "top": 444,
+      "width": 444,
+      "height": 443
+    },
+    {
+      "left": 444,
+      "top": 444,
+      "width": 443,
+      "height": 443
+    },
+    {
+      "left": 887,
+      "top": 444,
+      "width": 444,
+      "height": 443
+    },
+    {
+      "left": 1331,
+      "top": 444,
+      "width": 443,
+      "height": 443
+    }
+  ],
+  "frames": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 444,
+      "h": 444,
+      "rootX": 221,
+      "rootY": 417,
+      "visible": {
+        "left": 32,
+        "top": 61,
+        "right": 396,
+        "bottom": 416
+      }
+    },
+    {
+      "x": 444,
+      "y": 0,
+      "w": 443,
+      "h": 444,
+      "rootX": 225,
+      "rootY": 417,
+      "visible": {
+        "left": 28,
+        "top": 112,
+        "right": 400,
+        "bottom": 416
+      }
+    },
+    {
+      "x": 887,
+      "y": 0,
+      "w": 444,
+      "h": 444,
+      "rootX": 221,
+      "rootY": 419,
+      "visible": {
+        "left": 24,
+        "top": 164,
+        "right": 410,
+        "bottom": 418
+      }
+    },
+    {
+      "x": 1331,
+      "y": 0,
+      "w": 443,
+      "h": 444,
+      "rootX": 221,
+      "rootY": 419,
+      "visible": {
+        "left": 28,
+        "top": 108,
+        "right": 396,
+        "bottom": 418
+      }
+    },
+    {
+      "x": 0,
+      "y": 444,
+      "w": 444,
+      "h": 443,
+      "rootX": 221,
+      "rootY": 406,
+      "visible": {
+        "left": 39,
+        "top": 21,
+        "right": 394,
+        "bottom": 405
+      }
+    },
+    {
+      "x": 444,
+      "y": 444,
+      "w": 443,
+      "h": 443,
+      "rootX": 220.5,
+      "rootY": 406,
+      "visible": {
+        "left": 49,
+        "top": 13,
+        "right": 399,
+        "bottom": 405
+      }
+    },
+    {
+      "x": 887,
+      "y": 444,
+      "w": 444,
+      "h": 443,
+      "rootX": 224,
+      "rootY": 406,
+      "visible": {
+        "left": 31,
+        "top": 63,
+        "right": 399,
+        "bottom": 405
+      }
+    },
+    {
+      "x": 1331,
+      "y": 444,
+      "w": 443,
+      "h": 443,
+      "rootX": 225,
+      "rootY": 406,
+      "visible": {
+        "left": 31,
+        "top": 59,
+        "right": 397,
+        "bottom": 405
+      }
+    }
+  ],
+  "uniformScale": 0.22262612910332671,
+  "method": "Root X uses the midpoint of the opaque bottom 10 source-pixel foot contact band, visually checked against the eight drawings. Root Y uses the bottom of the opaque sole. This registers exported placements; it does not change the drawings or their individual scales. One fixed scale for all frames; per-frame translation only. No generated in-between frames or morphing.",
+  "encoding": "WebP quality 96, alpha quality 100; unmodified PNG retained beside review",
+  "afterCycleSeconds": 1.2,
+  "holds": [
+    3,
+    1,
+    2,
+    1,
+    1,
+    1,
+    1,
+    2
+  ],
+  "beforeCycleSeconds": 2,
+  "fragment": "C:\\Users\\clopt\\.codex\\visualizations\\2026\\09\\19\\01a0bb26-35be-7a93-9773-ce24aa252f30\\glowcap-spring-study.html",
+  "fragmentBytes": 687805,
+  "limitations": "This is a visual study for feedback, not a production-ready atlas or a guarantee of seamless animation."
+}

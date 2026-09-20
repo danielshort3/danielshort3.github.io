@@ -1,0 +1,1965 @@
+{
+  "fileId": "ash-crawler",
+  "sourceSha256": "e7bd59d63f02378aca932f1d9a693e29b20d7359efeb9ce9ff32c8f32b3d77e1",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    189,
+    366,
+    558,
+    730,
+    914,
+    1086,
+    1265,
+    1448
+  ],
+  "sharedScale": 0.6679820627802691,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 75,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/ash-crawler-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 792856,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 9,
+        "top": 44,
+        "width": 171,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 111,
+        "width": 171,
+        "height": 112,
+        "pixels": 13496
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 156
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 75,
+        "right": 139,
+        "bottom": 149,
+        "width": 114,
+        "height": 75,
+        "pixels": 6077,
+        "edgePixels": 0
+      },
+      "sha256": "bc9aa3ab6c369b172ad583eddb150554d69d28d11f20f3f9cc565f33809d08f9"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 194,
+        "top": 46,
+        "width": 172,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 109,
+        "width": 172,
+        "height": 110,
+        "pixels": 13339
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 156
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 77,
+        "right": 142,
+        "bottom": 149,
+        "width": 115,
+        "height": 73,
+        "pixels": 5983,
+        "edgePixels": 0
+      },
+      "sha256": "58642a028e5590dfabf012ba15a45e43cf962165ab9b5faa247095593cffd30e"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 375,
+        "top": 46,
+        "width": 168,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 109,
+        "width": 168,
+        "height": 110,
+        "pixels": 13065
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 156
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 77,
+        "right": 139,
+        "bottom": 149,
+        "width": 112,
+        "height": 73,
+        "pixels": 5847,
+        "edgePixels": 0
+      },
+      "sha256": "8b0d30545c825ac3a30641704773f17c185233dbc2c6651cb6c8cf62f24598d9"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 555,
+        "top": 45,
+        "width": 171,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 109,
+        "width": 171,
+        "height": 110,
+        "pixels": 13147
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 156
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 76,
+        "right": 141,
+        "bottom": 148,
+        "width": 114,
+        "height": 73,
+        "pixels": 5875,
+        "edgePixels": 0
+      },
+      "sha256": "f834bfaab2d968a7162d3424f272db1584028b1ac930a1a37aa9cf4f2e10d2ae"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 740,
+        "top": 42,
+        "width": 161,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 112,
+        "width": 161,
+        "height": 113,
+        "pixels": 13067
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 156
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 74,
+        "right": 137,
+        "bottom": 148,
+        "width": 108,
+        "height": 75,
+        "pixels": 5894,
+        "edgePixels": 0
+      },
+      "sha256": "8960a4df0ffdf5f9db53fc446c5f74051ac222397bc957fffbe176478b4ed08a"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 912,
+        "top": 49,
+        "width": 170,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 105,
+        "width": 170,
+        "height": 106,
+        "pixels": 12638
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 156
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 79,
+        "right": 137,
+        "bottom": 149,
+        "width": 114,
+        "height": 71,
+        "pixels": 5724,
+        "edgePixels": 0
+      },
+      "sha256": "88fa7aa4bf52cfcf764fa3f7f5fe263439ec90bce21e8bd7186f8a3d8daa2aeb"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 10,
+        "top": 221,
+        "width": 170,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 112,
+        "width": 170,
+        "height": 113,
+        "pixels": 13242
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 336
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 73,
+        "right": 139,
+        "bottom": 147,
+        "width": 114,
+        "height": 75,
+        "pixels": 5986,
+        "edgePixels": 0
+      },
+      "sha256": "a1bf5b5a4391d2fbfe6727612732b36a807a2164bdfd606e6fbe911bb96ed6db"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 189,
+        "top": 221,
+        "width": 180,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 179,
+        "bottom": 114,
+        "width": 180,
+        "height": 115,
+        "pixels": 13455
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 336
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 25,
+        "top": 73,
+        "right": 144,
+        "bottom": 149,
+        "width": 120,
+        "height": 77,
+        "pixels": 6066,
+        "edgePixels": 0
+      },
+      "sha256": "e1a11fa6bef62cd860d5155ba3d82edb44ce48771edb231bd3596a9c8c5c5996"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 381,
+        "top": 223,
+        "width": 162,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 111,
+        "width": 162,
+        "height": 112,
+        "pixels": 12835
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 336
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 32,
+        "top": 75,
+        "right": 139,
+        "bottom": 149,
+        "width": 108,
+        "height": 75,
+        "pixels": 5793,
+        "edgePixels": 0
+      },
+      "sha256": "f5c198ea52153dc7a4c1797ad7aa5c008f0219988904305925be3ccc51b258d3"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 549,
+        "top": 225,
+        "width": 175,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 110,
+        "width": 175,
+        "height": 111,
+        "pixels": 13168
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 336
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 76,
+        "right": 140,
+        "bottom": 149,
+        "width": 117,
+        "height": 74,
+        "pixels": 5920,
+        "edgePixels": 0
+      },
+      "sha256": "73c5e5722cba3be906025268641ef58b140905349ff441ee63afac290117f1ba"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 730,
+        "top": 227,
+        "width": 176,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 108,
+        "width": 176,
+        "height": 109,
+        "pixels": 12948
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 336
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 77,
+        "right": 141,
+        "bottom": 149,
+        "width": 118,
+        "height": 73,
+        "pixels": 5851,
+        "edgePixels": 0
+      },
+      "sha256": "fc0833e68286d875f3c47d8b1d3bdd2229bb1556e79620efd98cf41f6846dee3"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 914,
+        "top": 223,
+        "width": 168,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 111,
+        "width": 168,
+        "height": 112,
+        "pixels": 12978
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 336
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 75,
+        "right": 137,
+        "bottom": 149,
+        "width": 112,
+        "height": 75,
+        "pixels": 5850,
+        "edgePixels": 0
+      },
+      "sha256": "b1b97daaea93fd8abe6c75aa24afa26652d9bd2f2457bb5ea809df04a7266845"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 8,
+        "top": 396,
+        "width": 178,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 177,
+        "bottom": 123,
+        "width": 178,
+        "height": 124,
+        "pixels": 14364
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 525
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 25,
+        "top": 64,
+        "right": 143,
+        "bottom": 146,
+        "width": 119,
+        "height": 83,
+        "pixels": 6477,
+        "edgePixels": 0
+      },
+      "sha256": "89f4623c037e6360af7a15761fdaac09b716b7dcbbe0a7bc1657efefb8aed9bf"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 191,
+        "top": 409,
+        "width": 172,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 113,
+        "width": 172,
+        "height": 114,
+        "pixels": 13539
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 525
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 73,
+        "right": 140,
+        "bottom": 148,
+        "width": 115,
+        "height": 76,
+        "pixels": 6078,
+        "edgePixels": 0
+      },
+      "sha256": "36b252b62b1b522a0d247592c7fcf621f94c9023ac472a49a038bd1ad14e840f"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 376,
+        "top": 408,
+        "width": 171,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 115,
+        "width": 171,
+        "height": 116,
+        "pixels": 13677
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 525
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 72,
+        "right": 142,
+        "bottom": 148,
+        "width": 114,
+        "height": 77,
+        "pixels": 6110,
+        "edgePixels": 0
+      },
+      "sha256": "ab46d1bf443dad912e30a72e120b2d24ee2e64fa6369ca7f809025caf4d5736b"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 552,
+        "top": 413,
+        "width": 172,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 111,
+        "width": 172,
+        "height": 112,
+        "pixels": 13264
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 525
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 75,
+        "right": 140,
+        "bottom": 149,
+        "width": 115,
+        "height": 75,
+        "pixels": 5982,
+        "edgePixels": 0
+      },
+      "sha256": "b1330ccae5d08710af2cc108842a78aae800e74feb702dce70e75851e98b5105"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 735,
+        "top": 417,
+        "width": 168,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 110,
+        "width": 168,
+        "height": 111,
+        "pixels": 12875
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 525
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 78,
+        "right": 138,
+        "bottom": 151,
+        "width": 112,
+        "height": 74,
+        "pixels": 5751,
+        "edgePixels": 0
+      },
+      "sha256": "0f62c4f2241204da6f6982d18ec27eb7705c3c11e4bc39909365778ad56cbec4"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 913,
+        "top": 431,
+        "width": 169,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 98,
+        "width": 169,
+        "height": 99,
+        "pixels": 12038
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 525
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 87,
+        "right": 137,
+        "bottom": 152,
+        "width": 113,
+        "height": 66,
+        "pixels": 5404,
+        "edgePixels": 0
+      },
+      "sha256": "6159289e9c15e7bb8e1724c5f9beddfb8ef0eb9e88899c924346b2417ec45020"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 6,
+        "top": 585,
+        "width": 196,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 195,
+        "bottom": 114,
+        "width": 196,
+        "height": 115,
+        "pixels": 14644
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 700
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 73,
+        "right": 154,
+        "bottom": 149,
+        "width": 131,
+        "height": 77,
+        "pixels": 6596,
+        "edgePixels": 0
+      },
+      "sha256": "92b2624fe10daa6caa13b06c8db89e88932606333afb96caedd33e2358f3e640"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 194,
+        "top": 591,
+        "width": 186,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 185,
+        "bottom": 108,
+        "width": 186,
+        "height": 109,
+        "pixels": 13395
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 700
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 77,
+        "right": 151,
+        "bottom": 149,
+        "width": 124,
+        "height": 73,
+        "pixels": 6041,
+        "edgePixels": 0
+      },
+      "sha256": "c3aa9597bc5d0f577d7b189796e78ee7b5b89f598c87c63457e1547208e55e0c"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 386,
+        "top": 588,
+        "width": 164,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 111,
+        "width": 164,
+        "height": 112,
+        "pixels": 13313
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 700
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 75,
+        "right": 145,
+        "bottom": 149,
+        "width": 110,
+        "height": 75,
+        "pixels": 6025,
+        "edgePixels": 0
+      },
+      "sha256": "946455726dd30b2dc62e8977b9504d092d9536987361e1ce2ffcf71ac4004943"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 559,
+        "top": 587,
+        "width": 169,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 113,
+        "width": 169,
+        "height": 114,
+        "pixels": 13260
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 700
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 75,
+        "right": 142,
+        "bottom": 150,
+        "width": 113,
+        "height": 76,
+        "pixels": 5956,
+        "edgePixels": 0
+      },
+      "sha256": "900022f4dbfdf71ecb13070ab99d03f68c161b7bdf688729a816c159d9cf5be3"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 738,
+        "top": 586,
+        "width": 166,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 113,
+        "width": 166,
+        "height": 114,
+        "pixels": 13393
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 700
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 29,
+        "top": 74,
+        "right": 139,
+        "bottom": 149,
+        "width": 111,
+        "height": 76,
+        "pixels": 6018,
+        "edgePixels": 0
+      },
+      "sha256": "609b8ed8e5a937ea4283ea3b861bc2cea97779e428945a28a0c5afc77b50ba5b"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 910,
+        "top": 587,
+        "width": 173,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 113,
+        "width": 173,
+        "height": 114,
+        "pixels": 13245
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 700
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 75,
+        "right": 138,
+        "bottom": 150,
+        "width": 116,
+        "height": 76,
+        "pixels": 6003,
+        "edgePixels": 0
+      },
+      "sha256": "baaaeb965be506c2c882bd4752b1229b4b32c0c9b87a8622dbccca2d4f9352b1"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 12,
+        "top": 759,
+        "width": 178,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 177,
+        "bottom": 116,
+        "width": 178,
+        "height": 117,
+        "pixels": 14350
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 881
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 69,
+        "right": 146,
+        "bottom": 146,
+        "width": 119,
+        "height": 78,
+        "pixels": 6435,
+        "edgePixels": 0
+      },
+      "sha256": "33ac5d291d15b17e4842b26942e35c9a0ecc2d312f3d5d7016f2b1b4ef39b992"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 186,
+        "top": 763,
+        "width": 183,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 182,
+        "bottom": 112,
+        "width": 183,
+        "height": 113,
+        "pixels": 14193
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 881
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 71,
+        "right": 144,
+        "bottom": 145,
+        "width": 122,
+        "height": 75,
+        "pixels": 6342,
+        "edgePixels": 0
+      },
+      "sha256": "639b703af7d26f76b38c95d3a542a99ec1917e1e5353440b64d15e35a733f666"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 368,
+        "top": 769,
+        "width": 175,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 111,
+        "width": 175,
+        "height": 112,
+        "pixels": 13562
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 881
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 75,
+        "right": 140,
+        "bottom": 149,
+        "width": 117,
+        "height": 75,
+        "pixels": 6123,
+        "edgePixels": 0
+      },
+      "sha256": "bbeaa6f2127774434ff8a106e4f20b1f47acbfee7d17ab0ba8567feac9729ad5"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 547,
+        "top": 773,
+        "width": 179,
+        "height": 108
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 107,
+        "width": 179,
+        "height": 108,
+        "pixels": 13291
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 881
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 78,
+        "right": 141,
+        "bottom": 149,
+        "width": 120,
+        "height": 72,
+        "pixels": 6006,
+        "edgePixels": 0
+      },
+      "sha256": "0322a4fab1a37665d2b1686e5517a5134ea43420954a3cd1a44cf7a8b8e34419"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 734,
+        "top": 775,
+        "width": 177,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 105,
+        "width": 177,
+        "height": 106,
+        "pixels": 12972
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 881
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 79,
+        "right": 143,
+        "bottom": 149,
+        "width": 118,
+        "height": 71,
+        "pixels": 5851,
+        "edgePixels": 0
+      },
+      "sha256": "672a5f0bb9eeaaec2ed6a6cc345333651b9e94866db35fdef0316719418c81c5"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 914,
+        "top": 771,
+        "width": 167,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 110,
+        "width": 167,
+        "height": 111,
+        "pixels": 12814
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 881
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 77,
+        "right": 137,
+        "bottom": 150,
+        "width": 112,
+        "height": 74,
+        "pixels": 5802,
+        "edgePixels": 0
+      },
+      "sha256": "da70440f3241956e624e3be68eb447856fbd7d05a05d8751433910cf31b210cc"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 9,
+        "top": 946,
+        "width": 169,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 112,
+        "width": 169,
+        "height": 113,
+        "pixels": 13125
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1060
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 74,
+        "right": 138,
+        "bottom": 148,
+        "width": 113,
+        "height": 75,
+        "pixels": 5885,
+        "edgePixels": 0
+      },
+      "sha256": "c143404ebb905bbe4d7d92b8be46759afe8b3dc9fa8351f492e6640252993f86"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 191,
+        "top": 958,
+        "width": 166,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 98,
+        "width": 166,
+        "height": 99,
+        "pixels": 11623
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1060
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 82,
+        "right": 136,
+        "bottom": 147,
+        "width": 111,
+        "height": 66,
+        "pixels": 5236,
+        "edgePixels": 0
+      },
+      "sha256": "f83b255ea659e1101b1f1266ac87602bc461a358710ce0c30d848d3155c68211"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 374,
+        "top": 956,
+        "width": 161,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 101,
+        "width": 161,
+        "height": 102,
+        "pixels": 11705
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1060
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 81,
+        "right": 135,
+        "bottom": 148,
+        "width": 108,
+        "height": 68,
+        "pixels": 5292,
+        "edgePixels": 0
+      },
+      "sha256": "4c82f1b7057a6e70ca1bb88d6a0ec5cdcae5d7d4d5bcfe04752bfe090f757cca"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 552,
+        "top": 945,
+        "width": 166,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 114,
+        "width": 166,
+        "height": 115,
+        "pixels": 13455
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1060
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 73,
+        "right": 136,
+        "bottom": 149,
+        "width": 111,
+        "height": 77,
+        "pixels": 6060,
+        "edgePixels": 0
+      },
+      "sha256": "e90c96f55ae8fffe38fb570843041ac96e848df3894ac54979b70e5ad6acd12d"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 737,
+        "top": 948,
+        "width": 170,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 111,
+        "width": 170,
+        "height": 112,
+        "pixels": 13454
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1060
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 75,
+        "right": 141,
+        "bottom": 149,
+        "width": 114,
+        "height": 75,
+        "pixels": 6087,
+        "edgePixels": 0
+      },
+      "sha256": "c1a0f2a0ea63b9967c505821071ba3c730c9a331324e9c9a0fe0e4c89758886c"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 914,
+        "top": 946,
+        "width": 169,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 113,
+        "width": 169,
+        "height": 114,
+        "pixels": 13432
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1060
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 74,
+        "right": 138,
+        "bottom": 149,
+        "width": 113,
+        "height": 76,
+        "pixels": 6028,
+        "edgePixels": 0
+      },
+      "sha256": "32f62125d3e9ad4b450785a843b6bbde1f592c1f72a08d2c7bc9a7d9b27ca364"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 8,
+        "top": 1121,
+        "width": 177,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 115,
+        "width": 177,
+        "height": 116,
+        "pixels": 13954
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1237
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 25,
+        "top": 73,
+        "right": 142,
+        "bottom": 149,
+        "width": 118,
+        "height": 77,
+        "pixels": 6235,
+        "edgePixels": 0
+      },
+      "sha256": "5e842f9e718dce047800ef5363d7016c41d10214ad17b5a67bb12ce06bd5663a"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 192,
+        "top": 1121,
+        "width": 177,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 114,
+        "width": 177,
+        "height": 115,
+        "pixels": 13942
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1237
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 73,
+        "right": 144,
+        "bottom": 149,
+        "width": 118,
+        "height": 77,
+        "pixels": 6282,
+        "edgePixels": 0
+      },
+      "sha256": "87a023a046ef51a04911d2277786b7465c5d41766228f030d980f48c22315c06"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 377,
+        "top": 1123,
+        "width": 166,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 113,
+        "width": 166,
+        "height": 114,
+        "pixels": 13814
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1237
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 74,
+        "right": 140,
+        "bottom": 149,
+        "width": 111,
+        "height": 76,
+        "pixels": 6212,
+        "edgePixels": 0
+      },
+      "sha256": "4589040288a87e68886cdd3951834a28f913f99833a288ce5c6746e431be345f"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 556,
+        "top": 1112,
+        "width": 172,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 119,
+        "width": 172,
+        "height": 120,
+        "pixels": 14459
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1237
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 67,
+        "right": 142,
+        "bottom": 146,
+        "width": 115,
+        "height": 80,
+        "pixels": 6496,
+        "edgePixels": 0
+      },
+      "sha256": "5e575dfe4acde4032f2d46487d75dc3b064f10abc8f1e83d3fa8ae1578df08c6"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 737,
+        "top": 1130,
+        "width": 170,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 108,
+        "width": 170,
+        "height": 109,
+        "pixels": 13075
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1237
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 79,
+        "right": 141,
+        "bottom": 151,
+        "width": 114,
+        "height": 73,
+        "pixels": 5909,
+        "edgePixels": 0
+      },
+      "sha256": "e1ab29c1ff5a54ef297d92249c84bf506a3cc5a4167e267d50375ef82c1d6e84"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 916,
+        "top": 1130,
+        "width": 168,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 108,
+        "width": 168,
+        "height": 109,
+        "pixels": 12989
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1237
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 79,
+        "right": 138,
+        "bottom": 151,
+        "width": 112,
+        "height": 73,
+        "pixels": 5861,
+        "edgePixels": 0
+      },
+      "sha256": "35d2ed5410147b4ea8b4c17d4f1e06a2a595677c7afebe033a9272557ac69bba"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 12,
+        "top": 1300,
+        "width": 171,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 116,
+        "width": 171,
+        "height": 117,
+        "pixels": 14230
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1422
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 69,
+        "right": 141,
+        "bottom": 146,
+        "width": 114,
+        "height": 78,
+        "pixels": 6358,
+        "edgePixels": 0
+      },
+      "sha256": "6b021cbdb309fc2b057023b702396e2bb5c056a56cdbb5700c175237dee48367"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 194,
+        "top": 1291,
+        "width": 171,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 126,
+        "width": 171,
+        "height": 127,
+        "pixels": 14953
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1422
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 62,
+        "right": 141,
+        "bottom": 146,
+        "width": 114,
+        "height": 85,
+        "pixels": 6728,
+        "edgePixels": 0
+      },
+      "sha256": "c4268a239bbaf8f90114f9ae169f97ffc8ae0b0ed8d38554eddba25c44031ccf"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 375,
+        "top": 1311,
+        "width": 159,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 110,
+        "width": 159,
+        "height": 111,
+        "pixels": 12462
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1422
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 76,
+        "right": 133,
+        "bottom": 149,
+        "width": 106,
+        "height": 74,
+        "pixels": 5567,
+        "edgePixels": 0
+      },
+      "sha256": "a261a6c1cf3ca8dd3830ee29f9a7b36450564c2bcbb19fcd486d59167f4608f8"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 550,
+        "top": 1320,
+        "width": 172,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 101,
+        "width": 172,
+        "height": 102,
+        "pixels": 12222
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1422
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 82,
+        "right": 138,
+        "bottom": 149,
+        "width": 115,
+        "height": 68,
+        "pixels": 5495,
+        "edgePixels": 0
+      },
+      "sha256": "ee4ac082dbea39854d88d08b10684dba2179d211feb8ba9e56c5195185b25b52"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 734,
+        "top": 1320,
+        "width": 170,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 101,
+        "width": 170,
+        "height": 102,
+        "pixels": 12095
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1422
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 82,
+        "right": 139,
+        "bottom": 149,
+        "width": 114,
+        "height": 68,
+        "pixels": 5468,
+        "edgePixels": 0
+      },
+      "sha256": "ba278f7879a95f3cee230e3daf8386a0c5c151a9c01ee16b9a91a6618437d0b2"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 914,
+        "top": 1334,
+        "width": 165,
+        "height": 90
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 89,
+        "width": 165,
+        "height": 90,
+        "pixels": 10506
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/ash-crawler/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1422
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 91,
+        "right": 135,
+        "bottom": 150,
+        "width": 110,
+        "height": 60,
+        "pixels": 4691,
+        "edgePixels": 0
+      },
+      "sha256": "d722820361d2298c040219185396bff334a060594fad9e80f6e26cd6a0aa7f66"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

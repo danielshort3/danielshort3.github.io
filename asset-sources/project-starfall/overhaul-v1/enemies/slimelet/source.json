@@ -1,0 +1,77 @@
+{
+  "schema": "starfall-authored-enemy-source-v1",
+  "fileId": "slimelet",
+  "tool": "built-in image_gen",
+  "generationDate": "2026-09-19",
+  "source": "source.png",
+  "sourceSha256": "7337042f125ef9bda957ec472c9199bd5d98c9eb97b270984855d7c6b71c6add",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "grid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "sourceFacing": "right",
+  "floating": false,
+  "referenceRole": "Existing portrait and compact atlas define identity; Oracle and Glowcap studies define clean illustrated appearance and motion quality.",
+  "references": [
+    "img/project-starfall/enemies/slimelet.png",
+    "img/project-starfall/animations/enemies/slimelet-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Raw and packed contact sheets visually inspected; 48 coherent actors, transparent gutters, no clipped silhouette, consistent identity. In-game playback QA remains required.",
+    "animationReview": "pending-runtime-integration"
+  },
+  "import": {
+    "frameWidth": 160,
+    "frameHeight": 160,
+    "columns": 6,
+    "rows": 8,
+    "baseline": 150,
+    "anchorX": 80,
+    "gutter": 6,
+    "portraitFrame": 0,
+    "output": "img/project-starfall/animations/enemies/slimelet-sheet.png",
+    "portrait": "img/project-starfall/enemies/slimelet.png"
+  },
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "sourcePeakColumns": {
+      "attack": 3,
+      "projectile": 3
+    },
+    "note": "Peak then authored follow-through then reverse-order preparation poses retract toward rest. No synthesized interpolation."
+  }
+}

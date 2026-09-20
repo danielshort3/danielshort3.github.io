@@ -53,7 +53,7 @@
     "lead": "Generate a grid of synthetic digits and explore how the output morphs.",
     "bullets": [
       "Choose Auto or a digit from 0–9 with the Digit control.",
-      "Click “Generate” to refresh the grid.",
+      "Click “Regenerate” to refresh the grid.",
       "Open “Advanced settings” below the grid to adjust grid size, seed, latent dimension, and distortion.",
       "Generate again to compare how settings change the outputs."
     ]
@@ -98,10 +98,10 @@
   "order": 8,
   "notes": "Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity.",
   "mobilePreview": {
-    "image": "img/projects/digitGenerator-preview.webp",
-    "width": 1280,
-    "height": 800,
-    "alt": "Synthetic Digit Generator showing a generated four-by-four grid of handwritten digit variations."
+    "image": "img/projects/digitGenerator-workspace-preview.webp",
+    "width": 1200,
+    "height": 1404,
+    "alt": "Current Digit Generator workspace with Regenerate controls, a six-by-six grid of recorded digit samples, and advanced settings below."
   },
   "relatedProjectId": "handwritingRating"
 }

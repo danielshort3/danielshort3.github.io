@@ -352,7 +352,7 @@ function runResponsiveDensityContractTests({ assert }) {
     'mobile tool account actions and compact field controls should keep exact 44px targets',
   );
   assert(
-    /body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-tools-link,\s*body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-bar :is\(\.btn-primary,\s*\.btn-secondary,\s*\.btn-ghost\),\s*body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-trigger\s*\{[^}]*min-block-size:\s*44px;[^}]*padding:\s*8px 11px;/s.test(toolsWorkspaceCss),
+    /body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-tools-link,\s*body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-bar :is\(\.btn-primary,\s*\.btn-secondary,\s*\.btn-ghost\),\s*body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-trigger\s*\{[^}]*min-block-size:\s*var\(--control-height, 44px\);[^}]*padding:\s*var\(--control-padding, 10px 14px\);/s.test(toolsWorkspaceCss),
     'compact desktop tool account actions should retain a full 44px target',
   );
   assert(
@@ -393,13 +393,13 @@ function runResponsiveDensityContractTests({ assert }) {
   const modalMobileCss = modalCss.slice(modalCss.lastIndexOf('@media (max-width: 768px)'));
   const privacyMobileCss = privacyCss.slice(privacyCss.indexOf('@media (max-width: 640px)'));
   assert(
-    /--modal-radius\s*:\s*var\(--radius-16\)\s*;/.test(variablesCss) &&
-      /--modal-radius-mobile\s*:\s*var\(--radius-12\)\s*;/.test(variablesCss) &&
+    /--modal-radius\s*:\s*var\(--radius-dialog\)\s*;/.test(variablesCss) &&
+      /--modal-radius-mobile\s*:\s*var\(--radius-dialog\)\s*;/.test(variablesCss) &&
       /\.modal-content\s*\{[^}]*border-radius\s*:\s*var\(--modal-radius\)\s*;/s.test(modalCss) &&
       /#pcz-modal \.pcz-panel\s*\{[^}]*--pcz-panel-radius\s*:\s*var\(--modal-radius,[^;]+\)\s*;[^}]*border-radius\s*:\s*var\(--pcz-panel-radius\)\s*;/s.test(privacyCss) &&
       /\.modal-content\s*\{[^}]*border-radius\s*:\s*var\(--modal-radius-mobile\)\s*;/s.test(modalMobileCss) &&
       /#pcz-modal \.pcz-panel\s*\{[^}]*--pcz-panel-radius\s*:\s*var\(--modal-radius-mobile,[^;]+\)\s*;[^}]*border-radius\s*:\s*var\(--pcz-panel-radius\)\s*;/s.test(privacyMobileCss),
-    'generic and Cookie Settings shells should use 16px desktop and 12px mobile radius tokens',
+    'generic and Cookie Settings shells should use the shared dialog radius on desktop and mobile',
   );
   assert(
     /\.modal-close\s*\{[^}]*width\s*:\s*44px\s*;[^}]*height\s*:\s*44px\s*;/s.test(modalCss) &&
@@ -491,7 +491,8 @@ function runResponsiveDensityContractTests({ assert }) {
   const projectIframe = projectPage.match(/<iframe\b[^>]*class="project-embed-frame"[^>]*>/)?.[0] || '';
   assert(
       projectPage.includes('class="project-demo-mobile-launch"') &&
-      projectPage.includes('>Launch demo</a>') &&
+      projectPage.includes('class="project-intro-action project-intro-action--demo"') &&
+      projectPage.includes('>Open demo</a>') &&
       projectIframe.includes('data-src="/demos/sentence-demo.html"') &&
       !/\ssrc="/.test(projectIframe),
     'same-origin content demos should defer iframe loading and provide a mobile launch card',
@@ -507,7 +508,7 @@ function runResponsiveDensityContractTests({ assert }) {
   const commonJs = read('js/common/common.js');
   const projectCss = read('css/components/project-page.css');
   assert(
-    commonJs.includes("window.matchMedia('(max-width: 768px)')") &&
+    /const projectEmbedMobileMedia[\s\S]*?window\.matchMedia\('\(max-width: 959px\), \(max-height: 619px\)'\)/.test(commonJs) &&
       commonJs.includes("ifr.removeAttribute('src')") &&
       commonJs.includes("ifr.setAttribute('src', deferredSrc)") &&
       commonJs.includes('observeProjectEmbedIframe(ifr)'),

@@ -10,9 +10,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Inter';
-    font-weight: 500;
-    border-radius: 999px;
+    box-sizing: border-box;
+    min-height: var(--control-height, 44px);
+    font-family: var(--font-sans);
+    font-size: var(--control-font-size, .875rem);
+    font-weight: 600;
+    line-height: 1.4;
+    border-radius: var(--radius-control, 8px);
     cursor: pointer;
     transition:
       transform var(--motion-base) var(--easing-standard),
@@ -25,11 +29,11 @@
   }
 
   .btn-primary {
-    padding: 14px 30px;
-    background: var(--cta-blue-gradient);
+    padding: var(--control-padding, 10px 14px);
+    background: var(--cta-blue);
     color: var(--cta-blue-text);
     border: 1px solid var(--cta-blue);
-    box-shadow: var(--cta-blue-shadow);
+    box-shadow: none;
   }
 
   .btn-primary::after {
@@ -61,11 +65,11 @@
   .btn-primary:disabled::after{ opacity:0; }
 
   .btn-secondary {
-    padding: 14px 30px;
-    border: 1px solid var(--interactive-border);
+    padding: var(--control-padding, 10px 14px);
+    border: 1px solid var(--surface-border, #dce3ec);
     color: var(--interactive-text);
     background: var(--interactive-bg);
-    box-shadow: var(--interactive-shadow-rest);
+    box-shadow: none;
   }
 
   .btn-secondary:hover {
@@ -85,8 +89,8 @@
   }
 
   .btn-ghost {
-    padding: 12px 22px;
-    border: 1px dashed var(--interactive-border);
+    padding: var(--control-padding, 10px 14px);
+    border: 1px solid transparent;
     color: var(--interactive-text);
     background: transparent;
     box-shadow: none;
@@ -184,5 +188,29 @@
   .btn-icon:focus-visible {
     outline: var(--focus-ring);
     outline-offset: 3px;
+  }
+}
+
+@layer overrides {
+  /* Shared page actions stay still; game-specific controls keep their own styles. */
+  body[data-audience="personal"] :is(.btn-primary, .btn-secondary, .btn-ghost, .btn-icon):hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  body[data-audience="personal"] .btn-primary:hover:not(:disabled) {
+    background: var(--cta-blue-hover);
+  }
+
+  body[data-audience="personal"] .btn-primary::after {
+    display: none;
+  }
+
+  body[data-audience="personal"] .btn-secondary {
+    border-color: var(--surface-border, #dce3ec);
+  }
+
+  body[data-audience="personal"] .btn-secondary:hover:not(:disabled) {
+    border-color: var(--interactive-border-hover);
   }
 }

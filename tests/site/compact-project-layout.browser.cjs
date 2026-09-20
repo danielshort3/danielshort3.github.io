@@ -23,6 +23,8 @@ async function assertLayout(frame, demo, label) {
       panel: rect('.demo-surface'), badge: rect('.aws-status-badge'),
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       canvas: drawing ? rect('#pad') : null,
+      status: drawing ? rect('.drawing-status') : null,
+      inputHeader: drawing ? rect('.drawing-input-header, .handwriting-input-header') : null,
       action: rect(drawing ? '#classify, #rate' : '[name="submitBtn"]'),
       drawingTitle: drawing ? Object.fromEntries(['fontSize', 'fontWeight', 'lineHeight'].map(property => [property, getComputedStyle(document.querySelector('#drawing-title'))[property]])) : null,
       advanced: drawing ? null : rect('.sentence-advanced'), results: drawing ? null : rect('#results')
@@ -30,10 +32,12 @@ async function assertLayout(frame, demo, label) {
   }, demo.name !== 'sentence');
   assert(layout.overflow <= 1, `${label}: demo has no horizontal overflow.`);
   assert(layout.panel.width <= (demo.name === 'sentence' ? 601 : 961), `${label}: bounded workspace.`);
-  assert(layout.badge.right <= layout.panel.right + 1 && layout.badge.right > layout.panel.right - 40, `${label}: AWS status aligns with the upper-right gutter.`);
+  const statusRight = layout.status ? layout.status.right : layout.panel.right - 20;
+  assert(Math.abs(layout.badge.right - statusRight) < 22, `${label}: AWS status aligns with its workspace gutter.`);
   assert(layout.badge.bottom < layout.action.top, `${label}: status sits above the controls.`);
   if (layout.canvas) {
-    assert(layout.canvas.width <= 341, `${label}: drawing canvas stays compact.`);
+    assert(layout.canvas.width <= 301, `${label}: drawing canvas stays compact.`);
+    if (layout.status.left > layout.inputHeader.right) assert(Math.abs(layout.status.top - layout.inputHeader.top) <= 1, `${label}: AWS status aligns with the input heading.`);
     assert(Math.abs(layout.canvas.width - layout.canvas.height) <= 1, `${label}: drawing canvas remains square.`);
     assert(layout.action.top >= layout.canvas.bottom, `${label}: primary action is below drawing canvas.`);
     assert(Math.abs((layout.action.left + layout.action.right) / 2 - (layout.canvas.left + layout.canvas.right) / 2) < 2, `${label}: primary action is centered under canvas.`);

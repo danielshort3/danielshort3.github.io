@@ -1,0 +1,37 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "void-mote",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-265018c9-ebd5-4484-8253-1aaba3a44042.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/void-mote.png",
+    "img/project-starfall/animations/enemies/void-mote-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": true,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Raw visually reviewed: eight rows and coherent identity, no baked external FX; imported atlas registration pending.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/void-mote-sheet.png",
+    "portrait": "img/project-starfall/enemies/void-mote.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "6e82390e29924d218f955bb42d31041f0c68d3c1b7cfb8e2bcdfba6b0d615527",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  }
+}

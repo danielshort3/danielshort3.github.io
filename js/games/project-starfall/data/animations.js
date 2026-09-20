@@ -23,16 +23,16 @@
     const ENEMY_COMBAT_FX_ANIMATION_ROWS = Object.freeze(['telegraph', 'melee', 'projectile', 'buff', 'impact']);
 
     const PLAYER_ANIMATION_CONFIG = Object.freeze({
-      idle: { frames: 6, fps: 5, loop: true, sequence: [0, 1, 2, 3, 4, 5, 4, 3, 2, 1] },
-      run: { frames: 6, fps: 10, loop: true },
-      jump: { frames: 6, fps: 10, loop: false, holds: [1, 1, 2, 2, 3, 3] },
-      fall: { frames: 6, fps: 8, loop: false, holds: [1, 1, 2, 2, 3, 4] },
-      climb: { frames: 6, fps: 8, loop: true },
-      basic: { frames: 6, fps: 16, loop: false },
-      skill: { frames: 6, fps: 12, loop: false },
-      party: { frames: 6, fps: 12, loop: false },
-      hit: { frames: 6, fps: 16, loop: false },
-      defeat: { frames: 6, fps: 9, loop: false }
+      idle: { frames: 8, fps: 8, loop: true },
+      run: { frames: 8, fps: 40 / 3, loop: true },
+      jump: { frames: 8, fps: 16, loop: false, holds: [1, 1, 1, 1, 2, 2, 4, 4] },
+      fall: { frames: 8, fps: 12, loop: false },
+      climb: { frames: 8, fps: 10, loop: true },
+      basic: { frames: 8, fps: 100, loop: false, holds: [1, 4, 4, 5, 6, 7, 5, 6] },
+      skill: { frames: 8, fps: 24, loop: false },
+      party: { frames: 8, fps: 80, loop: false, holds: [7, 7, 7, 7, 5, 5, 5, 5] },
+      hit: { frames: 8, fps: 24, loop: false },
+      defeat: { frames: 8, fps: 10, loop: false }
     });
 
     const ENEMY_ANIMATION_CONFIG = Object.freeze({
@@ -189,12 +189,16 @@
     }
 
     function makeEnemyAnimationAsset(fileId, enemyId) {
-      return makeSheetAnimation(
+      const timing = mergeAnimationOverrides(ENEMY_ANIMATION_ROW_HOLDS, ENEMY_ANIMATION_TIMING_OVERRIDES[enemyId]);
+      const overrides = ['glowcapHealer', 'icebloomOracle', 'cloudcallAcolyte'].includes(enemyId)
+        ? Object.assign({}, timing, { buff: { fps: 80, holds: [7, 7, 7, 7, 12, 12] } })
+        : timing;
+      return Object.freeze(Object.assign({}, makeSheetAnimation(
         `${ANIMATION_ROOT}/enemies/${fileId}-sheet.png`,
         ENEMY_ANIMATION_ROWS,
         ENEMY_ANIMATION_CONFIG,
-        mergeAnimationOverrides(ENEMY_ANIMATION_ROW_HOLDS, ENEMY_ANIMATION_TIMING_OVERRIDES[enemyId])
-      );
+        overrides
+      ), { registration: ILLUSTRATED_ENEMY_REGISTRATIONS[fileId] || null }));
     }
 
     function compactFrameHolds(holds, fallback) {
@@ -463,9 +467,9 @@
         defeat: { fps: 6, holds: [1, 2, 3, 4, 6, 9] }
       },
       eclipseSovereign: {
-        telegraph: { fps: 8, holds: [3, 3, 4] },
-        attack: { fps: 14, holds: [2, 2, 3] },
-        buff: { fps: 12, holds: [3, 2, 4] }
+        telegraph: { fps: 8, holds: [1, 1, 1, 1, 2, 4] },
+        attack: { fps: 14, holds: [1, 1, 1, 1, 1, 2] },
+        buff: { fps: 12, holds: [1, 1, 1, 2, 2, 2] }
       }
     });
 
@@ -531,10 +535,61 @@
 
     const COMPACT_ENEMY_ANIMATION_FILE_IDS = ENEMY_ANIMATION_FILE_IDS;
 
+    // BEGIN ILLUSTRATED ENEMY REGISTRATION
+    const ILLUSTRATED_ENEMY_REGISTRATIONS = Object.freeze({
+      'ash-crawler': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":75,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'astral-archivist': Object.freeze({"originX":80,"groundY":80,"authoredBodyHeight":84,"centered":true,"frameWidth":160,"frameHeight":160}),
+      'bandit-cutter': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":71,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'bandit-cutter-direct': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":71,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'bandit-cutter-hybrid': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":71,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'bandit-cutter-puppet': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":71,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'bandit-cutter-reference': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":71,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'bandit-thrower': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":97,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'brambleking': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":93,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'briar-stag': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":103,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'bristle-boar': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":86,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'cinder-spitter': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":83,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'clockbug': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":115,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'clockwork-titan': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":114,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'cloudcall-acolyte': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":102,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'coil-sentry': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":115,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'cracked-mimic': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":87,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'dew-slime': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":95,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'dust-imp': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":113,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'eclipse-duelist': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":76,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'eclipse-sovereign': Object.freeze({"originX":80,"groundY":80,"authoredBodyHeight":91,"centered":true,"frameWidth":160,"frameHeight":160}),
+      'ember-wisp': Object.freeze({"originX":80,"groundY":80,"authoredBodyHeight":105,"centered":true,"frameWidth":160,"frameHeight":160}),
+      'emberjaw-golem': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":98,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'frostling-scout': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":88,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'gale-harrier': Object.freeze({"originX":80,"groundY":80,"authoredBodyHeight":108,"centered":true,"frameWidth":160,"frameHeight":160}),
+      'glacier-sentinel': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":91,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'glowcap-healer': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":114,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'icebloom-oracle': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":101,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'index-scribe': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":104,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'lava-tick': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":79,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'lumen-sentinel': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":96,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'mossback': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":92,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'oreback-beetle': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":82,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'quarry-colossus': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":90,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'rift-aberration': Object.freeze({"originX":80,"groundY":80,"authoredBodyHeight":64,"centered":true,"frameWidth":160,"frameHeight":160}),
+      'rimeback-brute': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":93,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'rimewarden': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":102,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'rust-ratchet': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":86,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'scrap-warden': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":91,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'shardling': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":108,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'slimelet': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":102,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'snowglare-wisp': Object.freeze({"originX":80,"groundY":80,"authoredBodyHeight":109,"centered":true,"frameWidth":160,"frameHeight":160}),
+      'stormbound-archer': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":112,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'stormbreak-roc': Object.freeze({"originX":80,"groundY":80,"authoredBodyHeight":89,"centered":true,"frameWidth":160,"frameHeight":160}),
+      'thorn-sprout': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":94,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'thunder-ram': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":63,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'vine-snapper': Object.freeze({"originX":80,"groundY":150,"authoredBodyHeight":87,"centered":false,"frameWidth":160,"frameHeight":160}),
+      'void-mote': Object.freeze({"originX":80,"groundY":80,"authoredBodyHeight":95,"centered":true,"frameWidth":160,"frameHeight":160})
+    });
+    // END ILLUSTRATED ENEMY REGISTRATION
+
     const ENEMY_ANIMATION_ASSETS = Object.freeze(Object.keys(ENEMY_ANIMATION_FILE_IDS).reduce((assets, enemyId) => {
-      assets[enemyId] = COMPACT_ENEMY_ANIMATION_FILE_IDS[enemyId]
-        ? makeCompactEnemyAnimationAsset(COMPACT_ENEMY_ANIMATION_FILE_IDS[enemyId], enemyId)
-        : makeEnemyAnimationAsset(ENEMY_ANIMATION_FILE_IDS[enemyId], enemyId);
+      assets[enemyId] = makeEnemyAnimationAsset(ENEMY_ANIMATION_FILE_IDS[enemyId], enemyId);
       return assets;
     }, {}));
 

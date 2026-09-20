@@ -1,0 +1,50 @@
+[
+  {
+    "viewport": 736,
+    "sample": "oracle",
+    "frameSampling": [
+      0,
+      0,
+      1,
+      2,
+      2
+    ],
+    "controls": "passed"
+  },
+  {
+    "viewport": 736,
+    "sample": "fox",
+    "frameSampling": [
+      0,
+      1,
+      2,
+      4,
+      5
+    ],
+    "controls": "passed"
+  },
+  {
+    "viewport": 390,
+    "sample": "oracle",
+    "frameSampling": [
+      0,
+      0,
+      1,
+      2,
+      2
+    ],
+    "controls": "passed"
+  },
+  {
+    "viewport": 390,
+    "sample": "fox",
+    "frameSampling": [
+      0,
+      1,
+      2,
+      4,
+      5
+    ],
+    "controls": "passed"
+  }
+]

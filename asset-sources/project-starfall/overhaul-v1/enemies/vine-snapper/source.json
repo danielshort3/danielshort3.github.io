@@ -1,0 +1,77 @@
+{
+  "schema": "starfall-authored-enemy-source-v1",
+  "fileId": "vine-snapper",
+  "tool": "built-in image_gen",
+  "generationDate": "2026-09-19",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-baff4e0f-74b4-45af-9de8-9d4ea481f19f.png",
+  "source": "source.png",
+  "grid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "sourceFacing": "right",
+  "floating": false,
+  "references": [
+    "img/project-starfall/enemies/vine-snapper.png",
+    "img/project-starfall/animations/enemies/vine-snapper-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Raw and packed contact sheets visually inspected; 48 coherent actors, transparent gutters, no clipped silhouette, consistent identity. In-game playback QA remains required.",
+    "animationReview": "pending-runtime-integration"
+  },
+  "import": {
+    "frameWidth": 160,
+    "frameHeight": 160,
+    "columns": 6,
+    "rows": 8,
+    "baseline": 150,
+    "anchorX": 80,
+    "gutter": 6,
+    "portraitFrame": 0,
+    "output": "img/project-starfall/animations/enemies/vine-snapper-sheet.png",
+    "portrait": "img/project-starfall/enemies/vine-snapper.png"
+  },
+  "sourceSha256": "802b3e5d0f6827b77b2f88af7c44a774693ed1cdcf17c6dd479f8cd752412fc8",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "rowPoseOrder": {
+    "attack": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      5
+    ],
+    "projectile": [
+      2,
+      3,
+      4,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "sourcePeakColumns": {
+      "attack": 1,
+      "projectile": 2
+    },
+    "note": "Peak then authored follow-through then reverse-order preparation poses retract toward rest. No synthesized interpolation."
+  }
+}

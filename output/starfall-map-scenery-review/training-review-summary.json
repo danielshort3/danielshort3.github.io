@@ -1,0 +1,290 @@
+{
+  "evidenceKind": "observed-engine-review-summary",
+  "current": {
+    "runs": 525,
+    "confidenceFailures": [],
+    "leaderDeaths": 0,
+    "companionDowns": 1297,
+    "companionDownMemberSeconds": 5196.068,
+    "maximumStallSeconds": 11.767,
+    "zeroOrderedCircuits": 0
+  },
+  "before": {
+    "runs": 525,
+    "confidenceFailures": [],
+    "leaderDeaths": 0,
+    "companionDowns": 1287,
+    "companionDownMemberSeconds": 5155.835,
+    "maximumStallSeconds": 15.7,
+    "zeroOrderedCircuits": 0
+  },
+  "optional": {
+    "runs": 525,
+    "confidenceFailures": [],
+    "leaderDeaths": 0,
+    "companionDowns": 1388,
+    "companionDownMemberSeconds": 5552.134,
+    "maximumStallSeconds": 11.9,
+    "zeroOrderedCircuits": 0
+  },
+  "comparableProtocol": true,
+  "authoredXpAdjustments": {
+    "cinderHollow": {
+      "current": 0.93,
+      "reconstructedBefore": 1,
+      "scope": "Normal non-elite kills in main and optional circuits; bosses, random elites, trials and one-time rewards excluded."
+    }
+  },
+  "previousUniformEvidence": "training-pre-cinder-adjustment/README.md",
+  "optionalComparableProtocol": true,
+  "statuses": {
+    "standalone-review": 17,
+    "requires-tuning": 104,
+    "within-numerical-targets": 41,
+    "special-route-review": 13
+  },
+  "pairedMainRows": 175,
+  "optionalPairedRows": 175,
+  "optionalHigherPressureRows": 137,
+  "optionalModeratePremiumRows": 6,
+  "dominance": [
+    {
+      "routeScope": "main",
+      "level": 6,
+      "mapId": "thornpathThicket",
+      "exceedsMapId": "greenrootMeadow",
+      "classCount": 3,
+      "allEligibleClasses": true
+    }
+  ],
+  "maps": [
+    {
+      "mapId": "greenrootMeadow",
+      "level": 3,
+      "rows": 4,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 4,
+      "xpFailures": 0,
+      "minimumTravelPercent": 47.893,
+      "maximumTravelPercent": 51.371,
+      "minimumPairedChangePercent": 3.063,
+      "maximumPairedChangePercent": 8.19
+    },
+    {
+      "mapId": "greenrootMeadow",
+      "level": 6,
+      "rows": 4,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 4,
+      "xpFailures": 3,
+      "minimumTravelPercent": 46.159,
+      "maximumTravelPercent": 49.815,
+      "minimumPairedChangePercent": 0.135,
+      "maximumPairedChangePercent": 14.694
+    },
+    {
+      "mapId": "thornpathThicket",
+      "level": 6,
+      "rows": 4,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 4,
+      "xpFailures": 3,
+      "minimumTravelPercent": 43.574,
+      "maximumTravelPercent": 54.819,
+      "minimumPairedChangePercent": 5.344,
+      "maximumPairedChangePercent": 22.083
+    },
+    {
+      "mapId": "thornpathThicket",
+      "level": 14,
+      "rows": 4,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 4,
+      "xpFailures": 2,
+      "minimumTravelPercent": 55.048,
+      "maximumTravelPercent": 62.578,
+      "minimumPairedChangePercent": -1.196,
+      "maximumPairedChangePercent": 14.401
+    },
+    {
+      "mapId": "rustcoilRuins",
+      "level": 14,
+      "rows": 4,
+      "withinNumericalTargets": 2,
+      "pacingFailures": 0,
+      "xpFailures": 2,
+      "minimumTravelPercent": 22.226,
+      "maximumTravelPercent": 26.033,
+      "minimumPairedChangePercent": 10.81,
+      "maximumPairedChangePercent": 30.747
+    },
+    {
+      "mapId": "rustcoilRuins",
+      "level": 19,
+      "rows": 4,
+      "withinNumericalTargets": 1,
+      "pacingFailures": 2,
+      "xpFailures": 1,
+      "minimumTravelPercent": 29.456,
+      "maximumTravelPercent": 34.578,
+      "minimumPairedChangePercent": 3.725,
+      "maximumPairedChangePercent": 16.206
+    },
+    {
+      "mapId": "cinderHollow",
+      "level": 19,
+      "rows": 4,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 4,
+      "xpFailures": 1,
+      "minimumTravelPercent": 33.219,
+      "maximumTravelPercent": 39.341,
+      "minimumPairedChangePercent": 31.971,
+      "maximumPairedChangePercent": 43.435
+    },
+    {
+      "mapId": "banditRidgeCamp",
+      "level": 19,
+      "rows": 4,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 0,
+      "xpFailures": 4,
+      "minimumTravelPercent": 14.274,
+      "maximumTravelPercent": 19.167,
+      "minimumPairedChangePercent": -7.203,
+      "maximumPairedChangePercent": -0.022
+    },
+    {
+      "mapId": "cinderHollow",
+      "level": 28,
+      "rows": 13,
+      "withinNumericalTargets": 2,
+      "pacingFailures": 11,
+      "xpFailures": 0,
+      "minimumTravelPercent": 24.1,
+      "maximumTravelPercent": 52.004,
+      "minimumPairedChangePercent": 23.383,
+      "maximumPairedChangePercent": 54.927
+    },
+    {
+      "mapId": "banditRidgeCamp",
+      "level": 28,
+      "rows": 13,
+      "withinNumericalTargets": 2,
+      "pacingFailures": 0,
+      "xpFailures": 11,
+      "minimumTravelPercent": 10.911,
+      "maximumTravelPercent": 26.304,
+      "minimumPairedChangePercent": -7.716,
+      "maximumPairedChangePercent": 25.06
+    },
+    {
+      "mapId": "orebackQuarry",
+      "level": 28,
+      "rows": 13,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 7,
+      "xpFailures": 12,
+      "minimumTravelPercent": 21.774,
+      "maximumTravelPercent": 36.948,
+      "minimumPairedChangePercent": 3.046,
+      "maximumPairedChangePercent": 18.207
+    },
+    {
+      "mapId": "ashglassPass",
+      "level": 50,
+      "rows": 13,
+      "withinNumericalTargets": 1,
+      "pacingFailures": 11,
+      "xpFailures": 12,
+      "minimumTravelPercent": 25.385,
+      "maximumTravelPercent": 46.519,
+      "minimumPairedChangePercent": 16.685,
+      "maximumPairedChangePercent": 48.698
+    },
+    {
+      "mapId": "frostfenOutskirts",
+      "level": 50,
+      "rows": 13,
+      "withinNumericalTargets": 11,
+      "pacingFailures": 2,
+      "xpFailures": 0,
+      "minimumTravelPercent": 18.4,
+      "maximumTravelPercent": 30.426,
+      "minimumPairedChangePercent": 9.236,
+      "maximumPairedChangePercent": 48.195
+    },
+    {
+      "mapId": "glacierSpine",
+      "level": 60,
+      "rows": 13,
+      "withinNumericalTargets": 13,
+      "pacingFailures": 0,
+      "xpFailures": 0,
+      "minimumTravelPercent": 18.745,
+      "maximumTravelPercent": 29.267,
+      "minimumPairedChangePercent": 2.06,
+      "maximumPairedChangePercent": 29.192
+    },
+    {
+      "mapId": "stormbreakCliffs",
+      "level": 60,
+      "rows": 13,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 13,
+      "xpFailures": 0,
+      "minimumTravelPercent": 31.27,
+      "maximumTravelPercent": 50.678,
+      "minimumPairedChangePercent": 7.91,
+      "maximumPairedChangePercent": 53.848
+    },
+    {
+      "mapId": "astralArchive",
+      "level": 85,
+      "rows": 13,
+      "withinNumericalTargets": 7,
+      "pacingFailures": 6,
+      "xpFailures": 0,
+      "minimumTravelPercent": 24.292,
+      "maximumTravelPercent": 42.419,
+      "minimumPairedChangePercent": -5.133,
+      "maximumPairedChangePercent": 12.152
+    },
+    {
+      "mapId": "eclipseFrontier",
+      "level": 85,
+      "rows": 13,
+      "withinNumericalTargets": 2,
+      "pacingFailures": 2,
+      "xpFailures": 11,
+      "minimumTravelPercent": 17.919,
+      "maximumTravelPercent": 37.052,
+      "minimumPairedChangePercent": 4.963,
+      "maximumPairedChangePercent": 70.717
+    },
+    {
+      "mapId": "eclipseFrontier",
+      "level": 100,
+      "rows": 13,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 4,
+      "xpFailures": 0,
+      "minimumTravelPercent": 19.148,
+      "maximumTravelPercent": 35.248,
+      "minimumPairedChangePercent": 5.731,
+      "maximumPairedChangePercent": 36.216
+    },
+    {
+      "mapId": "endlessRift",
+      "level": 100,
+      "rows": 13,
+      "withinNumericalTargets": 0,
+      "pacingFailures": 5,
+      "xpFailures": 0,
+      "minimumTravelPercent": 25.259,
+      "maximumTravelPercent": 39.263,
+      "minimumPairedChangePercent": -19.773,
+      "maximumPairedChangePercent": 4.951
+    }
+  ]
+}

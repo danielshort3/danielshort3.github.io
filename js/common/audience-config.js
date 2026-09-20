@@ -63,7 +63,7 @@
           description: 'Try a handwriting demo and explore how confidently a model recognizes handwritten digits.',
           href: '/portfolio/handwritingRating',
           icon: 'pencil',
-          accent: '#155dfc',
+          accent: '#005fed',
           contentType: 'project',
           resourceType: 'case_study'
         },
@@ -92,7 +92,8 @@
       resumeNavSubtitle: null,
       resumePreviewSubtitle: null,
       resumeDownloadSubtitle: null,
-      brandNavPrimary: 'Projects, Tools, and Games'
+      brandNavPrimary: 'Projects, Tools, and Games',
+      brandTagline: 'Solving everyday problems with data and thoughtful tools.'
     },
     'data-science': {
       key: 'data-science',

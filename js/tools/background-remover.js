@@ -1635,6 +1635,7 @@
     updateActionButtons();
     updateRefineControls();
     markSessionDirty();
+    document.dispatchEvent(new CustomEvent('tools:session-cleared', { detail: { toolId: TOOL_ID } }));
   };
 
   const removeJob = async (jobId) => {

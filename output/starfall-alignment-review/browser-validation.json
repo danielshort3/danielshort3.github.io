@@ -1,0 +1,47 @@
+{
+  "reviewedAt": "2026-09-20T00:20:28.835Z",
+  "url": "http://127.0.0.1:4186/output/starfall-alignment-review/index.html",
+  "cases": "Lava Tick eight action rows plus eleven other idle loops",
+  "comparedActions": 19,
+  "bothSidesIdenticalTiming": true,
+  "allImagesLoaded": true,
+  "allFrameSteppingAndReviewWrapsPassed": true,
+  "normalPlaybackAdvancedMs": 904.2,
+  "desktop": {
+    "width": 1260,
+    "scales": [
+      2
+    ],
+    "backdrops": [
+      "light",
+      "dark"
+    ],
+    "horizontalPageOverflow": false
+  },
+  "mobile": {
+    "width": 390,
+    "height": 844,
+    "scales": [
+      1
+    ],
+    "backdrops": [
+      "dark",
+      "Cinder Hollow"
+    ],
+    "scrollWidth": 390
+  },
+  "browserErrors": [],
+  "visualEvidence": [
+    "desktop-dark.png",
+    "mobile.png",
+    "mobile-scenery.png"
+  ],
+  "build": "npm run build passed; public source asset hashes verified",
+  "focusedChecks": [
+    "test:starfall:assets",
+    "validate:project-starfall-assets",
+    "test:starfall:bundle",
+    "audit-project-starfall-overhaul.js --complete --public"
+  ],
+  "scope": "Horizontal registration only. Other action rows and drawing/anatomy consistency are not globally certified."
+}

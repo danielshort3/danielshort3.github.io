@@ -1,0 +1,1975 @@
+{
+  "fileId": "snowglare-wisp",
+  "sourceSha256": "e834e8303579589876743ec01e8d1364248fafb9d06a6ff5f0daf39a3275d356",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    193,
+    368,
+    547,
+    729,
+    904,
+    1087,
+    1261,
+    1448
+  ],
+  "sharedScale": 0.7561421319796954,
+  "floating": true,
+  "registration": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 109,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/snowglare-wisp-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 661824,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [
+    "Exact repeated authored drawing 24 and 18; review intentional holds."
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 35,
+        "top": 35,
+        "width": 132,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 143,
+        "width": 132,
+        "height": 144,
+        "pixels": 11237
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 108.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 24,
+        "right": 137,
+        "bottom": 132,
+        "width": 100,
+        "height": 109,
+        "pixels": 6464,
+        "edgePixels": 0
+      },
+      "sha256": "ac704c62bd0ee54c337874bf00cc15ab8a886874c95662acf4a159f22edc6e52"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 225,
+        "top": 35,
+        "width": 130,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 143,
+        "width": 130,
+        "height": 144,
+        "pixels": 10969
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 108.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 45,
+        "top": 24,
+        "right": 142,
+        "bottom": 132,
+        "width": 98,
+        "height": 109,
+        "pixels": 6307,
+        "edgePixels": 0
+      },
+      "sha256": "553798de06ab6ffe73e201a1613d42a663e131d514ca0965b0212fd5122f4b52"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 400,
+        "top": 38,
+        "width": 128,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 127,
+        "bottom": 140,
+        "width": 128,
+        "height": 141,
+        "pixels": 10663
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 108.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 27,
+        "right": 136,
+        "bottom": 133,
+        "width": 97,
+        "height": 107,
+        "pixels": 6152,
+        "edgePixels": 0
+      },
+      "sha256": "d00db255515acbbbd2decd7baded0f0ec959e3f56d935210a442b26609acf2f3"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 573,
+        "top": 40,
+        "width": 130,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 137,
+        "width": 130,
+        "height": 138,
+        "pixels": 10672
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 108.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 34,
+        "top": 28,
+        "right": 131,
+        "bottom": 131,
+        "width": 98,
+        "height": 104,
+        "pixels": 6088,
+        "edgePixels": 0
+      },
+      "sha256": "3a1880f3c3797f05405a7afc1ca39beab3afc6ddab0bfd379dac1559edc109e8"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 747,
+        "top": 42,
+        "width": 131,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 136,
+        "width": 131,
+        "height": 137,
+        "pixels": 10536
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 108.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 29,
+        "top": 30,
+        "right": 127,
+        "bottom": 133,
+        "width": 99,
+        "height": 104,
+        "pixels": 6082,
+        "edgePixels": 0
+      },
+      "sha256": "ca4fa16bc04240e843b716f7cadd03c01e827c6f0ac79adbd056ef06fcb7c62d"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 925,
+        "top": 37,
+        "width": 132,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 141,
+        "width": 132,
+        "height": 142,
+        "pixels": 11129
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 108.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 26,
+        "right": 126,
+        "bottom": 132,
+        "width": 100,
+        "height": 107,
+        "pixels": 6394,
+        "edgePixels": 0
+      },
+      "sha256": "d796df619246bce951d2889e5aee9ecfb671070776a1586c67f25fe82396309d"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 31,
+        "top": 207,
+        "width": 143,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 143,
+        "width": 143,
+        "height": 144,
+        "pixels": 11629
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 282.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 23,
+        "right": 142,
+        "bottom": 131,
+        "width": 108,
+        "height": 109,
+        "pixels": 6679,
+        "edgePixels": 0
+      },
+      "sha256": "4cc4c790983d13114732948169091338e1bccad4e7bd461fd6991151ba136c25"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 194,
+        "top": 214,
+        "width": 161,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 136,
+        "width": 161,
+        "height": 137,
+        "pixels": 11949
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 282.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 21,
+        "top": 28,
+        "right": 142,
+        "bottom": 131,
+        "width": 122,
+        "height": 104,
+        "pixels": 6900,
+        "edgePixels": 0
+      },
+      "sha256": "c9e8f9e1f5d4a5e50a0555f90a530f148a6f6225b7a59c1b23208ed3f2538047"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 380,
+        "top": 223,
+        "width": 157,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 123,
+        "width": 157,
+        "height": 124,
+        "pixels": 10862
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 282.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 35,
+        "right": 143,
+        "bottom": 128,
+        "width": 119,
+        "height": 94,
+        "pixels": 6262,
+        "edgePixels": 0
+      },
+      "sha256": "6fa491a7de28d2a9ac06cb9bde1ab55646fbaa7f1a8a17645129936695aa9eaa"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 559,
+        "top": 212,
+        "width": 149,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 137,
+        "width": 149,
+        "height": 138,
+        "pixels": 11588
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 282.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 27,
+        "right": 136,
+        "bottom": 130,
+        "width": 113,
+        "height": 104,
+        "pixels": 6662,
+        "edgePixels": 0
+      },
+      "sha256": "f99ee79d4bcf37ff856d38ab84e97dac731db726ed0475fbdcc0e5888717f3e9"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 738,
+        "top": 214,
+        "width": 144,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 136,
+        "width": 144,
+        "height": 137,
+        "pixels": 11140
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 282.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 28,
+        "right": 130,
+        "bottom": 131,
+        "width": 109,
+        "height": 104,
+        "pixels": 6421,
+        "edgePixels": 0
+      },
+      "sha256": "7360a95d251b426f24bb5f28bc8897524e1093053adb1dc48fcfcbc81f1106fc"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 915,
+        "top": 210,
+        "width": 143,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 139,
+        "width": 143,
+        "height": 140,
+        "pixels": 11275
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 282.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 25,
+        "right": 126,
+        "bottom": 130,
+        "width": 108,
+        "height": 106,
+        "pixels": 6475,
+        "edgePixels": 0
+      },
+      "sha256": "5c4cd04e2ccd8930f70c9eb7273e87e3b0f48e2b26f2b5f7438744b5cb005d45"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 37,
+        "top": 390,
+        "width": 135,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 140,
+        "width": 135,
+        "height": 141,
+        "pixels": 11365
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 459.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 40,
+        "top": 27,
+        "right": 141,
+        "bottom": 133,
+        "width": 102,
+        "height": 107,
+        "pixels": 6555,
+        "edgePixels": 0
+      },
+      "sha256": "5c35159b8ab93103c0517bbfc0caf1ad5177579d48f9f8e4b5c00b53c9c2a44a"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 219,
+        "top": 388,
+        "width": 135,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 142,
+        "width": 135,
+        "height": 143,
+        "pixels": 11135
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 459.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 26,
+        "right": 141,
+        "bottom": 133,
+        "width": 102,
+        "height": 108,
+        "pixels": 6377,
+        "edgePixels": 0
+      },
+      "sha256": "545b37e6a1522a94959726e8ef481bfdf425ad136b7202b1a15d8c95e1780a5d"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 401,
+        "top": 394,
+        "width": 131,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 135,
+        "width": 131,
+        "height": 136,
+        "pixels": 11001
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 459.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 30,
+        "right": 139,
+        "bottom": 132,
+        "width": 99,
+        "height": 103,
+        "pixels": 6323,
+        "edgePixels": 0
+      },
+      "sha256": "8c0ebafe5408489c7249b7699c7d7c9729f436ca39aa350e8e63ee7b0249e0d7"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 574,
+        "top": 384,
+        "width": 137,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 146,
+        "width": 137,
+        "height": 147,
+        "pixels": 12489
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 459.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 23,
+        "right": 138,
+        "bottom": 133,
+        "width": 104,
+        "height": 111,
+        "pixels": 7208,
+        "edgePixels": 0
+      },
+      "sha256": "743e1cf91ec2378eba5db7282c6a169411ca17cdba0f3aee794114ba117b468f"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 749,
+        "top": 388,
+        "width": 134,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 142,
+        "width": 134,
+        "height": 143,
+        "pixels": 11800
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 459.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 26,
+        "right": 130,
+        "bottom": 133,
+        "width": 101,
+        "height": 108,
+        "pixels": 6742,
+        "edgePixels": 0
+      },
+      "sha256": "029e473531f82b8cb5f6eaf8954f6136f873c6f795c42e4e63d88804e076f8a4"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 922,
+        "top": 387,
+        "width": 136,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 143,
+        "width": 136,
+        "height": 144,
+        "pixels": 11708
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 459.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 25,
+        "right": 126,
+        "bottom": 133,
+        "width": 103,
+        "height": 109,
+        "pixels": 6720,
+        "edgePixels": 0
+      },
+      "sha256": "4742606d559477069405f844a4b5bd950ed1f3875c6dd3820924461be8a81a74"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 39,
+        "top": 565,
+        "width": 138,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 145,
+        "width": 138,
+        "height": 146,
+        "pixels": 12025
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 644
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 20,
+        "right": 144,
+        "bottom": 129,
+        "width": 104,
+        "height": 110,
+        "pixels": 6848,
+        "edgePixels": 0
+      },
+      "sha256": "4f693ec420ff805e09b4893b36ada0d9d4796534d2c86713fe0d283165b2aa19"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 209,
+        "top": 566,
+        "width": 155,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 146,
+        "width": 155,
+        "height": 147,
+        "pixels": 11758
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 644
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 33,
+        "top": 21,
+        "right": 149,
+        "bottom": 131,
+        "width": 117,
+        "height": 111,
+        "pixels": 6726,
+        "edgePixels": 0
+      },
+      "sha256": "dfab1f9ddf3af486481ec8efa79f71002a1bdf43886e250738f4175bbae31368"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 390,
+        "top": 562,
+        "width": 153,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 148,
+        "width": 153,
+        "height": 149,
+        "pixels": 12591
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 644
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 18,
+        "right": 148,
+        "bottom": 130,
+        "width": 116,
+        "height": 113,
+        "pixels": 7268,
+        "edgePixels": 0
+      },
+      "sha256": "81dd4c3d983b0ff3612278cfe2fdec736e924ab474d5ee4f0dc85af5f3fb7ea1"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 575,
+        "top": 575,
+        "width": 134,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 137,
+        "width": 134,
+        "height": 138,
+        "pixels": 11145
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 644
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 28,
+        "right": 136,
+        "bottom": 131,
+        "width": 101,
+        "height": 104,
+        "pixels": 6341,
+        "edgePixels": 0
+      },
+      "sha256": "8d676ca1c2eb001e8d4af0ce967e92a1ce65c07e1aeb22aff6be5330afee7941"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 747,
+        "top": 579,
+        "width": 133,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 134,
+        "width": 133,
+        "height": 135,
+        "pixels": 10789
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 644
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 29,
+        "top": 31,
+        "right": 129,
+        "bottom": 132,
+        "width": 101,
+        "height": 102,
+        "pixels": 6229,
+        "edgePixels": 0
+      },
+      "sha256": "73cbd316200737a074b56365cccdd08f4b69da3eac76a0ffbc4cb94afe5ca14f"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 919,
+        "top": 575,
+        "width": 133,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 138,
+        "width": 133,
+        "height": 139,
+        "pixels": 10917
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 644
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 28,
+        "right": 122,
+        "bottom": 132,
+        "width": 101,
+        "height": 105,
+        "pixels": 6313,
+        "edgePixels": 0
+      },
+      "sha256": "ff8abfe2f71502e5de944e7e567eab4150706c1e438170f6feaeb4ea09566954"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 39,
+        "top": 565,
+        "width": 138,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 145,
+        "width": 138,
+        "height": 146,
+        "pixels": 12025
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": {
+        "x": 90.5,
+        "y": 644
+      },
+      "anchor": {
+        "x": 90.5,
+        "y": 644
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 20,
+        "right": 144,
+        "bottom": 129,
+        "width": 104,
+        "height": 110,
+        "pixels": 6848,
+        "edgePixels": 0
+      },
+      "sha256": "4f693ec420ff805e09b4893b36ada0d9d4796534d2c86713fe0d283165b2aa19"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 216,
+        "top": 752,
+        "width": 154,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 142,
+        "width": 154,
+        "height": 143,
+        "pixels": 11377
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 819.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 29,
+        "right": 153,
+        "bottom": 136,
+        "width": 116,
+        "height": 108,
+        "pixels": 6505,
+        "edgePixels": 0
+      },
+      "sha256": "499e036815b8cf1454a47c0caf7adfa025b363837a46a5faf6ba26811890eb9b"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 401,
+        "top": 744,
+        "width": 132,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 141,
+        "width": 132,
+        "height": 142,
+        "pixels": 11262
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 819.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 23,
+        "right": 140,
+        "bottom": 129,
+        "width": 100,
+        "height": 107,
+        "pixels": 6485,
+        "edgePixels": 0
+      },
+      "sha256": "ec28775a61000fbdec97f6a573f67b146ce9d45362dfbdac367554ef7546c704"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 579,
+        "top": 751,
+        "width": 130,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 137,
+        "width": 130,
+        "height": 138,
+        "pixels": 10891
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 819.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 39,
+        "top": 28,
+        "right": 136,
+        "bottom": 131,
+        "width": 98,
+        "height": 104,
+        "pixels": 6205,
+        "edgePixels": 0
+      },
+      "sha256": "dae98ca890ea6bd5e58f596c432c72e8055cefaff99c8761a6b7a2f2a70e6b03"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 750,
+        "top": 748,
+        "width": 131,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 140,
+        "width": 131,
+        "height": 141,
+        "pixels": 11226
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 819.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 26,
+        "right": 129,
+        "bottom": 132,
+        "width": 99,
+        "height": 107,
+        "pixels": 6462,
+        "edgePixels": 0
+      },
+      "sha256": "a9d5c8b48d412aea16b141cd55b9593a3671d728ce8b31e04a394d901273963a"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 920,
+        "top": 748,
+        "width": 132,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 142,
+        "width": 132,
+        "height": 143,
+        "pixels": 11207
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 819.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 26,
+        "right": 122,
+        "bottom": 133,
+        "width": 100,
+        "height": 108,
+        "pixels": 6439,
+        "edgePixels": 0
+      },
+      "sha256": "5f1464463568e86403e585af2fa8e9004b74c338f050fc04fc0079f780960239"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 36,
+        "top": 924,
+        "width": 137,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 149,
+        "width": 137,
+        "height": 150,
+        "pixels": 11597
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1002
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 21,
+        "right": 142,
+        "bottom": 133,
+        "width": 104,
+        "height": 113,
+        "pixels": 6681,
+        "edgePixels": 0
+      },
+      "sha256": "68faac0f9732ad187162fa575bc9d58ffb7f959488e1e7491bff285a150b0404"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 226,
+        "top": 937,
+        "width": 138,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 138,
+        "width": 138,
+        "height": 139,
+        "pixels": 11101
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1002
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 46,
+        "top": 31,
+        "right": 149,
+        "bottom": 135,
+        "width": 104,
+        "height": 105,
+        "pixels": 6346,
+        "edgePixels": 0
+      },
+      "sha256": "927eaf153f3d39285f62708eb30733693d3a230d25482dfa170efd8d804119d5"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 400,
+        "top": 927,
+        "width": 134,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 148,
+        "width": 134,
+        "height": 149,
+        "pixels": 11514
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1002
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 23,
+        "right": 140,
+        "bottom": 135,
+        "width": 101,
+        "height": 113,
+        "pixels": 6645,
+        "edgePixels": 0
+      },
+      "sha256": "19b9cd8c0a7bade14399636230ed084455110f8545c6ff4d3e092f5f1869610e"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 573,
+        "top": 913,
+        "width": 142,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 154,
+        "width": 142,
+        "height": 155,
+        "pixels": 12902
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1002
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 34,
+        "top": 13,
+        "right": 140,
+        "bottom": 129,
+        "width": 107,
+        "height": 117,
+        "pixels": 7377,
+        "edgePixels": 0
+      },
+      "sha256": "48b54913726d1fc42e122fd02eea16accbfba8cd9195106635fe6ac1a161c61f"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 752,
+        "top": 927,
+        "width": 132,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 149,
+        "width": 132,
+        "height": 150,
+        "pixels": 11555
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1002
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 23,
+        "right": 132,
+        "bottom": 135,
+        "width": 100,
+        "height": 113,
+        "pixels": 6638,
+        "edgePixels": 0
+      },
+      "sha256": "6f578f048d9c77370999958be6139499498a75f385aee5ae83dbfe0a4b40ff28"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 919,
+        "top": 933,
+        "width": 133,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 141,
+        "width": 133,
+        "height": 142,
+        "pixels": 11082
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1002
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 28,
+        "right": 122,
+        "bottom": 134,
+        "width": 101,
+        "height": 107,
+        "pixels": 6387,
+        "edgePixels": 0
+      },
+      "sha256": "590b532181f9761606effae57e2ceee1dbb43ad0231b6f0c3bd5ebf6e2a9595a"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 34,
+        "top": 1097,
+        "width": 151,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 144,
+        "width": 151,
+        "height": 145,
+        "pixels": 11498
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1180.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 17,
+        "right": 150,
+        "bottom": 126,
+        "width": 114,
+        "height": 110,
+        "pixels": 6632,
+        "edgePixels": 0
+      },
+      "sha256": "3937674cbcf249f9d0ad36904633d78cceab1ae1d417be57a93364f18ea5af9c"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 223,
+        "top": 1105,
+        "width": 131,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 143,
+        "width": 131,
+        "height": 144,
+        "pixels": 11432
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1180.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 43,
+        "top": 23,
+        "right": 141,
+        "bottom": 131,
+        "width": 99,
+        "height": 109,
+        "pixels": 6570,
+        "edgePixels": 0
+      },
+      "sha256": "1b3f7947097170a2c85976dc97bb98cf674609d9fd0db187c9f79f780de24017"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 399,
+        "top": 1124,
+        "width": 135,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 124,
+        "width": 135,
+        "height": 125,
+        "pixels": 10603
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1180.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 37,
+        "right": 141,
+        "bottom": 131,
+        "width": 102,
+        "height": 95,
+        "pixels": 6125,
+        "edgePixels": 0
+      },
+      "sha256": "f7dc22df095ca3b1142c09c90f911fefaaba5d4ef07da5b3217f668dffccb007"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 562,
+        "top": 1112,
+        "width": 142,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 136,
+        "width": 142,
+        "height": 137,
+        "pixels": 11945
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1180.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 28,
+        "right": 132,
+        "bottom": 131,
+        "width": 107,
+        "height": 104,
+        "pixels": 6901,
+        "edgePixels": 0
+      },
+      "sha256": "61e6dde8120c1a619bc66196047914d76da34c42310790580f068fb49d08bfe9"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 745,
+        "top": 1115,
+        "width": 134,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 133,
+        "width": 134,
+        "height": 134,
+        "pixels": 10992
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1180.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 30,
+        "right": 127,
+        "bottom": 130,
+        "width": 101,
+        "height": 101,
+        "pixels": 6253,
+        "edgePixels": 0
+      },
+      "sha256": "8269833b25922958a70404d9e50abd30a9baa4926c2e8575df97928d32d5e826"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 919,
+        "top": 1104,
+        "width": 135,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 143,
+        "width": 135,
+        "height": 144,
+        "pixels": 11339
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1180.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 22,
+        "right": 123,
+        "bottom": 130,
+        "width": 102,
+        "height": 109,
+        "pixels": 6505,
+        "edgePixels": 0
+      },
+      "sha256": "64c89301237287a2d1ab419d19fa27121b4002167d9b7a9b71cc5ed6c69d3b74"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 37,
+        "top": 1272,
+        "width": 137,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 146,
+        "width": 137,
+        "height": 147,
+        "pixels": 11280
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1363
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 40,
+        "top": 11,
+        "right": 143,
+        "bottom": 121,
+        "width": 104,
+        "height": 111,
+        "pixels": 6512,
+        "edgePixels": 0
+      },
+      "sha256": "29923fe108478bf41946205a5c1bcd7b2daa5a2c7257dd9a70285c737aa1fc71"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 219,
+        "top": 1282,
+        "width": 141,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 137,
+        "width": 141,
+        "height": 138,
+        "pixels": 10981
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1363
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 19,
+        "right": 146,
+        "bottom": 122,
+        "width": 107,
+        "height": 104,
+        "pixels": 6345,
+        "edgePixels": 0
+      },
+      "sha256": "324a2f68e036cfacae171a708d2acaa48d1b0c789e6aeabe9a21176be87d291e"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 399,
+        "top": 1303,
+        "width": 135,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 115,
+        "width": 135,
+        "height": 116,
+        "pixels": 9964
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1363
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 35,
+        "right": 141,
+        "bottom": 122,
+        "width": 102,
+        "height": 88,
+        "pixels": 5754,
+        "edgePixels": 0
+      },
+      "sha256": "34a6101bbe49b66af5ddb4edafdc5699b26e228aae25c89114ab285d593ca8c0"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 571,
+        "top": 1307,
+        "width": 140,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 111,
+        "width": 140,
+        "height": 112,
+        "pixels": 9949
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1363
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 38,
+        "right": 138,
+        "bottom": 122,
+        "width": 106,
+        "height": 85,
+        "pixels": 5738,
+        "edgePixels": 0
+      },
+      "sha256": "bc63bcaab979c5e9a6d133335a270aadca43af9439debc26d3af74334541fc07"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 751,
+        "top": 1319,
+        "width": 137,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 102,
+        "width": 137,
+        "height": 103,
+        "pixels": 8536
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1363
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 47,
+        "right": 135,
+        "bottom": 124,
+        "width": 104,
+        "height": 78,
+        "pixels": 4936,
+        "edgePixels": 0
+      },
+      "sha256": "8b75781ba91fa134834ccab6e5fce782c73c10f0692ee9b025f4381a7a7d5f50"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 920,
+        "top": 1338,
+        "width": 134,
+        "height": 84
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 83,
+        "width": 134,
+        "height": 84,
+        "pixels": 6930
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/snowglare-wisp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1363
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 61,
+        "right": 123,
+        "bottom": 124,
+        "width": 101,
+        "height": 64,
+        "pixels": 4036,
+        "edgePixels": 0
+      },
+      "sha256": "667c77ce46cca379ef663ddc9093697e6ad5eabfe173ad0ebfdfa0014311ef74"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {
+    "24": {
+      "row": 3,
+      "column": 0
+    }
+  },
+  "rowPoseOrder": {}
+}

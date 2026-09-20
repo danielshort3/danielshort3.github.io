@@ -64,6 +64,19 @@
   const getTownShopVendorId = DataShopVendors.getTownShopVendorId || ((townId, typeId) => townServiceNpcId(townId, `${typeId}_shop`));
   const getTownStationPlacement = DataMapLayouts.getTownStationPlacement || defaultGetTownStationPlacement;
   const createTownScene = DataMapPresentation.createTownScene || defaultCreateTownScene;
+  const SHOP_INTERIOR_BACKGROUNDS = Object.freeze({
+    weapon: 'img/project-starfall/maps/shop-weapon-interior.webp',
+    armor: 'img/project-starfall/maps/shop-armor-interior.webp',
+    supply: 'img/project-starfall/maps/shop-supply-interior.webp',
+    special: 'img/project-starfall/maps/shop-special-interior.webp'
+  });
+  const SHOP_INTERIOR_ENVIRONMENT = Object.freeze({
+    terrain: 'shop-interior',
+    props: 'starfall-crossing',
+    density: 0,
+    propKinds: Object.freeze([]),
+    terrainStyle: Object.freeze({ groundTopHeight: 8, groundBodyDepth: 48, groundOverhang: 0, overhang: 0, undersideHeight: 0, detailDensity: 0, bodyAlpha: 1 })
+  });
 
   function createPlinkoHostNpc(mapId, options) {
     const settings = options || {};
@@ -106,25 +119,10 @@
   }
 
   function createShopInteriorScene(config) {
-    const theme = config.theme || {};
-    const type = config.type || {};
-    const structureCell = type.id === 'special'
-      ? theme.specialCell || 'lanternArch'
-      : type.id === 'weapon'
-        ? theme.weaponCell || 'rustcoilWorkshop'
-        : type.id === 'armor'
-          ? theme.armorCell || 'marketAwning'
-          : theme.supplyCell || 'marketAwning';
     return createTownScene({
-      rearStructures: [
-        { cell: structureCell, x: 300, w: 560, h: 286, footOffset: 4, label: config.name || type.label || 'Shop' },
-        { cell: 'marketAwning', x: 820, w: 280, h: 140, footOffset: 4, label: 'Counter' }
-      ],
+      rearStructures: [],
       stationFacades: [],
-      streetProps: [
-        { kind: type.id === 'supply' ? 'crate' : type.id === 'special' ? 'glow' : 'sign', x: 245, w: 44, h: 48, footOffset: 1 },
-        { kind: type.id === 'weapon' ? 'crystal' : 'crate', x: 980, w: 44, h: 38, footOffset: 1 }
-      ],
+      streetProps: [],
       foregroundTrim: []
     });
   }
@@ -168,12 +166,14 @@
       adminOnly: true,
       parentTownId: townId,
       shopVendorType: type.id,
+      asset: SHOP_INTERIOR_BACKGROUNDS[type.id],
+      environment: SHOP_INTERIOR_ENVIRONMENT,
       layoutRole: 'town',
       routeStage: 'Shop Interior',
       mapRoadName: name,
       portalPattern: 'shopDoorReturn',
       compactWorldWidth: width,
-      palette: ['#fbfaf6', '#d8b74a', '#7bdff2'],
+      palette: ['#302c30', '#9b714c', '#c9ac79'],
       purpose: `${name} interior with vendor-only buying and selling.`,
       enemies: [],
       platforms: [[0, 520, width, 80]],

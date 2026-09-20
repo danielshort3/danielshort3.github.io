@@ -1,0 +1,101 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "rimewarden",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-35be-7a93-9773-ce24aa252f30\\exec-e014daaf-9e5a-49cb-9adc-0ea5aad75d35.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/rimewarden.png",
+    "output/starfall-animation-samples/oracle-cast-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": false,
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Full raw sheet inspected, 8 authored action rows, distinct contact/recovery, alpha and connected-component checks still required.",
+    "animationReview": "pending-runtime-integration",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/rimewarden-sheet.png",
+    "portrait": "img/project-starfall/enemies/rimewarden.png",
+    "portraitFrame": 0
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "note": "Authored source contact and release appear in column0; no row reordering needed."
+  },
+  "sourceSha256": "eee708d26b5e73d7676e5b45327b0f14153caa65609b601b7670f46dd0e9a0aa",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "sharedScale": 0.6679820627802691,
+  "frames": {
+    "0": {
+      "anchor": {
+        "x": 90.5,
+        "y": 168
+      }
+    },
+    "1": {
+      "anchor": {
+        "x": 268.5059076262084,
+        "y": 168
+      }
+    },
+    "2": {
+      "anchor": {
+        "x": 448.00886143931257,
+        "y": 168
+      }
+    },
+    "3": {
+      "anchor": {
+        "x": 626.0147690655209,
+        "y": 168
+      }
+    },
+    "4": {
+      "anchor": {
+        "x": 807.0147690655209,
+        "y": 168
+      }
+    },
+    "5": {
+      "anchor": {
+        "x": 983.5236305048335,
+        "y": 168
+      }
+    }
+  },
+  "registrationReview": {
+    "scope": "idle-horizontal only",
+    "status": "reviewed-horizontal",
+    "landmark": "Crown, face and chest armor; hammer and arm articulation retained.",
+    "correction": {
+      "source": "Explicit source-space horizontal anchors for six idle poses; equal-column centers are not anatomical anchors.",
+      "sourceScale": 0.6679820627802691,
+      "runtimeHorizontalTranslation": [
+        0,
+        2,
+        3,
+        5,
+        5,
+        8
+      ],
+      "verticalChanges": false,
+      "otherRowsChanged": false
+    },
+    "evidencePath": "output/enemy-idle-alignment/rimewarden/verification.json",
+    "limits": "Horizontal registration review only. Original authored anatomy and pose changes remain. Does not certify other action rows or transitions."
+  }
+}

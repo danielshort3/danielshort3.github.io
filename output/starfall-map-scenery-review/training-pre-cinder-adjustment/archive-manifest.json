@@ -1,0 +1,110 @@
+{
+  "purpose": "Immutable 1,575-run evidence before the adopted Cinder 0.93 adjustment. These measured sources also precede the separately verified NPC visual-only mapping fix.",
+  "entries": [
+    {
+      "name": "training-before.json",
+      "sha256": "57e7d4bb76239bdc23ab50be12dfb86d26221acd3a5efa749be90e1390860b3e",
+      "bytes": 7421517
+    },
+    {
+      "name": "training-cinder-candidate-comparison.csv",
+      "sha256": "100efa9388efe5ac3f3879d37fdff91a9b8f6f915d1f23662573c44cd5fb3b8e",
+      "bytes": 9977
+    },
+    {
+      "name": "training-cinder-candidate-comparison.json",
+      "sha256": "a46ba548c9a39515acaadb2528992756e3186c766f1865603eae07017351a426",
+      "bytes": 38191
+    },
+    {
+      "name": "training-cinder-candidate-findings.json",
+      "sha256": "bff49101aaf7372315e14eed901444aa2f8bfe58f38ee3e3f489b8a98a1bf59b",
+      "bytes": 25728
+    },
+    {
+      "name": "training-cinder-candidate-findings.md",
+      "sha256": "1b1603e54d0c0f55e0029243f6dadfd073adf0228ebe90e5e97f5a350363cdea",
+      "bytes": 2439
+    },
+    {
+      "name": "training-cinder-candidate.json",
+      "sha256": "ce34a03d0a836feff2e5684b589920d834f18942645f5d1d6fa016d222dbf92d",
+      "bytes": 701071
+    },
+    {
+      "name": "training-cinder-scalar-projection.csv",
+      "sha256": "edd878eec92f4434645ccaa0ebd31f8b897bfd4baa1a63220dc12d70736ebddc",
+      "bytes": 97108
+    },
+    {
+      "name": "training-cinder-scalar-projection.json",
+      "sha256": "59a0e0adb28c2932c87d3b077afcb6ab518543017b56996546547d2c8c5419f4",
+      "bytes": 455079
+    },
+    {
+      "name": "training-cinder-scalar-projection.md",
+      "sha256": "84a7e0721f6788b9820cea960df29fc6438106fbd78d7e30532603e0eb581ced",
+      "bytes": 7453
+    },
+    {
+      "name": "training-comparison.csv",
+      "sha256": "c38572944e8c9269df2698892342f49cd16b9242e75ad5ec70914446ed68cc9e",
+      "bytes": 96863
+    },
+    {
+      "name": "training-comparison.json",
+      "sha256": "7b3df9329b95b4085730f9c354dec5ac045c42558072b800dd2c2eee99a7fcb1",
+      "bytes": 558331
+    },
+    {
+      "name": "training-current.json",
+      "sha256": "b12c69ae5791252a824c541f1b74ba56d6bde186cf55fd22f1e352a3ca8f0417",
+      "bytes": 7402453
+    },
+    {
+      "name": "training-data.js",
+      "sha256": "789170e246b33a74d7eb8cbf22a433b971e9b2c5b587d150719962712489d51c",
+      "bytes": 428938
+    },
+    {
+      "name": "training-dominance-findings.json",
+      "sha256": "7bd0134cf7019f39a164098b30b92ea4d07827aa725e4d9d33f233c6e29cb1d0",
+      "bytes": 59349
+    },
+    {
+      "name": "training-dominance-findings.md",
+      "sha256": "765c720a542064a4f2461e64b8aa75de769ba77fce51a78989292521d3c51f46",
+      "bytes": 6289
+    },
+    {
+      "name": "training-npc-control.json",
+      "sha256": "738ab02aa67169bf0a2f1e6f1fa54fad6ff48a923e4f6e7190ca741d50c1801a",
+      "bytes": 701358
+    },
+    {
+      "name": "training-optional-comparison.csv",
+      "sha256": "1d6269137c951ec589bbd98eaf29d1edcf39a4a513a175d0890ca736db07ded8",
+      "bytes": 39432
+    },
+    {
+      "name": "training-optional.json",
+      "sha256": "49fc203861190cd57d82eac4166974f8d7231a8f946b685cb4309591e9dbae55",
+      "bytes": 7534551
+    },
+    {
+      "name": "training-post-measurement-visual-verification.json",
+      "sha256": "097517dd6a6450245b905b8ad2d0503bad7ba758da0b8d1a3f3b6eefca95a961",
+      "bytes": 11093
+    },
+    {
+      "name": "training-post-measurement-visual.patch",
+      "sha256": "92dc217b6bdc2d14bbff93366dd639cd9309f5edf860e9e7e0afbe32eab9f6e0",
+      "bytes": 4181
+    },
+    {
+      "name": "training-review-summary.json",
+      "sha256": "845b429f47d004c2ec23e792761a8d31379f668226395c72ee63f23ebcfa0634",
+      "bytes": 7751
+    }
+  ]
+}

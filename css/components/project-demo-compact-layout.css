@@ -2,18 +2,33 @@
 html[data-project-demo-theme="brand"] .shape-workspace .demo-surface .content,
 html[data-project-demo-theme="brand"] .handwriting-demo.demo-surface .handwriting-workspace {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 44px;
+  grid-template-areas: "input status" "input result";
+  grid-template-rows: 50px 1fr;
+  gap: 0 44px;
   width: 100%;
-  max-width: 808px !important;
+  max-width: 728px !important;
   margin-inline: auto;
   padding: 0 24px 24px !important;
 }
 
 html[data-project-demo-theme="brand"] .shape-workspace .shape-input {
   width: 100%;
-  max-width: 340px;
+  max-width: var(--drawing-canvas-size, 300px);
   justify-self: center;
 }
+
+html[data-embedded="true"][data-project-demo-theme="brand"] body .demo-surface.drawing-demo > .demo-surface-header { display: none !important; }
+.drawing-demo :is(.shape-input, .handwriting-input) { grid-area: input; }
+.drawing-demo .drawing-status {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  min-height: 44px;
+  margin-bottom: 6px;
+}
+.drawing-demo .drawing-results { grid-area: result; }
 
 .drawing-input-header {
   display: flex;
@@ -43,7 +58,7 @@ html[data-project-demo-theme="brand"] :is(.shape-workspace, .handwriting-rating-
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--border) !important;
-  border-radius: 12px;
+  border-radius: var(--radius-card, 10px);
   background: #000000 !important;
   box-shadow: none !important;
 }
@@ -53,26 +68,31 @@ html[data-project-demo-theme="brand"] :is(.shape-workspace, .handwriting-rating-
   width: 100%;
   height: 100%;
   aspect-ratio: 1;
-  border-radius: 11px;
+  border-radius: inherit;
   background: #000000;
   cursor: crosshair;
 }
 
 html[data-project-demo-theme="brand"] .shape-workspace .drawing-primary-action {
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .drawing-feedback { margin: 12px 0 0; color: var(--danger); font-size: .8125rem; line-height: 1.5; }
 html[data-project-demo-theme="brand"] .drawing-demo .demo-status-actions .aws-status-badge { min-height: 44px; }
-html[data-project-demo-theme="brand"] .shape-workspace .content > .drawing-results { display: block; padding: 12px 0 0; border: 0; }
+html[data-project-demo-theme="brand"] :is(.drawing-demo, .digit-workspace) button.aws-status-badge:disabled { opacity: 1; }
+html[data-project-demo-theme="brand"] :is(.drawing-demo, .digit-workspace) button.aws-status-badge:not(:disabled) { cursor: pointer; }
+html[data-project-demo-theme="brand"] .digit-workspace .generation-status button.aws-status-badge { min-height: 44px; }
+html[data-project-demo-theme="brand"] .shape-workspace .content > .drawing-results { display: block; padding: 6px 0 0; border: 0; }
 .shape-demo #result-icon .shape-icon { display: block; width: 62px; height: 62px; }
 .shape-demo #result-shape { margin: 0; font-size: 1.0625rem; line-height: 1.4; font-weight: 600; }
 .shape-demo #shape-score-list { list-style: none; margin: 0; padding: 12px 0 0; }
 .drawing-demo .shape-row.confidence-row { grid-template-columns: 68px minmax(0, 1fr) 51px; border-radius: 0; }
 .drawing-demo .shape-row .shape-name { font-size: .8125rem; }
 
-.handwriting-demo.demo-surface .handwriting-input { width: 100%; max-width: 340px; justify-self: center; }
+.handwriting-demo.demo-surface .handwriting-input { width: 100%; max-width: var(--drawing-canvas-size, 300px); justify-self: center; }
+.handwriting-demo.demo-surface .drawing-toolbar { margin-top: 12px; }
+.handwriting-demo.demo-surface .drawing-results { padding-top: 6px; }
 .handwriting-demo.demo-surface .handwriting-header { margin-bottom: 0; }
 .handwriting-demo.demo-surface .handwriting-samples { width: calc(100% - 48px); max-width: 712px; margin: 24px auto 0; }
 .handwriting-demo.demo-surface .handwriting-note { width: calc(100% - 48px); max-width: 712px; margin: 16px auto 24px; }
@@ -120,9 +140,13 @@ html[data-project-demo-theme="brand"] .sentence-search-workspace .example-querie
   html[data-project-demo-theme="brand"] .shape-workspace .demo-surface .content,
   html[data-project-demo-theme="brand"] .handwriting-demo.demo-surface .handwriting-workspace {
     grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
+    grid-template-areas: "status" "input" "result";
+    grid-template-rows: auto;
+    gap: 16px;
     padding: 0 16px 20px !important;
   }
+
+  .drawing-demo .drawing-status { margin-bottom: 0; }
 
   html[data-project-demo-theme="brand"] .shape-workspace .content > .drawing-results,
   .drawing-demo.demo-surface .drawing-results { padding: 24px 0 0; border-top: 1px solid var(--border); }

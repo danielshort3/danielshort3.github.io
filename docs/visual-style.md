@@ -5,6 +5,95 @@ and game catalog illustrations. Keep approved artwork and each game's deliberate
 visual identity. Screenshots, portraits, and playable scenes have their own
 composition; they should not be converted into catalog icons.
 
+## Brand identity and color roles
+
+Use a navy-and-white foundation with restrained section accents. The DS mark and
+vertical category tabs identify the site; preserve their geometry and the flush
+mobile navigation. Keep content surfaces white or pale neutral rather than
+giving each section a separate background theme.
+
+The illustrated [brand guide](../documents/brand_guide.pdf) summarizes these rules
+and keeps proposed improvements separate. See [its maintenance instructions](brand-guide.md)
+for the editable source and the screenshot/PDF generation workflow.
+
+The header uses the approved DS SVG beside the full Daniel Short label: a 38px
+desktop image box and 40px mobile box. Preserve the image's aspect ratio with
+`object-fit: contain`, prevent shrinking, and keep its border radius at zero so
+the artwork is not clipped. Do not apply the old document's universal 120px
+digital-logo minimum to header marks or favicons.
+
+Keep header marks flat and stationary, including hover: no drop shadow, glow,
+or scale animation. The small favicon is an optical exception to the master:
+it keeps the D and S letter contours, omits the tiny chart bars, and uses more
+of its flat white tile so the letters remain clear at 16–32px. Regenerate the
+SVG, PNG sizes, and ICO together with `npm run build:icons`.
+
+Use the plain personal wordmark and current social card documented in
+[the brand asset index](../img/brand/README.md). The analytics descriptor belongs
+only to its labeled audience variant. The default social preview is configured
+in `content/site/settings.json`; project/tool/game cards retain their own imagery.
+
+| Role | Source / color | Use |
+| --- | --- | --- |
+| Main brand and Projects | `--brand-signal-blue` / `#005FED` | Global actions, links, Projects rail and primary actions |
+| Blue hover / stronger emphasis | `--brand-deep-blue` / `#0145C8` | Hover and interaction states |
+| Tools | `--category-tools` / `#087F8C` | Tools rail, divider, active states, primary actions |
+| Games | `--category-games` / `#C94B0A` | Games rail and shared page controls |
+| About / headings | `--brand-midnight` / `#091F3B` | Identity and main text |
+| Contact / supporting text | Graphite `#334155` / slate `#475569` | Quiet navigation and secondary copy |
+
+Projects aliases the main brand blue. Do not add near-identical blues for a new
+component. Category accents belong in navigation, dividers, active states, and
+primary actions; ordinary cards and secondary controls stay neutral. Use shared
+semantic status colors and visible words for success, warning, and error states.
+Status text must remain legible on its background without relying on color alone.
+Use `--warning-text` for readable amber text on white; `--warning` is an accent
+color for graphics or a suitable contrasting fill.
+
+The personal-site brand message is **“Solving everyday problems with data and
+thoughtful tools.”** Its authored `brandTagline` lives in
+`content/audiences/personal.json` and flows through the generated audience config
+to the closed homepage. About and page metadata use the same plain, personal
+voice. Describe concrete work without repeating the tagline on every page.
+
+Mobile demo launch previews should show the current working interface. Capture
+the live layout, keep black drawing canvases and current controls, and use neutral
+preview status for recorded examples. Do not present fixture data as live model
+results or a screenshot as proof of current AWS connectivity. Keep these captures
+separate from the approved illustrated catalog icons.
+
+## Shared surfaces and controls
+
+Use the semantic tokens in `css/variables.css` for new shared UI and when
+updating an existing component:
+
+| Role | Token | Treatment |
+| --- | --- | --- |
+| Outer site frame | `--radius-frame` | 12px external corners |
+| Dialog | `--radius-dialog` | 12px corners, 1px neutral border, restrained shadow |
+| Content card / tool panel | `--radius-card` | 10px corners, 1px neutral border, no resting shadow |
+| Button / input / select | `--radius-control` | 8px corners |
+| Status / tag | `--radius-pill` | Fully rounded when it identifies a state or category |
+| Normal action | `--control-height`, `--control-padding`, `--control-font-size` | At least 44px tall, 10px by 14px padding, 14px text |
+
+Use a 6px category-colored perimeter for open homepage tabs and a 4px perimeter
+for libraries and detail pages. Keep the 2px masthead divider. Internal
+boundaries use `--surface-border`; prefer spacing or one divider to another
+enclosing card. Joined rails, editor headers, tab underlines, and flush mobile
+edges remain square internally. The enclosing surface owns the external curve.
+
+Use a filled category-colored button for the primary action, a neutral outlined
+button for secondary actions, and a simple text action for tertiary choices.
+Shared actions change color on hover without jumping or gaining a large shadow.
+Preserve visible keyboard focus and space for its outline inside scroll areas.
+Deliberately dark game canvases and game-specific controls retain their identity.
+
+Mastheads and their content share the same horizontal gutter. Apply the gap
+below a masthead divider once. A compact mobile account action may sit beside
+Back when there is room; otherwise it aligns to the same left edge as the title.
+Library titles use 16px text and descriptions 14px on both desktop and phone;
+let cards grow or reduce columns instead of shrinking their descriptions.
+
 ## Two related visual families
 
 **Interface glyphs** explain navigation and controls. Use simple outlined SVGs,

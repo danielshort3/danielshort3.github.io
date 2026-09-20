@@ -1,5 +1,7 @@
 'use strict';
 
+const { getTrainingXpMultiplier } = require('../../js/games/project-starfall/engine/combat-formulas.js');
+
 const BASE_CLASS_IDS = Object.freeze(['fighter', 'mage', 'archer']);
 const ADVANCED_CLASS_IDS = Object.freeze([
   'guardian',
@@ -1027,9 +1029,59 @@ function getEnemyMap(data) {
   return new Map((data.ENEMIES || []).map((enemy) => [enemy.id, enemy]));
 }
 
-function getMapEnemies(data, map) {
+function getMapSpawnPopulation(map, partySize = 1) {
+  const groups = Array.isArray(map && map.spawnGroups) ? map.spawnGroups : [];
+  if (!groups.length) return { population: Math.max(0, Number(map && map.waveMax || 0)), respawnSeconds: Math.max(1, Number(map && map.waveDelay || 1)), groups: [] };
+  const entries = groups.map((group) => {
+    const base = Math.max(0, Number(group.population || 0));
+    const population = group.partyScaling === 'section-count'
+      ? Math.min(Math.max(base, Number(group.maxPopulation || base)), base + Math.max(0, partySize - 1) * Math.max(0, Number(group.partyBonusPerMember || 0)))
+      : base;
+    return { id: group.id, population, respawnSeconds: Math.max(1, Number(group.respawnSeconds || 1)) };
+  });
+  const population = entries.reduce((sum, group) => sum + group.population, 0);
+  return {
+    population,
+    respawnSeconds: entries.reduce((sum, group) => sum + group.population * group.respawnSeconds, 0) / Math.max(1, population),
+    groups: entries
+  };
+}
+
+function getMapEnemyPopulationWeights(data, map, partySize = 1) {
   const enemyById = getEnemyMap(data);
-  return (map.enemies || []).map((enemyId) => enemyById.get(enemyId)).filter(Boolean);
+  const weights = new Map();
+  const groups = Array.isArray(map && map.spawnGroups) ? map.spawnGroups : [];
+  const populations = new Map(getMapSpawnPopulation(map, partySize).groups.map((group) => [group.id, group.population]));
+  groups.forEach((group) => {
+    let entries = (group.enemyWeights || []).filter((entry) => enemyById.has(entry.enemyId) && Number(entry.weight || 0) > 0);
+    let remaining = populations.get(group.id) || 0;
+    // Capped proportional estimate, not a stationary combat population model:
+    // real occupancy also depends on deaths, occupied spawns and refill order.
+    while (entries.length && remaining > 0) {
+      const total = entries.reduce((sum, entry) => sum + Number(entry.weight), 0);
+      const cap = (entry) => Object.prototype.hasOwnProperty.call(group.enemyMaxAlive || {}, entry.enemyId) ? Math.max(0, Number(group.enemyMaxAlive[entry.enemyId]) || 0) : Infinity;
+      const capped = entries.filter((entry) => remaining * Number(entry.weight) / total > cap(entry));
+      const assigned = capped.length ? capped : entries;
+      assigned.forEach((entry) => {
+        const count = capped.length ? cap(entry) : remaining * Number(entry.weight) / total;
+        weights.set(entry.enemyId, (weights.get(entry.enemyId) || 0) + count);
+      });
+      if (!capped.length) break;
+      remaining -= capped.reduce((sum, entry) => sum + cap(entry), 0);
+      entries = entries.filter((entry) => !capped.includes(entry));
+    }
+  });
+  if (!weights.size) (map.enemies || []).forEach((id) => { if (enemyById.has(id)) weights.set(id, 1); });
+  const total = Array.from(weights.values()).reduce((sum, weight) => sum + weight, 0);
+  return Array.from(weights, ([id, weight]) => ({ enemy: enemyById.get(id), weight: weight / Math.max(1, total) }));
+}
+
+function getMapEnemies(data, map) {
+  return getMapEnemyPopulationWeights(data, map).map((entry) => entry.enemy);
+}
+
+function getMapWeightedEnemyMetric(data, map, metric) {
+  return getMapEnemyPopulationWeights(data, map).reduce((sum, entry) => sum + metric(entry.enemy) * entry.weight, 0);
 }
 
 function getLayoutRouteScores(map) {
@@ -1052,9 +1104,9 @@ function getLayoutRouteScores(map) {
 function getMapProfile(data, map) {
   const enemies = getMapEnemies(data, map);
   const total = Math.max(1, enemies.length);
-  const behaviorCounts = enemies.reduce((counts, enemy) => {
+  const behaviorCounts = getMapEnemyPopulationWeights(data, map).reduce((counts, { enemy, weight }) => {
     const behavior = String(enemy.behavior || 'unknown');
-    counts[behavior] = (counts[behavior] || 0) + 1;
+    counts[behavior] = (counts[behavior] || 0) + weight * total;
     return counts;
   }, {});
   const ratio = (behavior) => Number(behaviorCounts[behavior] || 0) / total;
@@ -1066,7 +1118,7 @@ function getMapProfile(data, map) {
   const eliteRatio = ratio('elite');
   const swarmRatio = ratio('hopper') + ratio('skirmisher') * 0.45;
   const layout = getLayoutRouteScores(map);
-  const density = clamp((Number(map.waveMax || 0) - 22) / 16 + total / 80, 0, 1);
+  const density = clamp((getMapSpawnPopulation(map).population - 22) / 16 + total / 80, 0, 1);
   const threat = clamp(
     flyingRatio * 0.45 +
     armoredRatio * 0.7 +
@@ -1927,8 +1979,9 @@ function finalizeRewardAggregate(aggregate) {
 
 function createMapRewardSourceReport(data, map, enemies, killsPerHour, lookups) {
   const aggregate = createRewardAggregate();
-  const killsByEnemy = Math.max(1, Number(killsPerHour || 0)) / Math.max(1, enemies.length);
+  const populationWeights = new Map(getMapEnemyPopulationWeights(data, map).map((entry) => [entry.enemy.id, entry.weight]));
   enemies.forEach((enemy) => {
+    const killsByEnemy = Math.max(1, Number(killsPerHour || 0)) * Number(populationWeights.get(enemy.id) || 0);
     const primaryEntry = getPrimaryEtcEntry(enemy);
     if (primaryEntry) {
       addWeightedRewardEntries(aggregate, 'primaryEtc', [primaryEntry], killsByEnemy, lookups, { deterministic: true });
@@ -2055,7 +2108,7 @@ function estimateClassMapSurvivability(data, createProjectStarfallEngine, classI
   const level = Math.max(1, Number(map.level || 1) || 1);
   const stats = getClassStatsForLevel(data, createProjectStarfallEngine, classId, level, rank);
   const survival = getClassSurvivalProfile(classId);
-  const avgRawHit = medianNumber((enemies || []).map((enemy) => getEstimatedMonsterDamage(level, enemy)));
+  const avgRawHit = getMapWeightedEnemyMetric(data, map, (enemy) => getEstimatedMonsterDamage(level, enemy));
   const mitigatedHit = mitigateEstimatedPlayerDamage(avgRawHit, stats.defense);
   const exposure = getMapIncomingHitPressure(profile) * Number(survival.exposure || 1);
   const effectiveHit = mitigatedHit * getClassAvoidMitigation(stats);
@@ -2106,6 +2159,7 @@ function createMapSurvivabilityReport(data, createProjectStarfallEngine, map, pr
   return {
     mapId: map.id,
     mapName: map.name,
+    evidenceKind: 'formula-estimate',
     level: map.level,
     medianDamageTakenPerHour: Math.round(medianNumber(entries.map((entry) => entry.damageTakenPerHour))),
     maxDamageTakenPerHour: Math.round(Math.max(...entries.map((entry) => entry.damageTakenPerHour), 0)),
@@ -2249,9 +2303,10 @@ function createMapTuningEntry(data, map, fieldReport, runtimeEngine, rewardLooku
   const profile = fieldReport && fieldReport.profile || getMapProfile(data, map);
   const intent = map && map.designIntent || null;
   const worldWidth = getMapWorldWidth(map);
-  const waveMax = Math.max(1, Number(map && map.waveMax || 1));
-  const waveDelay = Math.max(1, Number(map && map.waveDelay || 1));
-  const routeCycleSeconds = waveMax / Math.max(0.01, killsPerMinute);
+  const spawnPopulation = getMapSpawnPopulation(map);
+  const waveMax = Math.max(1, spawnPopulation.population);
+  const waveDelay = spawnPopulation.respawnSeconds;
+  const routeCycleSeconds = waveMax / Math.max(0.01, killsPerMinute) * 60;
   const spawnDensityPer1000px = runtime.spawnDensityPer1000px ||
     sectionStats.spawnPointCount / Math.max(1, worldWidth / 1000);
   const waveToSpawnPointRatio = waveMax / Math.max(1, sectionStats.spawnPointCount);
@@ -2369,6 +2424,7 @@ function createMapTuningEntry(data, map, fieldReport, runtimeEngine, rewardLooku
     mapName: map.name,
     level,
     layoutRole: String(map.layoutRole || ''),
+    evidenceKind: 'formula-estimate',
     layoutStyle: String(map.layoutStyle || ''),
     intendedUseCase: String(intent && intent.intendedUseCase || ''),
     farmingAbuseRisk: String(intent && intent.farmingAbuseRisk || ''),
@@ -2465,10 +2521,11 @@ function createMapBalanceReport(data, createProjectStarfallEngine, options = {})
     const enemies = getMapEnemies(data, map);
     const spawnSections = Array.isArray(map.spawnSections) ? map.spawnSections : [];
     const spawnPoints = Array.isArray(map.spawnPoints) ? map.spawnPoints : [];
-    const avgXpPerKill = Math.max(1, medianNumber(enemies.map((enemy) =>
-      getEngineMetric(engine, 'getMonsterXp', getEstimatedMonsterXp, level, enemy))));
-    const avgMonsterHp = Math.max(1, medianNumber(enemies.map((enemy) =>
-      getEstimatedMonsterHp(level, enemy))));
+    const avgXpPerKill = Math.max(1, getMapWeightedEnemyMetric(data, map, (enemy) =>
+      Math.round(getEngineMetric(engine, 'getMonsterXp', getEstimatedMonsterXp, level, enemy) *
+        getTrainingXpMultiplier(map, enemy.behavior === 'boss', false))));
+    const avgMonsterHp = Math.max(1, getMapWeightedEnemyMetric(data, map, (enemy) =>
+      getEstimatedMonsterHp(level, enemy)));
     const levelXp = getEngineMetric(engine, 'getLevelXp', getEstimatedLevelXp, level);
     const targetMinutes = getTargetLevelMinutes(level);
     const medianKillsPerHour = Math.max(1, levelXp / avgXpPerKill / (targetMinutes / 60));
@@ -2519,8 +2576,10 @@ function createMapBalanceReport(data, createProjectStarfallEngine, options = {})
       name: map.name,
       level,
       levelRange: map.levelRange,
-      waveMax: map.waveMax || 0,
-      waveDelay: map.waveDelay || 0,
+      evidenceKind: 'formula-estimate',
+      waveMax: getMapSpawnPopulation(map).population,
+      waveDelay: roundNumber(getMapSpawnPopulation(map).respawnSeconds, 2),
+      spawnGroups: getMapSpawnPopulation(map).groups,
       designIntent: map.designIntent ? {
         intendedArchetype: String(map.designIntent.intendedArchetype || ''),
         intendedUseCase: String(map.designIntent.intendedUseCase || ''),
@@ -2546,6 +2605,7 @@ function createMapBalanceReport(data, createProjectStarfallEngine, options = {})
       scenarioWeights: weights,
       avgMonsterHp,
       avgXpPerKill: Math.round(avgXpPerKill),
+      trainingXpMultiplier: getTrainingXpMultiplier(map, false, false),
       targetMinutes: roundNumber(targetMinutes, 1),
       medianKillsPerHour: Math.round(medianKillsPerHour),
       killCycleSeconds: roundNumber(killCycleSeconds, 1),
@@ -4237,7 +4297,10 @@ function createBalanceReport(data, createProjectStarfallEngine, options = {}) {
   return {
     level: Math.max(1, Math.floor(Number(options.level || 50) || 50)),
     rank: Math.max(1, Math.floor(Number(options.rank || 10) || 10)),
+    evidenceKind: 'formula-estimate',
     assumptions: [
+      'Field throughput is a design-target estimate derived from desired level-up cadence, not observed XP or kills. Use analyze-project-starfall-training.js for real-engine measurements.',
+      'Spawn composition is a capped proportional estimate from actual group populations, party expansion, enemy weights and per-enemy alive caps. Respawn cadence is population-weighted; this is not measured stationary occupancy. Class fit and travel remain heuristic estimates.',
       'Equal level, equal skill ranks, no gear, deterministic average damage rolls.',
       'Berserker boss scenarios start at 46% HP to measure its intended risk window.',
       'Rotations prefer class identity and add inherited filler only when an advanced kit has sparse active coverage.',
@@ -4303,6 +4366,8 @@ module.exports = {
   getBossHpScalingMultiplier,
   getMapClassResult,
   getMapProfile,
+  getMapSpawnPopulation,
+  getMapEnemyPopulationWeights,
   getMapResults,
   getScenarioResults,
   getSkillRuntimeDamageFactor,

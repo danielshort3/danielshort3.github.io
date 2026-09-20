@@ -1,0 +1,1965 @@
+{
+  "fileId": "cloudcall-acolyte",
+  "sourceSha256": "bdc473d8b9760a2702a5b31d34658006b496f39af94a19e6b1dd486b7aeac59f",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    185,
+    354,
+    550,
+    728,
+    905,
+    1092,
+    1273,
+    1448
+  ],
+  "sharedScale": 0.741094527363184,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 102,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/cloudcall-acolyte-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 719686,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 26,
+        "top": 27,
+        "width": 151,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 136,
+        "width": 151,
+        "height": 137,
+        "pixels": 13466
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 164
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 48,
+        "right": 143,
+        "bottom": 149,
+        "width": 112,
+        "height": 102,
+        "pixels": 7475,
+        "edgePixels": 0
+      },
+      "sha256": "6e3f4cbd53ed3839305f51186d18d9be9cad7bc7239cb51bd3759ec3bcd548d5"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 209,
+        "top": 28,
+        "width": 145,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 135,
+        "width": 145,
+        "height": 136,
+        "pixels": 13001
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 164
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 49,
+        "right": 140,
+        "bottom": 149,
+        "width": 107,
+        "height": 101,
+        "pixels": 7186,
+        "edgePixels": 0
+      },
+      "sha256": "5308b33a3b7dcdb233d20c5d4d28f96121d30492943f09031200230297298c4e"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 386,
+        "top": 27,
+        "width": 150,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 136,
+        "width": 150,
+        "height": 137,
+        "pixels": 13524
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 164
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 48,
+        "right": 141,
+        "bottom": 149,
+        "width": 111,
+        "height": 102,
+        "pixels": 7523,
+        "edgePixels": 0
+      },
+      "sha256": "8cfba1fdafee4daec2971a14f19d3d3910661db28090cbc18ea579722581c132"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 568,
+        "top": 27,
+        "width": 153,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 136,
+        "width": 153,
+        "height": 137,
+        "pixels": 13435
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 164
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 48,
+        "right": 143,
+        "bottom": 149,
+        "width": 113,
+        "height": 102,
+        "pixels": 7466,
+        "edgePixels": 0
+      },
+      "sha256": "bebd890f1e56f99b71903e7eaed9ab701ee1f7c9771ae3af12b3cad51776f431"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 749,
+        "top": 28,
+        "width": 146,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 135,
+        "width": 146,
+        "height": 136,
+        "pixels": 13256
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 164
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 49,
+        "right": 138,
+        "bottom": 149,
+        "width": 108,
+        "height": 101,
+        "pixels": 7331,
+        "edgePixels": 0
+      },
+      "sha256": "fa10ab65bd257568532d39cf1dc85fd044673c23685815c0954d967e75368a2f"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 931,
+        "top": 27,
+        "width": 146,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 136,
+        "width": 146,
+        "height": 137,
+        "pixels": 13239
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 164
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 48,
+        "right": 139,
+        "bottom": 149,
+        "width": 108,
+        "height": 102,
+        "pixels": 7352,
+        "edgePixels": 0
+      },
+      "sha256": "3aa0e8a282cc3714c7602d2513a949794942816b98b64cc231156407dd5d5d85"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 11,
+        "top": 205,
+        "width": 172,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 137,
+        "width": 172,
+        "height": 138,
+        "pixels": 14724
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 343
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 21,
+        "top": 48,
+        "right": 147,
+        "bottom": 149,
+        "width": 127,
+        "height": 102,
+        "pixels": 8079,
+        "edgePixels": 0
+      },
+      "sha256": "a0b4909fdb181233c67cb4d4398ae94c171230fc2deae2721172a4a0a898e0b4"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 195,
+        "top": 207,
+        "width": 168,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 135,
+        "width": 168,
+        "height": 136,
+        "pixels": 14147
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 343
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 49,
+        "right": 147,
+        "bottom": 149,
+        "width": 125,
+        "height": 101,
+        "pixels": 7843,
+        "edgePixels": 0
+      },
+      "sha256": "934991befc686f13f9e4d603b57fea96ee128bbd0df1daf970e4560454c323dd"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 384,
+        "top": 208,
+        "width": 157,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 134,
+        "width": 157,
+        "height": 135,
+        "pixels": 13096
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 343
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 50,
+        "right": 144,
+        "bottom": 149,
+        "width": 116,
+        "height": 100,
+        "pixels": 7200,
+        "edgePixels": 0
+      },
+      "sha256": "e6c07569a1b4da2edb6c7808c15ab16a7d28f9ce0c1214ee8bde18bc527e2a08"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 566,
+        "top": 208,
+        "width": 163,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 134,
+        "width": 163,
+        "height": 135,
+        "pixels": 13475
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 343
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 50,
+        "right": 150,
+        "bottom": 149,
+        "width": 121,
+        "height": 100,
+        "pixels": 7446,
+        "edgePixels": 0
+      },
+      "sha256": "e5fa5f3ae3f246dbd2d4442e656876e4fc7d2c5487fc552e78394112e0649526"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 747,
+        "top": 206,
+        "width": 154,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 136,
+        "width": 154,
+        "height": 137,
+        "pixels": 12823
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 343
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 48,
+        "right": 143,
+        "bottom": 149,
+        "width": 114,
+        "height": 102,
+        "pixels": 7124,
+        "edgePixels": 0
+      },
+      "sha256": "c1e2d28b7e03cfc2555b95e1868e9672fdef51a4306ad9b62b90c21ec9934fbc"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 927,
+        "top": 207,
+        "width": 150,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 135,
+        "width": 150,
+        "height": 136,
+        "pixels": 13221
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 343
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 49,
+        "right": 139,
+        "bottom": 149,
+        "width": 111,
+        "height": 101,
+        "pixels": 7302,
+        "edgePixels": 0
+      },
+      "sha256": "53f032b56288eeecad3ecb8a8e11b8ab77a5547f118d26fd2ee730198f8c4566"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 23,
+        "top": 394,
+        "width": 157,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 135,
+        "width": 157,
+        "height": 136,
+        "pixels": 13317
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 533
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 47,
+        "right": 145,
+        "bottom": 147,
+        "width": 116,
+        "height": 101,
+        "pixels": 7360,
+        "edgePixels": 0
+      },
+      "sha256": "34b8212145008643329b5df8a06789e8d89d2ef2203e7c4c8d85e7cd6f47204b"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 205,
+        "top": 401,
+        "width": 160,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 128,
+        "width": 160,
+        "height": 129,
+        "pixels": 12345
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 533
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 31,
+        "top": 52,
+        "right": 149,
+        "bottom": 147,
+        "width": 119,
+        "height": 96,
+        "pixels": 6868,
+        "edgePixels": 0
+      },
+      "sha256": "246bad2c205ede65b284b7d0d707bd3431d7bd8539a5febcbcdbe989dce35bac"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 382,
+        "top": 402,
+        "width": 152,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 127,
+        "width": 152,
+        "height": 128,
+        "pixels": 12213
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 533
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 53,
+        "right": 140,
+        "bottom": 147,
+        "width": 113,
+        "height": 95,
+        "pixels": 6771,
+        "edgePixels": 0
+      },
+      "sha256": "7610b47a850f0ead41a5922c3b3e647cefa5521c5f25774449fbadc1e3ce2c23"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 559,
+        "top": 384,
+        "width": 143,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 149,
+        "width": 143,
+        "height": 150,
+        "pixels": 13550
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 533
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 40,
+        "right": 130,
+        "bottom": 150,
+        "width": 106,
+        "height": 111,
+        "pixels": 7470,
+        "edgePixels": 0
+      },
+      "sha256": "11acf0707924ed989081c93edfbc9179d8ed9c0e4e253163e40a809bf124dc34"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 750,
+        "top": 364,
+        "width": 139,
+        "height": 169
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 168,
+        "width": 139,
+        "height": 169,
+        "pixels": 13504
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 533
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 25,
+        "right": 134,
+        "bottom": 149,
+        "width": 103,
+        "height": 125,
+        "pixels": 7441,
+        "edgePixels": 0
+      },
+      "sha256": "f5e6c38ddf79e67c31d49020d1c8b71a36d4e1622955c0557adcb72f686ecac3"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 929,
+        "top": 364,
+        "width": 142,
+        "height": 169
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 168,
+        "width": 142,
+        "height": 169,
+        "pixels": 13120
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 533
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 25,
+        "right": 135,
+        "bottom": 149,
+        "width": 105,
+        "height": 125,
+        "pixels": 7213,
+        "edgePixels": 0
+      },
+      "sha256": "f2f1a6b2d226dcdce4775c01f8298d4fb72d4c807f7a4c89bc611581aa2c01d7"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 18,
+        "top": 567,
+        "width": 168,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 139,
+        "width": 168,
+        "height": 140,
+        "pixels": 13145
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 707
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 46,
+        "right": 150,
+        "bottom": 149,
+        "width": 125,
+        "height": 104,
+        "pixels": 7289,
+        "edgePixels": 0
+      },
+      "sha256": "cc68e7bd70e44df47fc997634a6e3fbae7c4befddb5284b5b4c1b074e977a44c"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 200,
+        "top": 566,
+        "width": 172,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 140,
+        "width": 172,
+        "height": 141,
+        "pixels": 13345
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 707
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 46,
+        "right": 153,
+        "bottom": 149,
+        "width": 127,
+        "height": 104,
+        "pixels": 7286,
+        "edgePixels": 0
+      },
+      "sha256": "af246084633d1c114a8eeedd40cd50692cee564f6d7ad68e5687ace43b15767a"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 378,
+        "top": 568,
+        "width": 173,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 138,
+        "width": 173,
+        "height": 139,
+        "pixels": 13517
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 707
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 47,
+        "right": 152,
+        "bottom": 149,
+        "width": 128,
+        "height": 103,
+        "pixels": 7434,
+        "edgePixels": 0
+      },
+      "sha256": "ad316b6b0b8f943634f13eb87bc2bf39e95d4bc1b117d12e8824b95c09c42492"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 568,
+        "top": 569,
+        "width": 156,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 137,
+        "width": 156,
+        "height": 138,
+        "pixels": 13585
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 707
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 48,
+        "right": 146,
+        "bottom": 149,
+        "width": 116,
+        "height": 102,
+        "pixels": 7516,
+        "edgePixels": 0
+      },
+      "sha256": "1692b7ecd69f0e11c3dd9a335a7b25c204087c85a65d4ed03cfa8e0722bd5253"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 749,
+        "top": 568,
+        "width": 155,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 138,
+        "width": 155,
+        "height": 139,
+        "pixels": 13495
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 707
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 47,
+        "right": 145,
+        "bottom": 149,
+        "width": 115,
+        "height": 103,
+        "pixels": 7447,
+        "edgePixels": 0
+      },
+      "sha256": "f7d0d35c1f47df731a63e5afbd41a59c7262c858433bcdbf2e633769954acfe2"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 929,
+        "top": 568,
+        "width": 148,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 138,
+        "width": 148,
+        "height": 139,
+        "pixels": 13489
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 707
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 47,
+        "right": 140,
+        "bottom": 149,
+        "width": 110,
+        "height": 103,
+        "pixels": 7466,
+        "edgePixels": 0
+      },
+      "sha256": "bcabb11184a73f1ecd108e25ccc935b033a47c990fd3e07aa1a21379035913fd"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 19,
+        "top": 748,
+        "width": 152,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 140,
+        "width": 152,
+        "height": 141,
+        "pixels": 14433
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 888
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 46,
+        "right": 139,
+        "bottom": 149,
+        "width": 113,
+        "height": 104,
+        "pixels": 7995,
+        "edgePixels": 0
+      },
+      "sha256": "ae681c79cf8eb3a6ae7f4d31492a3f50ba425b7b369b6fe9a5532c6d901915e9"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 207,
+        "top": 748,
+        "width": 153,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 139,
+        "width": 153,
+        "height": 140,
+        "pixels": 14392
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 888
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 46,
+        "right": 144,
+        "bottom": 149,
+        "width": 113,
+        "height": 104,
+        "pixels": 7963,
+        "edgePixels": 0
+      },
+      "sha256": "321ac4b64559814cda79874d932ca55eb8ed139c34b89a606293801ee853cb7c"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 385,
+        "top": 750,
+        "width": 148,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 137,
+        "width": 148,
+        "height": 138,
+        "pixels": 13714
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 888
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 48,
+        "right": 139,
+        "bottom": 149,
+        "width": 110,
+        "height": 102,
+        "pixels": 7602,
+        "edgePixels": 0
+      },
+      "sha256": "9da0e150fd37a5155a00f1a7c58ce5534aaf15d005dd4ab02c0d2f31ef2333cb"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 568,
+        "top": 751,
+        "width": 152,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 136,
+        "width": 152,
+        "height": 137,
+        "pixels": 13609
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 888
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 48,
+        "right": 143,
+        "bottom": 149,
+        "width": 113,
+        "height": 102,
+        "pixels": 7563,
+        "edgePixels": 0
+      },
+      "sha256": "fd0933c2766cd605a87f5b4f5421acdad76df205c5eb879c137cf0e74e7cbaf7"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 750,
+        "top": 751,
+        "width": 153,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 136,
+        "width": 153,
+        "height": 137,
+        "pixels": 13522
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 888
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 48,
+        "right": 144,
+        "bottom": 149,
+        "width": 113,
+        "height": 102,
+        "pixels": 7516,
+        "edgePixels": 0
+      },
+      "sha256": "ce161afe6701f0845584f3b54aa730afaf9e4269d2181c1dc14b396b69254fbb"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 930,
+        "top": 750,
+        "width": 150,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 137,
+        "width": 150,
+        "height": 138,
+        "pixels": 13212
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 888
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 48,
+        "right": 141,
+        "bottom": 149,
+        "width": 111,
+        "height": 102,
+        "pixels": 7247,
+        "edgePixels": 0
+      },
+      "sha256": "34c7530df3fdd3a36d872c93ca4996d154649d7e36f5718b1a7c01ca9c96b862"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 23,
+        "top": 929,
+        "width": 149,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 140,
+        "width": 149,
+        "height": 141,
+        "pixels": 13425
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1070
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 46,
+        "right": 139,
+        "bottom": 149,
+        "width": 110,
+        "height": 104,
+        "pixels": 7342,
+        "edgePixels": 0
+      },
+      "sha256": "c08b3cfb75432fb9880e8b6fd5fea7088b9204496faf81ecae3f2b2209c1ff35"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 209,
+        "top": 929,
+        "width": 116,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 115,
+        "bottom": 140,
+        "width": 116,
+        "height": 141,
+        "pixels": 11692
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1070
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 46,
+        "right": 119,
+        "bottom": 149,
+        "width": 86,
+        "height": 104,
+        "pixels": 6442,
+        "edgePixels": 0
+      },
+      "sha256": "0910d33ef0f1c04b2fc4c957712da1c6cb2a2c2946955cd0f77a15438ff5e25d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 384,
+        "top": 933,
+        "width": 151,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 136,
+        "width": 151,
+        "height": 137,
+        "pixels": 13682
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1070
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 48,
+        "right": 140,
+        "bottom": 149,
+        "width": 112,
+        "height": 102,
+        "pixels": 7613,
+        "edgePixels": 0
+      },
+      "sha256": "fa901424ecb960c3d97476ab2a32b4e15e7069b09aa74a13ae4ce28a23fe2b56"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 563,
+        "top": 920,
+        "width": 152,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 149,
+        "width": 152,
+        "height": 150,
+        "pixels": 15426
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1070
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 39,
+        "right": 140,
+        "bottom": 149,
+        "width": 113,
+        "height": 111,
+        "pixels": 8560,
+        "edgePixels": 0
+      },
+      "sha256": "a1317f18e88bc9175d1881bbeca7b24f63fa92d6efd7b35b9acf82fefb97e34a"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 750,
+        "top": 932,
+        "width": 143,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 138,
+        "width": 143,
+        "height": 139,
+        "pixels": 13387
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1070
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 48,
+        "right": 137,
+        "bottom": 150,
+        "width": 106,
+        "height": 103,
+        "pixels": 7386,
+        "edgePixels": 0
+      },
+      "sha256": "f154a5f7526f9b46129ae0edbee5aa09907ff4d9b6ee5ca187c5a46d88fe66c9"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 926,
+        "top": 933,
+        "width": 148,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 137,
+        "width": 148,
+        "height": 138,
+        "pixels": 13534
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1070
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 48,
+        "right": 137,
+        "bottom": 149,
+        "width": 110,
+        "height": 102,
+        "pixels": 7495,
+        "edgePixels": 0
+      },
+      "sha256": "0c36508a9b89b6f1112a4f6ddcf7f3d8bab539bc0e46d1b4fb9d379d2417880b"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 17,
+        "top": 1115,
+        "width": 152,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 136,
+        "width": 152,
+        "height": 137,
+        "pixels": 13798
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1252
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 48,
+        "right": 138,
+        "bottom": 149,
+        "width": 113,
+        "height": 102,
+        "pixels": 7669,
+        "edgePixels": 0
+      },
+      "sha256": "79ac4f6d99fc9dc7a91c2a3463ccf2e8555f9557c85f221ed57ff252900c9921"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 207,
+        "top": 1120,
+        "width": 159,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 131,
+        "width": 159,
+        "height": 132,
+        "pixels": 12972
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1252
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 52,
+        "right": 149,
+        "bottom": 149,
+        "width": 118,
+        "height": 98,
+        "pixels": 7166,
+        "edgePixels": 0
+      },
+      "sha256": "1fbd07c07c9f8bea3de4224beb3e5ac09a72923ca46b3ea4b02e49edb4b81eae"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 389,
+        "top": 1115,
+        "width": 155,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 136,
+        "width": 155,
+        "height": 137,
+        "pixels": 13467
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1252
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 48,
+        "right": 147,
+        "bottom": 149,
+        "width": 115,
+        "height": 102,
+        "pixels": 7488,
+        "edgePixels": 0
+      },
+      "sha256": "3268ad1bcc1901db2ae7b07e5aff842a0843873a23196675abf6968e359c9f09"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 565,
+        "top": 1119,
+        "width": 149,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 132,
+        "width": 149,
+        "height": 133,
+        "pixels": 13180
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1252
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 51,
+        "right": 138,
+        "bottom": 149,
+        "width": 110,
+        "height": 99,
+        "pixels": 7321,
+        "edgePixels": 0
+      },
+      "sha256": "f8ea6dda9ddd97c7353ba443c14fd4771b5bf7ada6962a58ab5c622f63385a43"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 751,
+        "top": 1113,
+        "width": 155,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 138,
+        "width": 155,
+        "height": 139,
+        "pixels": 13509
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1252
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 47,
+        "right": 147,
+        "bottom": 149,
+        "width": 115,
+        "height": 103,
+        "pixels": 7452,
+        "edgePixels": 0
+      },
+      "sha256": "0fad3b93742f093a0eb147044e4841dece365dabefd170a987f2e97e06b52ed4"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 929,
+        "top": 1113,
+        "width": 148,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 138,
+        "width": 148,
+        "height": 139,
+        "pixels": 13401
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1252
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 47,
+        "right": 140,
+        "bottom": 149,
+        "width": 110,
+        "height": 103,
+        "pixels": 7418,
+        "edgePixels": 0
+      },
+      "sha256": "5f588840cf16aeb008c09c02c1221fde674ecd7bb7938c3dfb9b4466ddfd740e"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 23,
+        "top": 1293,
+        "width": 155,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 131,
+        "width": 155,
+        "height": 132,
+        "pixels": 12231
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1430
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 48,
+        "right": 144,
+        "bottom": 145,
+        "width": 115,
+        "height": 98,
+        "pixels": 6765,
+        "edgePixels": 0
+      },
+      "sha256": "85ca4ce8811d014dda0c9c2a975cca6eaf49ad3158308b8bef206c0cd2e0538e"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 194,
+        "top": 1311,
+        "width": 163,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 111,
+        "width": 163,
+        "height": 112,
+        "pixels": 11525
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1430
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 62,
+        "right": 143,
+        "bottom": 144,
+        "width": 121,
+        "height": 83,
+        "pixels": 6369,
+        "edgePixels": 0
+      },
+      "sha256": "63c230d80f2a1dfceaee4aec27c3eea5076b7122c209505073c259dfcbcd64fb"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 373,
+        "top": 1313,
+        "width": 165,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 112,
+        "width": 165,
+        "height": 113,
+        "pixels": 11748
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1430
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 21,
+        "top": 63,
+        "right": 142,
+        "bottom": 146,
+        "width": 122,
+        "height": 84,
+        "pixels": 6508,
+        "edgePixels": 0
+      },
+      "sha256": "e6f84ed805b4155efebfc989b40a1d74774f310a63f375a7d534c8c1f748cc45"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 554,
+        "top": 1336,
+        "width": 167,
+        "height": 94
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 93,
+        "width": 167,
+        "height": 94,
+        "pixels": 9638
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1430
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 80,
+        "right": 144,
+        "bottom": 149,
+        "width": 124,
+        "height": 70,
+        "pixels": 5377,
+        "edgePixels": 0
+      },
+      "sha256": "9d18fd097cfe498dce7aabf37cec2946a622c1b5cc0acf6daaadde1f1f5cec69"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 738,
+        "top": 1342,
+        "width": 168,
+        "height": 89
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 88,
+        "width": 168,
+        "height": 89,
+        "pixels": 9278
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1430
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 85,
+        "right": 147,
+        "bottom": 150,
+        "width": 125,
+        "height": 66,
+        "pixels": 5151,
+        "edgePixels": 0
+      },
+      "sha256": "cc7176de19f10c67befea3bded5984392c470ceaf2d88cb7e4bd08d7197abd80"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 915,
+        "top": 1348,
+        "width": 167,
+        "height": 84
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 83,
+        "width": 167,
+        "height": 84,
+        "pixels": 8690
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/cloudcall-acolyte/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1430
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 89,
+        "right": 143,
+        "bottom": 150,
+        "width": 124,
+        "height": 62,
+        "pixels": 4805,
+        "edgePixels": 0
+      },
+      "sha256": "46e1958dda32ac91b3e7ed3249ba6282b042fc2651ae710be7836818c8304b68"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

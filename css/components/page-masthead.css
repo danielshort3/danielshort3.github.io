@@ -45,7 +45,7 @@
   }
 
   body[data-audience="personal"] .site-frame .personal-tool-header[data-page-masthead] + #main,
-  body[data-audience="personal"] .site-frame .personal-tool-header[data-page-masthead] + #main > .surface-band:first-child {
+  body[data-audience="personal"] .site-frame .personal-tool-header[data-page-masthead] + #main > :is(.surface-band, .tool-workspace):first-child {
     margin-top: 0;
     padding-top: 0;
   }
@@ -133,11 +133,11 @@
     gap: 8px;
     width: fit-content;
     max-width: 100%;
-    min-height: 32px;
+    min-height: var(--control-height, 44px);
     margin: 0;
     padding: 2px 0;
     border: 0;
-    border-radius: 3px;
+    border-radius: var(--radius-control, 8px);
     color: var(--panel-color);
     background: transparent;
     box-shadow: none;
@@ -195,6 +195,17 @@
     padding: 0;
   }
 
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-page-masthead] .tools-account-dock-inner {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-page-masthead] .tools-account-actions {
+    justify-content: flex-start;
+  }
+
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-page-masthead] .tools-account-disclosure {
     inset-inline-start: 0;
     inset-inline-end: auto;
@@ -214,6 +225,36 @@
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-page-masthead] .tools-account-disclosure {
       inset-inline-start: auto;
       inset-inline-end: 0;
+    }
+  }
+
+  /* Put a compact account action beside Back only when both can fit. The
+     expanded account/history panel retains its normal row below the copy. */
+  @container site-content (min-width: 360px) and (max-width: 759px) {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) > .wrapper {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: 12px;
+    }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) [data-page-masthead-intro] {
+      display: contents;
+    }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) [data-page-masthead-copy] {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) .personal-tool-header__account {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+      align-self: center;
+    }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) .tools-account-actions {
+      justify-content: flex-end;
     }
   }
 
@@ -288,19 +329,19 @@ body[data-audience="personal"] .site-frame [data-personal-game-header] .game-hea
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--control-height, 44px);
   min-width: 44px;
   max-width: 100%;
   margin: 0;
-  padding: 9px 12px;
+  padding: var(--control-padding, 10px 14px);
   border: 1px solid color-mix(in srgb, var(--panel-color) 35%, #ffffff);
-  border-radius: 6px;
+  border-radius: var(--radius-control, 8px);
   color: #091f3b;
   background: #ffffff;
   box-shadow: none;
   font-family: var(--font-ui);
-  font-size: .875rem;
-  font-weight: 650;
+  font-size: var(--control-font-size, .875rem);
+  font-weight: 600;
   line-height: 1.4;
   letter-spacing: normal;
   white-space: normal;

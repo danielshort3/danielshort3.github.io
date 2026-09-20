@@ -804,6 +804,12 @@ async function writeStructureAtlas() {
 }
 
 async function main() {
+  const overhaul = require('./process-project-starfall-overhaul-scenery.js');
+  if (overhaul.isEnabled('terrain') && overhaul.isEnabled('props') && overhaul.isEnabled('structures')) {
+    const groups = process.argv.includes('structures') ? ['structures'] : ['terrain', 'props', 'structures'];
+    for (const group of groups) await overhaul.processGroup(group, { validate: process.argv.includes('--validate') });
+    return;
+  }
   ensureDirs();
   const onlyIndex = process.argv.indexOf('--only');
   const onlyTarget = onlyIndex >= 0 ? String(process.argv[onlyIndex + 1] || '').trim().toLowerCase() : '';

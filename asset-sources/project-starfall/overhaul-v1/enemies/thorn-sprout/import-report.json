@@ -1,0 +1,1990 @@
+{
+  "fileId": "thorn-sprout",
+  "sourceSha256": "cf3c4430bd039f774f75ba99ac05b5bcec19da4a60943c781e9c3d503e125190",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    205,
+    385,
+    563,
+    747,
+    925,
+    1105,
+    1289,
+    1448
+  ],
+  "sharedScale": 0.7337931034482759,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 94,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/thorn-sprout-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 816237,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 24,
+        "top": 60,
+        "width": 161,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 127,
+        "width": 161,
+        "height": 128,
+        "pixels": 12385
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 188
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 56,
+        "right": 148,
+        "bottom": 149,
+        "width": 118,
+        "height": 94,
+        "pixels": 6694,
+        "edgePixels": 0
+      },
+      "sha256": "6b96ab15acf6800b1dc0ffcb0f56782317b6e13b0e3a172e533befe49c6f0bae"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 206,
+        "top": 58,
+        "width": 157,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 129,
+        "width": 157,
+        "height": 130,
+        "pixels": 12163
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 188
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 55,
+        "right": 146,
+        "bottom": 149,
+        "width": 115,
+        "height": 95,
+        "pixels": 6532,
+        "edgePixels": 0
+      },
+      "sha256": "4bbde80df2bfa0a308bed7b3a59ee375d49c217eb318a1302a4e29fdbd5d5a03"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 392,
+        "top": 37,
+        "width": 149,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 150,
+        "width": 149,
+        "height": 151,
+        "pixels": 12847
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 188
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 39,
+        "right": 144,
+        "bottom": 149,
+        "width": 109,
+        "height": 111,
+        "pixels": 6973,
+        "edgePixels": 0
+      },
+      "sha256": "3eff8cfd97719579c0fc01ba186e44d6b279fe03347be27e996344d128136842"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 564,
+        "top": 63,
+        "width": 155,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 124,
+        "width": 155,
+        "height": 125,
+        "pixels": 12065
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 188
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 58,
+        "right": 142,
+        "bottom": 149,
+        "width": 114,
+        "height": 92,
+        "pixels": 6561,
+        "edgePixels": 0
+      },
+      "sha256": "fcf6c5cdf20587de08c47cc89b4b6517a28f2dc73bd9e9529e37baa8ba30e756"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 744,
+        "top": 59,
+        "width": 155,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 128,
+        "width": 155,
+        "height": 129,
+        "pixels": 11981
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 188
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 55,
+        "right": 141,
+        "bottom": 149,
+        "width": 114,
+        "height": 95,
+        "pixels": 6514,
+        "edgePixels": 0
+      },
+      "sha256": "cf6727ce3a635359a5269fbdd41de46efae1273880407bebc6af48afcedd3447"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 925,
+        "top": 57,
+        "width": 150,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 130,
+        "width": 150,
+        "height": 131,
+        "pixels": 12005
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 188
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 54,
+        "right": 137,
+        "bottom": 149,
+        "width": 110,
+        "height": 96,
+        "pixels": 6486,
+        "edgePixels": 0
+      },
+      "sha256": "c332d14f02a1d1f3ac4e0b64bde6ad4c699e487c2b9e1798146c45efdbc648a8"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 29,
+        "top": 230,
+        "width": 152,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 133,
+        "width": 152,
+        "height": 134,
+        "pixels": 12522
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 365
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 51,
+        "right": 146,
+        "bottom": 148,
+        "width": 112,
+        "height": 98,
+        "pixels": 6835,
+        "edgePixels": 0
+      },
+      "sha256": "b37df3ff1883cbe73867fc1dc4696bfd62a79a09547f175106d7e8aea411e721"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 213,
+        "top": 231,
+        "width": 149,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 133,
+        "width": 149,
+        "height": 134,
+        "pixels": 12154
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 365
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 37,
+        "top": 52,
+        "right": 145,
+        "bottom": 149,
+        "width": 109,
+        "height": 98,
+        "pixels": 6537,
+        "edgePixels": 0
+      },
+      "sha256": "fc825fd8b09b6a854239eb47c9b971ab60b280ea13d3d4bd76f357ca91e3b88d"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 396,
+        "top": 227,
+        "width": 143,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 137,
+        "width": 143,
+        "height": 138,
+        "pixels": 11968
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 365
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 39,
+        "top": 49,
+        "right": 143,
+        "bottom": 149,
+        "width": 105,
+        "height": 101,
+        "pixels": 6482,
+        "edgePixels": 0
+      },
+      "sha256": "86b46396bce11e8316f2d6d4f212125932979b6b9d5239a3c576535a87644fa7"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 574,
+        "top": 221,
+        "width": 143,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 143,
+        "width": 143,
+        "height": 144,
+        "pixels": 12238
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 365
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 44,
+        "right": 140,
+        "bottom": 149,
+        "width": 105,
+        "height": 106,
+        "pixels": 6668,
+        "edgePixels": 0
+      },
+      "sha256": "eebeb8c7e62da95a30a383e7588c4146b7b68d1dfccba6270a9d2b759b37cf29"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 749,
+        "top": 225,
+        "width": 150,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 139,
+        "width": 150,
+        "height": 140,
+        "pixels": 12743
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 365
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 47,
+        "right": 141,
+        "bottom": 149,
+        "width": 110,
+        "height": 103,
+        "pixels": 6950,
+        "edgePixels": 0
+      },
+      "sha256": "c0651392306e148b294c39c398e8bb0bee534e2d8cbe556e06b3fc6ebb00ea71"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 933,
+        "top": 235,
+        "width": 146,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 130,
+        "width": 146,
+        "height": 131,
+        "pixels": 12039
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 365
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 34,
+        "top": 55,
+        "right": 140,
+        "bottom": 150,
+        "width": 107,
+        "height": 96,
+        "pixels": 6505,
+        "edgePixels": 0
+      },
+      "sha256": "3d9074b6b1ca6f1a0d7b70f12b93dcf3197481489052655703fb96fde342c029"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 21,
+        "top": 406,
+        "width": 159,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 136,
+        "width": 159,
+        "height": 137,
+        "pixels": 13150
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 544
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 49,
+        "right": 145,
+        "bottom": 149,
+        "width": 117,
+        "height": 101,
+        "pixels": 7168,
+        "edgePixels": 0
+      },
+      "sha256": "a0a82f56720d7da12ffcb12541f4c9dab9d34348a0509fb732d03606d1ae6bf1"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 204,
+        "top": 403,
+        "width": 158,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 139,
+        "width": 158,
+        "height": 140,
+        "pixels": 12432
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 544
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 30,
+        "top": 47,
+        "right": 145,
+        "bottom": 149,
+        "width": 116,
+        "height": 103,
+        "pixels": 6757,
+        "edgePixels": 0
+      },
+      "sha256": "2cd3bccae1f12da28959195228e73b4846512b141205d9e21b75abff20a7ae86"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 401,
+        "top": 410,
+        "width": 134,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 132,
+        "width": 134,
+        "height": 133,
+        "pixels": 11482
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 544
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 42,
+        "top": 52,
+        "right": 139,
+        "bottom": 149,
+        "width": 98,
+        "height": 98,
+        "pixels": 6276,
+        "edgePixels": 0
+      },
+      "sha256": "3ae4a26f9933d2fae1b96cbdae3bc15e3ad249030647af04346702446682f8f6"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 563,
+        "top": 410,
+        "width": 156,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 133,
+        "width": 156,
+        "height": 134,
+        "pixels": 12562
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 544
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 52,
+        "right": 141,
+        "bottom": 149,
+        "width": 114,
+        "height": 98,
+        "pixels": 6761,
+        "edgePixels": 0
+      },
+      "sha256": "5d3dbe16042ce0b80bb10ecb542983bedb59cfd8f1ae38771abc47943b582cf9"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 740,
+        "top": 408,
+        "width": 160,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 135,
+        "width": 160,
+        "height": 136,
+        "pixels": 12353
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 544
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 50,
+        "right": 141,
+        "bottom": 149,
+        "width": 117,
+        "height": 100,
+        "pixels": 6711,
+        "edgePixels": 0
+      },
+      "sha256": "9f507caf0d59fd9b7f4c762045cfdf503f18a0bc242e49916879e9f9d53d7db3"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 933,
+        "top": 412,
+        "width": 147,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 131,
+        "width": 147,
+        "height": 132,
+        "pixels": 12189
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 544
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 34,
+        "top": 53,
+        "right": 141,
+        "bottom": 149,
+        "width": 108,
+        "height": 97,
+        "pixels": 6597,
+        "edgePixels": 0
+      },
+      "sha256": "36a2f15d8c1f733a1b522e8392c060e17a8d5735b9925391651cdba6214b9d63"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 26,
+        "top": 582,
+        "width": 146,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 141,
+        "width": 146,
+        "height": 142,
+        "pixels": 12669
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 724
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 46,
+        "right": 139,
+        "bottom": 149,
+        "width": 107,
+        "height": 104,
+        "pixels": 6840,
+        "edgePixels": 0
+      },
+      "sha256": "484dc43ddc42cb78db47f4b378042dcc850543383ed11980b47561dc900c416c"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 207,
+        "top": 594,
+        "width": 159,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 129,
+        "width": 159,
+        "height": 130,
+        "pixels": 12522
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 724
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 55,
+        "right": 149,
+        "bottom": 149,
+        "width": 117,
+        "height": 95,
+        "pixels": 6803,
+        "edgePixels": 0
+      },
+      "sha256": "f3e2270b93a84608031f00d9b17d8728c00b169e57424dabb22f01713cf2abd6"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 384,
+        "top": 596,
+        "width": 170,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 127,
+        "width": 170,
+        "height": 128,
+        "pixels": 12525
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 724
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 56,
+        "right": 154,
+        "bottom": 149,
+        "width": 125,
+        "height": 94,
+        "pixels": 6812,
+        "edgePixels": 0
+      },
+      "sha256": "7b80fcd6fdeadc40200b2fcad3a3b2372889911ebb6d9591742edf913adb6db1"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 562,
+        "top": 591,
+        "width": 163,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 132,
+        "width": 163,
+        "height": 133,
+        "pixels": 12617
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 724
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 52,
+        "right": 147,
+        "bottom": 149,
+        "width": 120,
+        "height": 98,
+        "pixels": 6895,
+        "edgePixels": 0
+      },
+      "sha256": "86ac042706f11be8d89785745e6ec94d1881d1cdba213d9b40a2a42c129fb5e0"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 749,
+        "top": 590,
+        "width": 150,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 133,
+        "width": 150,
+        "height": 134,
+        "pixels": 12296
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 724
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 32,
+        "top": 52,
+        "right": 141,
+        "bottom": 149,
+        "width": 110,
+        "height": 98,
+        "pixels": 6637,
+        "edgePixels": 0
+      },
+      "sha256": "661537c19bc075b704295b5fcdbbb381003644149744df5280f7be1b7c6e4bd4"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 923,
+        "top": 589,
+        "width": 157,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 134,
+        "width": 157,
+        "height": 135,
+        "pixels": 12614
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 724
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 51,
+        "right": 141,
+        "bottom": 149,
+        "width": 115,
+        "height": 99,
+        "pixels": 6822,
+        "edgePixels": 0
+      },
+      "sha256": "790edecd80189a01de76c07192f64425676b59010f6cc994f1eacba350e8f6e1"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 26,
+        "top": 770,
+        "width": 152,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 134,
+        "width": 152,
+        "height": 135,
+        "pixels": 12459
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 907
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 49,
+        "right": 144,
+        "bottom": 147,
+        "width": 112,
+        "height": 99,
+        "pixels": 6806,
+        "edgePixels": 0
+      },
+      "sha256": "4f0a9e87d8464cde3fd4dc27357a3fe0532bbfb4577c385d2252a2707ff85130"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 196,
+        "top": 770,
+        "width": 164,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 136,
+        "width": 164,
+        "height": 137,
+        "pixels": 12835
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 907
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 49,
+        "right": 144,
+        "bottom": 149,
+        "width": 120,
+        "height": 101,
+        "pixels": 7029,
+        "edgePixels": 0
+      },
+      "sha256": "99351a99d0b97d8842e222c02323e0ca62b0cd43729d7fcb532f66610833dafe"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 389,
+        "top": 777,
+        "width": 146,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 129,
+        "width": 146,
+        "height": 130,
+        "pixels": 12136
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 907
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 55,
+        "right": 139,
+        "bottom": 149,
+        "width": 107,
+        "height": 95,
+        "pixels": 6563,
+        "edgePixels": 0
+      },
+      "sha256": "658a60d0deb75a2ec3be6de476d830d84e9d434feb3b1f922b3e93ce8a80e5b1"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 563,
+        "top": 770,
+        "width": 164,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 136,
+        "width": 164,
+        "height": 137,
+        "pixels": 12794
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 907
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 49,
+        "right": 147,
+        "bottom": 149,
+        "width": 120,
+        "height": 101,
+        "pixels": 6984,
+        "edgePixels": 0
+      },
+      "sha256": "3fcc0a30bd181b267e1d8f23c066efcfbaf4f632e904b44e03f3d705978588e8"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 747,
+        "top": 771,
+        "width": 150,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 136,
+        "width": 150,
+        "height": 137,
+        "pixels": 12518
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 907
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 30,
+        "top": 50,
+        "right": 139,
+        "bottom": 150,
+        "width": 110,
+        "height": 101,
+        "pixels": 6861,
+        "edgePixels": 0
+      },
+      "sha256": "1b489c41770f585abbafec0de3aeeaad642fa0ea92906ec51a4e28ff5d82bf6e"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 930,
+        "top": 771,
+        "width": 150,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 135,
+        "width": 150,
+        "height": 136,
+        "pixels": 12506
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 907
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 50,
+        "right": 141,
+        "bottom": 149,
+        "width": 110,
+        "height": 100,
+        "pixels": 6799,
+        "edgePixels": 0
+      },
+      "sha256": "dcead541bc7b6fc6f8fee83e8e5addef60459a5457f67005f6167c93e6987f75"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 31,
+        "top": 979,
+        "width": 149,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 112,
+        "width": 149,
+        "height": 113,
+        "pixels": 11981
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1093
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 66,
+        "right": 144,
+        "bottom": 148,
+        "width": 109,
+        "height": 83,
+        "pixels": 6479,
+        "edgePixels": 0
+      },
+      "sha256": "720ec6963abbe15a8c6a34781046a493aa81db77b5a2a8022f94cccaf480e95f"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 208,
+        "top": 974,
+        "width": 149,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 117,
+        "width": 149,
+        "height": 118,
+        "pixels": 12184
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1093
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 33,
+        "top": 63,
+        "right": 141,
+        "bottom": 149,
+        "width": 109,
+        "height": 87,
+        "pixels": 6639,
+        "edgePixels": 0
+      },
+      "sha256": "1ca657e9e983b483e28ef6bce0ac75340c133ae55bdbba4efeebba4c48755dfa"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 376,
+        "top": 941,
+        "width": 164,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 151,
+        "width": 164,
+        "height": 152,
+        "pixels": 13202
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1093
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 38,
+        "right": 143,
+        "bottom": 149,
+        "width": 120,
+        "height": 112,
+        "pixels": 7206,
+        "edgePixels": 0
+      },
+      "sha256": "08fb34d6702c10be26a4de4b42db8b942530c8a2379d150f047561610798f22d"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 564,
+        "top": 941,
+        "width": 154,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 151,
+        "width": 154,
+        "height": 152,
+        "pixels": 13129
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1093
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 38,
+        "right": 141,
+        "bottom": 149,
+        "width": 113,
+        "height": 112,
+        "pixels": 7172,
+        "edgePixels": 0
+      },
+      "sha256": "f85219c5ac32485871da9fee1c6694b2a5cbf93c971640949a2a8fdf91459d48"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 737,
+        "top": 963,
+        "width": 157,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 129,
+        "width": 157,
+        "height": 130,
+        "pixels": 12333
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1093
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 55,
+        "right": 137,
+        "bottom": 149,
+        "width": 115,
+        "height": 95,
+        "pixels": 6657,
+        "edgePixels": 0
+      },
+      "sha256": "0d5232ca8334e77d8f93296f7ec9d0907353dccddfb59c304902cbddfd7ebd8e"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 920,
+        "top": 962,
+        "width": 159,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 130,
+        "width": 159,
+        "height": 131,
+        "pixels": 12223
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1093
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 54,
+        "right": 141,
+        "bottom": 149,
+        "width": 117,
+        "height": 96,
+        "pixels": 6655,
+        "edgePixels": 0
+      },
+      "sha256": "79318c74ee1972ff38352e606d399d1b0341c66b882a3876d71d8d23af424897"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 17,
+        "top": 1129,
+        "width": 165,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 133,
+        "width": 165,
+        "height": 134,
+        "pixels": 13560
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1264
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 51,
+        "right": 146,
+        "bottom": 148,
+        "width": 121,
+        "height": 98,
+        "pixels": 7328,
+        "edgePixels": 0
+      },
+      "sha256": "5d067d61a1b30c3e42da42f7acd4e0b925d054c1f1ff28ba4807abbc95d20747"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 200,
+        "top": 1116,
+        "width": 159,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 146,
+        "width": 159,
+        "height": 147,
+        "pixels": 12751
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1264
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 41,
+        "right": 144,
+        "bottom": 148,
+        "width": 117,
+        "height": 108,
+        "pixels": 6936,
+        "edgePixels": 0
+      },
+      "sha256": "8be8d6bc7644e463f0eb448dd579e141ebc84f3cc0de7d63ced117fd090e238b"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 387,
+        "top": 1131,
+        "width": 151,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 131,
+        "width": 151,
+        "height": 132,
+        "pixels": 12876
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1264
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 32,
+        "top": 52,
+        "right": 142,
+        "bottom": 148,
+        "width": 111,
+        "height": 97,
+        "pixels": 7006,
+        "edgePixels": 0
+      },
+      "sha256": "3d8b17c2bd5087d8cdfe65a3d7834eb0cfe380bdf862176f7cc1c8a1b3f405db"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 570,
+        "top": 1163,
+        "width": 144,
+        "height": 101
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 100,
+        "width": 144,
+        "height": 101,
+        "pixels": 10765
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1264
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 33,
+        "top": 76,
+        "right": 138,
+        "bottom": 149,
+        "width": 106,
+        "height": 74,
+        "pixels": 5856,
+        "edgePixels": 0
+      },
+      "sha256": "400bc906bc1dedf539aaaa8f21ca90ebf9d0b2752c5f16047c56155af4c066f5"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 746,
+        "top": 1153,
+        "width": 151,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 110,
+        "width": 151,
+        "height": 111,
+        "pixels": 11916
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1264
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 69,
+        "right": 140,
+        "bottom": 149,
+        "width": 111,
+        "height": 81,
+        "pixels": 6454,
+        "edgePixels": 0
+      },
+      "sha256": "bde61eaf86440c169f88abe2493f3dd20ea4a9f55126439320f3ce75862daa6f"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 924,
+        "top": 1130,
+        "width": 155,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 133,
+        "width": 155,
+        "height": 134,
+        "pixels": 12625
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1264
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 52,
+        "right": 141,
+        "bottom": 149,
+        "width": 114,
+        "height": 98,
+        "pixels": 6852,
+        "edgePixels": 0
+      },
+      "sha256": "603756122b3673636cde55ebd6e89d9aa6b87d9f9d11225646729aa4f44ac468"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 29,
+        "top": 1314,
+        "width": 150,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 112,
+        "width": 150,
+        "height": 113,
+        "pixels": 12144
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1428
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 66,
+        "right": 144,
+        "bottom": 148,
+        "width": 110,
+        "height": 83,
+        "pixels": 6566,
+        "edgePixels": 0
+      },
+      "sha256": "11d7387441a3cce4eeb80389ef4f3d3bad883041e27396f1ddd7142a4eaba85b"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 199,
+        "top": 1328,
+        "width": 160,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 98,
+        "width": 160,
+        "height": 99,
+        "pixels": 11272
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1428
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 77,
+        "right": 143,
+        "bottom": 149,
+        "width": 117,
+        "height": 73,
+        "pixels": 6152,
+        "edgePixels": 0
+      },
+      "sha256": "c46148d8ec529fe264d9a08c9ff49a8537110b32862d882f550b462230eb6651"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 380,
+        "top": 1339,
+        "width": 158,
+        "height": 88
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 87,
+        "width": 158,
+        "height": 88,
+        "pixels": 10146
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1428
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 27,
+        "top": 85,
+        "right": 142,
+        "bottom": 149,
+        "width": 116,
+        "height": 65,
+        "pixels": 5562,
+        "edgePixels": 0
+      },
+      "sha256": "887cdd198a311e38d17d3a5a9ccbff15d434efba8a6fcf4c287a2c6bb71801a6"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 562,
+        "top": 1344,
+        "width": 155,
+        "height": 84
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 83,
+        "width": 155,
+        "height": 84,
+        "pixels": 8835
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1428
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 88,
+        "right": 141,
+        "bottom": 149,
+        "width": 114,
+        "height": 62,
+        "pixels": 4824,
+        "edgePixels": 0
+      },
+      "sha256": "a362405ad214021113dfde294f26d852df52a3805115dafebc383bd4c45eb76b"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 739,
+        "top": 1354,
+        "width": 158,
+        "height": 74
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 73,
+        "width": 158,
+        "height": 74,
+        "pixels": 8297
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1428
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 96,
+        "right": 140,
+        "bottom": 149,
+        "width": 116,
+        "height": 54,
+        "pixels": 4488,
+        "edgePixels": 0
+      },
+      "sha256": "ac6be809eaf427062d4205a7cc303189e7b5bbae15604181d36ec1ac84836676"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 910,
+        "top": 1356,
+        "width": 165,
+        "height": 72
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 71,
+        "width": 165,
+        "height": 72,
+        "pixels": 8529
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/thorn-sprout/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1428
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 17,
+        "top": 97,
+        "right": 137,
+        "bottom": 149,
+        "width": 121,
+        "height": 53,
+        "pixels": 4638,
+        "edgePixels": 0
+      },
+      "sha256": "df03decea4fca16a755aad1198704228920011eacf19955b11696d650732342d"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      2,
+      3,
+      4,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

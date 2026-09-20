@@ -87,13 +87,11 @@ engine.effects = [];
 const groundSlamSkill = getSkill('fighter_ground_slam');
 engine.pushSkillImpactEffect(220, 330, groundSlamSkill, { ttl: duration, duration });
 const delayedImpact = engine.effects[0];
-assert(delayedImpact.activationDelay > 0, 'contact FX should wait for the player/equipment contact frame');
+assert.strictEqual(delayedImpact.activationDelay, 0, 'contact resolution owns preparation; the impact itself renders immediately with HP change');
 const initialTtl = delayedImpact.ttl;
-engine.updateEffects(delayedImpact.activationDelay / 2);
-assert.strictEqual(delayedImpact.ttl, initialTtl, 'contact delay should not consume the visible FX lifetime');
-assert.strictEqual(engine.getWorldEffectRenderSnapshot(delayedImpact), null, 'pending contact FX should not render early');
-engine.updateEffects(delayedImpact.activationDelay + 0.01);
-assert(delayedImpact.ttl < initialTtl, 'contact FX should start advancing after the contact delay');
+assert(engine.getWorldEffectRenderSnapshot(delayedImpact), 'a resolved contact must render on the same frame');
+engine.updateEffects(0.01);
+assert(delayedImpact.ttl < initialTtl, 'resolved contact FX should start advancing immediately');
 const impactSnapshot = engine.getWorldEffectRenderSnapshot(delayedImpact);
 assert(impactSnapshot.animationFrame && impactSnapshot.combatFxDrawState, 'renderer snapshots should share frame and draw-state data');
 assert.strictEqual(impactSnapshot.combatFxDrawState.size, visuals.createEffectCombatFxDrawState(

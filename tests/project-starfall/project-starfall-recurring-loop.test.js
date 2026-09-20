@@ -99,25 +99,35 @@ assert.strictEqual(cashShopEngine.syncCashShopPurchaseWeek(normalizedRollbackLim
 assert.deepStrictEqual(normalizedRollbackLimitedCashShop.purchaseCountsByWeek, {},
   'counts should clear exactly once when time advances beyond the newest stored week');
 
-const rollbackCashShopEngine = createProjectStarfallEngine(null, data);
-assert.strictEqual(rollbackCashShopEngine.chooseClass('fighter'), true);
-rollbackCashShopEngine.state.cashShop = {
-  starTokens: 415,
-  purchasedItemIds: ['guard_tonic_pack'],
-  purchaseWeekSchema: 2,
-  purchaseWeekId: futureWeek.weekId,
-  purchaseCountsByWeek: { guard_tonic_pack: 2 }
-};
-const rollbackEngineSnapshot = rollbackCashShopEngine.getCashShopSnapshot({ nowMs: referenceNow });
-const rollbackEngineGuardPack = rollbackEngineSnapshot.items.find((item) => item.id === 'guard_tonic_pack');
-assert(rollbackEngineGuardPack && rollbackEngineGuardPack.purchaseCount === 2 && rollbackEngineGuardPack.remainingPurchases === 1,
-  'the integrated engine snapshot should not clear limits when the clock moves to a prior week');
-rollbackCashShopEngine.getCashShopState({ nowMs: futureNow });
-assert.strictEqual(rollbackCashShopEngine.state.cashShop.purchaseCountsByWeek.guard_tonic_pack, 2,
-  'the integrated engine should preserve limits when the clock returns to the newest stored week');
-rollbackCashShopEngine.getCashShopState({ nowMs: futureWeek.endsAt });
-assert.deepStrictEqual(rollbackCashShopEngine.state.cashShop.purchaseCountsByWeek, {},
-  'the integrated engine should clear limits at the next genuine forward boundary');
+const rollbackOriginalDateNow = Date.now;
+try {
+  let rollbackNow = referenceNow;
+  // Runtime normalization and the explicit shop clock must describe the same simulated date.
+  Date.now = () => rollbackNow;
+  const rollbackCashShopEngine = createProjectStarfallEngine(null, data);
+  assert.strictEqual(rollbackCashShopEngine.chooseClass('fighter'), true);
+  rollbackCashShopEngine.state.cashShop = {
+    starTokens: 415,
+    purchasedItemIds: ['guard_tonic_pack'],
+    purchaseWeekSchema: 2,
+    purchaseWeekId: futureWeek.weekId,
+    purchaseCountsByWeek: { guard_tonic_pack: 2 }
+  };
+  const rollbackEngineSnapshot = rollbackCashShopEngine.getCashShopSnapshot({ nowMs: rollbackNow });
+  const rollbackEngineGuardPack = rollbackEngineSnapshot.items.find((item) => item.id === 'guard_tonic_pack');
+  assert(rollbackEngineGuardPack && rollbackEngineGuardPack.purchaseCount === 2 && rollbackEngineGuardPack.remainingPurchases === 1,
+    'the integrated engine snapshot should not clear limits when the clock moves to a prior week');
+  rollbackNow = futureNow;
+  rollbackCashShopEngine.getCashShopState({ nowMs: rollbackNow });
+  assert.strictEqual(rollbackCashShopEngine.state.cashShop.purchaseCountsByWeek.guard_tonic_pack, 2,
+    'the integrated engine should preserve limits when the clock returns to the newest stored week');
+  rollbackNow = futureWeek.endsAt;
+  rollbackCashShopEngine.getCashShopState({ nowMs: rollbackNow });
+  assert.deepStrictEqual(rollbackCashShopEngine.state.cashShop.purchaseCountsByWeek, {},
+    'the integrated engine should clear limits at the next genuine forward boundary');
+} finally {
+  Date.now = rollbackOriginalDateNow;
+}
 
 const legacyState = seasonEngine.createSeasonState({
   activeSeasonId: season.id,

@@ -270,7 +270,7 @@
     align-items: center;
     gap: 8px;
     min-height: 44px;
-    color: #155dfc;
+    color: var(--brand-signal-blue, #005fed);
     font-weight: 650;
     text-underline-offset: 3px;
   }

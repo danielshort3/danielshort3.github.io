@@ -1,0 +1,1989 @@
+{
+  "fileId": "rust-ratchet",
+  "sourceSha256": "89297ea531a0af1c44a45230a58202cb2dfc9020d2181c1ed975b34a823085ab",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    210,
+    386,
+    566,
+    735,
+    914,
+    1108,
+    1448
+  ],
+  "sharedScale": 0.7337931034482759,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 86,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/rust-ratchet-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 936857,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 16,
+        "top": 65,
+        "width": 167,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 116,
+        "width": 167,
+        "height": 117,
+        "pixels": 12089
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 183
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 25,
+        "top": 63,
+        "right": 147,
+        "bottom": 148,
+        "width": 123,
+        "height": 86,
+        "pixels": 6574,
+        "edgePixels": 0
+      },
+      "sha256": "0d5c739bec00326830ce41604556b4c5d3ee302b9cbd83a0789f8acd62ceab41"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 195,
+        "top": 81,
+        "width": 168,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 101,
+        "width": 168,
+        "height": 102,
+        "pixels": 10793
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 183
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 75,
+        "right": 146,
+        "bottom": 149,
+        "width": 123,
+        "height": 75,
+        "pixels": 5855,
+        "edgePixels": 0
+      },
+      "sha256": "a2af2c50b48c2d8cf1ef87bd9bff424b5a9a731b21e04f494ac712e62c9d8000"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 374,
+        "top": 74,
+        "width": 166,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 108,
+        "width": 166,
+        "height": 109,
+        "pixels": 11167
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 183
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 70,
+        "right": 143,
+        "bottom": 149,
+        "width": 122,
+        "height": 80,
+        "pixels": 6062,
+        "edgePixels": 0
+      },
+      "sha256": "e5bd6a534535a0d4b8398b8e6564e4093476a666f9bb53fbeaee3d170b1208a4"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 556,
+        "top": 73,
+        "width": 166,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 109,
+        "width": 166,
+        "height": 110,
+        "pixels": 11216
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 183
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 69,
+        "right": 144,
+        "bottom": 149,
+        "width": 122,
+        "height": 81,
+        "pixels": 6109,
+        "edgePixels": 0
+      },
+      "sha256": "628d69a42fd601725d5640a7f8a3e59c36240151796b869a8ef32125fd49048c"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 731,
+        "top": 70,
+        "width": 156,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 112,
+        "width": 156,
+        "height": 113,
+        "pixels": 11302
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 183
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 19,
+        "top": 67,
+        "right": 132,
+        "bottom": 149,
+        "width": 114,
+        "height": 83,
+        "pixels": 6109,
+        "edgePixels": 0
+      },
+      "sha256": "04b24a6dd66398c875276ac430b8780c7efd5d87698927398aa392da28b1b469"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 915,
+        "top": 71,
+        "width": 162,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 111,
+        "width": 162,
+        "height": 112,
+        "pixels": 11520
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 183
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 68,
+        "right": 139,
+        "bottom": 149,
+        "width": 119,
+        "height": 82,
+        "pixels": 6252,
+        "edgePixels": 0
+      },
+      "sha256": "7a5e25c44ba7019184b7e93213b1beb9510c6dd1bfac790653d80ba1e85b58f2"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 18,
+        "top": 27,
+        "width": 166,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 118,
+        "width": 166,
+        "height": 119,
+        "pixels": 12012
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 146
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 63,
+        "right": 148,
+        "bottom": 149,
+        "width": 122,
+        "height": 87,
+        "pixels": 6506,
+        "edgePixels": 0
+      },
+      "sha256": "a9eb9b0159713b5c1f40a9d6d13f466b90252694e5552e36e87873a3712ce65d"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 195,
+        "top": 40,
+        "width": 167,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 105,
+        "width": 167,
+        "height": 106,
+        "pixels": 11365
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 146
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 72,
+        "right": 146,
+        "bottom": 149,
+        "width": 123,
+        "height": 78,
+        "pixels": 6187,
+        "edgePixels": 0
+      },
+      "sha256": "ee0d958b5f287f92f5d6c0309b10a0a199b8d9c64ffd1c9bc45510c205e2aeaf"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 372,
+        "top": 32,
+        "width": 166,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 113,
+        "width": 166,
+        "height": 114,
+        "pixels": 11710
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 146
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 21,
+        "top": 66,
+        "right": 142,
+        "bottom": 149,
+        "width": 122,
+        "height": 84,
+        "pixels": 6395,
+        "edgePixels": 0
+      },
+      "sha256": "c0ff86d42d80d80650ee0a53288af1717104d7cf5a01eba1d71cacd04ca96bcc"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 552,
+        "top": 27,
+        "width": 168,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 118,
+        "width": 168,
+        "height": 119,
+        "pixels": 11633
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 146
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 63,
+        "right": 142,
+        "bottom": 149,
+        "width": 123,
+        "height": 87,
+        "pixels": 6256,
+        "edgePixels": 0
+      },
+      "sha256": "f852cf59f6030053492823b13650ec9914db43835844cab9399e7eee68d586e6"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 732,
+        "top": 37,
+        "width": 165,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 109,
+        "width": 165,
+        "height": 110,
+        "pixels": 10968
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 146
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 19,
+        "top": 70,
+        "right": 139,
+        "bottom": 150,
+        "width": 121,
+        "height": 81,
+        "pixels": 5965,
+        "edgePixels": 0
+      },
+      "sha256": "97392f0672f3a1c6288ef58c9fc5ff49e0dc2ab61b275eecbcf4b0819bb0d280"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 912,
+        "top": 29,
+        "width": 165,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 116,
+        "width": 165,
+        "height": 117,
+        "pixels": 11705
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 146
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 64,
+        "right": 139,
+        "bottom": 149,
+        "width": 121,
+        "height": 86,
+        "pixels": 6351,
+        "edgePixels": 0
+      },
+      "sha256": "330126088aeb220a7678c6e5b7b0813d15724850e283f590215fa3a8a21edf87"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 12,
+        "top": 30,
+        "width": 168,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 114,
+        "width": 168,
+        "height": 115,
+        "pixels": 12052
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 148
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 22,
+        "top": 63,
+        "right": 144,
+        "bottom": 146,
+        "width": 123,
+        "height": 84,
+        "pixels": 6492,
+        "edgePixels": 0
+      },
+      "sha256": "32b6c2dc3fb0f3febb25caa98af1c24aded9be1df7d953121aa5685bb4160bdb"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 199,
+        "top": 44,
+        "width": 158,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 101,
+        "width": 158,
+        "height": 102,
+        "pixels": 11203
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 148
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 74,
+        "right": 142,
+        "bottom": 148,
+        "width": 116,
+        "height": 75,
+        "pixels": 6085,
+        "edgePixels": 0
+      },
+      "sha256": "8d2fdad70f44a4067007d815b2d34d6d5500c4bebbe5f959e2b765d791a5673f"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 379,
+        "top": 44,
+        "width": 154,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 102,
+        "width": 154,
+        "height": 103,
+        "pixels": 10628
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 148
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 74,
+        "right": 138,
+        "bottom": 149,
+        "width": 113,
+        "height": 76,
+        "pixels": 5806,
+        "edgePixels": 0
+      },
+      "sha256": "c3387b9e66f1a0b8c950ddf34e1e30ded802e026a1fb233f59fc0a620ed9e65b"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 560,
+        "top": 45,
+        "width": 155,
+        "height": 103
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 102,
+        "width": 155,
+        "height": 103,
+        "pixels": 10649
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 148
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 74,
+        "right": 139,
+        "bottom": 149,
+        "width": 114,
+        "height": 76,
+        "pixels": 5820,
+        "edgePixels": 0
+      },
+      "sha256": "3b22e80ce26ec6cbe5e60a772d556d5ea82c61d398759d7983b0eaf814ee565d"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 736,
+        "top": 49,
+        "width": 166,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 105,
+        "width": 166,
+        "height": 106,
+        "pixels": 11020
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 148
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 77,
+        "right": 143,
+        "bottom": 154,
+        "width": 122,
+        "height": 78,
+        "pixels": 5990,
+        "edgePixels": 0
+      },
+      "sha256": "e2a41498583029eb6e8e02f22112567698092439ded977af854100fe63c4905b"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 909,
+        "top": 61,
+        "width": 169,
+        "height": 95
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 94,
+        "width": 169,
+        "height": 95,
+        "pixels": 10183
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 148
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 17,
+        "top": 86,
+        "right": 140,
+        "bottom": 155,
+        "width": 124,
+        "height": 70,
+        "pixels": 5546,
+        "edgePixels": 0
+      },
+      "sha256": "a3b1365bbe695a1584de37a3306cfaefa421caf1dffada6cbe645512932055e5"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 13,
+        "top": 32,
+        "width": 168,
+        "height": 110
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 109,
+        "width": 168,
+        "height": 110,
+        "pixels": 11690
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 144
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 68,
+        "right": 145,
+        "bottom": 148,
+        "width": 123,
+        "height": 81,
+        "pixels": 6359,
+        "edgePixels": 0
+      },
+      "sha256": "76ba3655b4f7869bc305e4617fc8943c465c2c7a2dfed51c81941f1d77101f38"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 200,
+        "top": 38,
+        "width": 171,
+        "height": 107
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 106,
+        "width": 171,
+        "height": 107,
+        "pixels": 11700
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 144
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 72,
+        "right": 152,
+        "bottom": 150,
+        "width": 125,
+        "height": 79,
+        "pixels": 6412,
+        "edgePixels": 0
+      },
+      "sha256": "4d8abe71d39aed7dbe052ef90b310c1e01973423af5c2e231b8f9b910d5c3c0e"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 374,
+        "top": 27,
+        "width": 165,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 116,
+        "width": 165,
+        "height": 117,
+        "pixels": 11915
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 144
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 64,
+        "right": 142,
+        "bottom": 149,
+        "width": 121,
+        "height": 86,
+        "pixels": 6467,
+        "edgePixels": 0
+      },
+      "sha256": "b09cc2a1ed10c4abe6d3287d9abc9fd85970d6c1459f21ff20ac01bca4d96ff7"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 551,
+        "top": 24,
+        "width": 168,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 119,
+        "width": 168,
+        "height": 120,
+        "pixels": 11806
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 144
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 19,
+        "top": 62,
+        "right": 141,
+        "bottom": 149,
+        "width": 123,
+        "height": 88,
+        "pixels": 6382,
+        "edgePixels": 0
+      },
+      "sha256": "08b182489d58a407eaee17bc8adfb1815f0748335ceb650ca925e464438f8406"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 733,
+        "top": 27,
+        "width": 155,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 116,
+        "width": 155,
+        "height": 117,
+        "pixels": 11367
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 144
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 20,
+        "top": 64,
+        "right": 133,
+        "bottom": 149,
+        "width": 114,
+        "height": 86,
+        "pixels": 6182,
+        "edgePixels": 0
+      },
+      "sha256": "0b5490a29bbac5499f10122b16cddf0e4a537cd4e36c446639ddd985253f5c92"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 915,
+        "top": 35,
+        "width": 160,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 108,
+        "width": 160,
+        "height": 109,
+        "pixels": 11266
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 144
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 70,
+        "right": 137,
+        "bottom": 149,
+        "width": 117,
+        "height": 80,
+        "pixels": 6095,
+        "edgePixels": 0
+      },
+      "sha256": "e068460d9030f522a7ab8794f843e78ec59ebee1112994be9ba517d73079ef84"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 17,
+        "top": 41,
+        "width": 165,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 114,
+        "width": 165,
+        "height": 115,
+        "pixels": 11560
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 157
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 65,
+        "right": 146,
+        "bottom": 148,
+        "width": 121,
+        "height": 84,
+        "pixels": 6242,
+        "edgePixels": 0
+      },
+      "sha256": "7e5f26753fd305d612e324a0af31ade89e24f949a2064d262f60cd29cdd3fc8d"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 202,
+        "top": 41,
+        "width": 157,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 114,
+        "width": 157,
+        "height": 115,
+        "pixels": 11424
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 157
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 65,
+        "right": 143,
+        "bottom": 148,
+        "width": 115,
+        "height": 84,
+        "pixels": 6155,
+        "edgePixels": 0
+      },
+      "sha256": "d57cf1598f280fa180504429a6f30736911fad58f74bef11ac8ac949c4fc3110"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 379,
+        "top": 31,
+        "width": 153,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 126,
+        "width": 153,
+        "height": 127,
+        "pixels": 12378
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 157
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 58,
+        "right": 137,
+        "bottom": 150,
+        "width": 112,
+        "height": 93,
+        "pixels": 6675,
+        "edgePixels": 0
+      },
+      "sha256": "ee878fba2e60675c3ff6564086cf463d81cd4ae9c920a106fe8092f0a31f2daf"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 550,
+        "top": 39,
+        "width": 170,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 118,
+        "width": 170,
+        "height": 119,
+        "pixels": 12804
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 157
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 19,
+        "top": 63,
+        "right": 143,
+        "bottom": 149,
+        "width": 125,
+        "height": 87,
+        "pixels": 6957,
+        "edgePixels": 0
+      },
+      "sha256": "61bb31ba3ed321ffb36597b4e64e242550b67af8dab2cef0d61461768a54c1ad"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 732,
+        "top": 24,
+        "width": 145,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 132,
+        "width": 145,
+        "height": 133,
+        "pixels": 10663
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 157
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 19,
+        "top": 52,
+        "right": 124,
+        "bottom": 149,
+        "width": 106,
+        "height": 98,
+        "pixels": 5808,
+        "edgePixels": 0
+      },
+      "sha256": "c419f5f325e79182c0951c27114bee66c8846e1df9cbf645383d280eeb26b113"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 912,
+        "top": 45,
+        "width": 166,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 111,
+        "width": 166,
+        "height": 112,
+        "pixels": 11694
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 157
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 68,
+        "right": 140,
+        "bottom": 149,
+        "width": 122,
+        "height": 82,
+        "pixels": 6346,
+        "edgePixels": 0
+      },
+      "sha256": "827dd681d936779ddacc35261cc83a8c27979e39b7b9f75f9b7429833b1814e0"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 17,
+        "top": 42,
+        "width": 158,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 117,
+        "width": 158,
+        "height": 118,
+        "pixels": 11746
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 162
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 62,
+        "right": 141,
+        "bottom": 148,
+        "width": 116,
+        "height": 87,
+        "pixels": 6416,
+        "edgePixels": 0
+      },
+      "sha256": "e6733918614ed26744ab79300af75bf5206ea4b3d728b24a84a52fd7ebe184c5"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 216,
+        "top": 31,
+        "width": 157,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 130,
+        "width": 157,
+        "height": 131,
+        "pixels": 12531
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 162
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 54,
+        "right": 153,
+        "bottom": 149,
+        "width": 115,
+        "height": 96,
+        "pixels": 6774,
+        "edgePixels": 0
+      },
+      "sha256": "26ac9c1992490d15d481aa9bf03c81aad26f02741b303109891df93ef53564dd"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 384,
+        "top": 21,
+        "width": 162,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 139,
+        "width": 162,
+        "height": 140,
+        "pixels": 12316
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 162
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 47,
+        "right": 148,
+        "bottom": 149,
+        "width": 119,
+        "height": 103,
+        "pixels": 6689,
+        "edgePixels": 0
+      },
+      "sha256": "cab291cf3de347aba39871d88a7ae08aace5f411b17467d8119a0c5371497d7b"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 554,
+        "top": 67,
+        "width": 168,
+        "height": 96
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 95,
+        "width": 168,
+        "height": 96,
+        "pixels": 10247
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 162
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 80,
+        "right": 144,
+        "bottom": 149,
+        "width": 123,
+        "height": 70,
+        "pixels": 5520,
+        "edgePixels": 0
+      },
+      "sha256": "955a195a83e0567858d1c3ad90cee0eb10a08291e2ea7d58020de169e8016594"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 730,
+        "top": 48,
+        "width": 168,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 113,
+        "width": 168,
+        "height": 114,
+        "pixels": 11848
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 162
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 18,
+        "top": 66,
+        "right": 140,
+        "bottom": 149,
+        "width": 123,
+        "height": 84,
+        "pixels": 6463,
+        "edgePixels": 0
+      },
+      "sha256": "d815ff304d9445c04061178a1d0d4c90807924eb8ac66df5d3760a63fc1adf86"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 910,
+        "top": 45,
+        "width": 167,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 115,
+        "width": 167,
+        "height": 116,
+        "pixels": 12128
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 162
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 17,
+        "top": 64,
+        "right": 139,
+        "bottom": 148,
+        "width": 123,
+        "height": 85,
+        "pixels": 6609,
+        "edgePixels": 0
+      },
+      "sha256": "057bc3c24568510b6764b5050c37139b5f1ce2ad559d155756aa0eebaf2c3f25"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 78,
+        "top": 191,
+        "width": 365,
+        "height": 279
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 364,
+        "bottom": 278,
+        "width": 365,
+        "height": 279,
+        "pixels": 62612
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/hit-supplement.png",
+      "scaleFactor": 0.46987951807228917,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 260.5,
+        "y": 470
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 17,
+        "top": 54,
+        "right": 142,
+        "bottom": 149,
+        "width": 126,
+        "height": 96,
+        "pixels": 7600,
+        "edgePixels": 0
+      },
+      "sha256": "6bde3d05900f8af04f0923994c6a3fe813dc06aa62d0b06e4ed5c194767c63bf"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 556,
+        "top": 161,
+        "width": 370,
+        "height": 312
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 369,
+        "bottom": 311,
+        "width": 370,
+        "height": 312,
+        "pixels": 64330
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/hit-supplement.png",
+      "scaleFactor": 0.46987951807228917,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 741,
+        "y": 473
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 16,
+        "top": 42,
+        "right": 143,
+        "bottom": 149,
+        "width": 128,
+        "height": 108,
+        "pixels": 7858,
+        "edgePixels": 0
+      },
+      "sha256": "305717125b19c7837204015d8c7c430ed5dcd3838f73e68ded7ee42e7e321a94"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 1057,
+        "top": 228,
+        "width": 391,
+        "height": 246
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 245,
+        "width": 391,
+        "height": 246,
+        "pixels": 58470
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/hit-supplement.png",
+      "scaleFactor": 0.46987951807228917,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1252.5,
+        "y": 474
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 13,
+        "top": 65,
+        "right": 147,
+        "bottom": 149,
+        "width": 135,
+        "height": 85,
+        "pixels": 7101,
+        "edgePixels": 0
+      },
+      "sha256": "e604d58c940a76362d528cdb863e13b3cfdbfe02c1aaa3b79bf93ce5a4e56502"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 90,
+        "top": 677,
+        "width": 401,
+        "height": 236
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 400,
+        "bottom": 235,
+        "width": 401,
+        "height": 236,
+        "pixels": 61930
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/hit-supplement.png",
+      "scaleFactor": 0.46987951807228917,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 290.5,
+        "y": 913
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 11,
+        "top": 69,
+        "right": 148,
+        "bottom": 149,
+        "width": 138,
+        "height": 81,
+        "pixels": 7461,
+        "edgePixels": 0
+      },
+      "sha256": "8c10abf4d7d1c67c7bb4a03604dd95fd14f8e564ccac65881e5a0acf1f3903a9"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 573,
+        "top": 640,
+        "width": 383,
+        "height": 271
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 382,
+        "bottom": 270,
+        "width": 383,
+        "height": 271,
+        "pixels": 61495
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/hit-supplement.png",
+      "scaleFactor": 0.46987951807228917,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 764.5,
+        "y": 911
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 14,
+        "top": 57,
+        "right": 145,
+        "bottom": 149,
+        "width": 132,
+        "height": 93,
+        "pixels": 7440,
+        "edgePixels": 0
+      },
+      "sha256": "f0908d24d6b1555bcd59a02b39672725c783c6e9c17e52a3002ecfebf07fa7fa"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 1076,
+        "top": 660,
+        "width": 371,
+        "height": 249
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 370,
+        "bottom": 248,
+        "width": 371,
+        "height": 249,
+        "pixels": 57227
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/hit-supplement.png",
+      "scaleFactor": 0.46987951807228917,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1261.5,
+        "y": 909
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 16,
+        "top": 64,
+        "right": 143,
+        "bottom": 149,
+        "width": 128,
+        "height": 86,
+        "pixels": 6964,
+        "edgePixels": 0
+      },
+      "sha256": "30aacafb0ba941ab877ede92f8762f6fa4f4a52d954a8656d959be105fbf7549"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 18,
+        "top": 32,
+        "width": 152,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 115,
+        "width": 152,
+        "height": 116,
+        "pixels": 10855
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 159
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 57,
+        "right": 138,
+        "bottom": 141,
+        "width": 112,
+        "height": 85,
+        "pixels": 5926,
+        "edgePixels": 0
+      },
+      "sha256": "d5df18e87faf2ed268baf5df5f8db8e9ffa26791ae6983ed82e9230c4ba287c4"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 200,
+        "top": 36,
+        "width": 147,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 121,
+        "width": 147,
+        "height": 122,
+        "pixels": 10381
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 159
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 60,
+        "right": 135,
+        "bottom": 149,
+        "width": 108,
+        "height": 90,
+        "pixels": 5668,
+        "edgePixels": 0
+      },
+      "sha256": "81fd247313a391391ebd62e84aa3744ac536ffa9df79792b7d5886b7a97732fd"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 366,
+        "top": 66,
+        "width": 168,
+        "height": 92
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 91,
+        "width": 168,
+        "height": 92,
+        "pixels": 10652
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 159
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 17,
+        "top": 82,
+        "right": 139,
+        "bottom": 149,
+        "width": 123,
+        "height": 68,
+        "pixels": 5832,
+        "edgePixels": 0
+      },
+      "sha256": "775e4bc32ba1bd70dd13a743a8a5bc8d46dadf275e88b46f4b83ec6236365c7f"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 552,
+        "top": 66,
+        "width": 172,
+        "height": 93
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 92,
+        "width": 172,
+        "height": 93,
+        "pixels": 10289
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 159
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 82,
+        "right": 145,
+        "bottom": 149,
+        "width": 126,
+        "height": 68,
+        "pixels": 5540,
+        "edgePixels": 0
+      },
+      "sha256": "9ecd6656707b732bdfa33b85ae7f263fa8d55d27a90ee08bf67ce0ecbf5ce7bc"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 735,
+        "top": 79,
+        "width": 164,
+        "height": 80
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 79,
+        "width": 164,
+        "height": 80,
+        "pixels": 8978
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 159
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 91,
+        "right": 141,
+        "bottom": 149,
+        "width": 120,
+        "height": 59,
+        "pixels": 4885,
+        "edgePixels": 0
+      },
+      "sha256": "eb5a46f5d75397df0385341df22491c48241d6630cfc264249394bec78d9bde0"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 910,
+        "top": 89,
+        "width": 160,
+        "height": 70
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 69,
+        "width": 160,
+        "height": 70,
+        "pixels": 8373
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rust-ratchet/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 159
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 17,
+        "top": 99,
+        "right": 133,
+        "bottom": 149,
+        "width": 117,
+        "height": 51,
+        "pixels": 4496,
+        "edgePixels": 0
+      },
+      "sha256": "56a07054e5504a63eabe36155d2656031847d0e478641543785ffa8e12c65c65"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      4,
+      3,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

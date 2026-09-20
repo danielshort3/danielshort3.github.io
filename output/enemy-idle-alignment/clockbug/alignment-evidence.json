@@ -1,0 +1,351 @@
+{
+  "id": "clockbug",
+  "productionImported": true,
+  "scope": "idle-horizontal only",
+  "visualInspection": "Before/after strips inspected with fixed guides; declared core landmarks and last-to-first horizontal closure improved. Authored vertical motion retained. Other actions not visually certified by this pass.",
+  "landmark": "clock dial and rigid rounded body; antenna key and moving small legs are excluded",
+  "corrections": [
+    {
+      "frame": 0,
+      "measuredPriorBodyDriftX": 0,
+      "outputTranslationX": 0,
+      "previousAnchor": {
+        "x": 90.5,
+        "y": 170
+      },
+      "anchor": {
+        "x": 90.5,
+        "y": 170
+      },
+      "scaleFactor": 1
+    },
+    {
+      "frame": 1,
+      "measuredPriorBodyDriftX": 4,
+      "outputTranslationX": -4,
+      "previousAnchor": {
+        "x": 271.5,
+        "y": 170
+      },
+      "anchor": {
+        "x": 276.5751879699248,
+        "y": 170
+      },
+      "scaleFactor": 1
+    },
+    {
+      "frame": 2,
+      "measuredPriorBodyDriftX": 2,
+      "outputTranslationX": -2,
+      "previousAnchor": {
+        "x": 452.5,
+        "y": 170
+      },
+      "anchor": {
+        "x": 455.0375939849624,
+        "y": 170
+      },
+      "scaleFactor": 1
+    },
+    {
+      "frame": 3,
+      "measuredPriorBodyDriftX": -2,
+      "outputTranslationX": 2,
+      "previousAnchor": {
+        "x": 633.5,
+        "y": 170
+      },
+      "anchor": {
+        "x": 630.9624060150376,
+        "y": 170
+      },
+      "scaleFactor": 1
+    },
+    {
+      "frame": 4,
+      "measuredPriorBodyDriftX": -6,
+      "outputTranslationX": 6,
+      "previousAnchor": {
+        "x": 814.5,
+        "y": 170
+      },
+      "anchor": {
+        "x": 806.8872180451128,
+        "y": 170
+      },
+      "scaleFactor": 1
+    },
+    {
+      "frame": 5,
+      "measuredPriorBodyDriftX": -8,
+      "outputTranslationX": 8,
+      "previousAnchor": {
+        "x": 995.5,
+        "y": 170
+      },
+      "anchor": {
+        "x": 985.3496240601504,
+        "y": 170
+      },
+      "scaleFactor": 1
+    }
+  ],
+  "before": {
+    "coreTranslationSpanX": 12,
+    "fullTranslationSpanX": 12,
+    "offsets": [
+      {
+        "frame": 0,
+        "core": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0,
+          "unshiftedError": 0,
+          "improvement": 0
+        },
+        "full": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0,
+          "unshiftedError": 0,
+          "improvement": 0
+        }
+      },
+      {
+        "frame": 1,
+        "core": {
+          "dx": 4,
+          "dy": 0,
+          "error": 0.03,
+          "unshiftedError": 0.08,
+          "improvement": 0.62
+        },
+        "full": {
+          "dx": 4,
+          "dy": 0,
+          "error": 0.02,
+          "unshiftedError": 0.05,
+          "improvement": 0.58
+        }
+      },
+      {
+        "frame": 2,
+        "core": {
+          "dx": 2,
+          "dy": 0,
+          "error": 0.02,
+          "unshiftedError": 0.03,
+          "improvement": 0.34
+        },
+        "full": {
+          "dx": 2,
+          "dy": 0,
+          "error": 0.02,
+          "unshiftedError": 0.03,
+          "improvement": 0.19
+        }
+      },
+      {
+        "frame": 3,
+        "core": {
+          "dx": -2,
+          "dy": -1,
+          "error": 0.03,
+          "unshiftedError": 0.05,
+          "improvement": 0.47
+        },
+        "full": {
+          "dx": -2,
+          "dy": -1,
+          "error": 0.03,
+          "unshiftedError": 0.04,
+          "improvement": 0.29
+        }
+      },
+      {
+        "frame": 4,
+        "core": {
+          "dx": -6,
+          "dy": 1,
+          "error": 0.03,
+          "unshiftedError": 0.09,
+          "improvement": 0.62
+        },
+        "full": {
+          "dx": -6,
+          "dy": 1,
+          "error": 0.03,
+          "unshiftedError": 0.06,
+          "improvement": 0.5
+        }
+      },
+      {
+        "frame": 5,
+        "core": {
+          "dx": -8,
+          "dy": 1,
+          "error": 0.02,
+          "unshiftedError": 0.1,
+          "improvement": 0.77
+        },
+        "full": {
+          "dx": -8,
+          "dy": 0,
+          "error": 0.03,
+          "unshiftedError": 0.08,
+          "improvement": 0.67
+        }
+      }
+    ]
+  },
+  "after": {
+    "coreTranslationSpanX": 0,
+    "fullTranslationSpanX": 0,
+    "offsets": [
+      {
+        "frame": 0,
+        "core": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0,
+          "unshiftedError": 0,
+          "improvement": 0
+        },
+        "full": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0,
+          "unshiftedError": 0,
+          "improvement": 0
+        }
+      },
+      {
+        "frame": 1,
+        "core": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0.03,
+          "unshiftedError": 0.03,
+          "improvement": 0
+        },
+        "full": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0.02,
+          "unshiftedError": 0.02,
+          "improvement": 0
+        }
+      },
+      {
+        "frame": 2,
+        "core": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0.02,
+          "unshiftedError": 0.02,
+          "improvement": 0
+        },
+        "full": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0.02,
+          "unshiftedError": 0.02,
+          "improvement": 0
+        }
+      },
+      {
+        "frame": 3,
+        "core": {
+          "dx": 0,
+          "dy": -1,
+          "error": 0.03,
+          "unshiftedError": 0.04,
+          "improvement": 0.26
+        },
+        "full": {
+          "dx": 0,
+          "dy": -1,
+          "error": 0.03,
+          "unshiftedError": 0.03,
+          "improvement": 0.12
+        }
+      },
+      {
+        "frame": 4,
+        "core": {
+          "dx": 0,
+          "dy": 1,
+          "error": 0.03,
+          "unshiftedError": 0.05,
+          "improvement": 0.27
+        },
+        "full": {
+          "dx": 0,
+          "dy": 1,
+          "error": 0.03,
+          "unshiftedError": 0.04,
+          "improvement": 0.13
+        }
+      },
+      {
+        "frame": 5,
+        "core": {
+          "dx": 0,
+          "dy": 1,
+          "error": 0.02,
+          "unshiftedError": 0.03,
+          "improvement": 0.06
+        },
+        "full": {
+          "dx": 0,
+          "dy": 0,
+          "error": 0.03,
+          "unshiftedError": 0.03,
+          "improvement": 0
+        }
+      }
+    ]
+  },
+  "sourceHash": "d851ee38db49cafd3f918e58b29367f284e22b265b2ba34bc34f44dd1c46f3c4",
+  "sourceUnchanged": true,
+  "productionUnchanged": true,
+  "unchangedOtherActionFrames": 42,
+  "identityScaleUnchanged": true,
+  "verticalAnchorsUnchanged": true,
+  "translationPreservation": [
+    {
+      "frame": 0,
+      "shiftX": 0,
+      "changedChannelsAfterAccountingForTranslation": 0
+    },
+    {
+      "frame": 1,
+      "shiftX": -4,
+      "changedChannelsAfterAccountingForTranslation": 0
+    },
+    {
+      "frame": 2,
+      "shiftX": -2,
+      "changedChannelsAfterAccountingForTranslation": 0
+    },
+    {
+      "frame": 3,
+      "shiftX": 2,
+      "changedChannelsAfterAccountingForTranslation": 0
+    },
+    {
+      "frame": 4,
+      "shiftX": 6,
+      "changedChannelsAfterAccountingForTranslation": 0
+    },
+    {
+      "frame": 5,
+      "shiftX": 8,
+      "changedChannelsAfterAccountingForTranslation": 0
+    }
+  ],
+  "beforeSheetHash": "477880e71c3d7976e282b93d491ef6e8b71d8b028c8379a76fea1587c9c1d77c",
+  "afterReviewSheetHash": "6af8ee6fca8ba943def79b24ee9c05707f61bf7cc79dd276cdee503a31e5f728",
+  "productionSheetSha256": "6af8ee6fca8ba943def79b24ee9c05707f61bf7cc79dd276cdee503a31e5f728",
+  "productionVerifiedAt": "2026-09-20T00:18:59.862Z"
+}

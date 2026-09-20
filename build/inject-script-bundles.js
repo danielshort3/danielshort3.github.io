@@ -31,7 +31,8 @@ const managedHrefs = {
   privacy: resolveHref('site-privacy.js', manifest.privacy),
   toolsAccount: resolveHref('site-tools-account.js', manifest.toolsAccount),
   toolsLanding: resolveHref('site-tools-landing.js', manifest.toolsLanding),
-  projectStarfall: resolveHref('project-starfall.js', manifest.projectStarfall)
+  projectStarfall: resolveHref('project-starfall.js', manifest.projectStarfall),
+  projectStarfallHurtboxes: resolveHref('project-starfall-hurtboxes.js', manifest.projectStarfallHurtboxes)
 };
 const SITE_SHELL_BUNDLE_PATTERN = /<script\b[^>]*\bsrc=(["'])\/?dist\/site-shell(?:\.[0-9a-f]{8})?\.js\1[^>]*>\s*<\/script>/gi;
 
@@ -233,6 +234,7 @@ function processHtml(html, relPath) {
     if (isProjectStarfall && (
       /^<script\s+defer\s+src="js\/games\/project-starfall\/.+\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
       || isManagedLine(trimmed, 'project-starfall')
+      || /^<script\s+defer\s+src="js\/vendor\/pixi-unsafe-eval\.min\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
     )) {
       return;
     }
@@ -240,6 +242,9 @@ function processHtml(html, relPath) {
     if (isProjectStarfall && /^<script\s+defer\s+src="js\/vendor\/pixi\.min\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)) {
       out.push(line);
       if (!projectStarfallInserted) {
+        // Pixi's matching official polyfill interprets shader synchronization
+        // without dynamic code generation, preserving the site's strict CSP.
+        out.push(`${indent}<script defer src="js/vendor/pixi-unsafe-eval.min.js?v=8.18.1"></script>`);
         out.push(`${indent}<script defer src="${managedHrefs.projectStarfall}"></script>`);
         projectStarfallInserted = true;
       }
@@ -407,7 +412,13 @@ function processHtml(html, relPath) {
     normalized = ensureSiteShellBundleInHead(normalized);
   }
 
-  const next = normalized.join('\n').replace(/^[ \t]+$/gm, '');
+  let next = normalized.join('\n').replace(/^[ \t]+$/gm, '');
+  if (isProjectStarfall) {
+    next = next.replace(/<section\b[^>]*\bdata-starfall-root\b[^>]*>/, (tag) => {
+      const clean = tag.replace(/\s+data-starfall-hurtboxes-src="[^"]*"/g, '');
+      return clean.replace(/>$/, ` data-starfall-hurtboxes-src="${managedHrefs.projectStarfallHurtboxes}">`);
+    });
+  }
   const finalized = finalizePersonalRouteDocument(next, { home: relPath === 'index.html' });
   if (/\bid="site-route-manifest"/i.test(finalized)) validatePersonalRouteDocument(finalized);
   return { html: finalized, changed: finalized !== html };

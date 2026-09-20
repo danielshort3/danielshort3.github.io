@@ -898,10 +898,12 @@
   body.personal-accordion-page[data-personal-category="tools"] .tools-account-tools-link,
   body.personal-accordion-page[data-personal-category="tools"] .tools-account-bar :is(.btn-primary, .btn-secondary, .btn-ghost),
   body.personal-accordion-page[data-personal-category="tools"] .tools-account-trigger {
-    min-block-size: 44px;
-    padding: 8px 11px;
-    border-radius: 6px;
-    font-size: .8rem;
+    min-block-size: var(--control-height, 44px);
+    padding: var(--control-padding, 10px 14px);
+    border-radius: var(--radius-control, 8px);
+    font-size: var(--control-font-size, .875rem);
+    font-weight: 600;
+    line-height: 1.4;
   }
 
   body.personal-accordion-page[data-personal-category="tools"] .tools-account-tools-link:is(:hover, :focus-visible),

@@ -4,6 +4,10 @@ This guide is the working instruction manual for designing, improving, balancing
 
 Primary design authority: `docs/project-starfall/project_starfall_gdd_v0_5.md`.
 
+Combat presentation authority: [Combat Visual Language v1](ASSET_GENERATION_GUIDE.md#combat-visual-language-v1). Its semantic palette, timing, targeting, and readability rules govern the class-specific guidance below. The [illustrated-v1 migration report](ASSET_OVERHAUL_V1.md) records the current production formats, shared event hooks, and validation limits; this guide does not certify every existing skill or generated pose as compliant.
+
+Art direction authority: [Confirmed art direction and references](ASSET_GENERATION_GUIDE.md#confirmed-art-direction-and-references). Use clean illustrated sprites with crisp edges and controlled shading, preserving the approved compact player identity. The tone is warm adventure with credible danger; this direction does not impose strict pixel art or a new head-to-body ratio.
+
 Primary implementation authority:
 
 - `js/games/project-starfall/data/classes.js`
@@ -350,12 +354,15 @@ Every active skill should be designed as this sequence:
 
 1. Input request.
 2. Usability check: unlocked, rank > 0, not passive, not action-locked, enough MP, enough class resource if needed, movement rules pass, cooldown ready.
-3. Startup: anticipation pose, cast frame, aim state, trap arm time, guard raise, or leap windup.
-4. Active event: hitbox, projectile, trap, field, buff, shield, mark, summon, or movement.
-5. Enemy reaction: hit stop, knockback, stagger, burn, slow, crack, mark, link, lure, or break-gauge progress.
-6. Recovery: player vulnerability, landing recovery, weapon recoil, casting settle, trap aftercast.
-7. Cooldown and resource feedback.
-8. Upgrade hooks and telemetry.
+3. Preparation: anticipation pose, cast gather, aim state, trap arm time, or leap windup; show intent while any permitted target tracking remains active.
+4. Commit: lock the declared target, facing, lane, or area before contact; keep its warning fixed for the applicable commitment interval.
+5. Contact or release: one gameplay event activates the hitbox, launches the projectile, applies healing/status/protection, or triggers the trap, field, summon, or movement. Contact VFX, sound, HP changes, and hit reactions share that event. Projectile release and later collision are separate events.
+6. Enemy reaction: hit stop, knockback, stagger, burn, slow, crack, mark, link, lure, or break-gauge progress.
+7. Recovery: player vulnerability, landing recovery, weapon recoil, casting settle, trap aftercast.
+8. Cooldown and resource feedback.
+9. Upgrade hooks and telemetry.
+
+Use the timing exceptions in section 8 for responsive player basics, reactive defense, and continuing effects. Preparation and commitment do not impose a new delay on every action.
 
 ### Skill Design Sheet Template
 
@@ -368,6 +375,8 @@ Every active skill should be designed as this sequence:
 - Purpose:
 - Player decision:
 - Startup time:
+- Commit point and target-lock interval:
+- Contact/release event and matching animation pose:
 - Active frames:
 - Recovery time:
 - Range:
@@ -542,7 +551,7 @@ The recommended roster is the existing roster. Do not add extra archetypes until
 - Strengths: safe lane control, groups, marked payoff, enemy clusters.
 - Weaknesses: interrupted casting, airborne restrictions, fast melee rushers if Blink is wasted.
 - Required animations: cast windup, projectile release, blink vanish/reappear, shield cast, burst release.
-- Required VFX: blue arcane bolts, mark sigil, blink sparkle, shield shell.
+- Required VFX: arcane bolts with blue identity accents, mark sigil, blink sparkle, shield shell; each effect retains its canonical damage, impairment, movement, or protection cue.
 - Required UI elements: MP clarity, Energy meter, mark indicator.
 - Implementation notes: preserve caster foot-planting so spell windows have risk.
 - Balance risks: Blink plus long range can trivialize melee maps if enemy pressure and MP costs are too low.
@@ -562,7 +571,7 @@ The recommended roster is the existing roster. Do not add extra archetypes until
 - Strengths: flyers, priority targets, safe kiting, vertical ranged lanes.
 - Weaknesses: cramped arenas, blockers, enemies that force close-range panic, swarms from both sides.
 - Required animations: bow draw, quick release, roll-shot, stance, volley.
-- Required VFX: golden arrow streaks, mark flash, pierce trail.
+- Required VFX: arrow streaks with gold identity accents, mark flash, pierce trail; damage and impairment cues remain semantically distinct from buffs.
 - Required UI elements: Focus meter, mark state, stance buff.
 - Implementation notes: keep Archer mobile but require line of sight, platform management, and target choice.
 - Balance risks: too much range plus too much mobility makes melee enemy design irrelevant.
@@ -582,7 +591,7 @@ The recommended roster is the existing roster. Do not add extra archetypes until
 - Strengths: armored enemies, boss sustain, charger enemies, party safety.
 - Weaknesses: spread flyers, enemies that refuse contact, long-range turret maps.
 - Required animations: shield idle, bash, shield dash, guard brace, barrier plant, counter wave.
-- Required VFX: blue/steel shields, shockwaves, impact rings, crack icons.
+- Required VFX: shields, shockwaves, impact rings, crack icons with steel-blue identity accents; protection, damage, and impairment each use their canonical core and symbol.
 - Required UI elements: Stored Impact segments, block window flash, active barrier timer.
 - Implementation notes: add explicit guard timing and blocked-hit feedback before adding more Guardian skills.
 - Balance risks: permanent high defense can remove skill expression; Guardian must still need timing and positioning.
@@ -602,7 +611,7 @@ The recommended roster is the existing roster. Do not add extra archetypes until
 - Strengths: boss pressure, dense melee packs, sustained solo fights.
 - Weaknesses: bursty enemies, ranged kite maps, hazard-heavy arenas, heal denial.
 - Required animations: heavy cleave, rage pulse, leap slam, recovery slash, last stand burst.
-- Required VFX: red/orange slash arcs, rage aura, bloodless crimson energy, danger pulse.
+- Required VFX: slash arcs, rage aura, bloodless crimson identity accents, danger pulse. Give each effect the canonical damage, buff, healing, or danger treatment; a Rage buff must not read as incoming damage, and Crimson Recovery must show healing at its HP event.
 - Required UI elements: Rage meter, low-HP threshold marker, recovery cooldown, danger state.
 - Implementation notes: distinguish safe training from risky boss burst. The player must know when they are in the danger band.
 - Balance risks: if sustain is too high, low-HP play becomes fake risk. If too low, the class feels unfair.
@@ -742,7 +751,7 @@ The recommended roster is the existing roster. Do not add extra archetypes until
 - Strengths: solo sustain, hybrid party contribution, marked targets, long fights.
 - Weaknesses: companion-hostile boss mechanics, very fast target swaps, high burst damage.
 - Required animations: archer shot with companion cue, pounce roll, pack call, companion attack, companion recall.
-- Required VFX: claw sparks, pack marks, green/gold bond aura, companion trail.
+- Required VFX: claw sparks, pack marks, bond aura, companion trail. Green/gold class accents remain secondary to the canonical buff, healing, or damage treatment so Pack Call does not imply healing unless it restores HP.
 - Required UI elements: Bond meter, companion status, companion cooldown/position, pack mark state.
 - Implementation notes: this branch needs a true companion actor or at least a visible companion proxy before its fantasy is complete.
 - Balance risks: if companion damage is passive and safe, the class becomes low-interaction. Make companion timing active.
@@ -821,14 +830,19 @@ Use pure number scaling for ranks 2-4 and 6-9. Use behavior changes for ranks 5 
 
 ### Animation Timing Rules
 
-- Basic attacks: 4 to 8 frames of anticipation, fast impact, short recovery.
-- Primary training skills: readable but snappy. Do not exceed the current low-cooldown class rhythm.
-- Heavy melee: longer anticipation, strong impact pause, visible recovery.
-- Caster fields: clear cast pose, visible ground marker before full damage.
-- Projectile skills: muzzle/cast flash, readable projectile body, clear impact.
-- Defensive skills: protection must appear before the dangerous hit lands.
-- Mobility skills: start direction must be legible before movement blur or blink.
-- Ultimates/finishers: larger anticipation and recovery are acceptable if payoff is clear.
+Apply [Combat Visual Language v1](ASSET_GENERATION_GUIDE.md#combat-visual-language-v1). Specify durations in milliseconds or seconds and map poses onto them; source frame count is not a measure of reaction time.
+
+- Player basic attacks stay quick: preserve the current 90 ms melee and 130 ms ranged release baselines unless a separately reviewed combat change justifies different timing. Use a brief readable preparation pose, clear contact/release, and short recovery; do not impose several full sprite frames of delay or the enemy commitment minimum on routine player basics.
+- Offensive skills currently prepare for 166.7 ms before `updatePendingSkillActions` resolves their contact/release; mobility and reactive defense retain their own immediate action rules. Heavy attacks and finishers may use longer preparation and recovery only through a separately reviewed gameplay change.
+- Initial enemy warning baselines are 420 ms for melee, 540 ms for ranged release, and 750 ms for charges. Major attacks generally get about 1 second or more, with existing longer encounter warnings preserved until reviewed. These describe the full warning, including commitment, rather than an extra delay added afterward.
+- During the final commitment interval, freeze the declared target/facing/area for at least 200 ms on ordinary enemy attacks and 300 ms on major attacks. No late tracking or marker drift after commitment. Use a longer preparation phase when the attack needs more response time.
+- Normal healing uses a 350 ms gather before the healing pulse. Apply the HP increase on that pulse, with its plus/halo cue, then dissipate during recovery. Reactive or on-hit recovery must instead match its explicitly documented trigger and must not imply a cast delay that gameplay does not use.
+- Reactive defense grants protection and shows its protection cue on the same simulation frame as successful activation. Decorative growth or recovery may follow; a shield, block, or emergency defense must not wait for a flourish to become effective.
+- Projectile release, travel, and collision each have an honest visual event. Muzzle/cast flash accompanies launch; impact and HP change accompany collision. Homing and permitted retargeting must be explicit in the attack design and visible travel behavior.
+- Damage-over-time ticks and persistent fields use an established active-state cue plus a matching pulse at each application. They do not restart a full windup on every tick. Placement and any later detonation have their own declared event timing.
+- Movement starts with a legible directional cue. Blink endpoints, travel, and protection windows must match the actual movement events.
+
+The illustrated migration connects preparation and contact/release to pending action events. Preserve that coupling when extending recovery, commitment, or new skill types. An arbitrary visual delay after damage is not anticipation. When an action is cancelled before contact, cancel both its pending gameplay event and corresponding warning/contact VFX; post-release projectile persistence follows its declared cancellation rule. Cooldown, haste, interruption, and frame holds must not independently move the visible contact away from the gameplay event. Enemy telegraphs hold their final pose for the commitment interval; a pose hold does not replace accurate target and marker locking.
 
 ### Impact Rules
 
@@ -836,14 +850,18 @@ Use pure number scaling for ranks 2-4 and 6-9. Use behavior changes for ranks 5 
 - Use screen shake only for heavy melee, boss break, slam, ultimate, or major crits.
 - Keep normal repeated hits stable to avoid visual fatigue.
 - Enemy hit reaction should identify hit type: stagger, knockback, burn, crack, mark, slow, or defeat.
+- Show weight through anatomy-appropriate preparation, foot contact, recoil, and settling. Humanoid joints and equipment should articulate consistently; reserve squash and stretch for bodies or materials that support it, rather than giving every actor the same elastic bounce.
 
 ### VFX Clarity Rules
 
+- Use the [canonical semantic palette and symbols](ASSET_GENERATION_GUIDE.md#combat-visual-language-v1) for healing, damage, protection, buffs, debuffs, resources, danger, and safety. Class and element colors are secondary identity accents; they must not replace or reverse the effect's gameplay meaning.
+- Pair color with shape and motion so healing, damage, and protection remain distinguishable without hue. A mixed skill uses distinct cues for its separate effects, such as a strike cue and healing pulse; show them simultaneously when the hit and HP gain resolve together.
+- Keep effect meaning independent of allegiance: enemy healing is still healing. Use the canonical smooth friendly or segmented enemy outer treatment and identifiable source/recipient rather than changing semantic color.
 - Skill VFX must not hide enemy telegraphs, hazards, ledges, ladders, or player feet.
 - Keep field effects translucent enough to see enemy silhouettes.
-- Use different shape language by class:
-  - Guardian: shields, rings, steel-blue shockwaves.
-  - Berserker: red arcs, rage pulses, aggressive slash trails.
+- Use different shape language by class within that semantic treatment:
+  - Guardian: shields, rings, shockwaves with steel-blue identity accents.
+  - Berserker: arcs, rage pulses, aggressive slash trails with crimson identity accents; preserve distinct buff and healing cues.
   - Duelist: thin cuts, afterimages, lock glints.
   - Fire Mage: flame tongues, ash, heat shimmer.
   - Rune Mage: geometric glyphs, circles, linked lines.
@@ -852,7 +870,11 @@ Use pure number scaling for ranks 2-4 and 6-9. Use behavior changes for ranks 5 
   - Trapper: wires, trap rings, mechanical/nature devices.
   - Beast Archer: claw sparks, companion trails, pack aura.
 - Do not stack multiple full-screen effects from normal skills.
+- Keep ordinary effects compact and restrained. Give important heals, heavy hits, and boss tells stronger emphasis through clear symbols, deliberate motion, and controlled scale or brightness; retain the semantic palette and keep actors and danger boundaries visible.
 - Do not use VFX as decoration if it does not communicate timing, area, or status.
+- Reserve ground/area markers for AoE, charges, and delayed hazards that require positional decisions. Routine melee and basic shots can communicate intent through pose, facing, and a compact cue; do not add a floor marker to every action.
+- Warning geometry and damage geometry must share the same lane, radius, boundary, platform height, and safe/danger polarity. At commitment, lock the geometry shown to the player; do not silently recenter it at impact. Explicitly homing projectiles remain a declared travel behavior, not permission to move a committed ground marker.
+- Cancellation removes the marker when the pending hazard is removed. Persistent hazards keep a lower-intensity active cue until their damage state ends. Preserve these meanings in both Canvas and Pixi.
 
 ### Side-Scroller Terrain Rules
 
@@ -1021,13 +1043,15 @@ The engine should treat active skills as states:
 - `recovery`
 - `cooldown`
 
-Current code already validates cooldown, MP, action lock, climb state, movement rules, and rank. The next polish step is to make startup/recovery data explicit so designers can tune feel without rewriting engine branches.
+Current code validates cooldown, MP, action lock, climb state, movement rules, and rank, and defers offensive skill resolution to its prepared contact event. Extend preparation and commitment within `startup`, and release/contact events within `active`, following section 8 and [Combat Visual Language v1](ASSET_GENERATION_GUIDE.md#combat-visual-language-v1). The lifecycle vocabulary is a design model, not a declaration of new exported fields. Verify gameplay, animation, VFX, sound, cancellation, and marker lifetime against the same events before claiming compliance.
 
 ### Hitbox And Projectile Guidance
 
 - Keep melee hitboxes tied to facing and lane.
 - Keep projectiles lane-readable and right/left facing.
 - Use `targeting` fields for range, speed, count, pierce, chain, explosion, slow, mark, burn, crack, and homing.
+- Declare whether aiming tracks during preparation, when it locks, and whether a released projectile can home or retarget. Never hide a late aim change behind an already committed warning.
+- Derive warning markers and impact tests from shared geometry, including platform height and safe-zone polarity; independently approximated circles or lane widths are insufficient.
 - Use `targetCaps` for every field, chain, trap, and area skill.
 - Use platform surface checks for traps, glyphs, and ground effects.
 - Keep boss hitbox interactions predictable. Boss size should not multiply every field tick unless explicitly intended.
@@ -1072,18 +1096,21 @@ Add or maintain debug views for:
 
 ## 11. Required Animation And Asset Guidance For Skills
 
+Apply the [confirmed art direction and approved references](ASSET_GENERATION_GUIDE.md#confirmed-art-direction-and-references) to every prompt below. Preserve the current player's compact silhouette, face, proportions, and approved equipment identity while improving finish and motion. Clean illustrated edges and controlled shading take precedence over enforcing a pixel grid; export dimensions remain technical contracts, not instructions to redesign the actor.
+
 ### Current Asset Contracts
 
-Observed in `data/animations.js`, `data/combat-fx.js`, and `img/project-starfall/asset-prompts.md`:
+Authoritative contracts are in `data/animations.js`, `data/combat-fx.js`, the asset manifest, and the [illustrated production ownership table](ASSET_GENERATION_GUIDE.md#illustrated-production-ownership). Older `img/project-starfall/asset-prompts.md` notes are historical:
 
-- Player runtime sheets use a 6 by 10 grid of 160px frames.
+- The shared compact player uses an 8 by 10 grid of 160px frames, 1280x1600; class identity comes from equipment and skills rather than twelve separate body sheets.
 - Player rows: idle, run, jump, fall, climb, basic, skill, party, hit, defeat.
-- Enemy sheets use a 6 by 8 grid.
+- Enemy sheets use a 6 by 8 grid of 160px frames, 960x1280.
 - Enemy rows: idle, move, telegraph, attack, projectile, buff, hit, defeat.
 - Skill FX sheets use a 6 by 4 grid.
 - Skill FX rows: cast, projectile, impact, area.
-- Source sheets should include thin `#00ffff` guide lines around cells.
-- Chroma backgrounds are generally flat `#ff00ff` or `#00ff00`, depending on processor.
+- Illustrated actor masters use genuine alpha, empty gutters, measured source cells and shared scale; no cyan guide grid or per-pose resizing.
+- Combat FX are authored through the native semantic-art generator or their recorded alpha masters. Some icon batches use an explicitly recorded green extraction key; never assume every family uses chroma.
+- Player FPS and weighted holds live in `data/animations.js`; basic melee contact 90 ms, ranged release 130 ms, offensive skill contact/release 166.7 ms, and normal healing pulse 350 ms remain event timings, not frame counts.
 - Icons should be centered, readable, text-free, label-free, and watermark-free.
 
 ### Required Assets By Skill Type
@@ -1100,8 +1127,10 @@ Observed in `data/animations.js`, `data/combat-fx.js`, and `img/project-starfall
 
 ### Recommended Frame Counts
 
-- Basic/primary: 6 frames are enough if anticipation, strike, and recovery are distinct.
-- Heavy/finisher: use 6 frames but exaggerate frame 2 or 3 for anticipation and frame 4 for impact.
+These counts describe the existing sheet contracts. Frame count and pose order do not set gameplay timing; use the timed event mapping in section 8. Changing a sheet contract requires a separate manifest, processor, and runtime migration.
+
+- Player basic/primary: 8 frames represent preparation, strike/release, and recovery, with weighted holds preserving the quick contact/release baseline. Read the actual holds from `data/animations.js`.
+- Heavy/finisher: use distinct preparation, committed, impact, and recovery poses within the available frames. Identify the contact pose in metadata; do not assume frame 4 is the contact time for every action.
 - Projectile loops: 6 projectile frames should read as motion, not flicker.
 - Field effects: 6 area frames should loop softly and not cover actors.
 - Hit effects: 3 to 6 visible frames, fast fade.
@@ -1111,37 +1140,37 @@ Observed in `data/animations.js`, `data/combat-fx.js`, and `img/project-starfall
 #### Class Idle Pose
 
 ```text
-Create a Project Starfall playable class sprite source cell for [CLASS NAME]. Style: Starlit Frontier Fantasy, clean cel-shaded side-scroller sprite, crisp contour outline, readable silhouette, practical crafted gear, luminous fallen-star accents. Pose: idle side-view stance facing right, full body connected silhouette, no detached limbs, no attack motion. Background: transparent-ready flat #ff00ff. No text, no labels, no watermark.
+Create a Project Starfall playable class sprite source cell for [CLASS NAME] using [APPROVED PLAYER REFERENCE] to preserve the compact silhouette, face, proportions, and equipment identity. Style: Starlit Frontier Fantasy, clean illustrated side-scroller sprite with crisp edges and controlled shading, practical crafted gear, luminous fallen-star accents, warm adventure with credible danger. Pose: idle side-view stance facing right, full body connected silhouette, no detached limbs, no attack motion. Background: genuine alpha with empty gutters. No drawn grid, text, labels, or watermark.
 ```
 
 #### Basic Attack Animation Sheet
 
 ```text
-Create a 6-frame horizontal sprite animation row for [CLASS NAME] using Project Starfall's 160px player frame style. Action: [basic melee swing / bow shot / spell cast]. Include clear anticipation, strike or release, and recovery. Keep feet and weapon readable in side view, facing right. Use transparent-ready flat #ff00ff background and thin #00ffff guide lines around each cell. No text, no UI, no watermark.
+Create an 8-pose horizontal sprite animation row for [CLASS NAME] using Project Starfall's 160px player frame contract and [APPROVED PLAYER REFERENCE]. Preserve the compact actor identity in a clean illustrated finish with crisp edges and controlled shading. Action: [basic melee swing / bow shot / spell cast]. Follow the approved preparation, commit, contact/release, and recovery pose plan [POSE PLAN]; frame count does not set the runtime delay. Show anatomy-appropriate weight transfer, articulated limbs, and stable equipment. Keep feet and weapon readable in side view, facing right, at one shared scale and the declared registration anchor. Use genuine alpha and empty gutters with no drawn grid. No text, no UI, no watermark.
 ```
 
 #### Special Skill FX Sheet
 
 ```text
-Create a 6 by 4 bordered sprite sheet for Project Starfall skill VFX: [SKILL NAME]. Rows in order: cast, projectile, impact, area. Six frames per row. Style: Starlit Frontier Fantasy, readable side-scroller combat VFX, [CLASS VFX LANGUAGE], clear silhouettes, no character bodies, no UI, no text, no labels, no watermark. Use flat #ff00ff or #00ff00 chroma background and thin #00ffff guide lines. Do not use #00ffff inside the art.
+Create a 6 by 4 transparent sprite sheet for Project Starfall skill VFX: [SKILL NAME]. Rows in order: cast, projectile, impact, area. Six frames per row. Follow Combat Visual Language v1 with [SEMANTIC EFFECT PALETTE AND SYMBOLS]; use [CLASS VFX LANGUAGE] as secondary identity accents. Match [RELEASE/CONTACT EVENT AND GEOMETRY]. Style: Starlit Frontier Fantasy, readable side-scroller combat VFX, clear silhouettes, no character bodies, no UI, no text, no labels, no watermark. Use genuine alpha and empty gutters without drawn grid lines; preserve cyan protection and mint healing symbols.
 ```
 
 #### Skill Icon
 
 ```text
-Create one centered RPG skill icon for Project Starfall: [SKILL NAME]. Symbol should communicate [PURPOSE] for [CLASS NAME]. Style: Starlit Frontier Fantasy, clean cel-shaded icon, readable at 64px, crisp outline, no UI frame, no text, no numerals, no watermark. Use flat #ff00ff chroma background with generous padding.
+Create one centered RPG skill icon for Project Starfall: [SKILL NAME]. Symbol should communicate [PURPOSE] for [CLASS NAME], using [SEMANTIC PALETTE AND SYMBOL] from Combat Visual Language v1 with secondary class accents. Style: Starlit Frontier Fantasy, clean illustrated icon with crisp edges and controlled shading, readable at 64px, no UI frame, no text, no numerals, no watermark. Use genuine alpha, or the icon batch's explicitly recorded extraction key, with generous padding.
 ```
 
 #### Buff Aura
 
 ```text
-Create a 6-frame Project Starfall buff aura row for [BUFF NAME]. The aura should sit around a side-scroller character without hiding the character silhouette. Visual language: [CLASS COLORS AND SHAPES]. Soft loop, readable at gameplay scale, no text, no UI, no watermark, transparent-ready chroma background.
+Create a 6-frame Project Starfall buff aura row for [BUFF NAME]. Follow Combat Visual Language v1: [BUFF/PROTECTION/HEALING SEMANTIC PALETTE AND SYMBOLS], with [CLASS COLORS AND SHAPES] as secondary identity accents. Match [ACTIVATION EVENT AND DURATION]. The aura should sit around a side-scroller character without hiding the character silhouette; no character body is included in the FX. Use a soft loop only for a persistent effect; a healing pulse or one-shot cast must resolve and dissipate. Readable at gameplay scale, no text, no UI, no watermark, genuine alpha with empty gutters and no drawn grid.
 ```
 
 #### Impact Effect
 
 ```text
-Create a 6-frame Project Starfall impact VFX row for [HIT TYPE]. The impact should read instantly as [stagger / burn / crack / weak point / electric chain / trap detonation]. Keep the effect compact enough to avoid hiding enemies or hazards. No text, no UI, no watermark, transparent-ready chroma background.
+Create a 6-frame Project Starfall impact VFX row for [HIT TYPE]. The impact should read instantly as [stagger / burn / crack / weak point / electric chain / trap detonation], using [SEMANTIC PALETTE AND SYMBOL] from Combat Visual Language v1 with secondary class/element accents. Match [GAMEPLAY CONTACT EVENT]. Keep the effect compact enough to avoid hiding enemies or hazards. No text, no UI, no watermark, genuine alpha with empty gutters and no drawn grid.
 ```
 
 ### Avoiding AI-Generated-Looking Assets
@@ -1149,7 +1178,7 @@ Create a 6-frame Project Starfall impact VFX row for [HIT TYPE]. The impact shou
 - Keep silhouettes functional, not ornamental.
 - Avoid over-detailed noise that disappears at 160px or 64px.
 - Do not let glows cover feet, ledges, ladders, or enemy telegraphs.
-- Keep class palettes consistent across icon, skill FX, and animation.
+- Keep class identity accents consistent across icon, skill FX, and animation while preserving the canonical semantic palette for each gameplay effect.
 - Use practical equipment shapes and clear weapon profiles.
 - Reject assets with fake text, pseudo-runes that look like letters, uneven cell framing, broken anatomy, detached limbs, or cropped VFX.
 
@@ -1300,7 +1329,7 @@ Prerequisite: Ready
 ### HUD Requirements
 
 - HP and MP must remain readable during combat.
-- Class resource must use branch-specific color and shape.
+- Persistent class resource meters use branch-specific color and shape; resource-restoration feedback uses the canonical recovery cue rather than inheriting the meter's hue.
 - Cooldowns must show remaining time and ready flash.
 - Party buffs must show category and duration.
 - Debuffs must be visible on enemies without covering hitboxes.
@@ -1537,6 +1566,10 @@ Teach one idea at a time:
 - Chroma color:
 - Guide color:
 - Visual language:
+- Semantic effect and canonical palette/symbol reference:
+- Preparation, commitment, contact/release, and recovery timing:
+- Shared gameplay/VFX event and cancellation rule:
+- Warning/impact geometry and permitted tracking/homing:
 - Gameplay read:
 - Must avoid:
 - Processor:
@@ -1574,7 +1607,12 @@ Use this checklist for every class and major skill pass.
 - [ ] Is the active hit or effect readable during use?
 - [ ] Is the recovery or cooldown readable after use?
 - [ ] Does the animation match the hit timing?
+- [ ] Do HP/status changes, contact VFX, and sound share the same event, including haste, interruption, and cancellation?
+- [ ] Do ordinary/major enemy attacks preserve their commitment interval without late tracking or marker drift?
+- [ ] Do player basics and reactive defense retain their responsiveness, while normal healing shows its gather before HP gain?
+- [ ] Are semantic colors supported by symbols/motion, with class colors kept as secondary accents?
 - [ ] Does the VFX show the actual area or lane?
+- [ ] Are selective markers derived from hit geometry, and removed or retained with their matching gameplay state in both renderers?
 - [ ] Does the sound cue communicate impact?
 - [ ] Are cooldown and resource changes visible?
 - [ ] Does hit pause feel satisfying without slowing repeated hits too much?

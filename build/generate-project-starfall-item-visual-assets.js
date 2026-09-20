@@ -326,6 +326,9 @@ async function generatePickups(definitions) {
 }
 
 async function generateDirectIconVariants() {
+  // Regional items now have individual source-owned artwork. Derivative generation
+  // may consume those icons, but must never replace them with recolored aliases.
+  if (require('./project-starfall-overhaul-icons.js').owns()) return 0;
   const candidates = (DATA.SHOP_ITEMS || []).filter((item) =>
     item &&
     item.assetId &&

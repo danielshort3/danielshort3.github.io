@@ -1,0 +1,50 @@
+@layer components {
+  .draft-recovery-slot {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+  .draft-recovery-slot--replacement {
+    position: relative;
+  }
+  .draft-recovery-slot--replacement > :not(.draft-recovery-notice) {
+    visibility: hidden;
+  }
+  .draft-recovery-notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 12px;
+    min-height: 44px;
+    width: max-content;
+    max-width: 100%;
+    color: var(--text-muted, #405b7b);
+    font-family: inherit;
+    line-height: 1.4;
+    font-size: .875rem;
+  }
+  .draft-recovery-slot--replacement .draft-recovery-notice {
+    position: absolute;
+    inset-block-start: -4px;
+    inset-inline-start: 0;
+  }
+  #contact-modal .draft-recovery-notice {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .draft-recovery-notice > span { white-space: nowrap; }
+  .draft-recovery-notice button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px;
+    font: inherit;
+    color: var(--panel-color, #005fed);
+    background: transparent;
+    border: 0;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .draft-recovery-notice button:disabled { cursor: default; opacity: .55; }
+  @media (forced-colors: active) {
+    .draft-recovery-notice button { color: LinkText; }
+  }
+}

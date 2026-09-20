@@ -1,0 +1,37 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "shardling",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-7129730d-b41a-42bf-8289-4e0db9142c31.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/shardling.png",
+    "img/project-starfall/animations/enemies/shardling-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": false,
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Raw visually reviewed: eight rows and coherent identity, no baked external FX; imported atlas registration pending.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/shardling-sheet.png",
+    "portrait": "img/project-starfall/enemies/shardling.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "975217f04d12e0bade8b364476a60586afcc89a4542c3d738f0e3bf3d90904b1",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  }
+}

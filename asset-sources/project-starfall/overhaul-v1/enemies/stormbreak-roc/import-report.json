@@ -1,0 +1,1965 @@
+{
+  "fileId": "stormbreak-roc",
+  "sourceSha256": "dbc6cbf1a1ca3a0992a9f7840d9fcabcaacc5a9e806fcbbae9ce076ae6363fca",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    195,
+    376,
+    564,
+    726,
+    897,
+    1085,
+    1255,
+    1448
+  ],
+  "sharedScale": 0.5751351351351351,
+  "floating": true,
+  "registration": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 89,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/stormbreak-roc-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 715751,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 14,
+        "top": 35,
+        "width": 156,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 153,
+        "width": 156,
+        "height": 154,
+        "pixels": 13476
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 114
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 35,
+        "right": 125,
+        "bottom": 123,
+        "width": 90,
+        "height": 89,
+        "pixels": 4543,
+        "edgePixels": 0
+      },
+      "sha256": "4c7327fe49598aedcb359a348bf5ff110f7d9f780f4e9d5b3cf3b579f8248208"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 187,
+        "top": 35,
+        "width": 150,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 153,
+        "width": 150,
+        "height": 154,
+        "pixels": 13334
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 114
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 31,
+        "top": 35,
+        "right": 116,
+        "bottom": 123,
+        "width": 86,
+        "height": 89,
+        "pixels": 4477,
+        "edgePixels": 0
+      },
+      "sha256": "6b66632dcbab5c7606b664a9df28e7ae681f6dd88bf34b69cca2528487449b01"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 365,
+        "top": 49,
+        "width": 157,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 139,
+        "width": 157,
+        "height": 140,
+        "pixels": 13291
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 114
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 43,
+        "right": 119,
+        "bottom": 123,
+        "width": 90,
+        "height": 81,
+        "pixels": 4478,
+        "edgePixels": 0
+      },
+      "sha256": "3e36560c7302acdf218a5cb162ef1ebc0e8f310670ad92b981223068f95fc74d"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 546,
+        "top": 44,
+        "width": 155,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 143,
+        "width": 155,
+        "height": 144,
+        "pixels": 13348
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 114
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 40,
+        "right": 118,
+        "bottom": 122,
+        "width": 89,
+        "height": 83,
+        "pixels": 4457,
+        "edgePixels": 0
+      },
+      "sha256": "a7b218b4278b42128915a90721ed67b29055f94f6f6aae50747373bb2d12770c"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 724,
+        "top": 39,
+        "width": 154,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 149,
+        "width": 154,
+        "height": 150,
+        "pixels": 14297
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 114
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 37,
+        "right": 116,
+        "bottom": 122,
+        "width": 89,
+        "height": 86,
+        "pixels": 4797,
+        "edgePixels": 0
+      },
+      "sha256": "40d7d85b11ffcd6d1556865c1ae63869eac27729b6093bafc97c7bd876ea4596"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 904,
+        "top": 36,
+        "width": 151,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 152,
+        "width": 151,
+        "height": 153,
+        "pixels": 13896
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 114
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 35,
+        "right": 113,
+        "bottom": 122,
+        "width": 87,
+        "height": 88,
+        "pixels": 4649,
+        "edgePixels": 0
+      },
+      "sha256": "742914de25876726ee93d30b2f0b7c3060679dae74937c53174ea2b79403344c"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 21,
+        "top": 226,
+        "width": 167,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 133,
+        "width": 167,
+        "height": 134,
+        "pixels": 13303
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 296.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 40,
+        "top": 39,
+        "right": 135,
+        "bottom": 115,
+        "width": 96,
+        "height": 77,
+        "pixels": 4426,
+        "edgePixels": 0
+      },
+      "sha256": "64dab544898314781930112fc6156161f31c79e7deee9bb2bca1421eeedfc44d"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 206,
+        "top": 227,
+        "width": 162,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 138,
+        "width": 162,
+        "height": 139,
+        "pixels": 14197
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 296.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 42,
+        "top": 40,
+        "right": 134,
+        "bottom": 119,
+        "width": 93,
+        "height": 80,
+        "pixels": 4747,
+        "edgePixels": 0
+      },
+      "sha256": "51739f51dc744230bcba36ae197dd8341419d75863ec8df305d505713efd9008"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 380,
+        "top": 207,
+        "width": 161,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 154,
+        "width": 161,
+        "height": 155,
+        "pixels": 13988
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 296.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 29,
+        "right": 130,
+        "bottom": 117,
+        "width": 93,
+        "height": 89,
+        "pixels": 4705,
+        "edgePixels": 0
+      },
+      "sha256": "ffd3040cbd957133ae3159bc552b2fd81bf11d097694a2395297ab4273150e5b"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 555,
+        "top": 201,
+        "width": 170,
+        "height": 166
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 165,
+        "width": 170,
+        "height": 166,
+        "pixels": 14959
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 296.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 25,
+        "right": 132,
+        "bottom": 119,
+        "width": 98,
+        "height": 95,
+        "pixels": 5006,
+        "edgePixels": 0
+      },
+      "sha256": "d2bbc5c3bf8129ba3fd25cfde12e748e5c249eae0544cca43f1ca57084afaeb3"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 734,
+        "top": 231,
+        "width": 167,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 134,
+        "width": 167,
+        "height": 135,
+        "pixels": 12114
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 296.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 42,
+        "right": 129,
+        "bottom": 119,
+        "width": 96,
+        "height": 78,
+        "pixels": 4077,
+        "edgePixels": 0
+      },
+      "sha256": "f3cacd3859ce30a48c0a6426c518a52237b9345ecaea4fed03239a06bdf575c1"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 910,
+        "top": 236,
+        "width": 163,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 128,
+        "width": 163,
+        "height": 129,
+        "pixels": 11294
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 296.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 45,
+        "right": 124,
+        "bottom": 118,
+        "width": 94,
+        "height": 74,
+        "pixels": 3785,
+        "edgePixels": 0
+      },
+      "sha256": "b461998c762bf55358ef6daf99c78af8f702b86f77aa1194295e9a353b6a40b9"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 17,
+        "top": 400,
+        "width": 137,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 146,
+        "width": 137,
+        "height": 147,
+        "pixels": 12731
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 473.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 38,
+        "right": 116,
+        "bottom": 122,
+        "width": 79,
+        "height": 85,
+        "pixels": 4286,
+        "edgePixels": 0
+      },
+      "sha256": "6c511fd0595527565512dea731010d7e397bfda66a3ad60064b0672ba5809527"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 180,
+        "top": 395,
+        "width": 168,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 151,
+        "width": 168,
+        "height": 152,
+        "pixels": 15066
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 473.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 35,
+        "right": 123,
+        "bottom": 121,
+        "width": 97,
+        "height": 87,
+        "pixels": 5063,
+        "edgePixels": 0
+      },
+      "sha256": "5e77ec8351ce2e866a7985dfc3fa82a80def212116c313a634c4ea63451f78be"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 371,
+        "top": 416,
+        "width": 140,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 130,
+        "width": 140,
+        "height": 131,
+        "pixels": 11849
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 473.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 47,
+        "right": 113,
+        "bottom": 121,
+        "width": 81,
+        "height": 75,
+        "pixels": 4004,
+        "edgePixels": 0
+      },
+      "sha256": "616ff984c6a4bdb1a92f8d93fc9619fc92c28b3bf68d935c4447c88693a5d30f"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 529,
+        "top": 431,
+        "width": 169,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 112,
+        "width": 169,
+        "height": 113,
+        "pixels": 11767
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 473.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 56,
+        "right": 116,
+        "bottom": 120,
+        "width": 97,
+        "height": 65,
+        "pixels": 3929,
+        "edgePixels": 0
+      },
+      "sha256": "6007a3135d205bdef9a0d3b267663f13025e002e55ff10870c17506d7915b59c"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 701,
+        "top": 399,
+        "width": 180,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 179,
+        "bottom": 147,
+        "width": 180,
+        "height": 148,
+        "pixels": 13628
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 473.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 15,
+        "top": 37,
+        "right": 118,
+        "bottom": 121,
+        "width": 104,
+        "height": 85,
+        "pixels": 4582,
+        "edgePixels": 0
+      },
+      "sha256": "61c62dd06380ac60cd3b58e1c32a11a0c1ee9d1486105cc9bfe9a0c6a611e6b0"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 881,
+        "top": 384,
+        "width": 190,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 189,
+        "bottom": 162,
+        "width": 190,
+        "height": 163,
+        "pixels": 15767
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 473.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 14,
+        "top": 29,
+        "right": 122,
+        "bottom": 122,
+        "width": 109,
+        "height": 94,
+        "pixels": 5276,
+        "edgePixels": 0
+      },
+      "sha256": "d8a9f43b75a62d6d9843b9432f7bbf6fe84c7cf7e771e78fffd5916f92a173d2"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 14,
+        "top": 582,
+        "width": 179,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 134,
+        "width": 179,
+        "height": 135,
+        "pixels": 12828
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 652
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 36,
+        "top": 40,
+        "right": 138,
+        "bottom": 117,
+        "width": 103,
+        "height": 78,
+        "pixels": 4313,
+        "edgePixels": 0
+      },
+      "sha256": "782f9dc6b4613a29d52ae411254e5dc97cd1eedd814dd6640a1e056b813b844c"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 217,
+        "top": 580,
+        "width": 161,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 137,
+        "width": 161,
+        "height": 138,
+        "pixels": 12427
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 652
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 49,
+        "top": 39,
+        "right": 141,
+        "bottom": 117,
+        "width": 93,
+        "height": 79,
+        "pixels": 4185,
+        "edgePixels": 0
+      },
+      "sha256": "009669ddb9995cd5d574cf2da129102a6f521b2835ff1e3e5c5229bce0fb74f3"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 348,
+        "top": 590,
+        "width": 195,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 194,
+        "bottom": 131,
+        "width": 195,
+        "height": 132,
+        "pixels": 13116
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 652
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 20,
+        "top": 44,
+        "right": 131,
+        "bottom": 119,
+        "width": 112,
+        "height": 76,
+        "pixels": 4373,
+        "edgePixels": 0
+      },
+      "sha256": "bcfe001eccd203c73bf3563958650b2deb837f408778828d8a966de7f9c0ea02"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 564,
+        "top": 586,
+        "width": 167,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 131,
+        "width": 167,
+        "height": 132,
+        "pixels": 13557
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 652
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 42,
+        "right": 135,
+        "bottom": 117,
+        "width": 96,
+        "height": 76,
+        "pixels": 4528,
+        "edgePixels": 0
+      },
+      "sha256": "c49b2e675f34925859bc55a0295041267a14e6efd7b543d6c8b8a62f19ec7482"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 751,
+        "top": 590,
+        "width": 150,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 127,
+        "width": 150,
+        "height": 128,
+        "pixels": 11315
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 652
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 43,
+        "top": 44,
+        "right": 128,
+        "bottom": 117,
+        "width": 86,
+        "height": 74,
+        "pixels": 3808,
+        "edgePixels": 0
+      },
+      "sha256": "e50e884dcc1cecca355402c17c4bd3f840c41cf29efab058c5803557efdb1933"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 923,
+        "top": 585,
+        "width": 141,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 132,
+        "width": 141,
+        "height": 133,
+        "pixels": 11791
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 652
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 38,
+        "top": 41,
+        "right": 118,
+        "bottom": 116,
+        "width": 81,
+        "height": 76,
+        "pixels": 3922,
+        "edgePixels": 0
+      },
+      "sha256": "96806ecb6552fab83d61907bb87844e31ad323a444252c701690122154ec0030"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 15,
+        "top": 730,
+        "width": 196,
+        "height": 165
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 195,
+        "bottom": 164,
+        "width": 196,
+        "height": 165,
+        "pixels": 15909
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 819.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 29,
+        "right": 149,
+        "bottom": 123,
+        "width": 113,
+        "height": 95,
+        "pixels": 5320,
+        "edgePixels": 0
+      },
+      "sha256": "a9fb49f7aa5e39069f773d37152c2164fe96e3d4f96137f01c4947a0e06bbc03"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 235,
+        "top": 736,
+        "width": 166,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 155,
+        "width": 166,
+        "height": 156,
+        "pixels": 13880
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 819.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 59,
+        "top": 32,
+        "right": 153,
+        "bottom": 121,
+        "width": 95,
+        "height": 90,
+        "pixels": 4648,
+        "edgePixels": 0
+      },
+      "sha256": "e7fc557c905659e98cab5f048bb48fd4b4f97fc86a4ca2b4ea5474b4c7eef5f4"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 398,
+        "top": 766,
+        "width": 175,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 121,
+        "width": 175,
+        "height": 122,
+        "pixels": 12095
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 819.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 49,
+        "top": 49,
+        "right": 149,
+        "bottom": 118,
+        "width": 101,
+        "height": 70,
+        "pixels": 4056,
+        "edgePixels": 0
+      },
+      "sha256": "c3cc394fe10139f30ad08acd445c6b0d79ddd1ca4876c2a7beab57efdbbd3bc3"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 585,
+        "top": 755,
+        "width": 150,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 128,
+        "width": 150,
+        "height": 129,
+        "pixels": 12634
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 819.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 52,
+        "top": 43,
+        "right": 137,
+        "bottom": 116,
+        "width": 86,
+        "height": 74,
+        "pixels": 4195,
+        "edgePixels": 0
+      },
+      "sha256": "2bc39ed793afdcba39a3d00592bcbeadc38aaedbcb3e1592ee9363b1f6f0c744"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 753,
+        "top": 750,
+        "width": 141,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 139,
+        "width": 141,
+        "height": 140,
+        "pixels": 12283
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 819.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 40,
+        "right": 125,
+        "bottom": 120,
+        "width": 81,
+        "height": 81,
+        "pixels": 4143,
+        "edgePixels": 0
+      },
+      "sha256": "31066ed95bb8a9de70609a39652ad0d71e99885c59f5114ff3e06b2cc155f0f0"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 924,
+        "top": 748,
+        "width": 143,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 140,
+        "width": 143,
+        "height": 141,
+        "pixels": 12186
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 819.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 39,
+        "right": 120,
+        "bottom": 119,
+        "width": 82,
+        "height": 81,
+        "pixels": 4055,
+        "edgePixels": 0
+      },
+      "sha256": "3683c1fcb7e79dc1f3acf6bcc6724f1c871f20a8ca1c670de0190e240d962dfa"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 19,
+        "top": 926,
+        "width": 150,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 141,
+        "width": 150,
+        "height": 142,
+        "pixels": 12716
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 991
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 43,
+        "right": 124,
+        "bottom": 124,
+        "width": 86,
+        "height": 82,
+        "pixels": 4270,
+        "edgePixels": 0
+      },
+      "sha256": "3861e9e370203246cb3bf0ee1b0ea3d2c5feaac5005809e78f6448e8a7b284bf"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 210,
+        "top": 912,
+        "width": 152,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 156,
+        "width": 152,
+        "height": 157,
+        "pixels": 14995
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 991
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 45,
+        "top": 35,
+        "right": 131,
+        "bottom": 124,
+        "width": 87,
+        "height": 90,
+        "pixels": 4977,
+        "edgePixels": 0
+      },
+      "sha256": "d2b1a7a9395d0115d28d239385321b8a5235f7995f5107f203fd9aa9aba08a9d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 367,
+        "top": 898,
+        "width": 187,
+        "height": 171
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 186,
+        "bottom": 170,
+        "width": 187,
+        "height": 171,
+        "pixels": 16927
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 991
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 27,
+        "right": 138,
+        "bottom": 124,
+        "width": 108,
+        "height": 98,
+        "pixels": 5671,
+        "edgePixels": 0
+      },
+      "sha256": "f47bccfa4569af5aecc6e5023bc56520b8b9a4f0da25b0869623eea25023f1f4"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 569,
+        "top": 913,
+        "width": 152,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 155,
+        "width": 152,
+        "height": 156,
+        "pixels": 14105
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 991
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 43,
+        "top": 35,
+        "right": 129,
+        "bottom": 124,
+        "width": 87,
+        "height": 90,
+        "pixels": 4739,
+        "edgePixels": 0
+      },
+      "sha256": "10fd0de2e927caecad10f2dce17735e3701e67b50efdb5531e570d895afe53c9"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 737,
+        "top": 904,
+        "width": 185,
+        "height": 170
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 184,
+        "bottom": 169,
+        "width": 185,
+        "height": 170,
+        "pixels": 18164
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 991
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 35,
+        "top": 30,
+        "right": 140,
+        "bottom": 127,
+        "width": 106,
+        "height": 98,
+        "pixels": 6083,
+        "edgePixels": 0
+      },
+      "sha256": "7bd15373101bd861fc90b76aad0af0b8d1364899fced11f5f52d2992fc5b0d30"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 926,
+        "top": 929,
+        "width": 139,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 138,
+        "width": 139,
+        "height": 139,
+        "pixels": 11354
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 991
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 44,
+        "right": 119,
+        "bottom": 123,
+        "width": 80,
+        "height": 80,
+        "pixels": 3784,
+        "edgePixels": 0
+      },
+      "sha256": "57b4363241fff1a7dd9a8b554bb80f87d13a974b62cf48b150036136a3f10a2b"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 33,
+        "top": 1106,
+        "width": 145,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 122,
+        "width": 145,
+        "height": 123,
+        "pixels": 11339
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1167.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 47,
+        "top": 45,
+        "right": 129,
+        "bottom": 115,
+        "width": 83,
+        "height": 71,
+        "pixels": 3814,
+        "edgePixels": 0
+      },
+      "sha256": "9af8f1d171fbd94678f57d8a749df516e0f1126b56afce2265e8f992cec044a3"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 207,
+        "top": 1096,
+        "width": 161,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 134,
+        "width": 161,
+        "height": 135,
+        "pixels": 12662
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1167.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 43,
+        "top": 39,
+        "right": 135,
+        "bottom": 116,
+        "width": 93,
+        "height": 78,
+        "pixels": 4257,
+        "edgePixels": 0
+      },
+      "sha256": "3954ff0bb15d4e57a9d0785c47c01add6db735bd4b59ba18cc51786b946921f4"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 392,
+        "top": 1121,
+        "width": 147,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 111,
+        "width": 147,
+        "height": 112,
+        "pixels": 11185
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1167.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 45,
+        "top": 53,
+        "right": 129,
+        "bottom": 116,
+        "width": 85,
+        "height": 64,
+        "pixels": 3774,
+        "edgePixels": 0
+      },
+      "sha256": "dc0c5ff053e8f175907da1d2e11df4fa1d2f8e1800b36a3ddb2467f69415cbe6"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 573,
+        "top": 1123,
+        "width": 154,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 110,
+        "width": 154,
+        "height": 111,
+        "pixels": 11481
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1167.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 45,
+        "top": 54,
+        "right": 133,
+        "bottom": 117,
+        "width": 89,
+        "height": 64,
+        "pixels": 3873,
+        "edgePixels": 0
+      },
+      "sha256": "844b46a51f883cff951ee879da79599c40485892083532c59f478c412575bc0e"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 759,
+        "top": 1101,
+        "width": 141,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 131,
+        "width": 141,
+        "height": 132,
+        "pixels": 11199
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1167.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 48,
+        "top": 42,
+        "right": 128,
+        "bottom": 117,
+        "width": 81,
+        "height": 76,
+        "pixels": 3735,
+        "edgePixels": 0
+      },
+      "sha256": "b79e7cab40ff14a468e2f693717561dc34bbbbcdbf1c67c1ebdeb5dcced9d403"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 920,
+        "top": 1096,
+        "width": 138,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 135,
+        "width": 138,
+        "height": 136,
+        "pixels": 11591
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1167.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 37,
+        "top": 39,
+        "right": 115,
+        "bottom": 116,
+        "width": 79,
+        "height": 78,
+        "pixels": 3841,
+        "edgePixels": 0
+      },
+      "sha256": "75c98cd7bec0fdcaebd5af2505443520202643f34a4ec5b90b08f27112088c0f"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 32,
+        "top": 1276,
+        "width": 142,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 124,
+        "width": 142,
+        "height": 125,
+        "pixels": 11675
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1361
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 46,
+        "top": 31,
+        "right": 127,
+        "bottom": 102,
+        "width": 82,
+        "height": 72,
+        "pixels": 3930,
+        "edgePixels": 0
+      },
+      "sha256": "47634361fb801f6c0dbb77c3e16f462be2900db7c12620f2923d437bb3dfcc0d"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 206,
+        "top": 1277,
+        "width": 144,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 123,
+        "width": 144,
+        "height": 124,
+        "pixels": 10630
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1361
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 42,
+        "top": 32,
+        "right": 124,
+        "bottom": 102,
+        "width": 83,
+        "height": 71,
+        "pixels": 3560,
+        "edgePixels": 0
+      },
+      "sha256": "a3936de7f9bb3bf7afd7ff8e5f274fcd52135939b1994f0b53d8bdf135d17a86"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 381,
+        "top": 1299,
+        "width": 144,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 101,
+        "width": 144,
+        "height": 102,
+        "pixels": 9919
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1361
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 39,
+        "top": 44,
+        "right": 121,
+        "bottom": 102,
+        "width": 83,
+        "height": 59,
+        "pixels": 3342,
+        "edgePixels": 0
+      },
+      "sha256": "416eb588cc4d2854756697328c18e224d61e2cb468d2763f358cfc895493dcc0"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 547,
+        "top": 1321,
+        "width": 177,
+        "height": 80
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 79,
+        "width": 177,
+        "height": 80,
+        "pixels": 10105
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1361
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 57,
+        "right": 131,
+        "bottom": 102,
+        "width": 102,
+        "height": 46,
+        "pixels": 3386,
+        "edgePixels": 0
+      },
+      "sha256": "c3e3402416727378127e68ab4081a4d20836622b6a5e1807aba4d4ae40d64cd4"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 729,
+        "top": 1333,
+        "width": 173,
+        "height": 68
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 67,
+        "width": 173,
+        "height": 68,
+        "pixels": 8037
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1361
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 64,
+        "right": 129,
+        "bottom": 102,
+        "width": 99,
+        "height": 39,
+        "pixels": 2664,
+        "edgePixels": 0
+      },
+      "sha256": "d208b5ea2bbb9ea6e788d168da80ede120fd7eda9b034dac11e2ea55d779cbe4"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 909,
+        "top": 1336,
+        "width": 163,
+        "height": 65
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 64,
+        "width": 163,
+        "height": 65,
+        "pixels": 7342
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbreak-roc/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1361
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 66,
+        "right": 123,
+        "bottom": 102,
+        "width": 94,
+        "height": 37,
+        "pixels": 2461,
+        "edgePixels": 0
+      },
+      "sha256": "43980847d8e116b2776304100fd5eb9acc80af9bb3e6c9d0718fcc9395ef5239"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

@@ -1,0 +1,1974 @@
+{
+  "fileId": "glowcap-healer",
+  "sourceSha256": "695f5f60f60769ff269c7231369e5fe2d0451037f4e471c36482146252a5ab66",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    186,
+    364,
+    544,
+    724,
+    906,
+    1090,
+    1268,
+    1448
+  ],
+  "sharedScale": 0.8415819209039548,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 114,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/glowcap-healer-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 751443,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 32,
+        "top": 60,
+        "width": 366,
+        "height": 357
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 365,
+        "bottom": 356,
+        "width": 366,
+        "height": 357,
+        "pixels": 95486
+      },
+      "sourcePath": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "scaleFactor": 0.37815126050420167,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 221,
+        "y": 417
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 20,
+        "top": 36,
+        "right": 135,
+        "bottom": 149,
+        "width": 116,
+        "height": 114,
+        "pixels": 9816,
+        "edgePixels": 0
+      },
+      "sha256": "563cf76ca003090eb110851fec842dceaddd5ba298940e4f7851373fca8b8df8"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 471,
+        "top": 111,
+        "width": 374,
+        "height": 306
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 373,
+        "bottom": 305,
+        "width": 374,
+        "height": 306,
+        "pixels": 82718
+      },
+      "sourcePath": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "scaleFactor": 0.37815126050420167,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 669,
+        "y": 417
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 17,
+        "top": 53,
+        "right": 135,
+        "bottom": 149,
+        "width": 119,
+        "height": 97,
+        "pixels": 8423,
+        "edgePixels": 0
+      },
+      "sha256": "cf58fef7eabb9cf93b9e6be410023ea78072f9d168efed1a1a8ce29caa6bf7af"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 910,
+        "top": 163,
+        "width": 389,
+        "height": 257
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 388,
+        "bottom": 256,
+        "width": 389,
+        "height": 257,
+        "pixels": 73046
+      },
+      "sourcePath": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "scaleFactor": 0.37815126050420167,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1108,
+        "y": 419
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 17,
+        "top": 69,
+        "right": 140,
+        "bottom": 150,
+        "width": 124,
+        "height": 82,
+        "pixels": 7502,
+        "edgePixels": 0
+      },
+      "sha256": "087e7cb9284d8c62813524e25a0a0f16b1c06c2f8c23541e1389270519b240be"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 38,
+        "top": 464,
+        "width": 358,
+        "height": 387
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 357,
+        "bottom": 386,
+        "width": 358,
+        "height": 387,
+        "pixels": 97499
+      },
+      "sourcePath": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "scaleFactor": 0.37815126050420167,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 221,
+        "y": 850
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 27,
+        "right": 135,
+        "bottom": 149,
+        "width": 114,
+        "height": 123,
+        "pixels": 9966,
+        "edgePixels": 0
+      },
+      "sha256": "d46b4fc837f7600b287337afd743513ae043d6b82c0d9dde0e89f9c638a68514"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 492,
+        "top": 456,
+        "width": 352,
+        "height": 395
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 351,
+        "bottom": 394,
+        "width": 352,
+        "height": 395,
+        "pixels": 96902
+      },
+      "sourcePath": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "scaleFactor": 0.37815126050420167,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 664.5,
+        "y": 850
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 25,
+        "right": 136,
+        "bottom": 150,
+        "width": 112,
+        "height": 126,
+        "pixels": 9947,
+        "edgePixels": 0
+      },
+      "sha256": "6e388d70f1f6aee0be4f9a4d31183bc6d593f50f33c43b0d0129b555fd648375"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 1361,
+        "top": 502,
+        "width": 369,
+        "height": 349
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 368,
+        "bottom": 348,
+        "width": 369,
+        "height": 349,
+        "pixels": 93622
+      },
+      "sourcePath": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "scaleFactor": 0.37815126050420167,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1556,
+        "y": 850
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 18,
+        "top": 39,
+        "right": 134,
+        "bottom": 149,
+        "width": 117,
+        "height": 111,
+        "pixels": 9545,
+        "edgePixels": 0
+      },
+      "sha256": "3fb147374c166879d49c63057d423015e3f41168a837838b79b9c6a277f03f66"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 27,
+        "top": 14,
+        "width": 146,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 146,
+        "width": 146,
+        "height": 147,
+        "pixels": 14845
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 162
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 25,
+        "right": 149,
+        "bottom": 148,
+        "width": 123,
+        "height": 124,
+        "pixels": 10584,
+        "edgePixels": 0
+      },
+      "sha256": "313c5465dad052ee90d3b439a3515a63a76d51ce8ac2ac93aebed8793fd9f9ba"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 207,
+        "top": 15,
+        "width": 148,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 146,
+        "width": 148,
+        "height": 147,
+        "pixels": 14695
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 162
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 26,
+        "right": 150,
+        "bottom": 149,
+        "width": 125,
+        "height": 124,
+        "pixels": 10498,
+        "edgePixels": 0
+      },
+      "sha256": "faf1ce2f67741a164fa02204fc2a7d83542affcdf9fcf2630ff2ec9e79282a5b"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 386,
+        "top": 15,
+        "width": 147,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 148,
+        "width": 147,
+        "height": 149,
+        "pixels": 14654
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 162
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 26,
+        "right": 147,
+        "bottom": 150,
+        "width": 124,
+        "height": 125,
+        "pixels": 10444,
+        "edgePixels": 0
+      },
+      "sha256": "e8828a9c308d32e439a483aa3897ad7655d8d5a9ac4392df960c0cd4108f2dc3"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 570,
+        "top": 17,
+        "width": 145,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 144,
+        "width": 145,
+        "height": 145,
+        "pixels": 14474
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 162
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 28,
+        "right": 148,
+        "bottom": 149,
+        "width": 122,
+        "height": 122,
+        "pixels": 10263,
+        "edgePixels": 0
+      },
+      "sha256": "64359f0b2be826c2f70a70a7798047dfc211678e6a229467bb4783e966052db9"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 749,
+        "top": 19,
+        "width": 146,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 142,
+        "width": 146,
+        "height": 143,
+        "pixels": 14332
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 162
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 30,
+        "right": 147,
+        "bottom": 149,
+        "width": 123,
+        "height": 120,
+        "pixels": 10186,
+        "edgePixels": 0
+      },
+      "sha256": "d2369d977c8daf911ce04ccffcd07d16fb4550ff38bdec24140b46270f192b86"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 925,
+        "top": 18,
+        "width": 145,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 142,
+        "width": 145,
+        "height": 143,
+        "pixels": 14068
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 162
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 29,
+        "right": 142,
+        "bottom": 148,
+        "width": 122,
+        "height": 120,
+        "pixels": 9977,
+        "edgePixels": 0
+      },
+      "sha256": "bbc60522f661afbea00d6b5a47eef65448601a92739e54b8efa04515f662429e"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 29,
+        "top": 15,
+        "width": 146,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 146,
+        "width": 146,
+        "height": 147,
+        "pixels": 14948
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 163
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 25,
+        "right": 150,
+        "bottom": 148,
+        "width": 123,
+        "height": 124,
+        "pixels": 10656,
+        "edgePixels": 0
+      },
+      "sha256": "7e80c422b2afea8b37276df195dc432cec1974bc286e80c4058ed7c4e4331c23"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 208,
+        "top": 20,
+        "width": 147,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 141,
+        "width": 147,
+        "height": 142,
+        "pixels": 14462
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 163
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 30,
+        "right": 150,
+        "bottom": 149,
+        "width": 124,
+        "height": 120,
+        "pixels": 10336,
+        "edgePixels": 0
+      },
+      "sha256": "9bfd0c8aa8ad2738d1afd1291e573140ffc364f8c95a562fc0faacfe16e78310"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 387,
+        "top": 16,
+        "width": 145,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 145,
+        "width": 145,
+        "height": 146,
+        "pixels": 14353
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 163
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 26,
+        "right": 146,
+        "bottom": 148,
+        "width": 122,
+        "height": 123,
+        "pixels": 10197,
+        "edgePixels": 0
+      },
+      "sha256": "482c87355e684a2a673a493f81fb70fa75f5158e8e757519514571c32498f4f7"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 567,
+        "top": 26,
+        "width": 147,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 136,
+        "width": 147,
+        "height": 137,
+        "pixels": 14190
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 163
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 35,
+        "right": 147,
+        "bottom": 149,
+        "width": 124,
+        "height": 115,
+        "pixels": 10095,
+        "edgePixels": 0
+      },
+      "sha256": "5e49ad3a7792cac824de100973a46230b6cda7a49c017a23d06ebf19346c9723"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 744,
+        "top": 25,
+        "width": 147,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 137,
+        "width": 147,
+        "height": 138,
+        "pixels": 14253
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 163
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 21,
+        "top": 34,
+        "right": 144,
+        "bottom": 149,
+        "width": 124,
+        "height": 116,
+        "pixels": 10165,
+        "edgePixels": 0
+      },
+      "sha256": "e96e6ceca3b491928f5e95742dcc7dfb3eaab9c382b55facb12d8c74f5187178"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 924,
+        "top": 31,
+        "width": 145,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 131,
+        "width": 145,
+        "height": 132,
+        "pixels": 13509
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 163
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 39,
+        "right": 141,
+        "bottom": 149,
+        "width": 122,
+        "height": 111,
+        "pixels": 9589,
+        "edgePixels": 0
+      },
+      "sha256": "a23fbe3c8096bdf723d2ace01476fea972ecb6a9f43fb8b31a3c147c49451d32"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 29,
+        "top": 17,
+        "width": 150,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 147,
+        "width": 150,
+        "height": 148,
+        "pixels": 15617
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 25,
+        "right": 153,
+        "bottom": 149,
+        "width": 126,
+        "height": 125,
+        "pixels": 11165,
+        "edgePixels": 0
+      },
+      "sha256": "804c6f1cf1ddc178b4d14ee757bda800f05f0655003cec35128d11602a6d2076"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 205,
+        "top": 19,
+        "width": 147,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 145,
+        "width": 147,
+        "height": 146,
+        "pixels": 15058
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 27,
+        "right": 147,
+        "bottom": 149,
+        "width": 124,
+        "height": 123,
+        "pixels": 10727,
+        "edgePixels": 0
+      },
+      "sha256": "066071c2f5bb2df5d237003b645796d538425569160d46f513b8086d22b22f47"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 378,
+        "top": 17,
+        "width": 145,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 147,
+        "width": 145,
+        "height": 148,
+        "pixels": 15099
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 17,
+        "top": 25,
+        "right": 138,
+        "bottom": 149,
+        "width": 122,
+        "height": 125,
+        "pixels": 10786,
+        "edgePixels": 0
+      },
+      "sha256": "b34a2c9fb7d11354e0a20beb000787648e4bb993e1a159728beb36dca4a49599"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 558,
+        "top": 22,
+        "width": 147,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 141,
+        "width": 147,
+        "height": 142,
+        "pixels": 14200
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 16,
+        "top": 30,
+        "right": 139,
+        "bottom": 149,
+        "width": 124,
+        "height": 120,
+        "pixels": 10139,
+        "edgePixels": 0
+      },
+      "sha256": "0c3d84085c462b1f6dd8ab2339413046d9df8c0ba3d82d5cdb0eac91c7ebd108"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 745,
+        "top": 27,
+        "width": 146,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 137,
+        "width": 146,
+        "height": 138,
+        "pixels": 14275
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 34,
+        "right": 144,
+        "bottom": 149,
+        "width": 123,
+        "height": 116,
+        "pixels": 10144,
+        "edgePixels": 0
+      },
+      "sha256": "6f34c7e698961c3505264e7d42338a4819c4d07e72cdd8595c2e7275f1f8a29c"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 924,
+        "top": 20,
+        "width": 142,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 144,
+        "width": 142,
+        "height": 145,
+        "pixels": 14402
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 28,
+        "right": 139,
+        "bottom": 149,
+        "width": 120,
+        "height": 122,
+        "pixels": 10302,
+        "edgePixels": 0
+      },
+      "sha256": "6aea85ac4b0ce69061b48607bf620a597abbb1034e6b8378013da0cb975a8482"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 27,
+        "top": 15,
+        "width": 150,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 147,
+        "width": 150,
+        "height": 148,
+        "pixels": 15348
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 24,
+        "right": 152,
+        "bottom": 148,
+        "width": 126,
+        "height": 125,
+        "pixels": 10966,
+        "edgePixels": 0
+      },
+      "sha256": "83dc062d9f00db69faf846452f2a8857a0b8c83ce75d09b5fa3df2d49ec430b9"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 207,
+        "top": 30,
+        "width": 152,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 133,
+        "width": 152,
+        "height": 134,
+        "pixels": 14448
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 36,
+        "right": 153,
+        "bottom": 148,
+        "width": 128,
+        "height": 113,
+        "pixels": 10296,
+        "edgePixels": 0
+      },
+      "sha256": "911120ade56e299b96dea347845a808fc86ca3c8b2553b446e85dee8c7ddceb9"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 383,
+        "top": 23,
+        "width": 149,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 140,
+        "width": 149,
+        "height": 141,
+        "pixels": 14408
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 30,
+        "right": 146,
+        "bottom": 148,
+        "width": 125,
+        "height": 119,
+        "pixels": 10271,
+        "edgePixels": 0
+      },
+      "sha256": "ea2e066995f1f2317773d940abea895dcc7c882c804282eeea776908d05d5908"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 563,
+        "top": 23,
+        "width": 152,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 141,
+        "width": 152,
+        "height": 142,
+        "pixels": 14919
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 30,
+        "right": 148,
+        "bottom": 149,
+        "width": 128,
+        "height": 120,
+        "pixels": 10676,
+        "edgePixels": 0
+      },
+      "sha256": "085f93bade62788f59bed092e70b50a2df1a9c51fef2cd5c43c2530f73a9cf11"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 748,
+        "top": 25,
+        "width": 143,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 139,
+        "width": 143,
+        "height": 140,
+        "pixels": 14163
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 32,
+        "right": 143,
+        "bottom": 149,
+        "width": 120,
+        "height": 118,
+        "pixels": 10069,
+        "edgePixels": 0
+      },
+      "sha256": "6f5e9214512415d6176631b4f8385f39cb88931ce832cbd7146591d8158da661"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 924,
+        "top": 25,
+        "width": 142,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 139,
+        "width": 142,
+        "height": 140,
+        "pixels": 14183
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 32,
+        "right": 139,
+        "bottom": 149,
+        "width": 120,
+        "height": 118,
+        "pixels": 10153,
+        "edgePixels": 0
+      },
+      "sha256": "91d41cd502db4372104d8358d18a732f73288ecc7becc4f24a4b07ccf4bddba2"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 27,
+        "top": 16,
+        "width": 148,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 147,
+        "width": 148,
+        "height": 148,
+        "pixels": 14960
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 164
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 25,
+        "right": 151,
+        "bottom": 149,
+        "width": 125,
+        "height": 125,
+        "pixels": 10698,
+        "edgePixels": 0
+      },
+      "sha256": "37b185591da5ea22f655ff34d6a0ce120934d2fb2a86ec9ae480c3114428c84a"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 206,
+        "top": 23,
+        "width": 143,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 140,
+        "width": 143,
+        "height": 141,
+        "pixels": 13997
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 164
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 25,
+        "top": 31,
+        "right": 144,
+        "bottom": 149,
+        "width": 120,
+        "height": 119,
+        "pixels": 9982,
+        "edgePixels": 0
+      },
+      "sha256": "6b4a6324fce2c508453430ffc2cb7754f8089090a6003addc187b77a5ead917d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 385,
+        "top": 23,
+        "width": 147,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 140,
+        "width": 147,
+        "height": 141,
+        "pixels": 14371
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 164
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 31,
+        "right": 146,
+        "bottom": 149,
+        "width": 124,
+        "height": 119,
+        "pixels": 10249,
+        "edgePixels": 0
+      },
+      "sha256": "5f6ce1c4bb222da761e90e51c46dd3fc830286dd0c7b5e479bbd9c4b9446fa5f"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 566,
+        "top": 17,
+        "width": 145,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 146,
+        "width": 145,
+        "height": 147,
+        "pixels": 14963
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 164
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 26,
+        "right": 144,
+        "bottom": 149,
+        "width": 122,
+        "height": 124,
+        "pixels": 10664,
+        "edgePixels": 0
+      },
+      "sha256": "42b80da11dcb831a5f219706c866a3faae739a894fde045a37e85aaf7a76a521"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 748,
+        "top": 19,
+        "width": 144,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 144,
+        "width": 144,
+        "height": 145,
+        "pixels": 14238
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 164
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 28,
+        "right": 144,
+        "bottom": 149,
+        "width": 121,
+        "height": 122,
+        "pixels": 10086,
+        "edgePixels": 0
+      },
+      "sha256": "bf676cda5602cc0a5604992330834cb703ac4ac31535ed0e7d1e4c45afa563f5"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 923,
+        "top": 23,
+        "width": 145,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 140,
+        "width": 145,
+        "height": 141,
+        "pixels": 14187
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 164
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 31,
+        "right": 140,
+        "bottom": 149,
+        "width": 122,
+        "height": 119,
+        "pixels": 10124,
+        "edgePixels": 0
+      },
+      "sha256": "d8a88b8aa1b3a6b25b63133fbea9d9b9b37333a16be6443c51a1830924294649"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 28,
+        "top": 21,
+        "width": 146,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 139,
+        "width": 146,
+        "height": 140,
+        "pixels": 14971
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 162
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 31,
+        "right": 149,
+        "bottom": 148,
+        "width": 123,
+        "height": 118,
+        "pixels": 10658,
+        "edgePixels": 0
+      },
+      "sha256": "4306c0486b63986f5f7a82127f9d8ad9396d1c55847cd08922479d5df1038b2a"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 205,
+        "top": 32,
+        "width": 149,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 129,
+        "width": 149,
+        "height": 130,
+        "pixels": 13370
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 162
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 41,
+        "right": 148,
+        "bottom": 149,
+        "width": 125,
+        "height": 109,
+        "pixels": 9439,
+        "edgePixels": 0
+      },
+      "sha256": "c3d21ddad77f87eae49cb4aac36d06f528e62100f7b632826726c34d5ebe6ffb"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 384,
+        "top": 34,
+        "width": 144,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 126,
+        "width": 144,
+        "height": 127,
+        "pixels": 13335
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 162
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 22,
+        "top": 42,
+        "right": 142,
+        "bottom": 148,
+        "width": 121,
+        "height": 107,
+        "pixels": 9483,
+        "edgePixels": 0
+      },
+      "sha256": "320957a8de599b4528926ff35f0b197806d867e75c084687aea62b8351d199dd"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 567,
+        "top": 26,
+        "width": 141,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 134,
+        "width": 141,
+        "height": 135,
+        "pixels": 13608
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 162
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 36,
+        "right": 142,
+        "bottom": 149,
+        "width": 119,
+        "height": 114,
+        "pixels": 9715,
+        "edgePixels": 0
+      },
+      "sha256": "3326179b8c33676cd08563afc950f2bd87e676312614e47d559b9b3f518d31af"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 745,
+        "top": 21,
+        "width": 143,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 140,
+        "width": 143,
+        "height": 141,
+        "pixels": 14004
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 162
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 31,
+        "right": 141,
+        "bottom": 149,
+        "width": 120,
+        "height": 119,
+        "pixels": 9984,
+        "edgePixels": 0
+      },
+      "sha256": "fc49e5b523815c851695d318ac224a4c1a8dc6375b11ba3ea9cb7d240a954e91"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 923,
+        "top": 25,
+        "width": 142,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 136,
+        "width": 142,
+        "height": 137,
+        "pixels": 13547
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 162
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 35,
+        "right": 138,
+        "bottom": 149,
+        "width": 120,
+        "height": 115,
+        "pixels": 9677,
+        "edgePixels": 0
+      },
+      "sha256": "7f2cb5072b5e2e3f564ecbe13659aa9056f326f5438b815876dba03f68b1e51b"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 28,
+        "top": 17,
+        "width": 148,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 141,
+        "width": 148,
+        "height": 142,
+        "pixels": 14209
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 160
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 30,
+        "right": 151,
+        "bottom": 149,
+        "width": 125,
+        "height": 120,
+        "pixels": 10170,
+        "edgePixels": 0
+      },
+      "sha256": "afbdeb53fa08b5dbc3d010086145a65a553feba7e033dd950d160e2afd55d191"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 205,
+        "top": 19,
+        "width": 148,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 140,
+        "width": 148,
+        "height": 141,
+        "pixels": 14203
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 160
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 31,
+        "right": 148,
+        "bottom": 149,
+        "width": 125,
+        "height": 119,
+        "pixels": 10151,
+        "edgePixels": 0
+      },
+      "sha256": "b94ba2978e79d7ccbb780018815705b2998844885b84826088b1b31065376fc3"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 382,
+        "top": 41,
+        "width": 151,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 118,
+        "width": 151,
+        "height": 119,
+        "pixels": 12427
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 160
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 21,
+        "top": 50,
+        "right": 147,
+        "bottom": 149,
+        "width": 127,
+        "height": 100,
+        "pixels": 8810,
+        "edgePixels": 0
+      },
+      "sha256": "01b06b580e1cd2a246b1eb8e5ea88bcd76b63ceafc3abfaf61723fc5586454e6"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 559,
+        "top": 60,
+        "width": 150,
+        "height": 100
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 99,
+        "width": 150,
+        "height": 100,
+        "pixels": 11022
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 160
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 17,
+        "top": 66,
+        "right": 142,
+        "bottom": 149,
+        "width": 126,
+        "height": 84,
+        "pixels": 7790,
+        "edgePixels": 0
+      },
+      "sha256": "29596a8dc6310359031f810563846041c85d1aa6d84ea263af1f6cf640d83675"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 734,
+        "top": 60,
+        "width": 158,
+        "height": 100
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 99,
+        "width": 158,
+        "height": 100,
+        "pixels": 10975
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 160
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 12,
+        "top": 66,
+        "right": 144,
+        "bottom": 149,
+        "width": 133,
+        "height": 84,
+        "pixels": 7795,
+        "edgePixels": 0
+      },
+      "sha256": "33552bfaa99ea7fe8bb10296e50de7f0f123143beaf9b960000bd841f5341b63"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 913,
+        "top": 75,
+        "width": 157,
+        "height": 85
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 84,
+        "width": 157,
+        "height": 85,
+        "pixels": 9469
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/glowcap-healer/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 160
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 11,
+        "top": 78,
+        "right": 142,
+        "bottom": 149,
+        "width": 132,
+        "height": 72,
+        "pixels": 6805,
+        "edgePixels": 0
+      },
+      "sha256": "a0bb04ac577c6ed48eeed261157a31841d7e12e134a70cd8a9056cd0d98942b4"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "buff": [
+      0,
+      1,
+      2,
+      4,
+      3,
+      5
+    ]
+  }
+}

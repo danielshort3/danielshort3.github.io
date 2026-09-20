@@ -1,0 +1,386 @@
+{
+  "shardling": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 108,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "void-mote": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 95,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "clockbug": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 115,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "slimelet": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 102,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "dew-slime": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 95,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "mossback": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 92,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "thorn-sprout": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 94,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "vine-snapper": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 87,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "bristle-boar": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 86,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "briar-stag": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 103,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "dust-imp": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 113,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "rust-ratchet": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 86,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "coil-sentry": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 115,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "scrap-warden": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 91,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "ember-wisp": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 105,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "ash-crawler": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 75,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "lava-tick": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 79,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "cinder-spitter": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 83,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "bandit-cutter": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 71,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "bandit-cutter-direct": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 71,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "bandit-cutter-reference": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 71,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "bandit-cutter-hybrid": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 71,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "bandit-cutter-puppet": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 71,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "bandit-thrower": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 97,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "oreback-beetle": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 82,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "glowcap-healer": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 114,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "cracked-mimic": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 87,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "brambleking": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 93,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "clockwork-titan": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 114,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "quarry-colossus": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 90,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "emberjaw-golem": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 98,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "frostling-scout": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 88,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "rimeback-brute": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 93,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "glacier-sentinel": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 91,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "snowglare-wisp": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 109,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "icebloom-oracle": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 101,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "gale-harrier": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 108,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "stormbound-archer": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 112,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "thunder-ram": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 63,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "cloudcall-acolyte": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 102,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "index-scribe": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 104,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "lumen-sentinel": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 96,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "eclipse-duelist": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 76,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "rift-aberration": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 64,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "rimewarden": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 102,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "stormbreak-roc": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 89,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "astral-archivist": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 84,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "eclipse-sovereign": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 91,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  }
+}

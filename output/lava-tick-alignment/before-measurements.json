@@ -1,0 +1,773 @@
+{
+  "template": "Before idle frame 0, dorsal carapace rectangle x42..89 y75..108, every second pixel with alpha >128; excludes head, jaw and feet. The independently measured dorsal contour includes all solid pixels in the upper16px, not full actor bounds.",
+  "rows": [
+    {
+      "row": 0,
+      "action": "idle",
+      "frames": [
+        {
+          "column": 0,
+          "top": 72,
+          "dorsalCenter": 85.94,
+          "dorsalWidth": 83,
+          "crown": {
+            "x": 84.6903,
+            "y": 72
+          },
+          "match": {
+            "dx": 0,
+            "dy": 0,
+            "error": 0
+          }
+        },
+        {
+          "column": 1,
+          "top": 70,
+          "dorsalCenter": 81.22,
+          "dorsalWidth": 76,
+          "crown": {
+            "x": 76.9627,
+            "y": 70
+          },
+          "match": {
+            "dx": -9,
+            "dy": 0,
+            "error": 61.62
+          }
+        },
+        {
+          "column": 2,
+          "top": 72,
+          "dorsalCenter": 79.81,
+          "dorsalWidth": 82,
+          "crown": {
+            "x": 78.1299,
+            "y": 72
+          },
+          "match": {
+            "dx": -7,
+            "dy": 0,
+            "error": 36.51
+          }
+        },
+        {
+          "column": 3,
+          "top": 72,
+          "dorsalCenter": 75.14,
+          "dorsalWidth": 81,
+          "crown": {
+            "x": 73.5588,
+            "y": 72
+          },
+          "match": {
+            "dx": -12,
+            "dy": 1,
+            "error": 35.13
+          }
+        },
+        {
+          "column": 4,
+          "top": 71,
+          "dorsalCenter": 78.19,
+          "dorsalWidth": 81,
+          "crown": {
+            "x": 77.5923,
+            "y": 71
+          },
+          "match": {
+            "dx": -7,
+            "dy": 0,
+            "error": 33.59
+          }
+        },
+        {
+          "column": 5,
+          "top": 71,
+          "dorsalCenter": 77.19,
+          "dorsalWidth": 80,
+          "crown": {
+            "x": 75.6392,
+            "y": 71
+          },
+          "match": {
+            "dx": -9,
+            "dy": -1,
+            "error": 35.75
+          }
+        }
+      ]
+    },
+    {
+      "row": 1,
+      "action": "move",
+      "frames": [
+        {
+          "column": 0,
+          "top": 70,
+          "dorsalCenter": 85.17,
+          "dorsalWidth": 82,
+          "crown": {
+            "x": 84.0314,
+            "y": 70
+          },
+          "match": {
+            "dx": 1,
+            "dy": -3,
+            "error": 37.23
+          }
+        },
+        {
+          "column": 1,
+          "top": 67,
+          "dorsalCenter": 84.1,
+          "dorsalWidth": 83,
+          "crown": {
+            "x": 82.7532,
+            "y": 67
+          },
+          "match": {
+            "dx": -1,
+            "dy": -5,
+            "error": 28.59
+          }
+        },
+        {
+          "column": 2,
+          "top": 67,
+          "dorsalCenter": 84.6,
+          "dorsalWidth": 80,
+          "crown": {
+            "x": 84.0657,
+            "y": 67
+          },
+          "match": {
+            "dx": 0,
+            "dy": -5,
+            "error": 35.13
+          }
+        },
+        {
+          "column": 3,
+          "top": 70,
+          "dorsalCenter": 84.44,
+          "dorsalWidth": 82,
+          "crown": {
+            "x": 83.6209,
+            "y": 70
+          },
+          "match": {
+            "dx": 0,
+            "dy": -2,
+            "error": 36.48
+          }
+        },
+        {
+          "column": 4,
+          "top": 68,
+          "dorsalCenter": 86.76,
+          "dorsalWidth": 83,
+          "crown": {
+            "x": 85.5438,
+            "y": 68
+          },
+          "match": {
+            "dx": 1,
+            "dy": -4,
+            "error": 35.79
+          }
+        },
+        {
+          "column": 5,
+          "top": 68,
+          "dorsalCenter": 77.31,
+          "dorsalWidth": 69,
+          "crown": {
+            "x": 77.0382,
+            "y": 68
+          },
+          "match": {
+            "dx": -6,
+            "dy": -4,
+            "error": 47.79
+          }
+        }
+      ]
+    },
+    {
+      "row": 2,
+      "action": "telegraph",
+      "frames": [
+        {
+          "column": 0,
+          "top": 58,
+          "dorsalCenter": 84.92,
+          "dorsalWidth": 83,
+          "crown": {
+            "x": 84.0692,
+            "y": 58
+          },
+          "match": {
+            "dx": 0,
+            "dy": -14,
+            "error": 31.14
+          }
+        },
+        {
+          "column": 1,
+          "top": 64,
+          "dorsalCenter": 82.25,
+          "dorsalWidth": 69,
+          "crown": {
+            "x": 81.6903,
+            "y": 64
+          },
+          "match": {
+            "dx": -2,
+            "dy": -8,
+            "error": 40.51
+          }
+        },
+        {
+          "column": 2,
+          "top": 75,
+          "dorsalCenter": 82.35,
+          "dorsalWidth": 84,
+          "crown": {
+            "x": 81.3008,
+            "y": 75
+          },
+          "match": {
+            "dx": -3,
+            "dy": 3,
+            "error": 51.74
+          }
+        },
+        {
+          "column": 3,
+          "top": 70,
+          "dorsalCenter": 82.01,
+          "dorsalWidth": 83,
+          "crown": {
+            "x": 80.4676,
+            "y": 70
+          },
+          "match": {
+            "dx": -3,
+            "dy": -2,
+            "error": 43.9
+          }
+        },
+        {
+          "column": 4,
+          "top": 69,
+          "dorsalCenter": 80.57,
+          "dorsalWidth": 68,
+          "crown": {
+            "x": 80.0876,
+            "y": 69
+          },
+          "match": {
+            "dx": -4,
+            "dy": -3,
+            "error": 45.39
+          }
+        },
+        {
+          "column": 5,
+          "top": 70,
+          "dorsalCenter": 81.06,
+          "dorsalWidth": 77,
+          "crown": {
+            "x": 76.7801,
+            "y": 70
+          },
+          "match": {
+            "dx": -9,
+            "dy": -1,
+            "error": 54.66
+          }
+        }
+      ]
+    },
+    {
+      "row": 3,
+      "action": "attack",
+      "frames": [
+        {
+          "column": 0,
+          "top": 59,
+          "dorsalCenter": 95.53,
+          "dorsalWidth": 79,
+          "crown": {
+            "x": 89.0064,
+            "y": 59
+          },
+          "match": {
+            "dx": 1,
+            "dy": -11,
+            "error": 77.88
+          }
+        },
+        {
+          "column": 1,
+          "top": 58,
+          "dorsalCenter": 92.78,
+          "dorsalWidth": 77,
+          "crown": {
+            "x": 90.8279,
+            "y": 58
+          },
+          "match": {
+            "dx": 4,
+            "dy": -12,
+            "error": 53.94
+          }
+        },
+        {
+          "column": 2,
+          "top": 55,
+          "dorsalCenter": 95.21,
+          "dorsalWidth": 71,
+          "crown": {
+            "x": 92.8071,
+            "y": 55
+          },
+          "match": {
+            "dx": 5,
+            "dy": -14,
+            "error": 63.03
+          }
+        },
+        {
+          "column": 3,
+          "top": 72,
+          "dorsalCenter": 90.43,
+          "dorsalWidth": 70,
+          "crown": {
+            "x": 89.6418,
+            "y": 72
+          },
+          "match": {
+            "dx": 5,
+            "dy": 0,
+            "error": 40.27
+          }
+        },
+        {
+          "column": 4,
+          "top": 68,
+          "dorsalCenter": 85.3,
+          "dorsalWidth": 83,
+          "crown": {
+            "x": 84,
+            "y": 68
+          },
+          "match": {
+            "dx": -1,
+            "dy": -3,
+            "error": 36.26
+          }
+        },
+        {
+          "column": 5,
+          "top": 69,
+          "dorsalCenter": 78.65,
+          "dorsalWidth": 83,
+          "crown": {
+            "x": 77.4966,
+            "y": 69
+          },
+          "match": {
+            "dx": -7,
+            "dy": -2,
+            "error": 39.86
+          }
+        }
+      ]
+    },
+    {
+      "row": 4,
+      "action": "projectile",
+      "frames": [
+        {
+          "column": 0,
+          "top": 61,
+          "dorsalCenter": 91.97,
+          "dorsalWidth": 83,
+          "crown": {
+            "x": 84.8707,
+            "y": 61
+          },
+          "match": {
+            "dx": -2,
+            "dy": -9,
+            "error": 69.04
+          }
+        },
+        {
+          "column": 1,
+          "top": 58,
+          "dorsalCenter": 93.92,
+          "dorsalWidth": 71,
+          "crown": {
+            "x": 91.6812,
+            "y": 58
+          },
+          "match": {
+            "dx": 7,
+            "dy": -13,
+            "error": 36.07
+          }
+        },
+        {
+          "column": 2,
+          "top": 67,
+          "dorsalCenter": 82.44,
+          "dorsalWidth": 70,
+          "crown": {
+            "x": 81.988,
+            "y": 67
+          },
+          "match": {
+            "dx": -3,
+            "dy": -5,
+            "error": 44.91
+          }
+        },
+        {
+          "column": 3,
+          "top": 72,
+          "dorsalCenter": 80.18,
+          "dorsalWidth": 71,
+          "crown": {
+            "x": 79.4593,
+            "y": 72
+          },
+          "match": {
+            "dx": -5,
+            "dy": 0,
+            "error": 44.02
+          }
+        },
+        {
+          "column": 4,
+          "top": 68,
+          "dorsalCenter": 83.19,
+          "dorsalWidth": 84,
+          "crown": {
+            "x": 82.1806,
+            "y": 68
+          },
+          "match": {
+            "dx": -2,
+            "dy": -3,
+            "error": 37.71
+          }
+        },
+        {
+          "column": 5,
+          "top": 67,
+          "dorsalCenter": 81.43,
+          "dorsalWidth": 81,
+          "crown": {
+            "x": 80.5443,
+            "y": 67
+          },
+          "match": {
+            "dx": -5,
+            "dy": -4,
+            "error": 40.75
+          }
+        }
+      ]
+    },
+    {
+      "row": 5,
+      "action": "buff",
+      "frames": [
+        {
+          "column": 0,
+          "top": 64,
+          "dorsalCenter": 83.07,
+          "dorsalWidth": 69,
+          "crown": {
+            "x": 82.3759,
+            "y": 64
+          },
+          "match": {
+            "dx": 0,
+            "dy": -8,
+            "error": 51.24
+          }
+        },
+        {
+          "column": 1,
+          "top": 60,
+          "dorsalCenter": 86.44,
+          "dorsalWidth": 69,
+          "crown": {
+            "x": 86.5,
+            "y": 60
+          },
+          "match": {
+            "dx": 5,
+            "dy": -14,
+            "error": 88.74
+          }
+        },
+        {
+          "column": 2,
+          "top": 64,
+          "dorsalCenter": 83.55,
+          "dorsalWidth": 68,
+          "crown": {
+            "x": 83.0945,
+            "y": 64
+          },
+          "match": {
+            "dx": 0,
+            "dy": -7,
+            "error": 55.73
+          }
+        },
+        {
+          "column": 3,
+          "top": 69,
+          "dorsalCenter": 83.93,
+          "dorsalWidth": 70,
+          "crown": {
+            "x": 83.5845,
+            "y": 69
+          },
+          "match": {
+            "dx": 1,
+            "dy": -4,
+            "error": 63.01
+          }
+        },
+        {
+          "column": 4,
+          "top": 58,
+          "dorsalCenter": 85.37,
+          "dorsalWidth": 78,
+          "crown": {
+            "x": 82.6846,
+            "y": 58
+          },
+          "match": {
+            "dx": -4,
+            "dy": -11,
+            "error": 58.11
+          }
+        },
+        {
+          "column": 5,
+          "top": 67,
+          "dorsalCenter": 78.24,
+          "dorsalWidth": 82,
+          "crown": {
+            "x": 76.8291,
+            "y": 67
+          },
+          "match": {
+            "dx": -8,
+            "dy": -5,
+            "error": 26.4
+          }
+        }
+      ]
+    },
+    {
+      "row": 6,
+      "action": "hit",
+      "frames": [
+        {
+          "column": 0,
+          "top": 70,
+          "dorsalCenter": 78.09,
+          "dorsalWidth": 69,
+          "crown": {
+            "x": 77.6025,
+            "y": 70
+          },
+          "match": {
+            "dx": -7,
+            "dy": -3,
+            "error": 46.72
+          }
+        },
+        {
+          "column": 1,
+          "top": 74,
+          "dorsalCenter": 76.27,
+          "dorsalWidth": 65,
+          "crown": {
+            "x": 75.7252,
+            "y": 74
+          },
+          "match": {
+            "dx": -6,
+            "dy": 2,
+            "error": 65.12
+          }
+        },
+        {
+          "column": 2,
+          "top": 70,
+          "dorsalCenter": 72.64,
+          "dorsalWidth": 63,
+          "crown": {
+            "x": 72.0775,
+            "y": 70
+          },
+          "match": {
+            "dx": -8,
+            "dy": -3,
+            "error": 76.35
+          }
+        },
+        {
+          "column": 3,
+          "top": 73,
+          "dorsalCenter": 78.13,
+          "dorsalWidth": 81,
+          "crown": {
+            "x": 77.5938,
+            "y": 73
+          },
+          "match": {
+            "dx": -6,
+            "dy": 1,
+            "error": 56.36
+          }
+        },
+        {
+          "column": 4,
+          "top": 69,
+          "dorsalCenter": 80.66,
+          "dorsalWidth": 75,
+          "crown": {
+            "x": 79.255,
+            "y": 69
+          },
+          "match": {
+            "dx": -5,
+            "dy": -3,
+            "error": 63.72
+          }
+        },
+        {
+          "column": 5,
+          "top": 71,
+          "dorsalCenter": 77.93,
+          "dorsalWidth": 80,
+          "crown": {
+            "x": 76.7652,
+            "y": 71
+          },
+          "match": {
+            "dx": -7,
+            "dy": -1,
+            "error": 43.04
+          }
+        }
+      ]
+    },
+    {
+      "row": 7,
+      "action": "defeat",
+      "frames": [
+        {
+          "column": 0,
+          "top": 59,
+          "dorsalCenter": 84.32,
+          "dorsalWidth": 69,
+          "crown": {
+            "x": 83.7941,
+            "y": 59
+          },
+          "match": {
+            "dx": 4,
+            "dy": -14,
+            "error": 72.21
+          }
+        },
+        {
+          "column": 1,
+          "top": 70,
+          "dorsalCenter": 78.72,
+          "dorsalWidth": 64,
+          "crown": {
+            "x": 77.8898,
+            "y": 70
+          },
+          "match": {
+            "dx": -3,
+            "dy": -3,
+            "error": 56.69
+          }
+        },
+        {
+          "column": 2,
+          "top": 66,
+          "dorsalCenter": 83.9,
+          "dorsalWidth": 70,
+          "crown": {
+            "x": 83.6196,
+            "y": 66
+          },
+          "match": {
+            "dx": 1,
+            "dy": -7,
+            "error": 58.05
+          }
+        },
+        {
+          "column": 3,
+          "top": 73,
+          "dorsalCenter": 84.64,
+          "dorsalWidth": 68,
+          "crown": {
+            "x": 84.1282,
+            "y": 73
+          },
+          "match": {
+            "dx": 1,
+            "dy": 0,
+            "error": 52.87
+          }
+        },
+        {
+          "column": 4,
+          "top": 74,
+          "dorsalCenter": 82.44,
+          "dorsalWidth": 66,
+          "crown": {
+            "x": 82.0496,
+            "y": 74
+          },
+          "match": {
+            "dx": 0,
+            "dy": 2,
+            "error": 65.25
+          }
+        },
+        {
+          "column": 5,
+          "top": 90,
+          "dorsalCenter": 74.5,
+          "dorsalWidth": 70,
+          "crown": {
+            "x": 73.9383,
+            "y": 90
+          },
+          "match": {
+            "dx": -9,
+            "dy": 16,
+            "error": 75.86
+          }
+        }
+      ]
+    }
+  ]
+}

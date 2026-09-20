@@ -24,7 +24,7 @@
     width: 100%;
     height: auto;
     aspect-ratio: 1;
-    border-radius: 7px;
+    border-radius: var(--radius-card, 10px);
     object-fit: cover;
   }
   .home-about__intro { min-width: 0; }
@@ -152,12 +152,13 @@
     gap: 3px;
     min-width: 0;
     min-height: 44px;
-    color: #155dfc;
+    color: var(--brand-signal-blue, #005fed);
     font-size: .875rem;
     line-height: 1.55;
     text-decoration: none;
   }
   .home-about__project strong { font-weight: 650; }
+  .home-about__project-arrow { display: none; }
   .home-about__project > span { color: #233d5f; }
   .home-about__current {
     display: grid;
@@ -186,7 +187,7 @@
   .home-about a:hover strong,
   .home-about__current a:hover { text-decoration: underline; text-underline-offset: 3px; }
   .home-about a:focus-visible,
-  .home-about summary:focus-visible { outline: 2px solid #155dfc; outline-offset: 5px; border-radius: 2px; }
+  .home-about summary:focus-visible { outline: 2px solid var(--brand-signal-blue, #005fed); outline-offset: 5px; border-radius: 2px; }
 
   .site-frame[data-frame-audience="personal"] .home-about .home-timeline {
     width: auto;
@@ -283,8 +284,8 @@
     transition: none;
   }
   .home-about .home-timeline__entry:hover { outline: none; }
-  .home-about .home-timeline__entry:focus-visible { outline: 2px solid #155dfc; outline-offset: 4px; }
-  .home-about a.home-timeline__entry:hover .home-timeline__title { color: #155dfc; text-decoration: underline; text-underline-offset: 3px; }
+  .home-about .home-timeline__entry:focus-visible { outline: 2px solid var(--brand-signal-blue, #005fed); outline-offset: 4px; }
+  .home-about a.home-timeline__entry:hover .home-timeline__title { color: var(--brand-signal-blue, #005fed); text-decoration: underline; text-underline-offset: 3px; }
   .home-about .home-timeline__media,
   .home-about .home-timeline__type,
   .home-about .home-timeline__arrow,
@@ -359,8 +360,24 @@
     .home-about__interest-icon img { width: var(--illustration-fill-compact, 78%); height: var(--illustration-fill-compact, 78%); }
     .home-about__interest-icon svg { width: 44px; height: 44px; }
     .home-about__interest { grid-area: 1 / 2; }
-    .home-about__connector { grid-area: 2 / 1; justify-self: end; align-self: start; margin: 4px 0 0; }
-    .home-about__connector svg { width: 20px; height: 20px; }
+    .home-about__connector { display: none; }
+    .home-about__project-arrow {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-left: 5px;
+      vertical-align: -.2em;
+    }
+    .home-about__project-arrow svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
     .site-frame[data-frame-audience="personal"] .home-about__project { grid-area: 2 / 2; }
     .home-about__current { margin-top: 26px; padding-top: 22px; gap: 12px; font-size: .875rem; }
     .site-frame[data-frame-audience="personal"] .home-about .home-timeline { padding: 22px 0 0; border-left: 0; border-top: 1px solid #d1dae5; }

@@ -68,7 +68,9 @@
     }
 
     const ENVIRONMENT_ASSETS = Object.freeze({
-      terrain: environmentAssetMap('terrain'),
+      terrain: Object.freeze(Object.assign({}, environmentAssetMap('terrain'), {
+        'shop-interior': Object.freeze({ path: ASSET_ROOT + '/environment/terrain/shop-interior.png', cellSize: 64, columns: 8, schema: 'modular-v2' })
+      })),
       props: environmentAssetMap('props'),
       ramps: environmentAssetMap('ramps')
     });
@@ -76,6 +78,11 @@
     const ENVIRONMENT_STRUCTURE_ASSETS = Object.freeze({
       townLandmarks: Object.freeze({
         path: `${ASSET_ROOT}/environment/structures/town-landmarks.png`,
+        cellSize: 256,
+        columns: 4
+      }),
+      crossingLandmarks: Object.freeze({
+        path: `${ASSET_ROOT}/environment/structures/crossing-landmarks.png`,
         cellSize: 256,
         columns: 4
       })
@@ -125,11 +132,15 @@
       astralObservatory: 5,
       marketAwning: 6,
       lanternArch: 7,
-      // Keep the current town layout on the restored eight-cell landmark atlas.
+      // Crossing selects its own eight-cell atlas through townScene.structureTheme.
       fracturedObservatoryCore: 0,
       expeditionDepot: 6,
       lensWorkshop: 1,
-      frontierGate: 7
+      frontierGate: 7,
+      crossingStorageKiosk: 2,
+      crossingSupplyCounter: 3,
+      crossingRepairWorkbench: 4,
+      crossingTrainingPavilion: 5
     });
 
     const ENVIRONMENT_REAR_PROP_KINDS = Object.freeze(['tree', 'tall', 'vine', 'crystal', 'sign']);
@@ -195,7 +206,7 @@
       banditRidgeCamp: environmentProfile({ terrain: 'bandit-ridge-camp', props: 'bandit-ridge-camp', density: 0.56, propKinds: ['grass', 'bush', 'tree', 'crate', 'sign', 'small'], terrainStyle: TERRAIN_STYLE_BANDIT }),
       banditAnimationLab: environmentProfile({ terrain: 'bandit-ridge-camp', props: 'bandit-ridge-camp', density: 0.2, propKinds: ['crate', 'sign', 'small'], terrainStyle: TERRAIN_STYLE_BANDIT }),
       orebackQuarry: environmentProfile({ terrain: 'oreback-quarry', props: 'oreback-quarry', density: 0.54, propKinds: ['rock', 'small', 'tall', 'crate', 'crystal', 'glow'], terrainStyle: TERRAIN_STYLE_RUST }),
-      ashglassPass: environmentProfile({ terrain: 'ashglass-pass', props: 'ashglass-pass', density: 0.48, propKinds: ['rock', 'small', 'tall', 'crystal', 'glow'], terrainStyle: TERRAIN_STYLE_CINDER }),
+      ashglassPass: environmentProfile({ terrain: 'ashglass-pass', props: 'ashglass-pass', density: 0.48, propKinds: ['rock', 'small', 'tall', 'crystal', 'glow'], terrainStyle: Object.assign({}, TERRAIN_STYLE_CINDER, { contactAligned: true }) }),
       frostfenOutskirts: environmentProfile({ terrain: 'frostfen-outskirts', props: 'frostfen-outskirts', density: 0.54, propKinds: ['grass', 'rock', 'crystal', 'small', 'tall', 'glow'], terrainStyle: TERRAIN_STYLE_FROST }),
       glacierSpine: environmentProfile({ terrain: 'glacier-spine', props: 'glacier-spine', density: 0.5, propKinds: ['rock', 'crystal', 'tall', 'small', 'glow'], terrainStyle: TERRAIN_STYLE_FROST }),
       rimewardenSanctum: environmentProfile({ terrain: 'rimewarden-sanctum', props: 'rimewarden-sanctum', density: 0.44, propKinds: ['crystal', 'tall', 'rock', 'glow', 'small'], terrainStyle: TERRAIN_STYLE_FROST }),

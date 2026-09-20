@@ -372,7 +372,8 @@
       connect('thornpath_relay_shard_perch', 'thornpath_relay_high_bough', 'relay_perch'),
       connect('thornpath_relay_shard_perch', 'thornpath_relay_mid_deck', 'relay_perch_flank'),
       connect('thornpath_fork_ridge_branch', 'thornpath_fork_lower_lane', 'ridge_branch'),
-      connect('thornpath_fork_observatory_branch', 'thornpath_fork_lower_lane', 'observatory_branch')
+      connect('thornpath_fork_observatory_branch', 'thornpath_fork_lower_lane', 'observatory_branch'),
+      connect('thornpath_fork_beacon_perch', 'thornpath_fork_ridge_branch', 'beacon_regroup')
     ].filter(Boolean);
   }
 
@@ -566,7 +567,8 @@
       if (shouldUseSlopePhase(settings, 'groundToLow', clusterIndex, cluster)) addSlope(cluster.lowX - rampW, lanes.ground, lowY, rampW);
       addPlatform(cluster.lowX, lowY, lowW, 'solidLane');
       addFlatConnector(cluster.lowX + lowW - 280, (lowY + midY) / 2, 230);
-      if (shouldUseSlopePhase(settings, 'lowToMid', clusterIndex, cluster)) addSlope(cluster.midX - rampW, lowY, midY, rampW);
+      const lowToMidRampW = Number(cluster.lowToMidRampW || rampW);
+      if (shouldUseSlopePhase(settings, 'lowToMid', clusterIndex, cluster)) addSlope(cluster.midX - lowToMidRampW, lowY, midY, lowToMidRampW);
       addPlatform(cluster.midX, midY, midW, 'solidLane');
       addFlatConnector(cluster.midX + Math.min(midW - 280, 320), (midY + highY) / 2, 230);
       if (shouldUseSlopePhase(settings, 'midToHigh', clusterIndex, cluster)) addSlope(cluster.highX - rampW, midY, highY, rampW);
@@ -616,6 +618,12 @@
         slopePlan: { lowToMid: [0, 2], midToHigh: [1] }
       }, index));
       addPlatform(4140, lanes.mid - 52, 440, 'solidLane');
+      [[1284, lanes.low, 512], [1504, lanes.mid, 592]].forEach(([x, y, w], index) => {
+        const bridge = makePlatformDef(x, y, w, 22, { kind: 'connector' });
+        bridge.id = `oreback_quarry_hunting_bridge_${index + 1}`;
+        bridge.noRoutineSpawns = true;
+        platforms.push(bridge);
+      });
       return platforms;
     }
 
@@ -631,6 +639,15 @@
       addPlatform(1500, lanes.low - 40, 600, 'solidLane');
       addPlatform(2920, lanes.mid - 54, 620, 'solidLane');
       addFlatConnector(4680, lanes.highConnector, 230);
+      const midBridge = makePlatformDef(1344, lanes.mid, 832, 22, { kind: 'connector' });
+      midBridge.id = 'cinder_hollow_hunting_bridge_1';
+      midBridge.noRoutineSpawns = true;
+      platforms.push(midBridge);
+      // Reach the raised regroup shelf without a deck 40px beneath it.
+      const westRamp = makeSlopePlatformDef(1164, lanes.low, lanes.low - 40, 352, 22, { kind: 'slope' });
+      westRamp.id = 'cinder_hollow_hunting_ramp_1';
+      westRamp.noRoutineSpawns = true;
+      platforms.push(westRamp);
       return platforms;
     }
 
@@ -646,6 +663,12 @@
       addPlatform(3000, lanes.peak, 720, 'solidLane');
       addSlope(2720, lanes.high, lanes.peak, 280);
       addPlatform(4520, lanes.sky, 500, 'hop');
+      [[1624, lanes.low, 292], [1584, lanes.mid, 732]].forEach(([x, y, w], index) => {
+        const bridge = makePlatformDef(x, y, w, 22, { kind: 'connector' });
+        bridge.id = `ashglass_pass_hunting_bridge_${index + 1}`;
+        bridge.noRoutineSpawns = true;
+        platforms.push(bridge);
+      });
       return platforms;
     }
 
@@ -662,13 +685,20 @@
       addPlatform(2660, lanes.peak, 860, 'solidLane');
       addPlatform(4300, lanes.sky, 620, 'hop');
       addFlatConnector(4320, lanes.highConnector, 240);
+      // Close the west/middle loop while keeping the eastern anti-air gaps.
+      [[1124, lanes.low, 572], [1364, lanes.mid, 672]].forEach(([x, y, w], index) => {
+        const bridge = makePlatformDef(x, y, w, 22, { kind: 'connector' });
+        bridge.id = `stormbreak_cliffs_hunting_bridge_${index + 1}`;
+        bridge.noRoutineSpawns = true;
+        platforms.push(bridge);
+      });
       return platforms;
     }
 
     if (mapId === 'endlessRift') {
       [
         { lowX: 260, midX: 520, highX: 780, lowW: 800, midW: 760, highW: 700 },
-        { lowX: 1460, midX: 1740, highX: 2020, lowW: 820, midW: 760, highW: 700 },
+        { lowX: 1460, midX: 1740, highX: 2020, lowW: 820, midW: 760, highW: 700, lowToMidRampW: 280 },
         { lowX: 2660, midX: 2940, highX: 3220, lowW: 820, midW: 760, highW: 700 },
         { lowX: 3860, midX: 4100, highX: 4340, lowW: 740, midW: 700, highW: 640 }
       ].forEach((cluster, index) => buildCluster(cluster, {
@@ -703,6 +733,7 @@
     };
     if (vertical) {
       const geometry = getVerticalFieldGeometry(layoutStyle, variantKey);
+      const loopLanes = [];
       anchors.forEach((anchor, index) => {
         const flip = index % 2 === 1;
         const zoneDrift = (index % 3 - 1) * 18 + geometry.mapShift;
@@ -720,15 +751,28 @@
           else addSlope(midX, lanes.low - lift, lanes.mid - lift, geometry.midRampW, 'slope');
         }
         addPlatform(midX, lanes.mid - lift, geometry.midW, 'solidLane');
+        const midPlatform = platforms[platforms.length - 1];
         addPlatform(highX + (flip ? geometry.highW - 20 : -40), lanes.highConnector - lift, 240, 'connector');
         if (index === Math.floor(anchors.length / 2)) {
           if (flip) addSlope(highX + 40, lanes.mid - lift, lanes.high - lift, geometry.highRampW, 'slope');
           else addSlope(highX + 140, lanes.high - lift, lanes.mid - lift, geometry.highRampW, 'slope');
         }
         addPlatform(highX, lanes.high - lift, geometry.highW, 'solidLane');
+        loopLanes.push({ mid: midPlatform, high: platforms[platforms.length - 1] });
         addPlatform(peakX, lanes.peak - lift, geometry.peakW, layoutStyle === 'astralStack' || layoutStyle === 'riftStack' ? 'island' : 'solidLane');
         addPlatform(skyX, lanes.sky - lift, geometry.skyW, 'hop');
       });
+      if (['glacierSpine', 'astralArchive', 'eclipseFrontier'].includes(String(variantKey))) {
+        // Link neighboring hunting circuits above the long return floor. Keep
+        // the upper optional branches and all existing platform IDs/indices.
+        [[loopLanes[0].mid, loopLanes[1].mid], [loopLanes[1].high, loopLanes[2].high]].forEach(([left, right], index) => {
+          const x = getPlatformDefRight(left) - 16;
+          const bridge = makePlatformDef(x, getPlatformDefY(left), getPlatformDefX(right) - x + 16, 22, { kind: 'connector' });
+          bridge.id = `${variantKey}_hunting_bridge_${index + 1}`;
+          bridge.noRoutineSpawns = true;
+          platforms.push(bridge);
+        });
+      }
       return platforms;
     }
     const variantSeed = getMapGeometrySeed(variantKey || '');
@@ -815,7 +859,7 @@
 
   function makeVerticalFieldClimbables(prefix, platforms, layoutStyle) {
     const kind = getFieldClimbableKind(layoutStyle);
-    return platforms
+    const climbables = platforms
       .map((platform, topIndex) => ({ platform, topIndex }))
       .filter((entry) => {
         const visualKind = getPlatformDefVisualKind(entry.platform);
@@ -847,6 +891,28 @@
           : null;
       })
       .filter(Boolean);
+    // Several small reward/regroup perches sat above the ordinary jump height
+    // and were excluded by the wide-lane ladder generator. Append their access
+    // links so existing climbable identifiers and saved references remain stable.
+    platforms.forEach((top, topIndex) => {
+      const visualKind = getPlatformDefVisualKind(top);
+      const width = getPlatformDefW(top);
+      if (!topIndex || getPlatformDefShape(top) === 'slope' ||
+        width < 260 || width >= 500 && visualKind !== 'hop') return;
+      const candidates = platforms.map((bottom, bottomIndex) => ({ bottom, bottomIndex }))
+        .filter(({ bottom, bottomIndex }) => {
+          const gap = getPlatformDefY(bottom) - getPlatformDefY(top);
+          const overlap = Math.min(getPlatformDefRight(top), getPlatformDefRight(bottom)) -
+            Math.max(getPlatformDefX(top), getPlatformDefX(bottom));
+          return bottomIndex !== topIndex && gap > 0 && gap <= 400 && overlap >= 64 && getPlatformDefShape(bottom) !== 'slope';
+        }).sort((a, b) => getPlatformDefY(a.bottom) - getPlatformDefY(b.bottom));
+      const nearest = candidates[0];
+      if (!nearest || getPlatformDefY(nearest.bottom) - getPlatformDefY(top) <= 70) return;
+      const climbable = makeClimbableBetweenPlatforms(prefix, platforms, topIndex, nearest.bottomIndex,
+        `perch_${top.id || topIndex}`, kind);
+      if (climbable) climbables.push(climbable);
+    });
+    return climbables;
   }
 
   function makeFieldClimbables(prefix, widthOrPlatforms, layoutStyle) {
@@ -884,7 +950,7 @@
   function makeFieldSpawnPoints(platforms) {
     return platforms
       .map((platform, index) => ({ platform, index }))
-      .filter((entry) => entry.index > 0 && getPlatformDefW(entry.platform) >= 640)
+      .filter((entry) => entry.index > 0 && !entry.platform.noRoutineSpawns && getPlatformDefW(entry.platform) >= 640)
       .reduce((points, entry) => {
         const platform = entry.platform;
         const x = getPlatformDefX(platform);
@@ -978,7 +1044,7 @@
   }
 
   function makeTownClimbables(prefix, platforms) {
-    return [
+    const climbables = [
       makeClimbableBetweenPlatforms(prefix, platforms, 1, 0, 'left_plaza', 'stair'),
       makeClimbableBetweenPlatforms(prefix, platforms, 4, 1, 'left_roofwalk', 'stair'),
       makeClimbableBetweenPlatforms(prefix, platforms, 7, 4, 'left_balcony', 'stair'),
@@ -990,6 +1056,12 @@
       makeClimbableBetweenPlatforms(prefix, platforms, 6, 3, 'gate_watch', 'stair'),
       makeClimbableBetweenPlatforms(prefix, platforms, 9, 6, 'gate_roof', 'stair')
     ].filter(Boolean);
+    const top = platforms[15];
+    const bottom = platforms[8];
+    if (top && bottom && getPlatformDefY(bottom) - getPlatformDefY(top) > 70) {
+      climbables.push(makeClimbableBetweenPlatforms(prefix, platforms, 15, 8, 'market_perch_access', 'stair'));
+    }
+    return climbables.filter(Boolean);
   }
 
   const api = Object.freeze({

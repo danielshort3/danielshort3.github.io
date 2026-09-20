@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starfall · Enemy collision review</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #253d38; background: #f3f4ed; font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 1180px; margin: auto; padding: 30px 24px 50px; }
+  h1 { margin: 0 0 6px; font-size: clamp(26px, 4vw, 38px); line-height: 1.2; letter-spacing: -1px; }
+  p { max-width: 900px; margin: 0 0 20px; color: #50645e; }
+  .controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 16px; border: 1px solid #ccd5c7; background: #fffdf6; border-radius: 14px; }
+  label { display: grid; gap: 4px; font-size: 12px; font-weight: 650; }
+  select, button { min-height: 40px; border: 1px solid #b9c8b8; border-radius: 7px; background: #fff; color: #253d38; padding: 7px 10px; font: inherit; }
+  button { cursor: pointer; font-size: 14px; }
+  select:focus-visible, button:focus-visible, input:focus-visible, canvas:focus-visible { outline: 3px solid #547dba; outline-offset: 2px; }
+  #enemy { max-width: 265px; }
+  .check { display: flex; align-items: center; min-height: 40px; gap: 6px; font-weight: 500; font-size: 13px; }
+  .check input { width: 17px; height: 17px; accent-color: #2b7b56; }
+  .panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+  figure { margin: 0; min-width: 0; overflow: hidden; border: 1px solid #ccd5c7; border-radius: 14px; background: #fffdf6; }
+  figcaption { padding: 12px 16px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  figcaption strong { font-weight: 650; }
+  .tag { display: inline-block; font-size: 12px; white-space: nowrap; }
+  .old { color: #ad443d; }
+  .new { color: #247549; }
+  canvas { width: 100%; height: auto; display: block; touch-action: manipulation; cursor: crosshair; }
+  .timeline { display: flex; align-items: center; gap: 12px; margin: 18px 0 10px; }
+  .timeline input { flex: 1; min-width: 60px; accent-color: #2b7b56; }
+  #frame { font-size: 13px; min-width: 150px; text-align: right; font-variant-numeric: tabular-nums; }
+  #status { padding: 12px 16px; border-radius: 10px; background: #e3eadc; color: #28493a; min-height: 47px; }
+  .footnote { font-size: 13px; margin-top: 15px; margin-bottom: 0; }
+  a { color: #285d84; }
+  @media (max-width: 620px) { main { padding: 22px 12px; } .panels { grid-template-columns: 1fr; } .controls { gap: 10px; } #enemy { max-width: 100%; } .controls > label:first-child { flex: 1 1 100%; } .timeline { gap: 6px; } .timeline button { padding-inline: 8px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Enemy collision review</h1>
+  <p>Compare the former rectangular combat area with collision that follows each visible pose. Pause and click either sprite or the empty space around it to test a point.</p>
+  <div class="controls">
+    <label>Enemy<select id="enemy"></select></label>
+    <label>Action<select id="action"></select></label>
+    <label>Facing<select id="facing"><option value="1">Right</option><option value="-1">Left</option></select></label>
+    <label>View<select id="zoom"><option value="1">Gameplay scale</option><option value="2" selected>2× detail</option></select></label>
+    <label>Background<select id="background"><option value="dark">Dark</option><option value="light">Light</option></select></label>
+    <label class="check"><input id="overlay" type="checkbox" checked>Collision overlay</label>
+    <label class="check"><input id="recoil" type="checkbox">Peak hit recoil</label>
+  </div>
+  <div class="panels">
+    <figure><figcaption><strong>Previous combat area</strong><span class="tag old">Rectangle</span></figcaption><canvas id="before" width="552" height="380" aria-label="Previous rectangular collision. Click to test a point." tabindex="0"></canvas></figure>
+    <figure><figcaption><strong>Corrected combat area</strong><span class="tag new">Visible sprite pixels</span></figcaption><canvas id="after" width="552" height="380" aria-label="Corrected sprite collision. Click to test a point." tabindex="0"></canvas></figure>
+  </div>
+  <div class="timeline">
+    <button id="play" type="button">Pause</button>
+    <button id="previous" type="button" aria-label="Previous frame">←</button>
+    <button id="next" type="button" aria-label="Next frame">→</button>
+    <input id="seek" type="range" min="0" max="5" step="1" value="0" aria-label="Animation frame">
+    <output id="frame">Frame 1 / 6</output>
+  </div>
+  <div id="status" role="status" aria-live="polite">Loading sprite…</div>
+  <p class="footnote">Both panels use the same artwork, registration, frame and render scale. Large actors fit within the preview; the displayed scale shows that adjustment. The corrected area excludes transparent gaps; faint edge pixels below 25% opacity are excluded. Ground movement keeps its separate physics box. Defeat poses are shown for inspection and are not damageable in play. Playback uses the asset’s frame holds; this review tests geometry, not live attack timing.</p>
+</main>
+__MODULES__
+<script>
+'use strict';
+const DATA = __REVIEW_DATA__;
+const Visuals = window.ProjectStarfallEngineModules.visuals;
+const Feedback = window.ProjectStarfallEngineModules.combatFeedback;
+const Hurtboxes = window.ProjectStarfallEngineModules.enemyHurtboxes;
+const elements = Object.fromEntries(['enemy', 'action', 'facing', 'zoom', 'background', 'overlay', 'recoil', 'before', 'after', 'play', 'previous', 'next', 'seek', 'frame', 'status'].map(id => [id, document.getElementById(id)]));
+const images = new Map();
+const state = { enemyId: 'lavaTick', action: 'idle', index: 0, elapsed: 0, playing: true, probe: null, image: null };
+let last = performance.now();
+
+function actor() { return DATA.enemies.find(item => item.id === state.enemyId); }
+function clip() { return actor().actions[state.action]; }
+function frameDefinition() { return { row: actor().animation.states[state.action].row, frameIndex: clip().sequence[state.index], frameWidth: actor().animation.frameWidth, frameHeight: actor().animation.frameHeight }; }
+function geometry() {
+  const enemy = actor(), facing = Number(elements.facing.value);
+  const body = { x: 0, y: 0, ...enemy.body, id: enemy.id, data: { behavior: enemy.behavior } };
+  let box = Visuals.createEnemySpriteRenderBox(body);
+  if (elements.recoil.checked) box = Feedback.applyEnemyHitReactionToBox(box, Feedback.getEnemyHitReactionState(Feedback.createEnemyHitReaction({ startedAtMs: 1000, critical: true, direction: facing }), 1000));
+  const frame = frameDefinition();
+  const draw = Visuals.createAnimationFrameDrawState(frame, box.x, box.y, box.w, box.h, facing, { registration: enemy.animation.registration });
+  const hurtbox = Hurtboxes.createEnemyHurtbox(enemy.animation, frame, box, facing);
+  return { body, box, frame, draw, hurtbox };
+}
+function viewport() {
+  const bounds = actor().viewBounds;
+  const zoom = Math.min(Number(elements.zoom.value), (elements.after.width - 40) / (bounds.right - bounds.left), (elements.after.height - 60) / (bounds.bottom - bounds.top));
+  return { zoom, x: elements.after.width / 2 - (bounds.left + bounds.right) * zoom / 2, y: elements.after.height / 2 - (bounds.top + bounds.bottom) * zoom / 2 };
+}
+function probeResult(point) {
+  const { body, hurtbox } = geometry();
+  return { before: point.x >= 0 && point.y >= 0 && point.x < body.w && point.y < body.h, after: Hurtboxes.intersectsCircle(hurtbox, point.x, point.y, 0) };
+}
+function paint(canvas, corrected) {
+  const ctx = canvas.getContext('2d'), { body, draw, hurtbox } = geometry(), view = viewport();
+  const light = elements.background.value === 'light';
+  ctx.fillStyle = light ? '#ede9dd' : '#182129'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save(); ctx.translate(view.x, view.y); ctx.scale(view.zoom, view.zoom);
+  ctx.strokeStyle = light ? '#c8c0ae' : '#35444a'; ctx.lineWidth = 1 / view.zoom; ctx.beginPath(); ctx.moveTo(-260, body.h); ctx.lineTo(300, body.h); ctx.stroke();
+  if (state.image) {
+    ctx.save(); ctx.translate(draw.translateX, draw.translateY); ctx.scale(draw.scaleX, draw.scaleY);
+    ctx.drawImage(state.image, draw.sourceX, draw.sourceY, draw.frameWidth, draw.frameHeight, draw.drawX, draw.drawY, draw.drawWidth, draw.drawHeight); ctx.restore();
+  }
+  if (elements.overlay.checked) {
+    if (corrected) {
+      ctx.fillStyle = light ? '#17935e88' : '#62d99577';
+      ctx.beginPath(); Hurtboxes.forEachRect(hurtbox, rect => ctx.rect(rect.x, rect.y, rect.w, rect.h)); ctx.fill();
+    } else {
+      ctx.fillStyle = '#f06a6033'; ctx.strokeStyle = '#f06a60'; ctx.lineWidth = 1.5 / view.zoom;
+      ctx.fillRect(0, 0, body.w, body.h); ctx.strokeRect(0, 0, body.w, body.h);
+    }
+  }
+  if (state.probe) {
+    const hit = probeResult(state.probe)[corrected ? 'after' : 'before'];
+    ctx.strokeStyle = hit ? '#f9c662' : light ? '#1b4b68' : '#ecf4f2'; ctx.lineWidth = 2 / view.zoom;
+    const radius = 5 / view.zoom; ctx.beginPath(); ctx.moveTo(state.probe.x - radius, state.probe.y); ctx.lineTo(state.probe.x + radius, state.probe.y); ctx.moveTo(state.probe.x, state.probe.y - radius); ctx.lineTo(state.probe.x, state.probe.y + radius); ctx.stroke();
+  }
+  ctx.restore();
+}
+function render() {
+  if (!state.image) return;
+  paint(elements.before, false); paint(elements.after, true);
+  elements.seek.max = clip().sequence.length - 1; elements.seek.value = state.index;
+  const displayedScale = viewport().zoom * elements.after.getBoundingClientRect().width / elements.after.width;
+  elements.frame.value = `Frame ${state.index + 1} / ${clip().sequence.length} · ${displayedScale.toFixed(1)}×`;
+  elements.play.textContent = state.playing ? 'Pause' : 'Play';
+  if (state.probe) {
+    const result = probeResult(state.probe);
+    elements.status.textContent = `At (${state.probe.x.toFixed(1)}, ${state.probe.y.toFixed(1)}): previous ${result.before ? 'HIT' : 'MISS'} · corrected ${result.after ? 'HIT' : 'MISS'}. Point test, with no extra hit padding.${state.action === 'defeat' ? ' Defeat preview only.' : ''}`;
+  } else elements.status.textContent = `${actor().name} · ${state.action} · ${actor().visibility === 'live' ? 'Live enemy' : actor().visibility === 'future' ? 'Future enemy asset' : 'Debug variant'}. Pause and click to test visible edges and empty gaps.`;
+}
+async function loadActor() {
+  const enemy = actor();
+  state.image = null; state.probe = null; state.index = 0; state.elapsed = 0;
+  elements.status.textContent = 'Loading sprite…';
+  elements.action.replaceChildren(...Object.keys(enemy.actions).map(id => new Option(id[0].toUpperCase() + id.slice(1), id)));
+  if (!enemy.actions[state.action]) state.action = 'idle';
+  elements.action.value = state.action;
+  if (!images.has(enemy.image)) images.set(enemy.image, new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = enemy.image; }));
+  try { const image = await images.get(enemy.image); if (state.enemyId === enemy.id) { state.image = image; render(); } } catch (_) { elements.status.textContent = 'Sprite could not load. Refresh after rebuilding the review.'; }
+}
+function step(delta) { state.playing = false; state.elapsed = 0; state.index = (state.index + delta + clip().sequence.length) % clip().sequence.length; render(); }
+elements.enemy.replaceChildren(...DATA.enemies.map(enemy => new Option(enemy.name, enemy.id))); elements.enemy.value = state.enemyId;
+elements.enemy.addEventListener('change', () => { state.enemyId = elements.enemy.value; loadActor(); });
+elements.action.addEventListener('change', () => { state.action = elements.action.value; state.index = 0; state.elapsed = 0; state.probe = null; render(); });
+for (const id of ['facing', 'zoom', 'background', 'overlay', 'recoil']) elements[id].addEventListener('change', render);
+window.addEventListener('resize', render);
+elements.play.addEventListener('click', () => { state.playing = !state.playing; state.elapsed = 0; if (state.playing && state.index === clip().sequence.length - 1 && !clip().loop) state.index = 0; render(); });
+elements.previous.addEventListener('click', () => step(-1)); elements.next.addEventListener('click', () => step(1));
+elements.seek.addEventListener('input', () => { state.playing = false; state.index = Number(elements.seek.value); state.elapsed = 0; render(); });
+for (const canvas of [elements.before, elements.after]) {
+  canvas.addEventListener('click', event => { const rect = canvas.getBoundingClientRect(), view = viewport(); state.probe = { x: ((event.clientX - rect.left) / rect.width * canvas.width - view.x) / view.zoom, y: ((event.clientY - rect.top) / rect.height * canvas.height - view.y) / view.zoom }; state.playing = false; render(); });
+  canvas.addEventListener('keydown', event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); step(event.key === 'ArrowLeft' ? -1 : 1); } });
+}
+function tick(now) {
+  const elapsed = Math.min(100, now - last); last = now;
+  if (state.playing && state.image) {
+    state.elapsed += elapsed;
+    while (state.elapsed >= clip().holds[state.index]) {
+      state.elapsed -= clip().holds[state.index];
+      if (state.index + 1 < clip().sequence.length) state.index++;
+      else if (clip().loop) state.index = 0;
+      else { state.playing = false; state.elapsed = 0; break; }
+    }
+    render();
+  }
+  requestAnimationFrame(tick);
+}
+window.starfallHitboxReview = {
+  snapshot: () => ({ enemyId: state.enemyId, action: state.action, index: state.index, playing: state.playing, imageLoaded: !!state.image, facing: Number(elements.facing.value), recoil: elements.recoil.checked, hurtboxBounds: geometry().hurtbox.bounds }),
+  probe: (x, y) => { state.probe = { x, y }; state.playing = false; render(); return probeResult(state.probe); },
+  select: async (id, action = 'idle', frame = 0) => { state.enemyId = id; state.action = action; elements.enemy.value = id; await loadActor(); state.index = Math.max(0, Math.min(clip().sequence.length - 1, frame)); state.playing = false; render(); return window.starfallHitboxReview.snapshot(); }
+};
+loadActor(); requestAnimationFrame(tick);
+</script>
+</body>
+</html>

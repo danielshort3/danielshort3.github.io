@@ -14,6 +14,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 const { loadSocialPreviewRecords, socialPreviewMetadata } = require('./lib/social-previews');
 
@@ -66,14 +67,15 @@ const SAME_AS = Object.freeze((Array.isArray(SITE_SETTINGS.sameAs) ? SITE_SETTIN
   .map((value) => String(value || '').trim())
   .filter(Boolean));
 const DEFAULT_OG_IMAGE = Object.freeze({
-  url: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.url || `${SITE_ORIGIN}/img/brand/07-website-hero-light-version.png`).trim(),
-  width: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.width || '1672').trim(),
-  height: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.height || '941').trim(),
+  url: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.url || `${SITE_ORIGIN}/img/brand/personal-social-card.png`).trim(),
+  width: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.width || '1200').trim(),
+  height: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.height || '630').trim(),
   type: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.type || 'image/png').trim(),
   alt: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.alt || 'Daniel Short portfolio preview').trim()
 });
 const LEGACY_SHARED_OG_IMAGES = new Set([
   `${SITE_ORIGIN}/img/hero/head.png`,
+  `${SITE_ORIGIN}/img/brand/07-website-hero-light-version.png`,
   `${SITE_ORIGIN}/img/brand/10-github-readme-portfolio-banner.svg`
 ]);
 const GAME_PAGE = readJsonFile(path.join(root, 'content', 'pages', 'games.json'));
@@ -555,6 +557,11 @@ function ensureBaselineMetadata(headInner) {
   const explicitNoindex = hasNoindexRobotsMeta(headInner);
   const routeNoindex = pathname && noindexPathnames.has(pathname);
   let next = headInner;
+  // The shared variable font was discovered only after render-blocking CSS.
+  // Preload the same resource used by fonts.css to shorten the initial chain.
+  if (/dist\/styles(?:\.[a-f0-9]+)?\.css/.test(next) && !/rel="preload"[^>]*Inter-Latin\.woff2/.test(next)) {
+    next = '  <link rel="preload" href="/css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>\n' + next;
+  }
 
   next = upsertMetaTag(next, 'name', 'author', OWNER_NAME);
   if (pathname && !explicitNoindex && !routeNoindex) {
@@ -748,19 +755,51 @@ function ensureRouteComponentStylesheet(headInner) {
   const hrefs = getRouteComponentStyles(pathname);
   if (!Array.isArray(hrefs) || !hrefs.length) return headInner;
 
-  return hrefs.reduce(
-    (nextHead, href) => ensureStylesheetLink(
-      nextHead,
-      href,
+  return hrefs.reduce((nextHead, href) => {
+    // HTML updates before a cache-first service worker refreshes bare CSS URLs.
+    // Tie route styles to their content so new markup cannot reuse old styles.
+    const pathname = href.replace(/[?#].*$/, '').replace(/^\//, '');
+    const hash = crypto.createHash('sha256')
+      .update(fs.readFileSync(path.join(root, pathname))).digest('hex').slice(0, 12);
+    const versionedHref = `${pathname}?v=${hash}`;
+    let found = false;
+    const updatedHead = nextHead.replace(/<link\b[^>]*>/gi, (tag) => {
+      if (!/\brel=["']stylesheet["']/i.test(tag)) return tag;
+      const source = /\bhref=(["'])([^"']+)\1/i.exec(tag);
+      if (!source || source[2].replace(/[?#].*$/, '').replace(/^\//, '') !== pathname) return tag;
+      if (found) return '';
+      found = true;
+      return tag.replace(source[0], `href="${versionedHref}"`);
+    });
+    return ensureStylesheetLink(
+      updatedHead,
+      versionedHref,
       stylesheetCandidates(
         TOOLS_STYLESHEET_HREF,
         TOOLS_STYLESHEET_FALLBACK,
         BASE_STYLESHEET_HREF,
         BASE_STYLESHEET_FALLBACK
       )
-    ),
-    headInner
-  );
+    );
+  }, headInner);
+}
+
+function versionBrandIcons(headInner) {
+  const icons = new Set([
+    'favicon.ico',
+    'img/brand/05-ds-favicon-small-icon.svg',
+    ...[16, 32, 64, 180, 192].map(size => `img/ui/logo-${size}.png`)
+  ]);
+  return headInner.replace(/<link\b[^>]*>/gi, (tag) => {
+    if (!/\brel=["'](?:icon|shortcut icon|apple-touch-icon)["']/i.test(tag)) return tag;
+    const source = /\bhref=(["'])([^"']+)\1/i.exec(tag);
+    if (!source) return tag;
+    const pathname = source[2].replace(/[?#].*$/, '').replace(/^\//, '');
+    if (!icons.has(pathname)) return tag;
+    const hash = crypto.createHash('sha256')
+      .update(fs.readFileSync(path.join(root, pathname))).digest('hex').slice(0, 12);
+    return tag.replace(source[0], `href="${pathname}?v=${hash}"`);
+  });
 }
 
 function ensurePersonalAccordionStylesheet(headInner, html) {
@@ -1040,6 +1079,7 @@ function processHtml(html, relPath = '') {
   let inner = head.inner;
   inner = replaceManagedStylesheetLinks(inner);
   inner = ensurePerformanceAndPwa(inner);
+  inner = versionBrandIcons(inner);
   inner = dedupeMeta(inner, 'property', 'og:image:width');
   inner = dedupeMeta(inner, 'property', 'og:image:height');
   inner = dedupeMeta(inner, 'property', 'og:image:type');

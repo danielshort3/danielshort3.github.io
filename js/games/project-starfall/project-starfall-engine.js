@@ -4,6 +4,7 @@
   const Data = global.ProjectStarfallData || (typeof require === 'function' ? require('./project-starfall-data.js') : null);
   const Rig = global.ProjectStarfallRig || (typeof require === 'function' ? require('./project-starfall-rig.js') : null);
   const CoreMath = (typeof require === 'function' ? require('./core/math.js') : null) || global.ProjectStarfallCore || {};
+  const SceneryPlacement = (typeof require === 'function' ? require('./engine/scenery-placement.js') : null) || global.ProjectStarfallEngineModules && global.ProjectStarfallEngineModules.sceneryPlacement;
   const CoreGeometry = (typeof require === 'function' ? require('./core/geometry.js') : null) || global.ProjectStarfallCore || {};
   const CoreTime = (typeof require === 'function' ? require('./core/time.js') : null) || global.ProjectStarfallCore || {};
   const CoreIds = (typeof require === 'function' ? require('./core/ids.js') : null) || global.ProjectStarfallCore || {};
@@ -13,6 +14,7 @@
   const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
   const getAssetRequestUrl = CoreAssets.getAssetRequestUrl || ((assetPath) => assetPath);
   const EngineModules = global.ProjectStarfallEngineModules || {};
+  const EnemyHurtboxes = (typeof require === 'function' ? require('./engine/enemy-hurtboxes.js') : null) || EngineModules.enemyHurtboxes || {};
   const EquipmentAttachments = (typeof require === 'function' ? require('./engine/equipment-attachments.js') : null) || EngineModules.equipmentAttachments || {};
   const resolveEquipmentAtlasParts = typeof EquipmentAttachments.resolveEquipmentAtlasParts === 'function'
     ? EquipmentAttachments.resolveEquipmentAtlasParts
@@ -335,7 +337,7 @@
     groundY: 154,
     authoredBodyHeight: 143
   }));
-  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION, pixelated: true });
+  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION, pixelated: false });
 
   function getPlayerSpriteDrawOptions(animationState, frameDef) {
     const registration = resolvePlayerSpriteRegistration(
@@ -343,7 +345,7 @@
       frameDef && frameDef.frameIndex,
       PLAYER_SPRITE_REGISTRATION
     );
-    return { registration, pixelated: true };
+    return { registration, pixelated: false };
   }
   const ENEMY_SPRITE_REGISTRATION = getEngineVisualValue('ENEMY_SPRITE_REGISTRATION', Object.freeze({
     originX: 64,
@@ -2038,8 +2040,13 @@
     const rawTop = Number(rawClimbable.y) || 0;
     const rawBottom = rawTop + (Number(rawClimbable.h) || 120);
     const centerX = x + w / 2;
-    const topPlatform = findSurfacePlatform(platforms, centerX, rawTop, 56, 96);
-    const bottomPlatform = findSurfacePlatform(platforms, centerX, rawBottom, 56, 96);
+    // Prefer a real footing beneath the endpoint. The nearby fallback supports
+    // legacy edge exits, but a clamped off-edge slope must not steal a flat lane.
+    const alignedPlatforms = platforms.filter((platform) => platformContainsX(platform, centerX, 0));
+    const topPlatform = findSurfacePlatform(alignedPlatforms, centerX, rawTop, 56, 96) ||
+      findSurfacePlatform(platforms, centerX, rawTop, 56, 96);
+    const bottomPlatform = findSurfacePlatform(alignedPlatforms, centerX, rawBottom, 56, 96) ||
+      findSurfacePlatform(platforms, centerX, rawBottom, 56, 96);
     const topY = topPlatform ? getPlatformSurfaceY(topPlatform, centerX) : rawTop;
     const bottomSurfaceY = bottomPlatform ? getPlatformSurfaceY(bottomPlatform, centerX) : rawBottom;
     const bottomY = bottomPlatform && bottomSurfaceY > topY ? bottomSurfaceY : rawBottom;
@@ -2180,12 +2187,13 @@
   const CREATE_MAP_HUNT_NPC_DEFINITION = getEngineQuestNpcHelper('createMapHuntNpcDefinition');
   function createMapHuntNpcDefinition(map) {
     if (CREATE_MAP_HUNT_NPC_DEFINITION) {
-      return CREATE_MAP_HUNT_NPC_DEFINITION(map);
+      return CREATE_MAP_HUNT_NPC_DEFINITION(map, { asset: Data.GENERIC_PLAYER_ASSET });
     }
     const palette = Array.isArray(map && map.palette) ? map.palette : [];
     return {
       id: `${map && map.id || 'map'}_hunt_warden`,
       name: `${map && map.name || 'Map'} Warden`,
+      asset: Data.GENERIC_PLAYER_ASSET || '',
       x: 320,
       platformIndex: 0,
       questIds: [],
@@ -2349,6 +2357,7 @@
       const links = graph[current.index] || [];
       for (const link of links) {
         if (excludedTypes.has(link.type)) continue;
+        if (options && typeof options.allowLink === 'function' && !options.allowLink(link, current.index)) continue;
         const linkCost = Object.prototype.hasOwnProperty.call(typeCost, link.type) ? typeCost[link.type] : 9;
         const nextCost = current.cost + linkCost;
         const knownNextCost = bestCost.has(link.to) ? bestCost.get(link.to) : Infinity;
@@ -2359,6 +2368,46 @@
       }
     }
     return null;
+  }
+
+  function isPlatformJumpLinkTraversable(link, platforms, options) {
+    if (getEngineMapRuntimeHelper('isPlatformJumpLinkTraversable')) {
+      return getEngineMapRuntimeHelper('isPlatformJumpLinkTraversable')(link, platforms, options);
+    }
+    if (!link || link.type !== 'jump') return true;
+    const settings = options || {};
+    const from = platforms && platforms[link.from];
+    const to = platforms && platforms[link.to];
+    if (!from || !to) return false;
+    const halfWidth = Math.max(1, Number(settings.bodyWidth || 40)) / 2;
+    const inset = halfWidth + 2;
+    if (from.w < inset * 2 || to.w < inset * 2) return false;
+    const launchX = clamp(Number(link.exitX), from.x + inset, from.x + from.w - inset);
+    const landingX = clamp(launchX, to.x + inset, to.x + to.w - inset);
+    const targetOffset = getPlatformSurfaceY(to, landingX) - getPlatformSurfaceY(from, launchX);
+    const distance = Math.abs(landingX - launchX);
+    const dt = 1 / Math.max(1, Number(settings.fps || 30));
+    const gravity = Math.max(1, Number(settings.gravity || 1600));
+    const speed = Math.max(0, Number(settings.moveSpeed || 0));
+    let velocity = -Math.max(0, Number(settings.jumpVelocity || 0));
+    let offset = 0;
+    let clearedTarget = targetOffset >= 0;
+    // Match the runtime's gravity-before-position integration at the coarsest
+    // supported rate. Require actual clearance, without the collision snap
+    // tolerance that can make a marginal jump succeed only at higher FPS.
+    for (let frame = 1; frame <= Math.ceil(3 / dt); frame += 1) {
+      const previousOffset = offset;
+      velocity += gravity * dt;
+      offset += velocity * dt;
+      if (offset <= targetOffset - 2) clearedTarget = true;
+      if (velocity >= 0 && offset >= targetOffset) {
+        if (!clearedTarget || previousOffset > targetOffset) return false;
+        // Reserve a short launch/steering margin instead of assuming a player
+        // can instantly reach maximum horizontal speed from standing still.
+        return distance <= Math.max(0, frame * dt - 0.1) * speed;
+      }
+    }
+    return false;
   }
 
   function isRampRouteLink(link) {
@@ -2560,12 +2609,18 @@
       lowDowntimeSpawns: combatMap && Number(map && map.waveDelay || 0) <= 8 && spawnDensityPer1000px >= 1
     });
     const viable = combatMap && Object.values(checks).every(Boolean);
+    const authoredRoute = map && map.trainingRoute || {};
     return Object.freeze({
       id: `${map && map.id || 'map'}_training_route`,
       kind: combatMap ? map && map.isDungeon ? 'dungeon-training-loop' : 'field-training-loop' : 'service-hub',
       viable,
       loopable: !!stronglyConnected,
       routePlatformIds: Object.freeze(trainingPlatformIndices.map((index) => platforms[index] && platforms[index].id || '').filter(Boolean)),
+      mainPlatformIds: Object.freeze((authoredRoute.mainPlatformIds || []).slice()),
+      optionalPlatformIds: Object.freeze((authoredRoute.optionalPlatformIds || []).slice()),
+      mainRegroupPlatformId: String(authoredRoute.mainRegroupPlatformId || ''),
+      mainRegroupX: Number(authoredRoute.mainRegroupX || 0),
+      regroupPlatformId: String(authoredRoute.regroupPlatformId || ''),
       spawnPlatformIds: Object.freeze(spawnPlatformIndices.map((index) => platforms[index] && platforms[index].id || '').filter(Boolean)),
       platformCoverage: Number(spawnCoverage.toFixed(3)),
       enemyDensity: Number(enemyDensity.toFixed(3)),
@@ -5662,6 +5717,9 @@
     const slot = clamp(Math.floor(Number(source.slot != null ? source.slot : index) || 0), 0, PARTY_MAX_MEMBERS - 1);
     const classData = getPartyClassData(classId) || {};
     const level = Math.max(1, Math.floor(Number(source.level || 1) || 1));
+    const baseStats = (Data.BASE_CLASSES[getPartyBaseClassId(classId)] || Data.BASE_CLASSES.fighter || {}).stats || {};
+    const maxHp = Math.max(1, Number.isFinite(Number(source.maxHp)) && Number(source.maxHp) > 0
+      ? Number(source.maxHp) : Math.round(Number(baseStats.hp || 150) * 0.72 + level * 10));
     const id = normalizeId(source.id) || `ai_${classId}_${slot}_${Date.now()}`;
     return {
       id,
@@ -5697,10 +5755,11 @@
       dropThroughUntil: Number(source.dropThroughUntil || 0),
       dropThroughPlatformId: normalizeId(source.dropThroughPlatformId),
       dropThroughPlatformIndex: Number.isFinite(Number(source.dropThroughPlatformIndex)) ? Number(source.dropThroughPlatformIndex) : -1,
+      dropThroughSurface: source.dropThroughSurface ? Object.assign({}, source.dropThroughSurface) : null,
       lastX: Number(source.lastX || source.x || 0),
       stuckTime: Number(source.stuckTime || 0),
-      hp: Math.max(1, Number(source.hp || 1) || 1),
-      maxHp: Math.max(1, Number(source.maxHp || 1) || 1),
+      hp: source.hp == null || !Number.isFinite(Number(source.hp)) ? maxHp : clamp(Number(source.hp), 0, maxHp),
+      maxHp,
       mode: String(source.mode || 'follow'),
       targetEnemyUid: normalizeId(source.targetEnemyUid),
       targetClaimUntil: Number(source.targetClaimUntil || 0),
@@ -6323,6 +6382,7 @@
     return Math.max(0, Math.round((3 + normalizedLevel * 0.55) * defenseMult));
   };
 
+  const GET_TRAINING_XP_MULTIPLIER = getEngineCombatFormulaHelper('getTrainingXpMultiplier');
   const GET_MONSTER_XP = getEngineCombatFormulaHelper('getMonsterXp');
   const getMonsterXp = GET_MONSTER_XP || function getMonsterXpFallback(level, enemyData) {
     const normalizedLevel = Math.max(1, Number(level) || 1);
@@ -8651,6 +8711,7 @@
 	      dropThroughUntil: 0,
 	      dropThroughPlatformId: '',
 	      dropThroughPlatformIndex: -1,
+	      dropThroughSurface: null,
 	      lastX: 0,
       stuckTime: 0,
       initialized: false,
@@ -9837,6 +9898,11 @@
   };
 
   const createDropThroughStateForMovement = getEngineMovementHelper('createDropThroughState') || function createDropThroughStateFallback(body, duration, platform, currentTime) {
+    const supportLeft = Number(body && body.x || 0);
+    const supportWidth = Math.max(0, Number(body && body.w || 0));
+    const gradient = platform && platform.shape === 'slope' && Number.isFinite(Number(platform.y2)) && Number(platform.w) > 0
+      ? (Number(platform.y2) - Number(platform.y)) / Number(platform.w) : 0;
+    const supportY = Number(platform && platform.y || 0) + (supportLeft - Number(platform && platform.x || 0)) * gradient;
     return {
       dropThroughUntil: currentTime + Math.max(0, Number(duration || 0.28) || 0.28),
       dropThroughPlatformId: platform && platform.id || normalizeId(body && body.groundedPlatformId),
@@ -9844,11 +9910,17 @@
         ? Number(platform.index)
         : Number.isFinite(Number(body && body.groundedPlatformIndex))
           ? Number(body.groundedPlatformIndex)
-          : -1
+          : -1,
+      // Record the supporting plane over the complete original foot span, so
+      // overlapping or adjoining definitions cannot catch this drop a frame later.
+      // Two endpoint samples distinguish coincident ramps from a lower ramp
+      // that merely meets the source floor at one end.
+      dropThroughSurface: platform && supportWidth > 0 ? {
+        x: supportLeft, w: supportWidth, shape: 'slope',
+        y: supportY, y2: supportY + supportWidth * gradient
+      } : null
     };
-  };
-
-  const getPlatformLandingResolutionForMovement = getEngineMovementHelper('getPlatformLandingResolution') || function getPlatformLandingResolutionFallback(metrics, platform) {
+  };  const getPlatformLandingResolutionForMovement = getEngineMovementHelper('getPlatformLandingResolution') || function getPlatformLandingResolutionFallback(metrics, platform) {
     if (!metrics || !platform) return null;
     const bodyX = Number(metrics.bodyX || 0);
     const bodyY = Number(metrics.bodyY || 0);
@@ -9861,7 +9933,7 @@
     const surfaceY = getPlatformSurfaceY(platform, centerX);
     return {
       surfaceY,
-      canLand: previousBottom <= surfaceY + 10 && bottom >= surfaceY && bodyY < surfaceY + 4
+      canLand: previousBottom <= surfaceY + 10 && bottom >= surfaceY
     };
   };
 
@@ -9869,11 +9941,17 @@
     if (!body || !platform || !platform.dropThrough) return false;
     if (Number(body.dropThroughUntil || 0) <= Number(currentTime || 0)) return false;
     const platformId = normalizeId(body.dropThroughPlatformId);
-    if (platformId) return platform.id === platformId;
+    if (platformId && platform.id === platformId) return true;
     const platformIndex = Number(body.dropThroughPlatformIndex);
-    return Number.isFinite(platformIndex) && platformIndex >= 0 && platform.index === platformIndex;
+    if (!platformId && Number.isFinite(platformIndex) && platformIndex >= 0 && platform.index === platformIndex) return true;
+    const surface = body.dropThroughSurface;
+    if (!surface || !(Number(surface.w) > 0)) return false;
+    const left = Math.max(Number(surface.x), Number(platform.x));
+    const right = Math.min(Number(surface.x) + Number(surface.w), Number(platform.x) + Number(platform.w));
+    if (!(right > left)) return false;
+    return Math.abs(getPlatformSurfaceY(surface, left) - getPlatformSurfaceY(platform, left)) <= 0.01 &&
+      Math.abs(getPlatformSurfaceY(surface, right) - getPlatformSurfaceY(platform, right)) <= 0.01;
   };
-
   function getSkillProgressionOptions() {
     return {
       data: Data,
@@ -10484,6 +10562,7 @@
 	      dropThroughUntil: 0,
 	      dropThroughPlatformId: '',
 	      dropThroughPlatformIndex: -1,
+	      dropThroughSurface: null,
 	      dropJumpConsumed: false,
 	      climbing: false,
       climbMoving: false,
@@ -11974,9 +12053,22 @@
       const elapsed = getEngineVisualHelper('getActorAnimationElapsed')
         ? getEngineVisualHelper('getActorAnimationElapsed')(frameDef, actor, now, (sourceFrameDef) => this.getAnimationDuration(sourceFrameDef))
         : Math.max(0, now - Number(actor && actor.animationStartedAt || 0));
-      const frameIndex = resolvedState === 'climb' && actor && actor.climbing && !actor.climbMoving
+      let frameIndex = resolvedState === 'climb' && actor && actor.climbing && !actor.climbMoving
         ? 0
         : this.getWeightedAnimationFrameIndex(frameDef, elapsed);
+      if (actor && actor.data && actor.data.behavior && !frameDef.loop) {
+        if (resolvedState === 'telegraph' && Number(actor.telegraph || 0) > 0) {
+          const total = Math.max(Number(actor.pendingAttack && actor.pendingAttack.windup || actor.animationDuration || 0), Number(actor.telegraph));
+          const commitment = Math.min(total, actor.data.behavior === 'boss' ? 0.3 : 0.2);
+          const remaining = Number(actor.telegraph);
+          const progress = clamp((total - remaining) / Math.max(0.001, total - commitment), 0, 1);
+          frameIndex = remaining <= commitment ? frameDef.frames - 1 : Math.min(frameDef.frames - 2, Math.floor(progress * (frameDef.frames - 1)));
+        } else if (resolvedState !== 'buff' && Number(actor.animationDuration || 0) > 0) {
+          // Contact is frame zero. Fit the authored recovery poses into the real
+          // action duration so short attacks never cut straight back to idle.
+          frameIndex = this.getWeightedAnimationFrameIndex(frameDef, elapsed * this.getAnimationDuration(frameDef) / actor.animationDuration);
+        }
+      }
       return Object.assign({}, frameDef, {
         frameIndex,
         frameWidth: animation.frameWidth,
@@ -12097,6 +12189,49 @@
 
     getEnemyAnimation(enemy) {
       return enemy && enemy.data ? enemy.data.animation : null;
+    }
+
+    getEnemyHurtbox(enemy) {
+      const animation = this.getEnemyAnimation(enemy);
+      if (!animation || !EnemyHurtboxes.createEnemyHurtbox) return null;
+      const state = this.getActorAnimationState(enemy, this.deriveEnemyAnimationState(enemy));
+      const frame = this.getAnimationFrame(animation, state, enemy);
+      const box = this.getEnemyCombatFeedbackRenderBox(enemy, createEnemySpriteRenderBox(enemy));
+      return EnemyHurtboxes.createEnemyHurtbox(animation, frame, box, enemy.facing);
+    }
+
+    enemyIntersectsRect(enemy, rect) {
+      if (!enemy || !rect) return false;
+      const hurtbox = this.getEnemyHurtbox(enemy);
+      return hurtbox ? EnemyHurtboxes.intersectsRect(hurtbox, rect) : rectsOverlap(enemy, rect);
+    }
+
+    enemyIntersectsCircle(enemy, x, y, radius) {
+      if (!enemy) return false;
+      const hurtbox = this.getEnemyHurtbox(enemy);
+      if (hurtbox) return EnemyHurtboxes.intersectsCircle(hurtbox, x, y, radius);
+      const dx = Number(enemy.x || 0) + Number(enemy.w || 0) / 2 - x;
+      const dy = Number(enemy.y || 0) + Number(enemy.h || 0) / 2 - y;
+      return dx * dx + dy * dy <= radius * radius;
+    }
+
+    getEnemyCombatEnvelope(enemy) {
+      const animation = this.getEnemyAnimation(enemy);
+      if (!animation || !animation.registration) return enemy;
+      const box = createEnemySpriteRenderBox(enemy);
+      const frame = { frameWidth: animation.frameWidth, frameHeight: animation.frameHeight, row: 0, frameIndex: 0 };
+      const draw = getEngineVisualHelper('createAnimationFrameDrawState')(frame, box.x, box.y, box.w, box.h, enemy.facing, { registration: animation.registration });
+      // Broad-phase only: the complete cell plus recoil allowance covers every
+      // pose. The opaque-pixel narrow phase below never inherits this padding.
+      const x1 = draw.translateX + draw.scaleX * draw.drawX;
+      const x2 = x1 + draw.scaleX * draw.drawWidth;
+      return { x: Math.min(x1, x2) - 24, y: draw.translateY + draw.drawY - 24, w: Math.abs(x2 - x1) + 48, h: draw.drawHeight + 48 };
+    }
+
+    getEnemyCombatSpatialEntries(x, y, radius, spatialIndex, target) {
+      const index = spatialIndex || this.getEnemySpatialIndex();
+      const padding = Math.max(Number(index && index.maxCombatPaddingX || 0), Number(index && index.maxCombatPaddingY || 0));
+      return this.getEnemySpatialEntries(x, y, Math.max(0, Number(radius || 0)) + padding, index, target);
     }
 
     getPlayerAnimationPoseOffset(state, frameDef) {
@@ -12236,7 +12371,7 @@
       const frameHeight = Math.max(1, Number(frame.frameHeight || frameWidth));
       ctx.save();
       const previousSmoothing = ctx.imageSmoothingEnabled;
-      ctx.imageSmoothingEnabled = false;
+      ctx.imageSmoothingEnabled = true;
       ctx.translate(Number(x || 0) + Number(width || 0) / 2, Number(y || 0) + Number(height || 0));
       ctx.scale((Number(facing || 1) < 0 ? -1 : 1) * scale, scale);
       ctx.drawImage(
@@ -12263,7 +12398,7 @@
       if (!frame || !image) return false;
       return this.drawAnimationFrame(ctx, image, frame, x, y, width, height, facing, {
         registration: registration || PLAYER_SPRITE_REGISTRATION,
-        pixelated: true
+        pixelated: false
       });
     }
 
@@ -14240,6 +14375,9 @@
 
     start() {
       if (this.running) return;
+      // Browser startup must never fall back to body bounds while exact combat
+      // data is still loading. Node/source consumers load that data synchronously.
+      if (EnemyHurtboxes.isReady && !EnemyHurtboxes.isReady()) return false;
       if (this.state.player && this.state.player.classId) this.snapCameraToPlayer();
       this.running = true;
       this.lastFrame = 0;
@@ -22261,7 +22399,8 @@
       member.targetClaimUntil = Number(member.targetClaimUntil || 0);
       member.statBonuses = getPartyClassStatBonuses(member.classId, level, member.statBonuses);
       member.maxHp = Math.max(1, Math.round(Number(baseStats.hp || 150) * 0.72 + level * 10));
-      member.hp = clamp(Number(member.hp || member.maxHp), 1, member.maxHp);
+      member.hp = member.hp == null || !Number.isFinite(Number(member.hp))
+        ? member.maxHp : clamp(Number(member.hp), 0, member.maxHp);
       member.w = Math.max(28, Number(member.w || 38) || 38);
       member.h = Math.max(48, Number(member.h || 70) || 70);
       if (!Number.isFinite(Number(member.x)) || !Number.isFinite(Number(member.y)) || (!member.x && !member.y)) {
@@ -22287,9 +22426,10 @@
 	      member.dropThroughUntil = Number(member.dropThroughUntil || 0);
 	      member.dropThroughPlatformId = normalizeId(member.dropThroughPlatformId);
 	      member.dropThroughPlatformIndex = Number.isFinite(Number(member.dropThroughPlatformIndex)) ? Number(member.dropThroughPlatformIndex) : -1;
+	      member.dropThroughSurface = member.dropThroughSurface ? Object.assign({}, member.dropThroughSurface) : null;
 	      member.lastX = Number(member.lastX || member.x || 0);
       member.stuckTime = Number(member.stuckTime || 0);
-      if (!member.grounded && !member.climbing && Number(member.airRouteUntil || 0) <= nowSeconds()) {
+      if (member.hp > 0 && !member.grounded && !member.climbing && Number(member.airRouteUntil || 0) <= nowSeconds()) {
         const platform = this.getBodyPlatform(member);
         if (platform) this.snapGroundBodyToPlatform(member, platform);
       }
@@ -22397,8 +22537,9 @@
       for (let index = 0; index < this.enemies.length; index += 1) {
         const enemy = this.enemies[index];
         if (!enemy || enemy.hp <= 0 || settings.requireEngaged && !this.isEnemyEngaged(enemy)) continue;
-        const centerX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
-        const centerY = Number(enemy.y || 0) + Number(enemy.h || 0) / 2;
+        const aim = this.enemyCenter(enemy);
+        const centerX = aim.x;
+        const centerY = aim.y;
         const dx = centerX - originX;
         const dy = centerY - originY;
         const distanceSq = dx * dx + dy * dy;
@@ -22652,9 +22793,110 @@
       };
     }
 
+    getEnemyTraversalPolicy(enemy) {
+      const source = enemy && enemy.spawnActorTraversal || {};
+      const behavior = enemy && enemy.data && enemy.data.behavior;
+      const stationary = source.mode === 'stationary' || behavior === 'turret';
+      const limited = !!(enemy && enemy.spawnActorTraversal) || behavior === 'boss' || stationary;
+      const homeX = Number(enemy && enemy.spawnX || 0) + Number(enemy && enemy.w || 0) / 2;
+      const homeY = Number(enemy && enemy.spawnY || 0) + Number(enemy && enemy.h || 0) / 2;
+      const homePlatform = limited ? this.getEnemyHomePlatform(enemy) : null;
+      const leash = Math.max(90, Number(enemy && enemy.spawnActorTraversal ? enemy.wanderLeash : ENEMY_AGGRO_LEASH_RANGE));
+      const stayInTerritory = !!(enemy && enemy.spawnActorTraversal) && source.stayInTerritory !== false || stationary;
+      const group = limited && enemy && enemy.spawnGroupId ? this.getRuntimeSpawnGroupById(enemy.spawnGroupId) : null;
+      const platformIds = stayInTerritory
+        ? group && group.platformIds || homePlatform && [homePlatform.id] || [] : [];
+      const allowLadders = !!source.allowLadders && !stationary && behavior !== 'boss';
+      const allowRamps = source.allowRamps !== false && !stationary;
+      const key = [limited, stationary, allowLadders, allowRamps, stayInTerritory,
+        homeX, homeY, leash, platformIds.join(','), !!(enemy && enemy.leashReturning)].join(':');
+      return { key, limited, stationary, allowLadders, allowRamps, stayInTerritory, homeX, homeY, leash, platformIds };
+    }
+
+    isEnemyTerritoryPlatform(enemy, platform, policy) {
+      if (!platform || !policy.limited || !policy.stayInTerritory) return true;
+      if (policy.platformIds.includes(platform.id)) return true;
+      // Slopes and small steps are transit surfaces, not additional spawn lanes.
+      // They may connect members of a territory without opening unrelated lanes.
+      const transit = isSlopePlatform(platform) || Number(platform.w) <= 340;
+      if (!transit) return false;
+      const ownPlatforms = this.runtime.platforms.filter((entry) => policy.platformIds.includes(entry.id));
+      return ownPlatforms.some((entry) => platform.x + platform.w >= entry.x - 48 &&
+        platform.x <= entry.x + entry.w + 48 &&
+        Math.abs(getPlatformSurfaceY(platform, clamp(entry.x + entry.w / 2, platform.x, platform.x + platform.w)) -
+          getPlatformSurfaceY(entry, clamp(platform.x + platform.w / 2, entry.x, entry.x + entry.w))) <= 210);
+    }
+
+    canEnemyTraverseJumpLink(enemy, link) {
+      return isPlatformJumpLinkTraversable(link, this.runtime.platforms, {
+        jumpVelocity: ENEMY_JUMP_VELOCITY,
+        moveSpeed: Math.max(220, Number(enemy && enemy.data && enemy.data.speed || 0) * 1.2),
+        bodyWidth: Number(enemy && enemy.w || 40), gravity: GRAVITY, fps: 30
+      });
+    }
+
+    isEnemyRouteLinkAllowed(enemy, link, fromIndex, policyOverride) {
+      const policy = policyOverride || this.getEnemyTraversalPolicy(enemy);
+      if (policy.stationary || !this.canEnemyTraverseJumpLink(enemy, link)) return false;
+      const platforms = this.runtime && this.runtime.platforms || [];
+      const from = platforms[fromIndex];
+      const to = platforms[link.to];
+      if (!policy.allowRamps && (isRampRouteLink(link) || isSlopePlatform(from) || isSlopePlatform(to))) return false;
+      if (!policy.allowLadders && (link.type === 'ladder-up' || link.type === 'ladder-down')) return false;
+      if (!policy.limited) return true;
+      if (!this.isEnemyTerritoryPlatform(enemy, to, policy)) return false;
+      // A displaced actor may take a permitted route back, but cannot reacquire
+      // targets until it reaches home. Chase routes remain within the home leash.
+      if (enemy && enemy.leashReturning) return true;
+      return [Number(link.exitX), Number(link.entryX)].every((x) => !Number.isFinite(x) || Math.abs(x - policy.homeX) <= policy.leash);
+    }
+
+    isEnemyTargetWithinTerritory(enemy, character) {
+      const policy = this.getEnemyTraversalPolicy(enemy);
+      if (!policy.limited) return true;
+      const actor = character && (character.actor || character);
+      if (!actor) return false;
+      const x = Number(actor.x || 0) + Number(actor.w || 40) / 2;
+      const y = Number(actor.y || 0) + Number(actor.h || 74) / 2;
+      if (Math.abs(x - policy.homeX) > policy.leash || Math.abs(y - policy.homeY) > Math.min(600, policy.leash)) return false;
+      if (policy.stationary) return true;
+      const platform = character.platform || this.getBodyPlatform(actor);
+      return this.isEnemyTerritoryPlatform(enemy, platform, policy);
+    }
+
+    beginEnemyLeashReturn(enemy, now) {
+      if (!enemy) return;
+      enemy.leashReturning = true;
+      enemy.aggroTargetKind = '';
+      enemy.aggroTargetId = '';
+      enemy.aggroUntil = 0;
+      enemy.aggroSource = '';
+      this.clearEnemyAttackTelegraphs(enemy);
+      this.stopEnemyCharge(enemy);
+      this.cancelRiftLanternProjectileWindup(enemy);
+      enemy.pendingAttack = null;
+      if (enemy.bossPendingAction) this.cancelBossPendingActionEffects(enemy, enemy.bossPendingAction);
+      enemy.bossPendingAction = null;
+      enemy.telegraph = 0;
+      enemy.state = 'idle';
+      enemy.aggroResumeAt = now + 1;
+    }
+
     getEnemyAggroTarget(enemy, time, characters) {
       if (!enemy || enemy.hp <= 0) return null;
       const now = Number(time || nowSeconds());
+      if (enemy.leashReturning) {
+        const home = this.getEnemyHomePlatform(enemy);
+        const current = this.getBodyPlatform(enemy);
+        const onHomeLane = enemy.data.behavior === 'flyer' ? Math.abs(enemy.y - enemy.spawnY) <= 24 :
+          enemy.grounded && home && current && home.id === current.id;
+        if (onHomeLane && Math.abs(enemy.x - enemy.spawnX) <= 48) {
+          enemy.leashReturning = false;
+          enemy.aggroResumeAt = now + 1;
+        }
+        return null;
+      }
+      if (now < Number(enemy.aggroResumeAt || 0)) return null;
       const combatCharacters = Array.isArray(characters) ? characters : this.getCombatCharacters();
       const existing = Number(enemy.aggroUntil || 0) > now
         ? this.getCombatCharacterByTarget(enemy.aggroTargetKind, enemy.aggroTargetId, combatCharacters)
@@ -22662,6 +22904,11 @@
       const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
       const enemyCenterY = Number(enemy.y || 0) + Number(enemy.h || 0) / 2;
       if (existing) {
+        if (!this.isEnemyTargetWithinTerritory(enemy, existing) ||
+          !this.isEnemyTargetWithinTerritory(enemy, { actor: enemy, platform: this.getBodyPlatform(enemy) })) {
+          this.beginEnemyLeashReturn(enemy, now);
+          return null;
+        }
         const targetCenterX = Number.isFinite(Number(existing.centerX))
           ? Number(existing.centerX)
           : Number(existing.x || 0) + Number(existing.w || 0) / 2;
@@ -22682,7 +22929,7 @@
       const passiveRangeSq = ENEMY_PASSIVE_AGGRO_RANGE * ENEMY_PASSIVE_AGGRO_RANGE;
       for (let index = 0; index < combatCharacters.length; index += 1) {
         const character = combatCharacters[index];
-        if (!character || enemyLevel <= Number(character.level || 1)) continue;
+        if (!character || enemyLevel <= Number(character.level || 1) || !this.isEnemyTargetWithinTerritory(enemy, character)) continue;
         const centerX = Number.isFinite(Number(character.centerX))
           ? Number(character.centerX)
           : Number(character.x || 0) + Number(character.w || 0) / 2;
@@ -22766,6 +23013,7 @@
     setEnemyAggro(enemy, character, source, duration, time) {
       if (!enemy || !character) return false;
       const now = Number(time || nowSeconds());
+      if (enemy.leashReturning || now < Number(enemy.aggroResumeAt || 0) || !this.isEnemyTargetWithinTerritory(enemy, character)) return false;
       enemy.aggroTargetKind = character.kind;
       enemy.aggroTargetId = character.id;
       enemy.aggroUntil = Math.max(Number(enemy.aggroUntil || 0), now + Math.max(0.5, Number(duration || ENEMY_ATTACK_AGGRO_SECONDS)));
@@ -23168,13 +23416,6 @@
 
     updatePartyMemberAi(member, index, delta, time, targetClaims) {
       const player = this.state.player || {};
-      if (this.recoverFallenBodyThroughTop(member, { kind: 'party' })) {
-        member.mode = 'follow';
-        member.targetEnemyUid = '';
-        this.setActorAnimation(member, 'run', 0, { loop: true });
-        this.syncPartyMemberRuntime(member);
-        return;
-      }
       this.normalizePartyMemberRuntime(member, index);
       if (Number(member.hp || 0) <= 0) {
         if (Number(member.defeatedUntil || 0) <= Number(time || nowSeconds())) {
@@ -23198,6 +23439,13 @@
           this.syncPartyMemberRuntime(member);
           return;
         }
+      }
+      if (this.recoverFallenBodyThroughTop(member, { kind: 'party' })) {
+        member.mode = 'follow';
+        member.targetEnemyUid = '';
+        this.setActorAnimation(member, 'run', 0, { loop: true });
+        this.syncPartyMemberRuntime(member);
+        return;
       }
       const liveEnemies = targetClaims && Array.isArray(targetClaims.liveEnemies)
         ? targetClaims.liveEnemies
@@ -26917,7 +27165,11 @@
       const mobility = this.getActiveMobility();
       const verticalIntent = movementIntent.verticalIntent;
       const climbable = this.getOverlappingClimbable(player, verticalIntent);
-      const canAttemptClimbMount = !movementLocked &&
+      // A grounded down+jump is a drop request, even at a ladder top.
+      // Jumping while already climbing retains its normal upward exit.
+      const groundedDropRequested = jumpRequested && this.input.down && player.grounded &&
+        !player.climbing && !player.dropJumpConsumed;
+      const canAttemptClimbMount = !groundedDropRequested && !movementLocked &&
         !mobility &&
         climbable &&
         verticalIntent !== 0;
@@ -27022,6 +27274,7 @@
       body.dropThroughUntil = 0;
       body.dropThroughPlatformId = '';
       body.dropThroughPlatformIndex = -1;
+      body.dropThroughSurface = null;
     }
 
     beginDropThrough(body, duration, sourcePlatform) {
@@ -27031,6 +27284,7 @@
       body.dropThroughUntil = dropThroughState.dropThroughUntil;
       body.dropThroughPlatformId = dropThroughState.dropThroughPlatformId;
       body.dropThroughPlatformIndex = dropThroughState.dropThroughPlatformIndex;
+      body.dropThroughSurface = dropThroughState.dropThroughSurface;
       return platform || null;
     }
 
@@ -27049,28 +27303,39 @@
       const previousBottom = (typeof body.previousY === 'number' ? Number(body.previousY || 0) : bodyY) + bodyH;
       const platforms = this.runtime.platforms;
       const platformLandingMetrics = { bodyX, bodyY, bodyW, bodyH, centerX, bottom, previousBottom };
+      let landingPlatform = null;
+      let landingSurfaceY = Infinity;
       const tryResolvePlatform = (platform) => {
         if (!platform) return false;
         const landing = getPlatformLandingResolutionForMovement(platformLandingMetrics, platform);
         if (!landing) return false;
         if (this.shouldSkipDropThroughPlatform(body, platform)) return false;
-        if (landing.canLand) {
-          body.y = landing.surfaceY - body.h;
-          body.vy = 0;
-          body.grounded = true;
-          body.groundedPlatformId = platform.id;
-          body.groundedPlatformIndex = platform.index;
-          this.clearDropThroughState(body);
-          if (body === this.state.player) {
-            body.airMobilitySkillId = '';
-            body.airDashMomentumUntilGround = false;
-          }
+        if (landing.canLand && landing.surfaceY < landingSurfaceY) {
+          landingPlatform = platform;
+          landingSurfaceY = landing.surfaceY;
           return true;
         }
         return false;
       };
+      const applyLanding = () => {
+        if (!landingPlatform) return;
+        body.y = landingSurfaceY - body.h;
+        body.vy = 0;
+        body.grounded = true;
+        body.groundedPlatformId = landingPlatform.id;
+        body.groundedPlatformIndex = landingPlatform.index;
+        this.clearDropThroughState(body);
+        if (body === this.state.player) {
+          body.airMobilitySkillId = '';
+          body.airDashMomentumUntilGround = false;
+        }
+      };
       const preferredPlatformIndex = Number(body.groundedPlatformIndex);
-      if (Number.isFinite(preferredPlatformIndex) && preferredPlatformIndex >= 0 && tryResolvePlatform(platforms[preferredPlatformIndex])) return;
+      if (Number.isFinite(preferredPlatformIndex) && preferredPlatformIndex >= 0 && tryResolvePlatform(platforms[preferredPlatformIndex]) &&
+        body.groundedPlatformId === landingPlatform.id && Math.abs(previousBottom - landingSurfaceY) <= 0.001) {
+        applyLanding();
+        return;
+      }
       const candidates = platforms.length >= 48 ? this.getPlatformResolveCandidates(bodyX, bodyW) : null;
       const limit = candidates ? candidates.length : platforms.length;
       for (let index = 0; index < limit; index += 1) {
@@ -27079,6 +27344,7 @@
 	        const platform = entry ? entry.platform : platforms[index];
 	        tryResolvePlatform(platform);
 	      }
+	      applyLanding();
 	    }
 
     updateActiveStation() {
@@ -27299,6 +27565,7 @@
 	      player.dropThroughUntil = Number(player.dropThroughUntil || 0);
 	      player.dropThroughPlatformId = normalizeId(player.dropThroughPlatformId);
 	      player.dropThroughPlatformIndex = Number.isFinite(Number(player.dropThroughPlatformIndex)) ? Number(player.dropThroughPlatformIndex) : -1;
+	      player.dropThroughSurface = player.dropThroughSurface ? Object.assign({}, player.dropThroughSurface) : null;
 	      player.dropJumpConsumed = !!player.dropJumpConsumed;
 	      player.climbing = !!player.climbing;
       player.climbMoving = !!player.climbMoving;
@@ -27551,7 +27818,14 @@
     }
 
     getSpawnGroupEnemyId(group, index) {
-      const weights = group && Array.isArray(group.enemyWeights) ? group.enemyWeights : [];
+      const entries = group && Array.isArray(group.enemyWeights) ? group.enemyWeights : [];
+      const caps = group && group.enemyMaxAlive || {};
+      const weights = entries.filter((entry) => {
+        if (!Object.prototype.hasOwnProperty.call(caps, entry.enemyId)) return true;
+        const alive = (this.enemies || []).filter((enemy) => enemy && enemy.spawnGroupId === group.id &&
+          enemy.id === entry.enemyId && Number(enemy.hp || 0) > 0).length;
+        return alive < Math.max(0, Number(caps[entry.enemyId]) || 0);
+      });
       const selected = weightedItem(weights);
       return normalizeId(selected && selected.enemyId || weights[Number(index || 0) % Math.max(1, weights.length)] && weights[Number(index || 0) % Math.max(1, weights.length)].enemyId);
     }
@@ -27628,15 +27902,34 @@
       }
       const spawnGroups = this.isTrainingRespawnMap(map) ? this.getRuntimeSpawnGroups(map) : [];
       if (spawnGroups.length) {
-        const reservations = [];
+        const reservations = this.enemies.filter((enemy) => enemy && enemy.hp > 0)
+          .map((enemy) => this.getFieldEnemySpawnPosition(enemy));
+        const wave = this.getWaveState(map.id);
         spawnGroups.forEach((group) => {
           const targetPopulation = this.getSpawnGroupPopulationTarget(group);
-          for (let groupIndex = 0; groupIndex < targetPopulation; groupIndex += 1) {
+          const pendingPopulation = wave.pending.filter((entry) => entry && entry.spawnGroupId === group.id).length;
+          const occupiedPopulation = this.getSpawnGroupAliveCount(group.id) + pendingPopulation;
+          for (let groupIndex = occupiedPopulation; groupIndex < targetPopulation; groupIndex += 1) {
             const enemyId = this.getSpawnGroupEnemyId(group, groupIndex);
             const enemyData = getEnemyDefinitionById(enemyId);
             if (!enemyData) continue;
             const spawn = this.chooseInitialFieldSpawnPoint(groupIndex, reservations, group);
-            if (!spawn) continue;
+            if (!spawn) {
+              // Preserve the population slot until the player leaves the group's
+              // entry lane; never fill a blocked slot directly on the player.
+              const platform = this.runtime.platforms[group.platformIndices[0]];
+              const origin = platform && this.createSpawnPointOnPlatform(platform, platform.x + platform.w / 2, '');
+              if (origin) this.queueWaveReplacement({
+                id: enemyId,
+                spawnGroupId: group.id,
+                spawnX: origin.x,
+                spawnY: origin.y,
+                spawnPlatformId: origin.platformId,
+                spawnPlatformIndex: origin.platformIndex,
+                spawnSectionId: group.sectionId
+              });
+              continue;
+            }
             this.enemies.push(this.createEnemy(enemyData, spawn));
             reservations.push(spawn);
           }
@@ -27647,18 +27940,19 @@
       const bossRespawning = map.isDungeon && map.dungeonId && this.isDungeonBossRespawning(map.dungeonId);
       const targetCount = this.getWaveMax(map);
       const regularSpawns = spawns.filter((enemyId) => !bossIds.has(enemyId));
-      const regularTarget = Math.max(0, targetCount - (bossRespawning ? 0 : bossIds.size));
-      const initialReservations = this.isTrainingRespawnMap(map) ? [] : null;
+      const regularTarget = Math.max(0, targetCount - bossIds.size);
+      const initialReservations = this.enemies.filter((enemy) => enemy && enemy.hp > 0)
+        .map((enemy) => this.getFieldEnemySpawnPosition(enemy));
+      Array.from(bossIds).forEach((bossId, index) => initialReservations.push(this.chooseBossSpawnPoint(index)));
       while (this.enemies.length < regularTarget) {
         const index = this.enemies.length;
         const enemyId = regularSpawns[index % regularSpawns.length] || spawns[index % spawns.length] || spawns[0];
         const enemyData = getEnemyDefinitionById(enemyId);
         if (!enemyData) break;
-        const spawn = initialReservations
-          ? this.chooseInitialFieldSpawnPoint(index, initialReservations)
-          : this.chooseSpawnPoint(index, { initial: true });
+        const spawn = this.chooseInitialFieldSpawnPoint(index, initialReservations);
+        if (!spawn) break;
         this.enemies.push(this.createEnemy(enemyData, spawn));
-        if (initialReservations) initialReservations.push(spawn);
+        initialReservations.push(spawn);
       }
       if (bossRespawning) return;
       Array.from(bossIds).forEach((bossId, index) => {
@@ -27953,12 +28247,15 @@
       const group = spawnGroup && typeof spawnGroup === 'object' ? spawnGroup : null;
       const groupPlatformIds = new Set(group && group.platformIds || []);
       let points = (this.runtime.spawnPoints || []).filter((point) => point && this.runtime.platforms[point.platformIndex] && (!group || groupPlatformIds.has(point.platformId)));
-      if (group) {
-        const generatedPoints = (group.platformIndices || []).flatMap((platformIndex, platformOffset) => {
+      {
+        const platformIndices = group ? group.platformIndices || [] : Array.from(new Set(points.map((point) => point.platformIndex)));
+        const generatedPoints = platformIndices.flatMap((platformIndex, platformOffset) => {
           const platform = this.runtime.platforms[platformIndex];
-          if (!platform) return [];
-          return [0.14, 0.32, 0.5, 0.68, 0.86].map((ratio, pointOffset) =>
-            this.createSpawnPointOnPlatform(platform, platform.x + platform.w * ratio, `${group.id}_generated_${platformOffset + 1}_${pointOffset + 1}`)
+          if (!platform || platform.shape === 'slope') return [];
+          const count = Math.max(5, Math.floor(platform.w / 100));
+          return Array.from({ length: count }, (_, pointOffset) =>
+            this.createSpawnPointOnPlatform(platform, platform.x + platform.w * (pointOffset + 0.5) / count,
+              `${group ? group.id : this.state.mapId}_generated_${platformOffset + 1}_${pointOffset + 1}`)
           ).filter(Boolean);
         });
         const uniquePoints = new Map();
@@ -27972,6 +28269,12 @@
       if (!points.length) return group ? null : this.chooseSpawnPoint(index, { initial: true });
       const player = this.state && this.state.player;
       const playerCenterX = player ? Number(player.x || 0) + Number(player.w || 0) / 2 : -100000;
+      const playerFeetY = player ? Number(player.y || 0) + Number(player.h || 0) : -100000;
+      points = points.filter((point) => Math.abs(Number(point.x || 0) - playerCenterX) >= 280 ||
+        Math.abs(Number(point.y || 0) - playerFeetY) >= 160);
+      points = points.filter((point) => !(reservations || []).some((reserved) =>
+        this.areFieldRespawnPositionsClose(point, reserved, 80, 70)));
+      if (!points.length) return null;
       const reservedAreaKeys = new Set((reservations || [])
         .map((reserved) => this.getFieldSpawnAreaKey(reserved))
         .filter(Boolean));
@@ -28229,7 +28532,7 @@
     queueWaveReplacement(enemy) {
       const map = getMapDefinitionById(this.state.mapId);
       if (!map || map.safeZone || !enemy) return;
-      if (enemy.preventWaveRespawn || enemy.temporarySpawn || enemy.adminSpawned) return;
+      if (enemy.preventWaveRespawn || enemy.temporarySpawn || enemy.adminSpawned || enemy.encounterMinion) return;
       if (map.isDungeon && enemy.data && enemy.data.behavior === 'boss') return;
       const wave = this.getWaveState(map.id);
       const replacement = this.createWaveReplacementEntry(enemy);
@@ -28406,6 +28709,7 @@
 	        petRuntime.dropThroughUntil = 0;
 	        petRuntime.dropThroughPlatformId = '';
 	        petRuntime.dropThroughPlatformIndex = -1;
+	        petRuntime.dropThroughSurface = null;
 	        petRuntime.lastX = target.x - PET_BODY_WIDTH / 2;
         petRuntime.stuckTime = 0;
         petRuntime.mode = 'follow';
@@ -28435,6 +28739,7 @@
 	        petRuntime.dropThroughUntil = Number(petRuntime.dropThroughUntil || 0);
 	        petRuntime.dropThroughPlatformId = normalizeId(petRuntime.dropThroughPlatformId);
 	        petRuntime.dropThroughPlatformIndex = Number.isFinite(Number(petRuntime.dropThroughPlatformIndex)) ? Number(petRuntime.dropThroughPlatformIndex) : -1;
+	        petRuntime.dropThroughSurface = petRuntime.dropThroughSurface ? Object.assign({}, petRuntime.dropThroughSurface) : null;
         petRuntime.lastX = Number(petRuntime.lastX || Number(petRuntime.x || 0) - PET_BODY_WIDTH / 2);
         petRuntime.stuckTime = Number(petRuntime.stuckTime || 0);
         petRuntime.lootRoutePlatformId = normalizeId(petRuntime.lootRoutePlatformId);
@@ -28545,6 +28850,7 @@
 	      petRuntime.dropThroughUntil = 0;
 	      petRuntime.dropThroughPlatformId = '';
 	      petRuntime.dropThroughPlatformIndex = -1;
+	      petRuntime.dropThroughSurface = null;
 	      petRuntime.targetDropUid = '';
       petRuntime.lootRoutePlatformId = '';
       petRuntime.lootRoutePlatformIndex = -1;
@@ -29126,7 +29432,10 @@
             : { w: 46, h: 46 };
       const spawnPoint = typeof spawn === 'object' && spawn ? spawn : { x: Number(spawn) || 520, platformIndex: 0 };
       const platform = this.runtime.platforms[spawnPoint.platformIndex] || this.runtime.platforms.find((item) => item.id === spawnPoint.platformId) || this.runtime.platforms[0];
-      const x = clamp(Number(spawnPoint.x || 520), 12, this.runtime.worldWidth - body.w - 12);
+      const minX = Math.max(12, platform ? platform.x : 12);
+      const maxX = Math.max(minX, Math.min(this.runtime.worldWidth - body.w - 12,
+        platform ? platform.x + platform.w - body.w : this.runtime.worldWidth - body.w - 12));
+      const x = clamp(Number.isFinite(Number(spawnPoint.x)) ? Number(spawnPoint.x) : 520, minX, maxX);
       const surfaceY = platform ? getPlatformSurfaceY(platform, x + body.w / 2) : Number(spawnPoint.y || 320);
       const y = enemyData.behavior === 'flyer'
         ? Math.max(180, Number(spawnPoint.y || 300) - 140 + Math.random() * 80)
@@ -29187,6 +29496,7 @@
 	        dropThroughUntil: 0,
 	        dropThroughPlatformId: '',
 	        dropThroughPlatformIndex: -1,
+	        dropThroughSurface: null,
 	        nextJumpAt: 0,
         lastX: x,
         stuckTime: 0,
@@ -29452,6 +29762,43 @@
       return platform;
     }
 
+    resolveEnemyGroundMovement(enemy, previousX, previousY, wasGrounded) {
+      const platforms = this.runtime && this.runtime.platforms || [];
+      const source = platforms[Number(enemy && enemy.groundedPlatformIndex)];
+      const width = Number(enemy && enemy.w || 0);
+      const height = Number(enemy && enemy.h || 0);
+      const previousCenter = Number(previousX) + width / 2;
+      const center = Number(enemy && enemy.x || 0) + width / 2;
+      const previousFoot = Number(previousY) + height;
+      const sourceSupported = source && previousCenter >= source.x - 0.01 && previousCenter <= source.x + source.w + 0.01 &&
+        Math.abs(previousFoot - getPlatformSurfaceY(source, previousCenter)) <= 2;
+      if (wasGrounded && Number(enemy.vy || 0) >= 0 && sourceSupported && !this.shouldSkipDropThroughPlatform(enemy, source)) {
+        const requested = platforms[Number(enemy.groundRoutePlatformIndex)];
+        const horizontalStep = Math.abs(center - previousCenter);
+        const canFollow = (platform) => {
+          if (!platform || center < platform.x || center > platform.x + platform.w || this.shouldSkipDropThroughPlatform(enemy, platform)) return false;
+          const slope = isSlopePlatform(platform) ? Math.abs(Number(platform.y2) - Number(platform.y)) / Math.max(1, Number(platform.w)) : 0;
+          const sourceSlope = isSlopePlatform(source) ? Math.abs(Number(source.y2) - Number(source.y)) / Math.max(1, Number(source.w)) : 0;
+          return Math.abs(getPlatformSurfaceY(platform, center) - previousFoot) <= 2 + horizontalStep * Math.max(slope, sourceSlope);
+        };
+        // A descending actor remains attached to its surface. Falling/landing
+        // tests alone alternate between air and ground as a slope recedes.
+        let support = requested && requested !== source && canFollow(requested) ? requested : canFollow(source) ? source : null;
+        if (!support) support = platforms.find((platform) => canFollow(platform)) || null;
+        if (support) {
+          enemy.y = getPlatformSurfaceY(support, center) - height;
+          enemy.vy = 0;
+          enemy.grounded = true;
+          enemy.groundedPlatformId = support.id;
+          enemy.groundedPlatformIndex = support.index;
+          this.clearDropThroughState(enemy);
+          return support;
+        }
+      }
+      this.resolvePlatforms(enemy);
+      return enemy.grounded ? this.getBodyPlatform(enemy) : null;
+    }
+
     getFallRecoveryThreshold(body) {
       const height = Math.max(1, Number(body && body.h || 1));
       const worldHeight = Number(this.runtime && this.runtime.worldHeight || WORLD_HEIGHT);
@@ -29628,11 +29975,13 @@
       const now = nowSeconds();
       if (now < Number(body.nextJumpAt || 0)) return false;
       const centerX = Number(body.x || 0) + Number(body.w || 0) / 2;
-      const desiredCenter = Number.isFinite(Number(targetCenterX)) ? Number(targetCenterX) : targetPlatform.x + targetPlatform.w / 2;
-      const direction = desiredCenter >= centerX ? 1 : -1;
+      const desiredCenter = clamp(Number.isFinite(Number(targetCenterX)) ? Number(targetCenterX) : centerX,
+        targetPlatform.x + Number(body.w || 40) / 2 + 2, targetPlatform.x + targetPlatform.w - Number(body.w || 40) / 2 - 2);
+      const direction = Math.sign(desiredCenter - centerX);
+      body.airRouteTargetX = desiredCenter;
       body.vy = -COMPANION_JUMP_VELOCITY;
       body.vx = direction * Math.max(220, Number(speed || PARTY_AI_FOLLOW_SPEED) * 1.02);
-      body.facing = direction;
+      body.facing = direction || body.facing || 1;
       body.grounded = false;
       body.groundedPlatformId = '';
       body.groundedPlatformIndex = -1;
@@ -29658,6 +30007,7 @@
       body.groundedPlatformId = '';
       body.groundedPlatformIndex = -1;
       body.pathTargetPlatformIndex = targetPlatform.index;
+      body.airRouteTargetX = null;
       body.airRouteVx = body.vx;
       body.airRouteUntil = now + 0.7;
       body.nextJumpAt = now + 0.5;
@@ -29669,7 +30019,13 @@
       if (!body) return;
       const frameDelta = clamp(Number(delta) || 0.016, 0.001, 0.05);
       const previousX = Number(body.x || 0);
-      if (Number(body.airRouteUntil || 0) > nowSeconds()) body.vx = Number(body.airRouteVx || body.vx || 0);
+      if (Number(body.airRouteUntil || 0) > nowSeconds()) {
+        body.vx = Number(body.airRouteVx || body.vx || 0);
+        if (Number.isFinite(body.airRouteTargetX)) {
+          const remaining = body.airRouteTargetX - Number(body.x || 0) - Number(body.w || 0) / 2;
+          body.vx = clamp(remaining / frameDelta, -Math.abs(body.airRouteVx), Math.abs(body.airRouteVx));
+        }
+      }
       body.vy = Number(body.vy || 0) + GRAVITY * frameDelta;
       body.previousY = Number(body.y || 0);
       body.x = Number(body.x || 0) + Number(body.vx || 0) * frameDelta;
@@ -29693,6 +30049,10 @@
       if (!body || !target || !this.runtime || !Array.isArray(this.runtime.platforms)) return Infinity;
       const frameDelta = clamp(Number(delta) || 0.016, 0.001, 0.05);
       const targetPlatform = this.getTargetPlatform(target, body);
+      const routeOptions = { allowLink: (link) => isPlatformJumpLinkTraversable(link, this.runtime.platforms, {
+        jumpVelocity: COMPANION_JUMP_VELOCITY, moveSpeed: Math.max(220, Number(speed || PARTY_AI_FOLLOW_SPEED) * 1.02),
+        bodyWidth: body.w, gravity: GRAVITY, fps: 30
+      }) };
       const targetWidth = Math.max(1, Number(target.w || body.w || 1));
       const targetCenterX = Number.isFinite(Number(target.centerX))
         ? Number(target.centerX)
@@ -29719,12 +30079,12 @@
         const directRoute = ((this.runtime.platformGraph || [])[platform.index] || []).find((link) =>
           link &&
           link.to === targetPlatform.index &&
-          (link.type === 'jump' || link.type === 'drop')
+          (link.type === 'jump' || link.type === 'drop') && routeOptions.allowLink(link)
         );
         if (directRoute) {
           const exitCenterX = Number.isFinite(Number(directRoute.exitX)) ? Number(directRoute.exitX) : targetCenterX;
           const bodyCenterX = Number(body.x || 0) + Number(body.w || 0) / 2;
-          if (Math.abs(bodyCenterX - exitCenterX) <= COMPANION_ROUTE_TRIGGER_RANGE) {
+          if (Math.abs(bodyCenterX - exitCenterX) <= (directRoute.type === 'jump' ? 12 : COMPANION_ROUTE_TRIGGER_RANGE)) {
             const nextPlatform = this.getPlatformByIndex(directRoute.to);
             if (nextPlatform) {
               if (directRoute.type === 'jump') this.beginCompanionJump(body, nextPlatform, speed, targetCenterX);
@@ -29736,19 +30096,19 @@
       }
       this.snapGroundBodyToPlatform(body, platform);
       if (targetPlatform && targetPlatform.index !== platform.index) {
-        const link = findPlatformRouteLink(this.runtime.platformGraph, platform.index, targetPlatform.index);
+        const link = findPlatformRouteLink(this.runtime.platformGraph, platform.index, targetPlatform.index, routeOptions);
         if (link) {
           const nextPlatform = this.getPlatformByIndex(link.to);
           const exitCenterX = Number.isFinite(Number(link.exitX)) ? Number(link.exitX) : targetCenterX;
           const remainingToExit = this.walkGroundBodyCenterToward(body, exitCenterX, speed, frameDelta, platform);
-          const closeEnough = remainingToExit <= COMPANION_ROUTE_TRIGGER_RANGE;
+          const closeEnough = remainingToExit <= (link.type === 'jump' ? 12 : COMPANION_ROUTE_TRIGGER_RANGE);
           if (closeEnough && nextPlatform) {
             if (link.type === 'ladder-up' || link.type === 'ladder-down') this.beginCompanionClimb(body, link);
             else if (link.type === 'walk' || isRampRouteLink(link)) {
               if (Number.isFinite(Number(link.entryX))) body.x = Number(link.entryX) - Number(body.w || 0) / 2;
               this.snapGroundBodyToPlatform(body, nextPlatform);
             }
-            else if (link.type === 'jump') this.beginCompanionJump(body, nextPlatform, speed, targetCenterX);
+            else if (link.type === 'jump') this.beginCompanionJump(body, nextPlatform, speed, Number(link.entryX));
             else if (link.type === 'drop') this.beginCompanionDrop(body, nextPlatform, speed, targetCenterX);
           }
           return distanceToTarget();
@@ -29787,6 +30147,7 @@
 	        dropThroughUntil: Number(petRuntime.dropThroughUntil || 0),
 	        dropThroughPlatformId: normalizeId(petRuntime.dropThroughPlatformId),
 	        dropThroughPlatformIndex: Number.isFinite(Number(petRuntime.dropThroughPlatformIndex)) ? Number(petRuntime.dropThroughPlatformIndex) : -1,
+	        dropThroughSurface: petRuntime.dropThroughSurface ? Object.assign({}, petRuntime.dropThroughSurface) : null,
 	        lastX: Number(petRuntime.lastX || 0),
         stuckTime: Number(petRuntime.stuckTime || 0)
       };
@@ -29811,6 +30172,7 @@
 	      runtime.dropThroughUntil = Number(body.dropThroughUntil || 0);
 	      runtime.dropThroughPlatformId = normalizeId(body.dropThroughPlatformId);
 	      runtime.dropThroughPlatformIndex = Number.isFinite(Number(body.dropThroughPlatformIndex)) ? Number(body.dropThroughPlatformIndex) : -1;
+	      runtime.dropThroughSurface = body.dropThroughSurface ? Object.assign({}, body.dropThroughSurface) : null;
 	      runtime.lastX = Number(body.lastX || body.x || 0);
       runtime.stuckTime = Number(body.stuckTime || 0);
       return runtime;
@@ -29843,6 +30205,7 @@
           if (surfaceY >= currentY - 18 || surfaceY < targetY - 42 || currentY - surfaceY > 132) continue;
           if (Math.abs((platform.x + platform.w / 2) - enemyCenter) > maxHorizontal &&
             (enemyCenter < platform.x - 190 || enemyCenter > platform.x + platform.w + 190)) continue;
+          if (!this.canEnemyTraverseJumpLink(enemy, { type: 'jump', from: enemyPlatform.index, to: platform.index, exitX: enemyCenter })) continue;
           const playerGap = Math.abs((platform.x + platform.w / 2) - playerPlatform.x);
           if (surfaceY > bestSurfaceY || surfaceY === bestSurfaceY && playerGap < bestPlayerGap) {
             best = platform;
@@ -29873,20 +30236,29 @@
       return null;
     }
 
-    findEnemyPlatformLink(enemyPlatform, playerPlatform) {
+    findEnemyPlatformLink(enemyPlatform, playerPlatform, enemy) {
       if (!enemyPlatform || !playerPlatform || !this.runtime || !this.runtime.platformGraph) return null;
       const graph = this.runtime.platformGraph;
       if (!this.enemyPlatformLinkCache || this.enemyPlatformLinkCacheGraph !== graph) {
         this.enemyPlatformLinkCache = new Map();
         this.enemyPlatformLinkCacheGraph = graph;
       }
-      const key = `${Number(enemyPlatform.index)}:${Number(playerPlatform.index)}`;
+      const policy = this.getEnemyTraversalPolicy(enemy);
+      const key = `${Number(enemyPlatform.index)}:${Number(playerPlatform.index)}:${policy.key}:${Number(enemy && enemy.w || 40)}:${Number(enemy && enemy.data && enemy.data.speed || 0)}`;
       if (this.enemyPlatformLinkCache.has(key)) return this.enemyPlatformLinkCache.get(key) || null;
       const link = findPlatformRouteLink(graph, enemyPlatform.index, playerPlatform.index, {
-        excludeTypes: ['ladder-up', 'ladder-down']
+        excludeTypes: policy.allowLadders ? [] : ['ladder-up', 'ladder-down'],
+        allowLink: (candidate, fromIndex) => this.isEnemyRouteLinkAllowed(enemy, candidate, fromIndex, policy)
       });
-      this.enemyPlatformLinkCache.set(key, link || false);
-      return link;
+      // Generic proximity links can duplicate an authored ramp connection at
+      // an interior point. Use its actual seam when both reach the same node.
+      const resolved = link && (graph[enemyPlatform.index] || []).find((candidate) => candidate.to === link.to &&
+        isRampRouteLink(candidate) && this.isEnemyRouteLinkAllowed(enemy, candidate, enemyPlatform.index, policy)) || link;
+      if (this.enemyPlatformLinkCache.size >= 512) {
+        this.enemyPlatformLinkCache.delete(this.enemyPlatformLinkCache.keys().next().value);
+      }
+      this.enemyPlatformLinkCache.set(key, resolved || false);
+      return resolved;
     }
 
     beginEnemyClimb(enemy, link) {
@@ -30049,8 +30421,9 @@
 
     updateEnemyWander(enemy, delta, speedScale) {
       if (!enemy || !enemy.data) return;
+      enemy.returningHome = false;
       const data = enemy.data;
-      if (data.behavior === 'boss' || data.behavior === 'turret' || Number(data.speed || 0) <= 0) {
+      if (data.behavior === 'boss' && !enemy.leashReturning || data.behavior === 'turret' || Number(data.speed || 0) <= 0) {
         enemy.vx = 0;
         enemy.state = enemy.state === 'charging' ? 'idle' : enemy.state;
         return;
@@ -30061,6 +30434,33 @@
       const bounds = this.getEnemyWanderBounds(enemy);
       if (!bounds) {
         enemy.vx = 0;
+        return;
+      }
+      const homePlatform = bounds.platform;
+      const currentPlatform = this.getBodyPlatform(enemy);
+      const outsideHomeLane = data.behavior !== 'flyer' && homePlatform && currentPlatform &&
+        homePlatform.id !== currentPlatform.id;
+      const outsideHomeBounds = enemy.x < bounds.left || enemy.x > bounds.right;
+      if (outsideHomeLane || outsideHomeBounds || enemy.leashReturning) {
+        // Losing a chase must not teleport an actor back into its patrol box.
+        // Use the same terrain route as a chase until it reaches home again.
+        enemy.returningHome = true;
+        enemy.wanderPauseUntil = 0;
+        if (data.behavior !== 'flyer' && !enemy.grounded) return;
+        const homeX = clamp(Number(enemy.spawnX || 0), bounds.left, bounds.right);
+        if (outsideHomeLane) {
+          this.updateEnemyPlatformJump(enemy, {
+            x: homeX,
+            y: getPlatformSurfaceY(homePlatform, homeX + enemy.w / 2) - enemy.h,
+            w: enemy.w,
+            h: enemy.h
+          }, speedScale, now, homePlatform);
+        } else {
+          const dx = homeX - enemy.x;
+          const speed = Math.max(22, Number(data.speed || 0) * Math.max(0.08, Number(speedScale || 1)));
+          enemy.facing = dx >= 0 ? 1 : -1;
+          enemy.vx = clamp(dx / frameDelta, -speed, speed);
+        }
         return;
       }
       if (data.behavior !== 'flyer' && !enemy.grounded) {
@@ -30098,13 +30498,40 @@
       enemy.vx = clamp(dx / frameDelta, -speed, speed);
     }
 
-    clampEnemyWanderPosition(enemy) {
+    updateEnemyFlight(enemy, target, delta, time, locked) {
+      if (!enemy || !enemy.data || enemy.data.behavior !== 'flyer') return;
+      enemy.grounded = false;
+      enemy.groundedPlatformId = '';
+      enemy.groundedPlatformIndex = -1;
+      if (locked) {
+        enemy.vy = 0;
+        return;
+      }
+      const frameDelta = Math.max(0.001, Number(delta || 0));
+      const homeY = Number.isFinite(Number(enemy.spawnY)) ? Number(enemy.spawnY) : enemy.y;
+      const hoverY = target ? Number(target.y || 0) - 56 : homeY;
+      const phase = Number(enemy.animationPhaseOffset || 0) * Math.PI * 2;
+      const worldBottom = Number(this.runtime.worldHeight || WORLD_HEIGHT) - enemy.h - 24;
+      const desiredY = clamp(hoverY + Math.sin(Number(time || 0) * 2 + phase) * 9, 32, worldBottom);
+      const speed = Math.max(30, Number(enemy.data.speed || 0) * 0.72);
+      // A bounded hover target prevents accumulated bobbing or stale vertical
+      // velocity from sinking flyers into platforms or drifting off the map.
+      enemy.vy = clamp((desiredY - enemy.y) / frameDelta, -speed, speed);
+    }
+
+    clampEnemyWanderPosition(enemy, previousX) {
       if (!enemy || !enemy.data || enemy.data.behavior === 'boss' || enemy.data.behavior === 'turret' || Number(enemy.data.speed || 0) <= 0) return;
+      if (enemy.returningHome || enemy.climbing || !enemy.grounded && enemy.data.behavior !== 'flyer') return;
       const bounds = this.getEnemyWanderBounds(enemy);
       if (!bounds) return;
+      const beforeStep = Number.isFinite(previousX) ? previousX : Number(enemy.x || 0);
+      if (beforeStep < bounds.left || beforeStep > bounds.right) return;
+      const platform = this.getBodyPlatform(enemy);
+      if (enemy.data.behavior !== 'flyer' && platform && bounds.platform && platform.id !== bounds.platform.id) return;
       const before = Number(enemy.x || 0);
       enemy.x = clamp(before, bounds.left, bounds.right);
       if (enemy.x !== before) {
+        if (enemy.grounded && platform) enemy.y = getPlatformSurfaceY(platform, enemy.x + enemy.w / 2) - enemy.h;
         enemy.vx = 0;
         enemy.wanderTargetX = enemy.x;
         enemy.wanderPauseUntil = nowSeconds() + ENEMY_WANDER_PAUSE_MIN_SECONDS;
@@ -30144,6 +30571,7 @@
       enemy.facing = direction;
       enemy.vx = Math.abs(dx) <= 8 ? 0 : direction * speed;
       enemy.pathTargetPlatformIndex = -1;
+      enemy.airRouteTargetX = null;
       if (now >= Number(enemy.nextJumpAt || 0) && Math.abs(playerCenter - enemyCenter) <= jumpRange) {
         enemy.vy = -ENEMY_JUMP_VELOCITY * 0.82;
         enemy.vx = (playerCenter >= enemyCenter ? 1 : -1) * Math.max(120, speed * 0.72);
@@ -30160,20 +30588,46 @@
 
     updateEnemyPlatformJump(enemy, player, speedScale, time, playerPlatformOverride) {
       if (!enemy || !player || enemy.data.behavior === 'flyer' || enemy.data.behavior === 'turret' || enemy.state === 'charging') return;
+      enemy.groundRoutePlatformIndex = -1;
       if (!enemy.grounded) return;
       if (playerPlatformOverride && enemy.groundedPlatformId && enemy.groundedPlatformId === playerPlatformOverride.id) return;
       const enemyPlatform = this.getBodyPlatform(enemy);
       const playerPlatform = playerPlatformOverride || this.getBodyPlatform(player);
       if (!enemyPlatform || !playerPlatform || enemyPlatform.id === playerPlatform.id) return;
-      const link = this.findEnemyPlatformLink(enemyPlatform, playerPlatform);
+      const policy = this.getEnemyTraversalPolicy(enemy);
+      if (policy.stationary) { enemy.vx = 0; return; }
+      const link = this.findEnemyPlatformLink(enemyPlatform, playerPlatform, enemy);
       const routeTarget = link && this.runtime && Array.isArray(this.runtime.platforms) ? this.runtime.platforms[Number(link.to)] : null;
-      const target = routeTarget || this.findEnemyStepPlatform(enemy, playerPlatform, enemyPlatform);
+      // A proximity fallback must not bypass an authored traversal restriction.
+      const target = routeTarget || (!policy.limited && this.findEnemyStepPlatform(enemy, playerPlatform, enemyPlatform));
       if (!target) {
+        if (policy.limited) { enemy.vx = 0; return; }
         this.updateEnemyUnreachablePlatformChase(enemy, player, enemyPlatform, speedScale);
         return;
       }
       const linkExitX = routeTarget && Number.isFinite(Number(link.exitX)) ? Number(link.exitX) : target.x + target.w / 2;
       const linkEntryX = routeTarget && Number.isFinite(Number(link.entryX)) ? Number(link.entryX) : null;
+      if (routeTarget && (link.type === 'ladder-up' || link.type === 'ladder-down')) {
+        const dx = linkExitX - (enemy.x + enemy.w / 2);
+        enemy.vx = Math.abs(dx) < 16 ? 0 : Math.sign(dx) * Math.max(40, Number(enemy.data.speed || 0)) * speedScale;
+        if (Math.abs(dx) < 16) this.beginEnemyClimb(enemy, link);
+        return;
+      }
+      if (routeTarget && (link.type === 'walk' || isRampRouteLink(link))) {
+        const centerX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
+        const ramp = isSlopePlatform(enemyPlatform) ? enemyPlatform : isSlopePlatform(target) ? target : null;
+        const rampDirection = isRampRouteLink(link) && ramp
+          ? Math.sign(Number(ramp.y2) - Number(ramp.y)) * (link.type === 'ramp-down' ? 1 : -1)
+          : 0;
+        const entryDirection = rampDirection || Math.sign(Number(linkEntryX) - linkExitX) ||
+          Math.sign(target.x + target.w / 2 - (enemyPlatform.x + enemyPlatform.w / 2)) || Math.sign(linkExitX - centerX) || enemy.facing || 1;
+        const seamTargetX = isSlopePlatform(target) && !isSlopePlatform(enemyPlatform)
+          ? Number(linkEntryX) : linkExitX + entryDirection * 12;
+        enemy.facing = Math.sign(seamTargetX - centerX) || entryDirection;
+        enemy.vx = enemy.facing * Math.max(Number(enemy.data.speed || 0), 150) * speedScale;
+        enemy.groundRoutePlatformIndex = target.index;
+        return;
+      }
       const targetX = routeTarget
         ? clamp(linkExitX, enemyPlatform.x + 28, enemyPlatform.x + enemyPlatform.w - 28)
         : clamp(player.x + player.w / 2, target.x + 30, target.x + target.w - 30);
@@ -30183,21 +30637,16 @@
       enemy.facing = direction;
       enemy.vx = direction * Math.max(enemy.data.speed * speedScale, 150);
       const now = Number(time || nowSeconds());
-      const triggerRange = Number(enemy.stuckTime || 0) > ENEMY_STUCK_SECONDS ? 150 : 58;
-      if (routeTarget && (link.type === 'walk' || isRampRouteLink(link)) && enemy.grounded && Math.abs(horizontal) < triggerRange) {
-        if (linkEntryX !== null) enemy.x = linkEntryX - Number(enemy.w || 0) / 2;
-        this.snapGroundBodyToPlatform(enemy, target);
-        enemy.vx = 0;
-        enemy.stuckTime = 0;
-        return;
-      }
+      const triggerRange = link && link.type === 'jump' ? 12 : Number(enemy.stuckTime || 0) > ENEMY_STUCK_SECONDS ? 150 : 58;
       const targetSurfaceY = getPlatformSurfaceY(target, linkEntryX !== null ? linkEntryX : targetX);
       const enemySurfaceY = getPlatformSurfaceY(enemyPlatform, targetX);
       if ((routeTarget && link.type === 'jump' || targetSurfaceY < enemySurfaceY - 18) && enemy.grounded && now >= Number(enemy.nextJumpAt || 0) && Math.abs(horizontal) < triggerRange) {
-        const jumpDirection = (target.x + target.w / 2) >= enemyCenter ? 1 : -1;
+        enemy.airRouteTargetX = clamp(linkEntryX !== null ? linkEntryX : enemyCenter,
+          target.x + enemy.w / 2 + 2, target.x + target.w - enemy.w / 2 - 2);
+        const jumpDirection = Math.sign(enemy.airRouteTargetX - enemyCenter);
         enemy.vy = -ENEMY_JUMP_VELOCITY;
         enemy.vx = jumpDirection * Math.max(220, enemy.data.speed * 1.2);
-        enemy.facing = jumpDirection;
+        enemy.facing = jumpDirection || enemy.facing || 1;
         enemy.grounded = false;
         enemy.groundedPlatformId = '';
         enemy.pathTargetPlatformIndex = target.index;
@@ -30212,6 +30661,7 @@
         enemy.grounded = false;
         enemy.groundedPlatformId = '';
         enemy.pathTargetPlatformIndex = target.index;
+        enemy.airRouteTargetX = null;
         enemy.airRouteVx = direction * Math.max(enemy.data.speed * speedScale, 130);
         enemy.airRouteUntil = now + 0.65;
         enemy.nextJumpAt = now + 0.6;
@@ -30290,6 +30740,8 @@
 
     getEnemyContactHitbox(enemy) {
       if (!enemy) return null;
+      const hurtbox = this.getEnemyHurtbox(enemy);
+      if (hurtbox) return EnemyHurtboxes.getBounds(hurtbox);
       const width = Math.max(1, Number(enemy.w || 0));
       const height = Math.max(1, Number(enemy.h || 0));
       const insetX = Math.min(12, Math.max(5, width * 0.16));
@@ -30309,7 +30761,7 @@
       const player = playerTarget && playerTarget.actor;
       if (!player || !sameCombatLane(player, enemy, 34)) return false;
       const contactBox = this.getEnemyContactHitbox(enemy);
-      if (!contactBox || !rectsOverlap(this.playerHitbox(), contactBox)) return false;
+      if (!contactBox || !this.enemyIntersectsRect(enemy, this.playerHitbox())) return false;
       this.setEnemyAggro(enemy, playerTarget, 'contact', ENEMY_ATTACK_AGGRO_SECONDS, Number(time || nowSeconds()));
       return true;
     }
@@ -30320,6 +30772,7 @@
       const target = this.getCombatCharacterByTarget(pending.targetKind, pending.targetId, characters);
       const actor = target && target.actor;
       if (!actor || (target.kind === 'party' && Number(actor.hp || 0) <= 0)) return null;
+      if (enemy.leashReturning || !this.isEnemyTargetWithinTerritory(enemy, target)) return null;
       const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
       const enemyCenterY = Number(enemy.y || 0) + Number(enemy.h || 0) / 2;
       const targetCenterX = Number(actor.x || 0) + Number(actor.w || 0) / 2;
@@ -30349,7 +30802,7 @@
         h: height,
         ttl: duration,
         duration,
-        color: melee ? '#ef5b4c' : '#ffe16a',
+        color: '#F06A60',
         telegraphKind: melee ? 'melee' : 'projectile',
         sourceEnemyUid: String(enemy.uid || '')
       };
@@ -30362,7 +30815,7 @@
       if (!enemyUid || !Array.isArray(this.effects) || !this.effects.length) return 0;
       const before = this.effects.length;
       this.effects = this.effects.filter((effect) =>
-        !(effect && effect.type === 'telegraph' && String(effect.sourceEnemyUid || '') === enemyUid));
+        !(effect && (effect.type === 'telegraph' || effect.telegraph === true || effect.phase === 'prepare') && String(effect.sourceEnemyUid || '') === enemyUid));
       return before - this.effects.length;
     }
 
@@ -30384,6 +30837,7 @@
         targetKind: targetCharacter.kind === 'party' ? 'party' : 'player',
         targetId: normalizeId(targetCharacter.id || (targetCharacter.kind === 'party' ? '' : 'player')),
         facing,
+        aimPoint: { x: targetCenterX, y: Number(target.y || 0) + Number(target.h || 74) * 0.45 },
         windup
       };
       enemy.telegraph = windup;
@@ -30449,7 +30903,7 @@
         r: 34,
         ttl: 0.24,
         duration: 0.24,
-        color: '#d97845',
+        color: '#F06A60',
         facing: enemy.facing,
         enemyFxId: enemy.id,
         combatFxState: 'melee'
@@ -30465,6 +30919,22 @@
       if (!pending) return false;
       if (enemy.hp <= 0 || Number(enemy.staggered || 0) > 0) {
         this.cancelEnemyPendingAttack(enemy, { preserveAnimation: true });
+        return true;
+      }
+      if (pending.kind === 'heal') {
+        enemy.vx = 0;
+        if (Number(enemy.telegraph || 0) > 0) return true;
+        this.clearEnemyAttackTelegraphs(enemy);
+        enemy.pendingAttack = null;
+        enemy.state = 'attackRecover';
+        enemy.attackRecovery = 0.3;
+        for (const target of pending.recipients) {
+          if (!this.enemies.includes(target) || !this.canEnemyHealRecipient(enemy, target)) continue;
+          target.hp = clamp(target.hp + Math.round(target.maxHp * 0.12), 1, target.maxHp);
+          this.effects.push({ type: 'recoveryPulse', recoveryKind: 'heal', ownership: 'enemy', sourceEnemyUid: String(enemy.uid || ''), recipientEnemyUid: String(target.uid || ''), x: target.x + target.w / 2, y: target.y + target.h - 4, r: 32, ttl: 0.5, duration: 0.5, color: '#62D995' });
+        }
+        this.effects.push({ type: 'recoveryPulse', recoveryKind: 'heal', ownership: 'enemy', sourceEnemyUid: String(enemy.uid || ''), x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h - 4, r: 43, ttl: 0.5, duration: 0.5, color: '#62D995' });
+        enemy.lastAttackOutcome = 'healed';
         return true;
       }
       const target = this.getEnemyPendingAttackTarget(enemy, pending, characters);
@@ -30485,7 +30955,8 @@
         enemy.facing = Number(pending.facing || enemy.facing || 1) >= 0 ? 1 : -1;
         enemy.vx = Number(enemy.vx || 0) * 0.18;
         this.commitEnemyProjectile(enemy, pending.projectileType, target, {
-          completedWindup: pending.windup
+          completedWindup: pending.windup,
+          aimPoint: pending.aimPoint
         });
         enemy.lastAttackOutcome = 'released';
         return true;
@@ -30494,21 +30965,39 @@
     }
 
     beginEnemyCharge(enemy, time) {
-      if (!enemy) return false;
+      if (!enemy || enemy.hp <= 0 || Number(enemy.staggered || 0) > 0) return false;
       const now = Number(time || nowSeconds());
       enemy.state = 'charging';
+      enemy.chargeFacing = Number(enemy.facing || 1) >= 0 ? 1 : -1;
+      enemy.vx = 0;
       enemy.telegraph = ENEMY_CHARGE_TELEGRAPH_SECONDS;
       enemy.chargeAttemptStartedAt = now;
       enemy.chargeAttemptUntil = now + ENEMY_CHARGE_TELEGRAPH_SECONDS + ENEMY_CHARGE_ACTIVE_SECONDS;
       enemy.attackCd = ENEMY_CHARGE_COOLDOWN_SECONDS;
       this.setActorAnimation(enemy, 'telegraph', ENEMY_CHARGE_TELEGRAPH_SECONDS, { force: true, lock: true, loop: false });
-      this.effects.push({ type: 'telegraph', x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h - 4, w: 190, h: 8, ttl: ENEMY_CHARGE_TELEGRAPH_SECONDS, color: '#ef5b4c' });
+      const travel = ENEMY_CHARGE_SPEED * ENEMY_CHARGE_ACTIVE_SECONDS * Math.max(0.08, Number(enemy.speedScale || 1));
+      const body = this.getEnemyContactHitbox(enemy) || enemy;
+      this.effects.push({
+        type: 'telegraph',
+        x: enemy.chargeFacing > 0 ? body.x : body.x - travel,
+        y: enemy.y + enemy.h - 4,
+        w: body.w + travel,
+        h: 8,
+        ttl: ENEMY_CHARGE_TELEGRAPH_SECONDS,
+        duration: ENEMY_CHARGE_TELEGRAPH_SECONDS,
+        color: '#F06A60',
+        sourceEnemyUid: String(enemy.uid || ''),
+        telegraphKind: 'charge'
+      });
       return true;
     }
 
     stopEnemyCharge(enemy, options) {
       if (!enemy || enemy.state !== 'charging') return false;
+      this.clearEnemyAttackTelegraphs(enemy);
       enemy.state = 'idle';
+      enemy.telegraph = 0;
+      enemy.chargeFacing = 0;
       enemy.chargeAttemptUntil = 0;
       enemy.chargeAttemptStartedAt = 0;
       enemy.vx = Number(enemy.vx || 0) * (options && Number.isFinite(Number(options.rebound)) ? Number(options.rebound) : 0);
@@ -30518,14 +31007,20 @@
 
     beginRiftLanternProjectileWindup(enemy, targetCharacter) {
       const target = targetCharacter && targetCharacter.actor;
-      if (!enemy || enemy.id !== 'riftLantern' || enemy.hp <= 0 || !target) return false;
+      if (!enemy || enemy.id !== 'riftLantern' || enemy.hp <= 0 || Number(enemy.staggered || 0) > 0 || !target) return false;
       const targetCenterX = Number(target.x || 0) + Number(target.w || 40) / 2;
       const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
       enemy.facing = targetCenterX >= enemyCenterX ? 1 : -1;
+      enemy.riftLanternPendingAim = {
+        facing: enemy.facing,
+        targetKind: targetCharacter.kind,
+        targetId: targetCharacter.id,
+        point: { x: targetCenterX, y: Number(target.y || 0) + Number(target.h || 74) * 0.45 }
+      };
       enemy.state = 'riftLanternWindup';
       enemy.telegraph = RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS;
       enemy.attackCd = Math.max(Number(enemy.attackCd || 0), RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS);
-      enemy.vx = Number(enemy.vx || 0) * 0.25;
+      enemy.vx = 0;
       this.setActorAnimation(enemy, 'telegraph', RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS, { force: true, lock: true, loop: false });
       this.effects.push({
         type: 'telegraph',
@@ -30535,13 +31030,17 @@
         h: 8,
         ttl: RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS,
         duration: RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS,
-        color: '#7bdff2'
+        color: '#F06A60',
+        sourceEnemyUid: String(enemy.uid || ''),
+        telegraphKind: 'projectile'
       });
       return true;
     }
 
     cancelRiftLanternProjectileWindup(enemy) {
       if (!enemy || enemy.state !== 'riftLanternWindup') return false;
+      this.clearEnemyAttackTelegraphs(enemy);
+      enemy.riftLanternPendingAim = null;
       enemy.state = 'idle';
       enemy.telegraph = 0;
       enemy.attackCd = Math.max(Number(enemy.attackCd || 0), 0.35);
@@ -30550,16 +31049,24 @@
 
     resolveRiftLanternProjectileWindup(enemy, targetCharacter) {
       if (!enemy || enemy.id !== 'riftLantern' || enemy.state !== 'riftLanternWindup' || enemy.telegraph > 0) return false;
-      const target = targetCharacter && targetCharacter.actor;
-      const targetAlive = !!target && (targetCharacter.kind !== 'party' || Number(target.hp || 0) > 0);
+      const aim = enemy.riftLanternPendingAim;
+      const committedTarget = aim ? this.getCombatCharacterByTarget(aim.targetKind, aim.targetId) : targetCharacter;
+      const target = committedTarget && committedTarget.actor;
+      const targetAlive = !!target && Number(target.hp || 0) > 0;
       const distance = target ? Math.abs((Number(target.x || 0) + Number(target.w || 40) / 2) - (Number(enemy.x || 0) + Number(enemy.w || 0) / 2)) : Number.POSITIVE_INFINITY;
-      if (enemy.hp <= 0 || !targetAlive || distance > 680) {
+      if (enemy.hp <= 0 || Number(enemy.staggered || 0) > 0 || !targetAlive || distance > 680) {
         this.cancelRiftLanternProjectileWindup(enemy);
         return false;
       }
-      enemy.state = 'idle';
+      this.clearEnemyAttackTelegraphs(enemy);
+      enemy.riftLanternPendingAim = null;
+      enemy.state = 'attackRecover';
+      enemy.attackRecovery = ENEMY_PROJECTILE_RECOVERY_SECONDS;
       enemy.telegraph = 0;
-      return this.enemyProjectile(enemy, 'firebolt', targetCharacter, { preTelegraphed: true });
+      enemy.facing = aim ? aim.facing : enemy.facing;
+      return this.commitEnemyProjectile(enemy, 'firebolt', committedTarget, {
+        aimPoint: aim && aim.point
+      });
     }
 
     updateEnemies(delta) {
@@ -30587,6 +31094,9 @@
         enemy.packMarked = Math.max(0, Number(enemy.packMarked || 0) - delta);
         enemy.runeLinked = Math.max(0, Number(enemy.runeLinked || 0) - delta);
 	        if (enemy.hp <= 0) {
+	          this.clearEnemyAttackTelegraphs(enemy);
+	          this.stopEnemyCharge(enemy);
+	          this.cancelRiftLanternProjectileWindup(enemy);
 	          enemy.vx = 0;
 	          enemy.vy = 0;
 	          enemy.telegraph = 0;
@@ -30602,6 +31112,11 @@
 	          if (!burnStats) burnStats = this.getStats();
 	          this.applyBurnTick(enemy, Math.min(delta, previousBurning), burnStats);
 	        }
+        if (this.enemies !== enemies || this.runtime !== runtimeAtStart) return;
+        if (enemy.hp <= 0) {
+          this.updateEnemyAnimationState(enemy, currentTime);
+          return;
+        }
         if (this.shouldDeferPassiveOffscreenEnemyUpdate(
           enemy,
           enemyIndex,
@@ -30614,10 +31129,20 @@
         }
 	        const controlSpeedScale = Number(enemy.brokenUntil || 0) > currentTime ? 0.18 : enemy.slowed > 0 ? 0.45 : 1;
 	        const speedScale = Math.max(0.08, Number(enemy.speedScale || 1) * controlSpeedScale);
-	        if (this.updateEnemyClimbing(enemy, delta, speedScale)) return;
-        if (data.behavior === 'flyer') {
-          enemy.y += Math.sin(currentTime * 2 + enemy.x * 0.02) * 18 * delta;
-        } else {
+        const staggered = Number(enemy.staggered || 0) > 0;
+        if (staggered) {
+          this.stopEnemyCharge(enemy);
+          this.cancelRiftLanternProjectileWindup(enemy);
+          if (enemy.bossPendingAction) {
+            this.cancelBossPendingActionEffects(enemy, enemy.bossPendingAction);
+            enemy.bossPendingAction = null;
+            enemy.telegraph = 0;
+            enemy.state = 'idle';
+          }
+          enemy.attackCd = Math.max(Number(enemy.attackCd || 0), Number(enemy.staggered || 0) + ENEMY_ATTACK_CANCEL_RECOVERY_SECONDS);
+        }
+	        if (!staggered && this.updateEnemyClimbing(enemy, delta, speedScale)) return;
+        if (data.behavior !== 'flyer') {
           enemy.vy += GRAVITY * delta;
         }
         const pendingAttackHandled = this.resolveEnemyPendingAttack(enemy, combatCharacters);
@@ -30628,24 +31153,37 @@
         const targetCharacter = this.getEnemyAggroTarget(enemy, currentTime, combatCharacters);
         const targetActor = targetCharacter && targetCharacter.actor;
         const dx = targetActor ? Number(targetActor.x || 0) - enemy.x : 0;
-        if (targetActor && !pendingAttackHandled && !attackRecovering) enemy.facing = dx >= 0 ? 1 : -1;
+        const committedDirection = enemy.state === 'charging' || enemy.state === 'riftLanternWindup';
+        if (targetActor && !pendingAttackHandled && !attackRecovering && !committedDirection) enemy.facing = dx >= 0 ? 1 : -1;
         const distance = Math.abs(dx);
         const followingAirRoute = !enemy.grounded && Number(enemy.airRouteUntil || 0) > currentTime;
-        if (pendingAttackHandled || attackRecovering) {
+        if (staggered) {
+          enemy.vx = 0;
+        } else if (pendingAttackHandled || attackRecovering) {
           enemy.vx *= attackRecovering ? 0.68 : 0.5;
         } else if (!targetActor) {
           this.stopEnemyCharge(enemy);
           this.cancelRiftLanternProjectileWindup(enemy);
+          if (enemy.bossPendingAction) {
+            this.cancelBossPendingActionEffects(enemy, enemy.bossPendingAction);
+            enemy.bossPendingAction = null;
+            enemy.telegraph = 0;
+            enemy.state = 'idle';
+          }
           this.updateEnemyWander(enemy, delta, speedScale);
         } else if (enemy.id === 'riftLantern' && enemy.state === 'riftLanternWindup') {
-          enemy.vx *= 0.7;
+          enemy.vx = 0;
           this.resolveRiftLanternProjectileWindup(enemy, targetCharacter);
         } else if (data.behavior === 'turret') {
           enemy.vx = 0;
           if (distance < 620 && enemy.attackCd <= 0) this.enemyProjectile(enemy, 'thorn', targetCharacter);
         } else if (followingAirRoute) {
           enemy.vx = Number(enemy.airRouteVx || 0);
-          enemy.facing = enemy.vx >= 0 ? 1 : -1;
+          if (Number.isFinite(enemy.airRouteTargetX)) {
+            const remaining = enemy.airRouteTargetX - enemy.x - enemy.w / 2;
+            enemy.vx = clamp(remaining / delta, -Math.abs(enemy.airRouteVx), Math.abs(enemy.airRouteVx));
+          }
+          if (enemy.vx) enemy.facing = enemy.vx >= 0 ? 1 : -1;
         } else if (data.behavior === 'thrower' || data.behavior === 'flyer') {
           const desired = data.behavior === 'thrower' ? 280 : 340;
           if (distance < desired - 40) enemy.vx = -enemy.facing * data.speed * speedScale;
@@ -30655,6 +31193,8 @@
             if (enemy.id === 'riftLantern') this.beginRiftLanternProjectileWindup(enemy, targetCharacter);
             else this.enemyProjectile(enemy, data.behavior === 'flyer' ? 'firebolt' : 'knife', targetCharacter);
           }
+        } else if (enemy.state === 'charging' && enemy.telegraph > 0) {
+          enemy.vx = 0;
         } else if (data.behavior === 'charger' && distance < 520 && enemy.attackCd <= 0) {
           this.beginEnemyCharge(enemy, currentTime);
         } else if (enemy.state === 'charging' && enemy.telegraph <= 0) {
@@ -30664,9 +31204,10 @@
             if (Number(enemy.actionLockUntil || 0) <= currentTime) {
               this.setActorAnimation(enemy, 'attack', 0.42, { force: true, lock: true, loop: false });
             }
+            enemy.facing = Number(enemy.chargeFacing || enemy.facing || 1) >= 0 ? 1 : -1;
             enemy.vx = enemy.facing * ENEMY_CHARGE_SPEED * speedScale;
           }
-          if (enemy.state === 'charging' && distance < enemy.w + 26 && sameCombatLane(targetActor, enemy, 34)) {
+          if (enemy.state === 'charging' && this.enemyIntersectsRect(enemy, targetCharacter.kind === 'player' ? this.playerHitbox() : targetActor) && sameCombatLane(targetActor, enemy, 34)) {
             this.damageCombatCharacter(targetCharacter, enemy.damage, enemy.name, { attacker: enemy, knockback: 260, verticalKnockback: 140 });
             this.stopEnemyCharge(enemy, { rebound: -0.2 });
           }
@@ -30678,13 +31219,18 @@
         }
 
         if (this.enemies !== enemies || this.runtime !== runtimeAtStart) return;
-        if (!pendingAttackHandled && !attackRecovering && targetActor && data.behavior === 'healer' && enemy.attackCd <= 0) {
+        if (!staggered && !pendingAttackHandled && !attackRecovering && targetActor && data.behavior === 'healer' && enemy.attackCd <= 0) {
           this.healNearby(enemy);
         }
-        if (!pendingAttackHandled && !attackRecovering && targetActor) {
+        if (!staggered && !pendingAttackHandled && !enemy.pendingAttack && !enemy.bossPendingAction && !attackRecovering && targetActor) {
           this.updateEnemyPlatformJump(enemy, targetActor, speedScale, currentTime, targetCharacter && targetCharacter.platform);
         }
 
+        this.updateEnemyFlight(enemy, targetActor, delta, currentTime,
+          staggered || !!enemy.pendingAttack || enemy.state === 'riftLanternWindup' || enemy.state === 'attackRecover');
+        const previousX = enemy.x;
+        const previousY = enemy.y;
+        const wasGrounded = enemy.grounded;
         enemy.previousY = enemy.y;
         enemy.x += enemy.vx * delta;
         enemy.y += enemy.vy * delta;
@@ -30692,13 +31238,13 @@
           enemy.grounded = false;
           enemy.groundedPlatformId = '';
         }
-        this.resolvePlatforms(enemy);
+	        if (data.behavior !== 'flyer') this.resolveEnemyGroundMovement(enemy, previousX, previousY, wasGrounded);
 	        enemy.x = clamp(enemy.x, 12, this.runtime.worldWidth - enemy.w - 12);
 	        if (this.recoverFallenBodyThroughTop(enemy, { kind: 'enemy' })) {
 		          this.updateEnemyAnimationState(enemy, currentTime);
 		          return;
 	        }
-	        if (!targetActor) this.clampEnemyWanderPosition(enemy);
+	        if (!targetActor) this.clampEnemyWanderPosition(enemy, previousX);
 	        this.wakeEnemyOnContact(enemy, currentTime, combatCharacters);
 	        if (this.enemies !== enemies || this.runtime !== runtimeAtStart) return;
 	        this.updateEnemyStuckState(enemy, delta);
@@ -30733,6 +31279,8 @@
       let entryCount = 0;
       let maxEnemyHalfWidth = 0;
       let maxEnemyHalfHeight = 0;
+      let maxCombatPaddingX = 0;
+      let maxCombatPaddingY = 0;
       for (let enemyIndex = 0; enemyIndex < enemies.length; enemyIndex += 1) {
         const enemy = enemies[enemyIndex];
         if (!enemy || enemy.hp <= 0) continue;
@@ -30742,6 +31290,9 @@
         maxEnemyHalfHeight = Math.max(maxEnemyHalfHeight, enemyHeight / 2);
         const centerX = Number(enemy.x || 0) + enemyWidth / 2;
         const centerY = Number(enemy.y || 0) + enemyHeight / 2;
+        const combatEnvelope = this.getEnemyCombatEnvelope(enemy);
+        maxCombatPaddingX = Math.max(maxCombatPaddingX, centerX - combatEnvelope.x, combatEnvelope.x + combatEnvelope.w - centerX);
+        maxCombatPaddingY = Math.max(maxCombatPaddingY, centerY - combatEnvelope.y, combatEnvelope.y + combatEnvelope.h - centerY);
         const xBucket = Math.floor(centerX / bucketSize);
         const yBucket = Math.floor(centerY / bucketSize);
         const entry = entries[entryCount] || {};
@@ -30770,6 +31321,8 @@
       index.enemyCount = enemies.length;
       index.maxEnemyHalfWidth = maxEnemyHalfWidth;
       index.maxEnemyHalfHeight = maxEnemyHalfHeight;
+      index.maxCombatPaddingX = maxCombatPaddingX;
+      index.maxCombatPaddingY = maxCombatPaddingY;
       this.enemySpatialIndex = index;
       this.enemySpatialIndexFrameId = this.frameId;
       this.enemySpatialIndexCount = enemies.length;
@@ -30781,6 +31334,8 @@
       const bucketSize = Math.max(1, Number(spatialIndex.bucketSize || 96));
       let maxEnemyHalfWidth = 0;
       let maxEnemyHalfHeight = 0;
+      let maxCombatPaddingX = 0;
+      let maxCombatPaddingY = 0;
       let bucketsDirty = false;
       for (let index = 0; index < spatialIndex.entries.length; index += 1) {
         const entry = spatialIndex.entries[index];
@@ -30792,6 +31347,9 @@
         maxEnemyHalfHeight = Math.max(maxEnemyHalfHeight, enemyHeight / 2);
         const centerX = Number(enemy.x || 0) + enemyWidth / 2;
         const centerY = Number(enemy.y || 0) + enemyHeight / 2;
+        const combatEnvelope = this.getEnemyCombatEnvelope(enemy);
+        maxCombatPaddingX = Math.max(maxCombatPaddingX, centerX - combatEnvelope.x, combatEnvelope.x + combatEnvelope.w - centerX);
+        maxCombatPaddingY = Math.max(maxCombatPaddingY, centerY - combatEnvelope.y, combatEnvelope.y + combatEnvelope.h - centerY);
         const xBucket = Math.floor(centerX / bucketSize);
         const yBucket = Math.floor(centerY / bucketSize);
         if (xBucket !== entry.xBucket || yBucket !== entry.yBucket) bucketsDirty = true;
@@ -30806,6 +31364,8 @@
       }
       spatialIndex.maxEnemyHalfWidth = maxEnemyHalfWidth;
       spatialIndex.maxEnemyHalfHeight = maxEnemyHalfHeight;
+      spatialIndex.maxCombatPaddingX = maxCombatPaddingX;
+      spatialIndex.maxCombatPaddingY = maxCombatPaddingY;
       if (bucketsDirty && !this.rebuildEnemySpatialBucketsFromEntries(spatialIndex)) return true;
       return false;
     }
@@ -30869,6 +31429,23 @@
 	      const stepScale = clamp((Number(delta) || 0.016) / 0.016, 0.35, 1.4);
 	      const maxSeparationDistance = 18;
 	      const worldRight = Number(this.runtime && this.runtime.worldWidth || PLAYFIELD_WIDTH);
+        const shiftOnSurface = (entry, nextX) => {
+          const body = entry.enemy;
+          const width = Math.max(1, Number(body.w || 1));
+          const previousX = Number(body.x || 0);
+          const platform = body.grounded && this.runtime.platforms[Number(body.groundedPlatformIndex)];
+          let minX = 12;
+          let maxX = worldRight - width - 12;
+          if (platform) {
+            minX = Math.max(minX, platform.x - width / 2 + 0.01);
+            maxX = Math.min(maxX, platform.x + platform.w - width / 2 - 0.01);
+          }
+          body.x = clamp(nextX, minX, Math.max(minX, maxX));
+          if (platform) body.y = getPlatformSurfaceY(platform, body.x + width / 2) - Number(body.h || 0);
+          entry.centerX += body.x - previousX;
+          entry.centerY = Number(body.y || 0) + Number(body.h || 0) / 2;
+          entry.bottomY = Number(body.y || 0) + Number(body.h || 0);
+        };
 	      for (let i = 0; i < live.length; i += 1) {
 	        const entry = live[i];
 	        const a = entry.enemy;
@@ -30890,7 +31467,7 @@
 	              const dx = bc - ac;
 	              const distance = Math.abs(dx);
 	              if (!Number.isFinite(distance) || distance >= maxSeparationDistance) continue;
-	              const laneDistance = Math.abs(aBottomY - Number(other.bottomY || Number(b.y || 0) + Number(b.h || 0)));
+	              const laneDistance = Math.abs(Number(entry.bottomY || aBottomY) - Number(other.bottomY || Number(b.y || 0) + Number(b.h || 0)));
 	              if (!Number.isFinite(laneDistance) || laneDistance > 28) continue;
 	              const desired = Math.max(ENEMY_SEPARATION_MIN, Math.min(maxSeparationDistance, (aWidth + Math.max(1, Number(other.width || b.w || 1))) * 0.14));
 	              if (distance >= desired) continue;
@@ -30901,10 +31478,8 @@
 	              const bShare = 1 - aShare;
 	              const previousAx = Number(a.x || 0);
 	              const previousBx = Number(b.x || 0);
-	              a.x = clamp(previousAx - direction * push * aShare, 12, worldRight - aWidth - 12);
-	              b.x = clamp(previousBx + direction * push * bShare, 12, worldRight - Math.max(1, Number(other.width || b.w || 1)) - 12);
-	              entry.centerX += a.x - previousAx;
-	              other.centerX += b.x - previousBx;
+	              shiftOnSurface(entry, previousAx - direction * push * aShare);
+	              shiftOnSurface(other, previousBx + direction * push * bShare);
 	            }
 	          }
 	        }
@@ -30929,6 +31504,7 @@
       const before = this.effects.length;
       this.effects = this.effects.filter((effect) => {
         if (!effect || effect.type !== 'bossHazard' || !effect.telegraph) return true;
+        if (effect.sourceEnemyUid) return String(effect.sourceEnemyUid) !== String(enemy.uid || '');
         if (normalizeId(effect.enemyFxId) !== enemyId) return true;
         return actionId && normalizeId(effect.actionId) !== actionId;
       });
@@ -31471,6 +32047,7 @@
         mechanicLabel: profile.mechanicLabel,
         enemyFxId: enemy.id,
         combatFxState: 'telegraph',
+        sourceEnemyUid: String(enemy.uid || ''),
         telegraph: true
       };
       Object.assign(effect, this.getBossSpatialEffectFields(enemy.bossPendingAction));
@@ -31492,6 +32069,12 @@
 
     resolveBossEncounterAction(enemy, encounter, pending) {
       if (!enemy || !pending) return;
+      this.cancelBossPendingActionEffects(enemy, pending);
+      if (enemy.hp <= 0 || Number(enemy.staggered || 0) > 0) {
+        enemy.bossPendingAction = null;
+        enemy.telegraph = 0;
+        return;
+      }
       const profile = pending.profile || this.getBossActionProfile(pending.actionId, encounter);
       enemy.bossPendingAction = null;
       this.setActorAnimation(enemy, profile.shape === 'add' || profile.shape === 'expose' ? 'buff' : 'attack', 0.5, { force: true, lock: true, loop: false });
@@ -31634,11 +32217,13 @@
         ? this.getBossSpatialAddSpawnPoint(settings.spatialResponse, index)
         : null;
       if (settings.spatialResponse && !responseSpawn) return false;
-      const add = this.createEnemy(
-        enemyData,
-        responseSpawn || this.chooseSpawnPoint(Number(index || 0), { initial: true })
-      );
+      const spawn = responseSpawn || this.chooseInitialFieldSpawnPoint(Number(index || 0),
+        this.enemies.filter((enemy) => enemy && enemy.hp > 0).map((enemy) => this.getFieldEnemySpawnPosition(enemy)));
+      if (!spawn) return false;
+      const add = this.createEnemy(enemyData, spawn);
       add.encounterMinion = true;
+      add.temporarySpawn = true;
+      add.preventWaveRespawn = true;
       add.aggroSource = 'bossEncounter';
       if (settings.spatialResponse && settings.spatialResponse.status === 'pending') {
         add.bossSpatialResponse = settings.spatialResponse;
@@ -31755,10 +32340,10 @@
       this.setActorAnimation(enemy, 'projectile', 0.45, { force: true, lock: true, loop: false });
       const speed = type === 'knife' ? 300 : type === 'firebolt' ? 220 : 240;
       const target = targetCharacter && targetCharacter.actor;
-      const targetCenter = target ? {
+      const targetCenter = settings.aimPoint || (target ? {
         x: Number(target.x || 0) + Number(target.w || 40) / 2,
         y: Number(target.y || 0) + Number(target.h || 74) * 0.45
-      } : null;
+      } : null);
       const startX = enemy.x + enemy.w / 2;
       const startY = enemy.y + enemy.h * 0.45;
       const dx = targetCenter ? targetCenter.x - startX : enemy.facing;
@@ -31798,15 +32383,28 @@
       return true;
     }
 
+    canEnemyHealRecipient(enemy, target) {
+      if (!enemy || !target || target === enemy || target.hp <= 0 || target.hp >= target.maxHp) return false;
+      // Support casts protect the frontline; healers cannot form an indefinite
+      // reciprocal healing chain. Explicit self-healing skills are separate.
+      if (target.data && target.data.behavior === 'healer') return false;
+      const dx = target.x + target.w / 2 - (enemy.x + enemy.w / 2);
+      const dy = target.y + target.h / 2 - (enemy.y + enemy.h / 2);
+      return dx * dx + dy * dy <= 220 * 220;
+    }
+
     healNearby(enemy) {
+      if (!enemy || enemy.hp <= 0 || enemy.pendingAttack) return false;
+      const recipients = this.enemies.filter((target) => this.canEnemyHealRecipient(enemy, target));
+      if (!recipients.length) return false;
       enemy.attackCd = 2.8;
-      this.setActorAnimation(enemy, 'buff', 0.58, { force: true, lock: true, loop: false });
-      this.enemies.forEach((target) => {
-        if (target === enemy || target.hp <= 0) return;
-        if (Math.abs(target.x - enemy.x) > 220) return;
-        target.hp = clamp(target.hp + Math.round(target.maxHp * 0.12), 1, target.maxHp);
-      });
-      this.effects.push({ type: 'partyBuff', x: enemy.x + enemy.w / 2, y: enemy.y + 20, r: 76, ttl: 0.7, duration: 0.7, color: '#66d79a' });
+      enemy.pendingAttack = { kind: 'heal', windup: 0.35, recipients };
+      enemy.telegraph = 0.35;
+      enemy.state = 'healWindup';
+      enemy.vx = 0;
+      this.setActorAnimation(enemy, 'buff', 0.65, { force: true, lock: true, loop: false });
+      this.effects.push({ type: 'recoveryPulse', phase: 'prepare', recoveryKind: 'heal', ownership: 'enemy', sourceEnemyUid: String(enemy.uid || ''), x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h - 4, r: 32, ttl: 0.35, duration: 0.35, color: '#62D995' });
+      return true;
     }
 
     getProjectileEnemyUid(enemy, fallback) {
@@ -31844,9 +32442,8 @@
       const bucketSize = Math.max(1, Number(index.bucketSize || 96));
       const maxEnemyHalfWidth = Math.max(1, Number(index.maxEnemyHalfWidth || 0) || 0);
       const maxEnemyHalfHeight = Math.max(1, Number(index.maxEnemyHalfHeight || 0) || 0);
-      const fallbackRadius = Math.max(PROJECTILE_COLLISION_SPATIAL_RADIUS, Number(radius || 0));
-      const paddingX = Math.min(fallbackRadius, maxEnemyHalfWidth + 2);
-      const paddingY = Math.min(fallbackRadius, maxEnemyHalfHeight + 2);
+      const paddingX = Math.max(maxEnemyHalfWidth, Number(index.maxCombatPaddingX || 0)) + 2;
+      const paddingY = Math.max(maxEnemyHalfHeight, Number(index.maxCombatPaddingY || 0)) + 2;
       const projectileX = Number(projectile.x || 0);
       const projectileY = Number(projectile.y || 0);
       const projectileWidth = Math.max(1, Number(projectile.w || 0) || 0);
@@ -31879,8 +32476,9 @@
       const considerEntry = (entry) => {
         const enemy = entry && entry.enemy;
         if (!enemy || enemy.hp <= 0 || this.projectileHasHitEnemy(projectile, enemy, `entry:${entry.index}`)) return;
-        const enemyCx = Number(entry.centerX || enemy.x + enemy.w / 2);
-        const enemyCy = Number(entry.centerY || enemy.y + enemy.h / 2);
+        const aim = this.enemyCenter(enemy);
+        const enemyCx = aim.x;
+        const enemyCy = aim.y;
         const dx = enemyCx - projectileCx;
         const forward = dx * direction;
         const vertical = enemyCy - projectileCy;
@@ -31906,7 +32504,7 @@
       if (!buckets || typeof buckets.get !== 'function') return null;
       const range = Math.max(0, Number(profile.range || 0));
       const verticalTolerance = Math.max(0, Number(profile.verticalTolerance || 0));
-      const pad = 32;
+      const pad = Math.max(32, Number(index.maxCombatPaddingX || 0), Number(index.maxCombatPaddingY || 0));
       const minX = Math.floor((projectileCx + (direction < 0 ? -range : -24) - pad) / bucketSize);
       const maxX = Math.floor((projectileCx + (direction < 0 ? 24 : range) + pad) / bucketSize);
       const minY = Math.floor((projectileCy - verticalTolerance - pad) / bucketSize);
@@ -31928,8 +32526,9 @@
       if (!profile || !target) return;
       const projectileCx = projectile.x + projectile.w / 2;
       const projectileCy = projectile.y + projectile.h / 2;
-      const targetCx = target.x + target.w / 2;
-      const targetCy = target.y + target.h / 2;
+      const aim = this.enemyCenter(target);
+      const targetCx = aim.x;
+      const targetCy = aim.y;
       const dx = targetCx - projectileCx;
       const dy = targetCy - projectileCy;
       const distance = Math.hypot(dx, dy);
@@ -31995,7 +32594,7 @@
             if (projectile.ttl <= 0) break;
             const enemy = candidates[index] && candidates[index].enemy;
             if (!enemy || enemy.hp <= 0) continue;
-            if (!rectsOverlap(projectile, enemy)) continue;
+            if (!this.enemyIntersectsRect(enemy, projectile)) continue;
             if (projectile.sourceSkillId) this.handleSkillProjectileHit(projectile, enemy);
             else {
               const directStats = playerProjectileStats || (playerProjectileStats = this.getStats());
@@ -32076,6 +32675,7 @@
     }
 
     updateEffects(delta) {
+      this.updatePendingSkillActions(delta);
       const effects = Array.isArray(this.effects) ? this.effects : (this.effects = []);
       const initialLength = effects.length;
       let writeIndex = 0;
@@ -32132,26 +32732,22 @@
       this.effects = effects;
     }
 
-    isEnemyInsideFieldEffect(enemy, effect, verticalTolerance) {
-      if (!enemy || enemy.hp <= 0 || !effect) return false;
-      const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
+    isEnemyInsideFieldEffect(enemy, effect, verticalTolerance, includeDefeated) {
+      if (!enemy || enemy.hp <= 0 && !includeDefeated || !effect) return false;
       const enemyFootY = Number(enemy.y || 0) + Number(enemy.h || 0);
-      return Math.abs(enemyCenterX - Number(effect.x || 0)) <= Math.max(1, Number(effect.r || 0)) &&
-        Math.abs(enemyFootY - Number(effect.y || 0)) <= verticalTolerance;
+      const radius = Math.max(1, Number(effect.r || 0));
+      if (Math.abs(enemyFootY - Number(effect.y || 0)) > verticalTolerance) return false;
+      if (!this.getEnemyAnimation(enemy)) return Math.abs(Number(enemy.x || 0) + Number(enemy.w || 0) / 2 - Number(effect.x || 0)) <= radius;
+      return this.enemyIntersectsRect(enemy, { x: Number(effect.x || 0) - radius, y: Number(effect.y || 0) - verticalTolerance, w: radius * 2, h: verticalTolerance * 2 });
     }
 
     getFieldEnemyCandidatesByScan(effect, verticalTolerance) {
       const candidates = [];
-      const fieldX = Number(effect && effect.x || 0);
-      const fieldY = Number(effect && effect.y || 0);
-      const radius = Math.max(1, Number(effect && effect.r || 0));
       const enemies = this.enemies || [];
       for (let index = 0; index < enemies.length; index += 1) {
         const enemy = enemies[index];
         if (!enemy || enemy.hp <= 0) continue;
-        const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
-        const enemyFootY = Number(enemy.y || 0) + Number(enemy.h || 0);
-        if (Math.abs(enemyCenterX - fieldX) <= radius && Math.abs(enemyFootY - fieldY) <= verticalTolerance) {
+        if (this.isEnemyInsideFieldEffect(enemy, effect, verticalTolerance)) {
           candidates.push(enemy);
         }
       }
@@ -32168,7 +32764,7 @@
       const fieldY = Number(effect.y || 0);
       const radius = Math.max(1, Number(effect.r || 0));
       const searchRadius = Math.max(radius, Math.max(1, Number(verticalTolerance || 0)) + FIELD_ENEMY_SPATIAL_PADDING);
-      const entries = this.getEnemySpatialEntries(fieldX, fieldY, searchRadius, spatialIndex);
+      const entries = this.getEnemyCombatSpatialEntries(fieldX, fieldY, searchRadius, spatialIndex);
       const candidates = [];
       for (let index = 0; index < entries.length; index += 1) {
         const entry = entries[index];
@@ -32391,7 +32987,9 @@
     }
 
     isEnemyInsideRuneField(enemy, field) {
-      return this.isBodyInsideRuneField(enemy, field);
+      if (!field) return false;
+      const profile = this.getRuneFieldProfileForEffect(field);
+      return this.isEnemyInsideFieldEffect(enemy, field, Math.max(1, Number(field.verticalTolerance || profile.verticalTolerance || RUNE_FIELD_KILL_VERTICAL_TOLERANCE)), true);
     }
 
     getActiveRuneFieldForBody(body) {
@@ -32576,16 +33174,16 @@
 
     getContextEnemyAtWorldPoint(point) {
       if (!point) return null;
-      const clickX = Number(point.x || 0) - 10;
-      const clickY = Number(point.y || 0) - 10;
+      const clickX = Number(point.x || 0);
+      const clickY = Number(point.y || 0);
       let best = null;
       let bestDistance = Infinity;
       const enemies = this.enemies || [];
       for (let index = 0; index < enemies.length; index += 1) {
         const candidate = enemies[index];
         if (!candidate || Number(candidate.hp || 0) <= 0) continue;
-        if (!rectOverlapsBox(candidate, clickX, clickY, 20, 20)) continue;
-        const distance = Math.abs((Number(candidate.x || 0) + Number(candidate.w || 0) / 2) - Number(point.x || 0));
+        if (!this.enemyIntersectsRect(candidate, { x: clickX, y: clickY, w: 0.01, h: 0.01 })) continue;
+        const distance = Math.abs(this.enemyCenter(candidate).x - clickX);
         if (distance < bestDistance) {
           best = candidate;
           bestDistance = distance;
@@ -32740,7 +33338,7 @@
         };
         let hits = 0;
         this.enemies.forEach((enemy) => {
-          if (!rectsOverlap(hitbox, enemy)) return;
+          if (!enemy || enemy.hp <= 0 || !this.enemyIntersectsRect(enemy, hitbox)) return;
           if (!sameCombatLane(player, enemy, 38)) return;
           hits += 1;
           const damageResult = this.rollDamageResult(stats.power, enemy);
@@ -32896,13 +33494,14 @@
       if (!player) return;
       const source = String(settings.source || '');
       const rune = source === 'runeField';
-      const pulseColor = settings.color || (hp && mp ? '#72e6c9' : hp ? '#66d79a' : '#68a9ff');
+      const pulseColor = hp ? '#62D995' : '#668FFF';
       const accentColor = settings.accentColor || (rune ? '#d6fff8' : '#ffffff');
       const centerX = Number(player.x || 0) + Number(player.w || 0) / 2;
       const centerY = Number(player.y || 0) + Number(player.h || 0) / 2;
       const footY = Number(player.y || 0) + Number(player.h || 0) - 4;
       this.effects.push({
         type: 'recoveryPulse',
+        recoveryKind: hp ? 'heal' : 'resource',
         source,
         x: centerX,
         y: footY,
@@ -32912,6 +33511,7 @@
         color: pulseColor,
         accentColor
       });
+      if (hp && mp) this.effects.push({ type: 'recoveryPulse', recoveryKind: 'resource', source, x: centerX, y: centerY, r: 29, ttl: 0.46, duration: 0.46, color: '#668FFF', accentColor });
       const lineCount = hp && mp ? 2 : 1;
       if (hp) {
         this.pushDamageSplat(player, hp, {
@@ -33129,15 +33729,16 @@
         let match = null;
         let matchScore = Number.POSITIVE_INFINITY;
         let matchDistanceSq = Number.POSITIVE_INFINITY;
-        const candidates = this.getEnemySpatialEntries(from.x, from.y, range, spatialIndex);
+        const candidates = this.getEnemyCombatSpatialEntries(from.x, from.y, range, spatialIndex);
         for (let index = 0; index < candidates.length; index += 1) {
           const entry = candidates[index];
           const enemy = entry && entry.enemy;
           if (!enemy || enemy.hp <= 0) continue;
           const uid = String(enemy.uid || enemy.runtimeId || `entry:${entry.index}`);
           if (visited.has(uid)) continue;
-          const dx = Number(entry.centerX || enemy.x + enemy.w / 2) - from.x;
-          const dy = Number(entry.centerY || enemy.y + enemy.h / 2) - from.y;
+          const aim = this.enemyCenter(enemy);
+          const dx = aim.x - from.x;
+          const dy = aim.y - from.y;
           const forward = dx * direction;
           if (!targets.length && forward < -24) continue;
           if (Math.abs(dy) > verticalTolerance) continue;
@@ -33145,7 +33746,7 @@
           if (distanceSq > rangeSq) continue;
           const score = Math.sqrt(distanceSq) + Math.abs(dy) * 0.45;
           if (score < matchScore || score === matchScore && distanceSq < matchDistanceSq) {
-            match = { enemy, uid, x: entry.centerX, y: entry.centerY };
+            match = { enemy, uid, x: aim.x, y: aim.y };
             matchScore = score;
             matchDistanceSq = distanceSq;
           }
@@ -33176,8 +33777,9 @@
       const visual = this.getSkillVisual(skill, targeting.projectileType);
       const chainDamageFalloff = clamp(Number(targeting.chainDamageFalloff || 0.9), 0.1, 1);
       targets.forEach((enemy, index) => {
-        const hitX = enemy.x + enemy.w / 2;
-        const hitY = enemy.y + enemy.h / 2;
+        const hitPoint = this.enemyCenter(enemy);
+        const hitX = hitPoint.x;
+        const hitY = hitPoint.y;
         this.chainPulses = Array.isArray(this.chainPulses) ? this.chainPulses : [];
         this.chainPulses.push({
           type: 'arc',
@@ -33230,8 +33832,9 @@
     resolveChainPulse(pulse) {
       if (!pulse || !pulse.enemy || pulse.enemy.hp <= 0) return;
       const enemy = pulse.enemy;
-      const hitX = enemy.x + enemy.w / 2;
-      const hitY = enemy.y + enemy.h / 2;
+      const hitPoint = this.enemyCenter(enemy);
+      const hitX = hitPoint.x;
+      const hitY = hitPoint.y;
       if (pulse.type === 'impact') {
         this.effects.push({
           type: 'shockBurst',
@@ -33541,7 +34144,7 @@
       const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
       const activationDelay = Number.isFinite(Number(options.activationDelay))
         ? Math.max(0, Number(options.activationDelay))
-        : SKILL_FX_CONTACT_DELAY_SECONDS;
+        : 0;
       this.pushPlayerActionEffect(type, {
         forward,
         yOffset: Number(options.yOffset || (type === 'cast' ? 28 : 34)),
@@ -33600,7 +34203,7 @@
       const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
       const activationDelay = Number.isFinite(Number(options.activationDelay))
         ? Math.max(0, Number(options.activationDelay))
-        : options.projectile ? 0 : SKILL_FX_CONTACT_DELAY_SECONDS;
+        : 0;
       this.effects.push({
         type: 'skillImpact',
         skillId: skill.id,
@@ -33633,7 +34236,7 @@
       const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
       const activationDelay = Number.isFinite(Number(options.activationDelay))
         ? Math.max(0, Number(options.activationDelay))
-        : SKILL_FX_CONTACT_DELAY_SECONDS;
+        : 0;
       this.effects.push({
         type: 'skillArea',
         skillId: skill.id,
@@ -33736,8 +34339,9 @@
       const rank = Math.max(0, Number(projectile.skillRank || getRank(this.state, sourceSkill.id) || 0));
       const radius = Math.max(36, Number(profile.markExplosionRadius || 0) + rank * Number(profile.markExplosionRadiusPerRank || 0));
       const targetCap = Math.max(1, Math.floor(Number(profile.markExplosionTargetCap || 1)));
-      const hitX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
-      const hitY = Number(enemy.y || 0) + Number(enemy.h || 0) / 2;
+      const hitPoint = this.enemyCenter(enemy);
+      const hitX = hitPoint.x;
+      const hitY = hitPoint.y;
       const damage = Math.max(1, Number(projectile.damage || 1) * Number(profile.markExplosionDamageScale || 0.5));
       const targets = this.limitEnemiesByDistance(
         this.findEnemiesNear(hitX, hitY, radius, { limit: Number.POSITIVE_INFINITY }),
@@ -33763,8 +34367,9 @@
       if (this.projectileHasHitEnemy(projectile, enemy)) return;
       this.markProjectileHitEnemy(projectile, enemy);
       const sourceSkill = getSkillDefinitionById(projectile.sourceSkillId) || null;
-      const hitX = enemy.x + enemy.w / 2;
-      const hitY = enemy.y + enemy.h / 2;
+      const hitPoint = this.enemyCenter(enemy);
+      const hitX = hitPoint.x;
+      const hitY = hitPoint.y;
       this.pushSkillImpactEffect(hitX, hitY, sourceSkill, {
         projectile,
         lineCount: projectile.lineCount,
@@ -33866,6 +34471,8 @@
     }
 
     enemyCenter(enemy) {
+      const hurtbox = this.getEnemyHurtbox(enemy);
+      if (hurtbox) return EnemyHurtboxes.getAimPoint(hurtbox);
       return {
         x: enemy.x + enemy.w / 2,
         y: enemy.y + enemy.h / 2
@@ -34015,7 +34622,6 @@
     findEnemiesNear(x, y, radius, options) {
       const limit = Math.max(0, Number(radius) || 0);
       const settings = options || {};
-      const radiusSq = limit * limit;
       const cap = Object.prototype.hasOwnProperty.call(settings, 'limit')
         ? settings.limit
         : settings.skill || settings.channel
@@ -34028,16 +34634,14 @@
       const entryBuffer = Array.isArray(this.findEnemiesNearEntryBuffer)
         ? this.findEnemiesNearEntryBuffer
         : (this.findEnemiesNearEntryBuffer = []);
-      const entries = this.getEnemySpatialEntries(originX, originY, limit, null, entryBuffer);
+      const entries = this.getEnemyCombatSpatialEntries(originX, originY, limit, null, entryBuffer);
       if (!Number.isFinite(capLimit)) {
         const matches = [];
         for (let index = 0; index < entries.length; index += 1) {
           const entry = entries[index];
           const enemy = entry && entry.enemy;
           if (!enemy || enemy.hp <= 0) continue;
-          const dx = Number(entry.centerX || 0) - originX;
-          const dy = Number(entry.centerY || 0) - originY;
-          if (dx * dx + dy * dy <= radiusSq) matches.push(enemy);
+          if (this.enemyIntersectsCircle(enemy, originX, originY, limit)) matches.push(enemy);
         }
         return matches;
       }
@@ -34052,10 +34656,11 @@
         const entry = entries[index];
         const enemy = entry && entry.enemy;
         if (!enemy || enemy.hp <= 0) continue;
-        const dx = Number(entry.centerX || 0) - originX;
-        const dy = Number(entry.centerY || 0) - originY;
+        const aim = this.enemyCenter(enemy);
+        const dx = aim.x - originX;
+        const dy = aim.y - originY;
         const distanceSq = dx * dx + dy * dy;
-        if (distanceSq > radiusSq) continue;
+        if (!this.enemyIntersectsCircle(enemy, originX, originY, limit)) continue;
         const order = matchedCount;
         matchedCount += 1;
         if (nearestEnemies.length < capLimit) {
@@ -34114,11 +34719,12 @@
       const maxRangeSq = maxRange * maxRange;
       let best = null;
       let bestScore = Number.POSITIVE_INFINITY;
-      this.getEnemySpatialEntries(originX, originY, maxRange + 96).forEach((entry) => {
+      this.getEnemyCombatSpatialEntries(originX, originY, maxRange + 96).forEach((entry) => {
         const enemy = entry && entry.enemy;
         if (!enemy || enemy.hp <= 0) return;
-        const dx = entry.centerX - originX;
-        const dy = entry.centerY - originY;
+        const aim = this.enemyCenter(enemy);
+        const dx = aim.x - originX;
+        const dy = aim.y - originY;
         const forward = dx * direction;
         if (settings.forwardOnly && forward < -36) return;
         const distanceSq = dx * dx + dy * dy;
@@ -34254,8 +34860,7 @@
       if (!object || object.charges <= 0 || !enemy || enemy.hp <= 0) return 0;
       const skill = getSkillDefinitionById(object.skillId) || {};
       const center = this.enemyCenter(enemy);
-      const distance = Math.hypot(center.x - object.x, center.y - object.y);
-      if (!forced && distance > object.r) return 0;
+      if (!forced && !this.enemyIntersectsCircle(enemy, object.x, object.y, object.r)) return 0;
       const damage = this.hitRoleTarget(enemy, skill, object.damage, {
         lineCount: object.lineCount,
         slow: Math.max(3.2, Number(object.slow || 0)),
@@ -34398,7 +35003,9 @@
           const finisherBonus = id === 'berserker_last_stand' ? 1.9 + (1 - hpPct) * 1.0 : 1.28 + (1 - hpPct) * 0.58;
           const dealt = this.hitRoleTarget(target, skill, power * bossBonus * finisherBonus, { stagger: 1.8, knockback: 120 });
           const healRate = id === 'berserker_last_stand' ? 0.2 : 0.32;
+          const hpBefore = player.hp;
           player.hp = clamp(player.hp + Math.max(4, dealt * healRate), 1, stats.maxHp);
+          if (player.hp > hpBefore) this.pushPlayerRecoveryEffect({ hp: player.hp - hpBefore }, { duration: 0.4 });
           if (id === 'berserker_last_stand') player.invulnerableUntil = Math.max(player.invulnerableUntil || 0, nowSeconds() + 0.8);
         }
         return true;
@@ -34577,8 +35184,11 @@
       if (id === 'beast_archer_pack_call') {
         this.setSkillBuff(skill, 'packCall', 10 + rank * 0.45);
         this.pushBuffCastEffect(skill, 'packCall', { r: 96, ttl: 0.66, duration: 0.66 });
+        const hpBefore = player.hp;
+        const mpBefore = player.mp;
         player.hp = clamp(player.hp + Math.round(stats.maxHp * 0.08), 1, stats.maxHp);
         player.mp = clamp(player.mp + Math.round(stats.maxMp * 0.08), 0, stats.maxMp);
+        if (player.hp > hpBefore || player.mp > mpBefore) this.pushPlayerRecoveryEffect({ hp: player.hp - hpBefore, mp: player.mp - mpBefore }, { duration: 0.4 });
         return true;
       }
       return false;
@@ -34654,6 +35264,45 @@
       this.startCombatLock(GLOBAL_COMBAT_ACTION_DELAY_SECONDS, { movementLock: this.isOffensiveSkill(skill) });
       this.setActorAnimation(player, 'skill', 0.55, { force: true, lock: true, loop: false });
 
+      const prepare = this.isOffensiveSkill(skill) && !isMobilitySkill(skill) && !isDefensiveSkill(skill);
+      if (prepare) {
+        this.pendingSkillActions = Array.isArray(this.pendingSkillActions) ? this.pendingSkillActions : [];
+        player.skillCastSerial = Number(player.skillCastSerial || 0) + 1;
+        this.pendingSkillActions.push({ remaining: SKILL_FX_CONTACT_DELAY_SECONDS, player, runtime: this.runtime, serial: player.skillCastSerial, skill, rank, stats, movementPlan, chainPlan });
+        this.pushSkillCastEffect(skill, { duration: SKILL_FX_CONTACT_DELAY_SECONDS, ttl: SKILL_FX_CONTACT_DELAY_SECONDS, r: 32 });
+        const cue = this.effects[this.effects.length - 1];
+        if (cue && cue.type === 'skillCast') cue.playerCastSerial = player.skillCastSerial;
+      } else {
+        this.resolvePreparedSkill(skill, rank, stats, movementPlan, chainPlan);
+      }
+      this.recordProgressEvent('useSkill', { skillId: skill.id, owner: skill.owner, skillType: skill.type }, {
+        noEmit: true
+      });
+      this.recordCombatSkillCast(skill.id);
+      this.addClassMasteryXp(2 + rank * 0.2, skill.owner);
+      if (!settings.suppressCombatEmit && !settings.fromHeldInput) {
+        this.emitHudChange({ skipOverlayInvalidate: true });
+      }
+      return true;
+    }
+
+    updatePendingSkillActions(delta) {
+      const pending = Array.isArray(this.pendingSkillActions) ? this.pendingSkillActions : [];
+      this.pendingSkillActions = [];
+      for (const action of pending) {
+        const player = this.state.player;
+        if (action.player !== player || action.runtime !== this.runtime || Number(player.hp || 0) <= 0 || action.serial !== player.skillCastSerial || player.animationState === 'hit' || player.animationState === 'defeat') {
+          this.effects = this.effects.filter((effect) => effect.playerCastSerial !== action.serial);
+          continue;
+        }
+        action.remaining -= Math.max(0, Number(delta || 0));
+        if (action.remaining > 0.000001) this.pendingSkillActions.push(action);
+        else this.resolvePreparedSkill(action.skill, action.rank, action.stats, action.movementPlan, action.chainPlan);
+      }
+    }
+
+    resolvePreparedSkill(skill, rank, stats, movementPlan, chainPlan) {
+      const player = this.state.player;
       if (this.tryUseSignatureSkill(skill, rank, stats)) {
         // Signature skills resolve through branch-specific role hooks.
       } else if (isDefensiveSkill(skill)) {
@@ -34726,14 +35375,6 @@
         const radius = skill.roleTags.includes('Mobbing') || skill.type.includes('Area') || skill.type.includes('Finisher') ? 145 : 90;
         const power = this.getSkillBasePower(skill, rank, stats);
         this.areaHit(player.x + player.facing * 96, player.y + 36, radius, power, skill, { channel: skill.type.includes('Finisher') ? 'finisherArea' : 'area' });
-      }
-      this.recordProgressEvent('useSkill', { skillId: skill.id, owner: skill.owner, skillType: skill.type }, {
-        noEmit: true
-      });
-      this.recordCombatSkillCast(skill.id);
-      this.addClassMasteryXp(2 + rank * 0.2, skill.owner);
-      if (!settings.suppressCombatEmit && !settings.fromHeldInput) {
-        this.emitHudChange({ skipOverlayInvalidate: true });
       }
       return true;
     }
@@ -36191,6 +36832,9 @@
       if (!enemy) return false;
       const now = Number.isFinite(Number(time)) ? Number(time) : this.getRiftCounterplayNow();
       if (enemy.pendingAttack) this.cancelEnemyPendingAttack(enemy, { recovery: 1.1 });
+      this.stopEnemyCharge(enemy);
+      this.cancelRiftLanternProjectileWindup(enemy);
+      this.clearEnemyAttackTelegraphs(enemy);
       enemy.telegraph = 0;
       enemy.bossPendingAction = null;
       enemy.chargeAttemptUntil = Math.max(Number(enemy.chargeAttemptUntil || 0), now + 1.1);
@@ -36263,10 +36907,11 @@
       const majorDefeatVisual = enemy.hp <= 0 && this.isBossEnemy(enemy);
       if ((!isTickDamage || !enemy.nextImpactAt || enemy.nextImpactAt <= time) &&
         this.canSpawnCombatVisual('impact', { tickDamage: isTickDamage, critical: settings.critical, defeat: enemy.hp <= 0, major: majorDefeatVisual, targetType: 'enemy' })) {
+        const impactPoint = this.enemyCenter(enemy);
         this.effects.push({
           type: 'impact',
-          x: enemy.x + enemy.w / 2,
-          y: enemy.y + enemy.h * 0.45,
+          x: impactPoint.x,
+          y: impactPoint.y,
           r: enemy.id === 'emberjawGolem' ? 70 : 44,
           ttl: 0.28,
           duration: 0.28,
@@ -36468,13 +37113,21 @@
       enemy.hpBarUntil = time + ENEMY_COMBAT_HUD_SECONDS;
     }
 
+    getTrainingXpMultiplier(enemy) {
+      const map = getMapDefinitionById(this.state.mapId);
+      return GET_TRAINING_XP_MULTIPLIER ? GET_TRAINING_XP_MULTIPLIER(map, this.isBossEnemy(enemy), this.runtime.isTrialInstance) : 1;
+    }
+
     defeatEnemy(enemy) {
       if (!enemy || enemy.defeatedAt) return;
       enemy.defeatedAt = nowSeconds();
       enemy.removeAt = enemy.defeatedAt + 0.72;
       enemy.hp = 0;
       this.clearEnemyAttackTelegraphs(enemy);
+      this.stopEnemyCharge(enemy);
+      this.cancelRiftLanternProjectileWindup(enemy);
       enemy.pendingAttack = null;
+      enemy.bossPendingAction = null;
       enemy.attackRecovery = 0;
       enemy.telegraph = 0;
       this.resolveBossSpatialAddResponse(enemy);
@@ -36508,7 +37161,7 @@
       const baseXp = Math.max(1, Math.round(getMonsterXp(enemy.level, enemy.data) *
         (1 + this.getMapModifierBonus('xpBonus') + affixXpBonus) *
         this.getAdminRate('xpRate') *
-        this.getRateCouponMultiplier('xp')));
+        this.getRateCouponMultiplier('xp') * this.getTrainingXpMultiplier(enemy)));
       const baseCurrency = Math.max(0, Math.round((14 + enemy.level * 4 + (enemy.elite ? 90 : 0)) *
         (1 + this.getMapModifierBonus('currencyBonus') + affixCurrencyBonus)));
       const xp = Math.max(1, Math.round(baseXp * riftRewardScale));
@@ -42082,6 +42735,7 @@
         asset: enemy.data.asset || '',
         animationState,
         hitReaction,
+        registration: animation && animation.registration || ENEMY_SPRITE_REGISTRATION,
         animationFrame: this.getRendererAnimationFrame(animation, animationState, enemy),
         renderBox,
         questTarget: !!(questGuidance && questGuidance.active && Array.isArray(questGuidance.targetEnemyIds) && questGuidance.targetEnemyIds.includes(enemy.id))
@@ -42345,8 +42999,14 @@
       this.profilePerformancePhase('draw', 'levelUpBurst', () => {
         (visualDrawLists.levelUpBursts || []).forEach((effect) => this.drawEffect(ctx, effect));
       });
+      this.runtime.questNpcs.forEach((npc) => this.drawQuestNpcLabel(ctx, npc));
       this.profilePerformancePhase('draw', 'questNavigationArrow', () => this.drawQuestNavigationArrow(ctx, rendererSnapshot.questGuidance));
       ctx.restore();
+      ctx.restore();
+      const hudTop = Math.min(height, playfieldHeight + (this.getViewportMetrics().solidPlatformHeight || SOLID_PLATFORM_HEIGHT));
+      ctx.save();
+      ctx.fillStyle = '#08121f';
+      ctx.fillRect(0, hudTop, width, height - hudTop);
       ctx.restore();
       if (!this.state.player.classId) this.profilePerformancePhase('draw', 'attractScreen', () => this.drawAttract(ctx, width, height));
       if (this.overlayRenderer) {
@@ -42379,7 +43039,7 @@
       ctx.beginPath();
       ctx.rect(0, 0, width, solidBandBottom);
       ctx.clip();
-      this.profilePerformancePhase('draw', 'background', () => this.drawBackground(ctx, width, playfieldHeight, palette, map));
+      this.profilePerformancePhase('draw', 'background', () => this.drawBackground(ctx, width, solidBandBottom, palette, map));
       this.profilePerformancePhase('draw', 'worldBaseBand', () => this.drawWorldBaseBand(ctx, width, playfieldHeight, solidBandBottom, map));
       ctx.save();
       ctx.scale(zoom, zoom);
@@ -42391,7 +43051,7 @@
       const enemiesToDraw = this.getVisibleEnemiesForDraw(dynamicDrawViewBox, this.visibleEnemyDrawBuffer);
       this.profilePerformancePhase('draw', 'mapGeometry', () => this.drawMap(ctx, map));
       this.profilePerformancePhase('draw', 'worldEffects', () => {
-        worldEffectsToDraw.forEach((effect) => this.drawEffect(ctx, effect));
+        worldEffectsToDraw.forEach((effect) => this.drawEffect(ctx, effect, 'ground'));
       });
       this.profilePerformancePhase('draw', 'projectiles', () => {
         projectilesToDraw.forEach((projectile) => this.drawProjectile(ctx, projectile));
@@ -42418,6 +43078,11 @@
       if (this.state.player.classId) this.profilePerformancePhase('draw', 'pet', () => this.drawPet(ctx));
       if (this.state.player.classId) this.profilePerformancePhase('draw', 'partyActors', () => this.drawPartyMembers(ctx));
       if (this.state.player.classId) this.profilePerformancePhase('draw', 'player', () => this.drawPlayer(ctx));
+      this.profilePerformancePhase('draw', 'recoverySymbols', () => {
+        worldEffectsToDraw.forEach((effect) => {
+          if (effect.type === 'recoveryPulse') this.drawEffect(ctx, effect, 'symbol');
+        });
+      });
       this.profilePerformancePhase('draw', 'levelUpBurst', () => {
         (visualDrawLists.levelUpBursts || []).forEach((effect) => this.drawEffect(ctx, effect));
       });
@@ -42426,6 +43091,11 @@
         visualDrawLists.damageSplats.forEach((effect) => this.drawEffect(ctx, effect));
       });
       ctx.restore();
+      ctx.restore();
+      const hudTop = Math.min(height, playfieldHeight + (this.getViewportMetrics().solidPlatformHeight || SOLID_PLATFORM_HEIGHT));
+      ctx.save();
+      ctx.fillStyle = '#08121f';
+      ctx.fillRect(0, hudTop, width, height - hudTop);
       ctx.restore();
       if (!this.state.player.classId) this.profilePerformancePhase('draw', 'attractScreen', () => this.drawAttract(ctx, width, height));
       if (this.overlayRenderer) {
@@ -42443,7 +43113,7 @@
       if (backgroundImage) {
         const imageWidth = backgroundImage.naturalWidth || backgroundImage.width;
         const imageHeight = backgroundImage.naturalHeight || backgroundImage.height;
-        const drawHeight = Math.max(1, height);
+        const drawHeight = Math.max(1, height, width * imageHeight / Math.max(1, imageWidth));
         const drawWidth = Math.max(1, Math.round(imageWidth * (drawHeight / Math.max(1, imageHeight))));
         const parallaxX = this.camera.x * MAP_BACKGROUND_PARALLAX;
         const parallaxY = Math.max(0, this.camera.y * MAP_BACKGROUND_PARALLAX);
@@ -42496,29 +43166,18 @@
       }
     }
 
-    getWorldBaseBandFill(map) {
-      const theme = this.getMapThemeId(map);
-      const palette = map && map.palette || [];
-      // This is reserved collision geometry, not an overlay. Opaque map tones
-      // prevent the pale CSS canvas fallback from bleeding through as gray.
-      if (theme.includes('cinder') || theme.includes('ember') || theme.includes('fire')) return '#140a18';
-      if (theme.includes('frost') || theme.includes('rime') || theme.includes('glacier')) return '#a3d9f2';
-      if (theme.includes('astral') || theme.includes('eclipse') || theme.includes('rift') || theme.includes('rune')) return '#1d1d40';
-      if (theme.includes('storm')) return '#2f445c';
-      if (theme.includes('ruins') || theme.includes('gearworks') || theme.includes('quarry') || theme.includes('rust') || theme.includes('titan') || theme.includes('deepcore')) return '#4e504e';
-      if (theme.includes('bandit') || theme.includes('ridge') || theme.includes('duelist') || theme.includes('sniper')) return '#654a30';
-      return palette[0] || '#2f6848';
-    }
-
     drawWorldBaseBand(ctx, width, playfieldHeight, worldHeight, map) {
       const top = Math.max(0, Math.round(Number(playfieldHeight || 0)) - 2);
       const bottom = Math.max(top, Math.round(Number(worldHeight || playfieldHeight || 0)));
       if (bottom <= top) return;
       ctx.save();
-      ctx.fillStyle = this.getWorldBaseBandFill(map);
-      ctx.fillRect(0, top, width, bottom - top);
-      ctx.fillStyle = 'rgba(9, 31, 59, 0.24)';
-      ctx.fillRect(0, top, width, 2);
+      // Continue the scenery through the reserved boundary and settle into the HUD.
+      // Collision and layout dimensions remain unchanged.
+      for (let y = top; y < bottom; y += 1) {
+        const progress = (y - top) / Math.max(1, bottom - top - 1);
+        ctx.fillStyle = 'rgba(8, 18, 31, ' + Math.pow(progress, 1.2) * 0.78 + ')';
+        ctx.fillRect(0, y, width, 1);
+      }
       ctx.restore();
     }
 
@@ -43028,7 +43687,7 @@
       const ledgeH = Math.max(38, Math.min(48, topH + Math.round(Number(style.platformBodyDepth || 30) * 0.82)));
       const ledgeX = platform.x - ledgeOverhang;
       const ledgeW = platform.w + ledgeOverhang * 2;
-      const ledgeY = platform.y - topH + 2;
+      const ledgeY = SceneryPlacement.getTerrainSurfaceTop(platform, style, topH, false);
       this.drawTerrainSurface(ctx, asset, image, ENVIRONMENT_TERRAIN_CELLS, false, ledgeX, ledgeY, ledgeW, ledgeH, `${seed}:ledge`, { overlap: 0 });
       this.drawPlatformThemeTrim(ctx, map, platform, index);
     }
@@ -43142,39 +43801,23 @@
 
     drawRampPlatformTerrain(ctx, map, platform, index, style, seed) {
       const profile = this.getEnvironmentProfile(map);
-      if (this.isEclipseObservatoryDeck(map, profile)) {
-        return this.drawEclipseObservatoryDeckTreatment(ctx, map, platform, index);
-      }
+      if (this.isEclipseObservatoryDeck(map, profile)) return this.drawEclipseObservatoryDeckTreatment(ctx, map, platform, index);
       const asset = this.getEnvironmentAsset('ramps', profile);
       const image = this.getEnvironmentImage('ramps', profile);
       if (!asset || !image || !isSlopePlatform(platform)) return false;
-      const cellSize = Math.max(1, Number(asset.cellSize || 128));
-      const columns = Math.max(1, Number(asset.columns || 4));
       const cell = this.getRampTerrainCell(platform, index);
-      const sourceX = (cell % columns) * cellSize;
-      const sourceY = Math.floor(cell / columns) * cellSize;
-      const leftY = Number(platform.y || 0);
-      const rightY = Number(platform.y2 || platform.y || 0);
-      const overhang = Math.max(6, Math.min(14, Number(style && style.overhang || 8)));
-      const topPad = Math.max(8, Math.min(14, Number(style && style.topHeight || 18) * 0.55));
-      const bodyDepth = Math.max(22, Math.min(36, Number(style && style.platformBodyDepth || 28)));
-      const drawX = Number(platform.x || 0) - overhang;
-      const drawW = Math.max(1, Number(platform.w || 0) + overhang * 2);
-      const drawY = Math.min(leftY, rightY) - topPad;
-      const drawH = Math.max(36, Math.abs(rightY - leftY) + topPad + bodyDepth);
-      const leftX = drawX;
-      const rightX = drawX + drawW;
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(leftX, leftY - topPad);
-      ctx.lineTo(rightX, rightY - topPad);
-      ctx.lineTo(rightX, rightY + bodyDepth);
-      ctx.lineTo(leftX, leftY + bodyDepth);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(image, sourceX, sourceY, cellSize, cellSize, drawX, drawY, drawW, drawH);
-      ctx.restore();
-      this.drawPlatformThemeTrim(ctx, map, platform, index);
+      const rise = Number(platform.y2) - Number(platform.y);
+      const depth = Math.max(22, Math.min(36, Number(style && style.platformBodyDepth || 28)));
+      const key = [asset.path, 'surface', cell, platform.w, rise, depth].join(':');
+      if (!this.rampSurfaceCache) this.rampSurfaceCache = new Map();
+      let surface = this.rampSurfaceCache.get(key);
+      if (!surface) {
+        surface = SceneryPlacement.createRampSurface(image, asset, cell, platform.w, rise, depth);
+        if (!surface) return false;
+        if (this.rampSurfaceCache.size >= 128) this.rampSurfaceCache.delete(this.rampSurfaceCache.keys().next().value);
+        this.rampSurfaceCache.set(key, surface);
+      }
+      ctx.drawImage(surface.canvas, platform.x, platform.y + surface.topOffset, platform.w, surface.height);
       return true;
     }
 
@@ -43272,7 +43915,7 @@
       const bodyBaseH = this.getPlatformTerrainBodyDepth(platformList, platform, index, style, topH, isGround);
       const left = platform.x - overhang;
       const right = platform.x + platform.w + overhang;
-      const topY = platform.y - topH + (isGround ? 0 : 2);
+      const topY = SceneryPlacement.getTerrainSurfaceTop(platform, style, topH, isGround);
       const layerH = Math.max(topH, Math.round(topH + bodyBaseH));
       const terrainOverlap = 10;
 
@@ -43337,23 +43980,11 @@
     }
 
     getMapDecorationBlockers() {
-      const blockers = [];
-      (this.runtime.climbables || []).forEach((item) => blockers.push({ x: item.x - 36, y: item.y - 16, w: item.w + 72, h: item.h + 32 }));
-      (this.runtime.stations || []).forEach((item) => blockers.push({ x: item.x - 52, y: item.y - 90, w: item.w + 104, h: item.h + 112 }));
-      (this.runtime.portals || []).forEach((item) => blockers.push({ x: item.x - 56, y: item.y - 40, w: item.w + 112, h: item.h + 74 }));
-      (this.runtime.questNpcs || []).forEach((item) => blockers.push({ x: item.x - 44, y: item.y - 54, w: item.w + 88, h: item.h + 78 }));
-      (this.runtime.spawnPoints || []).forEach((point) => {
-        const platform = this.runtime.platforms[point.platformIndex || 0];
-        if (platform) blockers.push({ x: Number(point.x || 0) - 34, y: platform.y - 72, w: 68, h: 94 });
-      });
-      return blockers;
+      return SceneryPlacement.getDecorationBlockers(this.runtime);
     }
 
     isEnvironmentPropPlacementSafe(platform, x, y, w, h, blockers, visibility) {
-      if (!platform || x < platform.x + 28 || x + w > platform.x + platform.w - 28) return false;
-      const clearance = Number(visibility && visibility.combatClearancePx || 72);
-      const rect = { x: x - clearance * 0.25, y: y - clearance * 0.2, w: w + clearance * 0.5, h: h + clearance * 0.35 };
-      return !(blockers || []).some((blocker) => rectsOverlap(rect, blocker));
+      return SceneryPlacement.isPlacementSafe(platform, x, y, w, h, blockers, visibility);
     }
 
     getEnvironmentCellAlphaBounds(asset, image, cellIndex) {
@@ -43444,31 +44075,13 @@
       const propImage = this.getEnvironmentImage('props', profile);
       if (!profile || !propAsset || !propImage) return;
       const visibility = this.getEnvironmentVisibility(profile);
-      const blockers = this.getMapDecorationBlockers();
       const densityScale = layer === 'rear'
         ? Number(visibility.rearDensityScale == null ? 0.34 : visibility.rearDensityScale)
         : Number(visibility.frontDensityScale == null ? 0 : visibility.frontDensityScale);
-      const density = Number(profile.density || 0.5) * densityScale;
       if (densityScale <= 0) return;
-      const spacing = layer === 'rear' ? 430 : 340;
-      (this.runtime.platforms || []).forEach((platform, platformIndex) => {
-        if (!platform || platform.w < 120) return;
-        const kindPool = this.getEnvironmentPropKinds(profile, layer, platformIndex);
-        if (!kindPool.length) return;
-        const rawCount = Math.max(1, Math.round(platform.w / spacing * density));
-        const count = layer === 'rear' ? Math.min(8, rawCount) : Math.min(platformIndex === 0 ? 6 : 2, rawCount);
-        for (let index = 0; index < count; index += 1) {
-          const seed = `${map.id}:${layer}:${platformIndex}:${index}`;
-          const kind = seededPick(kindPool, seed, 'kind') || 'grass';
-          const size = this.getEnvironmentPropSize(kind, layer, platformIndex, visibility);
-          const usableW = Math.max(1, platform.w - 96);
-          const x = platform.x + 48 + Math.floor(usableW * ((index + 0.35 + seededUnit(seed, 'x') * 0.3) / Math.max(1, count)));
-          const overlap = layer === 'front' ? 0 : 10 + Math.floor(seededUnit(seed, 'y') * 6);
-          const y = platform.y - size.h + overlap;
-          if (!this.isEnvironmentPropPlacementSafe(platform, x, y, size.w, size.h, blockers, visibility)) continue;
-          this.drawMapProp(ctx, propAsset, propImage, kind, x, y, size.w, size.h, seed, layer);
-        }
-      });
+      const placements = SceneryPlacement.buildPlacements(this.runtime, map, profile, visibility, layer, densityScale,
+        this.getEnvironmentPropKinds.bind(this), this.getEnvironmentPropSize.bind(this));
+      placements.forEach(prop => this.drawMapProp(ctx, propAsset, propImage, prop.kind, prop.x, prop.y, prop.w, prop.h, prop.seed, layer));
     }
 
     isWorldDecorationVisible(x, y, w, h, padding) {
@@ -43480,12 +44093,14 @@
       return x + w >= left && x <= right && y + h >= top && y <= bottom;
     }
 
-    getEnvironmentStructureAsset() {
-      return Data.ENVIRONMENT_STRUCTURE_ASSETS && Data.ENVIRONMENT_STRUCTURE_ASSETS.townLandmarks || null;
+    getEnvironmentStructureAsset(themeOverride) {
+      const map = getMapDefinitionById(this.state.mapId);
+      const theme = themeOverride || map && map.townScene && map.townScene.structureTheme || 'townLandmarks';
+      return Data.ENVIRONMENT_STRUCTURE_ASSETS && (Data.ENVIRONMENT_STRUCTURE_ASSETS[theme] || Data.ENVIRONMENT_STRUCTURE_ASSETS.townLandmarks) || null;
     }
 
-    getEnvironmentStructureImage() {
-      const asset = this.getEnvironmentStructureAsset();
+    getEnvironmentStructureImage(theme) {
+      const asset = this.getEnvironmentStructureAsset(theme);
       return asset && asset.path ? this.getAsset(asset.path) : null;
     }
 
@@ -43496,8 +44111,9 @@
     }
 
     drawEnvironmentStructureCell(ctx, cell, x, y, w, h, options) {
-      const asset = this.getEnvironmentStructureAsset();
-      const image = this.getEnvironmentStructureImage();
+      const theme = options && options.structureTheme;
+      const asset = this.getEnvironmentStructureAsset(theme);
+      const image = this.getEnvironmentStructureImage(theme);
       if (!asset || !image) return false;
       return this.drawEnvironmentCell(ctx, asset, image, this.getEnvironmentStructureCellIndex(cell), x, y, w, h, options || {});
     }
@@ -43797,6 +44413,7 @@
         profile.visibility && profile.visibility.frontDensityScale || '',
         profile.terrainStyle && profile.terrainStyle.topHeight || '',
         profile.terrainStyle && profile.terrainStyle.groundTopHeight || '',
+        profile.terrainStyle && profile.terrainStyle.contactAligned ? 'contact' : '',
         profile.terrainStyle && profile.terrainStyle.platformBodyDepth || '',
         profile.terrainStyle && profile.terrainStyle.groundBodyDepth || '',
         profile.terrainStyle && profile.terrainStyle.overhang || '',
@@ -43949,10 +44566,7 @@
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(npcImage, sourceX, sourceY, cropWidth, cropHeight, npc.x, npc.y, npc.w, npc.h);
         ctx.imageSmoothingEnabled = previousSmoothing;
-        ctx.fillStyle = '#102033';
-        ctx.font = '900 11px system-ui';
-        ctx.textAlign = 'center';
-        ctx.fillText(npc.name.split(' ')[0], cx, npc.y - 8);
+        this.drawQuestNpcLabel(ctx, npc);
         ctx.restore();
         return;
       }
@@ -43967,10 +44581,21 @@
       ctx.fillStyle = '#263547';
       ctx.fillRect(npc.x + 7, npc.y + npc.h - 18, 9, 18);
       ctx.fillRect(npc.x + npc.w - 16, npc.y + npc.h - 18, 9, 18);
-      ctx.fillStyle = '#102033';
+      this.drawQuestNpcLabel(ctx, npc);
+      ctx.restore();
+    }
+
+    drawQuestNpcLabel(ctx, npc) {
+      const label = String(npc.serviceLabel || npc.name || 'Guide');
+      const cx = npc.x + npc.w / 2;
+      ctx.save();
       ctx.font = '900 11px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText(npc.name.split(' ')[0], cx, npc.y - 8);
+      const width = ctx.measureText(label).width + 12;
+      ctx.fillStyle = 'rgba(8, 18, 31, 0.9)';
+      ctx.fillRect(cx - width / 2, npc.y - 22, width, 19);
+      ctx.fillStyle = '#f4f7ff';
+      ctx.fillText(label, cx, npc.y - 8);
       ctx.restore();
     }
 
@@ -44026,7 +44651,7 @@
         y + h - facadeH,
         facadeW,
         facadeH,
-        { alpha: locked ? 0.62 : 1 }
+        { alpha: locked ? 0.62 : 1, structureTheme: portal.structureTheme || 'townLandmarks' }
       );
       if (facadeDrawn) {
         this.drawPortalLabel(ctx, portal, locked);
@@ -44235,7 +44860,7 @@
       };
       const drawShield = () => {
         if (player.shield > 0) {
-          ctx.strokeStyle = 'rgba(104,169,255,0.65)';
+          ctx.strokeStyle = 'rgba(99,215,232,0.85)';
           ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.ellipse(player.x + player.w / 2, player.y + player.h / 2, 30, 44, 0, 0, Math.PI * 2);
@@ -44540,7 +45165,7 @@
           drawWidth,
           drawHeight,
           enemy.facing,
-          ENEMY_SPRITE_DRAW_OPTIONS
+          animation && animation.registration ? { registration: animation.registration } : ENEMY_SPRITE_DRAW_OPTIONS
         );
         ctx.restore();
       } else if (enemyImage) {
@@ -46877,8 +47502,28 @@
       ctx.restore();
     }
 
-    drawEffect(ctx, effect) {
+    drawEffect(ctx, effect, recoveryLayer) {
       if (!effect || Number(effect.activationDelay || 0) > 0) return;
+      if (effect.type === 'recoveryPulse' && getEngineVisualHelper('createSemanticRecoveryDrawState')) {
+        const state = getEngineVisualHelper('createSemanticRecoveryDrawState')(effect);
+        ctx.save();
+        ctx.globalAlpha = state.alpha;
+        ctx.strokeStyle = state.color;
+        ctx.fillStyle = state.color;
+        ctx.lineCap = 'round';
+        state.lines.forEach((line) => {
+          if (recoveryLayer && line.layer !== recoveryLayer) return;
+          ctx.lineWidth = line.width;
+          ctx.beginPath(); ctx.moveTo(line.x1, line.y1); ctx.lineTo(line.x2, line.y2); ctx.stroke();
+        });
+        state.orbs.forEach((orb) => {
+          if (recoveryLayer && orb.layer !== recoveryLayer) return;
+          ctx.beginPath(); ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.restore();
+        return;
+      }
+      if (recoveryLayer === 'symbol') return;
       if (effect.type === 'damageSplat') {
         this.drawDamageSplat(ctx, effect);
         return;

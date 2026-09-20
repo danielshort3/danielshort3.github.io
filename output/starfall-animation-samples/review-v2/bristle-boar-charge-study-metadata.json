@@ -1,0 +1,450 @@
+{
+  "reviewStatus": "actor-only-study-pending-combined-playback-review",
+  "tool": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "sourcePath": "C:/Users/clopt/.codex/generated_images/01a0bb26-e91a-70f3-a505-99c998088311/exec-5596868d-577a-4de3-b3fc-ea1fe5743f24.png",
+  "imagePath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+  "rawOutputPreserved": true,
+  "sha256": "0885466d4ff1abb32694f5164cd9a0f6aa7f054da7789a1d88bd3586283a313d",
+  "promptPath": "output/starfall-animation-samples/review-v2/bristle-boar-charge-generation-prompt.md",
+  "referencePaths": [
+    "img/project-starfall/enemies/bristle-boar.png",
+    "img/project-starfall/animations/enemies/bristle-boar-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedCanvas": {
+    "width": 1536,
+    "height": 768,
+    "columns": 4,
+    "rows": 2,
+    "cellWidth": 384,
+    "cellHeight": 384
+  },
+  "actualCanvas": {
+    "width": 1774,
+    "height": 887,
+    "channels": 4,
+    "hasAlpha": true,
+    "transparentPixels": 1055971,
+    "partialAlphaPixels": 515657,
+    "opaquePixels": 1910
+  },
+  "grid": {
+    "columns": 4,
+    "rows": 2,
+    "nominalCellWidth": 443.5,
+    "nominalCellHeight": 443.5,
+    "sourceRectMethod": "rounded equally spaced grid boundaries"
+  },
+  "sourceFacing": "right, slight three-quarter side view",
+  "reviewTiming": {
+    "totalMs": 1650,
+    "preparationStartMs": 0,
+    "commitmentStartMs": 550,
+    "activeStartMs": 750,
+    "activeEndMs": 1300,
+    "recoveryEndMs": 1650,
+    "contact": "At target collision during active interval; do not imply damage during warning.",
+    "projectileRelease": null,
+    "loop": false,
+    "holdsMs": [
+      150,
+      200,
+      200,
+      200,
+      150,
+      400,
+      150,
+      200
+    ]
+  },
+  "warningLayer": {
+    "rendererOwned": true,
+    "category": "damage/danger",
+    "color": "#F06A60",
+    "ownership": "enemy",
+    "outerContour": "segmented",
+    "placement": "ground plane behind/below boar",
+    "geometry": "match actual charge path; do not bake it into actor PNG",
+    "aimLockMs": 550,
+    "activeCueUntilMs": 1300
+  },
+  "registration": {
+    "sharedScaleRequired": true,
+    "independentPerFrameScaling": false,
+    "nominalGroundYFraction": 0.82,
+    "nominalRootXFraction": 0.5,
+    "measuredAnchorsPendingVisualReview": false,
+    "visualReviewComplete": true,
+    "anchorGuidance": "Use one shared scale. Per-frame ground-line estimates below correct source row registration; horizontal anchors are provisional torso-center ground projections, not automatically recentered bounds."
+  },
+  "frames": [
+    {
+      "index": 0,
+      "pose": "ready",
+      "startMs": 0,
+      "endMs": 150,
+      "holdMs": 150,
+      "sourceRect": {
+        "left": 0,
+        "top": 0,
+        "width": 444,
+        "height": 444
+      },
+      "visibleBounds": {
+        "left": 29,
+        "top": 130,
+        "right": 413,
+        "bottom": 403
+      },
+      "localBounds": {
+        "left": 29,
+        "top": 130,
+        "right": 413,
+        "bottom": 403
+      },
+      "visibleWidth": 385,
+      "visibleHeight": 274,
+      "visiblePixels": 65909,
+      "edgePixelsAboveAlpha32": 0,
+      "gutter8PixelsAboveAlpha32": 0,
+      "alphaCentroid": {
+        "x": 227.43,
+        "y": 276.43
+      },
+      "nominalAnchor": {
+        "x": 222,
+        "y": 364.08
+      },
+      "suggestedAnatomicalAnchor": {
+        "x": 210,
+        "y": 401,
+        "confidence": "visual estimate; confirm in playback"
+      }
+    },
+    {
+      "index": 1,
+      "pose": "brace",
+      "startMs": 150,
+      "endMs": 350,
+      "holdMs": 200,
+      "sourceRect": {
+        "left": 444,
+        "top": 0,
+        "width": 443,
+        "height": 444
+      },
+      "visibleBounds": {
+        "left": 492,
+        "top": 138,
+        "right": 856,
+        "bottom": 405
+      },
+      "localBounds": {
+        "left": 48,
+        "top": 138,
+        "right": 412,
+        "bottom": 405
+      },
+      "visibleWidth": 365,
+      "visibleHeight": 268,
+      "visiblePixels": 61620,
+      "edgePixelsAboveAlpha32": 0,
+      "gutter8PixelsAboveAlpha32": 0,
+      "alphaCentroid": {
+        "x": 246.79,
+        "y": 278.19
+      },
+      "nominalAnchor": {
+        "x": 221.5,
+        "y": 364.08
+      },
+      "suggestedAnatomicalAnchor": {
+        "x": 220,
+        "y": 403,
+        "confidence": "visual estimate; confirm in playback"
+      }
+    },
+    {
+      "index": 2,
+      "pose": "head-low-gather",
+      "startMs": 350,
+      "endMs": 550,
+      "holdMs": 200,
+      "sourceRect": {
+        "left": 887,
+        "top": 0,
+        "width": 444,
+        "height": 444
+      },
+      "visibleBounds": {
+        "left": 918,
+        "top": 179,
+        "right": 1292,
+        "bottom": 411
+      },
+      "localBounds": {
+        "left": 31,
+        "top": 179,
+        "right": 405,
+        "bottom": 411
+      },
+      "visibleWidth": 375,
+      "visibleHeight": 233,
+      "visiblePixels": 59357,
+      "edgePixelsAboveAlpha32": 0,
+      "gutter8PixelsAboveAlpha32": 0,
+      "alphaCentroid": {
+        "x": 229.06,
+        "y": 305.71
+      },
+      "nominalAnchor": {
+        "x": 222,
+        "y": 364.08
+      },
+      "suggestedAnatomicalAnchor": {
+        "x": 207,
+        "y": 409,
+        "confidence": "visual estimate; confirm in playback"
+      }
+    },
+    {
+      "index": 3,
+      "pose": "committed-tell",
+      "startMs": 550,
+      "endMs": 750,
+      "holdMs": 200,
+      "sourceRect": {
+        "left": 1331,
+        "top": 0,
+        "width": 443,
+        "height": 444
+      },
+      "visibleBounds": {
+        "left": 1371,
+        "top": 184,
+        "right": 1743,
+        "bottom": 411
+      },
+      "localBounds": {
+        "left": 40,
+        "top": 184,
+        "right": 412,
+        "bottom": 411
+      },
+      "visibleWidth": 373,
+      "visibleHeight": 228,
+      "visiblePixels": 57339,
+      "edgePixelsAboveAlpha32": 0,
+      "gutter8PixelsAboveAlpha32": 0,
+      "alphaCentroid": {
+        "x": 230.8,
+        "y": 307.98
+      },
+      "nominalAnchor": {
+        "x": 221.5,
+        "y": 364.08
+      },
+      "suggestedAnatomicalAnchor": {
+        "x": 217,
+        "y": 409,
+        "confidence": "visual estimate; confirm in playback"
+      }
+    },
+    {
+      "index": 4,
+      "pose": "thrust",
+      "startMs": 750,
+      "endMs": 900,
+      "holdMs": 150,
+      "sourceRect": {
+        "left": 0,
+        "top": 444,
+        "width": 444,
+        "height": 443
+      },
+      "visibleBounds": {
+        "left": 36,
+        "top": 549,
+        "right": 427,
+        "bottom": 790
+      },
+      "localBounds": {
+        "left": 36,
+        "top": 105,
+        "right": 427,
+        "bottom": 346
+      },
+      "visibleWidth": 392,
+      "visibleHeight": 242,
+      "visiblePixels": 60760,
+      "edgePixelsAboveAlpha32": 0,
+      "gutter8PixelsAboveAlpha32": 0,
+      "alphaCentroid": {
+        "x": 241.69,
+        "y": 229.61
+      },
+      "nominalAnchor": {
+        "x": 222,
+        "y": 363.26
+      },
+      "suggestedAnatomicalAnchor": {
+        "x": 221,
+        "y": 345,
+        "confidence": "visual estimate; confirm in playback"
+      }
+    },
+    {
+      "index": 5,
+      "pose": "full-charge",
+      "startMs": 900,
+      "endMs": 1300,
+      "holdMs": 400,
+      "sourceRect": {
+        "left": 444,
+        "top": 444,
+        "width": 443,
+        "height": 443
+      },
+      "visibleBounds": {
+        "left": 477,
+        "top": 553,
+        "right": 866,
+        "bottom": 801
+      },
+      "localBounds": {
+        "left": 33,
+        "top": 109,
+        "right": 422,
+        "bottom": 357
+      },
+      "visibleWidth": 390,
+      "visibleHeight": 249,
+      "visiblePixels": 58806,
+      "edgePixelsAboveAlpha32": 0,
+      "gutter8PixelsAboveAlpha32": 0,
+      "alphaCentroid": {
+        "x": 238.78,
+        "y": 232.57
+      },
+      "nominalAnchor": {
+        "x": 221.5,
+        "y": 363.26
+      },
+      "suggestedAnatomicalAnchor": {
+        "x": 221,
+        "y": 355,
+        "confidence": "visual estimate; confirm in playback"
+      }
+    },
+    {
+      "index": 6,
+      "pose": "brake",
+      "startMs": 1300,
+      "endMs": 1450,
+      "holdMs": 150,
+      "sourceRect": {
+        "left": 887,
+        "top": 444,
+        "width": 444,
+        "height": 443
+      },
+      "visibleBounds": {
+        "left": 936,
+        "top": 541,
+        "right": 1312,
+        "bottom": 796
+      },
+      "localBounds": {
+        "left": 49,
+        "top": 97,
+        "right": 425,
+        "bottom": 352
+      },
+      "visibleWidth": 377,
+      "visibleHeight": 256,
+      "visiblePixels": 59478,
+      "edgePixelsAboveAlpha32": 0,
+      "gutter8PixelsAboveAlpha32": 0,
+      "alphaCentroid": {
+        "x": 252.05,
+        "y": 235.97
+      },
+      "nominalAnchor": {
+        "x": 222,
+        "y": 363.26
+      },
+      "suggestedAnatomicalAnchor": {
+        "x": 234,
+        "y": 350,
+        "confidence": "visual estimate; confirm in playback"
+      }
+    },
+    {
+      "index": 7,
+      "pose": "recover",
+      "startMs": 1450,
+      "endMs": 1650,
+      "holdMs": 200,
+      "sourceRect": {
+        "left": 1331,
+        "top": 444,
+        "width": 443,
+        "height": 443
+      },
+      "visibleBounds": {
+        "left": 1375,
+        "top": 539,
+        "right": 1743,
+        "bottom": 793
+      },
+      "localBounds": {
+        "left": 44,
+        "top": 95,
+        "right": 412,
+        "bottom": 349
+      },
+      "visibleWidth": 369,
+      "visibleHeight": 255,
+      "visiblePixels": 59202,
+      "edgePixelsAboveAlpha32": 0,
+      "gutter8PixelsAboveAlpha32": 0,
+      "alphaCentroid": {
+        "x": 235.69,
+        "y": 230.1
+      },
+      "nominalAnchor": {
+        "x": 221.5,
+        "y": 363.26
+      },
+      "suggestedAnatomicalAnchor": {
+        "x": 214,
+        "y": 347,
+        "confidence": "visual estimate; confirm in playback"
+      }
+    }
+  ],
+  "limitations": [
+    "Review timing is requested 750 ms tell / 550 ms active / 350 ms recovery, not a claim about current runtime behavior.",
+    "Eight poses form a one-shot action study; two active-charge drawings are not a complete repeated quadruped locomotion cycle.",
+    "Combined actor, ground-path warning, collision cue, registration and playback review are required before any smoothness or runtime-readiness claim.",
+    "Requested1536x768 was not honored; actual1774x887 needs rounded source rectangles.",
+    "Source row baseline differs by roughly50-65pixels; use measured anatomical registration rather than nominal82percent ground anchor.",
+    "The brake drawing is milder than a full skid; visual playback review remains necessary."
+  ],
+  "qualityReview": {
+    "completeCells": 8,
+    "identity": "Recognizable boar face, mane, colors, tusks, tail and quadruped anatomy retained.",
+    "motion": "Distinct ready, brace, lowered tell, thrust and recovery. Charge poses4/5 have related leg placement and are not a full stride loop.",
+    "registration": "Source rows have different baselines; measured rects and anchor estimates require renderer translation with one scale.",
+    "transparency": "True alpha; average alpha of visible pixels approximately248.46/255; alpha>32 artwork clears all cell edges and8px gutters.",
+    "requestedDimensionsHonored": false,
+    "requested70PercentWidthHonored": false,
+    "perCellVisibleWidthRange": [
+      365,
+      392
+    ],
+    "exactOriginalBytesPreserved": true
+  }
+}

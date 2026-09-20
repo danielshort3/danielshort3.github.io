@@ -538,6 +538,22 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
   const demoInstructions = project && typeof project.demoInstructions === 'object'
     ? project.demoInstructions
     : null;
+  const drawingDemo = ['handwritingRating', 'shapeClassifier'].includes(id);
+  const renderDemoInstructions = () => {
+    const lead = normalizeWhitespace(demoInstructions?.lead || '');
+    const bullets = normalizeTextArray(demoInstructions?.bullets);
+    if (!lead && !bullets.length) return '';
+    const tooltipId = `project-demo-${toDomIdSafe(id)}-instructions`;
+    return `<div class="project-demo-help">
+      <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="${escapeHtml(tooltipId)}">
+        <span aria-hidden="true">?</span>
+      </button>
+      <div class="project-demo-tooltip" id="${escapeHtml(tooltipId)}" role="tooltip">
+        ${lead ? `<p class="project-demo-tooltip-lead">${escapeHtml(lead)}</p>` : ''}
+        ${bullets.length ? `<ul class="project-demo-tooltip-list">${bullets.map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join('')}</ul>` : ''}
+      </div>
+    </div>`;
+  };
   const tableauPreconnect = embed && String(embed.type || '').trim() === 'tableau'
     ? '  <link rel="preconnect" href="https://public.tableau.com" crossorigin>\n'
     : '';
@@ -576,6 +592,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
           const externalAttrs = /^https?:\/\//i.test(action.href) ? ' target="_blank" rel="noopener noreferrer"' : '';
           return `<a class="project-intro-action project-intro-action--${action.type}" href="${escapeHtml(action.href)}"${externalAttrs} data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project_resource" data-resource-type="${action.type}" data-source-surface="project_intro">${escapeHtml(action.label)}</a>`;
         }).join('\n        ')}
+        ${drawingDemo ? renderDemoInstructions() : ''}
       </nav>`
     : '';
 
@@ -695,7 +712,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
     </nav>`;
   const projectQuestion = `<div class="project-question-dock">
       <a class="project-question-link" href="/contact" data-contact-modal-link="true" data-contact-message="${escapeHtml(contactMessage)}" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"></path></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"></path></svg>
         <span class="project-question-copy"><span class="project-question-label">Ask me about</span><span class="project-question-title">${escapeHtml(title)}</span></span>
       </a>
     </div>`;
@@ -873,7 +890,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
     const width = Number(preview.width || project.imageWidth);
     const height = Number(preview.height || project.imageHeight);
     const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
-      ? ` width="${width}" height="${height}"`
+      ? ` width="${width}" height="${height}" style="--project-preview-aspect: ${width} / ${height};"`
       : '';
     return `<img class="project-demo-launch-image" src="${escapeHtml(img)}" alt="${escapeHtml(preview.alt || `Preview of ${title}`)}" loading="lazy" decoding="async"${sizeAttr}>`;
   };
@@ -907,13 +924,8 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
 
   const renderDemoShell = () => {
     if (!embed) return '';
-    const safeId = toDomIdSafe(id);
-    const baseId = `project-demo-${safeId}`;
-    const tooltipId = `${baseId}-instructions`;
     const embedFit = resolveEmbedFit(embed);
     const launchHref = demoLaunchHref;
-    const launchLabel = dashboard ? 'Open dashboard' : 'Launch demo';
-    const launchAttrs = /^https?:\/\//i.test(launchHref) ? ' target="_blank" rel="noopener noreferrer"' : '';
     const demoHeading = normalizeWhitespace(embed.heading || title);
     const demoDescription = normalizeWhitespace(embed.description || project.subtitle || '');
     const headingHtml = `<h2 class="section-title project-demo-title">${escapeHtml(demoHeading)}</h2>`;
@@ -921,43 +933,19 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
       ? `<div class="project-demo-heading">${headingHtml}<p class="project-demo-description">${escapeHtml(demoDescription)}</p></div>`
       : headingHtml;
 
-    const lead = normalizeWhitespace(demoInstructions?.lead || '');
-    const bullets = normalizeTextArray(demoInstructions?.bullets);
-    const safeLead = lead ? `<p class="project-demo-tooltip-lead">${escapeHtml(lead)}</p>` : '';
-    const safeBullets = bullets.length
-      ? `<ul class="project-demo-tooltip-list">
-        ${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n        ')}
-      </ul>`
-      : '';
-    const tooltip = lead || bullets.length
-      ? `<div class="project-demo-help">
-          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="${escapeHtml(tooltipId)}">
-            <span aria-hidden="true">?</span>
-          </button>
-          <div class="project-demo-tooltip" id="${escapeHtml(tooltipId)}" role="tooltip">
-            ${safeLead}
-            ${safeBullets}
-          </div>
-        </div>`
-      : '';
-
     const mobileLaunch = (embedFit === 'content' || dashboard) && launchHref
       ? `<div class="project-demo-mobile-launch">
           ${renderDemoLaunchPreview()}
-          <div class="project-demo-launch-copy">
-            <a class="btn-primary" href="${escapeHtml(launchHref)}"${launchAttrs}>${launchLabel}</a>
-          </div>
         </div>`
       : '';
 
     return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(embedFit)}" aria-label="Interactive demo">
-      <div class="project-demo-header">
+      ${drawingDemo ? '' : `<div class="project-demo-header">
         ${demoCopy}
         <div class="project-demo-header-actions">
-          ${launchHref ? `<a class="project-demo-open" href="${escapeHtml(launchHref)}"${launchAttrs}>${dashboard ? 'Open dashboard' : 'Open full demo'}</a>` : ''}
-          ${tooltip}
+          ${renderDemoInstructions()}
         </div>
-      </div>
+      </div>`}
 
       <div class="project-demo-panels">
         <section class="project-demo-panel is-active" data-demo-panel="demo">
@@ -1000,8 +988,8 @@ ${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbedd
     : '';
 
   const projectBodySections = [
-    starSummary,
     demoTabs || projectPreview,
+    starSummary,
     safeResources,
     nextSteps
   ].filter(Boolean).join('\n        ');
@@ -1050,7 +1038,7 @@ ${tableauPreconnect}
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
 
-  <main id="main" class="project-main project-main--compact${dashboard ? ' project-main--dashboard' : ''}">
+  <main id="main" class="project-main project-main--compact${dashboard ? ' project-main--dashboard' : ''}${drawingDemo ? ' project-main--drawing' : ''}">
     <section class="project-hero project-hero--compact">
       <div class="wrapper">
         <h1>${escapeHtml(title)}</h1>
@@ -1082,7 +1070,7 @@ ${comparisonScript}${imageViewerScript}  <script src="js/privacy/config.js"></sc
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>
-`;
+`.replace(/^[\t ]+$/gm, '');
 }
 
 function preparePersonalProjectDetailHtml(html) {
@@ -1110,7 +1098,7 @@ function preparePersonalProjectDetailHtml(html) {
       </div>
     </header>`;
     }
-  );
+  ).replace(/^[\t ]+$/gm, '');
 }
 
 function writeProjectPages(projects) {

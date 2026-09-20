@@ -186,6 +186,11 @@ async function validateAllMapBackgrounds() {
 }
 
 async function main() {
+  const overhaul = require('./process-project-starfall-overhaul-scenery.js');
+  if (overhaul.isEnabled('backgrounds')) {
+    await overhaul.processGroup('backgrounds', { validate: process.argv.includes('--validate') });
+    return;
+  }
   if (process.argv.includes('--validate')) {
     const results = await validateAllMapBackgrounds();
     results.forEach((result) => {

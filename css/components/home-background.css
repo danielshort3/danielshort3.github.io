@@ -101,7 +101,7 @@
     align-items: center;
     gap: 7px;
     max-width: 100%;
-    color: #155dfc;
+    color: var(--brand-signal-blue, #005fed);
   }
 
   .home-background a.home-background__entry .home-background__arrow { display: inline-flex; flex-shrink: 0; }
@@ -157,7 +157,7 @@
     gap: 6px;
     min-height: 24px;
     max-width: 100%;
-    color: #155dfc;
+    color: var(--brand-signal-blue, #005fed);
     font-size: .8125rem;
     font-weight: 550;
     line-height: 1.5;
@@ -185,7 +185,7 @@
   }
 
   .home-background a:focus-visible {
-    outline: 2px solid #155dfc;
+    outline: 2px solid var(--brand-signal-blue, #005fed);
     outline-offset: 4px;
     border-radius: 2px;
   }

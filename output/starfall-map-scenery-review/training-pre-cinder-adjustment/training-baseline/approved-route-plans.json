@@ -1,0 +1,332 @@
+{
+  "greenrootMeadow": {
+    "regroupPlatformId": "greenroot_meadow_solid_lane_05",
+    "mainRegroupPlatformId": "greenroot_meadow_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "greenroot_meadow_solid_lane_01",
+      "greenroot_meadow_solid_lane_03",
+      "greenroot_meadow_solid_lane_02"
+    ],
+    "optionalPlatformIds": [
+      "greenroot_meadow_solid_lane_02",
+      "greenroot_meadow_solid_lane_04",
+      "greenroot_meadow_solid_lane_06"
+    ],
+    "combatGroupIds": [
+      "greenrootMeadow_arrival_shelf",
+      "greenrootMeadow_glass_basin",
+      "greenrootMeadow_fractured_bridge",
+      "greenrootMeadow_beacon_approach"
+    ],
+    "optionalGroupId": "greenrootMeadow_beacon_approach"
+  },
+  "thornpathThicket": {
+    "regroupPlatformId": "thornpath_fork_beacon_perch",
+    "mainRegroupPlatformId": "thornpath_fracture_canopy_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "thornpath_rootfall_lane",
+      "thornpath_rootfall_relay_shelf",
+      "thornpath_relay_mid_deck",
+      "thornpath_relay_lower_walk"
+    ],
+    "optionalPlatformIds": [
+      "thornpath_relay_lower_walk",
+      "thornpath_relay_high_bough",
+      "thornpath_relay_shard_perch",
+      "thornpath_fork_observatory_branch",
+      "thornpath_fork_ridge_branch",
+      "thornpath_fork_lower_lane"
+    ],
+    "combatGroupIds": [
+      "thornpathThicket_meadow_return",
+      "thornpathThicket_fracture_canopy",
+      "thornpathThicket_observatory_fork"
+    ],
+    "optionalGroupId": "thornpathThicket_observatory_fork"
+  },
+  "rustcoilRuins": {
+    "regroupPlatformId": "rustcoil_warden_starcoil_service_bridge",
+    "mainRegroupPlatformId": "rustcoil_orrery_circuit_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "rustcoil_yard_ratchet_lane",
+      "rustcoil_yard_service_gantry",
+      "rustcoil_switchworks_west_catwalk",
+      "rustcoil_switchworks_return_deck",
+      "rustcoil_switchworks_conveyor"
+    ],
+    "optionalPlatformIds": [
+      "rustcoil_switchworks_conveyor",
+      "rustcoil_warden_return_belt",
+      "rustcoil_warden_gear_ring",
+      "rustcoil_warden_relay_dais",
+      "rustcoil_warden_starcoil_perch"
+    ],
+    "combatGroupIds": [
+      "rustcoilRuins_surveyor_yard",
+      "rustcoilRuins_coil_switchworks",
+      "rustcoilRuins_warden_gearwell"
+    ],
+    "optionalGroupId": "rustcoilRuins_warden_gearwell"
+  },
+  "cinderHollow": {
+    "regroupPlatformId": "cinder_hollow_solid_lane_11",
+    "mainRegroupPlatformId": "cinder_hollow_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "cinder_hollow_solid_lane_01",
+      "cinder_hollow_solid_lane_02",
+      "cinder_hollow_solid_lane_05",
+      "cinder_hollow_solid_lane_04"
+    ],
+    "optionalPlatformIds": [
+      "cinder_hollow_solid_lane_04",
+      "cinder_hollow_solid_lane_05",
+      "cinder_hollow_solid_lane_06",
+      "cinder_hollow_solid_lane_09",
+      "cinder_hollow_solid_lane_08",
+      "cinder_hollow_solid_lane_07"
+    ],
+    "combatGroupIds": [
+      "cinderHollow_ash_floor_loop",
+      "cinderHollow_vent_shortcut",
+      "cinderHollow_flyer_turns"
+    ],
+    "optionalGroupId": "cinderHollow_flyer_turns"
+  },
+  "banditRidgeCamp": {
+    "regroupPlatformId": "bandit_ridge_camp_regroup_plateau",
+    "mainRegroupPlatformId": "bandit_ridge_camp_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "bandit_ridge_camp_lower_barricade_lane",
+      "bandit_ridge_camp_lower_flank",
+      "bandit_ridge_camp_thrower_perch_west",
+      "bandit_ridge_camp_thrower_deck"
+    ],
+    "optionalPlatformIds": [
+      "bandit_ridge_camp_thrower_deck",
+      "bandit_ridge_camp_thrower_perch_east",
+      "bandit_ridge_camp_rope_bridge",
+      "bandit_ridge_camp_bridge_approach",
+      "bandit_ridge_camp_bridge_return_lane"
+    ],
+    "combatGroupIds": [
+      "banditRidgeCamp_lower_cutter_lane",
+      "banditRidgeCamp_middle_thrower_camp",
+      "banditRidgeCamp_high_rope_bridge"
+    ],
+    "optionalGroupId": "banditRidgeCamp_high_rope_bridge"
+  },
+  "orebackQuarry": {
+    "regroupPlatformId": "oreback_quarry_solid_lane_10",
+    "mainRegroupPlatformId": "oreback_quarry_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "oreback_quarry_solid_lane_01",
+      "oreback_quarry_solid_lane_02",
+      "oreback_quarry_solid_lane_05",
+      "oreback_quarry_solid_lane_04"
+    ],
+    "optionalPlatformIds": [
+      "oreback_quarry_solid_lane_04",
+      "oreback_quarry_solid_lane_05",
+      "oreback_quarry_solid_lane_06",
+      "oreback_quarry_solid_lane_09",
+      "oreback_quarry_solid_lane_08",
+      "oreback_quarry_solid_lane_07"
+    ],
+    "combatGroupIds": [
+      "orebackQuarry_ore_cart_lane",
+      "orebackQuarry_scaffold_sentries",
+      "orebackQuarry_mushroom_pocket",
+      "orebackQuarry_mine_event_pocket"
+    ],
+    "optionalGroupId": "orebackQuarry_mine_event_pocket"
+  },
+  "ashglassPass": {
+    "regroupPlatformId": "ashglass_pass_hop_01",
+    "mainRegroupPlatformId": "ashglass_pass_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "ashglass_pass_solid_lane_01",
+      "ashglass_pass_solid_lane_02",
+      "ashglass_pass_solid_lane_05",
+      "ashglass_pass_solid_lane_04"
+    ],
+    "optionalPlatformIds": [
+      "ashglass_pass_solid_lane_04",
+      "ashglass_pass_solid_lane_05",
+      "ashglass_pass_solid_lane_06",
+      "ashglass_pass_solid_lane_10",
+      "ashglass_pass_solid_lane_09",
+      "ashglass_pass_solid_lane_08",
+      "ashglass_pass_solid_lane_07"
+    ],
+    "combatGroupIds": [
+      "ashglassPass_ashglass_bridge",
+      "ashglassPass_vent_side_pocket",
+      "ashglassPass_glass_shelf",
+      "ashglassPass_elite_storm_pocket"
+    ],
+    "optionalGroupId": "ashglassPass_elite_storm_pocket"
+  },
+  "frostfenOutskirts": {
+    "regroupPlatformId": "frostfen_shelf_shelter_pocket",
+    "mainRegroupPlatformId": "frostfen_marsh_run_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "frostfen_marsh_runway",
+      "frostfen_marsh_windbreak",
+      "frostfen_rimeglass_shelf",
+      "frostfen_shelf_lower_run"
+    ],
+    "optionalPlatformIds": [
+      "frostfen_shelf_lower_run",
+      "frostfen_shelf_upper_drift",
+      "frostfen_oracle_grove_shelf",
+      "frostfen_oracle_bloom_perch",
+      "frostfen_oracle_exit_shelf",
+      "frostfen_oracle_recovery_run"
+    ],
+    "combatGroupIds": [
+      "frostfenOutskirts_frozen_marsh",
+      "frostfenOutskirts_rimeglass_shelf",
+      "frostfenOutskirts_oracle_grove"
+    ],
+    "optionalGroupId": "frostfenOutskirts_oracle_grove"
+  },
+  "glacierSpine": {
+    "regroupPlatformId": "glacier_spine_solid_lane_08",
+    "mainRegroupPlatformId": "glacier_spine_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "glacier_spine_solid_lane_01",
+      "glacier_spine_solid_lane_02",
+      "glacier_spine_solid_lane_06",
+      "glacier_spine_solid_lane_05"
+    ],
+    "optionalPlatformIds": [
+      "glacier_spine_solid_lane_05",
+      "glacier_spine_solid_lane_06",
+      "glacier_spine_solid_lane_07",
+      "glacier_spine_solid_lane_11",
+      "glacier_spine_solid_lane_10",
+      "glacier_spine_solid_lane_09"
+    ],
+    "combatGroupIds": [
+      "glacierSpine_entry",
+      "glacierSpine_deep_route",
+      "glacierSpine_exit"
+    ],
+    "optionalGroupId": "glacierSpine_exit"
+  },
+  "stormbreakCliffs": {
+    "regroupPlatformId": "stormbreak_cliffs_solid_lane_10",
+    "mainRegroupPlatformId": "stormbreak_cliffs_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "stormbreak_cliffs_solid_lane_01",
+      "stormbreak_cliffs_solid_lane_02",
+      "stormbreak_cliffs_solid_lane_05",
+      "stormbreak_cliffs_solid_lane_04"
+    ],
+    "optionalPlatformIds": [
+      "stormbreak_cliffs_solid_lane_04",
+      "stormbreak_cliffs_solid_lane_05",
+      "stormbreak_cliffs_solid_lane_06",
+      "stormbreak_cliffs_hop_01",
+      "stormbreak_cliffs_solid_lane_09",
+      "stormbreak_cliffs_solid_lane_08",
+      "stormbreak_cliffs_solid_lane_07"
+    ],
+    "combatGroupIds": [
+      "stormbreakCliffs_low_ram_lane",
+      "stormbreakCliffs_mid_archer_bridge",
+      "stormbreakCliffs_high_harrier_airspace",
+      "stormbreakCliffs_lightning_rod_objective"
+    ],
+    "optionalGroupId": "stormbreakCliffs_lightning_rod_objective"
+  },
+  "astralArchive": {
+    "regroupPlatformId": "astral_archive_island_02",
+    "mainRegroupPlatformId": "astral_archive_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "astral_archive_solid_lane_01",
+      "astral_archive_solid_lane_02",
+      "astral_archive_solid_lane_05",
+      "astral_archive_solid_lane_04"
+    ],
+    "optionalPlatformIds": [
+      "astral_archive_solid_lane_04",
+      "astral_archive_solid_lane_05",
+      "astral_archive_solid_lane_06",
+      "astral_archive_solid_lane_09",
+      "astral_archive_solid_lane_08",
+      "astral_archive_solid_lane_07"
+    ],
+    "combatGroupIds": [
+      "astralArchive_entry",
+      "astralArchive_training_loop",
+      "astralArchive_exit"
+    ],
+    "optionalGroupId": "astralArchive_exit"
+  },
+  "eclipseFrontier": {
+    "regroupPlatformId": "eclipse_frontier_island_02",
+    "mainRegroupPlatformId": "eclipse_frontier_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "eclipse_frontier_solid_lane_01",
+      "eclipse_frontier_solid_lane_02",
+      "eclipse_frontier_solid_lane_05",
+      "eclipse_frontier_solid_lane_04"
+    ],
+    "optionalPlatformIds": [
+      "eclipse_frontier_solid_lane_04",
+      "eclipse_frontier_solid_lane_05",
+      "eclipse_frontier_solid_lane_06",
+      "eclipse_frontier_solid_lane_09",
+      "eclipse_frontier_solid_lane_08",
+      "eclipse_frontier_solid_lane_07"
+    ],
+    "combatGroupIds": [
+      "eclipseFrontier_solar_outpost",
+      "eclipseFrontier_lunar_outpost",
+      "eclipseFrontier_eclipse_gate",
+      "eclipseFrontier_elite_pocket"
+    ],
+    "optionalGroupId": "eclipseFrontier_elite_pocket"
+  },
+  "endlessRift": {
+    "regroupPlatformId": "endless_rift_hop_01",
+    "mainRegroupPlatformId": "endless_rift_ground",
+    "mainRegroupX": 110,
+    "mainPlatformIds": [
+      "endless_rift_solid_lane_01",
+      "endless_rift_solid_lane_02",
+      "endless_rift_solid_lane_05",
+      "endless_rift_solid_lane_06",
+      "endless_rift_solid_lane_09",
+      "endless_rift_solid_lane_08",
+      "endless_rift_solid_lane_11",
+      "endless_rift_solid_lane_10"
+    ],
+    "optionalPlatformIds": [
+      "endless_rift_solid_lane_08",
+      "endless_rift_solid_lane_09",
+      "endless_rift_solid_lane_12"
+    ],
+    "combatGroupIds": [
+      "endlessRift_northwest_rift_quadrant",
+      "endlessRift_northeast_rift_quadrant",
+      "endlessRift_southeast_rift_quadrant",
+      "endlessRift_southwest_rift_quadrant",
+      "endlessRift_rift_core_regroup"
+    ],
+    "optionalGroupId": "endlessRift_rift_core_regroup"
+  }
+}

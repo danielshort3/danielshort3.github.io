@@ -6,6 +6,7 @@ const path = require('node:path');
 const sharp = require('sharp');
 
 const root = path.resolve(__dirname, '..');
+const sourceMaster = path.join(root, 'img', 'brand', '00-ds-logo-master-full-color.svg');
 const sourceFavicon = path.join(root, 'img', 'brand', '05-ds-favicon-small-icon.svg');
 const uiDir = path.join(root, 'img', 'ui');
 const faviconBackground = { r: 255, g: 255, b: 255, alpha: 1 };
@@ -19,6 +20,30 @@ const logoSizes = [
 ];
 
 const faviconSizes = [16, 32, 48, 64];
+
+async function generateFaviconSource() {
+  const master = await fs.readFile(sourceMaster, 'utf8');
+  const paths = [...master.matchAll(/<path\b[^>]*\bd="([^"]+)"[^>]*\bfill="([^"]+)"[^>]*>/g)];
+  if (paths.length !== 2) throw new Error('Expected the approved two-color DS master.');
+  // Keep the letter contours; omit the three tiny chart bars at favicon sizes.
+  // A flat white backing protects the navy mark in both light and dark browser UI.
+  const letters = paths.map(([, data, color]) => {
+    const contour = data.split(/(?=M)/)[0].trim();
+    return `    <path d="${contour}" fill="${color}"/>`;
+  }).join('\n');
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Daniel Short DS favicon</title>
+  <desc id="desc">Compact navy and blue DS monogram, optically simplified for browser tabs.</desc>
+  <rect width="256" height="256" rx="40" fill="#FFFFFF"/>
+  <g transform="translate(18.85 14.61) scale(0.58)">
+${letters}
+  </g>
+</svg>
+`;
+  await fs.writeFile(sourceFavicon, svg);
+  console.log(`[resize_logo] Wrote ${rel(sourceFavicon)}`);
+}
 
 function rel(filePath) {
   return path.relative(root, filePath).replaceAll(path.sep, '/');
@@ -115,6 +140,7 @@ async function generateCertLogos() {
 
 async function main() {
   try {
+    await generateFaviconSource();
     await generateMainLogo();
     await generateCertLogos();
   } catch (error) {

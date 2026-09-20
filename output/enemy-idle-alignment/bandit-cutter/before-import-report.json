@@ -1,0 +1,1965 @@
+{
+  "fileId": "bandit-cutter",
+  "sourceSha256": "44fa1b28be0f13eaf053167ac2041d2ebbca7ad9081b7966f949114e84af851f",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    188,
+    359,
+    548,
+    727,
+    908,
+    1085,
+    1269,
+    1448
+  ],
+  "sharedScale": 0.48207119741100324,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 71,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/bandit-cutter-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 742680,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 34,
+        "top": 24,
+        "width": 139,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 147,
+        "width": 139,
+        "height": 148,
+        "pixels": 15248
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 172
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 53,
+        "top": 79,
+        "right": 119,
+        "bottom": 149,
+        "width": 67,
+        "height": 71,
+        "pixels": 3580,
+        "edgePixels": 0
+      },
+      "sha256": "168ac1c72819eb22ae472140951ff0206037e3d0bdd514fdd1e76c7e119435fd"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 212,
+        "top": 28,
+        "width": 139,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 143,
+        "width": 139,
+        "height": 144,
+        "pixels": 14689
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 172
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 51,
+        "top": 81,
+        "right": 117,
+        "bottom": 149,
+        "width": 67,
+        "height": 69,
+        "pixels": 3451,
+        "edgePixels": 0
+      },
+      "sha256": "70d0d8d9556f66c25e43022b9e7992b3dc10370978bd6366abd4229002461839"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 389,
+        "top": 27,
+        "width": 138,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 144,
+        "width": 138,
+        "height": 145,
+        "pixels": 14730
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 172
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 49,
+        "top": 80,
+        "right": 115,
+        "bottom": 149,
+        "width": 67,
+        "height": 70,
+        "pixels": 3503,
+        "edgePixels": 0
+      },
+      "sha256": "317952dfd963bb4ee7fafe7a0cf41116348a77bc432f59f6d76c64609ae6b7b2"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 567,
+        "top": 28,
+        "width": 137,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 143,
+        "width": 137,
+        "height": 144,
+        "pixels": 14731
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 172
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 48,
+        "top": 81,
+        "right": 113,
+        "bottom": 149,
+        "width": 66,
+        "height": 69,
+        "pixels": 3455,
+        "edgePixels": 0
+      },
+      "sha256": "4d7c2b7f6318ff365a04d8e99132a9174397d9347843844c4ba9b69c8422356e"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 740,
+        "top": 27,
+        "width": 137,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 144,
+        "width": 137,
+        "height": 145,
+        "pixels": 14559
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 172
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 44,
+        "top": 80,
+        "right": 109,
+        "bottom": 149,
+        "width": 66,
+        "height": 70,
+        "pixels": 3433,
+        "edgePixels": 0
+      },
+      "sha256": "3035d15343ee491308d924d3cb3dd3913c86f1a126a5e9fa04fbe6e5f78b2562"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 919,
+        "top": 27,
+        "width": 135,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 143,
+        "width": 135,
+        "height": 144,
+        "pixels": 14431
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 172
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 43,
+        "top": 80,
+        "right": 107,
+        "bottom": 148,
+        "width": 65,
+        "height": 69,
+        "pixels": 3379,
+        "edgePixels": 0
+      },
+      "sha256": "490bc29295190eff1ad565d2d0a77519acec171dab39020172475d99a083caa2"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 33,
+        "top": 18,
+        "width": 141,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 145,
+        "width": 141,
+        "height": 146,
+        "pixels": 14840
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 164
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 52,
+        "top": 80,
+        "right": 119,
+        "bottom": 149,
+        "width": 68,
+        "height": 70,
+        "pixels": 3490,
+        "edgePixels": 0
+      },
+      "sha256": "56abf2eb4bc44aa27df575e23f0bc36f0b0206cfe7f24ef840ab9baceecadd49"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 216,
+        "top": 17,
+        "width": 147,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 146,
+        "width": 147,
+        "height": 147,
+        "pixels": 14499
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 164
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 53,
+        "top": 79,
+        "right": 123,
+        "bottom": 149,
+        "width": 71,
+        "height": 71,
+        "pixels": 3422,
+        "edgePixels": 0
+      },
+      "sha256": "1e22dcf71a0ee80acbd5e78f41a2b7611f080356cd821c64f359acbc409646c8"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 390,
+        "top": 16,
+        "width": 150,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 147,
+        "width": 150,
+        "height": 148,
+        "pixels": 15223
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 164
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 50,
+        "top": 79,
+        "right": 121,
+        "bottom": 149,
+        "width": 72,
+        "height": 71,
+        "pixels": 3546,
+        "edgePixels": 0
+      },
+      "sha256": "527f197e1439f235bee41fc656a20df73893568d74593060a2be32bb720b4dff"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 564,
+        "top": 21,
+        "width": 162,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 142,
+        "width": 162,
+        "height": 143,
+        "pixels": 15498
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 164
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 46,
+        "top": 81,
+        "right": 123,
+        "bottom": 149,
+        "width": 78,
+        "height": 69,
+        "pixels": 3657,
+        "edgePixels": 0
+      },
+      "sha256": "dad55c20531f5e9c6ce9572ba1a9abb58cc2ffaa65fa35a5264f43273774abb6"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 746,
+        "top": 17,
+        "width": 154,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 146,
+        "width": 154,
+        "height": 147,
+        "pixels": 15170
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 164
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 47,
+        "top": 79,
+        "right": 120,
+        "bottom": 149,
+        "width": 74,
+        "height": 71,
+        "pixels": 3579,
+        "edgePixels": 0
+      },
+      "sha256": "d1bb537a39524e3203a4ffbd0e91faac1718a17fbd3d00c8171d2ad447687fd8"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 932,
+        "top": 17,
+        "width": 134,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 133,
+        "bottom": 145,
+        "width": 134,
+        "height": 146,
+        "pixels": 14247
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 164
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 49,
+        "top": 79,
+        "right": 113,
+        "bottom": 148,
+        "width": 65,
+        "height": 70,
+        "pixels": 3372,
+        "edgePixels": 0
+      },
+      "sha256": "6b49c5c1c4fddadb096f77ca07dfc07979c76180af3a6bf29995146f826524a0"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 33,
+        "top": 25,
+        "width": 140,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 146,
+        "width": 140,
+        "height": 147,
+        "pixels": 15038
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 174
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 52,
+        "top": 78,
+        "right": 118,
+        "bottom": 148,
+        "width": 67,
+        "height": 71,
+        "pixels": 3546,
+        "edgePixels": 0
+      },
+      "sha256": "f60b8a08d4d79c16ff3df80125bc33124470b545970bd02d2a112116e4470eea"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 214,
+        "top": 10,
+        "width": 141,
+        "height": 164
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 163,
+        "width": 141,
+        "height": 164,
+        "pixels": 15054
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 174
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 52,
+        "top": 71,
+        "right": 119,
+        "bottom": 149,
+        "width": 68,
+        "height": 79,
+        "pixels": 3540,
+        "edgePixels": 0
+      },
+      "sha256": "41ecd5a8a1493ca92e8ca5ba4eacfdce2886eb5b98165a4948964da380cff33e"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 399,
+        "top": 30,
+        "width": 137,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 143,
+        "width": 137,
+        "height": 144,
+        "pixels": 14669
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 174
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 54,
+        "top": 81,
+        "right": 119,
+        "bottom": 149,
+        "width": 66,
+        "height": 69,
+        "pixels": 3446,
+        "edgePixels": 0
+      },
+      "sha256": "4daabcb4c86390c56234c3e24336675e216a00fb925941f66f8e2b5a942fc7c0"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 577,
+        "top": 1,
+        "width": 137,
+        "height": 173
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 172,
+        "width": 137,
+        "height": 173,
+        "pixels": 14988
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 174
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 53,
+        "top": 67,
+        "right": 118,
+        "bottom": 149,
+        "width": 66,
+        "height": 83,
+        "pixels": 3539,
+        "edgePixels": 0
+      },
+      "sha256": "20c7290ab277bbcf994584e5fe1ea816de74a3a875e4215c0859972839b3acc3"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 756,
+        "top": 26,
+        "width": 141,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 147,
+        "width": 141,
+        "height": 148,
+        "pixels": 15174
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 174
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 52,
+        "top": 79,
+        "right": 119,
+        "bottom": 149,
+        "width": 68,
+        "height": 71,
+        "pixels": 3566,
+        "edgePixels": 0
+      },
+      "sha256": "ceb8360e03fd2f477da89c8158e8c0b4fbd6cc618822cb05bb8ffc5cda43f882"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 916,
+        "top": 16,
+        "width": 147,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 157,
+        "width": 147,
+        "height": 158,
+        "pixels": 14344
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-2.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 174
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 42,
+        "top": 74,
+        "right": 112,
+        "bottom": 149,
+        "width": 71,
+        "height": 76,
+        "pixels": 3397,
+        "edgePixels": 0
+      },
+      "sha256": "f560a446213f5189b3500b287179ebd650e55fb6fc06cfba005067f3823df123"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 31,
+        "top": 14,
+        "width": 214,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 213,
+        "bottom": 150,
+        "width": 214,
+        "height": 151,
+        "pixels": 15189
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 51,
+        "top": 77,
+        "right": 153,
+        "bottom": 149,
+        "width": 103,
+        "height": 73,
+        "pixels": 3601,
+        "edgePixels": 0
+      },
+      "sha256": "da7852eabe216428ef35b496bc87a3062c670a7afb5ffa3684926948ebff2653"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 237,
+        "top": 19,
+        "width": 146,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 145,
+        "width": 146,
+        "height": 146,
+        "pixels": 14604
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 63,
+        "top": 80,
+        "right": 132,
+        "bottom": 149,
+        "width": 70,
+        "height": 70,
+        "pixels": 3409,
+        "edgePixels": 0
+      },
+      "sha256": "96d1e14fb62d68aeba8079f9021ea06d9b1a6c2d3ca1407afebcb8169ad4342c"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 408,
+        "top": 22,
+        "width": 142,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 142,
+        "width": 142,
+        "height": 143,
+        "pixels": 15026
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 59,
+        "top": 81,
+        "right": 126,
+        "bottom": 149,
+        "width": 68,
+        "height": 69,
+        "pixels": 3535,
+        "edgePixels": 0
+      },
+      "sha256": "9aa4416e841fa6f7f97842b2cd19799141337fe762a922172cab58f3c6d64961"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 577,
+        "top": 21,
+        "width": 141,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 143,
+        "width": 141,
+        "height": 144,
+        "pixels": 14644
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 53,
+        "top": 81,
+        "right": 120,
+        "bottom": 149,
+        "width": 68,
+        "height": 69,
+        "pixels": 3443,
+        "edgePixels": 0
+      },
+      "sha256": "1ea3f333e0b2c734257ebd7be615da90239a8edd572f279314083d4239c7e5b6"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 750,
+        "top": 19,
+        "width": 136,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 145,
+        "width": 136,
+        "height": 146,
+        "pixels": 14674
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 49,
+        "top": 80,
+        "right": 114,
+        "bottom": 149,
+        "width": 66,
+        "height": 70,
+        "pixels": 3487,
+        "edgePixels": 0
+      },
+      "sha256": "c7bdb611671068868cd69a2726ffd94f0bd26cc66c21fc92792eefd7c3b2b8f3"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 919,
+        "top": 17,
+        "width": 138,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 148,
+        "width": 138,
+        "height": 149,
+        "pixels": 15072
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 43,
+        "top": 79,
+        "right": 109,
+        "bottom": 150,
+        "width": 67,
+        "height": 72,
+        "pixels": 3598,
+        "edgePixels": 0
+      },
+      "sha256": "503a4e107bb4440496cb22aa6f4213406e1da0846be61e531d0fd78689151ea2"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 29,
+        "top": 15,
+        "width": 154,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 149,
+        "width": 154,
+        "height": 150,
+        "pixels": 14191
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 50,
+        "top": 78,
+        "right": 123,
+        "bottom": 149,
+        "width": 74,
+        "height": 72,
+        "pixels": 3318,
+        "edgePixels": 0
+      },
+      "sha256": "b74aa4cc263fefbe7eef1e84f6b593a429b77e6774300383da4c7c03c2513ee9"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 215,
+        "top": 20,
+        "width": 149,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 144,
+        "width": 149,
+        "height": 145,
+        "pixels": 14489
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 53,
+        "top": 80,
+        "right": 124,
+        "bottom": 149,
+        "width": 72,
+        "height": 70,
+        "pixels": 3429,
+        "edgePixels": 0
+      },
+      "sha256": "bd423cdd4009dd9103034841d0dcaaec006d1175fe71a85600f24ab013c2a187"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 403,
+        "top": 17,
+        "width": 153,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 147,
+        "width": 153,
+        "height": 148,
+        "pixels": 13839
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 56,
+        "top": 79,
+        "right": 129,
+        "bottom": 149,
+        "width": 74,
+        "height": 71,
+        "pixels": 3276,
+        "edgePixels": 0
+      },
+      "sha256": "4ab6275c539685da4a2ac7c182bd9332a6ea68cf82113f74d9b676f619a15c4a"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 574,
+        "top": 22,
+        "width": 144,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 142,
+        "width": 144,
+        "height": 143,
+        "pixels": 14241
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 51,
+        "top": 81,
+        "right": 119,
+        "bottom": 149,
+        "width": 69,
+        "height": 69,
+        "pixels": 3356,
+        "edgePixels": 0
+      },
+      "sha256": "b7d97318f70311efb525cebf4e16c625307619cf39835708bd0514287aa7fe8a"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 753,
+        "top": 16,
+        "width": 148,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 148,
+        "width": 148,
+        "height": 149,
+        "pixels": 13880
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 50,
+        "top": 78,
+        "right": 120,
+        "bottom": 149,
+        "width": 71,
+        "height": 72,
+        "pixels": 3289,
+        "edgePixels": 0
+      },
+      "sha256": "90ba4f991e3bd41e840b4ceac844fc1dce7dfe030f5cf90afd4e5fcd5817d252"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 924,
+        "top": 17,
+        "width": 141,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 146,
+        "width": 141,
+        "height": 147,
+        "pixels": 14944
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 46,
+        "top": 79,
+        "right": 113,
+        "bottom": 149,
+        "width": 68,
+        "height": 71,
+        "pixels": 3525,
+        "edgePixels": 0
+      },
+      "sha256": "622781351775c8647d5de442d5de471e0c8eacaed834bf2f80aeb6c24d8c4be9"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 34,
+        "top": 18,
+        "width": 138,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 144,
+        "width": 138,
+        "height": 145,
+        "pixels": 14579
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 53,
+        "top": 79,
+        "right": 119,
+        "bottom": 148,
+        "width": 67,
+        "height": 70,
+        "pixels": 3479,
+        "edgePixels": 0
+      },
+      "sha256": "c26518c05cae128ccca964427b0c8b6d63ad7465919baea213ef715ba6c8b003"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 208,
+        "top": 16,
+        "width": 147,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 146,
+        "width": 147,
+        "height": 147,
+        "pixels": 13712
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 49,
+        "top": 78,
+        "right": 119,
+        "bottom": 148,
+        "width": 71,
+        "height": 71,
+        "pixels": 3241,
+        "edgePixels": 0
+      },
+      "sha256": "37a6a8be3de040ae1191b615cc5ed0a121299a47623c2bd3f6722a68c1699595"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 397,
+        "top": 15,
+        "width": 146,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 148,
+        "width": 146,
+        "height": 149,
+        "pixels": 14893
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 53,
+        "top": 78,
+        "right": 122,
+        "bottom": 149,
+        "width": 70,
+        "height": 72,
+        "pixels": 3521,
+        "edgePixels": 0
+      },
+      "sha256": "85254c977dda9aa505b67b910f54b42429281e0cdebf6e96e6f1446889782be8"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 579,
+        "top": 18,
+        "width": 145,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 147,
+        "width": 145,
+        "height": 148,
+        "pixels": 14876
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 54,
+        "top": 79,
+        "right": 123,
+        "bottom": 149,
+        "width": 70,
+        "height": 71,
+        "pixels": 3499,
+        "edgePixels": 0
+      },
+      "sha256": "14d0684cbda5281d185f230cb6922712e21c48fd6d488266b43939cd7fc625f8"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 756,
+        "top": 18,
+        "width": 136,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 135,
+        "bottom": 146,
+        "width": 136,
+        "height": 147,
+        "pixels": 14403
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 52,
+        "top": 79,
+        "right": 117,
+        "bottom": 149,
+        "width": 66,
+        "height": 71,
+        "pixels": 3428,
+        "edgePixels": 0
+      },
+      "sha256": "b63c30ac0b903d4550abdbac1ca32e1af677957903a9bac553bccfd32d2031d1"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 918,
+        "top": 16,
+        "width": 140,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 148,
+        "width": 140,
+        "height": 149,
+        "pixels": 15219
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 43,
+        "top": 78,
+        "right": 109,
+        "bottom": 149,
+        "width": 67,
+        "height": 72,
+        "pixels": 3595,
+        "edgePixels": 0
+      },
+      "sha256": "6e0c7713e2982ba27dc60a822cafb1d82853e55755e6d910cb00dfc3d7887688"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 30,
+        "top": 23,
+        "width": 156,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 150,
+        "width": 156,
+        "height": 151,
+        "pixels": 15309
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 171
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 51,
+        "top": 79,
+        "right": 125,
+        "bottom": 151,
+        "width": 75,
+        "height": 73,
+        "pixels": 3628,
+        "edgePixels": 0
+      },
+      "sha256": "de958fdc0186bdb48f5fde24e18cd68200522d355644dde5aa9085335e09293c"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 205,
+        "top": 20,
+        "width": 161,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 152,
+        "width": 161,
+        "height": 153,
+        "pixels": 14923
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 171
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 48,
+        "top": 77,
+        "right": 125,
+        "bottom": 150,
+        "width": 78,
+        "height": 74,
+        "pixels": 3543,
+        "edgePixels": 0
+      },
+      "sha256": "0cc3f93004dc38525dc9e4f541ff372fbfb69915d366ccee1bde9b22d0164f78"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 383,
+        "top": 12,
+        "width": 150,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 153,
+        "width": 150,
+        "height": 154,
+        "pixels": 15012
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 171
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 46,
+        "top": 73,
+        "right": 117,
+        "bottom": 146,
+        "width": 72,
+        "height": 74,
+        "pixels": 3509,
+        "edgePixels": 0
+      },
+      "sha256": "60346db0588ad68b84e2e22a01e94beb37bd7dd28c53024b3e2fc22022be72b4"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 569,
+        "top": 36,
+        "width": 137,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 134,
+        "width": 137,
+        "height": 135,
+        "pixels": 13734
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 171
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 49,
+        "top": 85,
+        "right": 114,
+        "bottom": 149,
+        "width": 66,
+        "height": 65,
+        "pixels": 3229,
+        "edgePixels": 0
+      },
+      "sha256": "33608dd7771e78103c38ee42745e0866aca3dc905f2b56e35f9b07a32390c33b"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 751,
+        "top": 26,
+        "width": 131,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 142,
+        "width": 131,
+        "height": 143,
+        "pixels": 13818
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 171
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 49,
+        "top": 80,
+        "right": 111,
+        "bottom": 148,
+        "width": 63,
+        "height": 69,
+        "pixels": 3245,
+        "edgePixels": 0
+      },
+      "sha256": "14a1ea88051a8e08d78a85bbb8882723005ee003ba35397181d7106eb897f8bd"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 918,
+        "top": 21,
+        "width": 142,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 147,
+        "width": 142,
+        "height": 148,
+        "pixels": 15340
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 171
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 43,
+        "top": 78,
+        "right": 110,
+        "bottom": 148,
+        "width": 68,
+        "height": 71,
+        "pixels": 3574,
+        "edgePixels": 0
+      },
+      "sha256": "e3941feb7fea8b40e9cc8a6a71a7b7769fe8ceb6918711f96df75d55c98ff84c"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 59,
+        "top": 145,
+        "width": 395,
+        "height": 380
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 394,
+        "bottom": 379,
+        "width": 395,
+        "height": 380,
+        "pixels": 91096
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/defeat-supplement.png",
+      "scaleFactor": 0.3894736842105263,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 256.5,
+        "y": 525
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 43,
+        "top": 79,
+        "right": 116,
+        "bottom": 149,
+        "width": 74,
+        "height": 71,
+        "pixels": 3292,
+        "edgePixels": 0
+      },
+      "sha256": "5198c9a5e49e90bcd94903d6e7791183a18db8fc826196d637199e500aaa3478"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 622,
+        "top": 175,
+        "width": 296,
+        "height": 347
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 295,
+        "bottom": 346,
+        "width": 296,
+        "height": 347,
+        "pixels": 77736
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/defeat-supplement.png",
+      "scaleFactor": 0.3894736842105263,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 770,
+        "y": 522
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 52,
+        "top": 85,
+        "right": 107,
+        "bottom": 149,
+        "width": 56,
+        "height": 65,
+        "pixels": 2848,
+        "edgePixels": 0
+      },
+      "sha256": "e32ba6a972978a894f1d98f2548740d4a5b59c7650847d7fb27f6ff58d9a82e0"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 1124,
+        "top": 227,
+        "width": 346,
+        "height": 312
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 345,
+        "bottom": 311,
+        "width": 346,
+        "height": 312,
+        "pixels": 72937
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/defeat-supplement.png",
+      "scaleFactor": 0.3894736842105263,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1297,
+        "y": 539
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 48,
+        "top": 91,
+        "right": 112,
+        "bottom": 149,
+        "width": 65,
+        "height": 59,
+        "pixels": 2678,
+        "edgePixels": 0
+      },
+      "sha256": "e5e2a85d6913fb5ca8e3739b273e80b317060e9dc3fc2296ccbf87eccd7ace56"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 24,
+        "top": 659,
+        "width": 456,
+        "height": 286
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 455,
+        "bottom": 285,
+        "width": 456,
+        "height": 286,
+        "pixels": 82504
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/defeat-supplement.png",
+      "scaleFactor": 0.3894736842105263,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 252,
+        "y": 945
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 37,
+        "top": 96,
+        "right": 122,
+        "bottom": 149,
+        "width": 86,
+        "height": 54,
+        "pixels": 3016,
+        "edgePixels": 0
+      },
+      "sha256": "63d0970609f775b95edd8b67a5c6dfb832eb2e8684029b738e1b73d031700d8d"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 515,
+        "top": 740,
+        "width": 470,
+        "height": 206
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 469,
+        "bottom": 205,
+        "width": 470,
+        "height": 206,
+        "pixels": 67390
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/defeat-supplement.png",
+      "scaleFactor": 0.3894736842105263,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 750,
+        "y": 946
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 111,
+        "right": 123,
+        "bottom": 149,
+        "width": 88,
+        "height": 39,
+        "pixels": 2485,
+        "edgePixels": 0
+      },
+      "sha256": "7747a5ef418327760a481e5bb30cff76f2e59cccb81525ac2de9c17431efb42f"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 1041,
+        "top": 742,
+        "width": 466,
+        "height": 204
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 465,
+        "bottom": 203,
+        "width": 466,
+        "height": 204,
+        "pixels": 66263
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-cutter/defeat-supplement.png",
+      "scaleFactor": 0.3894736842105263,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1274,
+        "y": 946
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 36,
+        "top": 112,
+        "right": 122,
+        "bottom": 149,
+        "width": 87,
+        "height": 38,
+        "pixels": 2371,
+        "edgePixels": 0
+      },
+      "sha256": "582894cb90550e712798947f2b029bf5d0f5537c5a945bcd41a2d988786af64a"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

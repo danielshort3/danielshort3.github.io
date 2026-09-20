@@ -32,6 +32,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { chromium, firefox, webkit } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
+const { isolateRequests } = require('../release/fixtures.cjs');
 const base = process.env.FRAME_SEAM_URL || "http://127.0.0.1:4173";
 const run = (process.env.FRAME_SEAM_LABEL || "local").replace(/[^a-zA-Z0-9_.-]+/g, "-");
 const artifactDir = process.env.FRAME_SEAM_ARTIFACT_DIR || path.join(os.tmpdir(), "site-frame-geometry");
@@ -263,7 +264,17 @@ async function finish(page, prefix) {
   return result;
 }
 async function targetClick(page, selector, touch) {
-  const n = page.locator(selector).first();
+  let n = page.locator(selector).first();
+  const category = /^\[data-site-tab="([a-z]+)"\]$/.exec(selector)?.[1];
+  if (category && !await n.isVisible()) {
+    // Compact windows expose inactive categories through the bottom navigation.
+    if (await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden'))) {
+      await page.keyboard.press('Tab');
+      await page.waitForFunction(() => !document.body.classList.contains('is-mobile-chrome-hidden'));
+    }
+    n = page.locator(`[data-mobile-section-nav] [data-mobile-section="${category}"]`);
+    await n.waitFor({ state: 'visible' });
+  }
   await n.scrollIntoViewIfNeeded();
   if (touch) await n.tap();
   else await n.click();
@@ -306,7 +317,8 @@ async function inspectTypography(page, prefix, fontSize) {
 async function runViewport(browser, engine, size) {
   const prefix = engine + "-" + size.width + "x" + size.height;
   const touch = size.width < 960 || size.height < 620;
-  const context = await browser.newContext({ viewport: size, ...touch ? { hasTouch: true, ...engine === "firefox" ? {} : { isMobile: true } } : {} });
+  const context = await browser.newContext({ viewport: size, serviceWorkers: 'block', ...touch ? { hasTouch: true, ...engine === "firefox" ? {} : { isMobile: true } } : {} });
+  await isolateRequests(context, new URL(base).origin);
   const page = await context.newPage();
   page.on("pageerror", (error) => {
     errors.push({ prefix, message: error.message });

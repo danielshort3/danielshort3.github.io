@@ -5,6 +5,9 @@ const childProcess = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
+require('./project-starfall-pixi-csp.test.js');
+require('./project-starfall-pixi-viewport-clip.test.js');
+require('./project-starfall-start-data.test.js');
 
 const root = path.resolve(__dirname, '..', '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -37,6 +40,10 @@ assert(scriptPaths.filter((scriptPath) => /^\/dist\/project-starfall(?:\.[0-9a-f
   'Project Starfall page should load one production game bundle');
 assert(!scriptPaths.some((scriptPath) => scriptPath.startsWith('/js/games/project-starfall/')),
   'Project Starfall page should not ship the former per-module script waterfall');
+assert(!entry.includes("import '../../js/games/project-starfall/data/enemy-hurtboxes.js'"),
+  'exact collision data belongs to the Start-triggered chunk');
+assert(!scriptPaths.some((scriptPath) => /project-starfall-hurtboxes/.test(scriptPath)),
+  'collision data must not be fetched before Start through a script tag');
 
 childProcess.execFileSync(process.execPath, ['build/build-js.js'], {
   cwd: root,
@@ -50,7 +57,18 @@ const bundlePath = path.join(root, 'dist', manifest.projectStarfall);
 assert(fs.existsSync(bundlePath), 'hashed Project Starfall bundle should exist after the JS build');
 const bundle = fs.readFileSync(bundlePath);
 const gzipBytes = zlib.gzipSync(bundle, { level: 9 }).length;
-assert(bundle.length < 5 * 1024 * 1024, `Starfall bundle should stay below 5 MiB raw (received ${bundle.length} bytes)`);
-assert(gzipBytes < 1.25 * 1024 * 1024, `Starfall bundle should stay below 1.25 MiB gzip (received ${gzipBytes} bytes)`);
+assert(manifest.projectStarfallHurtboxes, 'the scripts manifest must publish the collision chunk');
+assert(page.includes(`data-starfall-hurtboxes-src="dist/${manifest.projectStarfallHurtboxes}"`),
+  'the game must reference the current content-hashed collision chunk');
+const collisionBundle = fs.readFileSync(path.join(root, 'dist', manifest.projectStarfallHurtboxes));
+const collisionGzipBytes = zlib.gzipSync(collisionBundle, { level: 9 }).length;
+assert(!bundle.includes(Buffer.from('starfall-enemy-hurtboxes-v1')) && collisionBundle.includes(Buffer.from('starfall-enemy-hurtboxes-v1')),
+  'the exact table must exist only in the deferred chunk');
+assert(bundle.length + collisionBundle.length < 5 * 1024 * 1024,
+  `Combined Starfall scripts should stay below 5 MiB raw (received ${bundle.length + collisionBundle.length} bytes)`);
+assert(gzipBytes < 1.2 * 1024 * 1024, `Initial Starfall bundle should stay below 1.2 MiB gzip (received ${gzipBytes} bytes)`);
+// Preserve the previous complete-game transfer ceiling across both chunks.
+assert(gzipBytes + collisionGzipBytes < 1.5 * 1024 * 1024,
+  `Combined Starfall scripts should stay below 1.5 MiB gzip (received ${gzipBytes + collisionGzipBytes} bytes)`);
 
-console.log(`Project Starfall bundle tests passed (${bundle.length} raw bytes, ${gzipBytes} gzip bytes).`);
+console.log(`Project Starfall bundle tests passed (${gzipBytes} initial gzip bytes, ${collisionGzipBytes} Start-triggered gzip bytes).`);

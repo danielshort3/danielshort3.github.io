@@ -4,6 +4,7 @@
   const CoreIds = (typeof require === 'function' ? require('../core/ids.js') : null) || global.ProjectStarfallCore || {};
   const CoreMath = (typeof require === 'function' ? require('../core/math.js') : null) || global.ProjectStarfallCore || {};
   const CoreGeometry = (typeof require === 'function' ? require('../core/geometry.js') : null) || global.ProjectStarfallCore || {};
+  const DataAssets = (typeof require === 'function' ? require('../data/assets.js') : null) || (global.ProjectStarfallDataModules || {}).assets || {};
   const EngineModules = global.ProjectStarfallEngineModules || {};
   const EngineViewport = (typeof require === 'function' ? require('./viewport.js') : null) || EngineModules.viewport || {};
   const normalizeId = CoreIds.normalizeId || function normalizeIdFallback(value) {
@@ -55,11 +56,13 @@
     });
   }
 
-  function createMapHuntNpcDefinition(map) {
+  function createMapHuntNpcDefinition(map, options) {
+    const settings = options || {};
     const palette = Array.isArray(map && map.palette) ? map.palette : [];
     return {
       id: `${map && map.id || 'map'}_hunt_warden`,
       name: `${map && map.name || 'Map'} Warden`,
+      asset: settings.asset || DataAssets.GENERIC_PLAYER_ASSET || '',
       x: 320,
       platformIndex: 0,
       questIds: [],

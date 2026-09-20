@@ -16,7 +16,7 @@
     --brand-risk:#B91C1C;
 
     /* Personal-site category accents */
-    --category-projects:#155DFC;
+    --category-projects:var(--brand-signal-blue);
     /* Dark enough to keep white labels above WCAG AA's 4.5:1 threshold. */
     --category-tools:#087F8C;
     --category-games:#C94B0A;
@@ -83,6 +83,7 @@
     /* semantic states (optional) */
     --success:var(--brand-success);  /* approvals, good states */
     --warning:var(--brand-action-copper);  /* caution, non-blocking */
+    --warning-text:#92400E;  /* readable caution text on light surfaces */
     --danger:var(--brand-risk);   /* errors, destructive */
 
     /* sizing */
@@ -112,6 +113,15 @@
     /* radii */
     --radius-6:6px; --radius-8:8px; --radius-10:10px;
     --radius-12:12px; --radius-14:14px; --radius-16:16px;
+    --radius-frame:var(--radius-12);
+    --radius-dialog:var(--radius-12);
+    --radius-card:var(--radius-10);
+    --radius-control:var(--radius-8);
+    --radius-pill:999px;
+    --surface-border:#DCE3EC;
+    --control-height:44px;
+    --control-padding:10px 14px;
+    --control-font-size:.875rem;
 
     /* Existing content illustrations share a well and optical scale. */
     --illustration-surface:#F8FAFC;
@@ -130,8 +140,8 @@
     --modal-backdrop-filter:blur(4px);
     --modal-surface:var(--surface);
     --modal-border:var(--border-1);
-    --modal-radius:var(--radius-16);
-    --modal-radius-mobile:var(--radius-12);
+    --modal-radius:var(--radius-dialog);
+    --modal-radius-mobile:var(--radius-dialog);
     --modal-shadow:var(--shadow-lg);
     --modal-accent:var(--brand-signal-blue);
 

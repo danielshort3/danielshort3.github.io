@@ -6,7 +6,7 @@
   const framePolicy = window.SiteFramePolicy;
   const compactQuery = window.matchMedia('(max-width: 959px), (max-height: 619px)');
   const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const colors = { about: '#091f3b', projects: '#155dfc', tools: '#087f8c', games: '#c94b0a', resume: '#087f8c', contact: '#334155' };
+  const colors = { about: '#091f3b', projects: '#005fed', tools: '#087f8c', games: '#c94b0a', resume: '#087f8c', contact: '#334155' };
   const personalOrder = ['about', 'projects', 'tools', 'games', 'contact'];
   const professionalOrder = ['about', 'projects', 'resume', 'contact'];
   const tabs = new Map();
@@ -18,6 +18,8 @@
   let canvas;
   let toolbar;
   let viewport;
+  let questionDock;
+  let questionDockOwner;
   let loading;
   let current;
   let desiredTarget;
@@ -176,7 +178,10 @@
     description.tabSources?.forEach((source) => ensureTab(source.dataset.siteTab || source.dataset.homeAccordionTrigger, source));
     const order = description.audience === 'personal' ? personalOrder : professionalOrder;
     const overview = description.home && description.view === 'overview';
-    const visible = overview || closed || description.audience !== 'personal' ? order : [description.category];
+    const mobileSectionNavigation = compactQuery.matches && overview && description.audience === 'personal'
+      && document.body.classList.contains('has-mobile-scroll-chrome');
+    const visible = mobileSectionNavigation ? [description.category]
+      : overview || closed || description.audience !== 'personal' ? order : [description.category];
     visible.forEach((id) => ensureTab(id));
     tabs.forEach((link, id) => {
       const active = id === description.category;
@@ -317,7 +322,7 @@
     const vertical = top + bottom ? Math.min(1, bounds.height / (top + bottom)) : 1;
     pinBox(slot, bounds, origin);
     // Padding must fit a closing slot too; an otherwise empty border box cannot
-    // retain eight pixels of padding outside the moving panel boundary.
+    // retain its combined padding outside the moving panel boundary.
     slot.style.padding = `${top * vertical}px ${right * horizontal}px ${bottom * vertical}px ${left * horizontal}px`;
     slot.style.setProperty('--frame-slot-border-width', slot.style.padding);
   }
@@ -853,10 +858,10 @@
     frame.style.setProperty('--frame-clip-top', `${Math.max(0, top - host.y)}px`);
     frame.style.setProperty('--frame-clip-right', `${Math.max(0, host.x + host.width - right)}px`);
     frame.style.setProperty('--frame-clip-bottom', `${Math.max(0, host.y + host.height - bottom)}px`);
-    frame.style.setProperty('--frame-clip-border-left', bounds.x < host.x - .5 ? '4px' : '0px');
-    frame.style.setProperty('--frame-clip-border-top', bounds.y < host.y - .5 ? '4px' : '0px');
-    frame.style.setProperty('--frame-clip-border-right', bounds.x + bounds.width > host.x + host.width + .5 ? '4px' : '0px');
-    frame.style.setProperty('--frame-clip-border-bottom', bounds.y + bounds.height > host.y + host.height + .5 ? '4px' : '0px');
+    frame.style.setProperty('--frame-clip-border-left', bounds.x < host.x - .5 ? 'var(--frame-panel-border-width, 4px)' : '0px');
+    frame.style.setProperty('--frame-clip-border-top', bounds.y < host.y - .5 ? 'var(--frame-panel-border-width, 4px)' : '0px');
+    frame.style.setProperty('--frame-clip-border-right', bounds.x + bounds.width > host.x + host.width + .5 ? 'var(--frame-panel-border-width, 4px)' : '0px');
+    frame.style.setProperty('--frame-clip-border-bottom', bounds.y + bounds.height > host.y + host.height + .5 ? 'var(--frame-panel-border-width, 4px)' : '0px');
   }
 
   function updateHomeToolbar(description) {
@@ -871,11 +876,17 @@
 
   function replaceRouteBody(nextBody) {
     window.ContactMap?.hide();
+    // Keep the project action outside the scrolling viewport. Return it to its
+    // route before detaching so cached route snapshots retain their own action.
+    if (questionDock && questionDockOwner) questionDockOwner.append(questionDock);
+    questionDock = nextBody.querySelector('.project-question-dock');
+    questionDockOwner = questionDock?.parentElement || null;
     // The loaded map stays connected while route bodies are replaced.
     [...viewport.childNodes].forEach((node) => {
       if (node !== nextBody && !node.hasAttribute?.('data-persistent-contact-map')) node.remove();
     });
     if (viewport.firstChild !== nextBody) viewport.insertBefore(nextBody, viewport.firstChild);
+    if (questionDock) canvas.append(questionDock);
     window.ContactMap?.refresh();
   }
 
@@ -1030,7 +1041,7 @@
     const title = make('h1', 'site-frame__welcome-title');
     title.textContent = 'Daniel Short.';
     const summary = make('p', 'site-frame__welcome-summary');
-    summary.textContent = 'Data, ideas, and useful things.';
+    summary.textContent = window.getSiteAudienceConfig?.('personal')?.brandTagline || 'Solving everyday problems with data and thoughtful tools.';
     const hint = make('p', 'site-frame__welcome-hint');
     hint.textContent = 'Choose a tab to explore.';
     welcome.append(eyebrow, title, summary, hint);

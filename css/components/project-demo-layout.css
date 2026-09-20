@@ -7,9 +7,15 @@ html[data-project-demo-theme="brand"] body .demo-surface:is(#main, #demo-box, #d
   margin-inline: auto !important;
   padding: 0 !important;
   border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
+  border-radius: var(--radius-card, 10px) !important;
   background: #ffffff !important;
   box-shadow: none !important;
+}
+
+/* The host project already supplies the enclosing card and its clipped corners. */
+html[data-project-demo-theme="brand"][data-embedded="true"]:not([data-project-demo-standalone="true"]) body .demo-surface:is(#main, #demo-box, #demo-shell, #demo-card, .demo-surface) {
+  border: 0 !important;
+  border-radius: 0 !important;
 }
 
 html[data-project-demo-theme="brand"] body .demo-size-compact { --demo-workspace-width: 600px; }
@@ -28,7 +34,7 @@ html[data-project-demo-theme="brand"][data-embedded="true"] body .demo-surface .
   padding: var(--demo-workspace-padding) !important;
   margin: 0 !important;
   border: 0 !important;
-  border-radius: 12px 12px 0 0 !important;
+  border-radius: 0 !important;
   background: #ffffff !important;
 }
 
@@ -87,7 +93,7 @@ html[data-project-demo-theme="brand"] .demo-surface > :is(.content, .sentence-wo
 }
 
 html[data-project-demo-theme="brand"] .demo-surface :is(.demo-disclosure, .stat-card, .kpi-card, .result-card) {
-  border-radius: 12px;
+  border-radius: var(--radius-card, 10px);
   box-shadow: none;
 }
 
