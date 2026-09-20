@@ -11,6 +11,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import me.danielshort.app.data.ContentRepository
 import me.danielshort.app.data.AppSettingsStore
+import me.danielshort.app.updates.AppUpdateManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +23,7 @@ class SiteApplication : Application() {
   lateinit var contentRepository: ContentRepository
     private set
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+  val appUpdates by lazy { AppUpdateManager(this) }
   override fun onCreate() {
     super.onCreate()
     val settings = AppSettingsStore(this)

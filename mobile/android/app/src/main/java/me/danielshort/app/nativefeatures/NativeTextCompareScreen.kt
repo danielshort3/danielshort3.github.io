@@ -196,9 +196,9 @@ fun NativeTextCompareScreen(onBack: () -> Unit) {
 }
 
 @Composable
-internal fun NativeFeatureHeader(title: String, subtitle: String, onBack: () -> Unit) {
+internal fun NativeFeatureHeader(title: String, subtitle: String, onBack: () -> Unit, showBack: Boolean = true) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    IconButton(onClick = onBack) {
+    if (showBack) IconButton(onClick = onBack) {
       Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
     }
     Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,

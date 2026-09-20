@@ -116,7 +116,7 @@ private fun BabyNamesView(data: JSONObject) {
     listOf("Girl", "Boy").forEach { FilterChip(gender == it, { gender = it }, label = { Text(it) }) }
     listOf("Recommendations", "Ratings").forEach { FilterChip(mode == it, { mode = it }, label = { Text(it) }) }
   }
-  OutlinedTextField(query, { query = it.take(80) }, label = { Text("Find a name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+  OutlinedTextField(query, { query = it.take(80) }, label = { Text("Find a name") }, singleLine = true, modifier = Modifier.fillMaxWidth().protectChromeWhileEditing())
   Text("Minimum ${if (mode == "Ratings") "rating" else "predicted preference"}: ${minimum.toInt()} / 10")
   Slider(minimum, { minimum = it }, valueRange = 0f..10f, steps = 9)
   Text("${rows.size} matching names", fontWeight = FontWeight.SemiBold)
@@ -157,7 +157,7 @@ private fun CovidView(meta: JSONObject) {
     }
   }
   DemoSelect("Date", dates.reversed(), date, { date = it })
-  OutlinedTextField(query, { query = it.take(60) }, label = { Text("Find a state") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+  OutlinedTextField(query, { query = it.take(60) }, label = { Text("Find a state") }, singleLine = true, modifier = Modifier.fillMaxWidth().protectChromeWhileEditing())
   if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
   if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
   val rows = snapshot?.getJSONArray("states")?.objects()?.filter { it.getString("name").contains(query, true) } ?: emptyList()

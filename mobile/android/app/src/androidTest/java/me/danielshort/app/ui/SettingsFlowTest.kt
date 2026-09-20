@@ -52,7 +52,7 @@ class SettingsFlowTest {
     compose.onNodeWithText("Reduce motion").performScrollTo().performClick()
     assertTrue(AppSettingsStore(context).state.value.reduceMotion)
     assertFalse(AppSettingsStore(context).state.value.automaticUpdates)
-    compose.onNodeWithText("Automatic updates").performScrollTo().performClick()
+    compose.onNodeWithText("Automatic content updates").performScrollTo().performClick()
     compose.onNodeWithText("Save mobile data").assertIsEnabled()
     assertTrue(AppSettingsStore(context).state.value.automaticUpdates)
   }
