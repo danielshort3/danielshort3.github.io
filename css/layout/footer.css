@@ -452,6 +452,15 @@
     }
   }
 
+  @media (forced-colors: active){
+    .footer.footer-classic{
+      background:Canvas !important;
+      color:CanvasText !important;
+    }
+    .footer.footer-classic .footer-link{
+      color:LinkText !important;
+    }
+  }
 }
 
 @layer overrides {

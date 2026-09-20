@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const esbuild = require('esbuild');
+const { execFileSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'dist');
@@ -78,6 +79,8 @@ async function buildBundle(entryConfig) {
 }
 
 async function main() {
+  // An edited actor atlas must not ship with collision masks from older pixels.
+  execFileSync(process.execPath, [path.join(__dirname, 'generate-project-starfall-enemy-hurtboxes.js'), '--check'], { cwd: root, stdio: 'pipe' });
   ensureDir(outDir);
   entries.forEach(({ baseName }) => cleanupOldBundles(baseName));
 

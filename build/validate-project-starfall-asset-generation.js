@@ -233,7 +233,8 @@ async function validatePlayers(manifest, data) {
 
   for (const [classId, fileId] of Object.entries(data.CLASS_FILE_IDS || {})) {
     assert(contract.classes.includes(classId), `Manifest missing player class ${classId}`);
-    assertExists(`${contract.sourceFolder}/${fileId}-source.png`, `${classId} player source sheet`);
+    if (Array.isArray(contract.sourceFiles)) contract.sourceFiles.forEach((file) => assertExists(file, 'Shared illustrated player source'));
+    else assertExists(`${contract.sourceFolder}/${fileId}-source.png`, `${classId} player source sheet`);
     await assertImage(data.CLASS_ASSETS[classId], {
       width: contract.portraitWidth,
       height: contract.portraitHeight,
@@ -321,22 +322,32 @@ async function validateEquipmentAtlases(manifest, data) {
 
 async function validateEnemies(manifest, data) {
   const contract = manifest.contracts.enemies;
+  const illustrated = contract.artVersion === 'illustrated-v1';
+  const inventory = illustrated ? JSON.parse(fs.readFileSync(fullPath(contract.inventory), 'utf8')) : null;
   assertArrayEquals(data.ENEMY_ANIMATION_ROWS || [], contract.rows, 'Enemy animation rows');
   assert((data.ENEMIES || []).length > 0, 'Project Starfall enemies should be populated');
 
   for (const enemy of data.ENEMIES || []) {
     const fileId = basenameWithoutExt(enemy.asset);
-    assertExists(`${contract.sourceFolder}/${fileId}-compact-source.png`, `${enemy.id} compact enemy source sheet`);
+    const item = inventory && inventory.items.find((entry) => entry.fileId === fileId);
+    if (illustrated) {
+      assert(item && item.replacement, `${enemy.id} requires a reviewed illustrated import`);
+      assertExists(`${contract.sourceFolder}/${item.aliasOf || fileId}/source.json`, `${enemy.id} illustrated source record`);
+      assert(enemy.animation.registration && enemy.animation.registration.authoredBodyHeight > 0,
+        `${enemy.id} requires a measured sprite registration`);
+    } else {
+      assertExists(`${contract.sourceFolder}/${fileId}-compact-source.png`, `${enemy.id} compact enemy source sheet`);
+    }
     await assertImage(enemy.asset, { width: 320, height: 320, alpha: true }, `${enemy.id} enemy portrait`);
     assert(enemy.animation && enemy.animation.frameWidth === contract.frameSize && enemy.animation.frameHeight === contract.frameSize,
-      `${enemy.id} compact enemy animation should use ${contract.frameSize}px frames`);
-    assert(toPosix(enemy.animation.sheet).endsWith(`/${fileId}-compact-sheet.png`),
-      `${enemy.id} compact enemy animation filename should match portrait file ID`);
+      `${enemy.id} enemy animation should use ${contract.frameSize}px frames`);
+    assert(toPosix(enemy.animation.sheet).endsWith(`/${fileId}${illustrated ? '' : '-compact'}-sheet.png`),
+      `${enemy.id} enemy animation filename should match portrait file ID`);
     await assertImage(enemy.animation.sheet, {
       width: contract.sheetWidth,
       height: contract.sheetHeight,
       alpha: true
-    }, `${enemy.id} compact enemy animation sheet`);
+    }, `${enemy.id} enemy animation sheet`);
   }
 }
 

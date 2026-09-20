@@ -2,7 +2,7 @@
 
 `GTM-MX6DNH8L-activity.json` is the importable source of truth for the site's GTM web container.
 
-It contains the base GA4 Google tag plus 16 event tags covering discovery, navigation, directories, portfolio depth, career intent, tools, games, contact intent, lead generation, chatbot usage, site search, content engagement, reliability, and virtual page views.
+It contains the base GA4 Google tag plus 17 event tags covering discovery, navigation, directories, portfolio depth, career intent, tools, games, contact intent, lead generation, chatbot usage, site search, content engagement, reliability, and virtual page views.
 
 Regenerate the import file after changing `generate-activity-container.js`:
 
@@ -35,3 +35,11 @@ GA4 web-stream settings are not included in a GTM container import. An Analytics
 2. In **Page Views → Show advanced settings**, keep browser page-load tracking enabled and disable page changes based on browser history events. The site emits `virtual_page_view` after a successful client-side route change, so history tracking would duplicate those views and count incidental `replaceState` changes. See [Google's single-page application guidance](https://developers.google.com/analytics/devguides/collection/ga4/single-page-applications).
 3. Enable email redaction and redact the query parameters `q`, `code`, `state`, `session`, `cfg`, and `povcfg`. Keep standard UTM attribution parameters available.
 4. After collecting enough validation traffic, review which business outcomes should be marked as key events and register only the low-cardinality custom dimensions needed for reporting.
+
+## Web Vitals (local configuration; publish separately)
+
+The consent-gated web_vital event carries only metric_name (LCP, INP, CLS), numeric metric_value, metric_rating, page_path, page_id and audience. LCP/INP values use milliseconds; CLS is unitless. Context is frozen at the document entry route; tab changes do not start new page-load measurements. No DOM attribution, queries, account identifiers or tool contents are collected. Withdrawal suppresses further document metrics; a new document is required after re-consenting.
+
+The dedicated Web Vitals tag/settings prevent stale activity fields from entering these hits. Create event-scoped dimensions for metric_name, metric_rating and page_path, and a numeric metric for metric_value. In BigQuery or a reporting tool, group by metric_name and entry page_path and calculate the 75th percentile from the latest report per page visit/metric. Do not sum values or combine CLS with millisecond metrics. GA4 collection must have sufficient consenting visits before making real-user claims; the local Lighthouse report measures lab TBT, not INP.
+
+Validate locally with test:recovery and test:analytics before importing. Run Tag Assistant preview and check consent denial, grant, withdrawal and the dedicated event parameters before any separately approved publication. This repository update does not publish GTM or configure GA4 dimensions.

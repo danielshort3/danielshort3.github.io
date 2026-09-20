@@ -1,0 +1,558 @@
+[
+  {
+    "renderer": "canvas",
+    "id": "ashglassPass",
+    "label": "middle",
+    "platform": {
+      "id": "ashglass_pass_ground",
+      "x": 0,
+      "y": 1040,
+      "w": 5360,
+      "h": 48
+    },
+    "player": {
+      "x": 2680,
+      "y": 966,
+      "h": 74,
+      "footY": 1040
+    },
+    "camera": {
+      "x": 2311.5151515151515,
+      "y": 669.3939393939395
+    },
+    "zoom": 1.32,
+    "canvas": {
+      "width": 1280,
+      "height": 806,
+      "rect": {
+        "x": 113,
+        "y": 99.390625,
+        "w": 1278,
+        "h": 804.734375
+      }
+    },
+    "screenCollisionY": 587.8224565756823,
+    "profile": {
+      "terrain": "ashglass-pass",
+      "props": "ashglass-pass",
+      "density": 0.48,
+      "propKinds": [
+        "rock",
+        "small",
+        "tall",
+        "crystal",
+        "glow"
+      ],
+      "terrainStyle": {
+        "topHeight": 18,
+        "groundTopHeight": 24,
+        "platformBodyDepth": 28,
+        "groundBodyDepth": 60,
+        "overhang": 7,
+        "groundOverhang": 0,
+        "edgeWidth": 36,
+        "undersideHeight": 0,
+        "undersideJitter": 0,
+        "detailDensity": 0.1,
+        "bodyAlpha": 0.9,
+        "contactAligned": true
+      },
+      "visibility": {
+        "maxFootOverlapPx": 0,
+        "combatClearancePx": 72,
+        "groundOnlyTallProps": true,
+        "upperPlatformPropScale": 0.6,
+        "rearDensityScale": 0.72,
+        "frontDensityScale": 0.26,
+        "maxUpperPropHeight": 20,
+        "maxFrontPropHeight": 32
+      }
+    }
+  },
+  {
+    "renderer": "canvas",
+    "id": "ashglassPass",
+    "label": "upper",
+    "platform": {
+      "id": "ashglass_pass_solid_lane_01",
+      "x": 260,
+      "y": 880,
+      "w": 1380,
+      "h": 22
+    },
+    "player": {
+      "x": 950,
+      "y": 806,
+      "h": 74,
+      "footY": 880
+    },
+    "camera": {
+      "x": 581.5151515151515,
+      "y": 546.8484848484849
+    },
+    "zoom": 1.32,
+    "canvas": {
+      "width": 1280,
+      "height": 806,
+      "rect": {
+        "x": 113,
+        "y": 99.390625,
+        "w": 1278,
+        "h": 804.734375
+      }
+    },
+    "screenCollisionY": 538.4600899503722,
+    "profile": {
+      "terrain": "ashglass-pass",
+      "props": "ashglass-pass",
+      "density": 0.48,
+      "propKinds": [
+        "rock",
+        "small",
+        "tall",
+        "crystal",
+        "glow"
+      ],
+      "terrainStyle": {
+        "topHeight": 18,
+        "groundTopHeight": 24,
+        "platformBodyDepth": 28,
+        "groundBodyDepth": 60,
+        "overhang": 7,
+        "groundOverhang": 0,
+        "edgeWidth": 36,
+        "undersideHeight": 0,
+        "undersideJitter": 0,
+        "detailDensity": 0.1,
+        "bodyAlpha": 0.9,
+        "contactAligned": true
+      },
+      "visibility": {
+        "maxFootOverlapPx": 0,
+        "combatClearancePx": 72,
+        "groundOnlyTallProps": true,
+        "upperPlatformPropScale": 0.6,
+        "rearDensityScale": 0.72,
+        "frontDensityScale": 0.26,
+        "maxUpperPropHeight": 20,
+        "maxFrontPropHeight": 32
+      }
+    }
+  },
+  {
+    "renderer": "canvas",
+    "id": "cinderHollow",
+    "label": "middle",
+    "platform": {
+      "id": "cinder_hollow_ground",
+      "x": 0,
+      "y": 1040,
+      "w": 5360,
+      "h": 48
+    },
+    "player": {
+      "x": 2680,
+      "y": 966,
+      "h": 74,
+      "footY": 1040
+    },
+    "camera": {
+      "x": 2311.5151515151515,
+      "y": 669.3939393939395
+    },
+    "zoom": 1.32,
+    "canvas": {
+      "width": 1280,
+      "height": 806,
+      "rect": {
+        "x": 113,
+        "y": 99.390625,
+        "w": 1278,
+        "h": 804.734375
+      }
+    },
+    "screenCollisionY": 587.8224565756823,
+    "profile": {
+      "terrain": "cinder-hollow",
+      "props": "cinder-hollow",
+      "density": 0.48,
+      "propKinds": [
+        "rock",
+        "small",
+        "tall",
+        "crystal",
+        "glow"
+      ],
+      "terrainStyle": {
+        "topHeight": 18,
+        "groundTopHeight": 24,
+        "platformBodyDepth": 28,
+        "groundBodyDepth": 60,
+        "overhang": 7,
+        "groundOverhang": 0,
+        "edgeWidth": 36,
+        "undersideHeight": 0,
+        "undersideJitter": 0,
+        "detailDensity": 0.1,
+        "bodyAlpha": 0.9
+      },
+      "visibility": {
+        "maxFootOverlapPx": 0,
+        "combatClearancePx": 72,
+        "groundOnlyTallProps": true,
+        "upperPlatformPropScale": 0.6,
+        "rearDensityScale": 0.72,
+        "frontDensityScale": 0.26,
+        "maxUpperPropHeight": 20,
+        "maxFrontPropHeight": 32
+      }
+    }
+  },
+  {
+    "renderer": "canvas",
+    "id": "cinderHollow",
+    "label": "upper",
+    "platform": {
+      "id": "cinder_hollow_solid_lane_04",
+      "x": 1880,
+      "y": 880,
+      "w": 920,
+      "h": 22
+    },
+    "player": {
+      "x": 2340,
+      "y": 806,
+      "h": 74,
+      "footY": 880
+    },
+    "camera": {
+      "x": 1971.5151515151515,
+      "y": 546.8484848484849
+    },
+    "zoom": 1.32,
+    "canvas": {
+      "width": 1280,
+      "height": 806,
+      "rect": {
+        "x": 113,
+        "y": 99.390625,
+        "w": 1278,
+        "h": 804.734375
+      }
+    },
+    "screenCollisionY": 538.4600899503722,
+    "profile": {
+      "terrain": "cinder-hollow",
+      "props": "cinder-hollow",
+      "density": 0.48,
+      "propKinds": [
+        "rock",
+        "small",
+        "tall",
+        "crystal",
+        "glow"
+      ],
+      "terrainStyle": {
+        "topHeight": 18,
+        "groundTopHeight": 24,
+        "platformBodyDepth": 28,
+        "groundBodyDepth": 60,
+        "overhang": 7,
+        "groundOverhang": 0,
+        "edgeWidth": 36,
+        "undersideHeight": 0,
+        "undersideJitter": 0,
+        "detailDensity": 0.1,
+        "bodyAlpha": 0.9
+      },
+      "visibility": {
+        "maxFootOverlapPx": 0,
+        "combatClearancePx": 72,
+        "groundOnlyTallProps": true,
+        "upperPlatformPropScale": 0.6,
+        "rearDensityScale": 0.72,
+        "frontDensityScale": 0.26,
+        "maxUpperPropHeight": 20,
+        "maxFrontPropHeight": 32
+      }
+    }
+  },
+  {
+    "renderer": "pixi",
+    "id": "ashglassPass",
+    "label": "middle",
+    "platform": {
+      "id": "ashglass_pass_ground",
+      "x": 0,
+      "y": 1040,
+      "w": 5360,
+      "h": 48
+    },
+    "player": {
+      "x": 2680,
+      "y": 966,
+      "h": 74,
+      "footY": 1040
+    },
+    "camera": {
+      "x": 2311.5151515151515,
+      "y": 669.3939393939395
+    },
+    "zoom": 1.32,
+    "canvas": {
+      "width": 1280,
+      "height": 806,
+      "rect": {
+        "x": 113,
+        "y": 99.390625,
+        "w": 1278,
+        "h": 804.734375
+      }
+    },
+    "screenCollisionY": 587.8224565756823,
+    "profile": {
+      "terrain": "ashglass-pass",
+      "props": "ashglass-pass",
+      "density": 0.48,
+      "propKinds": [
+        "rock",
+        "small",
+        "tall",
+        "crystal",
+        "glow"
+      ],
+      "terrainStyle": {
+        "topHeight": 18,
+        "groundTopHeight": 24,
+        "platformBodyDepth": 28,
+        "groundBodyDepth": 60,
+        "overhang": 7,
+        "groundOverhang": 0,
+        "edgeWidth": 36,
+        "undersideHeight": 0,
+        "undersideJitter": 0,
+        "detailDensity": 0.1,
+        "bodyAlpha": 0.9,
+        "contactAligned": true
+      },
+      "visibility": {
+        "maxFootOverlapPx": 0,
+        "combatClearancePx": 72,
+        "groundOnlyTallProps": true,
+        "upperPlatformPropScale": 0.6,
+        "rearDensityScale": 0.72,
+        "frontDensityScale": 0.26,
+        "maxUpperPropHeight": 20,
+        "maxFrontPropHeight": 32
+      }
+    }
+  },
+  {
+    "renderer": "pixi",
+    "id": "ashglassPass",
+    "label": "upper",
+    "platform": {
+      "id": "ashglass_pass_solid_lane_01",
+      "x": 260,
+      "y": 880,
+      "w": 1380,
+      "h": 22
+    },
+    "player": {
+      "x": 950,
+      "y": 806,
+      "h": 74,
+      "footY": 880
+    },
+    "camera": {
+      "x": 581.5151515151515,
+      "y": 546.8484848484849
+    },
+    "zoom": 1.32,
+    "canvas": {
+      "width": 1280,
+      "height": 806,
+      "rect": {
+        "x": 113,
+        "y": 99.390625,
+        "w": 1278,
+        "h": 804.734375
+      }
+    },
+    "screenCollisionY": 538.4600899503722,
+    "profile": {
+      "terrain": "ashglass-pass",
+      "props": "ashglass-pass",
+      "density": 0.48,
+      "propKinds": [
+        "rock",
+        "small",
+        "tall",
+        "crystal",
+        "glow"
+      ],
+      "terrainStyle": {
+        "topHeight": 18,
+        "groundTopHeight": 24,
+        "platformBodyDepth": 28,
+        "groundBodyDepth": 60,
+        "overhang": 7,
+        "groundOverhang": 0,
+        "edgeWidth": 36,
+        "undersideHeight": 0,
+        "undersideJitter": 0,
+        "detailDensity": 0.1,
+        "bodyAlpha": 0.9,
+        "contactAligned": true
+      },
+      "visibility": {
+        "maxFootOverlapPx": 0,
+        "combatClearancePx": 72,
+        "groundOnlyTallProps": true,
+        "upperPlatformPropScale": 0.6,
+        "rearDensityScale": 0.72,
+        "frontDensityScale": 0.26,
+        "maxUpperPropHeight": 20,
+        "maxFrontPropHeight": 32
+      }
+    }
+  },
+  {
+    "renderer": "pixi",
+    "id": "cinderHollow",
+    "label": "middle",
+    "platform": {
+      "id": "cinder_hollow_ground",
+      "x": 0,
+      "y": 1040,
+      "w": 5360,
+      "h": 48
+    },
+    "player": {
+      "x": 2680,
+      "y": 966,
+      "h": 74,
+      "footY": 1040
+    },
+    "camera": {
+      "x": 2311.5151515151515,
+      "y": 669.3939393939395
+    },
+    "zoom": 1.32,
+    "canvas": {
+      "width": 1280,
+      "height": 806,
+      "rect": {
+        "x": 113,
+        "y": 99.390625,
+        "w": 1278,
+        "h": 804.734375
+      }
+    },
+    "screenCollisionY": 587.8224565756823,
+    "profile": {
+      "terrain": "cinder-hollow",
+      "props": "cinder-hollow",
+      "density": 0.48,
+      "propKinds": [
+        "rock",
+        "small",
+        "tall",
+        "crystal",
+        "glow"
+      ],
+      "terrainStyle": {
+        "topHeight": 18,
+        "groundTopHeight": 24,
+        "platformBodyDepth": 28,
+        "groundBodyDepth": 60,
+        "overhang": 7,
+        "groundOverhang": 0,
+        "edgeWidth": 36,
+        "undersideHeight": 0,
+        "undersideJitter": 0,
+        "detailDensity": 0.1,
+        "bodyAlpha": 0.9
+      },
+      "visibility": {
+        "maxFootOverlapPx": 0,
+        "combatClearancePx": 72,
+        "groundOnlyTallProps": true,
+        "upperPlatformPropScale": 0.6,
+        "rearDensityScale": 0.72,
+        "frontDensityScale": 0.26,
+        "maxUpperPropHeight": 20,
+        "maxFrontPropHeight": 32
+      }
+    }
+  },
+  {
+    "renderer": "pixi",
+    "id": "cinderHollow",
+    "label": "upper",
+    "platform": {
+      "id": "cinder_hollow_solid_lane_04",
+      "x": 1880,
+      "y": 880,
+      "w": 920,
+      "h": 22
+    },
+    "player": {
+      "x": 2340,
+      "y": 806,
+      "h": 74,
+      "footY": 880
+    },
+    "camera": {
+      "x": 1971.5151515151515,
+      "y": 546.8484848484849
+    },
+    "zoom": 1.32,
+    "canvas": {
+      "width": 1280,
+      "height": 806,
+      "rect": {
+        "x": 113,
+        "y": 99.390625,
+        "w": 1278,
+        "h": 804.734375
+      }
+    },
+    "screenCollisionY": 538.4600899503722,
+    "profile": {
+      "terrain": "cinder-hollow",
+      "props": "cinder-hollow",
+      "density": 0.48,
+      "propKinds": [
+        "rock",
+        "small",
+        "tall",
+        "crystal",
+        "glow"
+      ],
+      "terrainStyle": {
+        "topHeight": 18,
+        "groundTopHeight": 24,
+        "platformBodyDepth": 28,
+        "groundBodyDepth": 60,
+        "overhang": 7,
+        "groundOverhang": 0,
+        "edgeWidth": 36,
+        "undersideHeight": 0,
+        "undersideJitter": 0,
+        "detailDensity": 0.1,
+        "bodyAlpha": 0.9
+      },
+      "visibility": {
+        "maxFootOverlapPx": 0,
+        "combatClearancePx": 72,
+        "groundOnlyTallProps": true,
+        "upperPlatformPropScale": 0.6,
+        "rearDensityScale": 0.72,
+        "frontDensityScale": 0.26,
+        "maxUpperPropHeight": 20,
+        "maxFrontPropHeight": 32
+      }
+    }
+  }
+]

@@ -8,6 +8,7 @@
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const NAVIGATION_EVENT = 'site:navigation-start';
   const NAV_HEIGHT_FALLBACK = 60;
+  const MOBILE_CHROME_QUERY = '(max-width: 768px), (max-width: 959px) and (max-height: 619px)';
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;',
     '<': '&lt;',
@@ -163,7 +164,7 @@
     const explore = masthead.querySelector('[data-mobile-explore]');
     const exploreButton = explore.querySelector('button');
     const exploreLinks = explore.querySelector('nav');
-    const mobileQuery = window.matchMedia('(max-width: 768px)');
+    const mobileQuery = window.matchMedia(MOBILE_CHROME_QUERY);
     const setExploreExpanded = (expanded, options = {}) => {
       const nextExpanded = Boolean(expanded && mobileQuery.matches && !explore.hidden);
       exploreButton.setAttribute('aria-expanded', String(nextExpanded));
@@ -264,6 +265,182 @@
     const desktopHeader = document.querySelector('#combined-header-nav');
     desktopHeader.parentNode.insertBefore(masthead, desktopHeader);
     document.body.classList.add('has-mobile-site-masthead');
+    setupMobileSectionNavigation(masthead, config);
+  }
+
+  function setupMobileSectionNavigation(masthead, initialContext) {
+    const icons = {
+      about: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/>',
+      projects: '<path d="M3 7h7l2-3h9v16H3z"/><path d="M3 9h18"/>',
+      tools: '<path d="M14.5 6.5a5 5 0 0 0-6.1 6.1L3 18l3 3 5.4-5.4a5 5 0 0 0 6.1-6.1L14 13l-3-3z"/>',
+      games: '<path d="M7 7h10c3 0 5 10 3 11-2 1-4-3-5-3H9c-1 0-3 4-5 3C2 17 4 7 7 7Z"/><path d="M8 9v5m-2.5-2.5h5M16 10h.01M18 12h.01"/>',
+      contact: '<path d="M4 4h16v12H9l-5 4z"/><path d="M8 8h8M8 12h5"/>'
+    };
+    const nav = document.createElement('nav');
+    nav.className = 'mobile-section-nav';
+    nav.dataset.mobileSectionNav = '';
+    nav.setAttribute('aria-label', 'Site sections');
+    nav.innerHTML = Object.entries(icons).map(([category, icon]) => `
+      <a class="mobile-section-nav__link" href="/#${category}" data-mobile-section="${category}">
+        <svg viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>
+        <span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>
+      </a>`).join('');
+    document.body.append(nav);
+
+    const media = window.matchMedia(MOBILE_CHROME_QUERY);
+    const chromeSurfaces = () => [masthead, nav, ...document.querySelectorAll('.project-question-dock')];
+    const scrollPositions = new WeakMap();
+    const preservedAccessibility = new Map();
+    let enabled = false;
+    let hidden = false;
+    let direction = 0;
+    let distance = 0;
+    let composing = false;
+    let pointerInWorkspace = false;
+    let keyboardNavigation = false;
+    let userScrollUntil = 0;
+    let releaseFrame = 0;
+    let lastScroller = document;
+    let previousY = Math.max(0, window.scrollY);
+    scrollPositions.set(document, previousY);
+
+    const activeDialog = () => [...document.querySelectorAll('.modal.active, .media-viewer.active, dialog[open], [role="dialog"][aria-modal="true"]')]
+      .some(node => node.checkVisibility?.() && !node.closest('[hidden]'));
+    const protectedInteraction = () => composing || pointerInWorkspace || activeDialog()
+      || document.body.matches('.portfolio-filter-sheet-open, .modal-open, .media-viewer-open, .is-playing, [data-consent-banner="open"]')
+      || masthead.matches('.is-search-expanded')
+      || masthead.querySelector('[data-mobile-explore] > button[aria-expanded="true"]')
+      || document.activeElement?.matches('input, textarea, select, [contenteditable="true"], iframe')
+      || (keyboardNavigation && chromeSurfaces().some(bar => bar.contains(document.activeElement)))
+      || window.SiteNavigation?.isNavigating?.()
+      || window.SiteFrame?.root()?.matches('.site-frame--moving, .site-frame--held');
+
+    const releaseAccessibility = () => {
+      // A dialog may have isolated these same siblings while they were hidden.
+      // Keep its focus boundary intact until the dialog releases the page.
+      if (activeDialog()) return;
+      preservedAccessibility.forEach((prior, bar) => {
+        bar.inert = prior.inert;
+        if (prior.ariaHidden === null) bar.removeAttribute('aria-hidden');
+        else bar.setAttribute('aria-hidden', prior.ariaHidden);
+      });
+      preservedAccessibility.clear();
+    };
+    const show = () => {
+      hidden = false;
+      direction = 0;
+      distance = 0;
+      if (document.body.classList.contains('is-mobile-chrome-hidden')) document.body.classList.remove('is-mobile-chrome-hidden');
+      releaseAccessibility();
+    };
+    const hide = () => {
+      if (!enabled || hidden || protectedInteraction()) return;
+      hidden = true;
+      chromeSurfaces().forEach(bar => {
+        if (!preservedAccessibility.has(bar)) preservedAccessibility.set(bar, { inert: bar.inert, ariaHidden: bar.getAttribute('aria-hidden') });
+        bar.inert = true;
+        bar.setAttribute('aria-hidden', 'true');
+      });
+      document.body.classList.add('is-mobile-chrome-hidden');
+    };
+    const resetScroll = () => {
+      previousY = Math.max(0, window.scrollY);
+      scrollPositions.set(document, previousY);
+      lastScroller = document;
+      userScrollUntil = 0;
+      show();
+    };
+    const syncHeight = () => {
+      const height = Math.ceil(nav.getBoundingClientRect().height);
+      if (enabled && height > 0) document.documentElement.style.setProperty('--mobile-section-nav-height', `${height}px`);
+    };
+    const sync = (context = getNavigationContext()) => {
+      const wasEnabled = enabled;
+      enabled = media.matches && context.activeAudience.key === 'personal';
+      nav.hidden = !enabled;
+      document.body.classList.toggle('has-mobile-scroll-chrome', enabled);
+      const state = window.SiteFrame?.current();
+      const category = state?.view === 'closed' ? '' : state?.category || document.body.dataset.siteRouteCategory || location.hash.slice(1) || 'about';
+      nav.querySelectorAll('[data-mobile-section]').forEach(link => {
+        if (link.dataset.mobileSection === category) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+      resetScroll();
+      syncHeight();
+      if (wasEnabled !== enabled) window.SiteFrame?.refresh?.();
+    };
+    const pageScroller = (target) => {
+      if (target === document || target === document.documentElement || target === document.body) return document;
+      // Tool editors, lists, iframes and drawing surfaces do not control chrome.
+      if (target?.matches?.('.site-frame__viewport') && target.scrollHeight > target.clientHeight + 1
+        && /^(auto|scroll)$/.test(getComputedStyle(target).overflowY)) return target;
+      return null;
+    };
+    document.addEventListener('scroll', (event) => {
+      if (!enabled) return;
+      const scroller = pageScroller(event.target);
+      if (!scroller) return;
+      const y = Math.max(0, scroller === document ? window.scrollY : scroller.scrollTop);
+      const prior = scrollPositions.get(scroller) ?? y;
+      scrollPositions.set(scroller, y);
+      const delta = y - prior;
+      if (lastScroller !== scroller) { direction = 0; distance = 0; }
+      lastScroller = scroller;
+      previousY = y;
+      if (y <= 12 || protectedInteraction()) { show(); return; }
+      if (performance.now() > userScrollUntil) { direction = 0; distance = 0; return; }
+      userScrollUntil = performance.now() + 500;
+      if (Math.abs(delta) < 1) return;
+      const nextDirection = Math.sign(delta);
+      distance = nextDirection === direction ? distance + Math.abs(delta) : Math.abs(delta);
+      direction = nextDirection;
+      if (direction > 0 && y > 80 && distance >= 28) hide();
+      else if (direction < 0 && distance >= 18) show();
+    }, { capture: true, passive: true });
+
+    nav.addEventListener('click', (event) => {
+      const link = event.target.closest('[data-mobile-section]');
+      if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.button > 0) return;
+      show();
+      const request = new CustomEvent('home:category-select', { cancelable: true, detail: { category: link.dataset.mobileSection } });
+      if (window.SiteFrame?.root()?.dispatchEvent(request) === false) event.preventDefault();
+    });
+    document.addEventListener('keydown', (event) => {
+      // Reveal synchronously before Tab computes its next focusable control.
+      keyboardNavigation = true;
+      if (enabled && event.key === 'Tab') show();
+      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) userScrollUntil = performance.now() + 1000;
+    }, true);
+    document.addEventListener('focusin', () => { if (enabled) resetScroll(); });
+    document.addEventListener('compositionstart', () => { composing = true; show(); });
+    document.addEventListener('compositionend', () => { composing = false; resetScroll(); });
+    document.addEventListener('pointerdown', (event) => {
+      keyboardNavigation = false;
+      pointerInWorkspace = Boolean(event.target.closest('canvas, [data-drawing-surface], [contenteditable="true"]'));
+      if (pointerInWorkspace) show();
+    }, true);
+    const endPointer = () => { pointerInWorkspace = false; };
+    document.addEventListener('pointerup', endPointer, true);
+    document.addEventListener('pointercancel', endPointer, true);
+    const userScroll = () => { userScrollUntil = performance.now() + 1200; };
+    document.addEventListener('wheel', userScroll, { capture: true, passive: true });
+    document.addEventListener('touchmove', userScroll, { capture: true, passive: true });
+    document.addEventListener(NAVIGATION_EVENT, show);
+    document.addEventListener('site:route-change', () => sync());
+    document.addEventListener('home:category-change', () => sync());
+    window.addEventListener('pageshow', resetScroll);
+    media.addEventListener('change', () => sync());
+    window.visualViewport?.addEventListener('resize', () => { if (protectedInteraction()) show(); });
+    new MutationObserver(() => {
+      if (releaseFrame) return;
+      releaseFrame = requestAnimationFrame(() => {
+        releaseFrame = 0;
+        if (enabled && protectedInteraction()) show();
+        if (!hidden) releaseAccessibility();
+      });
+    }).observe(document.body, { attributes: true, attributeFilter: ['class', 'data-consent-banner'] });
+    if (typeof ResizeObserver === 'function') new ResizeObserver(syncHeight).observe(nav);
+    sync(initialContext);
   }
 
   function getNavigationContext() {

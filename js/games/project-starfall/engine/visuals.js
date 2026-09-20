@@ -14,8 +14,8 @@
   };
   const PLAYER_SPRITE_REGISTRATION = Object.freeze({
     originX: 80,
-    groundY: 154,
-    authoredBodyHeight: 143
+    groundY: 150,
+    authoredBodyHeight: 140
   });
   const ENEMY_SPRITE_REGISTRATION = Object.freeze({
     originX: 64,
@@ -293,10 +293,46 @@
     return normalBudget;
   }
 
+  function createSemanticRecoveryDrawState(effect) {
+    const duration = Math.max(0.01, Number(effect.duration || 0.5));
+    const progress = clamp(1 - Number(effect.ttl || 0) / duration, 0, 1);
+    const preparing = effect.phase === 'prepare';
+    const resource = effect.recoveryKind === 'resource';
+    const enemy = effect.ownership === 'enemy';
+    const color = resource ? '#668FFF' : '#62D995';
+    const x = Number(effect.x || 0), y = Number(effect.y || 0);
+    const radius = Math.max(14, Number(effect.r || 32));
+    const alpha = preparing ? 0.45 + progress * 0.45 : 1 - progress * 0.65;
+    // Ground contours establish the recipient; semantic marks must survive actor occlusion.
+    const lines = [], orbs = [];
+    const ringRadius = radius * (preparing ? 0.7 + progress * 0.15 : 0.65 + progress * 0.6);
+    for (let index = 0; index < 48; index += 1) {
+      if (enemy && index % 4 === 3) continue;
+      const a = index * Math.PI * 2 / 48, b = (index + 1) * Math.PI * 2 / 48;
+      lines.push({ layer: 'ground', x1: x + Math.cos(a) * ringRadius, y1: y + Math.sin(a) * ringRadius * 0.3, x2: x + Math.cos(b) * ringRadius, y2: y + Math.sin(b) * ringRadius * 0.3, width: 2 });
+    }
+    if (preparing || resource) {
+      for (let index = 0; index < 5; index += 1) {
+        const angle = index * Math.PI * 2 / 5 - Math.PI / 2;
+        const distance = radius * (1 - progress * 0.8);
+        const ox = x + Math.cos(angle) * distance, oy = y - 13 + Math.sin(angle) * distance;
+        orbs.push({ layer: 'symbol', x: ox, y: oy, radius: preparing ? 2 : 3 });
+        if (resource) lines.push({ layer: 'symbol', x1: ox + Math.cos(angle) * 5, y1: oy + Math.sin(angle) * 5, x2: ox, y2: oy, width: 3 });
+      }
+    } else {
+      for (let index = -1; index <= 1; index += 1) {
+        const ox = x + index * radius * 0.48, oy = y - 14 - progress * 28 - (index === 0 ? 9 : 0), size = index === 0 ? 5 : 4;
+        lines.push({ layer: 'symbol', x1: ox - size, y1: oy, x2: ox + size, y2: oy, width: 3 });
+        lines.push({ layer: 'symbol', x1: ox, y1: oy - size, x2: ox, y2: oy + size, width: 3 });
+      }
+    }
+    return { color, alpha, lines, orbs, preparing, resource, enemy };
+  }
+
   function getWorldEffectPriority(effect) {
     const type = effect && effect.type || '';
     let score = 0;
-    if (type === 'telegraph' || (type === 'bossHazard' && effect.telegraph)) score = 1400;
+    if (type === 'telegraph' || effect.phase === 'prepare' || (type === 'bossHazard' && effect.telegraph)) score = 1400;
     else if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
     else if (type === 'recoveryPulse') score = 650;
     else if (type === 'skillImpact' || type === 'shockBurst') score = 500;
@@ -555,7 +591,7 @@
       const scale = Math.max(0.01, Number(height || 0) / authoredBodyHeight);
       return Object.assign({}, source, {
         translateX: Number(x || 0) + Number(width || 0) / 2,
-        translateY: Number(y || 0) + Number(height || 0),
+        translateY: Number(y || 0) + Number(height || 0) * (registration.centered ? 0.5 : 1),
         scaleX: (Number(facing) || 1) < 0 ? -1 : 1,
         scaleY: 1,
         drawX: -originX * scale,
@@ -1000,7 +1036,7 @@
     const progress = clamp(1 - Number(effect.ttl || 0) / duration, 0, 1);
     const alpha = clamp(Number(effect.ttl || 0) / duration, 0, 1);
     const radius = Math.max(72, Number(effect.r || 110));
-    const color = effect.color || '#ffbe55';
+    const color = safeZone ? '#63D7E8' : '#F06A60';
     const accent = effect.accentColor || '#ffffff';
     const pulse = Math.sin(progress * Math.PI);
     const motes = [];
@@ -1066,11 +1102,12 @@
           ? 'totality'
           : 'standard';
     const safeZone = effect.hazardPolarity === 'safe' || effect.hitRule === 'outsideRadius';
-    const color = effect.color || '#ffbe55';
-    const accent = effect.accentColor || '#ffffff';
-    const primaryColor = family === 'lunar' || family === 'totality' ? accent : color;
-    const secondaryColor = family === 'lunar' ? '#8f7cff' : family === 'totality' ? color : accent;
-    const boundaryScale = telegraph ? 1.08 - urgency * 0.08 : 0.82 + progress * 0.22;
+    const color = safeZone ? '#63D7E8' : shape === 'add' ? '#F2EBDD' : shape === 'expose' ? '#B88AF3' : '#F06A60';
+    const accent = safeZone ? '#DDFBFF' : shape === 'add' || shape === 'expose' ? effect.accentColor || '#ffffff' : '#FFD5D0';
+    const primaryColor = color;
+    const secondaryColor = accent;
+    // Dangerous edges describe collision geometry and never breathe or shrink.
+    const boundaryScale = 1;
     const sectionLabel = String(effect.spatialSectionLabel || '').trim();
     const label = String(effect.label || '').trim().toUpperCase().slice(0, 24);
     const callout = sectionLabel
@@ -1584,6 +1621,7 @@
     createShockBurstEffectDrawState,
     createChainLineEffectDrawState,
     createRecoveryPulseEffectDrawState,
+    createSemanticRecoveryDrawState,
     createFloatingNumberEffectDrawState,
     createFieldEffectDrawState,
     createTelegraphEffectDrawState,

@@ -1,0 +1,18 @@
+{
+  "file": "defeat-supplement.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-35be-7a93-9773-ce24aa252f30\\exec-e47d9f7e-3c7c-4102-9d55-30d88a7fc3d7.png",
+  "generator": "built-in image_gen",
+  "columns": 3,
+  "rows": 2,
+  "prompt": "defeat-supplement.cleanup-prompt.md",
+  "row": "defeat",
+  "poseOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "alpha": "True alpha measured; majority of background alpha<8; image generation display appears to show invisible RGB, verify white composite."
+}

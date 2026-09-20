@@ -1,0 +1,175 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "cracked-mimic",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-cdb8f96c-5b5d-4c28-9d2a-85371e403e05.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/cracked-mimic.png",
+    "img/project-starfall/animations/enemies/cracked-mimic-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Raw reviewed; alpha/component registration checks pending.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/cracked-mimic-sheet.png",
+    "portrait": "img/project-starfall/enemies/cracked-mimic.png",
+    "portraitFrame": 0
+  },
+  "sourceSha256": "f148b0109db7bad7a80423c1c5ae4f9865bf9ff81fadeaf66c153f4d38c60d00",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "sharedScale": 0.7266341463414634,
+  "frames": {
+    "0": {
+      "anchor": {
+        "x": 90.5,
+        "y": 158
+      }
+    },
+    "1": {
+      "anchor": {
+        "x": 268.74758324382384,
+        "y": 158
+      }
+    },
+    "2": {
+      "anchor": {
+        "x": 446.9951664876477,
+        "y": 158
+      }
+    },
+    "3": {
+      "anchor": {
+        "x": 619.7379162191193,
+        "y": 158
+      }
+    },
+    "4": {
+      "anchor": {
+        "x": 799.3617078410311,
+        "y": 158
+      }
+    },
+    "5": {
+      "anchor": {
+        "x": 978.985499462943,
+        "y": 158
+      }
+    }
+  },
+  "registrationReview": {
+    "status": "reviewed-horizontal",
+    "scope": "idle-horizontal only",
+    "method": "Reviewed stable anatomical-core translation against idle frame 0, corroborated by whole-silhouette translation and fixed-guide contact sheets. No bounding-box centering. Only X anchors changed; authored Y, all drawing pixels and fixed identity scale are preserved.",
+    "landmark": "gold chest lock and rigid chest body; articulated feet are excluded",
+    "referenceFrame": 0,
+    "fixedSharedScale": 0.7266341463414634,
+    "sourceUnchanged": true,
+    "actionsChanged": [
+      "idle"
+    ],
+    "visualVerification": "Before/after fixed-guide strips inspected for the declared rigid anatomical landmarks and last-to-first horizontal closure. All six poses retain their authored vertical variation. This review does not certify other action rows or all shape and transition quality.",
+    "evidence": "output/enemy-idle-alignment/cracked-mimic/alignment-evidence.json",
+    "corrections": [
+      {
+        "frame": 0,
+        "measuredPriorBodyDriftX": 0,
+        "outputTranslationX": 0,
+        "previousAnchor": {
+          "x": 90.5,
+          "y": 158
+        },
+        "anchor": {
+          "x": 90.5,
+          "y": 158
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 1,
+        "measuredPriorBodyDriftX": -2,
+        "outputTranslationX": 2,
+        "previousAnchor": {
+          "x": 271.5,
+          "y": 158
+        },
+        "anchor": {
+          "x": 268.74758324382384,
+          "y": 158
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 2,
+        "measuredPriorBodyDriftX": -4,
+        "outputTranslationX": 4,
+        "previousAnchor": {
+          "x": 452.5,
+          "y": 158
+        },
+        "anchor": {
+          "x": 446.9951664876477,
+          "y": 158
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 3,
+        "measuredPriorBodyDriftX": -10,
+        "outputTranslationX": 10,
+        "previousAnchor": {
+          "x": 633.5,
+          "y": 158
+        },
+        "anchor": {
+          "x": 619.7379162191193,
+          "y": 158
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 4,
+        "measuredPriorBodyDriftX": -11,
+        "outputTranslationX": 11,
+        "previousAnchor": {
+          "x": 814.5,
+          "y": 158
+        },
+        "anchor": {
+          "x": 799.3617078410311,
+          "y": 158
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 5,
+        "measuredPriorBodyDriftX": -12,
+        "outputTranslationX": 12,
+        "previousAnchor": {
+          "x": 995.5,
+          "y": 158
+        },
+        "anchor": {
+          "x": 978.985499462943,
+          "y": 158
+        },
+        "scaleFactor": 1
+      }
+    ]
+  }
+}

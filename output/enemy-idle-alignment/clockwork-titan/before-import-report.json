@@ -1,0 +1,1965 @@
+{
+  "fileId": "clockwork-titan",
+  "sourceSha256": "c89570ee2cf725c4601c35810f8be266e0df831dfd4a1e973c5e7257319aa5d8",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    188,
+    362,
+    539,
+    716,
+    890,
+    1067,
+    1242,
+    1448
+  ],
+  "sharedScale": 0.7059715639810427,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 114,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/clockwork-titan-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 564477,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 21,
+        "top": 21,
+        "width": 156,
+        "height": 162
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 161,
+        "width": 156,
+        "height": 162,
+        "pixels": 18037
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 183
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 36,
+        "right": 140,
+        "bottom": 149,
+        "width": 110,
+        "height": 114,
+        "pixels": 8998,
+        "edgePixels": 0
+      },
+      "sha256": "37280445b1d767c42dff54ad78019807318536e66dc1a5fb04731c36409d3d46"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 194,
+        "top": 20,
+        "width": 160,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 162,
+        "width": 160,
+        "height": 163,
+        "pixels": 18442
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 183
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 25,
+        "top": 35,
+        "right": 137,
+        "bottom": 149,
+        "width": 113,
+        "height": 115,
+        "pixels": 9216,
+        "edgePixels": 0
+      },
+      "sha256": "133e91769e71ff7464b96808a806d15adf9fd46a9dbdb321e206274bcc186cca"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 372,
+        "top": 19,
+        "width": 159,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 162,
+        "width": 159,
+        "height": 163,
+        "pixels": 18440
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 183
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 34,
+        "right": 134,
+        "bottom": 148,
+        "width": 112,
+        "height": 115,
+        "pixels": 9219,
+        "edgePixels": 0
+      },
+      "sha256": "d33590e509d7ff18d30cb08d2c8f2ab74d66ccbc6d4f7461121deb17398822eb"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 549,
+        "top": 18,
+        "width": 163,
+        "height": 165
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 164,
+        "width": 163,
+        "height": 165,
+        "pixels": 19001
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 183
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 34,
+        "right": 134,
+        "bottom": 149,
+        "width": 115,
+        "height": 116,
+        "pixels": 9505,
+        "edgePixels": 0
+      },
+      "sha256": "f3695b85e518a01ac128fa984dae36229b419060f09932c062ad12d20d4a89ac"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 728,
+        "top": 19,
+        "width": 166,
+        "height": 164
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 163,
+        "width": 166,
+        "height": 164,
+        "pixels": 19412
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 183
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 19,
+        "top": 34,
+        "right": 135,
+        "bottom": 149,
+        "width": 117,
+        "height": 116,
+        "pixels": 9737,
+        "edgePixels": 0
+      },
+      "sha256": "9b086e58aff3b89adfc8853b13bbdd1e959310d07d9e2f9226373f08689a1b88"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 910,
+        "top": 21,
+        "width": 156,
+        "height": 162
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 161,
+        "width": 156,
+        "height": 162,
+        "pixels": 18025
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 183
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 36,
+        "right": 129,
+        "bottom": 149,
+        "width": 110,
+        "height": 114,
+        "pixels": 8990,
+        "edgePixels": 0
+      },
+      "sha256": "3ae6a989a5b6a1add65874de11c80bfdd46935cbda94e725ecdde3bd7a9bf588"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 17,
+        "top": 195,
+        "width": 167,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 160,
+        "width": 167,
+        "height": 161,
+        "pixels": 17744
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 357
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 36,
+        "right": 145,
+        "bottom": 149,
+        "width": 118,
+        "height": 114,
+        "pixels": 8929,
+        "edgePixels": 0
+      },
+      "sha256": "706ea29b695ecb8774334eb8e37d3a25c17601ff65d9d52dbe8b3456566b5bbd"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 202,
+        "top": 193,
+        "width": 155,
+        "height": 164
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 163,
+        "width": 155,
+        "height": 164,
+        "pixels": 17285
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 357
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 31,
+        "top": 34,
+        "right": 139,
+        "bottom": 149,
+        "width": 109,
+        "height": 116,
+        "pixels": 8662,
+        "edgePixels": 0
+      },
+      "sha256": "d6384ba81ab7750f2d235484b8aec90566ff625263ee6854d201cc79e12cc2bc"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 376,
+        "top": 197,
+        "width": 159,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 159,
+        "width": 159,
+        "height": 160,
+        "pixels": 16760
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 357
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 37,
+        "right": 137,
+        "bottom": 149,
+        "width": 112,
+        "height": 113,
+        "pixels": 8382,
+        "edgePixels": 0
+      },
+      "sha256": "3520853654cfc67c60ea09acb709b21c117a36d6b21e81cae3fea3840a1c4ac3"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 559,
+        "top": 196,
+        "width": 163,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 160,
+        "width": 163,
+        "height": 161,
+        "pixels": 17584
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 357
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 36,
+        "right": 141,
+        "bottom": 149,
+        "width": 115,
+        "height": 114,
+        "pixels": 8838,
+        "edgePixels": 0
+      },
+      "sha256": "77a6a078183ab17e7a75f0e06f8489f1faddddaeb79fa5f072d30d5e94498215"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 741,
+        "top": 194,
+        "width": 155,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 162,
+        "width": 155,
+        "height": 163,
+        "pixels": 16698
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 357
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 35,
+        "right": 136,
+        "bottom": 149,
+        "width": 109,
+        "height": 115,
+        "pixels": 8363,
+        "edgePixels": 0
+      },
+      "sha256": "5ed6831aa0965ea527def2716da0db229eef8d35695f4efbff6356b5c29eb0b1"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 917,
+        "top": 198,
+        "width": 154,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 158,
+        "width": 154,
+        "height": 159,
+        "pixels": 16398
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 357
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 38,
+        "right": 133,
+        "bottom": 149,
+        "width": 109,
+        "height": 112,
+        "pixels": 8251,
+        "edgePixels": 0
+      },
+      "sha256": "59caed1b8794d70aa5b721d3b6e62f4d6e36598e8ac99b1b6a316f9b7d520904"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 17,
+        "top": 369,
+        "width": 173,
+        "height": 163
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 162,
+        "width": 173,
+        "height": 163,
+        "pixels": 19062
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 532
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 35,
+        "right": 149,
+        "bottom": 149,
+        "width": 122,
+        "height": 115,
+        "pixels": 9537,
+        "edgePixels": 0
+      },
+      "sha256": "25dc3a10b6227af343152d2d6500e331aa3e3640eb1484472e7f0d32986511bd"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 202,
+        "top": 371,
+        "width": 166,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 160,
+        "width": 166,
+        "height": 161,
+        "pixels": 17106
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 532
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 31,
+        "top": 36,
+        "right": 147,
+        "bottom": 149,
+        "width": 117,
+        "height": 114,
+        "pixels": 8605,
+        "edgePixels": 0
+      },
+      "sha256": "ed645044c7f4915f6653cb28c0efe6090ed2aeeda759a33bfba16d79c13fbd34"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 388,
+        "top": 371,
+        "width": 165,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 160,
+        "width": 165,
+        "height": 161,
+        "pixels": 16442
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 532
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 34,
+        "top": 36,
+        "right": 149,
+        "bottom": 149,
+        "width": 116,
+        "height": 114,
+        "pixels": 8271,
+        "edgePixels": 0
+      },
+      "sha256": "a0e19d14ffb92ff641ce5ca2b9934cfe8e463273141ca5d7d3ccd51e553756f3"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 568,
+        "top": 367,
+        "width": 158,
+        "height": 165
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 164,
+        "width": 158,
+        "height": 165,
+        "pixels": 15171
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 532
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 34,
+        "top": 34,
+        "right": 145,
+        "bottom": 149,
+        "width": 112,
+        "height": 116,
+        "pixels": 7636,
+        "edgePixels": 0
+      },
+      "sha256": "ef5da94e70b4ae4138ed0fa9a4397237a67023efb42251025dd6a28fec7d989e"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 743,
+        "top": 385,
+        "width": 169,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 145,
+        "width": 169,
+        "height": 146,
+        "pixels": 14381
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 532
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 46,
+        "right": 148,
+        "bottom": 148,
+        "width": 119,
+        "height": 103,
+        "pixels": 7197,
+        "edgePixels": 0
+      },
+      "sha256": "d01b29d233966063c13a5dc88c067c58021831ecd1f1ad5c8c624ed4dd0332b8"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 902,
+        "top": 380,
+        "width": 169,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 150,
+        "width": 169,
+        "height": 151,
+        "pixels": 14801
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 532
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 14,
+        "top": 43,
+        "right": 132,
+        "bottom": 149,
+        "width": 119,
+        "height": 107,
+        "pixels": 7470,
+        "edgePixels": 0
+      },
+      "sha256": "5e1b0f72b0bd336dfeb8348bafc6d876af7396fd28480af73bc99c82f03f741d"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 19,
+        "top": 557,
+        "width": 163,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 150,
+        "width": 163,
+        "height": 151,
+        "pixels": 16204
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 708
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 43,
+        "right": 144,
+        "bottom": 149,
+        "width": 115,
+        "height": 107,
+        "pixels": 8179,
+        "edgePixels": 0
+      },
+      "sha256": "6ea4149445386f923b1e0a8a952d5baf441d70eb74c3bafb7ef70b2f248c8c88"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 199,
+        "top": 552,
+        "width": 163,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 155,
+        "width": 163,
+        "height": 156,
+        "pixels": 16615
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 708
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 40,
+        "right": 143,
+        "bottom": 149,
+        "width": 115,
+        "height": 110,
+        "pixels": 8322,
+        "edgePixels": 0
+      },
+      "sha256": "ce8ce6471101c6910dc5d6dcd07211f14a7b6abb0e4fcebc102d3e5475b13ac1"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 380,
+        "top": 548,
+        "width": 164,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 159,
+        "width": 164,
+        "height": 160,
+        "pixels": 17662
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 708
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 37,
+        "right": 144,
+        "bottom": 149,
+        "width": 116,
+        "height": 113,
+        "pixels": 8886,
+        "edgePixels": 0
+      },
+      "sha256": "0341cdc98e947ee749f7ffd4fe3963d79903741fe0bf24401d0ae292b0519c42"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 562,
+        "top": 546,
+        "width": 161,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 160,
+        "width": 161,
+        "height": 161,
+        "pixels": 17403
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 708
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 36,
+        "right": 143,
+        "bottom": 149,
+        "width": 114,
+        "height": 114,
+        "pixels": 8743,
+        "edgePixels": 0
+      },
+      "sha256": "16026fc7ebb84d27ca4dd3ff8f86408c467f48418669cf78a543afa2b1947aa0"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 737,
+        "top": 549,
+        "width": 160,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 159,
+        "width": 160,
+        "height": 160,
+        "pixels": 17493
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 708
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 38,
+        "right": 137,
+        "bottom": 150,
+        "width": 113,
+        "height": 113,
+        "pixels": 8746,
+        "edgePixels": 0
+      },
+      "sha256": "59c9341a2647a1c7235a4bdb47838b3b0b04dcf723745e3acfa26a5773cdb2a7"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 910,
+        "top": 550,
+        "width": 157,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 158,
+        "width": 157,
+        "height": 159,
+        "pixels": 17151
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 708
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 38,
+        "right": 130,
+        "bottom": 149,
+        "width": 111,
+        "height": 112,
+        "pixels": 8622,
+        "edgePixels": 0
+      },
+      "sha256": "296666bf6b69b7783bc0adc8852f142dd53faecb4c0b4ad532fa8761bc9e1c86"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 21,
+        "top": 725,
+        "width": 174,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 154,
+        "width": 174,
+        "height": 155,
+        "pixels": 16150
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 882
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 39,
+        "right": 153,
+        "bottom": 147,
+        "width": 123,
+        "height": 109,
+        "pixels": 8107,
+        "edgePixels": 0
+      },
+      "sha256": "902c0e8e5d8303e92d64169d3308a9ad7053a170f0a4ac7d332b02a4b8fac5cd"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 204,
+        "top": 726,
+        "width": 173,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 154,
+        "width": 173,
+        "height": 155,
+        "pixels": 15856
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 882
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 40,
+        "right": 153,
+        "bottom": 148,
+        "width": 122,
+        "height": 109,
+        "pixels": 7931,
+        "edgePixels": 0
+      },
+      "sha256": "d6bdbeb08d6ce47d7932f14c6bc147a19d25cfe56348fb0bdce04253b6e76055"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 389,
+        "top": 723,
+        "width": 152,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 157,
+        "width": 152,
+        "height": 158,
+        "pixels": 15508
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 882
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 38,
+        "right": 141,
+        "bottom": 149,
+        "width": 107,
+        "height": 112,
+        "pixels": 7821,
+        "edgePixels": 0
+      },
+      "sha256": "cc06c0d444fa918cd279ca2e567c2bdaaef1a3ef937b27e7a68123071bbf9802"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 561,
+        "top": 724,
+        "width": 157,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 157,
+        "width": 157,
+        "height": 158,
+        "pixels": 16269
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 882
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 38,
+        "right": 139,
+        "bottom": 149,
+        "width": 111,
+        "height": 112,
+        "pixels": 8218,
+        "edgePixels": 0
+      },
+      "sha256": "6f046d5659efcdccc0b79f68cc3f41aae284f497afab9c83a44a02fadff663b1"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 737,
+        "top": 724,
+        "width": 156,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 159,
+        "width": 156,
+        "height": 160,
+        "pixels": 17061
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 882
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 38,
+        "right": 134,
+        "bottom": 150,
+        "width": 110,
+        "height": 113,
+        "pixels": 8528,
+        "edgePixels": 0
+      },
+      "sha256": "fb2de8458f4f6390be51f123c233c8547b7b74929ed5bdbdab77942c3126da18"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 913,
+        "top": 726,
+        "width": 158,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 157,
+        "width": 158,
+        "height": 158,
+        "pixels": 17157
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 882
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 40,
+        "right": 133,
+        "bottom": 151,
+        "width": 112,
+        "height": 112,
+        "pixels": 8662,
+        "edgePixels": 0
+      },
+      "sha256": "d08b46928a879ed6b0dd45c79bf57168dc4456d31a206ea59dd917a9f24a4c67"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 24,
+        "top": 899,
+        "width": 155,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 155,
+        "width": 155,
+        "height": 156,
+        "pixels": 16877
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1057
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 33,
+        "top": 38,
+        "right": 141,
+        "bottom": 147,
+        "width": 109,
+        "height": 110,
+        "pixels": 8431,
+        "edgePixels": 0
+      },
+      "sha256": "634dd614baa812aba983f98df800458f433f2590cca037735f3f9544dcf8d7ad"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 200,
+        "top": 896,
+        "width": 151,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 159,
+        "width": 151,
+        "height": 160,
+        "pixels": 15401
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1057
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 30,
+        "top": 36,
+        "right": 136,
+        "bottom": 148,
+        "width": 107,
+        "height": 113,
+        "pixels": 7766,
+        "edgePixels": 0
+      },
+      "sha256": "02f25d6c9bb69e73a89f2ab7e9f86335b61010633a97b17e6d867e9e2e4df102"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 375,
+        "top": 895,
+        "width": 152,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 160,
+        "width": 152,
+        "height": 161,
+        "pixels": 15753
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1057
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 36,
+        "right": 131,
+        "bottom": 149,
+        "width": 107,
+        "height": 114,
+        "pixels": 7941,
+        "edgePixels": 0
+      },
+      "sha256": "eea60ea4ae4571cc912f18eeef4fdd99cc494366d9ec61db1e503e0bfdee88b2"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 545,
+        "top": 896,
+        "width": 193,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 192,
+        "bottom": 160,
+        "width": 193,
+        "height": 161,
+        "pixels": 17608
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1057
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 18,
+        "top": 36,
+        "right": 153,
+        "bottom": 149,
+        "width": 136,
+        "height": 114,
+        "pixels": 8881,
+        "edgePixels": 0
+      },
+      "sha256": "a96a995f5140fe03e562d859193c809e4206f5eb4f1211e8392f6aaf58894890"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 745,
+        "top": 902,
+        "width": 161,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 154,
+        "width": 161,
+        "height": 155,
+        "pixels": 17196
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1057
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 41,
+        "right": 144,
+        "bottom": 149,
+        "width": 114,
+        "height": 109,
+        "pixels": 8656,
+        "edgePixels": 0
+      },
+      "sha256": "9022f6c39d3656115c4627aeb0cfd16bb72d04ac98131f21fd71d2165819d0ce"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 918,
+        "top": 902,
+        "width": 150,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 154,
+        "width": 150,
+        "height": 155,
+        "pixels": 16242
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1057
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 41,
+        "right": 130,
+        "bottom": 149,
+        "width": 106,
+        "height": 109,
+        "pixels": 8147,
+        "edgePixels": 0
+      },
+      "sha256": "8edce276fb282a2ca2e78be043935f57f4221290489f6bffce1e648bc220b576"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 23,
+        "top": 1079,
+        "width": 163,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 155,
+        "width": 163,
+        "height": 156,
+        "pixels": 17154
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1234
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 41,
+        "right": 146,
+        "bottom": 150,
+        "width": 115,
+        "height": 110,
+        "pixels": 8565,
+        "edgePixels": 0
+      },
+      "sha256": "beb0f610c732ccf0cec79268ccbded1d07177a11b7ab00b3718bd4b42f352618"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 198,
+        "top": 1079,
+        "width": 165,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 153,
+        "width": 165,
+        "height": 154,
+        "pixels": 16732
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1234
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 41,
+        "right": 143,
+        "bottom": 149,
+        "width": 116,
+        "height": 109,
+        "pixels": 8428,
+        "edgePixels": 0
+      },
+      "sha256": "8848f050b6b0531c9d28156cbf4951c2ba0d66f754f7fc1336e384907d309749"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 376,
+        "top": 1078,
+        "width": 169,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 155,
+        "width": 169,
+        "height": 156,
+        "pixels": 16125
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1234
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 40,
+        "right": 144,
+        "bottom": 149,
+        "width": 119,
+        "height": 110,
+        "pixels": 8032,
+        "edgePixels": 0
+      },
+      "sha256": "427524bb363f5456d55af2a736aaa6a761c1133a59920c0814df56014a6cac6c"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 554,
+        "top": 1084,
+        "width": 168,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 149,
+        "width": 168,
+        "height": 150,
+        "pixels": 16716
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1234
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 44,
+        "right": 142,
+        "bottom": 149,
+        "width": 119,
+        "height": 106,
+        "pixels": 8418,
+        "edgePixels": 0
+      },
+      "sha256": "0cd58d9ae0efe9a4e48fe9a598cd53f7317dc875a8b9594eff1cbf122bd471ec"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 732,
+        "top": 1077,
+        "width": 169,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 156,
+        "width": 169,
+        "height": 157,
+        "pixels": 17746
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1234
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 39,
+        "right": 140,
+        "bottom": 149,
+        "width": 119,
+        "height": 111,
+        "pixels": 8895,
+        "edgePixels": 0
+      },
+      "sha256": "4c726396efd9462bee29324e793beb4cca519d2abc99d404341e6c89c9a3a30b"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 913,
+        "top": 1078,
+        "width": 152,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 156,
+        "width": 152,
+        "height": 157,
+        "pixels": 16808
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1234
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 40,
+        "right": 128,
+        "bottom": 150,
+        "width": 107,
+        "height": 111,
+        "pixels": 8430,
+        "edgePixels": 0
+      },
+      "sha256": "3daa152a2a47b56782f63d1bb0a4461c41e3839121016b3e0fb666fa724993d9"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 17,
+        "top": 1249,
+        "width": 167,
+        "height": 162
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 161,
+        "width": 167,
+        "height": 162,
+        "pixels": 17898
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1413
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 34,
+        "right": 145,
+        "bottom": 147,
+        "width": 118,
+        "height": 114,
+        "pixels": 8952,
+        "edgePixels": 0
+      },
+      "sha256": "45ff24ebe103f0e17d890b486aa824da7a7b1028f45add8b5ce471a55255f966"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 204,
+        "top": 1262,
+        "width": 160,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 148,
+        "width": 160,
+        "height": 149,
+        "pixels": 15719
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1413
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 43,
+        "right": 144,
+        "bottom": 147,
+        "width": 113,
+        "height": 105,
+        "pixels": 7883,
+        "edgePixels": 0
+      },
+      "sha256": "aca40c28518ce065ce39f2cf3a27aaa4aba8079901e8b40500c0fb19d7219c98"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 376,
+        "top": 1273,
+        "width": 166,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 141,
+        "width": 166,
+        "height": 142,
+        "pixels": 15708
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1413
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 51,
+        "right": 142,
+        "bottom": 150,
+        "width": 117,
+        "height": 100,
+        "pixels": 7842,
+        "edgePixels": 0
+      },
+      "sha256": "ba2f1e71321576b8aefcc1e682d380c1a272f4ceffd319b9ae99e80f3cfcee60"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 552,
+        "top": 1291,
+        "width": 159,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 123,
+        "width": 159,
+        "height": 124,
+        "pixels": 13454
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1413
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 22,
+        "top": 64,
+        "right": 133,
+        "bottom": 151,
+        "width": 112,
+        "height": 88,
+        "pixels": 6798,
+        "edgePixels": 0
+      },
+      "sha256": "12be58bca4ab6710e493d03dfe450fba8f3355374a4f113e8a8997c8c6638309"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 720,
+        "top": 1317,
+        "width": 181,
+        "height": 96
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 180,
+        "bottom": 95,
+        "width": 181,
+        "height": 96,
+        "pixels": 11493
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1413
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 13,
+        "top": 82,
+        "right": 140,
+        "bottom": 149,
+        "width": 128,
+        "height": 68,
+        "pixels": 5780,
+        "edgePixels": 0
+      },
+      "sha256": "98c24d31c348fc6b631233c51745c9dd079d274d4bb5f594d42488257403d15a"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 905,
+        "top": 1326,
+        "width": 165,
+        "height": 86
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 85,
+        "width": 165,
+        "height": 86,
+        "pixels": 9645
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/clockwork-titan/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1413
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 16,
+        "top": 89,
+        "right": 131,
+        "bottom": 149,
+        "width": 116,
+        "height": 61,
+        "pixels": 4869,
+        "edgePixels": 0
+      },
+      "sha256": "4a4c4a7d88c6dd3a5ef4246c90846aee2f815f9c2c1180af4591ac14f4e37359"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

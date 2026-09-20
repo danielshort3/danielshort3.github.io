@@ -345,9 +345,9 @@
   }
 
   body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-mobile-filter-trigger {
-    border-color: rgba(21, 93, 252, .3);
+    border-color: color-mix(in srgb, var(--brand-signal-blue, #005fed) 30%, transparent);
     background: #f5f8ff;
-    color: #155dfc;
+    color: var(--brand-signal-blue, #005fed);
   }
 
   body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-mobile-filter-trigger__status {
@@ -369,7 +369,7 @@
   }
 
   body.personal-accordion-page[data-audience]:not([data-audience="personal"]) .portfolio-filter-clear:not(:disabled):is(:hover, :focus-visible) {
-    color: #155dfc;
+    color: var(--brand-signal-blue, #005fed);
   }
 
   @media (min-width: 821px) and (max-width: 1439px) and ((min-height: 481px) or (pointer: fine) or (pointer: none)) {

@@ -1,0 +1,137 @@
+{
+  "schema": "starfall-authored-enemy-source-v1",
+  "fileId": "dew-slime",
+  "tool": "built-in image_gen",
+  "generationDate": "2026-09-19",
+  "source": "source.png",
+  "sourceSha256": "43a4a5ae7dec0ab206b43b545f39977ea045036d4149d80d23db5c183e5c4e51",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "grid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "sourceFacing": "right",
+  "floating": false,
+  "referenceRole": "Existing portrait and compact atlas define identity; Oracle and Glowcap studies define clean illustrated appearance and motion quality.",
+  "references": [
+    "img/project-starfall/enemies/dew-slime.png",
+    "img/project-starfall/animations/enemies/dew-slime-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Raw and packed contact sheets visually inspected; 48 coherent actors, transparent gutters, no clipped silhouette, consistent identity. In-game playback QA remains required.",
+    "animationReview": "pending-runtime-integration"
+  },
+  "import": {
+    "frameWidth": 160,
+    "frameHeight": 160,
+    "columns": 6,
+    "rows": 8,
+    "baseline": 150,
+    "anchorX": 80,
+    "gutter": 6,
+    "portraitFrame": 0,
+    "output": "img/project-starfall/animations/enemies/dew-slime-sheet.png",
+    "portrait": "img/project-starfall/enemies/dew-slime.png"
+  },
+  "rowPoseOrder": {
+    "attack": [
+      2,
+      3,
+      4,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      2,
+      3,
+      4,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "sourcePeakColumns": {
+      "attack": 2,
+      "projectile": 2
+    },
+    "note": "Peak then authored follow-through then reverse-order preparation poses retract toward rest. No synthesized interpolation."
+  },
+  "sharedScale": 0.7731111111111111,
+  "frames": {
+    "0": {
+      "anchor": {
+        "x": 90.5,
+        "y": 171
+      }
+    },
+    "1": {
+      "anchor": {
+        "x": 268.913049726933,
+        "y": 171
+      }
+    },
+    "2": {
+      "anchor": {
+        "x": 448.61957459039957,
+        "y": 171
+      }
+    },
+    "3": {
+      "anchor": {
+        "x": 627.0326243173325,
+        "y": 171
+      }
+    },
+    "4": {
+      "anchor": {
+        "x": 805.4456740442656,
+        "y": 171
+      }
+    },
+    "5": {
+      "anchor": {
+        "x": 985.1521989077321,
+        "y": 171
+      }
+    }
+  },
+  "registrationReview": {
+    "scope": "idle-horizontal only",
+    "status": "reviewed-horizontal",
+    "landmark": "Body base and face group; vertical squash, droplet flex, and blink retained.",
+    "correction": {
+      "source": "Explicit source-space horizontal anchors for six idle poses; equal-column centers are not anatomical anchors.",
+      "sourceScale": 0.7731111111111111,
+      "runtimeHorizontalTranslation": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        8
+      ],
+      "verticalChanges": false,
+      "otherRowsChanged": false
+    },
+    "evidencePath": "output/enemy-idle-alignment/dew-slime/verification.json",
+    "limits": "Horizontal registration review only. Original authored anatomy and pose changes remain. Does not certify other action rows or transitions."
+  }
+}

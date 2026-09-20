@@ -1,0 +1,1503 @@
+{
+  "inputPath": "C:\\Users\\clopt\\Documents\\coding\\Personal_Projects\\danielshort3.github.io\\output\\starfall-animation-samples\\oracle-cast-study.png",
+  "inputSha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8",
+  "generatedAt": "2026-09-19T20:33:52.331Z",
+  "source": {
+    "width": 1774,
+    "height": 887,
+    "format": "png",
+    "hasAlphaChannel": true,
+    "channels": 4,
+    "bytes": 1360887
+  },
+  "nominalGrid": {
+    "columns": 4,
+    "rows": 2,
+    "frameOrder": "row-major",
+    "dividesExactly": false,
+    "alphaThreshold": 16,
+    "gutterPixels": 4
+  },
+  "layout": {
+    "mode": "explicit-source-rectangles",
+    "metadataPath": "C:\\Users\\clopt\\Documents\\coding\\Personal_Projects\\danielshort3.github.io\\output\\starfall-animation-samples\\oracle-cast-study-metadata.json",
+    "measuredFrames": 8,
+    "coverage": {
+      "overlappingPixels": 0,
+      "overlappingVisiblePixels": 0,
+      "uncoveredPixels": 0,
+      "uncoveredVisiblePixels": 0
+    }
+  },
+  "warnings": [
+    "Image dimensions do not divide evenly into the nominal 4x2 grid; explicit measured rectangles were used."
+  ],
+  "cells": [
+    {
+      "frame": 0,
+      "row": 0,
+      "column": 0,
+      "sourceRect": {
+        "left": 0,
+        "top": 0,
+        "width": 444,
+        "height": 444
+      },
+      "bboxExclusive": [
+        64,
+        86,
+        392,
+        441
+      ],
+      "visibleWidth": 328,
+      "visibleHeight": 355,
+      "visiblePixels": 76107,
+      "visibleFraction": 0.38606342829315804,
+      "alphaMassPixels": 73078.02352941176,
+      "alphaWeightedCentroid": [
+        228.78302288351918,
+        267.65323197940035
+      ],
+      "transparentPixels": 110289,
+      "partialAlphaPixels": 86758,
+      "components": {
+        "connectivity": 8,
+        "alphaThreshold": 16,
+        "count": 3,
+        "largest": {
+          "pixels": 76105,
+          "maxAlpha": 255,
+          "alphaMass": 72956.07843139762,
+          "bboxExclusive": [
+            64,
+            86,
+            392,
+            441
+          ]
+        },
+        "detachedVisiblePixels": 2,
+        "detachedComponentsAtLeast4Pixels": [],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "faintAlphaComponents": {
+        "connectivity": 8,
+        "alphaThreshold": 1,
+        "count": 25,
+        "largest": {
+          "pixels": 86810,
+          "maxAlpha": 255,
+          "alphaMass": 73077.87843139136,
+          "bboxExclusive": [
+            49,
+            78,
+            404,
+            444
+          ]
+        },
+        "detachedVisiblePixels": 37,
+        "detachedComponentsAtLeast4Pixels": [
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              390,
+              164,
+              393,
+              167
+            ]
+          }
+        ],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "edgePixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "edgeContactSides": [],
+      "gutterPixelsBySide": {
+        "top": 0,
+        "bottom": 44,
+        "left": 0,
+        "right": 0
+      },
+      "gutterContactSides": [
+        "bottom"
+      ],
+      "exactRgbaSha256": "7f86f5555d3f1949cfb8403593f07331baf2a61c31faa6ec2c1413748ceb730f",
+      "visibleRgbaSha256": "3a25fcf115e6fc8f1ac4a9ce192cad09ba846182a12025c5105e0135a8454d7c"
+    },
+    {
+      "frame": 1,
+      "row": 0,
+      "column": 1,
+      "sourceRect": {
+        "left": 444,
+        "top": 0,
+        "width": 443,
+        "height": 444
+      },
+      "bboxExclusive": [
+        86,
+        121,
+        393,
+        441
+      ],
+      "visibleWidth": 307,
+      "visibleHeight": 320,
+      "visiblePixels": 63351,
+      "visibleFraction": 0.32208224025379784,
+      "alphaMassPixels": 61336.9568627451,
+      "alphaWeightedCentroid": [
+        240.6421605910239,
+        281.4392416969739
+      ],
+      "transparentPixels": 125470,
+      "partialAlphaPixels": 71111,
+      "components": {
+        "connectivity": 8,
+        "alphaThreshold": 16,
+        "count": 1,
+        "largest": {
+          "pixels": 63351,
+          "maxAlpha": 255,
+          "alphaMass": 61256.24313726816,
+          "bboxExclusive": [
+            86,
+            121,
+            393,
+            441
+          ]
+        },
+        "detachedVisiblePixels": 0,
+        "detachedComponentsAtLeast4Pixels": [],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "faintAlphaComponents": {
+        "connectivity": 8,
+        "alphaThreshold": 1,
+        "count": 83,
+        "largest": {
+          "pixels": 70964,
+          "maxAlpha": 255,
+          "alphaMass": 61335.945098050426,
+          "bboxExclusive": [
+            83,
+            112,
+            397,
+            444
+          ]
+        },
+        "detachedVisiblePixels": 258,
+        "detachedComponentsAtLeast4Pixels": [
+          {
+            "pixels": 103,
+            "maxAlpha": 1,
+            "alphaMass": 0.40392156862745,
+            "bboxExclusive": [
+              53,
+              192,
+              74,
+              206
+            ]
+          },
+          {
+            "pixels": 20,
+            "maxAlpha": 1,
+            "alphaMass": 0.0784313725490196,
+            "bboxExclusive": [
+              113,
+              66,
+              119,
+              73
+            ]
+          },
+          {
+            "pixels": 13,
+            "maxAlpha": 1,
+            "alphaMass": 0.050980392156862744,
+            "bboxExclusive": [
+              0,
+              154,
+              6,
+              159
+            ]
+          },
+          {
+            "pixels": 7,
+            "maxAlpha": 1,
+            "alphaMass": 0.027450980392156862,
+            "bboxExclusive": [
+              113,
+              61,
+              117,
+              65
+            ]
+          },
+          {
+            "pixels": 7,
+            "maxAlpha": 1,
+            "alphaMass": 0.027450980392156862,
+            "bboxExclusive": [
+              309,
+              65,
+              312,
+              69
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              53,
+              197,
+              56,
+              200
+            ]
+          }
+        ],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "edgePixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "edgeContactSides": [],
+      "gutterPixelsBySide": {
+        "top": 0,
+        "bottom": 15,
+        "left": 0,
+        "right": 0
+      },
+      "gutterContactSides": [
+        "bottom"
+      ],
+      "exactRgbaSha256": "80ecba1d6abc451d5f118328d248571dc4ec0e6d1f9660d2a6e1c5beb3c68bea",
+      "visibleRgbaSha256": "a3c6e62a0bb0d70121238cb3cf9c6ec3c850425bb5ff72e26f0896fd671fd911"
+    },
+    {
+      "frame": 2,
+      "row": 0,
+      "column": 2,
+      "sourceRect": {
+        "left": 887,
+        "top": 0,
+        "width": 444,
+        "height": 444
+      },
+      "bboxExclusive": [
+        86,
+        168,
+        363,
+        441
+      ],
+      "visibleWidth": 277,
+      "visibleHeight": 273,
+      "visiblePixels": 51879,
+      "visibleFraction": 0.26316350133917704,
+      "alphaMassPixels": 50243.376470588235,
+      "alphaWeightedCentroid": [
+        223.16528113626683,
+        306.77141694845193
+      ],
+      "transparentPixels": 138467,
+      "partialAlphaPixels": 58580,
+      "components": {
+        "connectivity": 8,
+        "alphaThreshold": 16,
+        "count": 2,
+        "largest": {
+          "pixels": 51878,
+          "maxAlpha": 255,
+          "alphaMass": 50174.18039215522,
+          "bboxExclusive": [
+            86,
+            168,
+            363,
+            441
+          ]
+        },
+        "detachedVisiblePixels": 1,
+        "detachedComponentsAtLeast4Pixels": [],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "faintAlphaComponents": {
+        "connectivity": 8,
+        "alphaThreshold": 1,
+        "count": 122,
+        "largest": {
+          "pixels": 58464,
+          "maxAlpha": 255,
+          "alphaMass": 50242.57254901655,
+          "bboxExclusive": [
+            80,
+            158,
+            371,
+            444
+          ]
+        },
+        "detachedVisiblePixels": 205,
+        "detachedComponentsAtLeast4Pixels": [
+          {
+            "pixels": 13,
+            "maxAlpha": 1,
+            "alphaMass": 0.050980392156862744,
+            "bboxExclusive": [
+              442,
+              116,
+              444,
+              125
+            ]
+          },
+          {
+            "pixels": 8,
+            "maxAlpha": 1,
+            "alphaMass": 0.03137254901960784,
+            "bboxExclusive": [
+              35,
+              34,
+              38,
+              39
+            ]
+          },
+          {
+            "pixels": 8,
+            "maxAlpha": 1,
+            "alphaMass": 0.03137254901960784,
+            "bboxExclusive": [
+              436,
+              114,
+              441,
+              119
+            ]
+          },
+          {
+            "pixels": 6,
+            "maxAlpha": 1,
+            "alphaMass": 0.023529411764705882,
+            "bboxExclusive": [
+              438,
+              76,
+              442,
+              79
+            ]
+          },
+          {
+            "pixels": 6,
+            "maxAlpha": 1,
+            "alphaMass": 0.023529411764705882,
+            "bboxExclusive": [
+              313,
+              382,
+              317,
+              385
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              265,
+              443,
+              270,
+              444
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              33,
+              36,
+              34,
+              40
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              442,
+              112,
+              444,
+              115
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              440,
+              118,
+              441,
+              122
+            ]
+          }
+        ],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "edgePixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "edgeContactSides": [],
+      "gutterPixelsBySide": {
+        "top": 0,
+        "bottom": 3,
+        "left": 0,
+        "right": 0
+      },
+      "gutterContactSides": [
+        "bottom"
+      ],
+      "exactRgbaSha256": "c8871f9b4539b322320d762c588c4039ffa3215484883dd2407d31a0b6600cf8",
+      "visibleRgbaSha256": "5945788f7b80b0c13757bfbd21ac6c3e608e9977499cb6212e71d58a5606e6a9"
+    },
+    {
+      "frame": 3,
+      "row": 0,
+      "column": 3,
+      "sourceRect": {
+        "left": 1331,
+        "top": 0,
+        "width": 443,
+        "height": 444
+      },
+      "bboxExclusive": [
+        58,
+        87,
+        384,
+        439
+      ],
+      "visibleWidth": 326,
+      "visibleHeight": 352,
+      "visiblePixels": 75733,
+      "visibleFraction": 0.3850334533178777,
+      "alphaMassPixels": 72964.29019607844,
+      "alphaWeightedCentroid": [
+        221.3160934379181,
+        268.3173947459875
+      ],
+      "transparentPixels": 110785,
+      "partialAlphaPixels": 85842,
+      "components": {
+        "connectivity": 8,
+        "alphaThreshold": 16,
+        "count": 2,
+        "largest": {
+          "pixels": 75732,
+          "maxAlpha": 255,
+          "alphaMass": 72848.73333336189,
+          "bboxExclusive": [
+            58,
+            87,
+            384,
+            439
+          ]
+        },
+        "detachedVisiblePixels": 1,
+        "detachedComponentsAtLeast4Pixels": [],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "faintAlphaComponents": {
+        "connectivity": 8,
+        "alphaThreshold": 1,
+        "count": 83,
+        "largest": {
+          "pixels": 85728,
+          "maxAlpha": 255,
+          "alphaMass": 72963.58823531804,
+          "bboxExclusive": [
+            53,
+            80,
+            397,
+            444
+          ]
+        },
+        "detachedVisiblePixels": 179,
+        "detachedComponentsAtLeast4Pixels": [
+          {
+            "pixels": 18,
+            "maxAlpha": 1,
+            "alphaMass": 0.07058823529411765,
+            "bboxExclusive": [
+              118,
+              126,
+              136,
+              127
+            ]
+          },
+          {
+            "pixels": 11,
+            "maxAlpha": 1,
+            "alphaMass": 0.043137254901960784,
+            "bboxExclusive": [
+              0,
+              117,
+              2,
+              127
+            ]
+          },
+          {
+            "pixels": 7,
+            "maxAlpha": 1,
+            "alphaMass": 0.027450980392156862,
+            "bboxExclusive": [
+              5,
+              121,
+              8,
+              125
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              19,
+              66,
+              22,
+              69
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              1,
+              73,
+              4,
+              77
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              53,
+              120,
+              54,
+              125
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              55,
+              120,
+              58,
+              123
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              3,
+              122,
+              4,
+              127
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              57,
+              295,
+              58,
+              300
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              115,
+              71,
+              117,
+              73
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              19,
+              82,
+              22,
+              85
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              3,
+              118,
+              5,
+              121
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              48,
+              118,
+              50,
+              121
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              307,
+              432,
+              309,
+              434
+            ]
+          }
+        ],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "edgePixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "edgeContactSides": [],
+      "gutterPixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "gutterContactSides": [],
+      "exactRgbaSha256": "b6a8ef1408e7974845e9ed0ebe297eb0335278d704c1869e7561861239e804dc",
+      "visibleRgbaSha256": "2748d5759d52178b170165b2a667d9b8b21c3659db61dbff73fccfa09affee20"
+    },
+    {
+      "frame": 4,
+      "row": 1,
+      "column": 0,
+      "sourceRect": {
+        "left": 0,
+        "top": 444,
+        "width": 444,
+        "height": 443
+      },
+      "bboxExclusive": [
+        54,
+        45,
+        404,
+        401
+      ],
+      "visibleWidth": 350,
+      "visibleHeight": 356,
+      "visiblePixels": 75824,
+      "visibleFraction": 0.385496105586399,
+      "alphaMassPixels": 73266.21960784314,
+      "alphaWeightedCentroid": [
+        231.07806128025402,
+        219.4763156505906
+      ],
+      "transparentPixels": 110699,
+      "partialAlphaPixels": 85942,
+      "components": {
+        "connectivity": 8,
+        "alphaThreshold": 16,
+        "count": 3,
+        "largest": {
+          "pixels": 75822,
+          "maxAlpha": 255,
+          "alphaMass": 73157.84705886026,
+          "bboxExclusive": [
+            54,
+            45,
+            404,
+            401
+          ]
+        },
+        "detachedVisiblePixels": 2,
+        "detachedComponentsAtLeast4Pixels": [],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "faintAlphaComponents": {
+        "connectivity": 8,
+        "alphaThreshold": 1,
+        "count": 84,
+        "largest": {
+          "pixels": 85611,
+          "maxAlpha": 255,
+          "alphaMass": 73264.69803924914,
+          "bboxExclusive": [
+            47,
+            38,
+            407,
+            413
+          ]
+        },
+        "detachedVisiblePixels": 382,
+        "detachedComponentsAtLeast4Pixels": [
+          {
+            "pixels": 177,
+            "maxAlpha": 2,
+            "alphaMass": 0.7176470588235275,
+            "bboxExclusive": [
+              161,
+              0,
+              198,
+              7
+            ]
+          },
+          {
+            "pixels": 89,
+            "maxAlpha": 1,
+            "alphaMass": 0.34901960784313646,
+            "bboxExclusive": [
+              230,
+              0,
+              266,
+              5
+            ]
+          },
+          {
+            "pixels": 12,
+            "maxAlpha": 1,
+            "alphaMass": 0.047058823529411764,
+            "bboxExclusive": [
+              382,
+              13,
+              385,
+              22
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              432,
+              115,
+              434,
+              117
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              418,
+              125,
+              421,
+              129
+            ]
+          }
+        ],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "edgePixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "edgeContactSides": [],
+      "gutterPixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "gutterContactSides": [],
+      "exactRgbaSha256": "6a0af323417931a5502a9067d5a64ab394f940cf14e494136f14fedf5e96468f",
+      "visibleRgbaSha256": "3471130b550696d447634d68f85aa9efbd440ee53fe22f22e6f87001c2ef631f"
+    },
+    {
+      "frame": 5,
+      "row": 1,
+      "column": 1,
+      "sourceRect": {
+        "left": 444,
+        "top": 444,
+        "width": 443,
+        "height": 443
+      },
+      "bboxExclusive": [
+        68,
+        54,
+        414,
+        399
+      ],
+      "visibleWidth": 346,
+      "visibleHeight": 345,
+      "visiblePixels": 75180,
+      "visibleFraction": 0.3830847545719978,
+      "alphaMassPixels": 72308.49019607843,
+      "alphaWeightedCentroid": [
+        239.0632159649302,
+        234.7732849422667
+      ],
+      "transparentPixels": 108270,
+      "partialAlphaPixels": 87874,
+      "components": {
+        "connectivity": 8,
+        "alphaThreshold": 16,
+        "count": 2,
+        "largest": {
+          "pixels": 75179,
+          "maxAlpha": 255,
+          "alphaMass": 72171.40000002293,
+          "bboxExclusive": [
+            68,
+            54,
+            414,
+            399
+          ]
+        },
+        "detachedVisiblePixels": 1,
+        "detachedComponentsAtLeast4Pixels": [],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "faintAlphaComponents": {
+        "connectivity": 8,
+        "alphaThreshold": 1,
+        "count": 89,
+        "largest": {
+          "pixels": 87296,
+          "maxAlpha": 255,
+          "alphaMass": 72305.65882354717,
+          "bboxExclusive": [
+            59,
+            49,
+            427,
+            411
+          ]
+        },
+        "detachedVisiblePixels": 683,
+        "detachedComponentsAtLeast4Pixels": [
+          {
+            "pixels": 294,
+            "maxAlpha": 3,
+            "alphaMass": 1.3058823529411725,
+            "bboxExclusive": [
+              177,
+              0,
+              223,
+              9
+            ]
+          },
+          {
+            "pixels": 197,
+            "maxAlpha": 1,
+            "alphaMass": 0.7725490196078408,
+            "bboxExclusive": [
+              256,
+              0,
+              295,
+              9
+            ]
+          },
+          {
+            "pixels": 15,
+            "maxAlpha": 1,
+            "alphaMass": 0.058823529411764705,
+            "bboxExclusive": [
+              414,
+              121,
+              417,
+              129
+            ]
+          },
+          {
+            "pixels": 14,
+            "maxAlpha": 1,
+            "alphaMass": 0.054901960784313725,
+            "bboxExclusive": [
+              422,
+              1,
+              425,
+              8
+            ]
+          },
+          {
+            "pixels": 11,
+            "maxAlpha": 1,
+            "alphaMass": 0.043137254901960784,
+            "bboxExclusive": [
+              51,
+              126,
+              54,
+              133
+            ]
+          },
+          {
+            "pixels": 7,
+            "maxAlpha": 1,
+            "alphaMass": 0.027450980392156862,
+            "bboxExclusive": [
+              420,
+              1,
+              421,
+              8
+            ]
+          },
+          {
+            "pixels": 7,
+            "maxAlpha": 1,
+            "alphaMass": 0.027450980392156862,
+            "bboxExclusive": [
+              383,
+              418,
+              387,
+              421
+            ]
+          },
+          {
+            "pixels": 6,
+            "maxAlpha": 1,
+            "alphaMass": 0.023529411764705882,
+            "bboxExclusive": [
+              224,
+              4,
+              227,
+              8
+            ]
+          },
+          {
+            "pixels": 6,
+            "maxAlpha": 1,
+            "alphaMass": 0.023529411764705882,
+            "bboxExclusive": [
+              418,
+              123,
+              419,
+              129
+            ]
+          },
+          {
+            "pixels": 6,
+            "maxAlpha": 1,
+            "alphaMass": 0.023529411764705882,
+            "bboxExclusive": [
+              385,
+              408,
+              389,
+              411
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              412,
+              124,
+              413,
+              129
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              426,
+              5,
+              427,
+              9
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              371,
+              21,
+              373,
+              23
+            ]
+          }
+        ],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "edgePixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "edgeContactSides": [],
+      "gutterPixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "gutterContactSides": [],
+      "exactRgbaSha256": "b40557ad286865b0fc5469468f615def331667e997b21be67034e987d71ed206",
+      "visibleRgbaSha256": "eafa4c3babd9b1305140fd0075f0ca39356938e0e35e345522740e12a5c7894f"
+    },
+    {
+      "frame": 6,
+      "row": 1,
+      "column": 2,
+      "sourceRect": {
+        "left": 887,
+        "top": 444,
+        "width": 444,
+        "height": 443
+      },
+      "bboxExclusive": [
+        69,
+        62,
+        389,
+        400
+      ],
+      "visibleWidth": 320,
+      "visibleHeight": 338,
+      "visiblePixels": 71249,
+      "visibleFraction": 0.3622363898887601,
+      "alphaMassPixels": 68534.10196078432,
+      "alphaWeightedCentroid": [
+        229.73980132747425,
+        236.62223947362457
+      ],
+      "transparentPixels": 115795,
+      "partialAlphaPixels": 80794,
+      "components": {
+        "connectivity": 8,
+        "alphaThreshold": 16,
+        "count": 4,
+        "largest": {
+          "pixels": 71246,
+          "maxAlpha": 255,
+          "alphaMass": 68424.80392158685,
+          "bboxExclusive": [
+            69,
+            62,
+            389,
+            400
+          ]
+        },
+        "detachedVisiblePixels": 3,
+        "detachedComponentsAtLeast4Pixels": [],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "faintAlphaComponents": {
+        "connectivity": 8,
+        "alphaThreshold": 1,
+        "count": 67,
+        "largest": {
+          "pixels": 80636,
+          "maxAlpha": 255,
+          "alphaMass": 68533.07843138672,
+          "bboxExclusive": [
+            62,
+            54,
+            392,
+            411
+          ]
+        },
+        "detachedVisiblePixels": 261,
+        "detachedComponentsAtLeast4Pixels": [
+          {
+            "pixels": 94,
+            "maxAlpha": 1,
+            "alphaMass": 0.3686274509803913,
+            "bboxExclusive": [
+              167,
+              0,
+              197,
+              4
+            ]
+          },
+          {
+            "pixels": 21,
+            "maxAlpha": 1,
+            "alphaMass": 0.08235294117647059,
+            "bboxExclusive": [
+              265,
+              0,
+              273,
+              6
+            ]
+          },
+          {
+            "pixels": 17,
+            "maxAlpha": 1,
+            "alphaMass": 0.06666666666666667,
+            "bboxExclusive": [
+              196,
+              0,
+              205,
+              4
+            ]
+          },
+          {
+            "pixels": 14,
+            "maxAlpha": 1,
+            "alphaMass": 0.054901960784313725,
+            "bboxExclusive": [
+              55,
+              91,
+              62,
+              96
+            ]
+          },
+          {
+            "pixels": 12,
+            "maxAlpha": 1,
+            "alphaMass": 0.047058823529411764,
+            "bboxExclusive": [
+              243,
+              0,
+              250,
+              2
+            ]
+          },
+          {
+            "pixels": 8,
+            "maxAlpha": 1,
+            "alphaMass": 0.03137254901960784,
+            "bboxExclusive": [
+              334,
+              49,
+              336,
+              56
+            ]
+          },
+          {
+            "pixels": 6,
+            "maxAlpha": 1,
+            "alphaMass": 0.023529411764705882,
+            "bboxExclusive": [
+              57,
+              258,
+              60,
+              262
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              332,
+              49,
+              333,
+              54
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              53,
+              88,
+              57,
+              90
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              11,
+              97,
+              14,
+              100
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              81,
+              384,
+              83,
+              387
+            ]
+          }
+        ],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "edgePixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "edgeContactSides": [],
+      "gutterPixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "gutterContactSides": [],
+      "exactRgbaSha256": "6d739549b701df02e0da872d3b9a2dc905b77798698a521826d6e21d3a4119b8",
+      "visibleRgbaSha256": "22b676fa509e7484cf60f0b0698e42e708cd003959c40b45dad46cff2afbf1b3"
+    },
+    {
+      "frame": 7,
+      "row": 1,
+      "column": 3,
+      "sourceRect": {
+        "left": 1331,
+        "top": 444,
+        "width": 443,
+        "height": 443
+      },
+      "bboxExclusive": [
+        64,
+        62,
+        378,
+        400
+      ],
+      "visibleWidth": 314,
+      "visibleHeight": 338,
+      "visiblePixels": 71037,
+      "visibleFraction": 0.36197381897487374,
+      "alphaMassPixels": 68300.86666666667,
+      "alphaWeightedCentroid": [
+        222.8525318284653,
+        235.79487419015325
+      ],
+      "transparentPixels": 114853,
+      "partialAlphaPixels": 81293,
+      "components": {
+        "connectivity": 8,
+        "alphaThreshold": 16,
+        "count": 4,
+        "largest": {
+          "pixels": 71034,
+          "maxAlpha": 255,
+          "alphaMass": 68180.06274511221,
+          "bboxExclusive": [
+            64,
+            62,
+            378,
+            400
+          ]
+        },
+        "detachedVisiblePixels": 3,
+        "detachedComponentsAtLeast4Pixels": [],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "faintAlphaComponents": {
+        "connectivity": 8,
+        "alphaThreshold": 1,
+        "count": 103,
+        "largest": {
+          "pixels": 81145,
+          "maxAlpha": 255,
+          "alphaMass": 68299.88235295242,
+          "bboxExclusive": [
+            55,
+            57,
+            381,
+            413
+          ]
+        },
+        "detachedVisiblePixels": 251,
+        "detachedComponentsAtLeast4Pixels": [
+          {
+            "pixels": 64,
+            "maxAlpha": 1,
+            "alphaMass": 0.2509803921568623,
+            "bboxExclusive": [
+              182,
+              0,
+              201,
+              6
+            ]
+          },
+          {
+            "pixels": 33,
+            "maxAlpha": 1,
+            "alphaMass": 0.12941176470588234,
+            "bboxExclusive": [
+              160,
+              0,
+              169,
+              6
+            ]
+          },
+          {
+            "pixels": 10,
+            "maxAlpha": 1,
+            "alphaMass": 0.0392156862745098,
+            "bboxExclusive": [
+              35,
+              127,
+              37,
+              135
+            ]
+          },
+          {
+            "pixels": 9,
+            "maxAlpha": 1,
+            "alphaMass": 0.03529411764705882,
+            "bboxExclusive": [
+              33,
+              125,
+              34,
+              134
+            ]
+          },
+          {
+            "pixels": 6,
+            "maxAlpha": 1,
+            "alphaMass": 0.023529411764705882,
+            "bboxExclusive": [
+              414,
+              397,
+              415,
+              403
+            ]
+          },
+          {
+            "pixels": 5,
+            "maxAlpha": 1,
+            "alphaMass": 0.0196078431372549,
+            "bboxExclusive": [
+              410,
+              399,
+              413,
+              403
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              355,
+              76,
+              356,
+              80
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              6,
+              256,
+              8,
+              258
+            ]
+          },
+          {
+            "pixels": 4,
+            "maxAlpha": 1,
+            "alphaMass": 0.01568627450980392,
+            "bboxExclusive": [
+              375,
+              387,
+              377,
+              389
+            ]
+          }
+        ],
+        "caution": "Disconnected pixels may be intended decoration or loose artifacts; this report does not remove them."
+      },
+      "edgePixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "edgeContactSides": [],
+      "gutterPixelsBySide": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "gutterContactSides": [],
+      "exactRgbaSha256": "4110f14e1cff78c30133825b0a7dcac8febc0a3c29f6cc1d36f033fb646ac81e",
+      "visibleRgbaSha256": "0b165f9e67a63a354ae2f9c18b7352e48cf3316a3bf09cac4741b5a569a910dc"
+    }
+  ],
+  "sequences": {
+    "visibleWidth": [
+      328,
+      307,
+      277,
+      326,
+      350,
+      346,
+      320,
+      314
+    ],
+    "visibleHeight": [
+      355,
+      320,
+      273,
+      352,
+      356,
+      345,
+      338,
+      338
+    ],
+    "visibleArea": [
+      76107,
+      63351,
+      51879,
+      75733,
+      75824,
+      75180,
+      71249,
+      71037
+    ],
+    "alphaMass": [
+      73078.02352941176,
+      61336.9568627451,
+      50243.376470588235,
+      72964.29019607844,
+      73266.21960784314,
+      72308.49019607843,
+      68534.10196078432,
+      68300.86666666667
+    ]
+  },
+  "exactVisibleDuplicateGroups": [],
+  "reviewLimits": [
+    "Dimension and pixel checks cannot establish coherent limb counts, cap-spot identity, deliberate poses, or loop quality; inspect every frame visually.",
+    "Widths, heights and area should change during a deliberately authored hop. Do not normalize or rescale individual cells from these metrics.",
+    "The checker does not crop, rewrite, rescale, clean alpha, or otherwise modify the candidate."
+  ]
+}

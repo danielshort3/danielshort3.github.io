@@ -1,0 +1,1990 @@
+{
+  "fileId": "mossback",
+  "sourceSha256": "927f174adf82b82b0f865e1b6810bda8097858cec8717e81a67950f788942a8e",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    196,
+    378,
+    559,
+    738,
+    922,
+    1105,
+    1283,
+    1448
+  ],
+  "sharedScale": 0.6679820627802691,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 92,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/mossback-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 715068,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 13,
+        "top": 42,
+        "width": 166,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 137,
+        "width": 166,
+        "height": 138,
+        "pixels": 16161
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 180
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 58,
+        "right": 138,
+        "bottom": 149,
+        "width": 111,
+        "height": 92,
+        "pixels": 7266,
+        "edgePixels": 0
+      },
+      "sha256": "8fef90b5f953cb6b9c1d279ccbc96e5ad2b1ddea1d9bbaf24dcc01b1c9b0ef02"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 196,
+        "top": 40,
+        "width": 161,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 139,
+        "width": 161,
+        "height": 140,
+        "pixels": 15841
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 180
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 30,
+        "top": 56,
+        "right": 137,
+        "bottom": 149,
+        "width": 108,
+        "height": 94,
+        "pixels": 7175,
+        "edgePixels": 0
+      },
+      "sha256": "2a54f27b7705114c7700e3cbbb280248ec86d7fa5ed10ef84e37809d9ed57b7d"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 373,
+        "top": 43,
+        "width": 166,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 136,
+        "width": 166,
+        "height": 137,
+        "pixels": 15613
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 180
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 27,
+        "top": 58,
+        "right": 137,
+        "bottom": 149,
+        "width": 111,
+        "height": 92,
+        "pixels": 7079,
+        "edgePixels": 0
+      },
+      "sha256": "be299121813319b6eed6f996954f9d28381c3c26e94115e54710354860f00fc3"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 554,
+        "top": 44,
+        "width": 164,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 134,
+        "width": 164,
+        "height": 135,
+        "pixels": 15480
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 180
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 59,
+        "right": 136,
+        "bottom": 148,
+        "width": 110,
+        "height": 90,
+        "pixels": 7005,
+        "edgePixels": 0
+      },
+      "sha256": "f0fd254d1057c89063f645283e68d26c13dd3f27c9f72fc8f04e4de2524d9e0f"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 734,
+        "top": 41,
+        "width": 165,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 138,
+        "width": 165,
+        "height": 139,
+        "pixels": 15973
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 180
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 57,
+        "right": 135,
+        "bottom": 149,
+        "width": 110,
+        "height": 93,
+        "pixels": 7176,
+        "edgePixels": 0
+      },
+      "sha256": "b9c26948a31a9f764b834b0b8a0c671f86a116ab84a76328f7f87d8ed5aa795c"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 913,
+        "top": 49,
+        "width": 164,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 130,
+        "width": 164,
+        "height": 131,
+        "pixels": 15186
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 180
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 62,
+        "right": 134,
+        "bottom": 149,
+        "width": 110,
+        "height": 88,
+        "pixels": 6891,
+        "edgePixels": 0
+      },
+      "sha256": "7cc3d11665d0961de707d712ebd653943f1cafba180ba8a15eee149071eb719a"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 10,
+        "top": 214,
+        "width": 169,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 137,
+        "width": 169,
+        "height": 138,
+        "pixels": 16242
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 355
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 56,
+        "right": 138,
+        "bottom": 147,
+        "width": 113,
+        "height": 92,
+        "pixels": 7293,
+        "edgePixels": 0
+      },
+      "sha256": "e836db08efe1ea5ee3678ff7bb5c15215695fb6834fb055f761e038d9ea8b4b0"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 197,
+        "top": 212,
+        "width": 162,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 142,
+        "width": 162,
+        "height": 143,
+        "pixels": 16158
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 355
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 30,
+        "top": 54,
+        "right": 137,
+        "bottom": 149,
+        "width": 108,
+        "height": 96,
+        "pixels": 7313,
+        "edgePixels": 0
+      },
+      "sha256": "4e2b079aa8687c92efc0e5e26b502449108c4979b8ba2a6af94629c72675602f"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 369,
+        "top": 217,
+        "width": 171,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 137,
+        "width": 171,
+        "height": 138,
+        "pixels": 15865
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 355
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 58,
+        "right": 137,
+        "bottom": 149,
+        "width": 114,
+        "height": 92,
+        "pixels": 7079,
+        "edgePixels": 0
+      },
+      "sha256": "101756d646236916f488c8da2af31833c86420019574058a490cf224b50ca71e"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 556,
+        "top": 211,
+        "width": 163,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 143,
+        "width": 163,
+        "height": 144,
+        "pixels": 15913
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 355
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 54,
+        "right": 136,
+        "bottom": 149,
+        "width": 109,
+        "height": 96,
+        "pixels": 7153,
+        "edgePixels": 0
+      },
+      "sha256": "2fa90bf33d0f370f54834bd87a67dad98e0a3cb6ca6c42b950a880474865d3fc"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 734,
+        "top": 216,
+        "width": 169,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 138,
+        "width": 169,
+        "height": 139,
+        "pixels": 16488
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 355
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 57,
+        "right": 138,
+        "bottom": 149,
+        "width": 113,
+        "height": 93,
+        "pixels": 7408,
+        "edgePixels": 0
+      },
+      "sha256": "69edb6eb1eb7834efebb4294e5c1bde63ab8a942006c5a8881edfc9fa7c30103"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 913,
+        "top": 216,
+        "width": 165,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 138,
+        "width": 165,
+        "height": 139,
+        "pixels": 15832
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 355
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 57,
+        "right": 134,
+        "bottom": 149,
+        "width": 110,
+        "height": 93,
+        "pixels": 7110,
+        "edgePixels": 0
+      },
+      "sha256": "568f29a63e9a7f0c11813feaf7db40ebca3b63e49b0797e1eab1eef9d6d78cd8"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 11,
+        "top": 400,
+        "width": 162,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 138,
+        "width": 162,
+        "height": 139,
+        "pixels": 16211
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 540
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 56,
+        "right": 134,
+        "bottom": 148,
+        "width": 108,
+        "height": 93,
+        "pixels": 7300,
+        "edgePixels": 0
+      },
+      "sha256": "c5ca74ab826199c8c7d272090d6bc6e929150c8ee70badc7cdbcbfededca62d2"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 191,
+        "top": 409,
+        "width": 164,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 130,
+        "width": 164,
+        "height": 131,
+        "pixels": 15612
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 540
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 62,
+        "right": 135,
+        "bottom": 149,
+        "width": 110,
+        "height": 88,
+        "pixels": 7080,
+        "edgePixels": 0
+      },
+      "sha256": "5d6a19f93fd37138107a7503e520c6d8ee24f7646092bb070c09ec5761a4d29e"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 372,
+        "top": 412,
+        "width": 164,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 126,
+        "width": 164,
+        "height": 127,
+        "pixels": 15099
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 540
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 64,
+        "right": 135,
+        "bottom": 148,
+        "width": 110,
+        "height": 85,
+        "pixels": 6833,
+        "edgePixels": 0
+      },
+      "sha256": "ea21050b24045f75c26c1cf6a2ead9a5013db3e904e1233c4b7955c2b7ff0622"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 551,
+        "top": 416,
+        "width": 162,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 123,
+        "width": 162,
+        "height": 124,
+        "pixels": 14791
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 540
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 67,
+        "right": 132,
+        "bottom": 149,
+        "width": 108,
+        "height": 83,
+        "pixels": 6655,
+        "edgePixels": 0
+      },
+      "sha256": "e049d0f91de252f32720f6ce522780bdd78867fd255bf778ea1f563ec977d50f"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 733,
+        "top": 411,
+        "width": 162,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 128,
+        "width": 162,
+        "height": 129,
+        "pixels": 15245
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 540
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 64,
+        "right": 133,
+        "bottom": 149,
+        "width": 108,
+        "height": 86,
+        "pixels": 6806,
+        "edgePixels": 0
+      },
+      "sha256": "a1b77bd43457f03a53c503624245624adfacd5ca913e297cde500795c737022e"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 910,
+        "top": 406,
+        "width": 162,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 132,
+        "width": 162,
+        "height": 133,
+        "pixels": 15605
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 540
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 60,
+        "right": 130,
+        "bottom": 148,
+        "width": 108,
+        "height": 89,
+        "pixels": 7022,
+        "edgePixels": 0
+      },
+      "sha256": "df69054fb004995b75d828865d32a83204f505b82ad5ab845d1df9a40d9ea5ac"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 11,
+        "top": 578,
+        "width": 172,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 138,
+        "width": 172,
+        "height": 139,
+        "pixels": 16432
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 718
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 56,
+        "right": 141,
+        "bottom": 148,
+        "width": 115,
+        "height": 93,
+        "pixels": 7389,
+        "edgePixels": 0
+      },
+      "sha256": "e9cb7582736cf41da2e477762e0284d72a116c6253f2adc8eaed0c87be8db431"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 189,
+        "top": 586,
+        "width": 178,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 177,
+        "bottom": 130,
+        "width": 178,
+        "height": 131,
+        "pixels": 16160
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 718
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 62,
+        "right": 143,
+        "bottom": 149,
+        "width": 119,
+        "height": 88,
+        "pixels": 7326,
+        "edgePixels": 0
+      },
+      "sha256": "1954621a7bcb69923cee38caf40b80f16a14b5d08f79bab7f14490b97a9127d5"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 373,
+        "top": 584,
+        "width": 191,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 190,
+        "bottom": 133,
+        "width": 191,
+        "height": 134,
+        "pixels": 16835
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 718
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 60,
+        "right": 154,
+        "bottom": 149,
+        "width": 128,
+        "height": 90,
+        "pixels": 7630,
+        "edgePixels": 0
+      },
+      "sha256": "3a1c80105d957497fb6819ea540bee26f9a6d546b79654fd2d4efeedc9c04bf7"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 552,
+        "top": 585,
+        "width": 180,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 179,
+        "bottom": 132,
+        "width": 180,
+        "height": 133,
+        "pixels": 16082
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 718
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 61,
+        "right": 145,
+        "bottom": 149,
+        "width": 120,
+        "height": 89,
+        "pixels": 7236,
+        "edgePixels": 0
+      },
+      "sha256": "ea7f1a10ef4ffc9cfd0785d5524d74694fca3b6f2ea71a121d9a487e0d2a6aad"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 736,
+        "top": 585,
+        "width": 164,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 132,
+        "width": 164,
+        "height": 133,
+        "pixels": 15565
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 718
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 28,
+        "top": 61,
+        "right": 137,
+        "bottom": 149,
+        "width": 110,
+        "height": 89,
+        "pixels": 7018,
+        "edgePixels": 0
+      },
+      "sha256": "d32317828d5391b923659e07720e7c967c6ac12fdebe316c861285179eeb35be"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 911,
+        "top": 586,
+        "width": 166,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 131,
+        "width": 166,
+        "height": 132,
+        "pixels": 15321
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 718
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 62,
+        "right": 134,
+        "bottom": 149,
+        "width": 111,
+        "height": 88,
+        "pixels": 6885,
+        "edgePixels": 0
+      },
+      "sha256": "51443cdc8104a71329ddf310ca9782e4f6c6af74ca1a16e182ed0cee55bc9a9c"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 13,
+        "top": 757,
+        "width": 165,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 141,
+        "width": 165,
+        "height": 142,
+        "pixels": 16306
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 899
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 55,
+        "right": 137,
+        "bottom": 149,
+        "width": 110,
+        "height": 95,
+        "pixels": 7320,
+        "edgePixels": 0
+      },
+      "sha256": "f8267f3aeeb6c7ad381448be3a9a66521ce54d4ee34113f5008cc63a8514e2a7"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 194,
+        "top": 767,
+        "width": 162,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 129,
+        "width": 162,
+        "height": 130,
+        "pixels": 15032
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 899
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 62,
+        "right": 135,
+        "bottom": 148,
+        "width": 108,
+        "height": 87,
+        "pixels": 6763,
+        "edgePixels": 0
+      },
+      "sha256": "18fb33ab82955de0b1fc36bc174e38a132efe5fa945e5005354b0960e7fe8bbd"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 373,
+        "top": 764,
+        "width": 161,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 134,
+        "width": 161,
+        "height": 135,
+        "pixels": 15323
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 899
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 27,
+        "top": 60,
+        "right": 134,
+        "bottom": 149,
+        "width": 108,
+        "height": 90,
+        "pixels": 6936,
+        "edgePixels": 0
+      },
+      "sha256": "6a580ffd97f6b4820db380276b4df080ba26885b0e27e65d5f840ea7d68337ff"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 554,
+        "top": 765,
+        "width": 160,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 134,
+        "width": 160,
+        "height": 135,
+        "pixels": 15264
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 899
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 60,
+        "right": 133,
+        "bottom": 149,
+        "width": 107,
+        "height": 90,
+        "pixels": 6858,
+        "edgePixels": 0
+      },
+      "sha256": "4623f9930f1d8421e273d0071f3a889aa38bb1cb9c05f0f52d857a4ead589a1f"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 732,
+        "top": 766,
+        "width": 167,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 133,
+        "width": 167,
+        "height": 134,
+        "pixels": 15564
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 899
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 25,
+        "top": 61,
+        "right": 136,
+        "bottom": 150,
+        "width": 112,
+        "height": 90,
+        "pixels": 7060,
+        "edgePixels": 0
+      },
+      "sha256": "a45c37658ca4561336c10834e659365f02ea596ccafcebecbb6dfc804924b464"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 915,
+        "top": 766,
+        "width": 162,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 132,
+        "width": 162,
+        "height": 133,
+        "pixels": 15301
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 899
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 26,
+        "top": 61,
+        "right": 133,
+        "bottom": 149,
+        "width": 108,
+        "height": 89,
+        "pixels": 6884,
+        "edgePixels": 0
+      },
+      "sha256": "ea0f21fc13f2911af71aeb5154b6ad8d54cec5d2e08e8ea75764df7a2fa09adf"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 12,
+        "top": 946,
+        "width": 163,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 134,
+        "width": 163,
+        "height": 135,
+        "pixels": 15678
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1082
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 59,
+        "right": 136,
+        "bottom": 148,
+        "width": 109,
+        "height": 90,
+        "pixels": 7044,
+        "edgePixels": 0
+      },
+      "sha256": "38a5f7fa4ee9024b324e9046b24b7cecc6e6ab09c87f3eaae4e36fd3597e72e5"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 193,
+        "top": 952,
+        "width": 158,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 129,
+        "width": 158,
+        "height": 130,
+        "pixels": 15283
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1082
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 63,
+        "right": 133,
+        "bottom": 149,
+        "width": 106,
+        "height": 87,
+        "pixels": 6908,
+        "edgePixels": 0
+      },
+      "sha256": "c5f4fc2709976a14453460a318ce9a7628d3c7f76e61b2d61cc82c3462d06e23"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 370,
+        "top": 965,
+        "width": 161,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 116,
+        "width": 161,
+        "height": 117,
+        "pixels": 13673
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1082
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 72,
+        "right": 132,
+        "bottom": 149,
+        "width": 108,
+        "height": 78,
+        "pixels": 6186,
+        "edgePixels": 0
+      },
+      "sha256": "94ed2db9b77f29f396d95b09ecdfa5f23852a9eafa755e9e01acc30686774773"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 549,
+        "top": 969,
+        "width": 162,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 111,
+        "width": 162,
+        "height": 112,
+        "pixels": 13313
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1082
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 75,
+        "right": 131,
+        "bottom": 149,
+        "width": 108,
+        "height": 75,
+        "pixels": 6011,
+        "edgePixels": 0
+      },
+      "sha256": "984ce42a55285891246d69ca930585769a87a47d928843e9dd835d9b976f474a"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 735,
+        "top": 946,
+        "width": 163,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 135,
+        "width": 163,
+        "height": 136,
+        "pixels": 15652
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1082
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 59,
+        "right": 135,
+        "bottom": 149,
+        "width": 109,
+        "height": 91,
+        "pixels": 7032,
+        "edgePixels": 0
+      },
+      "sha256": "d98e32e4064fcbb6519b2b5d2aad0e02731ce847730e13de29e3295504a01d02"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 913,
+        "top": 943,
+        "width": 165,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 138,
+        "width": 165,
+        "height": 139,
+        "pixels": 16082
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1082
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 57,
+        "right": 134,
+        "bottom": 149,
+        "width": 110,
+        "height": 93,
+        "pixels": 7227,
+        "edgePixels": 0
+      },
+      "sha256": "af638bcf31b2b459df0fff8790a0ea3fe634db6a76d9531cf044356f3aae5509"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 11,
+        "top": 1129,
+        "width": 168,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 134,
+        "width": 168,
+        "height": 135,
+        "pixels": 16114
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1264
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 60,
+        "right": 138,
+        "bottom": 149,
+        "width": 112,
+        "height": 90,
+        "pixels": 7191,
+        "edgePixels": 0
+      },
+      "sha256": "b5dcef2ac3addafd79d2a34652c218e964b3a823cff6e93dbbc634f5b411ff42"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 190,
+        "top": 1127,
+        "width": 164,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 136,
+        "width": 164,
+        "height": 137,
+        "pixels": 15706
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1264
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 58,
+        "right": 135,
+        "bottom": 149,
+        "width": 110,
+        "height": 92,
+        "pixels": 7113,
+        "edgePixels": 0
+      },
+      "sha256": "b57108d395821b36e4985d8eaa10c32064d149cd0d50f8fe1db883be2eebd7e8"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 367,
+        "top": 1142,
+        "width": 170,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 122,
+        "width": 170,
+        "height": 123,
+        "pixels": 15252
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1264
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 69,
+        "right": 136,
+        "bottom": 150,
+        "width": 114,
+        "height": 82,
+        "pixels": 6883,
+        "edgePixels": 0
+      },
+      "sha256": "8fe39735139603b164a9ab4a4e5cf6a358487d1ca97ee4c82b822f9ba4c8c5a2"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 554,
+        "top": 1131,
+        "width": 163,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 132,
+        "width": 163,
+        "height": 133,
+        "pixels": 15673
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1264
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 27,
+        "top": 61,
+        "right": 135,
+        "bottom": 149,
+        "width": 109,
+        "height": 89,
+        "pixels": 7060,
+        "edgePixels": 0
+      },
+      "sha256": "3dafe979925b7be76c4daab36b5cecbe7e1420d1dd9f50ed3b146f64dd0aaa4b"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 734,
+        "top": 1131,
+        "width": 165,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 133,
+        "width": 165,
+        "height": 134,
+        "pixels": 15732
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1264
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 61,
+        "right": 135,
+        "bottom": 150,
+        "width": 110,
+        "height": 90,
+        "pixels": 7125,
+        "edgePixels": 0
+      },
+      "sha256": "0aa5e2d9e15add3b8850c8ef2b1928e77358910f0caf6e2ce0a90a416cae79f9"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 913,
+        "top": 1131,
+        "width": 164,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 132,
+        "width": 164,
+        "height": 133,
+        "pixels": 15535
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1264
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 61,
+        "right": 134,
+        "bottom": 149,
+        "width": 110,
+        "height": 89,
+        "pixels": 7028,
+        "edgePixels": 0
+      },
+      "sha256": "60c9e1f624e088cc8a7a1e79b6c6ced4afa31f5f2dbf26fe055797176f25f3e2"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 12,
+        "top": 1300,
+        "width": 158,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 131,
+        "width": 158,
+        "height": 132,
+        "pixels": 15249
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1431
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 62,
+        "right": 133,
+        "bottom": 149,
+        "width": 106,
+        "height": 88,
+        "pixels": 6903,
+        "edgePixels": 0
+      },
+      "sha256": "042517d0556ce06b4b46d7de2da4cffb31942f95f98017e2f488db5e183407ca"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 192,
+        "top": 1313,
+        "width": 164,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 118,
+        "width": 164,
+        "height": 119,
+        "pixels": 14434
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1431
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 27,
+        "top": 71,
+        "right": 136,
+        "bottom": 149,
+        "width": 110,
+        "height": 79,
+        "pixels": 6514,
+        "edgePixels": 0
+      },
+      "sha256": "d5017fe55d01532732323f0cf0d126d9cedfd015fbd4524b15a637006eaeee17"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 368,
+        "top": 1322,
+        "width": 167,
+        "height": 109
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 108,
+        "width": 167,
+        "height": 109,
+        "pixels": 13090
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1431
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 77,
+        "right": 135,
+        "bottom": 149,
+        "width": 112,
+        "height": 73,
+        "pixels": 5921,
+        "edgePixels": 0
+      },
+      "sha256": "06f7158a3b23bf8a4942e5d1c6be649f4aab79b0472ecceea0c46955f8acbb80"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 549,
+        "top": 1334,
+        "width": 166,
+        "height": 97
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 96,
+        "width": 166,
+        "height": 97,
+        "pixels": 11826
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1431
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 85,
+        "right": 134,
+        "bottom": 149,
+        "width": 111,
+        "height": 65,
+        "pixels": 5330,
+        "edgePixels": 0
+      },
+      "sha256": "e61b1e38b66fde664240a88a9b4af799391d8e0b59347a412dd9994a4c2fc076"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 725,
+        "top": 1325,
+        "width": 177,
+        "height": 106
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 105,
+        "width": 177,
+        "height": 106,
+        "pixels": 13397
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1431
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 79,
+        "right": 137,
+        "bottom": 149,
+        "width": 118,
+        "height": 71,
+        "pixels": 6022,
+        "edgePixels": 0
+      },
+      "sha256": "ba72a32eac5889abc30c39d86288246eeb3b1b1c80f558282542421b154f3586"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 911,
+        "top": 1332,
+        "width": 164,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 98,
+        "width": 164,
+        "height": 99,
+        "pixels": 11892
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/mossback/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1431
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 84,
+        "right": 133,
+        "bottom": 149,
+        "width": 110,
+        "height": 66,
+        "pixels": 5381,
+        "edgePixels": 0
+      },
+      "sha256": "433e6a9c83b8da2c9d6fed498bd16d4a3c0583ae3fdadb29c1ac0555e2eb6b6e"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      2,
+      3,
+      4,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

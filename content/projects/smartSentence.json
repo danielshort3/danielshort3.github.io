@@ -61,7 +61,7 @@
     "bullets": [
       "Type a query (a phrase or full sentence).",
       "Adjust “Top results” to control how many matches are returned.",
-      "Click “Find Sentences” and review the ranked semantic matches.",
+      "Click “Search” and review the ranked semantic matches.",
       "If the demo is warming up after idle time, wait for the status to turn ready and try again."
     ]
   },
@@ -104,10 +104,10 @@
   },
   "order": 1,
   "mobilePreview": {
-    "image": "img/projects/smartSentence-preview.webp",
-    "width": 1280,
-    "height": 800,
-    "alt": "Sentence Search showing an example query and ranked matching passages from Alice in Wonderland."
+    "image": "img/projects/smartSentence-workspace-preview.webp",
+    "width": 1200,
+    "height": 962,
+    "alt": "Current Sentence Search workspace with a sample query, Search button, example prompts, and advanced settings."
   },
   "relatedProjectId": "chatbotLora"
 }

@@ -1,0 +1,5267 @@
+{
+  "commit": "d82b0b57600098089fd8b16ba410988b533dc8ef",
+  "player": {
+    "sheet": "img/project-starfall/animations/players/generic-player-sheet.png",
+    "frameWidth": 160,
+    "frameHeight": 160,
+    "states": {
+      "idle": {
+        "row": 0,
+        "frames": 6,
+        "fps": 5,
+        "loop": true,
+        "sequence": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          4,
+          3,
+          2,
+          1
+        ]
+      },
+      "run": {
+        "row": 1,
+        "frames": 6,
+        "fps": 10,
+        "loop": true
+      },
+      "jump": {
+        "row": 2,
+        "frames": 6,
+        "fps": 10,
+        "loop": false,
+        "holds": [
+          1,
+          1,
+          2,
+          2,
+          3,
+          3
+        ]
+      },
+      "fall": {
+        "row": 3,
+        "frames": 6,
+        "fps": 8,
+        "loop": false,
+        "holds": [
+          1,
+          1,
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      "climb": {
+        "row": 4,
+        "frames": 6,
+        "fps": 8,
+        "loop": true
+      },
+      "basic": {
+        "row": 5,
+        "frames": 6,
+        "fps": 16,
+        "loop": false
+      },
+      "skill": {
+        "row": 6,
+        "frames": 6,
+        "fps": 12,
+        "loop": false
+      },
+      "party": {
+        "row": 7,
+        "frames": 6,
+        "fps": 12,
+        "loop": false
+      },
+      "hit": {
+        "row": 8,
+        "frames": 6,
+        "fps": 16,
+        "loop": false
+      },
+      "defeat": {
+        "row": 9,
+        "frames": 6,
+        "fps": 9,
+        "loop": false
+      }
+    }
+  },
+  "enemies": {
+    "glassback": {
+      "sheet": "img/project-starfall/animations/enemies/shardling-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "riftLantern": {
+      "sheet": "img/project-starfall/animations/enemies/void-mote-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "faultSkitter": {
+      "sheet": "img/project-starfall/animations/enemies/clockbug-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "slimelet": {
+      "sheet": "img/project-starfall/animations/enemies/slimelet-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "dewSlime": {
+      "sheet": "img/project-starfall/animations/enemies/dew-slime-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "mossback": {
+      "sheet": "img/project-starfall/animations/enemies/mossback-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "thornSprout": {
+      "sheet": "img/project-starfall/animations/enemies/thorn-sprout-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "vineSnapper": {
+      "sheet": "img/project-starfall/animations/enemies/vine-snapper-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            5,
+            2,
+            5
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            3,
+            1,
+            4
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            3,
+            8
+          ]
+        }
+      }
+    },
+    "bristleBoar": {
+      "sheet": "img/project-starfall/animations/enemies/bristle-boar-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "briarStag": {
+      "sheet": "img/project-starfall/animations/enemies/briar-stag-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            6,
+            2,
+            6
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            2,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 10,
+          "loop": false,
+          "holds": [
+            4,
+            1,
+            3
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 13,
+          "loop": false,
+          "holds": [
+            3,
+            2,
+            4
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 11,
+          "loop": false,
+          "holds": [
+            2,
+            2,
+            3
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 9,
+          "loop": false,
+          "holds": [
+            4,
+            1,
+            4
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            4
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            3,
+            8
+          ]
+        }
+      }
+    },
+    "dustImp": {
+      "sheet": "img/project-starfall/animations/enemies/dust-imp-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "clockbug": {
+      "sheet": "img/project-starfall/animations/enemies/clockbug-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "rustRatchet": {
+      "sheet": "img/project-starfall/animations/enemies/rust-ratchet-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "coilSentry": {
+      "sheet": "img/project-starfall/animations/enemies/coil-sentry-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "scrapWarden": {
+      "sheet": "img/project-starfall/animations/enemies/scrap-warden-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "emberWisp": {
+      "sheet": "img/project-starfall/animations/enemies/ember-wisp-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "ashCrawler": {
+      "sheet": "img/project-starfall/animations/enemies/ash-crawler-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "lavaTick": {
+      "sheet": "img/project-starfall/animations/enemies/lava-tick-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "cinderSpitter": {
+      "sheet": "img/project-starfall/animations/enemies/cinder-spitter-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "banditCutter": {
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 6,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 11,
+          "loop": true,
+          "holds": [
+            1,
+            2,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 17,
+          "loop": false,
+          "holds": [
+            2,
+            1,
+            3
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "banditCutterDirect": {
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-direct-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 6,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 11,
+          "loop": true,
+          "holds": [
+            1,
+            2,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 17,
+          "loop": false,
+          "holds": [
+            2,
+            1,
+            3
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "banditCutterReference": {
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-reference-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 6,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 11,
+          "loop": true,
+          "holds": [
+            1,
+            2,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 17,
+          "loop": false,
+          "holds": [
+            2,
+            1,
+            3
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "banditCutterHybrid": {
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-hybrid-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 6,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 11,
+          "loop": true,
+          "holds": [
+            1,
+            2,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 17,
+          "loop": false,
+          "holds": [
+            2,
+            1,
+            3
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "banditCutterPuppet": {
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-puppet-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 6,
+          "loop": true,
+          "holds": [
+            5,
+            2,
+            5
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 10,
+          "loop": true,
+          "holds": [
+            2,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            2,
+            2,
+            3
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "banditThrower": {
+      "sheet": "img/project-starfall/animations/enemies/bandit-thrower-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 6,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 11,
+          "loop": false,
+          "holds": [
+            3,
+            1,
+            3
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 15,
+          "loop": false,
+          "holds": [
+            2,
+            1,
+            3
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "orebackBeetle": {
+      "sheet": "img/project-starfall/animations/enemies/oreback-beetle-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "glowcapHealer": {
+      "sheet": "img/project-starfall/animations/enemies/glowcap-healer-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "crackedMimic": {
+      "sheet": "img/project-starfall/animations/enemies/cracked-mimic-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "brambleking": {
+      "sheet": "img/project-starfall/animations/enemies/brambleking-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "clockworkTitan": {
+      "sheet": "img/project-starfall/animations/enemies/clockwork-titan-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "quarryColossus": {
+      "sheet": "img/project-starfall/animations/enemies/quarry-colossus-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "emberjawGolem": {
+      "sheet": "img/project-starfall/animations/enemies/emberjaw-golem-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "frostlingScout": {
+      "sheet": "img/project-starfall/animations/enemies/frostling-scout-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "shardling": {
+      "sheet": "img/project-starfall/animations/enemies/shardling-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "rimebackBrute": {
+      "sheet": "img/project-starfall/animations/enemies/rimeback-brute-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "glacierSentinel": {
+      "sheet": "img/project-starfall/animations/enemies/glacier-sentinel-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 4,
+          "loop": true,
+          "holds": [
+            7,
+            2,
+            7
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            4,
+            1,
+            5
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 6,
+          "loop": false,
+          "holds": [
+            1,
+            4,
+            9
+          ]
+        }
+      }
+    },
+    "snowglareWisp": {
+      "sheet": "img/project-starfall/animations/enemies/snowglare-wisp-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "icebloomOracle": {
+      "sheet": "img/project-starfall/animations/enemies/icebloom-oracle-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "galeHarrier": {
+      "sheet": "img/project-starfall/animations/enemies/gale-harrier-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "stormboundArcher": {
+      "sheet": "img/project-starfall/animations/enemies/stormbound-archer-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "thunderRam": {
+      "sheet": "img/project-starfall/animations/enemies/thunder-ram-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            6,
+            2,
+            6
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 12,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            3,
+            1,
+            3
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "cloudcallAcolyte": {
+      "sheet": "img/project-starfall/animations/enemies/cloudcall-acolyte-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "indexScribe": {
+      "sheet": "img/project-starfall/animations/enemies/index-scribe-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "lumenSentinel": {
+      "sheet": "img/project-starfall/animations/enemies/lumen-sentinel-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "voidMote": {
+      "sheet": "img/project-starfall/animations/enemies/void-mote-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "eclipseDuelist": {
+      "sheet": "img/project-starfall/animations/enemies/eclipse-duelist-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "riftAberration": {
+      "sheet": "img/project-starfall/animations/enemies/rift-aberration-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "stormbreakRoc": {
+      "sheet": "img/project-starfall/animations/enemies/stormbreak-roc-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "astralArchivist": {
+      "sheet": "img/project-starfall/animations/enemies/astral-archivist-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "eclipseSovereign": {
+      "sheet": "img/project-starfall/animations/enemies/eclipse-sovereign-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 8,
+          "loop": false,
+          "holds": [
+            3,
+            3,
+            4
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            2,
+            2,
+            3
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            3,
+            2,
+            4
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    },
+    "rimewarden": {
+      "sheet": "img/project-starfall/animations/enemies/rimewarden-compact-sheet.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "states": {
+        "idle": {
+          "row": 0,
+          "frames": 3,
+          "fps": 5,
+          "loop": true,
+          "holds": [
+            4,
+            2,
+            4
+          ]
+        },
+        "move": {
+          "row": 1,
+          "frames": 3,
+          "fps": 9,
+          "loop": true,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "telegraph": {
+          "row": 2,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "attack": {
+          "row": 3,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "projectile": {
+          "row": 4,
+          "frames": 3,
+          "fps": 14,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "buff": {
+          "row": 5,
+          "frames": 3,
+          "fps": 12,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "hit": {
+          "row": 6,
+          "frames": 3,
+          "fps": 16,
+          "loop": false,
+          "holds": [
+            1,
+            1,
+            2
+          ]
+        },
+        "defeat": {
+          "row": 7,
+          "frames": 3,
+          "fps": 7,
+          "loop": false,
+          "holds": [
+            1,
+            2,
+            5
+          ]
+        }
+      }
+    }
+  },
+  "registrations": {
+    "idle": [
+      {
+        "originX": 81,
+        "groundY": 153,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 153,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 76,
+        "groundY": 151,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 78,
+        "groundY": 153,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 79,
+        "groundY": 152,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 77,
+        "groundY": 153,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "run": [
+      {
+        "originX": 78,
+        "groundY": 149,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 77,
+        "groundY": 149,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 75,
+        "groundY": 138,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 78,
+        "groundY": 144,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 76,
+        "groundY": 141,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 77,
+        "groundY": 150,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "jump": [
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "fall": [
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "climb": [
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "basic": [
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "skill": [
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "party": [
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "hit": [
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      }
+    ],
+    "defeat": [
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      },
+      {
+        "originX": 80,
+        "groundY": 154,
+        "authoredBodyHeight": 143
+      }
+    ]
+  }
+}

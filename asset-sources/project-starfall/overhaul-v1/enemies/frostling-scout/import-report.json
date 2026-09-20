@@ -1,0 +1,1975 @@
+{
+  "fileId": "frostling-scout",
+  "sourceSha256": "444f687092d5fb41bf66d2c069c1da28e1618468202881002d097b96d00771b3",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    183,
+    359,
+    542,
+    722,
+    897,
+    1076,
+    1257,
+    1448
+  ],
+  "sharedScale": 0.6562114537444934,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 88,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/frostling-scout-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 700271,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [
+    "Exact repeated authored drawing 33 and 16; review intentional holds."
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 14,
+        "top": 32,
+        "width": 150,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 133,
+        "width": 150,
+        "height": 134,
+        "pixels": 11313
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 166
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 62,
+        "right": 127,
+        "bottom": 149,
+        "width": 98,
+        "height": 88,
+        "pixels": 4914,
+        "edgePixels": 0
+      },
+      "sha256": "c9702614305a3bc1e8d33825cc1fd0d94410ce2a2aa62d8e1183e20eabf8c04a"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 195,
+        "top": 30,
+        "width": 150,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 135,
+        "width": 150,
+        "height": 136,
+        "pixels": 11543
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 166
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 30,
+        "top": 61,
+        "right": 127,
+        "bottom": 149,
+        "width": 98,
+        "height": 89,
+        "pixels": 4967,
+        "edgePixels": 0
+      },
+      "sha256": "deed9162ebefaf5699a988de76736c3265470ef926dd1ecaa472ff5be61f9509"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 378,
+        "top": 30,
+        "width": 147,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 133,
+        "width": 147,
+        "height": 134,
+        "pixels": 11359
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 166
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 61,
+        "right": 126,
+        "bottom": 148,
+        "width": 96,
+        "height": 88,
+        "pixels": 4938,
+        "edgePixels": 0
+      },
+      "sha256": "309aad682bc28676a3b0c2f72aacd11923f388db32dd92fc18437e0843c2dcc0"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 558,
+        "top": 30,
+        "width": 149,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 135,
+        "width": 149,
+        "height": 136,
+        "pixels": 11660
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 166
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 61,
+        "right": 127,
+        "bottom": 149,
+        "width": 98,
+        "height": 89,
+        "pixels": 5063,
+        "edgePixels": 0
+      },
+      "sha256": "d9a5c11c1125c2b29fa94d140de43c6719ab25142c72a53b1652ef769e1b90f5"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 737,
+        "top": 30,
+        "width": 149,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 135,
+        "width": 149,
+        "height": 136,
+        "pixels": 11556
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 166
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 29,
+        "top": 61,
+        "right": 126,
+        "bottom": 149,
+        "width": 98,
+        "height": 89,
+        "pixels": 5027,
+        "edgePixels": 0
+      },
+      "sha256": "c32088e5999bd0df01f6b6c4ce0f9ecc122bdf93564b4052d60f43505afca35b"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 919,
+        "top": 30,
+        "width": 146,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 134,
+        "width": 146,
+        "height": 135,
+        "pixels": 11356
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-0.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 166
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 61,
+        "right": 125,
+        "bottom": 149,
+        "width": 96,
+        "height": 89,
+        "pixels": 4961,
+        "edgePixels": 0
+      },
+      "sha256": "82d7f7497c15dc873e92cadb85db601e477d307928c85f9ff6c38778d5c618be"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 13,
+        "top": 19,
+        "width": 157,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 137,
+        "width": 157,
+        "height": 138,
+        "pixels": 12214
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 157
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 59,
+        "right": 131,
+        "bottom": 149,
+        "width": 103,
+        "height": 91,
+        "pixels": 5349,
+        "edgePixels": 0
+      },
+      "sha256": "a100883f6153ceb528dfc6b9c5d40bbf91f2590ce3fd1b223e7ccdf86af20f14"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 192,
+        "top": 20,
+        "width": 157,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 136,
+        "width": 157,
+        "height": 137,
+        "pixels": 11859
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 157
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 60,
+        "right": 130,
+        "bottom": 149,
+        "width": 103,
+        "height": 90,
+        "pixels": 5147,
+        "edgePixels": 0
+      },
+      "sha256": "a15c189dabc9ba4aaa24c76b9cc6f4f297154094a5b4aa0646422f434355a09e"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 377,
+        "top": 20,
+        "width": 150,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 136,
+        "width": 150,
+        "height": 137,
+        "pixels": 11637
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 157
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 60,
+        "right": 127,
+        "bottom": 149,
+        "width": 98,
+        "height": 90,
+        "pixels": 5052,
+        "edgePixels": 0
+      },
+      "sha256": "f6377fc0e926c1f6b2b81a835cff6e4a9002994cd8b62e4a3f8fe6363b923ff2"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 551,
+        "top": 18,
+        "width": 151,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 138,
+        "width": 151,
+        "height": 139,
+        "pixels": 11937
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 157
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 59,
+        "right": 124,
+        "bottom": 149,
+        "width": 99,
+        "height": 91,
+        "pixels": 5160,
+        "edgePixels": 0
+      },
+      "sha256": "5f5b83f553ddd37a0ba4d3cb1706941adaa90e643b290e63614aa3eec469fec1"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 733,
+        "top": 19,
+        "width": 160,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 136,
+        "width": 160,
+        "height": 137,
+        "pixels": 12209
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 157
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 59,
+        "right": 131,
+        "bottom": 148,
+        "width": 105,
+        "height": 90,
+        "pixels": 5303,
+        "edgePixels": 0
+      },
+      "sha256": "ebb026e7d36fa74c07710771cf8c0fb5cb00a0459d4d2a72c751036f4b935812"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 916,
+        "top": 20,
+        "width": 155,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 135,
+        "width": 155,
+        "height": 136,
+        "pixels": 12062
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-1.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 157
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 60,
+        "right": 129,
+        "bottom": 148,
+        "width": 102,
+        "height": 89,
+        "pixels": 5242,
+        "edgePixels": 0
+      },
+      "sha256": "d35d0b4172605f82f46e73465b9fe5a2c4911e064cbc8454a448b6aa58b6e067"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 101,
+        "top": 110,
+        "width": 333,
+        "height": 354
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 332,
+        "bottom": 353,
+        "width": 333,
+        "height": 354,
+        "pixels": 75840
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/telegraph-supplement.png",
+      "scaleFactor": 0.3785310734463277,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 267.5,
+        "y": 464
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 62,
+        "right": 121,
+        "bottom": 149,
+        "width": 83,
+        "height": 88,
+        "pixels": 4801,
+        "edgePixels": 0
+      },
+      "sha256": "b288cbf7a7f41a2b404069c1e87fb33a1524f945523ccb59785245784eb502cd"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 591,
+        "top": 132,
+        "width": 327,
+        "height": 332
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 326,
+        "bottom": 331,
+        "width": 327,
+        "height": 332,
+        "pixels": 70753
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/telegraph-supplement.png",
+      "scaleFactor": 0.3785310734463277,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 754.5,
+        "y": 464
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 68,
+        "right": 119,
+        "bottom": 149,
+        "width": 81,
+        "height": 82,
+        "pixels": 4432,
+        "edgePixels": 0
+      },
+      "sha256": "f7e9d35c8ca59cd4c6dc7905844e8987fdcd5c97883f7acd11b762c0665f8890"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 1090,
+        "top": 114,
+        "width": 317,
+        "height": 350
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 316,
+        "bottom": 349,
+        "width": 317,
+        "height": 350,
+        "pixels": 74110
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/telegraph-supplement.png",
+      "scaleFactor": 0.3785310734463277,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1248.5,
+        "y": 464
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 63,
+        "right": 119,
+        "bottom": 149,
+        "width": 79,
+        "height": 87,
+        "pixels": 4688,
+        "edgePixels": 0
+      },
+      "sha256": "9bcb68b1a2696f8e76f387e438d438a724616196b5b1428a5b9753f3d83f1238"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 108,
+        "top": 567,
+        "width": 333,
+        "height": 386
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 332,
+        "bottom": 385,
+        "width": 333,
+        "height": 386,
+        "pixels": 80626
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/telegraph-supplement.png",
+      "scaleFactor": 0.3785310734463277,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 274.5,
+        "y": 953
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 39,
+        "top": 54,
+        "right": 121,
+        "bottom": 149,
+        "width": 83,
+        "height": 96,
+        "pixels": 5112,
+        "edgePixels": 0
+      },
+      "sha256": "dd3465ed01412616eb9ea46539e92d19820a1f818e68df3ca1479bbd6efb0b8f"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 600,
+        "top": 565,
+        "width": 330,
+        "height": 388
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 329,
+        "bottom": 387,
+        "width": 330,
+        "height": 388,
+        "pixels": 79871
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/telegraph-supplement.png",
+      "scaleFactor": 0.3785310734463277,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 765,
+        "y": 953
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 54,
+        "right": 120,
+        "bottom": 149,
+        "width": 82,
+        "height": 96,
+        "pixels": 5033,
+        "edgePixels": 0
+      },
+      "sha256": "8bb0f399412aaf6cef161c9764df33d767d3c3f9f6f7f2bb40b7fbe4be1759b9"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 1108,
+        "top": 565,
+        "width": 329,
+        "height": 388
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 328,
+        "bottom": 387,
+        "width": 329,
+        "height": 388,
+        "pixels": 79166
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/telegraph-supplement.png",
+      "scaleFactor": 0.3785310734463277,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 1272.5,
+        "y": 953
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 54,
+        "right": 120,
+        "bottom": 149,
+        "width": 82,
+        "height": 96,
+        "pixels": 5032,
+        "edgePixels": 0
+      },
+      "sha256": "94a531c8419b7f30c2d5c9e41445b6bec373448d647bec3ab1908c8336b34e02"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 14,
+        "top": 18,
+        "width": 190,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 189,
+        "bottom": 141,
+        "width": 190,
+        "height": 142,
+        "pixels": 12921
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 160
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 30,
+        "top": 57,
+        "right": 154,
+        "bottom": 149,
+        "width": 125,
+        "height": 93,
+        "pixels": 5618,
+        "edgePixels": 0
+      },
+      "sha256": "0c27d8d47aa5e9819f39d1937ac5213dd8b43fdc52ea1117c85100a3cd35658b"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 205,
+        "top": 18,
+        "width": 175,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 144,
+        "width": 175,
+        "height": 145,
+        "pixels": 13813
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 160
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 36,
+        "top": 57,
+        "right": 150,
+        "bottom": 151,
+        "width": 115,
+        "height": 95,
+        "pixels": 5996,
+        "edgePixels": 0
+      },
+      "sha256": "91684de62c0269eeb4469f01b7336361769c6be88b30c62011d37fc71ff4c659"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 393,
+        "top": 19,
+        "width": 138,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 137,
+        "bottom": 143,
+        "width": 138,
+        "height": 144,
+        "pixels": 11980
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 160
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 57,
+        "right": 131,
+        "bottom": 150,
+        "width": 91,
+        "height": 94,
+        "pixels": 5234,
+        "edgePixels": 0
+      },
+      "sha256": "0d4ec523e926bfd064d23bdf71426f38158cfccccc3fcd9e7c90d03ac44d764a"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 554,
+        "top": 20,
+        "width": 155,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 138,
+        "width": 155,
+        "height": 139,
+        "pixels": 12144
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 160
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 58,
+        "right": 129,
+        "bottom": 148,
+        "width": 102,
+        "height": 91,
+        "pixels": 5284,
+        "edgePixels": 0
+      },
+      "sha256": "4b67faaa4126aca013d166aa378620b6ca38f3af5a4a3e3f8a8d820514fa61bf"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 732,
+        "top": 21,
+        "width": 159,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 136,
+        "width": 159,
+        "height": 137,
+        "pixels": 11941
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 160
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 59,
+        "right": 129,
+        "bottom": 148,
+        "width": 104,
+        "height": 90,
+        "pixels": 5182,
+        "edgePixels": 0
+      },
+      "sha256": "a79341861d1d54540f87f445fb1782383eab1cee59e889a0c198a1d5c35e68e3"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 920,
+        "top": 21,
+        "width": 151,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 137,
+        "width": 151,
+        "height": 138,
+        "pixels": 11811
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-3.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 160
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 59,
+        "right": 128,
+        "bottom": 149,
+        "width": 99,
+        "height": 91,
+        "pixels": 5165,
+        "edgePixels": 0
+      },
+      "sha256": "3ce248cf8c34102c2a9585e31f2e9e46f30431cdaa63876e0f654d4b2857f3ec"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 16,
+        "top": 17,
+        "width": 155,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 138,
+        "width": 155,
+        "height": 139,
+        "pixels": 12256
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 157
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 58,
+        "right": 132,
+        "bottom": 148,
+        "width": 102,
+        "height": 91,
+        "pixels": 5329,
+        "edgePixels": 0
+      },
+      "sha256": "668ef98e23eddf86ec63098021b8d4996a9b0ce363190d1c8c0e6107c54e0222"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 194,
+        "top": 16,
+        "width": 166,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 139,
+        "width": 166,
+        "height": 140,
+        "pixels": 13147
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 157
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 57,
+        "right": 137,
+        "bottom": 148,
+        "width": 109,
+        "height": 92,
+        "pixels": 5706,
+        "edgePixels": 0
+      },
+      "sha256": "0d72cd59cc5c4f2e2fafaa359379fba9faa7e753501b0a0414ecdbe410499ed6"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 378,
+        "top": 17,
+        "width": 150,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 139,
+        "width": 150,
+        "height": 140,
+        "pixels": 12318
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 157
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 58,
+        "right": 128,
+        "bottom": 149,
+        "width": 98,
+        "height": 92,
+        "pixels": 5343,
+        "edgePixels": 0
+      },
+      "sha256": "ea28a5fcc597e3ec998ac092088477b3fad4ee86ff85f6520baf5872fc9d12b0"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 554,
+        "top": 17,
+        "width": 164,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 138,
+        "width": 164,
+        "height": 139,
+        "pixels": 12521
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 157
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 58,
+        "right": 135,
+        "bottom": 148,
+        "width": 108,
+        "height": 91,
+        "pixels": 5455,
+        "edgePixels": 0
+      },
+      "sha256": "3c0c79dc71fb57b6a317e5d8db96d0068e577662783dcc4c9481125fdb617d66"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 745,
+        "top": 23,
+        "width": 148,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 133,
+        "width": 148,
+        "height": 134,
+        "pixels": 11815
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 157
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 62,
+        "right": 130,
+        "bottom": 149,
+        "width": 97,
+        "height": 88,
+        "pixels": 5128,
+        "edgePixels": 0
+      },
+      "sha256": "fcad423f33a78846043a86ab1e16e781f0627b8c6cc8f76ed8394da083f34a6d"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 920,
+        "top": 19,
+        "width": 151,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 137,
+        "width": 151,
+        "height": 138,
+        "pixels": 12041
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-4.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 157
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 59,
+        "right": 128,
+        "bottom": 149,
+        "width": 99,
+        "height": 91,
+        "pixels": 5254,
+        "edgePixels": 0
+      },
+      "sha256": "a61fcdab53668805349e30839809b394ae7ddfdbde43e4159a198f175c9f8d88"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 27,
+        "top": 19,
+        "width": 127,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 141,
+        "width": 127,
+        "height": 142,
+        "pixels": 11835
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 163
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 56,
+        "right": 120,
+        "bottom": 148,
+        "width": 83,
+        "height": 93,
+        "pixels": 5104,
+        "edgePixels": 0
+      },
+      "sha256": "0643916fbd06c2954eeacf0e52c8ccb8679db3fdfeaa6ef05fe41b5b348b7aa1"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 208,
+        "top": 19,
+        "width": 122,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 121,
+        "bottom": 143,
+        "width": 122,
+        "height": 144,
+        "pixels": 11962
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 163
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 56,
+        "right": 117,
+        "bottom": 149,
+        "width": 80,
+        "height": 94,
+        "pixels": 5162,
+        "edgePixels": 0
+      },
+      "sha256": "c5fb268c668dbc1c6603833a534ba4031463935616328aaaab719aef59615d5d"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 385,
+        "top": 20,
+        "width": 119,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 118,
+        "bottom": 142,
+        "width": 119,
+        "height": 143,
+        "pixels": 11151
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 163
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 56,
+        "right": 113,
+        "bottom": 149,
+        "width": 78,
+        "height": 94,
+        "pixels": 4845,
+        "edgePixels": 0
+      },
+      "sha256": "f2d55b63ef579ac60bb24e766b4d1e809c7253bd06cef16072ef5319f5b64a4e"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 600,
+        "top": 565,
+        "width": 330,
+        "height": 388
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 329,
+        "bottom": 387,
+        "width": 330,
+        "height": 388,
+        "pixels": 79871
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/telegraph-supplement.png",
+      "scaleFactor": 0.3785310734463277,
+      "overrideAnchor": {
+        "x": 765,
+        "y": 953
+      },
+      "anchor": {
+        "x": 765,
+        "y": 953
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 39,
+        "top": 54,
+        "right": 120,
+        "bottom": 149,
+        "width": 82,
+        "height": 96,
+        "pixels": 5033,
+        "edgePixels": 0
+      },
+      "sha256": "8bb0f399412aaf6cef161c9764df33d767d3c3f9f6f7f2bb40b7fbe4be1759b9"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 753,
+        "top": 19,
+        "width": 123,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 145,
+        "width": 123,
+        "height": 146,
+        "pixels": 11637
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 163
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 40,
+        "top": 56,
+        "right": 120,
+        "bottom": 151,
+        "width": 81,
+        "height": 96,
+        "pixels": 5070,
+        "edgePixels": 0
+      },
+      "sha256": "9c36e86abb1ab199f98fc398c700f38c2a1839fe8fe439875f6d51a9df1ac38a"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 919,
+        "top": 19,
+        "width": 151,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 142,
+        "width": 151,
+        "height": 143,
+        "pixels": 12264
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-5.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 163
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 56,
+        "right": 128,
+        "bottom": 149,
+        "width": 99,
+        "height": 94,
+        "pixels": 5330,
+        "edgePixels": 0
+      },
+      "sha256": "50cee3b12a7fa124781b85f534cd3c4935aac94ae5a0f35bc4157cc0930be67d"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 22,
+        "top": 15,
+        "width": 148,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 145,
+        "width": 148,
+        "height": 146,
+        "pixels": 13712
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 162
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 54,
+        "right": 131,
+        "bottom": 149,
+        "width": 97,
+        "height": 96,
+        "pixels": 5948,
+        "edgePixels": 0
+      },
+      "sha256": "7d29aedd6b359235e96a2e3bb08c3cd36aebbd3af2af1bce68da7907979679a2"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 201,
+        "top": 21,
+        "width": 149,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 141,
+        "width": 149,
+        "height": 142,
+        "pixels": 12369
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 162
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 57,
+        "right": 131,
+        "bottom": 149,
+        "width": 98,
+        "height": 93,
+        "pixels": 5370,
+        "edgePixels": 0
+      },
+      "sha256": "42f7d5071a464997665915095280b9e4a2f717bd4421f10ff14e2e1e7b4c7193"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 384,
+        "top": 26,
+        "width": 135,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 138,
+        "width": 135,
+        "height": 139,
+        "pixels": 12004
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 162
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 61,
+        "right": 123,
+        "bottom": 151,
+        "width": 89,
+        "height": 91,
+        "pixels": 5235,
+        "edgePixels": 0
+      },
+      "sha256": "0ad32304880fda06f22dbc935d3c594dcd828ed3efe0473151688fad1efe0bb1"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 558,
+        "top": 38,
+        "width": 143,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 123,
+        "width": 143,
+        "height": 124,
+        "pixels": 10890
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 162
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 30,
+        "top": 69,
+        "right": 123,
+        "bottom": 149,
+        "width": 94,
+        "height": 81,
+        "pixels": 4729,
+        "edgePixels": 0
+      },
+      "sha256": "b667c80a20f53f0ed27d9011710c190e03c21cabff6c9bb2df6ad404b7ad94d9"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 738,
+        "top": 33,
+        "width": 150,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 128,
+        "width": 150,
+        "height": 129,
+        "pixels": 11552
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 162
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 30,
+        "top": 65,
+        "right": 127,
+        "bottom": 149,
+        "width": 98,
+        "height": 85,
+        "pixels": 5043,
+        "edgePixels": 0
+      },
+      "sha256": "628417236c6c5f63909e354519b8b6ec8a2ccf3c084db77c35f26190e72379df"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 918,
+        "top": 19,
+        "width": 153,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 141,
+        "width": 153,
+        "height": 142,
+        "pixels": 12428
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-6.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 162
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 56,
+        "right": 128,
+        "bottom": 148,
+        "width": 100,
+        "height": 93,
+        "pixels": 5357,
+        "edgePixels": 0
+      },
+      "sha256": "b7d13b03841b6236050c9edb76337fbb2ee18475cadb426038714361b4b148ec"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 12,
+        "top": 17,
+        "width": 147,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 140,
+        "width": 147,
+        "height": 141,
+        "pixels": 13527
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 161
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 56,
+        "right": 123,
+        "bottom": 148,
+        "width": 96,
+        "height": 93,
+        "pixels": 5905,
+        "edgePixels": 0
+      },
+      "sha256": "37907f40b5f328e17dce8ce349346c89d62457c2826e52ced47baa2e797a0d8a"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 186,
+        "top": 20,
+        "width": 162,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 136,
+        "width": 162,
+        "height": 137,
+        "pixels": 13817
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 161
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 57,
+        "right": 129,
+        "bottom": 146,
+        "width": 106,
+        "height": 90,
+        "pixels": 6008,
+        "edgePixels": 0
+      },
+      "sha256": "3752692bdac5eacf7ed4207e29823eccefb7c3635e89ac29d554f20787de14de"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 369,
+        "top": 33,
+        "width": 162,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 126,
+        "width": 162,
+        "height": 127,
+        "pixels": 11800
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 161
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 66,
+        "right": 130,
+        "bottom": 148,
+        "width": 106,
+        "height": 83,
+        "pixels": 5076,
+        "edgePixels": 0
+      },
+      "sha256": "65943bfd523e64a4ab1b0bb517e0d0f30fd1d2b9e75c297c603ea0f0cd2412b3"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 551,
+        "top": 48,
+        "width": 167,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 112,
+        "width": 167,
+        "height": 113,
+        "pixels": 11772
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 161
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 76,
+        "right": 135,
+        "bottom": 149,
+        "width": 110,
+        "height": 74,
+        "pixels": 5145,
+        "edgePixels": 0
+      },
+      "sha256": "915126cbdb96031d09e5ee698a577102549321bc5ed5f18c7c27e0f101a4d1cb"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 734,
+        "top": 62,
+        "width": 173,
+        "height": 99
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 98,
+        "width": 173,
+        "height": 99,
+        "pixels": 10483
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 161
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 27,
+        "top": 85,
+        "right": 140,
+        "bottom": 149,
+        "width": 114,
+        "height": 65,
+        "pixels": 4568,
+        "edgePixels": 0
+      },
+      "sha256": "561c52cd450c2cac065c1fcc44d8f7d100ec000f419102123ea1e3eee6558be1"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 918,
+        "top": 71,
+        "width": 153,
+        "height": 96
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 95,
+        "width": 153,
+        "height": 96,
+        "pixels": 9813
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/frostling-scout/derived/source-row-7.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 161
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 91,
+        "right": 128,
+        "bottom": 153,
+        "width": 100,
+        "height": 63,
+        "pixels": 4254,
+        "edgePixels": 0
+      },
+      "sha256": "962c03aa9e38e3869dae4f610dcc7a69c967c24538f726120b5e11ecdd7d82e0"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {
+    "33": {
+      "row": 2,
+      "column": 4
+    }
+  },
+  "rowPoseOrder": {}
+}

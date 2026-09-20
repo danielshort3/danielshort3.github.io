@@ -1,0 +1,233 @@
+{
+  "url": "http://127.0.0.1:4187/",
+  "viewports": [
+    {
+      "width": 736,
+      "sampleResults": [
+        {
+          "scrub": 0,
+          "elapsed": 0,
+          "frames": [
+            0,
+            0
+          ]
+        },
+        {
+          "scrub": 100,
+          "elapsed": 0.12,
+          "frames": [
+            0,
+            0
+          ]
+        },
+        {
+          "scrub": 333,
+          "elapsed": 0.3996,
+          "frames": [
+            0,
+            1
+          ]
+        },
+        {
+          "scrub": 500,
+          "elapsed": 0.6,
+          "frames": [
+            0,
+            3
+          ]
+        },
+        {
+          "scrub": 750,
+          "elapsed": 0.8999999999999999,
+          "frames": [
+            1,
+            6
+          ]
+        },
+        {
+          "scrub": 999,
+          "elapsed": 1.1987999999999999,
+          "frames": [
+            1,
+            7
+          ]
+        }
+      ],
+      "persistenceEcho": {
+        "before": 0.3996,
+        "after": 0.3996,
+        "result": "passed"
+      },
+      "inspectedFrames": {
+        "before": 3,
+        "after": 8
+      },
+      "visibleBounds": "passed",
+      "pauseResumeStepSpeedRestore": "passed",
+      "layout": {
+        "viewport": 704,
+        "scrollWidth": 704,
+        "controls": [
+          "speed",
+          "zoom",
+          "play",
+          "step",
+          "scrub"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "width": 390,
+      "sampleResults": [
+        {
+          "scrub": 0,
+          "elapsed": 0,
+          "frames": [
+            0,
+            0
+          ]
+        },
+        {
+          "scrub": 100,
+          "elapsed": 0.12,
+          "frames": [
+            0,
+            0
+          ]
+        },
+        {
+          "scrub": 333,
+          "elapsed": 0.3996,
+          "frames": [
+            0,
+            1
+          ]
+        },
+        {
+          "scrub": 500,
+          "elapsed": 0.6,
+          "frames": [
+            0,
+            3
+          ]
+        },
+        {
+          "scrub": 750,
+          "elapsed": 0.8999999999999999,
+          "frames": [
+            1,
+            6
+          ]
+        },
+        {
+          "scrub": 999,
+          "elapsed": 1.1987999999999999,
+          "frames": [
+            1,
+            7
+          ]
+        }
+      ],
+      "persistenceEcho": {
+        "before": 0.3996,
+        "after": 0.3996,
+        "result": "passed"
+      },
+      "inspectedFrames": {
+        "before": 3,
+        "after": 8
+      },
+      "visibleBounds": "passed",
+      "pauseResumeStepSpeedRestore": "passed",
+      "layout": {
+        "viewport": 358,
+        "scrollWidth": 358,
+        "controls": [
+          "speed",
+          "zoom",
+          "play",
+          "step",
+          "scrub"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "width": 320,
+      "sampleResults": [
+        {
+          "scrub": 0,
+          "elapsed": 0,
+          "frames": [
+            0,
+            0
+          ]
+        },
+        {
+          "scrub": 100,
+          "elapsed": 0.12,
+          "frames": [
+            0,
+            0
+          ]
+        },
+        {
+          "scrub": 333,
+          "elapsed": 0.3996,
+          "frames": [
+            0,
+            1
+          ]
+        },
+        {
+          "scrub": 500,
+          "elapsed": 0.6,
+          "frames": [
+            0,
+            3
+          ]
+        },
+        {
+          "scrub": 750,
+          "elapsed": 0.8999999999999999,
+          "frames": [
+            1,
+            6
+          ]
+        },
+        {
+          "scrub": 999,
+          "elapsed": 1.1987999999999999,
+          "frames": [
+            1,
+            7
+          ]
+        }
+      ],
+      "persistenceEcho": {
+        "before": 0.3996,
+        "after": 0.3996,
+        "result": "passed"
+      },
+      "inspectedFrames": {
+        "before": 3,
+        "after": 8
+      },
+      "visibleBounds": "passed",
+      "pauseResumeStepSpeedRestore": "passed",
+      "layout": {
+        "viewport": 288,
+        "scrollWidth": 288,
+        "controls": [
+          "speed",
+          "zoom",
+          "play",
+          "step",
+          "scrub"
+        ]
+      },
+      "errors": []
+    }
+  ]
+}

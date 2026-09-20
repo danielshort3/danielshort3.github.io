@@ -1,0 +1,907 @@
+{
+  "source": "mushroom-motion-reference.gif",
+  "width": 220,
+  "height": 219,
+  "frames": 41,
+  "durationMs": 5390,
+  "durationsMs": [
+    130,
+    130,
+    130,
+    140,
+    130,
+    130,
+    130,
+    130,
+    130,
+    140,
+    130,
+    130,
+    130,
+    130,
+    130,
+    140,
+    130,
+    130,
+    130,
+    130,
+    130,
+    130,
+    140,
+    130,
+    130,
+    130,
+    130,
+    130,
+    140,
+    130,
+    130,
+    130,
+    130,
+    130,
+    140,
+    130,
+    130,
+    130,
+    130,
+    130,
+    130
+  ],
+  "uniqueDecodedFrames": 37,
+  "exactRepeatedFrames": [
+    [
+      0,
+      1,
+      2
+    ],
+    [
+      17,
+      18
+    ],
+    [
+      39,
+      40
+    ]
+  ],
+  "allFramesOpaque": true,
+  "records": [
+    {
+      "frame": 0,
+      "startMs": 0,
+      "durationMs": 130,
+      "hash": "14cdb692bc0b302307e90e219c28d3fa66b814bf86597ffa9791879e506b232e",
+      "saturatedWarmPixelBbox": [
+        2,
+        1,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15580,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 1,
+      "startMs": 130,
+      "durationMs": 130,
+      "hash": "14cdb692bc0b302307e90e219c28d3fa66b814bf86597ffa9791879e506b232e",
+      "saturatedWarmPixelBbox": [
+        2,
+        1,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15580,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 2,
+      "startMs": 260,
+      "durationMs": 130,
+      "hash": "14cdb692bc0b302307e90e219c28d3fa66b814bf86597ffa9791879e506b232e",
+      "saturatedWarmPixelBbox": [
+        2,
+        1,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15580,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 3,
+      "startMs": 390,
+      "durationMs": 140,
+      "hash": "279a91bae3027d16df33275aa95c2d850de723aa6a99a5c0925205ff32d904db",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17075,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 4,
+      "startMs": 530,
+      "durationMs": 130,
+      "hash": "09c33bbd8e4b175a40bd5e5ac6a8a6644162e22d5f9f663dee71f003f0036fa1",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20339,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 5,
+      "startMs": 660,
+      "durationMs": 130,
+      "hash": "f816c3f48f52a66791f704312ff9fd9a72dfaf156fb46f2a0e601618450a42b8",
+      "saturatedWarmPixelBbox": [
+        2,
+        1,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15665,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 6,
+      "startMs": 790,
+      "durationMs": 130,
+      "hash": "4088041bc7ac8f0ea5b5abbbc29abb63e898fc95e76553773257610321491f6f",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17084,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 7,
+      "startMs": 920,
+      "durationMs": 130,
+      "hash": "5d285fa81d3df1ec5b03e33ffd08e0ed6126cf2102417ecd449fac6e243809b9",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17084,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 8,
+      "startMs": 1050,
+      "durationMs": 130,
+      "hash": "908da607cb99c5552f5d625ae71197f1b7ac05685c4139141e7bcf9b6d5f61cf",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20409,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 9,
+      "startMs": 1180,
+      "durationMs": 140,
+      "hash": "118e52539ef12dbdc23dfd5a4a62d33bf20cd50d016fd120a065fa07deb4322c",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        216,
+        219
+      ],
+      "saturatedWarmArea": 15710,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 10,
+      "startMs": 1320,
+      "durationMs": 130,
+      "hash": "14824a6b930e446f1da30420208fd59a1ddab845b9125261624c9785068f5d88",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        216,
+        219
+      ],
+      "saturatedWarmArea": 15709,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 11,
+      "startMs": 1450,
+      "durationMs": 130,
+      "hash": "c4450a43d15d30c8105a6b9526c8f7f16608d60a61601078034e32444d906d3c",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17077,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 12,
+      "startMs": 1580,
+      "durationMs": 130,
+      "hash": "20b8746d63c20489daf6f44053a5f35325d1ebb560838c0351486a04ed281818",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20362,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 13,
+      "startMs": 1710,
+      "durationMs": 130,
+      "hash": "5fccf983cd5843c3f138793444336db778232fbc770c9f632569fef859b6156d",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        216,
+        219
+      ],
+      "saturatedWarmArea": 15665,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 14,
+      "startMs": 1840,
+      "durationMs": 130,
+      "hash": "4393b665ea60fc9d3b1ad9ca4da2c169a0eeddaf798b51383fea0babee145689",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        216,
+        219
+      ],
+      "saturatedWarmArea": 15665,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 15,
+      "startMs": 1970,
+      "durationMs": 140,
+      "hash": "e2469eca5e2f7b9fa63ef6d0c86542cf5c69885a1aaac0332a204a73b6174de6",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17070,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 16,
+      "startMs": 2110,
+      "durationMs": 130,
+      "hash": "35956afb9ac25b1963e27fa976a83be19eb5876bf71cdc482cf02c62633189e1",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20372,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 17,
+      "startMs": 2240,
+      "durationMs": 130,
+      "hash": "f7e5e90e9e81b383f44d439420969534ba5680b7aff34dd7ccef70db0b1179c7",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20374,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 18,
+      "startMs": 2370,
+      "durationMs": 130,
+      "hash": "f7e5e90e9e81b383f44d439420969534ba5680b7aff34dd7ccef70db0b1179c7",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20374,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 19,
+      "startMs": 2500,
+      "durationMs": 130,
+      "hash": "f7928efafc92b1e76026cf60202217f36dadb52da20de70832885e984b501fb8",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15674,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 20,
+      "startMs": 2630,
+      "durationMs": 130,
+      "hash": "d31b1490fbf3cd96cc36f818798ba848e4805451f300226bf10adfc17a0ab1be",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15674,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 21,
+      "startMs": 2760,
+      "durationMs": 130,
+      "hash": "352a676518300223b0fb3f50fc10dc1f29b5f7f90834daf06c0211a93e96b75e",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17082,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 22,
+      "startMs": 2890,
+      "durationMs": 140,
+      "hash": "afaa8e3f8e088cb3f7681bc8dce5ca632d7d35a14b274d05601ee0e4da575c7a",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20413,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 23,
+      "startMs": 3030,
+      "durationMs": 130,
+      "hash": "a942f6561ab745c6339c042c13fa393a90db91a1a440b4dbbeb438a84a0fe5ec",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20413,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 24,
+      "startMs": 3160,
+      "durationMs": 130,
+      "hash": "55a22eb98e12b35ffc7f44360eddb17025bef950652e1a2c8632322aa1fa0c6f",
+      "saturatedWarmPixelBbox": [
+        2,
+        1,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15616,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 25,
+      "startMs": 3290,
+      "durationMs": 130,
+      "hash": "8c6689e417824c66eef996b8b58cb303fa45a5ad3a3ff4a423387d120c060c60",
+      "saturatedWarmPixelBbox": [
+        2,
+        1,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15614,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 26,
+      "startMs": 3420,
+      "durationMs": 130,
+      "hash": "0bbaa16aa42d58b3a7411fe16d33745c2548a9edcc4d1e8c09b810725810b83c",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17101,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 27,
+      "startMs": 3550,
+      "durationMs": 130,
+      "hash": "8b23e035de341bb69675fe13e6d4fcecaaa8184007c01b74ffc0996f4fdaf7bf",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20386,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 28,
+      "startMs": 3680,
+      "durationMs": 140,
+      "hash": "d389ec7cf2ca44e12d29aa5ff7a152b8b5c57349f195c3711489bf8e6ed45ada",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15603,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 29,
+      "startMs": 3820,
+      "durationMs": 130,
+      "hash": "de20f76d7f600db6dac2aa8bdb96644b0c9f54e37a5007c221e99f435d135169",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15602,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 30,
+      "startMs": 3950,
+      "durationMs": 130,
+      "hash": "c04f5b4fd9234acecd44d8e9f4c18be9c68a2a3dfe35b548aa3cfcc072ed4347",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17097,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 31,
+      "startMs": 4080,
+      "durationMs": 130,
+      "hash": "fcc3268758e1292626288d12e114badd884a00488402e052322a9ea7213b4b75",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17096,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 32,
+      "startMs": 4210,
+      "durationMs": 130,
+      "hash": "2afb91d8802e79e9632c6d79a527fa3f18a53466fd79596b7cef5ee208bc6d14",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20365,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 33,
+      "startMs": 4340,
+      "durationMs": 130,
+      "hash": "254a89479cd835d99574e6efdda75087081b1f0b95e74f3b6683aa5e649c463e",
+      "saturatedWarmPixelBbox": [
+        2,
+        0,
+        216,
+        219
+      ],
+      "saturatedWarmArea": 15649,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 34,
+      "startMs": 4470,
+      "durationMs": 140,
+      "hash": "d107c80df48db91ea4cb483f9a3f16e62a1a1a9b136dce5bb4f94dab2c127b78",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17069,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 35,
+      "startMs": 4610,
+      "durationMs": 130,
+      "hash": "0d4d0fe52c1ba8ef50b7ec5b1d1f2c9c4ab7df6c27b51d1d7d2c4708129ad36d",
+      "saturatedWarmPixelBbox": [
+        0,
+        29,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17066,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 36,
+      "startMs": 4740,
+      "durationMs": 130,
+      "hash": "111b83480f536ad5677b76cceeaf340884790965e1da619a3e1c342fae69ac51",
+      "saturatedWarmPixelBbox": [
+        0,
+        30,
+        219,
+        219
+      ],
+      "saturatedWarmArea": 20406,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 37,
+      "startMs": 4870,
+      "durationMs": 130,
+      "hash": "e53a6b4ada7a79f9eed52fe29ea4d2e512220608430c3ce1d484fa71ad571ca1",
+      "saturatedWarmPixelBbox": [
+        2,
+        1,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15641,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 38,
+      "startMs": 5000,
+      "durationMs": 130,
+      "hash": "86549d4de417e71acd968598e5579f0e5a6c7ab6dcc2dac735bb140f60905aab",
+      "saturatedWarmPixelBbox": [
+        2,
+        1,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 15641,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 39,
+      "startMs": 5130,
+      "durationMs": 130,
+      "hash": "c619b9a9225b9e64893eb803198e25479172268a83ebb98b451641679bc9d20b",
+      "saturatedWarmPixelBbox": [
+        0,
+        33,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17091,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    },
+    {
+      "frame": 40,
+      "startMs": 5260,
+      "durationMs": 130,
+      "hash": "c619b9a9225b9e64893eb803198e25479172268a83ebb98b451641679bc9d20b",
+      "saturatedWarmPixelBbox": [
+        0,
+        33,
+        215,
+        219
+      ],
+      "saturatedWarmArea": 17091,
+      "cornerRGB": [
+        253,
+        253,
+        250
+      ]
+    }
+  ],
+  "note": "Saturated-warm-pixel boxes are a diagnostic cap/body color proxy, not anatomical or full sprite alpha bounds.",
+  "visualPoseFamilies": {
+    "A_tall_upright_open_mouth": [
+      0,
+      1,
+      2,
+      5,
+      9,
+      10,
+      13,
+      14,
+      19,
+      20,
+      24,
+      25,
+      28,
+      29,
+      33,
+      37,
+      38
+    ],
+    "B_compressed_tilted_cap": [
+      3,
+      6,
+      7,
+      11,
+      15,
+      21,
+      26,
+      30,
+      31,
+      34,
+      35,
+      39,
+      40
+    ],
+    "C_low_front_cap_compressed": [
+      4,
+      8,
+      12,
+      16,
+      17,
+      18,
+      22,
+      23,
+      27,
+      32,
+      36
+    ]
+  },
+  "visualPoseFamilySequence": [
+    "A",
+    "A",
+    "A",
+    "B",
+    "C",
+    "A",
+    "B",
+    "B",
+    "C",
+    "A",
+    "A",
+    "B",
+    "C",
+    "A",
+    "A",
+    "B",
+    "C",
+    "C",
+    "C",
+    "A",
+    "A",
+    "B",
+    "C",
+    "C",
+    "A",
+    "A",
+    "B",
+    "C",
+    "A",
+    "A",
+    "B",
+    "B",
+    "C",
+    "A",
+    "B",
+    "B",
+    "C",
+    "A",
+    "A",
+    "B",
+    "B"
+  ],
+  "visualInterpretation": {
+    "action": "Planted squash/stretch and cap wobble, not airborne hop.",
+    "grounding": "The visible body base remains at/near the lower canvas edge throughout; no separated airborne phase appears.",
+    "coherence": "Tall pose has open mouth and raised/slanted cap; compressed poses close mouth and roll/flatten cap. Body proportions and cap shading deform with the action rather than rigidly translating a still.",
+    "poseCountCaution": "37 byte-unique decoded frames mostly repeat three principal pose families with tiny pixel/position variations; do not describe these as 37 independent authored poses.",
+    "recommendedStudy": "A deliberate grounded 3-to-6 drawing mushroom spring/wobble cycle is closer to the reference than a 16-pose airborne hop. Keep anatomical identity and preserve a stable support contact."
+  }
+}

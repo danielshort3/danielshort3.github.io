@@ -176,7 +176,17 @@ async function draftTests() {
   let sessionParam = '';
   let saver = async () => ({ session: { sessionId: 'saved', version: 1 } });
   let calls = 0;
+  const guestDrafts = new Map();
+  const restoredNotices = [];
+  document.querySelector = () => null;
   Object.assign(window, {
+    location: { search: '' },
+    SiteSessionDrafts: {
+      write: (key, value) => guestDrafts.set(key, value),
+      read: key => guestDrafts.get(key),
+      remove: key => guestDrafts.delete(key),
+      notice: (options) => { restoredNotices.push(options); return () => {}; }
+    },
     setTimeout: () => 1, clearTimeout() {}, setInterval: () => 2, clearInterval() {},
     ToolsAuth: {
       getAuth: () => ({}), getUser: () => ({ sub: owner }), authIsValid: () => authenticated
@@ -190,12 +200,16 @@ async function draftTests() {
     window, document, CustomEvent, console, AUTO_SAVE_MS: 10000, AUTO_SAVE_DEBOUNCE_MS: 1000,
     getSessionParam: () => sessionParam, getActiveSessionId: () => '', setActiveSessionId() {}, setSessionParam() {},
     buildSnapshot: ({ root }) => ({ fields: { text: root.value } }),
+    serializeToolFields: root => ({ text: root.value }),
     captureToolPayload: () => ({}),
     applyToolFields: (root, fields) => { root.value = fields.text; },
     notifySessionApplied() {}, logAsyncError: (label, error) => { throw error; }
   });
   vm.runInContext(`${source.slice(start, end)}\nglobalThis.mountSave = initToolAutoSave;`, context);
-  const root = () => Object.assign(new EventTarget(), { value: '' });
+  // There is no header summary in this fixture; recovery belongs to the tool root.
+  const root = () => Object.assign(new EventTarget(), {
+    value: '', dataset: {}, closest: () => null, querySelector: () => null
+  });
   const options = (node, mode = 'manual') => ({ toolId: 'text-compare', root: node, persistenceMode: mode });
 
   const first = root();
@@ -207,6 +221,8 @@ async function draftTests() {
   const second = root();
   const leaveSecond = context.mountSave(options(second));
   assert.equal(second.value, first.value, 'returning to an ordinary tool must restore its unsaved text');
+  assert.equal(restoredNotices.length, 1, 'restoring a guest draft must expose its recovery notice');
+  assert.equal(restoredNotices[0].container, second, 'without a header summary the notice stays with the restored tool');
   assert.equal(calls, 0, 'manual or signed-out drafts must not silently become cloud saves');
   leaveSecond();
 

@@ -832,6 +832,11 @@ async function generateTheme(theme, config, options = {}) {
 }
 
 async function main() {
+  const overhaul = require('./process-project-starfall-overhaul-scenery.js');
+  if (overhaul.isEnabled('terrain')) {
+    await overhaul.processGroup('terrain', { validate: process.argv.includes('--validate') });
+    return;
+  }
   fs.mkdirSync(SOURCE_DIR, { recursive: true });
   fs.mkdirSync(TERRAIN_DIR, { recursive: true });
   const validateOnly = process.argv.includes('--validate');

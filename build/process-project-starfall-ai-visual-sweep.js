@@ -11,7 +11,9 @@ const {
   getGridCellRect,
   isGuidePixelRgba
 } = require('./project-starfall-sheet-grid.js');
-const { processSemanticSkillFx } = require('./generate-project-starfall-combat-fx.js');
+const { processSemanticSkillFx, buildEntries: buildIllustratedFxEntries, writeEntry: writeIllustratedFxEntry } = require('./generate-project-starfall-combat-fx.js');
+const overhaulScenery = require('./process-project-starfall-overhaul-scenery.js');
+const overhaulFx = require('./process-project-starfall-overhaul-fx.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const Data = require('../js/games/project-starfall/project-starfall-data.js');
@@ -504,6 +506,11 @@ async function prepareCellImage(cell, options) {
 }
 
 async function processMenuIcons(written) {
+  const owner = require('./project-starfall-overhaul-icons.js');
+  if (owner.owns()) {
+    written.push(...await owner.rebuild('menu'));
+    return;
+  }
   const columns = 6;
   const cellSize = 64;
   const source = await loadSourceGrid(SOURCE_FILES.menu, columns, 3, 'AI menu icon sheet');
@@ -523,6 +530,11 @@ async function processMenuIcons(written) {
 }
 
 async function processRateCoupons(written) {
+  const owner = require('./project-starfall-overhaul-icons.js');
+  if (owner.owns()) {
+    written.push(...await owner.rebuild('coupons'));
+    return;
+  }
   const columns = 3;
   const rows = 2;
   const cellSize = 64;
@@ -590,6 +602,10 @@ async function processRowSheet(sourcePath, columns, rows, cellSize, row, target,
 }
 
 async function processPortals(written) {
+  if (fs.existsSync(path.join(ROOT, 'asset-sources/project-starfall/overhaul-v1/fx/ledger.json'))) {
+    written.push(...(await overhaulFx.processPortals()).map((record) => path.join(ROOT, record.path)));
+    return;
+  }
   for (const entry of PORTAL_ROWS) {
     const target = path.join(STARFALL_ROOT, 'animations/portals', entry.file);
     await processRowSheet(SOURCE_FILES.portals, 6, 3, 160, entry.row, target, {
@@ -603,6 +619,10 @@ async function processPortals(written) {
 }
 
 async function processGlobalFx(written) {
+  if (fs.existsSync(path.join(ROOT, 'asset-sources/project-starfall/overhaul-v1/fx/ledger.json'))) {
+    written.push(...(await overhaulFx.processGlobalFx()).map((record) => path.join(ROOT, record.path)));
+    return;
+  }
   for (const entry of FX_ROWS) {
     const target = path.join(STARFALL_ROOT, 'animations/fx', entry.file);
     await processRowSheet(SOURCE_FILES.globalFx, 6, 6, 160, entry.row, target, {
@@ -813,6 +833,14 @@ function getSkillFxSelection(argv) {
 }
 
 async function processEnemyCombatFx(written, onlyEnemyIds) {
+  if (fs.existsSync(path.join(ROOT, 'asset-sources/project-starfall/overhaul-v1/fx/ledger.json'))) {
+    const requested = new Set(onlyEnemyIds || []);
+    for (const entry of buildIllustratedFxEntries().enemies) {
+      if (requested.size && !requested.has(entry.id)) continue;
+      written.push(rel(await writeIllustratedFxEntry(entry)));
+    }
+    return;
+  }
   const enemyEntries = getEnemyCombatFxEntries();
   const identities = buildEnemyFxIdentityMap(enemyEntries.map(([enemyId]) => enemyId));
   const selectedIds = new Set(onlyEnemyIds || []);
@@ -832,6 +860,12 @@ async function processEnemyCombatFx(written, onlyEnemyIds) {
 }
 
 async function processDerivedCombatFx(written) {
+  if (fs.existsSync(path.join(ROOT, 'asset-sources/project-starfall/overhaul-v1/fx/ledger.json'))) {
+    for (const entry of buildIllustratedFxEntries().basic) written.push(rel(await writeIllustratedFxEntry(entry)));
+    await processEnemyCombatFx(written);
+    await processSemanticSkillFx();
+    return;
+  }
   const basicEntries = Object.entries(Data.BASIC_ATTACK_FX_ANIMATION_ASSETS || {});
   for (const [classId, animation] of basicEntries) {
     const target = path.join(ROOT, animation.sheet);
@@ -881,6 +915,11 @@ async function processDerivedCombatFx(written) {
 }
 
 async function processBasicMageCombatFx(written) {
+  if (fs.existsSync(path.join(ROOT, 'asset-sources/project-starfall/overhaul-v1/fx/ledger.json'))) {
+    const entry = buildIllustratedFxEntries().basic.find((value) => value.id === 'mage');
+    written.push(rel(await writeIllustratedFxEntry(entry)));
+    return;
+  }
   const animation = Data.BASIC_ATTACK_FX_ANIMATION_ASSETS && Data.BASIC_ATTACK_FX_ANIMATION_ASSETS.mage;
   if (!animation || !animation.sheet) throw new Error('Missing basic mage combat FX animation asset');
   const target = path.join(ROOT, animation.sheet);
@@ -911,6 +950,11 @@ async function processMageProjectileCombatFx(written) {
 }
 
 async function processStructures(written) {
+  if (overhaulScenery.isEnabled('structures')) {
+    const records = await overhaulScenery.processGroup('structures');
+    written.push(...records.map((record) => record.outputPath));
+    return;
+  }
   const target = path.join(STARFALL_ROOT, 'environment/structures/town-landmarks.png');
   const columns = 4;
   const rows = 2;
@@ -947,6 +991,11 @@ async function processStructures(written) {
 }
 
 async function processMaps(written) {
+  if (overhaulScenery.isEnabled('backgrounds')) {
+    const records = await overhaulScenery.processGroup('backgrounds');
+    written.push(...records.map((record) => record.outputPath));
+    return;
+  }
   for (const entry of MAP_DERIVATIONS) {
     const source = path.join(STARFALL_ROOT, entry.source);
     const target = path.join(STARFALL_ROOT, entry.target);

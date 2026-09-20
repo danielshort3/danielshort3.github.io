@@ -31,7 +31,7 @@
   }
 
   .portfolio-workbench {
-    --workbench-accent: var(--directory-page-accent, #155dfc);
+    --workbench-accent: var(--directory-page-accent, #005fed);
     --workbench-secondary: var(--directory-page-secondary, var(--brand-action-copper));
     --workbench-accent-ink: color-mix(in srgb, var(--workbench-accent) 68%, var(--brand-midnight) 32%);
     --workbench-header-end: color-mix(in srgb, var(--workbench-accent) 42%, var(--brand-midnight) 58%);

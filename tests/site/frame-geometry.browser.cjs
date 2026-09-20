@@ -32,6 +32,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { chromium, firefox, webkit } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
+const { isolateRequests } = require('../release/fixtures.cjs');
 const base = process.env.FRAME_SEAM_URL || "http://127.0.0.1:4173";
 const run = (process.env.FRAME_SEAM_LABEL || "local").replace(/[^a-zA-Z0-9_.-]+/g, "-");
 const artifactDir = process.env.FRAME_SEAM_ARTIFACT_DIR || path.join(os.tmpdir(), "site-frame-geometry");
@@ -306,7 +307,8 @@ async function inspectTypography(page, prefix, fontSize) {
 async function runViewport(browser, engine, size) {
   const prefix = engine + "-" + size.width + "x" + size.height;
   const touch = size.width < 960 || size.height < 620;
-  const context = await browser.newContext({ viewport: size, ...touch ? { hasTouch: true, ...engine === "firefox" ? {} : { isMobile: true } } : {} });
+  const context = await browser.newContext({ viewport: size, serviceWorkers: 'block', ...touch ? { hasTouch: true, ...engine === "firefox" ? {} : { isMobile: true } } : {} });
+  await isolateRequests(context, new URL(base).origin);
   const page = await context.newPage();
   page.on("pageerror", (error) => {
     errors.push({ prefix, message: error.message });

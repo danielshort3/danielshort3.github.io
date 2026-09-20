@@ -1,0 +1,1990 @@
+{
+  "fileId": "dust-imp",
+  "sourceSha256": "5289bf09963646f5e68e13921f5da9c5ef89ca26a9184ae7eac620a9d0a4199b",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    182,
+    355,
+    538,
+    718,
+    898,
+    1083,
+    1264,
+    1448
+  ],
+  "sharedScale": 0.7485427135678392,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 113,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/dust-imp-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 736916,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 16,
+        "top": 19,
+        "width": 157,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 150,
+        "width": 157,
+        "height": 151,
+        "pixels": 13658
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 170
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 37,
+        "right": 141,
+        "bottom": 149,
+        "width": 118,
+        "height": 113,
+        "pixels": 7749,
+        "edgePixels": 0
+      },
+      "sha256": "30cbc70b6474857a5a173c112c0338e6942f930365ef11923ed2a773632df1bb"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 198,
+        "top": 18,
+        "width": 155,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 151,
+        "width": 155,
+        "height": 152,
+        "pixels": 13659
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 170
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 25,
+        "top": 36,
+        "right": 140,
+        "bottom": 149,
+        "width": 116,
+        "height": 114,
+        "pixels": 7715,
+        "edgePixels": 0
+      },
+      "sha256": "e94d85725020253458ba529971bbbadd6449b5e528c4d3d13359df2d8b9bd05c"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 376,
+        "top": 20,
+        "width": 157,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 146,
+        "width": 157,
+        "height": 147,
+        "pixels": 13387
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 170
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 38,
+        "right": 140,
+        "bottom": 147,
+        "width": 118,
+        "height": 110,
+        "pixels": 7601,
+        "edgePixels": 0
+      },
+      "sha256": "73ace2dc016e86a6e00b1c1335628ed6a766f5149a3c39f83a896a5f936ae609"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 559,
+        "top": 20,
+        "width": 155,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 149,
+        "width": 155,
+        "height": 150,
+        "pixels": 13400
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 170
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 38,
+        "right": 139,
+        "bottom": 149,
+        "width": 116,
+        "height": 112,
+        "pixels": 7551,
+        "edgePixels": 0
+      },
+      "sha256": "b1216ed1ac11b8b026a2cea76dd1f4d9b89879a8461127efa052b71f2532556e"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 737,
+        "top": 20,
+        "width": 151,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 147,
+        "width": 151,
+        "height": 148,
+        "pixels": 13096
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 170
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 38,
+        "right": 134,
+        "bottom": 148,
+        "width": 113,
+        "height": 111,
+        "pixels": 7409,
+        "edgePixels": 0
+      },
+      "sha256": "2aeac50b6a302cf42821b9d264da28b3205b93fc0f3f5ae4f189907558ce23f3"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 916,
+        "top": 18,
+        "width": 152,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 149,
+        "width": 152,
+        "height": 150,
+        "pixels": 13141
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 170
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 36,
+        "right": 133,
+        "bottom": 147,
+        "width": 114,
+        "height": 112,
+        "pixels": 7428,
+        "edgePixels": 0
+      },
+      "sha256": "e558042f77a4dd6aa55d9df0f5abfb73363a9abe30890918fec6bbf8a1e355e8"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 14,
+        "top": 195,
+        "width": 159,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 146,
+        "width": 159,
+        "height": 147,
+        "pixels": 12781
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 342
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 40,
+        "right": 141,
+        "bottom": 149,
+        "width": 119,
+        "height": 110,
+        "pixels": 7192,
+        "edgePixels": 0
+      },
+      "sha256": "154c23c9d69afab331c2c43f4714cb2556c48ace3b14e447fe9afcf2444807cf"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 195,
+        "top": 202,
+        "width": 165,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 139,
+        "width": 165,
+        "height": 140,
+        "pixels": 12757
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 342
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 45,
+        "right": 146,
+        "bottom": 149,
+        "width": 124,
+        "height": 105,
+        "pixels": 7235,
+        "edgePixels": 0
+      },
+      "sha256": "ef38147ca29f5cba5bda2145288bb7cb94c5edc1bb403880180e23610aadc337"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 373,
+        "top": 196,
+        "width": 154,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 144,
+        "width": 154,
+        "height": 145,
+        "pixels": 12976
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 342
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 20,
+        "top": 41,
+        "right": 134,
+        "bottom": 149,
+        "width": 115,
+        "height": 109,
+        "pixels": 7369,
+        "edgePixels": 0
+      },
+      "sha256": "4d11a67ce4769e2069b55ab03ea93f40cd6e2091f904516e3724af7ef58e4d01"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 558,
+        "top": 194,
+        "width": 156,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 147,
+        "width": 156,
+        "height": 148,
+        "pixels": 13146
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 342
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 39,
+        "right": 139,
+        "bottom": 149,
+        "width": 117,
+        "height": 111,
+        "pixels": 7429,
+        "edgePixels": 0
+      },
+      "sha256": "fb6e38b679034c22bc47ea1574e55cb79347b63502a68b29766f3b8333976df5"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 735,
+        "top": 197,
+        "width": 160,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 142,
+        "width": 160,
+        "height": 143,
+        "pixels": 12799
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 342
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 41,
+        "right": 139,
+        "bottom": 147,
+        "width": 120,
+        "height": 107,
+        "pixels": 7221,
+        "edgePixels": 0
+      },
+      "sha256": "a03b4ec7a745394765b39594331ec649870e25318c95f790375157d5d6cba18e"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 914,
+        "top": 194,
+        "width": 157,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 146,
+        "width": 157,
+        "height": 147,
+        "pixels": 12507
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 342
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 19,
+        "top": 39,
+        "right": 136,
+        "bottom": 148,
+        "width": 118,
+        "height": 110,
+        "pixels": 7093,
+        "edgePixels": 0
+      },
+      "sha256": "4cb7cd7ec11b15e4620b85168ae203bc615f5c98f1f7773f6ede12fe22f38b74"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 16,
+        "top": 367,
+        "width": 157,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 155,
+        "width": 157,
+        "height": 156,
+        "pixels": 14226
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 523
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 24,
+        "top": 33,
+        "right": 141,
+        "bottom": 149,
+        "width": 118,
+        "height": 117,
+        "pixels": 8080,
+        "edgePixels": 0
+      },
+      "sha256": "2f7402e2bf7e7c3ab992b12bb4843d28feab3e286688f923d2b1f7ec77e4f486"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 194,
+        "top": 372,
+        "width": 156,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 150,
+        "width": 156,
+        "height": 151,
+        "pixels": 14020
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 523
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 22,
+        "top": 37,
+        "right": 138,
+        "bottom": 149,
+        "width": 117,
+        "height": 113,
+        "pixels": 7927,
+        "edgePixels": 0
+      },
+      "sha256": "369386b464eba877e0180992b0646e56e355024ce299c42baa50398c868f9fca"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 372,
+        "top": 384,
+        "width": 159,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 137,
+        "width": 159,
+        "height": 138,
+        "pixels": 13135
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 523
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 46,
+        "right": 138,
+        "bottom": 148,
+        "width": 119,
+        "height": 103,
+        "pixels": 7379,
+        "edgePixels": 0
+      },
+      "sha256": "2a2d9bb8585f8fdedee84d4c6674a1f440dbdd22e2d012805751de71d230527f"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 553,
+        "top": 374,
+        "width": 158,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 148,
+        "width": 158,
+        "height": 149,
+        "pixels": 13686
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 523
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 38,
+        "right": 137,
+        "bottom": 149,
+        "width": 118,
+        "height": 112,
+        "pixels": 7770,
+        "edgePixels": 0
+      },
+      "sha256": "41d18ba49ca87c949c6e8badfbbd5064070082ebe70a52643d593550756ac7bc"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 725,
+        "top": 393,
+        "width": 167,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 129,
+        "width": 167,
+        "height": 130,
+        "pixels": 13195
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 523
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 13,
+        "top": 53,
+        "right": 137,
+        "bottom": 149,
+        "width": 125,
+        "height": 97,
+        "pixels": 7422,
+        "edgePixels": 0
+      },
+      "sha256": "569750b4b82b4381036acc8611fedf2dfc20cb3045650bb6ee92489839b7d515"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 913,
+        "top": 367,
+        "width": 163,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 156,
+        "width": 163,
+        "height": 157,
+        "pixels": 14100
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 523
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 18,
+        "top": 33,
+        "right": 139,
+        "bottom": 150,
+        "width": 122,
+        "height": 118,
+        "pixels": 8003,
+        "edgePixels": 0
+      },
+      "sha256": "14c9832b8d8d1a424541e800af858f1e73ae2ed243d3b227ef60024da4b0ee29"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 15,
+        "top": 553,
+        "width": 155,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 151,
+        "width": 155,
+        "height": 152,
+        "pixels": 13477
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 705
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 36,
+        "right": 138,
+        "bottom": 149,
+        "width": 116,
+        "height": 114,
+        "pixels": 7629,
+        "edgePixels": 0
+      },
+      "sha256": "5e703fc8018d611a59f98d1a20fe0e66425b6a50046ccfa6d5fa10b516957741"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 193,
+        "top": 559,
+        "width": 156,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 143,
+        "width": 156,
+        "height": 144,
+        "pixels": 13403
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 705
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 41,
+        "right": 137,
+        "bottom": 148,
+        "width": 117,
+        "height": 108,
+        "pixels": 7572,
+        "edgePixels": 0
+      },
+      "sha256": "9c0ca549589f5557a79d589e3e3aa1abb8522bcecd8048c837846c82a4acb563"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 371,
+        "top": 552,
+        "width": 175,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 152,
+        "width": 175,
+        "height": 153,
+        "pixels": 14266
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 705
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 19,
+        "top": 35,
+        "right": 149,
+        "bottom": 149,
+        "width": 131,
+        "height": 115,
+        "pixels": 8119,
+        "edgePixels": 0
+      },
+      "sha256": "a996a563c5ede07bf0f76004847f67a7947c56663259888fa500e3b539bd72c2"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 556,
+        "top": 560,
+        "width": 177,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 144,
+        "width": 177,
+        "height": 145,
+        "pixels": 13943
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 705
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 22,
+        "top": 41,
+        "right": 153,
+        "bottom": 149,
+        "width": 132,
+        "height": 109,
+        "pixels": 7920,
+        "edgePixels": 0
+      },
+      "sha256": "a6f645df6211a89a1ec9e40ee7d2e295a5585158275ad2dcbd312083882ae636"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 735,
+        "top": 562,
+        "width": 167,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 142,
+        "width": 167,
+        "height": 143,
+        "pixels": 13048
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 705
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 20,
+        "top": 43,
+        "right": 144,
+        "bottom": 149,
+        "width": 125,
+        "height": 107,
+        "pixels": 7356,
+        "edgePixels": 0
+      },
+      "sha256": "d7baad6e447fe8fb4232593bac4fa39ce889cf511c101ff623f78158de366257"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 916,
+        "top": 554,
+        "width": 151,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 150,
+        "width": 151,
+        "height": 151,
+        "pixels": 13258
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 705
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 37,
+        "right": 132,
+        "bottom": 149,
+        "width": 113,
+        "height": 113,
+        "pixels": 7457,
+        "edgePixels": 0
+      },
+      "sha256": "de13765fff2cedd5b94e4d17f066b47f1e0fde17116795d6b5ad31b5017a891a"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 17,
+        "top": 735,
+        "width": 155,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 149,
+        "width": 155,
+        "height": 150,
+        "pixels": 12779
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 886
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 25,
+        "top": 37,
+        "right": 140,
+        "bottom": 148,
+        "width": 116,
+        "height": 112,
+        "pixels": 7191,
+        "edgePixels": 0
+      },
+      "sha256": "f8bb4451ac6223887ca329d8b3397ebdb3a460b5d2ec8e5a9faaaf8daff2b6ce"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 192,
+        "top": 753,
+        "width": 165,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 132,
+        "width": 165,
+        "height": 133,
+        "pixels": 13452
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 886
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 50,
+        "right": 143,
+        "bottom": 149,
+        "width": 124,
+        "height": 100,
+        "pixels": 7629,
+        "edgePixels": 0
+      },
+      "sha256": "3ff797fd3407ba8629abb8709ce17b5ffb921f56fa310f6e3557ef7b3fa32ee5"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 374,
+        "top": 730,
+        "width": 157,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 155,
+        "width": 157,
+        "height": 156,
+        "pixels": 13676
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 886
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 21,
+        "top": 33,
+        "right": 138,
+        "bottom": 149,
+        "width": 118,
+        "height": 117,
+        "pixels": 7766,
+        "edgePixels": 0
+      },
+      "sha256": "970a74c47ac5f9b939ab64e2caba0bf58eaadc9e0805f304bafa23410991a14e"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 555,
+        "top": 733,
+        "width": 168,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 151,
+        "width": 168,
+        "height": 152,
+        "pixels": 13841
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 886
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 21,
+        "top": 35,
+        "right": 146,
+        "bottom": 148,
+        "width": 126,
+        "height": 114,
+        "pixels": 7824,
+        "edgePixels": 0
+      },
+      "sha256": "fe04a7fc3e855ffe11b8da440b77770994a0d2116765af849f20b3f7e155b0a0"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 736,
+        "top": 731,
+        "width": 160,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 153,
+        "width": 160,
+        "height": 154,
+        "pixels": 13775
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 886
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 21,
+        "top": 34,
+        "right": 140,
+        "bottom": 148,
+        "width": 120,
+        "height": 115,
+        "pixels": 7794,
+        "edgePixels": 0
+      },
+      "sha256": "77d6ca73891775cb1dfd21194e5d3e9d73b413d6361c89ae45717b6a636e2141"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 917,
+        "top": 734,
+        "width": 152,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 151,
+        "width": 152,
+        "height": 152,
+        "pixels": 13258
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 886
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 36,
+        "right": 134,
+        "bottom": 149,
+        "width": 114,
+        "height": 114,
+        "pixels": 7507,
+        "edgePixels": 0
+      },
+      "sha256": "dd363f2cd9df92ef608aeb91507672ffd96cee64229c79d2973191013e2fce48"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 19,
+        "top": 914,
+        "width": 149,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 155,
+        "width": 149,
+        "height": 156,
+        "pixels": 13764
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1070
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 26,
+        "top": 33,
+        "right": 137,
+        "bottom": 149,
+        "width": 112,
+        "height": 117,
+        "pixels": 7828,
+        "edgePixels": 0
+      },
+      "sha256": "c322e1ef26bdc9498c22907298c264ec4d7c6d55015eecd4a38c4edc969fa813"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 200,
+        "top": 914,
+        "width": 155,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 155,
+        "width": 155,
+        "height": 156,
+        "pixels": 13826
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1070
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 33,
+        "right": 141,
+        "bottom": 149,
+        "width": 116,
+        "height": 117,
+        "pixels": 7817,
+        "edgePixels": 0
+      },
+      "sha256": "7a07315a30ee2d1303d912dac08677945a7ef3f5f0dbbc5d82b70a3556f67b78"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 377,
+        "top": 918,
+        "width": 153,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 151,
+        "width": 153,
+        "height": 152,
+        "pixels": 13448
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1070
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 23,
+        "top": 36,
+        "right": 137,
+        "bottom": 149,
+        "width": 115,
+        "height": 114,
+        "pixels": 7642,
+        "edgePixels": 0
+      },
+      "sha256": "adfc3e7cfa00f1e0a5f6725b3bc41ad1bd30293ebdfad3d2ec9032b4f6dcd1a5"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 554,
+        "top": 910,
+        "width": 172,
+        "height": 160
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 159,
+        "width": 172,
+        "height": 160,
+        "pixels": 15348
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1070
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 20,
+        "top": 30,
+        "right": 148,
+        "bottom": 149,
+        "width": 129,
+        "height": 120,
+        "pixels": 8686,
+        "edgePixels": 0
+      },
+      "sha256": "07f3a23529273edcca7e67dd322f7a2b35d0eee4952a1394f07337f6f56211c6"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 737,
+        "top": 912,
+        "width": 151,
+        "height": 158
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 157,
+        "width": 151,
+        "height": 158,
+        "pixels": 14510
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1070
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 32,
+        "right": 134,
+        "bottom": 149,
+        "width": 113,
+        "height": 118,
+        "pixels": 8173,
+        "edgePixels": 0
+      },
+      "sha256": "8ed97957dd848844c7c3499d6fbfdc9bcb25b542deb917dcdf90d7713e136778"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 916,
+        "top": 915,
+        "width": 152,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 155,
+        "width": 152,
+        "height": 156,
+        "pixels": 13739
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1070
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 20,
+        "top": 34,
+        "right": 133,
+        "bottom": 150,
+        "width": 114,
+        "height": 117,
+        "pixels": 7781,
+        "edgePixels": 0
+      },
+      "sha256": "f641843e689ed090478f4f64698ad9835ff585398508e3cc79b380936335af08"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 20,
+        "top": 1098,
+        "width": 157,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 151,
+        "width": 157,
+        "height": 152,
+        "pixels": 13463
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1250
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 36,
+        "right": 144,
+        "bottom": 149,
+        "width": 118,
+        "height": 114,
+        "pixels": 7651,
+        "edgePixels": 0
+      },
+      "sha256": "9fb30b9460a62b177c6ad22a87890602acc08ced8226ad63c6293bfe79261819"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 198,
+        "top": 1101,
+        "width": 157,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 148,
+        "width": 157,
+        "height": 149,
+        "pixels": 13392
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1250
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 25,
+        "top": 38,
+        "right": 142,
+        "bottom": 149,
+        "width": 118,
+        "height": 112,
+        "pixels": 7618,
+        "edgePixels": 0
+      },
+      "sha256": "e9f18bbedb95e3c22ee85fa24585e142b295c7e6622931c43c71814b1dab614e"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 374,
+        "top": 1116,
+        "width": 161,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 132,
+        "width": 161,
+        "height": 133,
+        "pixels": 12836
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1250
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 21,
+        "top": 50,
+        "right": 141,
+        "bottom": 149,
+        "width": 121,
+        "height": 100,
+        "pixels": 7298,
+        "edgePixels": 0
+      },
+      "sha256": "f5760f8526cf051da56f6242cef3b05224ad27628aa8104e84ee72bf40d1c30f"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 558,
+        "top": 1112,
+        "width": 155,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 137,
+        "width": 155,
+        "height": 138,
+        "pixels": 12583
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1250
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 47,
+        "right": 138,
+        "bottom": 149,
+        "width": 116,
+        "height": 103,
+        "pixels": 7071,
+        "edgePixels": 0
+      },
+      "sha256": "a8185aea35f7fd5980dc6a9eeda56ae9f97b0db1141fd68d0fb74f2a74329fa8"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 735,
+        "top": 1105,
+        "width": 157,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 144,
+        "width": 157,
+        "height": 145,
+        "pixels": 13492
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1250
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 20,
+        "top": 41,
+        "right": 137,
+        "bottom": 149,
+        "width": 118,
+        "height": 109,
+        "pixels": 7654,
+        "edgePixels": 0
+      },
+      "sha256": "85f0e4b05d0afe117555284ab8ced6f5f88147bd0aedeae2fe8a84dfbaaecc5d"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 917,
+        "top": 1095,
+        "width": 151,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 154,
+        "width": 151,
+        "height": 155,
+        "pixels": 13890
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1250
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 34,
+        "right": 133,
+        "bottom": 149,
+        "width": 113,
+        "height": 116,
+        "pixels": 7802,
+        "edgePixels": 0
+      },
+      "sha256": "2f8f8bd628bacc47b3c73f1c4acfac66ec9e1637004fdf4c5f2cc0e73a1e868d"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 20,
+        "top": 1278,
+        "width": 156,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 146,
+        "width": 156,
+        "height": 147,
+        "pixels": 12622
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1425
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 27,
+        "top": 40,
+        "right": 143,
+        "bottom": 149,
+        "width": 117,
+        "height": 110,
+        "pixels": 7125,
+        "edgePixels": 0
+      },
+      "sha256": "5bbe7295fe96e2beab7ab68296ab62ebe2aa3bba1cabd3a1483c2f708b2750c7"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 197,
+        "top": 1294,
+        "width": 160,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 129,
+        "width": 160,
+        "height": 130,
+        "pixels": 12265
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1425
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 52,
+        "right": 143,
+        "bottom": 148,
+        "width": 120,
+        "height": 97,
+        "pixels": 6919,
+        "edgePixels": 0
+      },
+      "sha256": "f6df076825a12ccff0a3775f0e45883d5b6fc91e768098bdcf32ef222984c5e7"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 384,
+        "top": 1296,
+        "width": 156,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 127,
+        "width": 156,
+        "height": 128,
+        "pixels": 12529
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1425
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 53,
+        "right": 145,
+        "bottom": 148,
+        "width": 117,
+        "height": 96,
+        "pixels": 7064,
+        "edgePixels": 0
+      },
+      "sha256": "d928ac0b7a3c8433b5663b218d2bd48567cc218289c9618b3e1d7c69f75ca568"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 548,
+        "top": 1307,
+        "width": 172,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 117,
+        "width": 172,
+        "height": 118,
+        "pixels": 11860
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1425
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 16,
+        "top": 62,
+        "right": 144,
+        "bottom": 149,
+        "width": 129,
+        "height": 88,
+        "pixels": 6707,
+        "edgePixels": 0
+      },
+      "sha256": "1ae5df9bb23ce7682dd173b33ff817b9717fe8de8c6927a64da80e703f092263"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 730,
+        "top": 1342,
+        "width": 172,
+        "height": 83
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 82,
+        "width": 172,
+        "height": 83,
+        "pixels": 9475
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1425
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 17,
+        "top": 88,
+        "right": 145,
+        "bottom": 149,
+        "width": 129,
+        "height": 62,
+        "pixels": 5366,
+        "edgePixels": 0
+      },
+      "sha256": "540768e7a1f9b1a54905a1de98c92ef8f3267fdfea684e970b2b0ff5209b3eee"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 910,
+        "top": 1346,
+        "width": 167,
+        "height": 79
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 78,
+        "width": 167,
+        "height": 79,
+        "pixels": 9098
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/dust-imp/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1425
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 16,
+        "top": 91,
+        "right": 140,
+        "bottom": 149,
+        "width": 125,
+        "height": 59,
+        "pixels": 5112,
+        "edgePixels": 0
+      },
+      "sha256": "e97272a3842f7071913ca5aac369405856ebe757e0ebf8040bec9cd8349ae591"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

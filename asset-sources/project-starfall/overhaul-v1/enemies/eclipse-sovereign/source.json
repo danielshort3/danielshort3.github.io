@@ -1,0 +1,231 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "eclipse-sovereign",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-35be-7a93-9773-ce24aa252f30\\exec-9d348d54-3eef-4ad2-b629-dd57674225eb.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/eclipse-sovereign.png",
+    "output/starfall-animation-samples/oracle-cast-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "floating": true,
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Full raw sheet inspected, 8 authored action rows, distinct contact/recovery, alpha and connected-component checks still required.",
+    "animationReview": "pending-runtime-integration",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/eclipse-sovereign-sheet.png",
+    "portrait": "img/project-starfall/enemies/eclipse-sovereign.png",
+    "portraitFrame": 0
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "note": "Authored source contact and release appear in column0; no row reordering needed."
+  },
+  "sourceSha256": "d9ee5d98f1d828beb76b692d04cae3563fe7a32391d3866c55f995d6e1833182",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "supplementalRows": {
+    "defeat": {
+      "file": "defeat-supplement.png",
+      "columns": 3,
+      "rows": 2,
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "neutralIndex": 0,
+      "sha256": "d06f5dda1830eea10d0d09d060ee85edfbe16c6fa7f0e3fa693c9afcf60cd1da"
+    }
+  },
+  "componentGroups": {
+    "attack": [
+      [
+        0,
+        1
+      ],
+      [
+        2
+      ],
+      [
+        3
+      ],
+      [
+        4
+      ],
+      [
+        5
+      ],
+      [
+        6
+      ]
+    ]
+  },
+  "rowBoundaries": [
+    0,
+    173,
+    338,
+    511,
+    690,
+    865,
+    1042,
+    1223,
+    1448
+  ],
+  "sharedScale": 0.6130041152263375,
+  "frames": {
+    "0": {
+      "anchor": {
+        "x": 90.5,
+        "y": 86
+      }
+    },
+    "1": {
+      "anchor": {
+        "x": 253.55558539205157,
+        "y": 86
+      }
+    },
+    "2": {
+      "anchor": {
+        "x": 429.6616541353383,
+        "y": 86
+      }
+    },
+    "3": {
+      "anchor": {
+        "x": 602.5051020408164,
+        "y": 86
+      }
+    },
+    "4": {
+      "anchor": {
+        "x": 781.8737916219119,
+        "y": 86
+      }
+    },
+    "5": {
+      "anchor": {
+        "x": 956.3485499462943,
+        "y": 86
+      }
+    }
+  },
+  "registrationReview": {
+    "status": "reviewed-horizontal",
+    "scope": "idle-horizontal only",
+    "method": "Reviewed stable anatomical-core translation against idle frame 0, corroborated by whole-silhouette translation and fixed-guide contact sheets. No bounding-box centering. Only X anchors changed; authored Y, all drawing pixels and fixed identity scale are preserved.",
+    "landmark": "crown, faceplate and upper torso together; staff and trailing robe are excluded as independent extremities",
+    "referenceFrame": 0,
+    "fixedSharedScale": 0.6130041152263375,
+    "sourceUnchanged": true,
+    "actionsChanged": [
+      "idle"
+    ],
+    "visualVerification": "Before/after fixed-guide strips inspected for the declared rigid anatomical landmarks and last-to-first horizontal closure. All six poses retain their authored vertical variation. This review does not certify other action rows or all shape and transition quality.",
+    "evidence": "output/enemy-idle-alignment/eclipse-sovereign/alignment-evidence.json",
+    "corrections": [
+      {
+        "frame": 0,
+        "measuredPriorBodyDriftX": 0,
+        "outputTranslationX": 0,
+        "previousAnchor": {
+          "x": 90.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 90.5,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 1,
+        "measuredPriorBodyDriftX": -11,
+        "outputTranslationX": 11,
+        "previousAnchor": {
+          "x": 271.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 253.55558539205157,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 2,
+        "measuredPriorBodyDriftX": -14,
+        "outputTranslationX": 14,
+        "previousAnchor": {
+          "x": 452.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 429.6616541353383,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 3,
+        "measuredPriorBodyDriftX": -19,
+        "outputTranslationX": 19,
+        "previousAnchor": {
+          "x": 633.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 602.5051020408164,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 4,
+        "measuredPriorBodyDriftX": -20,
+        "outputTranslationX": 20,
+        "previousAnchor": {
+          "x": 814.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 781.8737916219119,
+          "y": 86
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 5,
+        "measuredPriorBodyDriftX": -24,
+        "outputTranslationX": 24,
+        "previousAnchor": {
+          "x": 995.5,
+          "y": 86
+        },
+        "anchor": {
+          "x": 956.3485499462943,
+          "y": 86
+        },
+        "scaleFactor": 1
+      }
+    ]
+  }
+}

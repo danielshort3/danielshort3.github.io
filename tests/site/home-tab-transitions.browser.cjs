@@ -69,7 +69,8 @@ async function beginTransition(page, category) {
       requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
-    document.querySelector(`[data-site-tab="${category}"]`).click();
+    const rail = document.querySelector(`[data-site-tab="${category}"]`);
+    (rail.hidden ? document.querySelector(`[data-mobile-section="${category}"]`) : rail).click();
   }, category);
 }
 
@@ -131,7 +132,8 @@ async function runViewport({ browser, base, artifactDir }, settings) {
       SiteFrame.root().style.setProperty('--site-frame-geometry-duration', '900ms');
       SiteFrame.root().style.setProperty('--site-frame-wipe-duration', '450ms');
     });
-    await page.locator('[data-site-tab="contact"]').click();
+    const contactRail = page.locator('[data-site-tab="contact"]');
+    await (await contactRail.isVisible() ? contactRail : page.locator('[data-mobile-section="contact"]')).click();
     await settle(page, 'contact');
     const iframe = page.locator('[data-persistent-contact-map] iframe');
     await page.locator('[data-contact-map-slot]').scrollIntoViewIfNeeded();

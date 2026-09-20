@@ -1,0 +1,1965 @@
+{
+  "fileId": "rift-aberration",
+  "sourceSha256": "d723a66383c9b2b48579b9dbc5274e6a155833bab3644dba0f043ed4642fc806",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    187,
+    366,
+    551,
+    727,
+    908,
+    1091,
+    1278,
+    1448
+  ],
+  "sharedScale": 0.44201780415430264,
+  "floating": true,
+  "registration": {
+    "originX": 80,
+    "groundY": 80,
+    "authoredBodyHeight": 64,
+    "centered": true,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/rift-aberration-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 795198,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 21,
+        "top": 26,
+        "width": 152,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 143,
+        "width": 152,
+        "height": 144,
+        "pixels": 12285
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 98
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 49,
+        "top": 48,
+        "right": 115,
+        "bottom": 111,
+        "width": 67,
+        "height": 64,
+        "pixels": 2495,
+        "edgePixels": 0
+      },
+      "sha256": "82cfe2fdb27ff43046c1df2fb0f92bd101836ab7065e152ecd200aab3b8cb1c1"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 201,
+        "top": 25,
+        "width": 158,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 144,
+        "width": 158,
+        "height": 145,
+        "pixels": 12437
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 98
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 49,
+        "top": 48,
+        "right": 118,
+        "bottom": 111,
+        "width": 70,
+        "height": 64,
+        "pixels": 2507,
+        "edgePixels": 0
+      },
+      "sha256": "1cc37b67cdf99a461c81dc7d5468ee44a6656f7fe41602b0593f60573ee7a82e"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 381,
+        "top": 28,
+        "width": 144,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 139,
+        "width": 144,
+        "height": 140,
+        "pixels": 11849
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 98
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 48,
+        "top": 49,
+        "right": 111,
+        "bottom": 110,
+        "width": 64,
+        "height": 62,
+        "pixels": 2403,
+        "edgePixels": 0
+      },
+      "sha256": "5bb63528438b8662debc5ae3fb747772f935db47eb25888db146c9cdef8e85f4"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 555,
+        "top": 33,
+        "width": 154,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 137,
+        "width": 154,
+        "height": 138,
+        "pixels": 12008
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 98
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 45,
+        "top": 51,
+        "right": 112,
+        "bottom": 111,
+        "width": 68,
+        "height": 61,
+        "pixels": 2411,
+        "edgePixels": 0
+      },
+      "sha256": "2e6b2219c2c336ffbd883fb211ae7537fcb175ccddd78293367fb4538adac03d"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 736,
+        "top": 25,
+        "width": 154,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 144,
+        "width": 154,
+        "height": 145,
+        "pixels": 12439
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 98
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 48,
+        "right": 112,
+        "bottom": 111,
+        "width": 68,
+        "height": 64,
+        "pixels": 2489,
+        "edgePixels": 0
+      },
+      "sha256": "3caefec48b892349c7385d868fb682d249e8bb05b8d352f24f32ea0b3272458d"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 916,
+        "top": 27,
+        "width": 148,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 142,
+        "width": 148,
+        "height": 143,
+        "pixels": 12132
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 98
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 45,
+        "top": 49,
+        "right": 109,
+        "bottom": 111,
+        "width": 65,
+        "height": 63,
+        "pixels": 2408,
+        "edgePixels": 0
+      },
+      "sha256": "f1a9014685f16b1d24a798190c372b637b9ced71b64301708d70addac2cfa971"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 17,
+        "top": 209,
+        "width": 161,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 141,
+        "width": 161,
+        "height": 142,
+        "pixels": 12726
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 280
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 48,
+        "top": 49,
+        "right": 118,
+        "bottom": 111,
+        "width": 71,
+        "height": 63,
+        "pixels": 2581,
+        "edgePixels": 0
+      },
+      "sha256": "b485e527257990e063ae2e22a43f55d7e0b541cab7777789ab461ea45e8a8ba4"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 194,
+        "top": 208,
+        "width": 172,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 136,
+        "width": 172,
+        "height": 137,
+        "pixels": 12353
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 280
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 46,
+        "top": 48,
+        "right": 121,
+        "bottom": 108,
+        "width": 76,
+        "height": 61,
+        "pixels": 2507,
+        "edgePixels": 0
+      },
+      "sha256": "7c4ea38c83ce2ee3f37bbf6ab931a0e8f45c12c4b09197f5d101a8033c945357"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 381,
+        "top": 202,
+        "width": 161,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 144,
+        "width": 161,
+        "height": 145,
+        "pixels": 11920
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 280
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 48,
+        "top": 46,
+        "right": 118,
+        "bottom": 109,
+        "width": 71,
+        "height": 64,
+        "pixels": 2380,
+        "edgePixels": 0
+      },
+      "sha256": "4301a5800aa3ab3a2bc033f392076259710b8efc097fbf828228773ba2711f98"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 559,
+        "top": 220,
+        "width": 164,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 126,
+        "width": 164,
+        "height": 127,
+        "pixels": 12157
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 280
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 47,
+        "top": 53,
+        "right": 118,
+        "bottom": 108,
+        "width": 72,
+        "height": 56,
+        "pixels": 2412,
+        "edgePixels": 0
+      },
+      "sha256": "bef79fc8b95ba25e8635a724d934a360c113ff2f19cad36a948bf4f98221ea52"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 741,
+        "top": 207,
+        "width": 167,
+        "height": 139
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 138,
+        "width": 167,
+        "height": 139,
+        "pixels": 11804
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 280
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 48,
+        "top": 48,
+        "right": 121,
+        "bottom": 108,
+        "width": 74,
+        "height": 61,
+        "pixels": 2376,
+        "edgePixels": 0
+      },
+      "sha256": "0db714d21561ef8623473ddffdb54801529412c7def7775e0a7abecf0b9499a6"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 921,
+        "top": 215,
+        "width": 157,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 133,
+        "width": 157,
+        "height": 134,
+        "pixels": 11511
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 280
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 47,
+        "top": 51,
+        "right": 115,
+        "bottom": 109,
+        "width": 69,
+        "height": 59,
+        "pixels": 2287,
+        "edgePixels": 0
+      },
+      "sha256": "12c83772a023a28ec4c98d30a9a10a3418710aad412546a44b0594782821fca5"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 18,
+        "top": 392,
+        "width": 149,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 137,
+        "width": 149,
+        "height": 138,
+        "pixels": 11697
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 455.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 48,
+        "top": 52,
+        "right": 113,
+        "bottom": 112,
+        "width": 66,
+        "height": 61,
+        "pixels": 2363,
+        "edgePixels": 0
+      },
+      "sha256": "4f56ae9b8648a9f263f63d6a0ba3a01d19ae81df5d0a227f4897c308f09e4fe9"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 200,
+        "top": 380,
+        "width": 151,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 149,
+        "width": 151,
+        "height": 150,
+        "pixels": 12587
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 455.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 48,
+        "top": 47,
+        "right": 114,
+        "bottom": 112,
+        "width": 67,
+        "height": 66,
+        "pixels": 2534,
+        "edgePixels": 0
+      },
+      "sha256": "d7a0078dd3511df53ce993e949fd1ae1c8f50832a840d8ad441716bf1ed5fce5"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 381,
+        "top": 381,
+        "width": 148,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 148,
+        "width": 148,
+        "height": 149,
+        "pixels": 12357
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 455.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 48,
+        "top": 47,
+        "right": 112,
+        "bottom": 112,
+        "width": 65,
+        "height": 66,
+        "pixels": 2482,
+        "edgePixels": 0
+      },
+      "sha256": "81aa7c15e398a444efa525947becb0acfad2598c6091c0aff74cb94c8b5236a5"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 552,
+        "top": 388,
+        "width": 160,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 141,
+        "width": 160,
+        "height": 142,
+        "pixels": 12495
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 455.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 44,
+        "top": 50,
+        "right": 114,
+        "bottom": 112,
+        "width": 71,
+        "height": 63,
+        "pixels": 2520,
+        "edgePixels": 0
+      },
+      "sha256": "9776320d7a8fecfd7f5a9f759799674ee2c54fef8a2cfe16ab46c9e0680debc0"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 733,
+        "top": 381,
+        "width": 163,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 148,
+        "width": 163,
+        "height": 149,
+        "pixels": 13183
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 455.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 44,
+        "top": 47,
+        "right": 115,
+        "bottom": 112,
+        "width": 72,
+        "height": 66,
+        "pixels": 2640,
+        "edgePixels": 0
+      },
+      "sha256": "a302bf634820e9e9c58b8b381205926b982903c1af43dafc9843420237765339"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 917,
+        "top": 381,
+        "width": 153,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 148,
+        "width": 153,
+        "height": 149,
+        "pixels": 13387
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 455.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 45,
+        "top": 47,
+        "right": 112,
+        "bottom": 112,
+        "width": 68,
+        "height": 66,
+        "pixels": 2703,
+        "edgePixels": 0
+      },
+      "sha256": "85c3736e46b617608dfae8cc53f234ed3e929a5ef02c44f4651daa5ac37d1096"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 14,
+        "top": 571,
+        "width": 232,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 231,
+        "bottom": 135,
+        "width": 232,
+        "height": 136,
+        "pixels": 13949
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 643
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 46,
+        "top": 48,
+        "right": 148,
+        "bottom": 107,
+        "width": 103,
+        "height": 60,
+        "pixels": 2825,
+        "edgePixels": 0
+      },
+      "sha256": "a8e78d274e797b34040924f1f91f654e67f6d2ac77a3df6da906c4138601bcfd"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 229,
+        "top": 574,
+        "width": 211,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 210,
+        "bottom": 134,
+        "width": 211,
+        "height": 135,
+        "pixels": 12643
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 643
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 61,
+        "top": 50,
+        "right": 153,
+        "bottom": 109,
+        "width": 93,
+        "height": 60,
+        "pixels": 2562,
+        "edgePixels": 0
+      },
+      "sha256": "528145c7ea9a8e6cec7afb05c9a1741d5a7e9d42ffc161c6a057750f9a566a43"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 414,
+        "top": 580,
+        "width": 131,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 128,
+        "width": 131,
+        "height": 129,
+        "pixels": 9752
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 643
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 63,
+        "top": 52,
+        "right": 120,
+        "bottom": 108,
+        "width": 58,
+        "height": 57,
+        "pixels": 1946,
+        "edgePixels": 0
+      },
+      "sha256": "f0794703100c0566df7959d91019361d4aac93b635aad9083ed64d43016a581c"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 564,
+        "top": 577,
+        "width": 156,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 127,
+        "width": 156,
+        "height": 128,
+        "pixels": 10866
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 643
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 49,
+        "top": 51,
+        "right": 117,
+        "bottom": 107,
+        "width": 69,
+        "height": 57,
+        "pixels": 2217,
+        "edgePixels": 0
+      },
+      "sha256": "69fe711627120aebff78cab5e8436718ec5f065e13dd6387684c0ec3af2f1627"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 736,
+        "top": 581,
+        "width": 162,
+        "height": 129
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 128,
+        "width": 162,
+        "height": 129,
+        "pixels": 11860
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 643
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 53,
+        "right": 116,
+        "bottom": 109,
+        "width": 72,
+        "height": 57,
+        "pixels": 2408,
+        "edgePixels": 0
+      },
+      "sha256": "99881a1a915219634388ac258426cffdef82d62ba18ac539a5df5d120d0c6e7e"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 926,
+        "top": 577,
+        "width": 148,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 131,
+        "width": 148,
+        "height": 132,
+        "pixels": 11217
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 643
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 49,
+        "top": 51,
+        "right": 113,
+        "bottom": 108,
+        "width": 65,
+        "height": 58,
+        "pixels": 2233,
+        "edgePixels": 0
+      },
+      "sha256": "06b9388b7b214503f71c4344e79df618241f83185bf88d724fa342eccbd43b1c"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 19,
+        "top": 743,
+        "width": 160,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 142,
+        "width": 160,
+        "height": 143,
+        "pixels": 13144
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 818.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 48,
+        "top": 47,
+        "right": 118,
+        "bottom": 109,
+        "width": 71,
+        "height": 63,
+        "pixels": 2650,
+        "edgePixels": 0
+      },
+      "sha256": "75db77ab57761232672492f2ef23b2c142391bd89e7d25f9a4e5eb3e1ef42cfa"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 212,
+        "top": 751,
+        "width": 150,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 134,
+        "width": 150,
+        "height": 135,
+        "pixels": 11749
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 818.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 54,
+        "top": 50,
+        "right": 119,
+        "bottom": 109,
+        "width": 66,
+        "height": 60,
+        "pixels": 2376,
+        "edgePixels": 0
+      },
+      "sha256": "db2e20d5a299241071f4a07c943171da7a9de9ca92ce20a903e609bc801e5145"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 386,
+        "top": 750,
+        "width": 146,
+        "height": 137
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 136,
+        "width": 146,
+        "height": 137,
+        "pixels": 11246
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 818.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 51,
+        "top": 50,
+        "right": 115,
+        "bottom": 110,
+        "width": 65,
+        "height": 61,
+        "pixels": 2299,
+        "edgePixels": 0
+      },
+      "sha256": "a5ce8e1178893768617e80a5e52e96e950d45e57aef07fd172e714ecd0be78b6"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 560,
+        "top": 752,
+        "width": 154,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 133,
+        "width": 154,
+        "height": 134,
+        "pixels": 11714
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 818.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 48,
+        "top": 51,
+        "right": 115,
+        "bottom": 109,
+        "width": 68,
+        "height": 59,
+        "pixels": 2351,
+        "edgePixels": 0
+      },
+      "sha256": "b378563dcb08688ef7ed585ddfd02f515bf87b1de63a7494606d6aa3d1e1c55e"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 736,
+        "top": 752,
+        "width": 159,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 132,
+        "width": 159,
+        "height": 133,
+        "pixels": 11388
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 818.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 51,
+        "right": 114,
+        "bottom": 109,
+        "width": 70,
+        "height": 59,
+        "pixels": 2301,
+        "edgePixels": 0
+      },
+      "sha256": "5134e7b520c4574fc1ff8020e092d6c33a752b188e2c952352c1501ead7a7159"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 920,
+        "top": 749,
+        "width": 148,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 137,
+        "width": 148,
+        "height": 138,
+        "pixels": 11748
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 818.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 47,
+        "top": 49,
+        "right": 111,
+        "bottom": 109,
+        "width": 65,
+        "height": 61,
+        "pixels": 2354,
+        "edgePixels": 0
+      },
+      "sha256": "20506c2006e98e324b5e87bb4f1dc22e7a6e38fd5d89bcaccdc964f9a9802932"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 17,
+        "top": 928,
+        "width": 157,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 143,
+        "width": 157,
+        "height": 144,
+        "pixels": 12135
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1001
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 48,
+        "top": 48,
+        "right": 116,
+        "bottom": 111,
+        "width": 69,
+        "height": 64,
+        "pixels": 2454,
+        "edgePixels": 0
+      },
+      "sha256": "0de5c909c26d6febfeaa22bd51bfb3133c742cee48b54691fabe1aac904def9e"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 217,
+        "top": 933,
+        "width": 142,
+        "height": 136
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 135,
+        "width": 142,
+        "height": 136,
+        "pixels": 11685
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1001
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 56,
+        "top": 50,
+        "right": 118,
+        "bottom": 109,
+        "width": 63,
+        "height": 60,
+        "pixels": 2356,
+        "edgePixels": 0
+      },
+      "sha256": "c2b6797f8ef910228cb001a1ee5318aa10a69837ceb24c1f148214504f2e81de"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 401,
+        "top": 937,
+        "width": 128,
+        "height": 131
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 127,
+        "bottom": 130,
+        "width": 128,
+        "height": 131,
+        "pixels": 10665
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1001
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 57,
+        "top": 52,
+        "right": 113,
+        "bottom": 109,
+        "width": 57,
+        "height": 58,
+        "pixels": 2162,
+        "edgePixels": 0
+      },
+      "sha256": "2c2251b89f4222c1e16b9a4667cdcb5c50bbf270fa6638c39dd0167c8009c8f8"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 573,
+        "top": 932,
+        "width": 125,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 124,
+        "bottom": 137,
+        "width": 125,
+        "height": 138,
+        "pixels": 10681
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1001
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 53,
+        "top": 50,
+        "right": 107,
+        "bottom": 110,
+        "width": 55,
+        "height": 61,
+        "pixels": 2133,
+        "edgePixels": 0
+      },
+      "sha256": "71f80509d285cfb2ede31105a80cfc15338472b49d7dc864dabe93587d42dd9d"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 736,
+        "top": 930,
+        "width": 151,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 140,
+        "width": 151,
+        "height": 141,
+        "pixels": 12025
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1001
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 49,
+        "right": 111,
+        "bottom": 110,
+        "width": 67,
+        "height": 62,
+        "pixels": 2428,
+        "edgePixels": 0
+      },
+      "sha256": "b04dbcb8e532656c1c55da1a00d542a404e3648fbbc9d70cf82f21101c4d7a70"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 913,
+        "top": 929,
+        "width": 157,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 139,
+        "width": 157,
+        "height": 140,
+        "pixels": 12356
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1001
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 44,
+        "top": 48,
+        "right": 112,
+        "bottom": 109,
+        "width": 69,
+        "height": 62,
+        "pixels": 2486,
+        "edgePixels": 0
+      },
+      "sha256": "aace12e22f7729ecd32b19bb81cae56862218c2c7dfb9a44205697c68f6436b2"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 22,
+        "top": 1110,
+        "width": 160,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 144,
+        "width": 160,
+        "height": 145,
+        "pixels": 12645
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1184
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 50,
+        "top": 47,
+        "right": 120,
+        "bottom": 110,
+        "width": 71,
+        "height": 64,
+        "pixels": 2559,
+        "edgePixels": 0
+      },
+      "sha256": "4a849a060c7673ad52ef9d450c48791a0033638d6272cad173e3a04dc9d81170"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 219,
+        "top": 1111,
+        "width": 149,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 140,
+        "width": 149,
+        "height": 141,
+        "pixels": 11828
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1184
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 57,
+        "top": 48,
+        "right": 122,
+        "bottom": 109,
+        "width": 66,
+        "height": 62,
+        "pixels": 2375,
+        "edgePixels": 0
+      },
+      "sha256": "f7b2b1de10a28f252d5750b340c8394be88bc4da19146928daf1bd856268c409"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 390,
+        "top": 1127,
+        "width": 141,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 127,
+        "width": 141,
+        "height": 128,
+        "pixels": 10337
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1184
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 52,
+        "top": 55,
+        "right": 113,
+        "bottom": 111,
+        "width": 62,
+        "height": 57,
+        "pixels": 2096,
+        "edgePixels": 0
+      },
+      "sha256": "a7d25d2dcda653c717ad6234bb9fffff505dc78b48cb118389dbbf2f6fee0370"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 565,
+        "top": 1117,
+        "width": 151,
+        "height": 138
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 137,
+        "width": 151,
+        "height": 138,
+        "pixels": 11567
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1184
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 50,
+        "top": 50,
+        "right": 116,
+        "bottom": 110,
+        "width": 67,
+        "height": 61,
+        "pixels": 2340,
+        "edgePixels": 0
+      },
+      "sha256": "fbfcb44261235cc93a81bee57a4cfa62a4d582b9485c737b29e5b6adfa985be0"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 737,
+        "top": 1112,
+        "width": 157,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 140,
+        "width": 157,
+        "height": 141,
+        "pixels": 12191
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1184
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 46,
+        "top": 48,
+        "right": 114,
+        "bottom": 109,
+        "width": 69,
+        "height": 62,
+        "pixels": 2423,
+        "edgePixels": 0
+      },
+      "sha256": "76276b0949d3b7235c1139829d526acc92dd8f49ec9421e1f8c6e1b8a15d66ca"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 923,
+        "top": 1112,
+        "width": 151,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 143,
+        "width": 151,
+        "height": 144,
+        "pixels": 11808
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1184
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 48,
+        "top": 48,
+        "right": 114,
+        "bottom": 111,
+        "width": 67,
+        "height": 64,
+        "pixels": 2392,
+        "edgePixels": 0
+      },
+      "sha256": "941022ff80d3bf2e17dc354aed15cc233e80785e155f263c5c2d22889d5d3b3d"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 16,
+        "top": 1299,
+        "width": 156,
+        "height": 128
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 127,
+        "width": 156,
+        "height": 128,
+        "pixels": 11930
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1384.5
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 47,
+        "top": 42,
+        "right": 115,
+        "bottom": 98,
+        "width": 69,
+        "height": 57,
+        "pixels": 2410,
+        "edgePixels": 0
+      },
+      "sha256": "a4818b8e14163ec21e05f733310f1b2dbe4deac592e707b2dc1b788afaa240f7"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 200,
+        "top": 1313,
+        "width": 157,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 114,
+        "width": 157,
+        "height": 115,
+        "pixels": 10587
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1384.5
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 48,
+        "top": 48,
+        "right": 116,
+        "bottom": 98,
+        "width": 69,
+        "height": 51,
+        "pixels": 2127,
+        "edgePixels": 0
+      },
+      "sha256": "3745475f96e111d2847ec71a52a1ab583b3c1d1889d27c02b742a0833ab97fa8"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 377,
+        "top": 1322,
+        "width": 160,
+        "height": 107
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 106,
+        "width": 160,
+        "height": 107,
+        "pixels": 8692
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1384.5
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 47,
+        "top": 52,
+        "right": 117,
+        "bottom": 98,
+        "width": 71,
+        "height": 47,
+        "pixels": 1757,
+        "edgePixels": 0
+      },
+      "sha256": "8e9f027c8133b562551661a21c9afb24b11132fbb761d63d6cdf91f119c8b9ad"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 554,
+        "top": 1341,
+        "width": 165,
+        "height": 87
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 86,
+        "width": 165,
+        "height": 87,
+        "pixels": 8520
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1384.5
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 45,
+        "top": 61,
+        "right": 117,
+        "bottom": 98,
+        "width": 73,
+        "height": 38,
+        "pixels": 1696,
+        "edgePixels": 0
+      },
+      "sha256": "a4900a54d138388298bd2902be934b5f314648f647193009e831068979cbd05f"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 738,
+        "top": 1352,
+        "width": 163,
+        "height": 77
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 76,
+        "width": 163,
+        "height": 77,
+        "pixels": 7089
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1384.5
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 46,
+        "top": 66,
+        "right": 117,
+        "bottom": 99,
+        "width": 72,
+        "height": 34,
+        "pixels": 1416,
+        "edgePixels": 0
+      },
+      "sha256": "89e97a4cb55e8d7f74339bfa22d71a970d5d3f0df253cee11a87fb51c7451d80"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 912,
+        "top": 1364,
+        "width": 169,
+        "height": 64
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 63,
+        "width": 169,
+        "height": 64,
+        "pixels": 7058
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/rift-aberration/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1384.5
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 43,
+        "top": 71,
+        "right": 117,
+        "bottom": 98,
+        "width": 75,
+        "height": 28,
+        "pixels": 1417,
+        "edgePixels": 0
+      },
+      "sha256": "1c2cd636ef96c774bd69425db8da30560e5365bdb088a794c6def0b7fc6a687c"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

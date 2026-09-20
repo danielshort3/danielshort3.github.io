@@ -10,6 +10,7 @@ const visuals = require(path.join(ROOT, 'js/games/project-starfall/engine/visual
 const animations = require(path.join(ROOT, 'js/games/project-starfall/data/animations.js'));
 const shopVendors = require(path.join(ROOT, 'js/games/project-starfall/data/shop-vendors.js'));
 const mapPublication = require(path.join(ROOT, 'js/games/project-starfall/data/map-publication.js'));
+const animationData = animations.createAnimationData();
 
 const largeViewport = viewport.createViewportMetrics({
   video: { viewportPreset: 'large', width: 1600, height: 930, hudScale: 1.1 }
@@ -71,8 +72,8 @@ const rendererCode = fs.readFileSync(path.join(ROOT, 'js/games/project-starfall/
 assert(rendererCode.includes("portal.facadeCell || 'marketAwning'"), 'shop portals should try atlas-backed facades first');
 assert(rendererCode.includes('const npcTexture = this.getTexture(npc.asset)'), 'quest NPCs should try character art first');
 assert(rendererCode.includes('graphics.rect(npc.x + 6'), 'quest NPC procedural fallback should remain available');
-assert(rendererCode.includes("return { color: colorToNumber(palette[0], 0x2f6848), alpha: 1 }"),
-  'Pixi should paint the reserved solid-platform band opaquely so the canvas fallback color cannot show through');
+assert(rendererCode.includes('this.backgroundSprites, this.worldBaseBandGraphics, this.worldLayer'),
+  'Pixi should fade above the authored background and behind gameplay');
 
 const standardEnemy = { id: 'slimelet', x: 100, y: 200, w: 46, h: 46, data: { behavior: 'melee' } };
 const standardEnemyBox = visuals.createEnemySpriteRenderBox(standardEnemy);
@@ -95,16 +96,33 @@ const flyerBox = visuals.createEnemySpriteRenderBox(flyer);
 assert.strictEqual(flyerBox.y + flyerBox.h / 2, flyer.y + flyer.h / 2, 'flyer art should remain centered around its body');
 
 const enemyDrawState = visuals.createAnimationFrameDrawState(
-  { frameWidth: 128, frameHeight: 128, row: 0, frameIndex: 0 },
+  { frameWidth: 160, frameHeight: 160, row: 0, frameIndex: 0 },
   standardEnemyBox.x,
   standardEnemyBox.y,
   standardEnemyBox.w,
   standardEnemyBox.h,
   1,
-  { registration: visuals.ENEMY_SPRITE_REGISTRATION }
+  { registration: animationData.ENEMY_ANIMATION_ASSETS.slimelet.registration }
 );
 assert.strictEqual(enemyDrawState.drawWidth, enemyDrawState.drawHeight,
   'authored enemy registration should preserve square frame proportions');
+const groundRegistration = animationData.ENEMY_ANIMATION_ASSETS.slimelet.registration;
+assert(Math.abs(enemyDrawState.translateY + enemyDrawState.drawY + groundRegistration.groundY * enemyDrawState.drawHeight / 160 -
+  (standardEnemyBox.y + standardEnemyBox.h)) < 1e-9,
+'the imported foot landmark should map exactly to the grounded render baseline');
+assert(Math.abs(enemyDrawState.translateX + enemyDrawState.drawX + groundRegistration.originX * enemyDrawState.drawWidth / 160 -
+  (standardEnemyBox.x + standardEnemyBox.w / 2)) < 1e-9,
+'the imported horizontal origin should remain centered without per-frame cropping');
+const flyerRegistration = animationData.ENEMY_ANIMATION_ASSETS.galeHarrier.registration;
+assert.strictEqual(flyerRegistration.centered, true, 'the authored flyer should declare a hover-center anchor');
+const flyerDrawState = visuals.createAnimationFrameDrawState(
+  { frameWidth: 160, frameHeight: 160, row: 0, frameIndex: 0 },
+  flyerBox.x, flyerBox.y, flyerBox.w, flyerBox.h, -1, { registration: flyerRegistration }
+);
+assert(Math.abs(flyerDrawState.translateY + flyerDrawState.drawY + flyerRegistration.groundY * flyerDrawState.drawHeight / 160 -
+  (flyer.y + flyer.h / 2)) < 1e-9,
+'the imported hover landmark should map exactly to the flyer center');
+assert.strictEqual(flyerDrawState.scaleX, -1, 'facing should mirror around the declared origin');
 assert.strictEqual(
   visuals.getActorAnimationElapsed({ frames: 3, fps: 3, loop: true }, { animationStartedAt: 4, animationPhaseOffset: 0.25 }, 5, () => 2),
   1.5,
@@ -116,24 +134,73 @@ assert.strictEqual(
   'one-shot enemy actions should not be phase shifted'
 );
 
-const animationData = animations.createAnimationData();
 Object.values(animationData.ENEMY_ANIMATION_ASSETS).forEach((animation) => {
-  assert.strictEqual(animation.states.hit.frames, 3, 'compact enemy hit rows should expose all three authored frames');
-  assert.strictEqual(animation.states.hit.holds.length, 3, 'compact enemy hit timing should cover all three authored frames');
+  assert.strictEqual(animation.frameWidth, 160, 'illustrated enemy cells should be 160px wide');
+  assert.strictEqual(animation.frameHeight, 160, 'illustrated enemy cells should be 160px high');
+  assert(animation.registration && animation.registration.authoredBodyHeight > 0,
+    'every enemy animation should carry measured identity registration');
+  Object.entries(animation.states).forEach(([stateId, state]) => {
+    assert.strictEqual(state.frames, 6, `${stateId} should expose all six authored poses`);
+    assert.strictEqual(state.holds.length, 6, `${stateId} hold weights should cover all six poses`);
+  });
 });
 assert.strictEqual(animationData.ENEMY_ANIMATION_ASSETS.briarStag.states.attack.fps, 13,
-  'compact enemy assets should retain per-monster timing overrides');
-assert.deepStrictEqual(animationData.ENEMY_ANIMATION_ASSETS.briarStag.states.attack.holds, [3, 2, 4],
-  'six-frame timing accents should map onto compact anticipation, action, and recovery frames');
+  'illustrated enemy assets should retain per-monster timing overrides');
+assert.deepStrictEqual(animationData.ENEMY_ANIMATION_ASSETS.briarStag.states.attack.holds, [3, 1, 1, 2, 2, 4],
+  'per-monster attack weights should preserve all authored anticipation, action, and recovery poses');
 
 const engineCode = fs.readFileSync(path.join(ROOT, 'js/games/project-starfall/project-starfall-engine.js'), 'utf8');
-assert(engineCode.includes("return palette[0] || '#2f6848';"),
-  'Canvas should extend the map tone opaquely through the reserved solid-platform band');
-assert(!/getWorldBaseBandFill[\s\S]{0,1200}colorWithAlpha\([^\n]+0\.[0-9]+\)/.test(engineCode),
-  'Canvas world-to-HUD transition should not expose a translucent blank strip');
+assert(engineCode.includes('this.drawBackground(ctx, width, solidBandBottom, palette, map)'),
+  'Canvas should continue the authored background through the reserved world-to-HUD band');
 assert((engineCode.match(/createEnemySpriteRenderBox\(enemy\)/g) || []).length >= 3,
   'renderer snapshots and Canvas fallback should share the centralized enemy render box');
-assert(engineCode.includes('ENEMY_SPRITE_DRAW_OPTIONS'), 'Canvas enemy animation drawing should use authored registration');
-assert(rendererCode.includes('? ENEMY_SPRITE_REGISTRATION'), 'Pixi enemy animation drawing should use the same authored registration');
+assert(engineCode.includes('animation && animation.registration ? { registration: animation.registration }'),
+  'Canvas enemy animation drawing should use the imported per-identity registration');
+assert(engineCode.includes('registration: animation && animation.registration || ENEMY_SPRITE_REGISTRATION'),
+  'renderer snapshots should carry the same imported registration');
+assert(rendererCode.includes('actor.registration || ENEMY_SPRITE_REGISTRATION'),
+  'Pixi enemy animation drawing should consume the snapshot registration');
 
+const Data = require(path.join(ROOT, 'js/games/project-starfall/project-starfall-data.js'));
+const { createProjectStarfallEngine } = require(path.join(ROOT, 'js/games/project-starfall/project-starfall-engine.js'));
+const engine = createProjectStarfallEngine(null, Data);
+for (const [id, windup, commitment] of [['slimelet', 0.42, 0.2], ['briarStag', 0.75, 0.2], ['brambleking', 1, 0.3]]) {
+  const enemyData = Data.ENEMIES.find((enemy) => enemy.id === id);
+  const actor = { data: enemyData, pendingAttack: { windup }, telegraph: windup, animationStartedAt: Date.now() / 1000, animationDuration: windup };
+  assert.strictEqual(engine.getAnimationFrame(enemyData.animation, 'telegraph', actor).frameIndex, 0,
+    `${id} should begin at its first warning pose`);
+  actor.telegraph = commitment + 0.001;
+  assert(engine.getAnimationFrame(enemyData.animation, 'telegraph', actor).frameIndex < 5,
+    `${id} should not settle into its final pose before commitment`);
+  actor.telegraph = commitment;
+  assert.strictEqual(engine.getAnimationFrame(enemyData.animation, 'telegraph', actor).frameIndex, 5,
+    `${id} should visibly commit at the promised warning boundary`);
+  actor.telegraph = 0.001;
+  assert.strictEqual(engine.getAnimationFrame(enemyData.animation, 'telegraph', actor).frameIndex, 5,
+    `${id} should hold its committed pose through the final preparation millisecond`);
+}
+const originalNow = Date.now;
+try {
+  let nowMs = 1000000;
+  Date.now = () => nowMs;
+  const melee = Data.ENEMIES.find((enemy) => enemy.id === 'slimelet');
+  const recovering = { data: melee, animationStartedAt: nowMs / 1000, animationDuration: 0.12 };
+  assert.strictEqual(engine.getAnimationFrame(melee.animation, 'attack', recovering).frameIndex, 0,
+    'a short attack should start with its authored contact pose');
+  nowMs += 119;
+  assert.strictEqual(engine.getAnimationFrame(melee.animation, 'attack', recovering).frameIndex, 5,
+    'a short attack should reach its final authored recovery pose before its gameplay timer expires');
+  const oracle = Data.ENEMIES.find((enemy) => enemy.id === 'icebloomOracle');
+  const healing = { data: oracle, animationStartedAt: nowMs / 1000, animationDuration: 0.65 };
+  nowMs += 349;
+  assert.strictEqual(engine.getAnimationFrame(oracle.animation, 'buff', healing).frameIndex, 3,
+    'the healer should remain in its gathering poses before the 350ms contact event');
+  nowMs += 2;
+  assert.strictEqual(engine.getAnimationFrame(oracle.animation, 'buff', healing).frameIndex, 4,
+    'the healer should show its release pose with the 350ms restorative pulse');
+} finally {
+  Date.now = originalNow;
+}
+
+require('./project-starfall-recovery-layering.test');
 console.log('Project Starfall visual viewport tests passed.');

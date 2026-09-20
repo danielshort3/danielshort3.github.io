@@ -1,0 +1,15 @@
+{
+  "method": "Root X uses the midpoint of the opaque bottom 10 source-pixel foot contact band, visually checked against the eight drawings. Root Y uses the bottom of the opaque sole. This registers exported placements; it does not change the drawings or their individual scales.",
+  "anchors": [
+    { "x": 221, "y": 417 },
+    { "x": 225, "y": 417 },
+    { "x": 221, "y": 419 },
+    { "x": 221, "y": 419 },
+    { "x": 221, "y": 406 },
+    { "x": 220.5, "y": 406 },
+    { "x": 224, "y": 406 },
+    { "x": 225, "y": 406 }
+  ],
+  "duration": 1.2,
+  "holds": [3, 1, 2, 1, 1, 1, 1, 2]
+}

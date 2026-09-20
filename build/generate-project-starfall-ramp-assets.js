@@ -209,6 +209,11 @@ async function validateRampAtlas(themeId) {
 }
 
 async function main() {
+  const overhaul = require('./process-project-starfall-overhaul-scenery.js');
+  if (overhaul.isEnabled('ramps')) {
+    await overhaul.processGroup('ramps', { validate: process.argv.includes('--validate') });
+    return;
+  }
   const validateOnly = process.argv.includes('--validate');
   const data = require('../js/games/project-starfall/project-starfall-data.js');
   const terrainAssets = data.ENVIRONMENT_ASSETS && data.ENVIRONMENT_ASSETS.terrain || {};

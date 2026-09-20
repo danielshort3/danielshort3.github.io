@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-09-20T00:28:38.666Z",
+  "enemyIds": 51,
+  "uniqueSheets": 48,
+  "pixelsCompared": 62668800,
+  "transformCases": 5508,
+  "positiveQueries": 220320,
+  "negativeQueries": 220320,
+  "rejectedOldWitnesses": 5446,
+  "alphaThreshold": 64,
+  "result": "pass",
+  "scope": "Every sprite pixel in every registered enemy pose independently compared with decoded mask occupancy. World rectangle and circle narrow-phase queries checked at 20 visible and 20 transparent pixels per frame/facing/reaction, plus every applicable old empty-space witness; actual render transform independently maps source sample positions."
+}

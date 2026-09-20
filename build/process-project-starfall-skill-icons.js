@@ -396,6 +396,8 @@ async function processMasteryIcons() {
 }
 
 async function main() {
+  const owner = require('./project-starfall-overhaul-icons.js');
+  if (owner.owns()) return owner.rebuild('skills');
   const only = getOnlyMode(process.argv.slice(2));
   if (only && only !== 'mastery') {
     throw new Error(`Unsupported --only mode: ${only}`);

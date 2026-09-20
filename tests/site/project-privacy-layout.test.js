@@ -12,6 +12,7 @@ const intro = (html) => html.match(/<section class="project-hero project-hero--c
 
 function runProjectPrivacyLayoutTests({ assert }) {
   const babyNames = renderProjectPage(project('babynames'));
+  assert(!/^[\t ]+$/m.test(babyNames), 'Omitted project sections do not leave whitespace-only generated lines.');
   const babyIntro = intro(babyNames);
   assert(babyIntro.includes('class="project-intro-actions" aria-label="Project actions"'),
     'Project introductions expose a named navigation group for existing project actions.');
@@ -26,8 +27,23 @@ function runProjectPrivacyLayoutTests({ assert }) {
   'Intro actions enter existing content-click measurement as resources rather than counting another project view.');
   assert(babyNames.includes('class="project-demo-shell"') && babyNames.includes('project-link-label">Notebook'),
     'Promoting two actions preserves the embedded demo and supporting resources.');
+  assert(!babyNames.includes('class="project-demo-open"') && !babyNames.includes('class="project-demo-launch-copy"'),
+    'The project masthead is the only demo launch control, including mobile preview layouts.');
+  assert(babyNames.includes('style="--project-preview-aspect: 1280 / 800;"'),
+    'The project preview reserves its supplied aspect ratio before a lazy image has loaded.');
+  for (const id of ['handwritingRating', 'shapeClassifier']) {
+    const drawing = renderProjectPage(project(id));
+    assert(drawing.includes('project-main--drawing') && !drawing.includes('class="project-demo-header"'),
+      `${id} uses one page introduction without repeating it above the canvas.`);
+    assert(intro(drawing).includes('aria-label="Demo instructions"')
+      && (drawing.match(/aria-label="Demo instructions"/g) || []).length === 1,
+    `${id} keeps its instructions beside the masthead actions exactly once.`);
+    assert(drawing.includes('STAR Summary'), `${id} preserves the project narrative label.`);
+  }
 
   const personalBabyNames = preparePersonalProjectDetailHtml(babyNames);
+  assert(!/^[\t ]+$/m.test(preparePersonalProjectDetailHtml(renderProjectPage(project('website')))),
+    'Personal mastheads without launch actions also omit whitespace-only lines.');
   const personalIntro = personalBabyNames.match(/<header class="project-hero project-hero--compact" data-page-masthead>([\s\S]*?)<\/header>/)?.[1] || '';
   assert(personalIntro.includes('href="/portfolio" data-page-masthead-parent')
     && personalIntro.includes('<span>Project library</span>')

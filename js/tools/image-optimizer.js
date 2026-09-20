@@ -305,8 +305,10 @@
     if (settingsNaming) settingsNaming.textContent = `Suffix: ${normalizeSuffix(suffixInput?.value) || 'none'}`;
   };
 
-  const setStatus = (msg) => {
-    if (statusEl) statusEl.textContent = msg || '';
+  const setStatus = (msg, tone = 'info') => {
+    if (!statusEl) return;
+    statusEl.textContent = msg || '';
+    statusEl.dataset.tone = tone;
   };
 
   const setWorking = (working) => {
@@ -363,6 +365,7 @@
     setStatus('Your optimized images will appear here.');
     fileInput.value = '';
     markSessionDirty();
+    document.dispatchEvent(new CustomEvent('tools:session-cleared', { detail: { toolId: TOOL_ID } }));
   };
 
   const updateSummary = () => {
@@ -639,7 +642,7 @@
       return !mimeType && /\.(?:avif|jpe?g|png|webp)$/i.test(String(file.name || ''));
     });
     if (!accepted.length) {
-      setStatus('No supported image files were detected.');
+      setStatus('No supported image files were detected.', 'warning');
       return;
     }
 
@@ -681,7 +684,7 @@
     updateSummary();
     revokeOutputs();
     if (!queued.length) {
-      setStatus(`No images added. ${rejected.slice(0, 2).join(' ') || `Limits: ${describeSelectionLimits()}.`}`);
+      setStatus(`No images added. ${rejected.slice(0, 2).join(' ') || `Limits: ${describeSelectionLimits()}.`}`, 'warning');
       return;
     }
 
@@ -705,12 +708,12 @@
       const allRejections = rejected.concat(dimensionRejections);
       const readyCount = queued.filter((item) => !item.removed && item.width && item.height && state.items.includes(item)).length;
       if (allRejections.length) {
-        setStatus(`${readyCount} added; ${allRejections.length} rejected. ${allRejections.slice(0, 2).join(' ')}`);
+        setStatus(`${readyCount} added; ${allRejections.length} rejected. ${allRejections.slice(0, 2).join(' ')}`, readyCount ? 'warning' : 'error');
       } else {
-        setStatus(`${readyCount} ${readyCount === 1 ? 'image is' : 'images are'} ready. Click Optimize to generate downloads.`);
+        setStatus(`${readyCount} ${readyCount === 1 ? 'image is' : 'images are'} ready. Click Optimize to generate downloads.`, 'success');
       }
     }).catch(() => {
-      setStatus('Image checks failed. Remove the affected files and try again.');
+      setStatus('Image checks failed. Remove the affected files and try again.', 'error');
     });
   };
 
@@ -755,7 +758,7 @@
       if (selectionVersion !== state.selectionVersion || state.working) return;
       addFiles([new File([blob], 'sample-landscape.png', { type: 'image/png' })]);
     } catch (_) {
-      setStatus('The sample could not be created. You can still add your own images.');
+      setStatus('The sample could not be created. You can still add your own images.', 'error');
     } finally {
       if (sampleBtn) sampleBtn.disabled = state.working;
     }
@@ -1104,7 +1107,7 @@
             copyBtn.textContent = 'Copied';
             setTimeout(() => { copyBtn.textContent = 'Copy'; }, 900);
           } catch {
-            setStatus('Unable to copy. Select the text and copy manually.');
+            setStatus('Unable to copy. Select the text and copy manually.', 'error');
           }
         });
 
@@ -1127,7 +1130,7 @@
   const processAll = async () => {
     if (state.working) return;
     if (!state.items.length) {
-      setStatus('Add at least one image first.');
+      setStatus('Add at least one image first.', 'warning');
       $('[data-imgopt-pick]')?.focus();
       dispatchToolRunEvent('tools:run-error', { errorType: 'validation' });
       return;
@@ -1277,13 +1280,13 @@
       renderOutputs({ responsiveEnabled });
       const originalBytes = state.items.reduce((sum, item) => sum + item.file.size, 0);
       const largerCount = state.outputs.filter((out) => out.blob.size > getItemById(out.inputId).file.size).length;
-      setStatus(`Done. ${state.outputs.length} ${state.outputs.length === 1 ? 'file' : 'files'} ready (${formatBytes(actualOutputBytes)} total). Combined output: ${describeSizeChange(originalBytes, actualOutputBytes, 'the originals')}.${largerCount ? ` ${largerCount} ${largerCount === 1 ? 'output is' : 'outputs are'} larger; try a lower quality or another format if file size is your priority.` : ''}`);
+      setStatus(`Done. ${state.outputs.length} ${state.outputs.length === 1 ? 'file' : 'files'} ready (${formatBytes(actualOutputBytes)} total). Combined output: ${describeSizeChange(originalBytes, actualOutputBytes, 'the originals')}.${largerCount ? ` ${largerCount} ${largerCount === 1 ? 'output is' : 'outputs are'} larger; try a lower quality or another format if file size is your priority.` : ''}`, largerCount ? 'warning' : 'success');
       dispatchToolRunEvent('tools:run-complete', {
         resultBucket: state.outputs.length === 1 ? 'single_output' : 'multiple_outputs'
       });
     } catch (err) {
       revokeOutputs();
-      setStatus(err?.message || 'Unable to optimize images. Please try different files or settings.');
+      setStatus(err?.message || 'Unable to optimize images. Please try different files or settings.', err?.name === 'AbortError' ? 'info' : 'error');
       dispatchToolRunEvent('tools:run-error', {
         errorType: err?.errorType || (err?.name === 'AbortError' ? 'cancelled' : 'processing')
       });
@@ -1312,7 +1315,7 @@
         triggerDownload(state.outputs[i]);
         await new Promise((r) => setTimeout(r, 160));
       }
-      setStatus('Download started. If prompted, allow multiple downloads.');
+      setStatus('Download started. If prompted, allow multiple downloads.', 'success');
     } finally {
       setWorking(false);
     }

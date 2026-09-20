@@ -184,7 +184,11 @@ burstEngine.recordRiftCounterplayEvent({ type: 'tick', now: 1, resource: burstSt
 burstEngine.setRiftCounterplayTestTime(2.4);
 burstEngine.recordRiftCounterplayEvent({ type: 'tick', resource: burstStats.maxMp, maxResource: burstStats.maxMp });
 burstEngine.state.skills.fighter_heavy_strike = Math.max(1, Number(burstEngine.state.skills.fighter_heavy_strike || 0));
+const hpBeforeBurstPreparation = burstEnemy.hp;
 assert.strictEqual(burstEngine.useSkill('fighter_heavy_strike', { silent: true }), true, 'the production burst sequence should accept a real offensive skill cast');
+assert.strictEqual(burstEnemy.hp, hpBeforeBurstPreparation, 'the offensive preparation should not apply damage before contact');
+assert(!burstEngine.getActiveRiftCounterplayIds().includes('burst_window'), 'skill preparation alone should not trigger the on-hit burst window');
+burstEngine.updatePendingSkillActions(1 / 6);
 assert(burstEngine.getActiveRiftCounterplayIds().includes('burst_window'), 'the authoritative skill-spend and hit hooks should activate the saved-resource burst window');
 
 console.log('Project Starfall Rift counterplay tests passed.');

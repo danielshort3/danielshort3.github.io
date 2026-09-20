@@ -201,6 +201,10 @@
     const slot = clamp(Math.floor(Number(source.slot != null ? source.slot : index) || 0), 0, maxMembers - 1);
     const classData = getPartyClassData(classId, options) || {};
     const level = Math.max(1, Math.floor(Number(source.level || 1) || 1));
+    const baseClasses = data.BASE_CLASSES || {};
+    const baseStats = (baseClasses[getPartyBaseClassId(classId, options)] || baseClasses.fighter || {}).stats || {};
+    const maxHp = Math.max(1, Number.isFinite(Number(source.maxHp)) && Number(source.maxHp) > 0
+      ? Number(source.maxHp) : Math.round(Number(baseStats.hp || 150) * 0.72 + level * 10));
     const id = normalizeId(source.id) || `ai_${classId}_${slot}_${Date.now()}`;
     return {
       id,
@@ -238,8 +242,8 @@
       dropThroughPlatformIndex: Number.isFinite(Number(source.dropThroughPlatformIndex)) ? Number(source.dropThroughPlatformIndex) : -1,
       lastX: Number(source.lastX || source.x || 0),
       stuckTime: Number(source.stuckTime || 0),
-      hp: Math.max(1, Number(source.hp || 1) || 1),
-      maxHp: Math.max(1, Number(source.maxHp || 1) || 1),
+      hp: source.hp == null || !Number.isFinite(Number(source.hp)) ? maxHp : clamp(Number(source.hp), 0, maxHp),
+      maxHp,
       mode: String(source.mode || 'follow'),
       targetEnemyUid: normalizeId(source.targetEnemyUid),
       targetClaimUntil: Number(source.targetClaimUntil || 0),

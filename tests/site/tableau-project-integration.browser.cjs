@@ -39,7 +39,7 @@ async function assertDashboard(page, dashboard, device, label) {
   const shell = page.locator('.project-demo-shell');
   assert.equal(await shell.locator('.project-demo-title').innerText(), dashboard.title);
   assertDashboardUrl(await frame.getAttribute('data-dashboard-default-src'), dashboard, 'desktop');
-  const launch = page.locator('.project-demo-mobile-launch .btn-primary');
+  const launch = page.locator('.project-intro-action--demo');
   assertDashboardUrl(await launch.getAttribute('href'), dashboard);
   assert.equal(await launch.getAttribute('target'), '_blank');
   assert.match(await launch.getAttribute('rel'), /noopener/);
@@ -54,8 +54,9 @@ async function assertDashboard(page, dashboard, device, label) {
   assert(await frame.isVisible(), `${label}: native dashboard is shown.`);
   const view = page.frameLocator('iframe.project-embed-frame');
   await view.getByRole('heading', { name: dashboard.title, exact: true }).waitFor();
-  assert.equal(await launch.isVisible(), false, `${label}: avoid duplicate dashboard preview.`);
-  assert(await page.locator('.project-demo-open').isVisible(), `${label}: keep native full-view navigation available.`);
+  assert.equal(await page.locator('.project-demo-mobile-launch').isVisible(), false, `${label}: avoid duplicate dashboard preview.`);
+  assert(await launch.isVisible(), `${label}: keep native full-view navigation available in the masthead.`);
+  assert.equal(await page.locator('.project-demo-open').count(), 0, `${label}: avoid a duplicate launch link.`);
   assert.equal(await page.locator('[data-dashboard-reset]').count(), 0, `${label}: no redundant website reset control.`);
   assert.equal(await frame.getAttribute('scrolling'), 'auto', `${label}: the native dashboard can scroll vertically.`);
   const geometry = await frame.evaluate(node => {
@@ -197,7 +198,7 @@ async function runNoScriptCase({ browser, base, dashboard, audience }) {
     assert.equal(await frame.isVisible(), false, `${label}: hide the unloaded dashboard.`);
     assert.equal(await frame.getAttribute('src'), null, `${label}: deferred iframe remains unloaded.`);
     assert(await page.locator('.project-demo-launch-image').isVisible(), `${label}: show the complete current preview.`);
-    const launch = page.locator('.project-demo-mobile-launch .btn-primary');
+    const launch = page.locator('.project-intro-action--demo');
     assert(await launch.isVisible(), `${label}: retain the native dashboard launch without site JavaScript.`);
     assertDashboardUrl(await launch.getAttribute('href'), dashboard);
     assert.equal(requests.length, 0, `${label}: no hidden external load.`);

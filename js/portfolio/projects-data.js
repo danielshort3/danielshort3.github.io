@@ -63,7 +63,7 @@ window.PROJECTS = [
       "bullets": [
         "Type a query (a phrase or full sentence).",
         "Adjust “Top results” to control how many matches are returned.",
-        "Click “Find Sentences” and review the ranked semantic matches.",
+        "Click “Search” and review the ranked semantic matches.",
         "If the demo is warming up after idle time, wait for the status to turn ready and try again."
       ]
     },
@@ -106,10 +106,10 @@ window.PROJECTS = [
     },
     "order": 1,
     "mobilePreview": {
-      "image": "img/projects/smartSentence-preview.webp?v=9f9e9ac1b7f2",
-      "width": 1280,
-      "height": 800,
-      "alt": "Sentence Search showing an example query and ranked matching passages from Alice in Wonderland."
+      "image": "img/projects/smartSentence-workspace-preview.webp?v=d5584ddf5dcb",
+      "width": 1200,
+      "height": 962,
+      "alt": "Current Sentence Search workspace with a sample query, Search button, example prompts, and advanced settings."
     },
     "relatedProjectId": "chatbotLora"
   },
@@ -261,8 +261,8 @@ window.PROJECTS = [
       "lead": "Draw one of the supported shapes and let the model classify it.",
       "bullets": [
         "Draw on the canvas (circle, triangle, square, hexagon, or octagon).",
-        "Click “Classify” to submit the drawing.",
-        "Use the eraser button (or press C) to clear and try again.",
+        "Click “Classify shape” to submit the drawing.",
+        "Select Clear (or press C) to clear and try again.",
         "Review the confidence bar and per-shape scores on the right."
       ]
     },
@@ -297,10 +297,10 @@ window.PROJECTS = [
     "order": 3,
     "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task.",
     "mobilePreview": {
-      "image": "img/projects/shapeClassifier-preview.webp?v=1df34396e68a",
+      "image": "img/projects/shapeClassifier-workspace-preview.webp?v=86d67424b74b",
       "width": 1280,
-      "height": 800,
-      "alt": "Shape Classifier with a drawn square and the model’s prediction."
+      "height": 748,
+      "alt": "Current Shape Classifier workspace with an unclassified square on the black drawing canvas and the Classify shape button."
     },
     "relatedProjectId": "digitGenerator"
   },
@@ -680,10 +680,10 @@ window.PROJECTS = [
     "order": 7,
     "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark.",
     "mobilePreview": {
-      "image": "img/projects/handwritingRating-preview.webp?v=fe02ca2478f9",
+      "image": "img/projects/handwritingRating-workspace-preview.webp?v=2757424b916b",
       "width": 1280,
-      "height": 800,
-      "alt": "Handwriting Legibility Scoring with a handwritten six and its measured legibility result."
+      "height": 976,
+      "alt": "Current Handwriting Rating workspace with an unscored six on the black drawing canvas, Rate digit button, and all ten sample buttons."
     },
     "relatedProjectId": "shapeClassifier"
   },
@@ -742,7 +742,7 @@ window.PROJECTS = [
       "lead": "Generate a grid of synthetic digits and explore how the output morphs.",
       "bullets": [
         "Choose Auto or a digit from 0–9 with the Digit control.",
-        "Click “Generate” to refresh the grid.",
+        "Click “Regenerate” to refresh the grid.",
         "Open “Advanced settings” below the grid to adjust grid size, seed, latent dimension, and distortion.",
         "Generate again to compare how settings change the outputs."
       ]
@@ -787,10 +787,10 @@ window.PROJECTS = [
     "order": 8,
     "notes": "Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity.",
     "mobilePreview": {
-      "image": "img/projects/digitGenerator-preview.webp?v=3b391f6584d9",
-      "width": 1280,
-      "height": 800,
-      "alt": "Synthetic Digit Generator showing a generated four-by-four grid of handwritten digit variations."
+      "image": "img/projects/digitGenerator-workspace-preview.webp?v=37a30c9e5b0b",
+      "width": 1200,
+      "height": 1404,
+      "alt": "Current Digit Generator workspace with Regenerate controls, a six-by-six grid of recorded digit samples, and advanced settings below."
     },
     "relatedProjectId": "handwritingRating"
   },
@@ -1466,7 +1466,7 @@ window.PROJECTS = [
     "title": "danielshort.me",
     "subtitle": "A home for practical tools, personal projects, and browser experiments.",
     "metaDescription": "Explore how Daniel Short built this portfolio with practical browser tools, a searchable project library, shared navigation, and generated pages.",
-    "image": "img/projects/website.png?v=8eb483315671",
+    "image": "img/projects/website.png?v=020a43cd1f27",
     "iconImage": "img/projects/icons/website.png?v=5ee2dd9327e1",
     "imageWidth": 1600,
     "imageHeight": 1000,

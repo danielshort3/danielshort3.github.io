@@ -1,0 +1,962 @@
+{
+  "schema": "starfall-enemy-overhaul-qa-v1",
+  "scope": "Source/packed-image verification; runtime motion and build validation are owned by integration review.",
+  "identities": 48,
+  "runtimeEnemyIds": 51,
+  "canonicalSources": 44,
+  "aliases": 4,
+  "frameSlots": 2304,
+  "originalBackupsVerified": 96,
+  "protectedSourceMappings": 3,
+  "registrationCount": 48,
+  "errors": [],
+  "items": [
+    {
+      "fileId": "shardling",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/shardling-sheet.png",
+      "portrait": "img/project-starfall/enemies/shardling.png",
+      "sourceSha256": "975217f04d12e0bade8b364476a60586afcc89a4542c3d738f0e3bf3d90904b1",
+      "sheetSha256": "c61bd208fb3f944d674b87d57585c9ef868024601bfebd88bd687a07ca237c50",
+      "portraitSha256": "7ba49993795a63363fe2cc74bb0bcf6c5b9a553e8b9db279fcf96241939adb6f",
+      "transparentFraction": 0.6806363932291667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 108,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "void-mote",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/void-mote-sheet.png",
+      "portrait": "img/project-starfall/enemies/void-mote.png",
+      "sourceSha256": "6e82390e29924d218f955bb42d31041f0c68d3c1b7cfb8e2bcdfba6b0d615527",
+      "sheetSha256": "675ac5fa54ee6b108ba131d32f78c5efbcf7032c7e2d2086027809f8a41eb549",
+      "portraitSha256": "0e6308e5ec84d62ee66920ad55325f3ec9d65de2d55f1b682ca4ff8b242268bb",
+      "transparentFraction": 0.7342854817708333,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 80,
+        "authoredBodyHeight": 95,
+        "centered": true,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "clockbug",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/clockbug-sheet.png",
+      "portrait": "img/project-starfall/enemies/clockbug.png",
+      "sourceSha256": "d851ee38db49cafd3f918e58b29367f284e22b265b2ba34bc34f44dd1c46f3c4",
+      "sheetSha256": "6af8ee6fca8ba943def79b24ee9c05707f61bf7cc79dd276cdee503a31e5f728",
+      "portraitSha256": "7b71a8e244df9906de3e60cca222b60c2f0b86db1ecd94ef0f5c4259418f2673",
+      "transparentFraction": 0.6443839518229166,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 115,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "slimelet",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/slimelet-sheet.png",
+      "portrait": "img/project-starfall/enemies/slimelet.png",
+      "sourceSha256": "7337042f125ef9bda957ec472c9199bd5d98c9eb97b270984855d7c6b71c6add",
+      "sheetSha256": "e529b3ce364bbaf364513e186ce01b5a8827ddb2715db54cff9967a4fa496b15",
+      "portraitSha256": "a9de3a4d75b65e12f3df08f5a668c14c162afc6c2bc841b3fdd79a46a078bd27",
+      "transparentFraction": 0.7293473307291667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 102,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "dew-slime",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/dew-slime-sheet.png",
+      "portrait": "img/project-starfall/enemies/dew-slime.png",
+      "sourceSha256": "43a4a5ae7dec0ab206b43b545f39977ea045036d4149d80d23db5c183e5c4e51",
+      "sheetSha256": "cfdda5bf39e174517518a1ef2da2ad80e8db1f40c807363850bceef30f8acfe1",
+      "portraitSha256": "96c54eddc92bae6e72e35241c8a2dde8c4219cd822432cba0489284d8f2cb0ad",
+      "transparentFraction": 0.73580078125,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 95,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "mossback",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/mossback-sheet.png",
+      "portrait": "img/project-starfall/enemies/mossback.png",
+      "sourceSha256": "927f174adf82b82b0f865e1b6810bda8097858cec8717e81a67950f788942a8e",
+      "sheetSha256": "a52501443775061fc26b1139cd03c070a135f5a572b0dac26527583acb709c37",
+      "portraitSha256": "43dc83b7a785d56ec9db03e326717efe2f6f028ec51134bce5af401e2fb74743",
+      "transparentFraction": 0.72680908203125,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 92,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "thorn-sprout",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/thorn-sprout-sheet.png",
+      "portrait": "img/project-starfall/enemies/thorn-sprout.png",
+      "sourceSha256": "cf3c4430bd039f774f75ba99ac05b5bcec19da4a60943c781e9c3d503e125190",
+      "sheetSha256": "966b74b40ab2e5e73982971897ddf62f8f194885a2e7938f49b5642f2c14ff69",
+      "portraitSha256": "9ff9db687074ebc8da937f44918bc6da9c052f728c120a1c666fd04f51368b28",
+      "transparentFraction": 0.7378361002604167,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 94,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "vine-snapper",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/vine-snapper-sheet.png",
+      "portrait": "img/project-starfall/enemies/vine-snapper.png",
+      "sourceSha256": "802b3e5d0f6827b77b2f88af7c44a774693ed1cdcf17c6dd479f8cd752412fc8",
+      "sheetSha256": "5f4ec1a5f8562b02d19851d2765f1f89403780786fc30468142b254146330bd9",
+      "portraitSha256": "06adb6cf4fa8e11e99acfd287b2b9dde31371f595d33e2bd62700c513eeba894",
+      "transparentFraction": 0.75472412109375,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 87,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "bristle-boar",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/bristle-boar-sheet.png",
+      "portrait": "img/project-starfall/enemies/bristle-boar.png",
+      "sourceSha256": "052f40a23cd61d15bfb09edcf48914057a36c57332104e0f4d53517ce6a377d5",
+      "sheetSha256": "2f71eabfe42818fced6d710ca26742460640b41b0141cb7b7817ef41d2bffab7",
+      "portraitSha256": "0586e4a19f81708f71359987c87fe36763a75b0405648ce776cd3cd7d2ceacec",
+      "transparentFraction": 0.7382747395833333,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 86,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "briar-stag",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/briar-stag-sheet.png",
+      "portrait": "img/project-starfall/enemies/briar-stag.png",
+      "sourceSha256": "e148c27fee8c9238589fa88b4d959870fe5411e9f8662984df066763df1a9f3d",
+      "sheetSha256": "194fdf835ff91484e99fd80e492dbe784632bfd951c5fc0dc73a533e9b2b0667",
+      "portraitSha256": "6aa992c78e8a675a6d81f587da100651af545276c1a3797d9cd931e5cd9364c2",
+      "transparentFraction": 0.8120198567708333,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 103,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "dust-imp",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/dust-imp-sheet.png",
+      "portrait": "img/project-starfall/enemies/dust-imp.png",
+      "sourceSha256": "5289bf09963646f5e68e13921f5da9c5ef89ca26a9184ae7eac620a9d0a4199b",
+      "sheetSha256": "6fb4da08721ae5ee3e6a6257b0abb3021079e38d31e373b43410955a2821a505",
+      "portraitSha256": "5f6bbb15e0ca84c62538e2d43f4806051c6b38b07577996be099bc75d6529de1",
+      "transparentFraction": 0.7006217447916666,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 113,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "rust-ratchet",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/rust-ratchet-sheet.png",
+      "portrait": "img/project-starfall/enemies/rust-ratchet.png",
+      "sourceSha256": "89297ea531a0af1c44a45230a58202cb2dfc9020d2181c1ed975b34a823085ab",
+      "sheetSha256": "fcace34785d20017899d4c5a1bd34cbab88bc418e5f4777af78ac87456e4e6ac",
+      "portraitSha256": "0b3f06f4f874f3376f82866ef87209b90dc6f64dc6a6cdbed4c9d002ef8bea37",
+      "transparentFraction": 0.7477734375,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 86,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "coil-sentry",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/coil-sentry-sheet.png",
+      "portrait": "img/project-starfall/enemies/coil-sentry.png",
+      "sourceSha256": "cea45a7544ab62dedc26ccda4fa202808361862deee9a2fbe0e685459e020842",
+      "sheetSha256": "a8a4d3a248b00ed0994c11b45d6bc8f56587b0104d867d6989d2ce3da957fcc7",
+      "portraitSha256": "31e149dd8210a82f90559dcb6729a405d1a968701ada997d3c2a15545319dd92",
+      "transparentFraction": 0.72751953125,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 115,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "scrap-warden",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/scrap-warden-sheet.png",
+      "portrait": "img/project-starfall/enemies/scrap-warden.png",
+      "sourceSha256": "d21ad50d49b46cb4ec23bdccdbae666daac91acc741b2c6cde82aca2738d8c4d",
+      "sheetSha256": "2a00cd753195cdb5deae9cc381973fb78dfd52c793999211347b64f0bc555b0b",
+      "portraitSha256": "f92602ac983c7028f934d2fcd54e51120bd67f3bcc4bc9631342e64ec7e1fc19",
+      "transparentFraction": 0.7964811197916667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 91,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "ember-wisp",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/ember-wisp-sheet.png",
+      "portrait": "img/project-starfall/enemies/ember-wisp.png",
+      "sourceSha256": "a1de2341470f3406ffef82cec8a9086231eac7540368cc6bad1c794add1b344b",
+      "sheetSha256": "09778a89315cc7bf12a65409fd39c0f5b8c35d3fd5b7cf9a4e72c610b31d893e",
+      "portraitSha256": "e4bd9423484cc857dbbca5ee9dd69439a54868433b8c7c9a6e8dc19beebae13c",
+      "transparentFraction": 0.7734830729166666,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 80,
+        "authoredBodyHeight": 105,
+        "centered": true,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "ash-crawler",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/ash-crawler-sheet.png",
+      "portrait": "img/project-starfall/enemies/ash-crawler.png",
+      "sourceSha256": "e7bd59d63f02378aca932f1d9a693e29b20d7359efeb9ce9ff32c8f32b3d77e1",
+      "sheetSha256": "b23eea056ca81676eec0c88828800c57d32d6a7d8cb2350ed98d2e2f67c299b1",
+      "portraitSha256": "3ff115316ee9999bf8155f68ea9df3e58ef8340cb8ac92e68fe9df16ed49f634",
+      "transparentFraction": 0.7642277018229167,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 75,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "lava-tick",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/lava-tick-sheet.png",
+      "portrait": "img/project-starfall/enemies/lava-tick.png",
+      "sourceSha256": "19e7ba025435362876a0f7edd36b6d0fc49a57479dfc0c0189be779b098588cc",
+      "sheetSha256": "7a133a493cbac89266d5120ebeb62447d725ceb3ad379ebae1c2efad84e7c952",
+      "portraitSha256": "daae4a2b910aabf207b2f6b4b6867d3b5d78074542fc6393962d31c39d44ca42",
+      "transparentFraction": 0.7265299479166667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 79,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "All 48 Lava Tick poses in idle, move, telegraph, attack, projectile, buff, hit and defeat. Horizontal registration only; no new artwork."
+    },
+    {
+      "fileId": "cinder-spitter",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/cinder-spitter-sheet.png",
+      "portrait": "img/project-starfall/enemies/cinder-spitter.png",
+      "sourceSha256": "26e136025df218ddba788024e7e16cdcca944f3da50567da303e885608f9bcdc",
+      "sheetSha256": "87cf7d4f1654d3fc7d3f6f0b9904e7c0b31970731caa8eadfbf8be06010770f2",
+      "portraitSha256": "4da33ea5dc1a00b36f97588cf29d84382ea70b7e06930d8dfac96bfad2db9f23",
+      "transparentFraction": 0.7378279622395834,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 83,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "bandit-cutter",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-sheet.png",
+      "portrait": "img/project-starfall/enemies/bandit-cutter.png",
+      "sourceSha256": "44fa1b28be0f13eaf053167ac2041d2ebbca7ad9081b7966f949114e84af851f",
+      "sheetSha256": "79e41bb5fb245330e4bc3e925c51a414b791fba875330e85d21f66c222e8f6d9",
+      "portraitSha256": "36e442caa2fef3883d6eb8c37e542190df29026828ee716d35d6d404cbf0339c",
+      "transparentFraction": 0.8658219401041667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 71,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "bandit-cutter-direct",
+      "aliasOf": "bandit-cutter",
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-direct-sheet.png",
+      "portrait": "img/project-starfall/enemies/bandit-cutter-direct.png",
+      "sourceSha256": "44fa1b28be0f13eaf053167ac2041d2ebbca7ad9081b7966f949114e84af851f",
+      "sheetSha256": "79e41bb5fb245330e4bc3e925c51a414b791fba875330e85d21f66c222e8f6d9",
+      "portraitSha256": "36e442caa2fef3883d6eb8c37e542190df29026828ee716d35d6d404cbf0339c",
+      "transparentFraction": 0.8658219401041667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 71,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "bandit-cutter-reference",
+      "aliasOf": "bandit-cutter",
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-reference-sheet.png",
+      "portrait": "img/project-starfall/enemies/bandit-cutter-reference.png",
+      "sourceSha256": "44fa1b28be0f13eaf053167ac2041d2ebbca7ad9081b7966f949114e84af851f",
+      "sheetSha256": "79e41bb5fb245330e4bc3e925c51a414b791fba875330e85d21f66c222e8f6d9",
+      "portraitSha256": "36e442caa2fef3883d6eb8c37e542190df29026828ee716d35d6d404cbf0339c",
+      "transparentFraction": 0.8658219401041667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 71,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "bandit-cutter-hybrid",
+      "aliasOf": "bandit-cutter",
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-hybrid-sheet.png",
+      "portrait": "img/project-starfall/enemies/bandit-cutter-hybrid.png",
+      "sourceSha256": "44fa1b28be0f13eaf053167ac2041d2ebbca7ad9081b7966f949114e84af851f",
+      "sheetSha256": "79e41bb5fb245330e4bc3e925c51a414b791fba875330e85d21f66c222e8f6d9",
+      "portraitSha256": "36e442caa2fef3883d6eb8c37e542190df29026828ee716d35d6d404cbf0339c",
+      "transparentFraction": 0.8658219401041667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 71,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "bandit-cutter-puppet",
+      "aliasOf": "bandit-cutter",
+      "sheet": "img/project-starfall/animations/enemies/bandit-cutter-puppet-sheet.png",
+      "portrait": "img/project-starfall/enemies/bandit-cutter-puppet.png",
+      "sourceSha256": "44fa1b28be0f13eaf053167ac2041d2ebbca7ad9081b7966f949114e84af851f",
+      "sheetSha256": "79e41bb5fb245330e4bc3e925c51a414b791fba875330e85d21f66c222e8f6d9",
+      "portraitSha256": "36e442caa2fef3883d6eb8c37e542190df29026828ee716d35d6d404cbf0339c",
+      "transparentFraction": 0.8658219401041667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 71,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "bandit-thrower",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/bandit-thrower-sheet.png",
+      "portrait": "img/project-starfall/enemies/bandit-thrower.png",
+      "sourceSha256": "2b95cd89cd4a6a16f2e24443030a093839ffb1cd230a2b17603f103d38ba5175",
+      "sheetSha256": "9cd1ec3283e7860535aacd8c143bfc5630edee26ff443c948bf937b12bbd820a",
+      "portraitSha256": "daee66b580ba747b28fffc382f9f7d9cb7870bcb927e538f1b2d85eaac9b7cf0",
+      "transparentFraction": 0.7854158528645834,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 97,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "oreback-beetle",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/oreback-beetle-sheet.png",
+      "portrait": "img/project-starfall/enemies/oreback-beetle.png",
+      "sourceSha256": "21442c8bb107ac05459566a0afc997424262f9d61f7ec0776c5b5aa45ecf0d9f",
+      "sheetSha256": "c5d24b7dde14fdf4d4d2c7c55e6e12b1b98eeff9a2fb6f68d3bb260597a5590c",
+      "portraitSha256": "de58be38146f6a7c4e6b02ad262d2962233b452a09956fb8eb7819b318bea33e",
+      "transparentFraction": 0.7139754231770833,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 82,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "glowcap-healer",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/glowcap-healer-sheet.png",
+      "portrait": "img/project-starfall/enemies/glowcap-healer.png",
+      "sourceSha256": "695f5f60f60769ff269c7231369e5fe2d0451037f4e471c36482146252a5ab66",
+      "sheetSha256": "db74e6897f26c291da22a6c0d5afdd4eb83dc9f980862cdf48b77b8c8fe2fcdb",
+      "portraitSha256": "8bebd1de38ae0e77e213b2a2a247877b0f42850f9a6e9e163279d049d0f1860f",
+      "transparentFraction": 0.6068961588541667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 114,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "cracked-mimic",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/cracked-mimic-sheet.png",
+      "portrait": "img/project-starfall/enemies/cracked-mimic.png",
+      "sourceSha256": "f148b0109db7bad7a80423c1c5ae4f9865bf9ff81fadeaf66c153f4d38c60d00",
+      "sheetSha256": "29ee11e432f40c0cc01c987ae6a20618cb66c2f84304c0e408379617f0a7f484",
+      "portraitSha256": "139bba096bc71b188b5bf5667d028668922fd99ec00fd43bcc3f4379740e9ba2",
+      "transparentFraction": 0.6695987955729167,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 87,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "brambleking",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/brambleking-sheet.png",
+      "portrait": "img/project-starfall/enemies/brambleking.png",
+      "sourceSha256": "c4275d4ed8ff37f0348ec4dd60c53b0888bee147543afedd3464227f3d6818aa",
+      "sheetSha256": "c7ec24f30ef1a2b078597d25a9d3eed2b13e8de36fd5aa7f20b84e377307b7d5",
+      "portraitSha256": "eab0f348ba81ce3c8676de1e57d140ef7abb4c792adc2a42c8daee1fe1d1acf4",
+      "transparentFraction": 0.7689371744791667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 93,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "clockwork-titan",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/clockwork-titan-sheet.png",
+      "portrait": "img/project-starfall/enemies/clockwork-titan.png",
+      "sourceSha256": "c89570ee2cf725c4601c35810f8be266e0df831dfd4a1e973c5e7257319aa5d8",
+      "sheetSha256": "72e7eee69cec9d23397e92227701f121aa7be4f6c4f37076bc25a13e898b3370",
+      "portraitSha256": "4e7526197246691f47ab215e8bf0865f80ae3a7476eaf0b7a90316fc475ea91d",
+      "transparentFraction": 0.66962646484375,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 114,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "quarry-colossus",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/quarry-colossus-sheet.png",
+      "portrait": "img/project-starfall/enemies/quarry-colossus.png",
+      "sourceSha256": "62f12c0721ad66b449af73f241107f01dc5ffe2d59ad9b769692dca7222d8696",
+      "sheetSha256": "36011871684ce3a956e9acaf297fae620fea6dab16bb3c2f2dce3e8118c62ffb",
+      "portraitSha256": "42ff6e631c65ebd2a30a0803024550668ac3bb11c2b9726118417e0d78fb72cb",
+      "transparentFraction": 0.73409423828125,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 90,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "emberjaw-golem",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/emberjaw-golem-sheet.png",
+      "portrait": "img/project-starfall/enemies/emberjaw-golem.png",
+      "sourceSha256": "748395ac2f61276ee16475550e956540a51ef85935ef140ad5f9b1e6f6eeec17",
+      "sheetSha256": "518c3008df30a700dee21055928e59eb86021b7d6132398620b9f4285334c0ff",
+      "portraitSha256": "85f379e2013502dd53344458a9a18b5114d3689fb5898aacb385859e68859c64",
+      "transparentFraction": 0.7162833658854166,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 98,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "frostling-scout",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/frostling-scout-sheet.png",
+      "portrait": "img/project-starfall/enemies/frostling-scout.png",
+      "sourceSha256": "444f687092d5fb41bf66d2c069c1da28e1618468202881002d097b96d00771b3",
+      "sheetSha256": "0b8bc445e2552a1bd53361040a7ba11848d412fde99f9919bc3113e6b196e755",
+      "portraitSha256": "6c43c6123fda0a0a6c875c06e731cb9fe4f3f958f755e03a22bf3f87198767d4",
+      "transparentFraction": 0.7937784830729167,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 88,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "rimeback-brute",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/rimeback-brute-sheet.png",
+      "portrait": "img/project-starfall/enemies/rimeback-brute.png",
+      "sourceSha256": "2234a1ab57633294730e513d0721b86d0b94ba9484592671f185a22f29258359",
+      "sheetSha256": "35578bc7099b2ad1fb67bb82290514d0a2c327e3a7c4390c0f0df2750ceed448",
+      "portraitSha256": "679aafe6046d1899adb1c483c0d46a5fb0b8b3492cfeeea770e701768c431fe9",
+      "transparentFraction": 0.7125390625,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 93,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "glacier-sentinel",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/glacier-sentinel-sheet.png",
+      "portrait": "img/project-starfall/enemies/glacier-sentinel.png",
+      "sourceSha256": "43a3f0a577154ec8d3911c1f9c4aaf2a9fde050ce846ca706f79d3d8077cbda1",
+      "sheetSha256": "e8dac2480e150f3a980163264684eeb713b323efaee65297248cf21a7024299c",
+      "portraitSha256": "768ddb0502e87a6f386879ad853443fd6579deea36647443c96b5fa39ec08da2",
+      "transparentFraction": 0.7820662434895833,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 91,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "snowglare-wisp",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/snowglare-wisp-sheet.png",
+      "portrait": "img/project-starfall/enemies/snowglare-wisp.png",
+      "sourceSha256": "e834e8303579589876743ec01e8d1364248fafb9d06a6ff5f0daf39a3275d356",
+      "sheetSha256": "68313b0e7cb3ae5976b2886c8e664d47e06d45f8fa4acba4b16c914eda2b8a4b",
+      "portraitSha256": "f0dc69bf4c7e9cd392138d3ca9c8654769928b0c3baa148a458d507223506277",
+      "transparentFraction": 0.7428401692708333,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 80,
+        "authoredBodyHeight": 109,
+        "centered": true,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "icebloom-oracle",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/icebloom-oracle-sheet.png",
+      "portrait": "img/project-starfall/enemies/icebloom-oracle.png",
+      "sourceSha256": "7ec7ad0c6742654f62a25bac41c3f20ccb1aa189ddaea65c96950171a8c95149",
+      "sheetSha256": "e0082f2718c3f83d55bd65eca9fde6bdb50fb07b234dd17d86bea621c70e0f84",
+      "portraitSha256": "999cd4968a4beede0efe451c5ad8e254fb5dfb631cc848882804d90cc8d0a391",
+      "transparentFraction": 0.74723388671875,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 101,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "gale-harrier",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/gale-harrier-sheet.png",
+      "portrait": "img/project-starfall/enemies/gale-harrier.png",
+      "sourceSha256": "a20cb43c75de1aaeadb58ddc6498c0b7e3da85ef4bc12cce66d6f12be4341cb6",
+      "sheetSha256": "0fb60623db39c3bd85174126d0195bd8a081a460ba61a1259ed605b5ed8a6fc9",
+      "portraitSha256": "faf49a9a6aba3f09288df58ab88587efa7a8367aa09a84e2ec3438fc6922145c",
+      "transparentFraction": 0.7203011067708334,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 80,
+        "authoredBodyHeight": 108,
+        "centered": true,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "stormbound-archer",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/stormbound-archer-sheet.png",
+      "portrait": "img/project-starfall/enemies/stormbound-archer.png",
+      "sourceSha256": "997d149956d0a01d036f37f023cb7ae26a95834062ed7da33d4d4d68d8714804",
+      "sheetSha256": "623d99b2483e43e0662009123695d52a7d599d8bd429369925078cac202ba76c",
+      "portraitSha256": "df487463f9730853e995c235ade600e01156a42d853045384ed350a657d93de9",
+      "transparentFraction": 0.6738916015625,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 112,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "thunder-ram",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/thunder-ram-sheet.png",
+      "portrait": "img/project-starfall/enemies/thunder-ram.png",
+      "sourceSha256": "02fc33ed7624a0b5922bd01a65c34444ccd9a159afad4709060495459c6c0d40",
+      "sheetSha256": "ae033c08144f44119623f15030f43da9c0960924b37ed2c6b5107fc562fd93cd",
+      "portraitSha256": "16435194c6987831a0f8839eeab3da8e16b010f4535b0dfa1819f0fa8bcc6543",
+      "transparentFraction": 0.8615974934895834,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 63,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "cloudcall-acolyte",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/cloudcall-acolyte-sheet.png",
+      "portrait": "img/project-starfall/enemies/cloudcall-acolyte.png",
+      "sourceSha256": "bdc473d8b9760a2702a5b31d34658006b496f39af94a19e6b1dd486b7aeac59f",
+      "sheetSha256": "edd8400466e31d76ac099f3a90444bf3d4568be6e1fb53d504096a7279dec4ab",
+      "portraitSha256": "1249401d400daea791442152bbe91c22a17c302a1c71887278ab9389773ebc6a",
+      "transparentFraction": 0.7121061197916667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 102,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "index-scribe",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/index-scribe-sheet.png",
+      "portrait": "img/project-starfall/enemies/index-scribe.png",
+      "sourceSha256": "5395948101f4d7c4f9d0ffc86970f1246a758ebcdcaa2ad2c1054c4ee421e2db",
+      "sheetSha256": "4801984ee4c98a2ae60eb8c6c40021cb971b2c0986321403a1be5626e954b98a",
+      "portraitSha256": "29035b1b2025e7e337064050ca7082eb278478e617ff3640ccc4b581b9da973d",
+      "transparentFraction": 0.7171671549479167,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 104,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "lumen-sentinel",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/lumen-sentinel-sheet.png",
+      "portrait": "img/project-starfall/enemies/lumen-sentinel.png",
+      "sourceSha256": "09c9a00cad1fa58ca33a8c96eeab4a0582e95d0b83dcd734f73e1445dc8c415c",
+      "sheetSha256": "fc227e7244c1cdb7bede5d5bc6d8e24b719ca125c8b6469d0c9963fbbfa77955",
+      "portraitSha256": "d0da497eac82577359816432bc116695977b11df0af2791972c3aab1233cd4d7",
+      "transparentFraction": 0.7256412760416666,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 96,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "eclipse-duelist",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/eclipse-duelist-sheet.png",
+      "portrait": "img/project-starfall/enemies/eclipse-duelist.png",
+      "sourceSha256": "abc1d9a45fffe9752e790a6f40118ba6dd14b89cabdf5cc2831d463dc229b776",
+      "sheetSha256": "4a9c32746e4e14f68e32c502d344ffd87a8e14e930af916e2be1d7cd816e5f9b",
+      "portraitSha256": "fdced3a74624556e67ffd0a27dd063c13051acda379a5f30899e841c921054d0",
+      "transparentFraction": 0.8626871744791667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 76,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "rift-aberration",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/rift-aberration-sheet.png",
+      "portrait": "img/project-starfall/enemies/rift-aberration.png",
+      "sourceSha256": "d723a66383c9b2b48579b9dbc5274e6a155833bab3644dba0f043ed4642fc806",
+      "sheetSha256": "ee1320c1c4e7cc8a92544769d5769e7d79d636ecd919d54589cac51433aae839",
+      "portraitSha256": "cd8a7ffc4ef3abae736987b67ec88f52c9a35fc789e08c2133225e17023bee27",
+      "transparentFraction": 0.9054703776041667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 80,
+        "authoredBodyHeight": 64,
+        "centered": true,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "rimewarden",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/rimewarden-sheet.png",
+      "portrait": "img/project-starfall/enemies/rimewarden.png",
+      "sourceSha256": "eee708d26b5e73d7676e5b45327b0f14153caa65609b601b7670f46dd0e9a0aa",
+      "sheetSha256": "559cf55eff74bccfb541a7724a76e1967628f845657d40958ba9fd7a58284a99",
+      "portraitSha256": "8f4ca60f6e686580ddc56fa5e7bf393953de86681d2f08aaa2c7715b89e8bff8",
+      "transparentFraction": 0.7395003255208333,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 150,
+        "authoredBodyHeight": 102,
+        "centered": false,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    },
+    {
+      "fileId": "stormbreak-roc",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/stormbreak-roc-sheet.png",
+      "portrait": "img/project-starfall/enemies/stormbreak-roc.png",
+      "sourceSha256": "dbc6cbf1a1ca3a0992a9f7840d9fcabcaacc5a9e806fcbbae9ce076ae6363fca",
+      "sheetSha256": "4ffc087a8cad81d8b815a6f51c7f897d7750cf8056021b9ae71108b18ca5c983",
+      "portraitSha256": "d770e43f46424c955b521bc1b97c07ccccec2fa6d1bdfab0ba6cb4196f5da1f0",
+      "transparentFraction": 0.82831787109375,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 80,
+        "authoredBodyHeight": 89,
+        "centered": true,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "astral-archivist",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/astral-archivist-sheet.png",
+      "portrait": "img/project-starfall/enemies/astral-archivist.png",
+      "sourceSha256": "e9515fd9369e0e6b1bdc06d7e29b4ed28fc886a96b103ac5b7dacec3067f547b",
+      "sheetSha256": "7458023e1b115bdbaaf4be0bf5b406487d0cd6ba891d2567c040e82e6cf41d8a",
+      "portraitSha256": "061e920a359bfcd6514019756c0eba6037db316cc5c2bd045a49477d67acdc3e",
+      "transparentFraction": 0.8044710286458333,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 80,
+        "authoredBodyHeight": 84,
+        "centered": true,
+        "frameWidth": 160,
+        "frameHeight": 160
+      }
+    },
+    {
+      "fileId": "eclipse-sovereign",
+      "aliasOf": null,
+      "sheet": "img/project-starfall/animations/enemies/eclipse-sovereign-sheet.png",
+      "portrait": "img/project-starfall/enemies/eclipse-sovereign.png",
+      "sourceSha256": "d9ee5d98f1d828beb76b692d04cae3563fe7a32391d3866c55f995d6e1833182",
+      "sheetSha256": "4b8bd578f8fb3c7c24e82c3c8de59bc364ed6379a899c9ee0a3ad7dbf077c978",
+      "portraitSha256": "e62f0b33fd893c65ead8adcccd71724edde627b14f998ccb037dc675384997c6",
+      "transparentFraction": 0.8010221354166667,
+      "edgePixels": 0,
+      "registration": {
+        "originX": 80,
+        "groundY": 80,
+        "authoredBodyHeight": 91,
+        "centered": true,
+        "frameWidth": 160,
+        "frameHeight": 160
+      },
+      "registrationReviewScope": "idle-horizontal only"
+    }
+  ],
+  "protectedSourcesVerified": [
+    {
+      "fileId": "bristle-boar",
+      "path": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "sha256": "0885466d4ff1abb32694f5164cd9a0f6aa7f054da7789a1d88bd3586283a313d"
+    },
+    {
+      "fileId": "glowcap-healer",
+      "path": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "sha256": "6a5466fefd53d0b308b9ef071674fefe72a1ee9584849c76cb72c1024d3826e2"
+    },
+    {
+      "fileId": "icebloom-oracle",
+      "path": "output/starfall-animation-samples/oracle-cast-study.png",
+      "sha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8"
+    }
+  ],
+  "outputIntegrityRefreshedAt": "2026-09-20T00:18:59.862Z",
+  "outputIntegrityMethod": "Actual production PNG SHA256 must equal inventory and reviewed candidate. Raw/supplemental/protected source hashes and original backup hashes must remain unchanged. Transparent fraction counts alpha=0; edgePixels counts alpha>32 on every 160px cell boundary. This refresh does not certify motion or anatomical alignment."
+}

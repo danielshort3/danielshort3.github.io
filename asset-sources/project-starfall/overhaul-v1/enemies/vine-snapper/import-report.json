@@ -1,0 +1,1990 @@
+{
+  "fileId": "vine-snapper",
+  "sourceSha256": "802b3e5d0f6827b77b2f88af7c44a774693ed1cdcf17c6dd479f8cd752412fc8",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    196,
+    373,
+    556,
+    731,
+    901,
+    1096,
+    1281,
+    1448
+  ],
+  "sharedScale": 0.7196135265700483,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 87,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/vine-snapper-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 832150,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 11,
+        "top": 47,
+        "width": 161,
+        "height": 121
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 120,
+        "width": 161,
+        "height": 121,
+        "pixels": 11560
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 167
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 64,
+        "right": 138,
+        "bottom": 150,
+        "width": 116,
+        "height": 87,
+        "pixels": 6043,
+        "edgePixels": 0
+      },
+      "sha256": "a0844fd767606a9d5d77a88c52fca327ab288e0081f2892f292f2a5aa88a5d4d"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 194,
+        "top": 43,
+        "width": 167,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 124,
+        "width": 167,
+        "height": 125,
+        "pixels": 12404
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 167
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 61,
+        "right": 143,
+        "bottom": 150,
+        "width": 120,
+        "height": 90,
+        "pixels": 6480,
+        "edgePixels": 0
+      },
+      "sha256": "19e2a25c4f4724ecf69900ef261f859334f2a4186d19ad90828fc33266906510"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 377,
+        "top": 47,
+        "width": 162,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 119,
+        "width": 162,
+        "height": 120,
+        "pixels": 12000
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 167
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 64,
+        "right": 142,
+        "bottom": 149,
+        "width": 117,
+        "height": 86,
+        "pixels": 6277,
+        "edgePixels": 0
+      },
+      "sha256": "cbdbcabd9b4ba15288ac89c997dafe3d89cdbda0a62d07d348c4ae337bd41312"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 557,
+        "top": 48,
+        "width": 161,
+        "height": 119
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 118,
+        "width": 161,
+        "height": 119,
+        "pixels": 11736
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 167
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 25,
+        "top": 64,
+        "right": 140,
+        "bottom": 149,
+        "width": 116,
+        "height": 86,
+        "pixels": 6149,
+        "edgePixels": 0
+      },
+      "sha256": "2c1ac226a3abb08075351bee98f380d050864db5db56b9affc6b7b36b37854cc"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 739,
+        "top": 49,
+        "width": 162,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 117,
+        "width": 162,
+        "height": 118,
+        "pixels": 11784
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 167
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 65,
+        "right": 142,
+        "bottom": 149,
+        "width": 117,
+        "height": 85,
+        "pixels": 6161,
+        "edgePixels": 0
+      },
+      "sha256": "d4b4cef3e67be09e15229023f3737bef20d841cbec6cbbd5df6b6fc536ed837f"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 918,
+        "top": 47,
+        "width": 160,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 159,
+        "bottom": 119,
+        "width": 160,
+        "height": 120,
+        "pixels": 11514
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 167
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 64,
+        "right": 138,
+        "bottom": 149,
+        "width": 115,
+        "height": 86,
+        "pixels": 5983,
+        "edgePixels": 0
+      },
+      "sha256": "be74523994e46716c9fd689d38a08f4b65e3d0f6f7fbfe8ef2bf3baf3df21184"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 11,
+        "top": 224,
+        "width": 169,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 117,
+        "width": 169,
+        "height": 118,
+        "pixels": 11791
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 342
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 65,
+        "right": 144,
+        "bottom": 149,
+        "width": 122,
+        "height": 85,
+        "pixels": 6170,
+        "edgePixels": 0
+      },
+      "sha256": "3bc6012534160e47cda6910c9cbc1270a908e0fc7097edb93d79e7b88bb56c3e"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 193,
+        "top": 226,
+        "width": 170,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 115,
+        "width": 170,
+        "height": 116,
+        "pixels": 11909
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 342
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 67,
+        "right": 145,
+        "bottom": 149,
+        "width": 122,
+        "height": 83,
+        "pixels": 6150,
+        "edgePixels": 0
+      },
+      "sha256": "ae0a4b2081c153afd8bd4a021ecceaf229f4becd2db4695efd1db39171d67e89"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 374,
+        "top": 225,
+        "width": 168,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 117,
+        "width": 168,
+        "height": 118,
+        "pixels": 11841
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 342
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 66,
+        "right": 144,
+        "bottom": 150,
+        "width": 121,
+        "height": 85,
+        "pixels": 6178,
+        "edgePixels": 0
+      },
+      "sha256": "1ecac1a3b129121385836b14412b3d5b625077e9a95c58af773b0e16e888a29f"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 556,
+        "top": 225,
+        "width": 169,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 116,
+        "width": 169,
+        "height": 117,
+        "pixels": 11782
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 342
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 66,
+        "right": 145,
+        "bottom": 149,
+        "width": 122,
+        "height": 84,
+        "pixels": 6165,
+        "edgePixels": 0
+      },
+      "sha256": "0ebaee2a8566090d5f74a279d470b88fcece450435a1654ebd9ba8aa58d53dac"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 736,
+        "top": 226,
+        "width": 169,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 115,
+        "width": 169,
+        "height": 116,
+        "pixels": 11714
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 342
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 67,
+        "right": 145,
+        "bottom": 149,
+        "width": 122,
+        "height": 83,
+        "pixels": 6137,
+        "edgePixels": 0
+      },
+      "sha256": "80b1d5dd5883401b227765bf83cc2e78d306a38728b1bc44be33285a0d219749"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 915,
+        "top": 228,
+        "width": 167,
+        "height": 114
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 113,
+        "width": 167,
+        "height": 114,
+        "pixels": 11520
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 342
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 22,
+        "top": 68,
+        "right": 141,
+        "bottom": 149,
+        "width": 120,
+        "height": 82,
+        "pixels": 5997,
+        "edgePixels": 0
+      },
+      "sha256": "76d2eeacefcd91d8f0d1c16e680bf0b3505a1bf8b94f5559d8834460dc9c5a30"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 9,
+        "top": 409,
+        "width": 165,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 115,
+        "width": 165,
+        "height": 116,
+        "pixels": 11747
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 526
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 21,
+        "top": 66,
+        "right": 139,
+        "bottom": 148,
+        "width": 119,
+        "height": 83,
+        "pixels": 6134,
+        "edgePixels": 0
+      },
+      "sha256": "786214c4cd5538d5b750675f12a39a84cd673e3240302f3acdfb1d2681e70965"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 193,
+        "top": 409,
+        "width": 171,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 170,
+        "bottom": 115,
+        "width": 171,
+        "height": 116,
+        "pixels": 12171
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 526
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 66,
+        "right": 146,
+        "bottom": 148,
+        "width": 123,
+        "height": 83,
+        "pixels": 6321,
+        "edgePixels": 0
+      },
+      "sha256": "9e550d2f14c74b1b31731379ff9f0c20a38002d0a4b2c61def368d8bcb7a6d3c"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 377,
+        "top": 410,
+        "width": 173,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 116,
+        "width": 173,
+        "height": 117,
+        "pixels": 12070
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 526
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 26,
+        "top": 67,
+        "right": 149,
+        "bottom": 150,
+        "width": 124,
+        "height": 84,
+        "pixels": 6262,
+        "edgePixels": 0
+      },
+      "sha256": "d8fed5414cf001d227114656c286dbbcaa893a7b5005cc8dfda190222ff4cd3b"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 559,
+        "top": 418,
+        "width": 168,
+        "height": 108
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 107,
+        "width": 168,
+        "height": 108,
+        "pixels": 11815
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 526
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 26,
+        "top": 72,
+        "right": 146,
+        "bottom": 149,
+        "width": 121,
+        "height": 78,
+        "pixels": 6185,
+        "edgePixels": 0
+      },
+      "sha256": "67fe8049560a8cfeefb95c13f8fdb7b0a7b3002d5b1ada2fe2e0e3ad2723eed6"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 737,
+        "top": 403,
+        "width": 161,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 122,
+        "width": 161,
+        "height": 123,
+        "pixels": 12131
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 526
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 61,
+        "right": 139,
+        "bottom": 149,
+        "width": 116,
+        "height": 89,
+        "pixels": 6374,
+        "edgePixels": 0
+      },
+      "sha256": "8d82e74cb6f92fb24600ee50e2141637c93655c8f28a711c3d96c06e1b121819"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 913,
+        "top": 407,
+        "width": 169,
+        "height": 118
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 117,
+        "width": 169,
+        "height": 118,
+        "pixels": 12017
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 526
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 21,
+        "top": 64,
+        "right": 142,
+        "bottom": 148,
+        "width": 122,
+        "height": 85,
+        "pixels": 6298,
+        "edgePixels": 0
+      },
+      "sha256": "3909e2e90ed4c2fe03c222acf702e1f47d87f9fd4d26196e316a4e2264dabfee"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 12,
+        "top": 588,
+        "width": 182,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 181,
+        "bottom": 112,
+        "width": 182,
+        "height": 113,
+        "pixels": 13197
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 701
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 69,
+        "right": 154,
+        "bottom": 149,
+        "width": 131,
+        "height": 81,
+        "pixels": 6866,
+        "edgePixels": 0
+      },
+      "sha256": "364da398b780944483ca545f2e4203efa4ed5ba2c3083b62d0869a9d6f757f6c"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 203,
+        "top": 590,
+        "width": 155,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 110,
+        "width": 155,
+        "height": 111,
+        "pixels": 12111
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 701
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 31,
+        "top": 70,
+        "right": 142,
+        "bottom": 149,
+        "width": 112,
+        "height": 80,
+        "pixels": 6332,
+        "edgePixels": 0
+      },
+      "sha256": "3b822987f8612f772dd7b3afe3b08d4aa4c5f285946e25159ea55de32ed03b03"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 373,
+        "top": 586,
+        "width": 173,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 115,
+        "width": 173,
+        "height": 116,
+        "pixels": 12444
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 701
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 67,
+        "right": 146,
+        "bottom": 149,
+        "width": 124,
+        "height": 83,
+        "pixels": 6418,
+        "edgePixels": 0
+      },
+      "sha256": "1c9441f629e0bbf1e17a1c479d3ff4c4b941bd93969d5034cd3df7f853e6a972"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 556,
+        "top": 589,
+        "width": 166,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 111,
+        "width": 166,
+        "height": 112,
+        "pixels": 11569
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 701
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 69,
+        "right": 142,
+        "bottom": 149,
+        "width": 119,
+        "height": 81,
+        "pixels": 6066,
+        "edgePixels": 0
+      },
+      "sha256": "276d2510f343cd9dc20438ef01357f8aba885192b5cab21841daaec047e3490b"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 735,
+        "top": 589,
+        "width": 166,
+        "height": 113
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 112,
+        "width": 166,
+        "height": 113,
+        "pixels": 11586
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 701
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 69,
+        "right": 141,
+        "bottom": 149,
+        "width": 119,
+        "height": 81,
+        "pixels": 5978,
+        "edgePixels": 0
+      },
+      "sha256": "c67256f548154f14ee89850f436c6d529e33840738de46ba887edeee100ad290"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 919,
+        "top": 584,
+        "width": 159,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 116,
+        "width": 159,
+        "height": 117,
+        "pixels": 11408
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 701
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 66,
+        "right": 138,
+        "bottom": 149,
+        "width": 114,
+        "height": 84,
+        "pixels": 5900,
+        "edgePixels": 0
+      },
+      "sha256": "746745ec8c2ea6ba98a06c16907aa0aa8bce4d6b74b2ad60ee0443580955e6bd"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 11,
+        "top": 766,
+        "width": 165,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 114,
+        "width": 165,
+        "height": 115,
+        "pixels": 11506
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 883
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 23,
+        "top": 66,
+        "right": 141,
+        "bottom": 148,
+        "width": 119,
+        "height": 83,
+        "pixels": 6030,
+        "edgePixels": 0
+      },
+      "sha256": "9819a862b0de906452df3e1641a6724c2ea12a19de273eb2523bec229c853baa"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 193,
+        "top": 759,
+        "width": 162,
+        "height": 124
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 123,
+        "width": 162,
+        "height": 124,
+        "pixels": 12743
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 883
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 24,
+        "top": 61,
+        "right": 140,
+        "bottom": 149,
+        "width": 117,
+        "height": 89,
+        "pixels": 6670,
+        "edgePixels": 0
+      },
+      "sha256": "b7f0554629b17c3c793e89b1aa62ebea922e737049a9c1322267d673bb2928ea"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 376,
+        "top": 768,
+        "width": 158,
+        "height": 115
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 114,
+        "width": 158,
+        "height": 115,
+        "pixels": 11567
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 883
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 25,
+        "top": 67,
+        "right": 138,
+        "bottom": 149,
+        "width": 114,
+        "height": 83,
+        "pixels": 6054,
+        "edgePixels": 0
+      },
+      "sha256": "d347d2d5bb7bf175c65781df88a65393187c0c004258c01e7a202023dd4c7511"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 559,
+        "top": 767,
+        "width": 176,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 115,
+        "width": 176,
+        "height": 116,
+        "pixels": 12617
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 883
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 26,
+        "top": 67,
+        "right": 152,
+        "bottom": 149,
+        "width": 127,
+        "height": 83,
+        "pixels": 6596,
+        "edgePixels": 0
+      },
+      "sha256": "a1aad0babf1f3e6ecfb3896ba53d03745523fb36fea7867e1287395a02990f7c"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 744,
+        "top": 767,
+        "width": 159,
+        "height": 117
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 116,
+        "width": 159,
+        "height": 117,
+        "pixels": 11666
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 883
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 67,
+        "right": 142,
+        "bottom": 150,
+        "width": 114,
+        "height": 84,
+        "pixels": 6043,
+        "edgePixels": 0
+      },
+      "sha256": "0e5adcd172b7e35d4bee2a47b1ccf92c653be26bbfe56fa25978678abafe01b5"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 919,
+        "top": 760,
+        "width": 158,
+        "height": 122
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 121,
+        "width": 158,
+        "height": 122,
+        "pixels": 12019
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 883
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 25,
+        "top": 61,
+        "right": 138,
+        "bottom": 148,
+        "width": 114,
+        "height": 88,
+        "pixels": 6285,
+        "edgePixels": 0
+      },
+      "sha256": "900efbfa9a912832be64e993808998aded6d7d52ff9c8374fe232ccfac326de8"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 11,
+        "top": 938,
+        "width": 168,
+        "height": 127
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 126,
+        "width": 168,
+        "height": 127,
+        "pixels": 12666
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1065
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 59,
+        "right": 143,
+        "bottom": 149,
+        "width": 121,
+        "height": 91,
+        "pixels": 6610,
+        "edgePixels": 0
+      },
+      "sha256": "9fff0eabaf57d5a19e1c37a44f1c4a55618ac9a90d3bb738227a5b89892fd35a"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 193,
+        "top": 920,
+        "width": 167,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 144,
+        "width": 167,
+        "height": 145,
+        "pixels": 14816
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1065
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 24,
+        "top": 46,
+        "right": 143,
+        "bottom": 149,
+        "width": 120,
+        "height": 104,
+        "pixels": 7663,
+        "edgePixels": 0
+      },
+      "sha256": "5c914dfcfde531558a31ca4fa7628efe228ff4bac7ca8df92bfb93e845f508f8"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 377,
+        "top": 939,
+        "width": 156,
+        "height": 126
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 125,
+        "width": 156,
+        "height": 126,
+        "pixels": 12657
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1065
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 26,
+        "top": 59,
+        "right": 137,
+        "bottom": 149,
+        "width": 112,
+        "height": 91,
+        "pixels": 6630,
+        "edgePixels": 0
+      },
+      "sha256": "c93e02cf9baa86c132435d4b75defc237711a1b606afb52a75180c7e2235f075"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 552,
+        "top": 918,
+        "width": 165,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 146,
+        "width": 165,
+        "height": 147,
+        "pixels": 14991
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1065
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 21,
+        "top": 44,
+        "right": 139,
+        "bottom": 149,
+        "width": 119,
+        "height": 106,
+        "pixels": 7825,
+        "edgePixels": 0
+      },
+      "sha256": "00a12eef9df6898a7f17364c64d27cdcfffe857243aa227d948984ba76fc9868"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 734,
+        "top": 940,
+        "width": 164,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 124,
+        "width": 164,
+        "height": 125,
+        "pixels": 12536
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1065
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 22,
+        "top": 60,
+        "right": 139,
+        "bottom": 149,
+        "width": 118,
+        "height": 90,
+        "pixels": 6538,
+        "edgePixels": 0
+      },
+      "sha256": "2fe6618e3a3594bb9eb8ab253d1802756370865f8e1c8dd12e780227efdcbde7"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 914,
+        "top": 942,
+        "width": 162,
+        "height": 123
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 122,
+        "width": 162,
+        "height": 123,
+        "pixels": 12207
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1065
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 21,
+        "top": 61,
+        "right": 137,
+        "bottom": 149,
+        "width": 117,
+        "height": 89,
+        "pixels": 6434,
+        "edgePixels": 0
+      },
+      "sha256": "4c10c580175c28008467ddf9121ad517d9517f69c02b327e528b425256a96009"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 11,
+        "top": 1135,
+        "width": 165,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 110,
+        "width": 165,
+        "height": 111,
+        "pixels": 11495
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1246
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 23,
+        "top": 70,
+        "right": 141,
+        "bottom": 149,
+        "width": 119,
+        "height": 80,
+        "pixels": 6009,
+        "edgePixels": 0
+      },
+      "sha256": "8a058c17ca816420072d8dd05a114176ab0a4beb838fb9216427ed5613e51790"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 192,
+        "top": 1129,
+        "width": 174,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 115,
+        "width": 174,
+        "height": 116,
+        "pixels": 12520
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1246
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 23,
+        "top": 66,
+        "right": 147,
+        "bottom": 148,
+        "width": 125,
+        "height": 83,
+        "pixels": 6495,
+        "edgePixels": 0
+      },
+      "sha256": "f172dd45bf52290b6f4857745d175db9b79d2b7a6ba2e91c3b980a8064bdffa8"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 376,
+        "top": 1135,
+        "width": 162,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 110,
+        "width": 162,
+        "height": 111,
+        "pixels": 12025
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1246
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 25,
+        "top": 70,
+        "right": 141,
+        "bottom": 149,
+        "width": 117,
+        "height": 80,
+        "pixels": 6302,
+        "edgePixels": 0
+      },
+      "sha256": "abf256fcba41ed9e007c7e9a140802dce534fbff7831bbb2aa02d1cf27cd09cb"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 554,
+        "top": 1148,
+        "width": 166,
+        "height": 104
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 103,
+        "width": 166,
+        "height": 104,
+        "pixels": 10415
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1246
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 23,
+        "top": 79,
+        "right": 141,
+        "bottom": 153,
+        "width": 119,
+        "height": 75,
+        "pixels": 5427,
+        "edgePixels": 0
+      },
+      "sha256": "1ff61a49e1185d4a3c1acbec0c2639cadb966b2a3a79816da60e0b30825dabe2"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 736,
+        "top": 1126,
+        "width": 156,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 155,
+        "bottom": 119,
+        "width": 156,
+        "height": 120,
+        "pixels": 11815
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1246
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 24,
+        "top": 64,
+        "right": 135,
+        "bottom": 149,
+        "width": 112,
+        "height": 86,
+        "pixels": 6118,
+        "edgePixels": 0
+      },
+      "sha256": "50ab90b0d8b2d5c8e65f9fdcc6a7f5af34febfb1fc11907a5d992d387d70b61d"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 917,
+        "top": 1130,
+        "width": 158,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 157,
+        "bottom": 115,
+        "width": 158,
+        "height": 116,
+        "pixels": 11392
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1246
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 24,
+        "top": 67,
+        "right": 137,
+        "bottom": 149,
+        "width": 114,
+        "height": 83,
+        "pixels": 5957,
+        "edgePixels": 0
+      },
+      "sha256": "b32b7a56155d6227d79ea4e167df1cafc02d362b9728f775995e8955183ffd44"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 9,
+        "top": 1309,
+        "width": 161,
+        "height": 112
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 111,
+        "width": 161,
+        "height": 112,
+        "pixels": 11280
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1426
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 21,
+        "top": 66,
+        "right": 136,
+        "bottom": 146,
+        "width": 116,
+        "height": 81,
+        "pixels": 5922,
+        "edgePixels": 0
+      },
+      "sha256": "32b4665c3b995f073424d72589865e7f73a92c95a8a510df9cccc44b46348938"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 186,
+        "top": 1323,
+        "width": 164,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 101,
+        "width": 164,
+        "height": 102,
+        "pixels": 10253
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1426
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 18,
+        "top": 76,
+        "right": 135,
+        "bottom": 148,
+        "width": 118,
+        "height": 73,
+        "pixels": 5320,
+        "edgePixels": 0
+      },
+      "sha256": "ff6887c0635e8db1dbdaa2c72070158059a8b7e8ab2c1450a8257bf6ed133fcb"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 363,
+        "top": 1321,
+        "width": 177,
+        "height": 105
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 104,
+        "width": 177,
+        "height": 105,
+        "pixels": 11139
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1426
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 16,
+        "top": 74,
+        "right": 142,
+        "bottom": 149,
+        "width": 127,
+        "height": 76,
+        "pixels": 5846,
+        "edgePixels": 0
+      },
+      "sha256": "3c42c0d80b8c532fc807bc354622b850f21386c0ad08437ef85746575581232c"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 548,
+        "top": 1337,
+        "width": 174,
+        "height": 89
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 88,
+        "width": 174,
+        "height": 89,
+        "pixels": 9431
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1426
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 18,
+        "top": 86,
+        "right": 142,
+        "bottom": 149,
+        "width": 125,
+        "height": 64,
+        "pixels": 4898,
+        "edgePixels": 0
+      },
+      "sha256": "1232883ebbfd8ef9c5738490e70f376684d7a1857a90ddf9584ff13f720da048"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 726,
+        "top": 1345,
+        "width": 181,
+        "height": 81
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 180,
+        "bottom": 80,
+        "width": 181,
+        "height": 81,
+        "pixels": 8878
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1426
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 16,
+        "top": 92,
+        "right": 145,
+        "bottom": 149,
+        "width": 130,
+        "height": 58,
+        "pixels": 4600,
+        "edgePixels": 0
+      },
+      "sha256": "6b8f80714a240d67b99f0d79b6b6227038a6d8cc8ee36e0f58b71173d0006b60"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 916,
+        "top": 1343,
+        "width": 165,
+        "height": 83
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 82,
+        "width": 165,
+        "height": 83,
+        "pixels": 8397
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/vine-snapper/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1426
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 23,
+        "top": 90,
+        "right": 141,
+        "bottom": 149,
+        "width": 119,
+        "height": 60,
+        "pixels": 4410,
+        "edgePixels": 0
+      },
+      "sha256": "cd0415dcdbdc18977b319501cc38a7f6b7d685e1721a5d43aed90bd429943cd2"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {
+    "attack": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      5
+    ],
+    "projectile": [
+      2,
+      3,
+      4,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  }
+}

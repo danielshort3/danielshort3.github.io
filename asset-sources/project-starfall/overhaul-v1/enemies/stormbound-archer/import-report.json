@@ -1,0 +1,1975 @@
+{
+  "fileId": "stormbound-archer",
+  "sourceSha256": "997d149956d0a01d036f37f023cb7ae26a95834062ed7da33d4d4d68d8714804",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    179,
+    359,
+    544,
+    723,
+    901,
+    1086,
+    1269,
+    1448
+  ],
+  "sharedScale": 0.7638974358974359,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 112,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/stormbound-archer-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 704956,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [
+    "Exact repeated authored drawing 24 and 18; review intentional holds."
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 24,
+        "top": 19,
+        "width": 143,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 145,
+        "width": 143,
+        "height": 146,
+        "pixels": 13544
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 165
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 29,
+        "top": 38,
+        "right": 137,
+        "bottom": 149,
+        "width": 109,
+        "height": 112,
+        "pixels": 8006,
+        "edgePixels": 0
+      },
+      "sha256": "eda689088b6630de464894f978c7adefdfbe76d4c7fa79e0b83f47ec9331c172"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 205,
+        "top": 20,
+        "width": 142,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 144,
+        "width": 142,
+        "height": 145,
+        "pixels": 13439
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 165
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 39,
+        "right": 136,
+        "bottom": 149,
+        "width": 108,
+        "height": 111,
+        "pixels": 7900,
+        "edgePixels": 0
+      },
+      "sha256": "c51e196acf7df12620d8ddbce8c3530b8f55210a790012626748586b8c0fac07"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 386,
+        "top": 20,
+        "width": 142,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 144,
+        "width": 142,
+        "height": 145,
+        "pixels": 13380
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 165
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 29,
+        "top": 39,
+        "right": 136,
+        "bottom": 149,
+        "width": 108,
+        "height": 111,
+        "pixels": 7871,
+        "edgePixels": 0
+      },
+      "sha256": "cf0c37af7bef9af41c9d30df5c31e6b61c7f715ad9fb2dd5f23f99a354bd6664"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 569,
+        "top": 21,
+        "width": 142,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 143,
+        "width": 142,
+        "height": 144,
+        "pixels": 13310
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 165
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 40,
+        "right": 138,
+        "bottom": 149,
+        "width": 108,
+        "height": 110,
+        "pixels": 7800,
+        "edgePixels": 0
+      },
+      "sha256": "c2ae60ef6ba1f6ed380b9b8c144f027fdcd92241b7b0d1998376060e05dd0775"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 748,
+        "top": 20,
+        "width": 142,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 144,
+        "width": 142,
+        "height": 145,
+        "pixels": 13387
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 165
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 29,
+        "top": 39,
+        "right": 136,
+        "bottom": 149,
+        "width": 108,
+        "height": 111,
+        "pixels": 7875,
+        "edgePixels": 0
+      },
+      "sha256": "6d374d2bed476df6c3f209182aaa640d745896199bc474fc647d37aeb00a005f"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 930,
+        "top": 20,
+        "width": 141,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 144,
+        "width": 141,
+        "height": 145,
+        "pixels": 13342
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 165
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 39,
+        "right": 137,
+        "bottom": 149,
+        "width": 108,
+        "height": 111,
+        "pixels": 7845,
+        "edgePixels": 0
+      },
+      "sha256": "7af5c885a5c954f41c77b56bbeda53e3836c4a7ec66d152ee5749f388503539b"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 31,
+        "top": 197,
+        "width": 142,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 150,
+        "width": 142,
+        "height": 151,
+        "pixels": 13803
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 348
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 35,
+        "right": 142,
+        "bottom": 149,
+        "width": 108,
+        "height": 115,
+        "pixels": 8038,
+        "edgePixels": 0
+      },
+      "sha256": "0de205351009af1d2f878699c68a6520aa8c418a669dc4c0041787899bcf3dee"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 205,
+        "top": 195,
+        "width": 141,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 152,
+        "width": 141,
+        "height": 153,
+        "pixels": 13690
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 348
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 33,
+        "right": 136,
+        "bottom": 149,
+        "width": 108,
+        "height": 117,
+        "pixels": 8056,
+        "edgePixels": 0
+      },
+      "sha256": "5d04cb81dbe4dde97444b5883178874b650c775b072c404ecb7e39be26656e78"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 388,
+        "top": 196,
+        "width": 148,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 151,
+        "width": 148,
+        "height": 152,
+        "pixels": 14283
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 348
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 34,
+        "right": 143,
+        "bottom": 149,
+        "width": 113,
+        "height": 116,
+        "pixels": 8350,
+        "edgePixels": 0
+      },
+      "sha256": "e30191fe388650d73188cbee724115628fe705117cad5e9222f78f92a9b74379"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 569,
+        "top": 194,
+        "width": 142,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 155,
+        "width": 142,
+        "height": 156,
+        "pixels": 14410
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 348
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 32,
+        "right": 138,
+        "bottom": 150,
+        "width": 108,
+        "height": 119,
+        "pixels": 8407,
+        "edgePixels": 0
+      },
+      "sha256": "bd5475d57a36b2d7ff58afc3e098b78b376f9963f28824ea82556259835552fe"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 750,
+        "top": 193,
+        "width": 142,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 155,
+        "width": 142,
+        "height": 156,
+        "pixels": 14522
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 348
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 32,
+        "right": 138,
+        "bottom": 150,
+        "width": 108,
+        "height": 119,
+        "pixels": 8488,
+        "edgePixels": 0
+      },
+      "sha256": "8d845685cc44ce31965f89d34433eceec15d0a1c7c8b2ba577361acd06b6a731"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 929,
+        "top": 195,
+        "width": 141,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 152,
+        "width": 141,
+        "height": 153,
+        "pixels": 14063
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 348
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 33,
+        "right": 136,
+        "bottom": 149,
+        "width": 108,
+        "height": 117,
+        "pixels": 8283,
+        "edgePixels": 0
+      },
+      "sha256": "5d992efc29d6b042e86f447dd7c4d574f5e002348b2529bcba790bb372b69670"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 29,
+        "top": 375,
+        "width": 144,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 152,
+        "width": 144,
+        "height": 153,
+        "pixels": 14066
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 528
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 33,
+        "top": 33,
+        "right": 142,
+        "bottom": 149,
+        "width": 110,
+        "height": 117,
+        "pixels": 8269,
+        "edgePixels": 0
+      },
+      "sha256": "4c7e1d3bad18a8d6a86bf203c39b7665bb43795a4e95e7cb0d9243fd306430ad"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 207,
+        "top": 377,
+        "width": 148,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 147,
+        "bottom": 150,
+        "width": 148,
+        "height": 151,
+        "pixels": 14666
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 528
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 31,
+        "top": 35,
+        "right": 143,
+        "bottom": 149,
+        "width": 113,
+        "height": 115,
+        "pixels": 8575,
+        "edgePixels": 0
+      },
+      "sha256": "461494788c4d4c7cfb9b28a3bdc6be2eccabc1ba2b431a96c0c5241d385313cb"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 391,
+        "top": 377,
+        "width": 155,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 148,
+        "width": 155,
+        "height": 149,
+        "pixels": 15390
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 528
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 33,
+        "top": 35,
+        "right": 150,
+        "bottom": 148,
+        "width": 118,
+        "height": 114,
+        "pixels": 9048,
+        "edgePixels": 0
+      },
+      "sha256": "82c2cd520109eacd2d684b6b0037d4a72d4fef52d5ffaf3d224b62fe9fffad3e"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 571,
+        "top": 379,
+        "width": 155,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 148,
+        "width": 155,
+        "height": 149,
+        "pixels": 15421
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 528
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 32,
+        "top": 36,
+        "right": 149,
+        "bottom": 149,
+        "width": 118,
+        "height": 114,
+        "pixels": 9065,
+        "edgePixels": 0
+      },
+      "sha256": "b85f280707f5ae6513b4041024db6300971a6037cbdcf1147372ce7f02bccefb"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 753,
+        "top": 368,
+        "width": 153,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 158,
+        "width": 153,
+        "height": 159,
+        "pixels": 15596
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 528
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 33,
+        "top": 28,
+        "right": 149,
+        "bottom": 148,
+        "width": 117,
+        "height": 121,
+        "pixels": 9157,
+        "edgePixels": 0
+      },
+      "sha256": "eaf33189c0bce39c01abfcb38a430078cacead5ec169ce5bcd7f0cc0deb6046c"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 930,
+        "top": 374,
+        "width": 155,
+        "height": 157
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 156,
+        "width": 155,
+        "height": 157,
+        "pixels": 15663
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 528
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 32,
+        "right": 147,
+        "bottom": 151,
+        "width": 118,
+        "height": 120,
+        "pixels": 9179,
+        "edgePixels": 0
+      },
+      "sha256": "093078902229bbe3638ec01295a73eb39efd64e2922f20b6e457e6ee3cb1fbbf"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 23,
+        "top": 557,
+        "width": 161,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 150,
+        "width": 161,
+        "height": 151,
+        "pixels": 16132
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 708
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 35,
+        "right": 150,
+        "bottom": 149,
+        "width": 123,
+        "height": 115,
+        "pixels": 9427,
+        "edgePixels": 0
+      },
+      "sha256": "180c4af7008450260db46786546ae63cee94d96882653f3dc0841e5a84040aaf"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 214,
+        "top": 556,
+        "width": 155,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 152,
+        "width": 155,
+        "height": 153,
+        "pixels": 15345
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 708
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 36,
+        "top": 34,
+        "right": 153,
+        "bottom": 150,
+        "width": 118,
+        "height": 117,
+        "pixels": 9002,
+        "edgePixels": 0
+      },
+      "sha256": "82849a1bf7e883555449d308ebf6ab381611198631e536c89bab2685eb3c9736"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 389,
+        "top": 558,
+        "width": 153,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 152,
+        "bottom": 149,
+        "width": 153,
+        "height": 150,
+        "pixels": 14621
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 708
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 35,
+        "right": 147,
+        "bottom": 149,
+        "width": 117,
+        "height": 115,
+        "pixels": 8615,
+        "edgePixels": 0
+      },
+      "sha256": "0ebd81e289870ae36fa58f3531b17114d68ccb9934e90c21ada271871574757d"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 570,
+        "top": 559,
+        "width": 144,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 149,
+        "width": 144,
+        "height": 150,
+        "pixels": 14737
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 708
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 31,
+        "top": 36,
+        "right": 140,
+        "bottom": 150,
+        "width": 110,
+        "height": 115,
+        "pixels": 8676,
+        "edgePixels": 0
+      },
+      "sha256": "ac795530fcbaee88ff9fc00c5513520265b8ba5387176c3c8af6713f30eb9913"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 752,
+        "top": 559,
+        "width": 141,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 148,
+        "width": 141,
+        "height": 149,
+        "pixels": 14400
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 708
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 36,
+        "right": 139,
+        "bottom": 149,
+        "width": 108,
+        "height": 114,
+        "pixels": 8481,
+        "edgePixels": 0
+      },
+      "sha256": "3fbdef58fc4ef6070c82e29e543bd5b156683fd16ba2db80c7756655d476e4d0"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 929,
+        "top": 559,
+        "width": 143,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 148,
+        "width": 143,
+        "height": 149,
+        "pixels": 13921
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 708
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 29,
+        "top": 36,
+        "right": 137,
+        "bottom": 149,
+        "width": 109,
+        "height": 114,
+        "pixels": 8183,
+        "edgePixels": 0
+      },
+      "sha256": "db05b474c9ae5100cc559948e5974b44703adf3610b26f12871f3fcc6ba6d25b"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 23,
+        "top": 557,
+        "width": 161,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 150,
+        "width": 161,
+        "height": 151,
+        "pixels": 16132
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": {
+        "x": 90.5,
+        "y": 708
+      },
+      "anchor": {
+        "x": 90.5,
+        "y": 708
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 35,
+        "right": 150,
+        "bottom": 149,
+        "width": 123,
+        "height": 115,
+        "pixels": 9427,
+        "edgePixels": 0
+      },
+      "sha256": "180c4af7008450260db46786546ae63cee94d96882653f3dc0841e5a84040aaf"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 209,
+        "top": 737,
+        "width": 139,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 152,
+        "width": 139,
+        "height": 153,
+        "pixels": 14512
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 890
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 33,
+        "right": 137,
+        "bottom": 149,
+        "width": 106,
+        "height": 117,
+        "pixels": 8512,
+        "edgePixels": 0
+      },
+      "sha256": "1290f266a3a7d7cbc37e89785484d4b5c220a7933fd3f6a304a7dcac77cfddd8"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 389,
+        "top": 737,
+        "width": 139,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 152,
+        "width": 139,
+        "height": 153,
+        "pixels": 13933
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 890
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 31,
+        "top": 33,
+        "right": 136,
+        "bottom": 149,
+        "width": 106,
+        "height": 117,
+        "pixels": 8174,
+        "edgePixels": 0
+      },
+      "sha256": "98390b3b0de9e4026d05fb096422c538319fe7c319d919090d92bf561d105a0f"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 575,
+        "top": 737,
+        "width": 141,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 152,
+        "width": 141,
+        "height": 153,
+        "pixels": 14424
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 890
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 35,
+        "top": 33,
+        "right": 142,
+        "bottom": 149,
+        "width": 108,
+        "height": 117,
+        "pixels": 8498,
+        "edgePixels": 0
+      },
+      "sha256": "5ed4a7f543b5cb4cbb165b49503232d15678a36ed0bd0010b8b0ba87a449e62b"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 750,
+        "top": 743,
+        "width": 142,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 145,
+        "width": 142,
+        "height": 146,
+        "pixels": 13857
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 890
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 31,
+        "top": 38,
+        "right": 138,
+        "bottom": 149,
+        "width": 108,
+        "height": 112,
+        "pixels": 8184,
+        "edgePixels": 0
+      },
+      "sha256": "b832ae43bc6843b7d265f6136e8469298bd4669c348234dfef5037ef28482e95"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 930,
+        "top": 741,
+        "width": 141,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 147,
+        "width": 141,
+        "height": 148,
+        "pixels": 13753
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 890
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 30,
+        "top": 36,
+        "right": 137,
+        "bottom": 148,
+        "width": 108,
+        "height": 113,
+        "pixels": 8095,
+        "edgePixels": 0
+      },
+      "sha256": "c18ac468cdd33b781d85e1298b6fc2f3fa2cd4d2c00e9107f64a005ae55733d2"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 34,
+        "top": 921,
+        "width": 119,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 118,
+        "bottom": 149,
+        "width": 119,
+        "height": 150,
+        "pixels": 13489
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1072
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 37,
+        "top": 35,
+        "right": 127,
+        "bottom": 149,
+        "width": 91,
+        "height": 115,
+        "pixels": 7945,
+        "edgePixels": 0
+      },
+      "sha256": "1b26393175b314f9d0a0ba05897eefdb55fb0f2c7dd873edb7656ea8476d8e5c"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 209,
+        "top": 922,
+        "width": 140,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 149,
+        "width": 140,
+        "height": 150,
+        "pixels": 13988
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1072
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 35,
+        "right": 138,
+        "bottom": 149,
+        "width": 107,
+        "height": 115,
+        "pixels": 8251,
+        "edgePixels": 0
+      },
+      "sha256": "a57a63f5bb7fc90f9e0a491f79cb372e7378a5d1a7a72c251ca0545ed0c98051"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 390,
+        "top": 920,
+        "width": 141,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 152,
+        "width": 141,
+        "height": 153,
+        "pixels": 14378
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1072
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 32,
+        "top": 34,
+        "right": 139,
+        "bottom": 150,
+        "width": 108,
+        "height": 117,
+        "pixels": 8485,
+        "edgePixels": 0
+      },
+      "sha256": "85673d66835d0357986b3c7c6daf691016fcb34b7df2b6677f7bca95e47a3b55"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 571,
+        "top": 911,
+        "width": 157,
+        "height": 161
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 160,
+        "width": 157,
+        "height": 161,
+        "pixels": 15563
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1072
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 32,
+        "top": 27,
+        "right": 151,
+        "bottom": 149,
+        "width": 120,
+        "height": 123,
+        "pixels": 9123,
+        "edgePixels": 0
+      },
+      "sha256": "5c9f898248cae21415884e365310f26e419f322338fd8e225205e0f45d33c67b"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 757,
+        "top": 919,
+        "width": 137,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 153,
+        "width": 137,
+        "height": 154,
+        "pixels": 14201
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1072
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 36,
+        "top": 33,
+        "right": 140,
+        "bottom": 150,
+        "width": 105,
+        "height": 118,
+        "pixels": 8373,
+        "edgePixels": 0
+      },
+      "sha256": "75100d5790eb1f6575a55fa46dbcfe797b75a33321801fb18c9f935f90ebf847"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 931,
+        "top": 919,
+        "width": 140,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 139,
+        "bottom": 151,
+        "width": 140,
+        "height": 152,
+        "pixels": 13547
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1072
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 33,
+        "right": 137,
+        "bottom": 148,
+        "width": 107,
+        "height": 116,
+        "pixels": 7939,
+        "edgePixels": 0
+      },
+      "sha256": "774fdb4787838539f43e7d9885d7cc86f89921fb680134bdbfc313810ac05c24"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 22,
+        "top": 1104,
+        "width": 145,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 146,
+        "width": 145,
+        "height": 147,
+        "pixels": 14222
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1251
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 28,
+        "top": 38,
+        "right": 138,
+        "bottom": 149,
+        "width": 111,
+        "height": 112,
+        "pixels": 8364,
+        "edgePixels": 0
+      },
+      "sha256": "f910b4886ef127bded1035caee7084023889371ebc08b2f61a8e22b6479382c5"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 205,
+        "top": 1098,
+        "width": 150,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 149,
+        "bottom": 152,
+        "width": 150,
+        "height": 153,
+        "pixels": 15323
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1251
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 29,
+        "top": 33,
+        "right": 143,
+        "bottom": 149,
+        "width": 115,
+        "height": 117,
+        "pixels": 9030,
+        "edgePixels": 0
+      },
+      "sha256": "16ecb03719664e7a88eb9fb9f4113ba9d2d6a10daa1e3a8efa0f940c9c44f3cf"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 394,
+        "top": 1102,
+        "width": 137,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 149,
+        "width": 137,
+        "height": 150,
+        "pixels": 14052
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1251
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 35,
+        "top": 36,
+        "right": 139,
+        "bottom": 150,
+        "width": 105,
+        "height": 115,
+        "pixels": 8296,
+        "edgePixels": 0
+      },
+      "sha256": "bdccacd8ea9649c9d9143af0e72745100a6bf3f26b77d1b5cb9def1f507f49c2"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 565,
+        "top": 1109,
+        "width": 133,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 141,
+        "width": 133,
+        "height": 142,
+        "pixels": 12884
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1251
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 28,
+        "top": 42,
+        "right": 129,
+        "bottom": 149,
+        "width": 102,
+        "height": 108,
+        "pixels": 7609,
+        "edgePixels": 0
+      },
+      "sha256": "e1aa5876f3edd749a1795ccee5c468f6d8b29d67c040c417439bc111904478e6"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 754,
+        "top": 1108,
+        "width": 132,
+        "height": 142
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 141,
+        "width": 132,
+        "height": 142,
+        "pixels": 12819
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1251
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 34,
+        "top": 41,
+        "right": 134,
+        "bottom": 148,
+        "width": 101,
+        "height": 108,
+        "pixels": 7529,
+        "edgePixels": 0
+      },
+      "sha256": "189d089fbba99ecc87df4c66faf5f8a892a42c6a7c3a4a0fbbca08593cb80706"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 932,
+        "top": 1100,
+        "width": 139,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 138,
+        "bottom": 150,
+        "width": 139,
+        "height": 151,
+        "pixels": 13737
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1251
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 31,
+        "top": 35,
+        "right": 136,
+        "bottom": 149,
+        "width": 106,
+        "height": 115,
+        "pixels": 8018,
+        "edgePixels": 0
+      },
+      "sha256": "6a0c58dac90f6aca622e8767fd602d624a9fbc0f5e6d1c8bced356b6e07cc5d4"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 31,
+        "top": 1285,
+        "width": 117,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 116,
+        "bottom": 145,
+        "width": 117,
+        "height": 146,
+        "pixels": 12374
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1432
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 35,
+        "top": 38,
+        "right": 123,
+        "bottom": 149,
+        "width": 89,
+        "height": 112,
+        "pixels": 7298,
+        "edgePixels": 0
+      },
+      "sha256": "84f530fa2760cd2d9e1c362c1c1a2ee5a73cd8376b6d11460df2414995fade1a"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 204,
+        "top": 1291,
+        "width": 152,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 139,
+        "width": 152,
+        "height": 140,
+        "pixels": 12452
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1432
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 28,
+        "top": 42,
+        "right": 143,
+        "bottom": 148,
+        "width": 116,
+        "height": 107,
+        "pixels": 7295,
+        "edgePixels": 0
+      },
+      "sha256": "aae309f5807b8ee78d4aae477f896762b9501d4fa93e9f7e17efd63d2fbda860"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 379,
+        "top": 1300,
+        "width": 151,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 131,
+        "width": 151,
+        "height": 132,
+        "pixels": 11580
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1432
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 24,
+        "top": 49,
+        "right": 138,
+        "bottom": 149,
+        "width": 115,
+        "height": 101,
+        "pixels": 6802,
+        "edgePixels": 0
+      },
+      "sha256": "113ac37d0a0d5eb03035025f1a2891ea5deb1d7a29674291b325ee2025fb5c89"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 545,
+        "top": 1321,
+        "width": 168,
+        "height": 111
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 110,
+        "width": 168,
+        "height": 111,
+        "pixels": 10996
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1432
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 12,
+        "top": 65,
+        "right": 139,
+        "bottom": 149,
+        "width": 128,
+        "height": 85,
+        "pixels": 6474,
+        "edgePixels": 0
+      },
+      "sha256": "bab2038d5375d721e6272862d97903ae9cfa1ea229f84a15a1590bfa366df1d0"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 725,
+        "top": 1348,
+        "width": 180,
+        "height": 84
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 179,
+        "bottom": 83,
+        "width": 180,
+        "height": 84,
+        "pixels": 10173
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1432
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 12,
+        "top": 86,
+        "right": 149,
+        "bottom": 149,
+        "width": 138,
+        "height": 64,
+        "pixels": 5992,
+        "edgePixels": 0
+      },
+      "sha256": "3b46ba1a8db67fe2a60f6881239313706c5d84a0695aa143d5c9d31e39f039e6"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 913,
+        "top": 1346,
+        "width": 172,
+        "height": 86
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 171,
+        "bottom": 85,
+        "width": 172,
+        "height": 86,
+        "pixels": 9128
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/stormbound-archer/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1432
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 17,
+        "top": 84,
+        "right": 147,
+        "bottom": 149,
+        "width": 131,
+        "height": 66,
+        "pixels": 5396,
+        "edgePixels": 0
+      },
+      "sha256": "b91efa90c4c385563bea316cd2dfa52815aa28f0085ede3be394c6649b74082f"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {
+    "24": {
+      "row": 3,
+      "column": 0
+    }
+  },
+  "rowPoseOrder": {}
+}

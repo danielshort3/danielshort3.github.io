@@ -1,0 +1,40 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "emberjaw-golem",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-35be-7a93-9773-ce24aa252f30\\exec-377eb25d-375d-41e4-81a4-d7ec7eb7d46d.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/emberjaw-golem.png",
+    "output/starfall-animation-samples/oracle-cast-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Full raw sheet inspected, 8 authored action rows, distinct contact/recovery, alpha and connected-component checks still required.",
+    "animationReview": "pending-runtime-integration",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/emberjaw-golem-sheet.png",
+    "portrait": "img/project-starfall/enemies/emberjaw-golem.png",
+    "portraitFrame": 0
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "note": "Authored source contact and release appear in column0; no row reordering needed."
+  },
+  "sourceSha256": "748395ac2f61276ee16475550e956540a51ef85935ef140ad5f9b1e6f6eeec17",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  }
+}

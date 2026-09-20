@@ -1,0 +1,77 @@
+{
+  "schema": "starfall-authored-enemy-source-v1",
+  "fileId": "briar-stag",
+  "tool": "built-in image_gen",
+  "generationDate": "2026-09-19",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-1bc63e63-2eb0-4000-bc3e-b9105eb42031.png",
+  "source": "source.png",
+  "grid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "sourceFacing": "right",
+  "floating": false,
+  "references": [
+    "img/project-starfall/enemies/briar-stag.png",
+    "img/project-starfall/animations/enemies/briar-stag-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "visualReview": {
+    "status": "approved-for-import",
+    "scope": "Raw and packed contact sheets visually inspected; 48 coherent actors, transparent gutters, no clipped silhouette, consistent identity. In-game playback QA remains required.",
+    "animationReview": "pending-runtime-integration"
+  },
+  "import": {
+    "frameWidth": 160,
+    "frameHeight": 160,
+    "columns": 6,
+    "rows": 8,
+    "baseline": 150,
+    "anchorX": 80,
+    "gutter": 6,
+    "portraitFrame": 0,
+    "output": "img/project-starfall/animations/enemies/briar-stag-sheet.png",
+    "portrait": "img/project-starfall/enemies/briar-stag.png"
+  },
+  "sourceSha256": "e148c27fee8c9238589fa88b4d959870fe5411e9f8662984df066763df1a9f3d",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "rowPoseOrder": {
+    "attack": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "projectile": [
+      3,
+      4,
+      2,
+      1,
+      0,
+      5
+    ],
+    "telegraph": [
+      0,
+      1,
+      5,
+      2,
+      3,
+      4
+    ]
+  },
+  "eventAlignment": {
+    "attackOutputContactFrame": 0,
+    "projectileOutputReleaseFrame": 0,
+    "sourcePeakColumns": {
+      "attack": 3,
+      "projectile": 3
+    },
+    "note": "Peak then authored follow-through then reverse-order preparation poses retract toward rest. No synthesized interpolation."
+  }
+}

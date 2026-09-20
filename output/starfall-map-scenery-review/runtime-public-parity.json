@@ -1,0 +1,852 @@
+{
+  "note": "Local source/public JavaScript parity after the final runtime build; deployment was not performed.",
+  "count": 169,
+  "failures": [],
+  "files": [
+    {
+      "path": "js/games/project-starfall/core/assets.js",
+      "sha256": "10ca5d4a74fd077ffdd1f970253bd86eb8ee6db9215f9e13a163f3f9d198b624",
+      "publicSha256": "10ca5d4a74fd077ffdd1f970253bd86eb8ee6db9215f9e13a163f3f9d198b624"
+    },
+    {
+      "path": "js/games/project-starfall/core/format.js",
+      "sha256": "411fa5f74426c983728b4cd9948b4da9a401c07d3bba2d076f161cc31a859434",
+      "publicSha256": "411fa5f74426c983728b4cd9948b4da9a401c07d3bba2d076f161cc31a859434"
+    },
+    {
+      "path": "js/games/project-starfall/core/geometry.js",
+      "sha256": "23935db1f691a0ba9924b909e2272f603559be30343b8ef509a7f841a616d1cf",
+      "publicSha256": "23935db1f691a0ba9924b909e2272f603559be30343b8ef509a7f841a616d1cf"
+    },
+    {
+      "path": "js/games/project-starfall/core/ids.js",
+      "sha256": "3fe00dc4fd3493922a07d14033528c7647155ec3783aff608432b23edc278b0f",
+      "publicSha256": "3fe00dc4fd3493922a07d14033528c7647155ec3783aff608432b23edc278b0f"
+    },
+    {
+      "path": "js/games/project-starfall/core/math.js",
+      "sha256": "67ce24a54dffb0cc4d81191582c2eace5610bdb1678a3468ad966ad26bb204dc",
+      "publicSha256": "67ce24a54dffb0cc4d81191582c2eace5610bdb1678a3468ad966ad26bb204dc"
+    },
+    {
+      "path": "js/games/project-starfall/core/settings.js",
+      "sha256": "d088be53b0fbc6095fedc91537811611d5870bd25e6a4b2dd8d40d2096c558c6",
+      "publicSha256": "d088be53b0fbc6095fedc91537811611d5870bd25e6a4b2dd8d40d2096c558c6"
+    },
+    {
+      "path": "js/games/project-starfall/core/storage.js",
+      "sha256": "50969ff0f7d0ac71bbc5c9db4f4f7406939596ed3eaf4ba6b85dcdb1b0d18d4a",
+      "publicSha256": "50969ff0f7d0ac71bbc5c9db4f4f7406939596ed3eaf4ba6b85dcdb1b0d18d4a"
+    },
+    {
+      "path": "js/games/project-starfall/core/time.js",
+      "sha256": "87b7f5fcb107ebd0aae8535ed80e19a8d37388970fc03de71d49527d080c862c",
+      "publicSha256": "87b7f5fcb107ebd0aae8535ed80e19a8d37388970fc03de71d49527d080c862c"
+    },
+    {
+      "path": "js/games/project-starfall/data/accomplishments.js",
+      "sha256": "c898e466c409e988eda7cabd4b28bccac1a7629e9da1e0a45b063f4e2ff316c3",
+      "publicSha256": "c898e466c409e988eda7cabd4b28bccac1a7629e9da1e0a45b063f4e2ff316c3"
+    },
+    {
+      "path": "js/games/project-starfall/data/actor-combat.js",
+      "sha256": "7a124e3ef8ed04657a75f1c10abe29c4069ef14318873f923a3cb9ab25dc2a5e",
+      "publicSha256": "7a124e3ef8ed04657a75f1c10abe29c4069ef14318873f923a3cb9ab25dc2a5e"
+    },
+    {
+      "path": "js/games/project-starfall/data/animations.js",
+      "sha256": "d224feca5fb07b8248fca2c5bd89f0aa953af44af794b05c66867b07e86d424d",
+      "publicSha256": "d224feca5fb07b8248fca2c5bd89f0aa953af44af794b05c66867b07e86d424d"
+    },
+    {
+      "path": "js/games/project-starfall/data/asset-backup-content.js",
+      "sha256": "8aab8ceae7a9cc4824a7b1787f0bdea00f79d031ce8e0b598efacb87abe533ce",
+      "publicSha256": "8aab8ceae7a9cc4824a7b1787f0bdea00f79d031ce8e0b598efacb87abe533ce"
+    },
+    {
+      "path": "js/games/project-starfall/data/asset-backups.js",
+      "sha256": "151fce5d83badd96cb295847c23503718d195b295b406ad246b36e374732e37a",
+      "publicSha256": "151fce5d83badd96cb295847c23503718d195b295b406ad246b36e374732e37a"
+    },
+    {
+      "path": "js/games/project-starfall/data/assets.js",
+      "sha256": "1f78312567b5d367df9b74784d402264341eb6de8b9c7ae9878fa9a2d443a8cf",
+      "publicSha256": "1f78312567b5d367df9b74784d402264341eb6de8b9c7ae9878fa9a2d443a8cf"
+    },
+    {
+      "path": "js/games/project-starfall/data/boss-encounters.js",
+      "sha256": "e2f1f3d51c7ea2c12b8a1caef70824ac651be29cb62e9d07c0461f83c650b448",
+      "publicSha256": "e2f1f3d51c7ea2c12b8a1caef70824ac651be29cb62e9d07c0461f83c650b448"
+    },
+    {
+      "path": "js/games/project-starfall/data/boss-mechanics.js",
+      "sha256": "b701c5a60ec54434fc6e6755bf6d7ef01013729fa0e0ad513b65c855dce59683",
+      "publicSha256": "b701c5a60ec54434fc6e6755bf6d7ef01013729fa0e0ad513b65c855dce59683"
+    },
+    {
+      "path": "js/games/project-starfall/data/cards.js",
+      "sha256": "c874e3bc893b84150fc41d26c907b499a243cc0e4d7c9f657119f5c060b0a14e",
+      "publicSha256": "c874e3bc893b84150fc41d26c907b499a243cc0e4d7c9f657119f5c060b0a14e"
+    },
+    {
+      "path": "js/games/project-starfall/data/class-skill-design.js",
+      "sha256": "fc0c956fb91f6f69e69fb65c61c53dae65178f7eda8d3ccb25beb5dd81a603bc",
+      "publicSha256": "fc0c956fb91f6f69e69fb65c61c53dae65178f7eda8d3ccb25beb5dd81a603bc"
+    },
+    {
+      "path": "js/games/project-starfall/data/classes.js",
+      "sha256": "68b4ca2b0e0f621c83290fa9bc4186040a8639e4647f829318fdb93a56c7775b",
+      "publicSha256": "68b4ca2b0e0f621c83290fa9bc4186040a8639e4647f829318fdb93a56c7775b"
+    },
+    {
+      "path": "js/games/project-starfall/data/combat-fx.js",
+      "sha256": "81a32c4f84b7a9a65c49f20b64e523cd585ea9a888bd064b74b992995f14b27d",
+      "publicSha256": "81a32c4f84b7a9a65c49f20b64e523cd585ea9a888bd064b74b992995f14b27d"
+    },
+    {
+      "path": "js/games/project-starfall/data/combat-modifiers.js",
+      "sha256": "1d13de472fa54d9fa0a7b4389473d17bc7e8032b8e704e772e4c34feb371db70",
+      "publicSha256": "1d13de472fa54d9fa0a7b4389473d17bc7e8032b8e704e772e4c34feb371db70"
+    },
+    {
+      "path": "js/games/project-starfall/data/commerce.js",
+      "sha256": "4b0985c7fcf6f56adb1fcc0d2991ca084746067d9bf1a337678b90bc25dcb4c0",
+      "publicSha256": "4b0985c7fcf6f56adb1fcc0d2991ca084746067d9bf1a337678b90bc25dcb4c0"
+    },
+    {
+      "path": "js/games/project-starfall/data/consumables.js",
+      "sha256": "400f67c66347b1f86ed7f23aff9e9e81c76fd4a1f60c6e3e07753af28071e14a",
+      "publicSha256": "400f67c66347b1f86ed7f23aff9e9e81c76fd4a1f60c6e3e07753af28071e14a"
+    },
+    {
+      "path": "js/games/project-starfall/data/daily-login.js",
+      "sha256": "21c862091290450b4ef79efd34462c6230bb64aa925f43cfba3239cbeaafac95",
+      "publicSha256": "21c862091290450b4ef79efd34462c6230bb64aa925f43cfba3239cbeaafac95"
+    },
+    {
+      "path": "js/games/project-starfall/data/dungeons.js",
+      "sha256": "14f7d6a574d4c72d528b0c9a768068f7fc72324d00db679e09e8ff47e117acf7",
+      "publicSha256": "14f7d6a574d4c72d528b0c9a768068f7fc72324d00db679e09e8ff47e117acf7"
+    },
+    {
+      "path": "js/games/project-starfall/data/enemies.js",
+      "sha256": "76257cced91f119c741d9cabfb8f7e318e5338e55a18e0d69266b8196d22bdd6",
+      "publicSha256": "76257cced91f119c741d9cabfb8f7e318e5338e55a18e0d69266b8196d22bdd6"
+    },
+    {
+      "path": "js/games/project-starfall/data/enemy-hurtboxes.js",
+      "sha256": "a8e5c32e1f5598ca74fe2fb348546b274136072d24e42cb8b31b50c57da6e475",
+      "publicSha256": "a8e5c32e1f5598ca74fe2fb348546b274136072d24e42cb8b31b50c57da6e475"
+    },
+    {
+      "path": "js/games/project-starfall/data/environment-content.js",
+      "sha256": "ba734368eb1399bbcee9616f2c6f85e9fb3e7842c8ab3c3b9f0e0bfd1a8774e4",
+      "publicSha256": "ba734368eb1399bbcee9616f2c6f85e9fb3e7842c8ab3c3b9f0e0bfd1a8774e4"
+    },
+    {
+      "path": "js/games/project-starfall/data/environment.js",
+      "sha256": "641c7cba5dc290832240406b2d297fe663cdd6917c0d39646ccfd8a2097e38a4",
+      "publicSha256": "641c7cba5dc290832240406b2d297fe663cdd6917c0d39646ccfd8a2097e38a4"
+    },
+    {
+      "path": "js/games/project-starfall/data/equipment-catalog.js",
+      "sha256": "969c0f9187fb9947f4a745f7d72e04f0e997fa74bd212457d1daf1203e2b00c4",
+      "publicSha256": "969c0f9187fb9947f4a745f7d72e04f0e997fa74bd212457d1daf1203e2b00c4"
+    },
+    {
+      "path": "js/games/project-starfall/data/equipment-economy.js",
+      "sha256": "8a1cecc47a490bbbf074af3862437b7a2d0aa0ab4a265a0ba79d6267627ed793",
+      "publicSha256": "8a1cecc47a490bbbf074af3862437b7a2d0aa0ab4a265a0ba79d6267627ed793"
+    },
+    {
+      "path": "js/games/project-starfall/data/equipment-item-assets.js",
+      "sha256": "eda8e4f2172d98cb5bc4d2fdfeb775f1169f561273eb7a5b583ffa7231ac7c08",
+      "publicSha256": "eda8e4f2172d98cb5bc4d2fdfeb775f1169f561273eb7a5b583ffa7231ac7c08"
+    },
+    {
+      "path": "js/games/project-starfall/data/equipment-meta.js",
+      "sha256": "727d84bd3cb8420154af169de3cb9c0e5ebdc8058c8dee374552fb9004736a63",
+      "publicSha256": "727d84bd3cb8420154af169de3cb9c0e5ebdc8058c8dee374552fb9004736a63"
+    },
+    {
+      "path": "js/games/project-starfall/data/equipment-sets.js",
+      "sha256": "5e84417e65cd916d9268dd0e68bc1ca4388a04fb2a038b10f970770a14834877",
+      "publicSha256": "5e84417e65cd916d9268dd0e68bc1ca4388a04fb2a038b10f970770a14834877"
+    },
+    {
+      "path": "js/games/project-starfall/data/equipment-visuals.js",
+      "sha256": "1aea5fd573f45a9ef8bbf07eb46be812c8f4257f4a40f7aa8aa8cb1abcb49ac4",
+      "publicSha256": "1aea5fd573f45a9ef8bbf07eb46be812c8f4257f4a40f7aa8aa8cb1abcb49ac4"
+    },
+    {
+      "path": "js/games/project-starfall/data/fracture-directives.js",
+      "sha256": "02d66fa04382f6a0e634d55e4fc366633b1126a319c9251ddf099593562d8f8b",
+      "publicSha256": "02d66fa04382f6a0e634d55e4fc366633b1126a319c9251ddf099593562d8f8b"
+    },
+    {
+      "path": "js/games/project-starfall/data/guides.js",
+      "sha256": "f5c552bd235f67cb5d119486989c62eeab438ee926fcfc6f181b602bc6b7d4dc",
+      "publicSha256": "f5c552bd235f67cb5d119486989c62eeab438ee926fcfc6f181b602bc6b7d4dc"
+    },
+    {
+      "path": "js/games/project-starfall/data/index.js",
+      "sha256": "4fd1d909591c019c36e35a48227287c9faa9b454f5a80431bb86fb3aa9773e8c",
+      "publicSha256": "4fd1d909591c019c36e35a48227287c9faa9b454f5a80431bb86fb3aa9773e8c"
+    },
+    {
+      "path": "js/games/project-starfall/data/items.js",
+      "sha256": "27b644fa8b5cd821068b4714b3388444dde107a22812ba8b6a479e4b7512b5bb",
+      "publicSha256": "27b644fa8b5cd821068b4714b3388444dde107a22812ba8b6a479e4b7512b5bb"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-assembly.js",
+      "sha256": "4723347e8b733b8de4202e70e390d3715970c3bc582fb53ac3aea6d2996d4acc",
+      "publicSha256": "4723347e8b733b8de4202e70e390d3715970c3bc582fb53ac3aea6d2996d4acc"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-builders.js",
+      "sha256": "5693debfd1ccedfc44517d7959d126359a60c47c06eb9baf8e0c659cc0a64193",
+      "publicSha256": "5693debfd1ccedfc44517d7959d126359a60c47c06eb9baf8e0c659cc0a64193"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-catalog.js",
+      "sha256": "fe5c82c766208139a472c3370f924af1c80f7fdb49cf05cf1fca890a7d0a26c5",
+      "publicSha256": "fe5c82c766208139a472c3370f924af1c80f7fdb49cf05cf1fca890a7d0a26c5"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-content.js",
+      "sha256": "c855c2531e65626112e2c17a3fc0b0b172ba53b114907453f38268e2d7da2944",
+      "publicSha256": "c855c2531e65626112e2c17a3fc0b0b172ba53b114907453f38268e2d7da2944"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-geometry.js",
+      "sha256": "50f554ddb6a3cb628b9a67215b330ecf42925238574ac69c7fd28cc905c483b0",
+      "publicSha256": "50f554ddb6a3cb628b9a67215b330ecf42925238574ac69c7fd28cc905c483b0"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-layouts.js",
+      "sha256": "0b5dd95c5be3bdd67db76991440aaa5c6e4d051eb0ccd9bd4edb81a3bbe8b262",
+      "publicSha256": "0b5dd95c5be3bdd67db76991440aaa5c6e4d051eb0ccd9bd4edb81a3bbe8b262"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-portals.js",
+      "sha256": "d732bc4a5a2751a6ea2656fe447c1fd81b63a84348969d166ac4104e045c87d5",
+      "publicSha256": "d732bc4a5a2751a6ea2656fe447c1fd81b63a84348969d166ac4104e045c87d5"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-presentation.js",
+      "sha256": "50d4e960b1c8d67aabaec44393c8731804466b25b959241c158ad162ce1e9051",
+      "publicSha256": "50d4e960b1c8d67aabaec44393c8731804466b25b959241c158ad162ce1e9051"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-publication.js",
+      "sha256": "883be061d7d7f1af4c9d31f6ba5597225c35e6169b27cee80359218722642983",
+      "publicSha256": "883be061d7d7f1af4c9d31f6ba5597225c35e6169b27cee80359218722642983"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-rules.js",
+      "sha256": "4d1474784b2ab12212f4f6ca4831040675127f05af1a1b977693b2530fd1672c",
+      "publicSha256": "4d1474784b2ab12212f4f6ca4831040675127f05af1a1b977693b2530fd1672c"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-sizing.js",
+      "sha256": "73d6dd0b4ed5e07af0428dd51b7cd3dace1282dc972f9d21b1330d93a9824253",
+      "publicSha256": "73d6dd0b4ed5e07af0428dd51b7cd3dace1282dc972f9d21b1330d93a9824253"
+    },
+    {
+      "path": "js/games/project-starfall/data/map-town.js",
+      "sha256": "f562469f85f877732ec944290ef36619797d986f955b142b3ef6748ca2ef8d26",
+      "publicSha256": "f562469f85f877732ec944290ef36619797d986f955b142b3ef6748ca2ef8d26"
+    },
+    {
+      "path": "js/games/project-starfall/data/monster-drops.js",
+      "sha256": "a00dcf090593f524065b48ec24960ec10de5e06691e0927719f829792399d0e0",
+      "publicSha256": "a00dcf090593f524065b48ec24960ec10de5e06691e0927719f829792399d0e0"
+    },
+    {
+      "path": "js/games/project-starfall/data/onboarding.js",
+      "sha256": "efbb4e2d9a358f4a99f94557474de67e952345f65ea3479c526b18e488260f3c",
+      "publicSha256": "efbb4e2d9a358f4a99f94557474de67e952345f65ea3479c526b18e488260f3c"
+    },
+    {
+      "path": "js/games/project-starfall/data/party.js",
+      "sha256": "75d6848714bef9d93c527e6a0a16881df4613e1c4490f81babb9b0de94420214",
+      "publicSha256": "75d6848714bef9d93c527e6a0a16881df4613e1c4490f81babb9b0de94420214"
+    },
+    {
+      "path": "js/games/project-starfall/data/plinko.js",
+      "sha256": "1dfb11b1e9e2b4b36c08303070b6a71b37edc48695a37d042d27b23c37ad3e93",
+      "publicSha256": "1dfb11b1e9e2b4b36c08303070b6a71b37edc48695a37d042d27b23c37ad3e93"
+    },
+    {
+      "path": "js/games/project-starfall/data/progression-content.js",
+      "sha256": "0087f465a9719779481a433efdc3cf9199dd44ff56bcfedc3ac7df82bce465e0",
+      "publicSha256": "0087f465a9719779481a433efdc3cf9199dd44ff56bcfedc3ac7df82bce465e0"
+    },
+    {
+      "path": "js/games/project-starfall/data/progression.js",
+      "sha256": "5325447ea9edcad4aec7d1ac9d012532157f1a438a0657eacd149f5e7af72155",
+      "publicSha256": "5325447ea9edcad4aec7d1ac9d012532157f1a438a0657eacd149f5e7af72155"
+    },
+    {
+      "path": "js/games/project-starfall/data/quests.js",
+      "sha256": "42b6535d0c21c9c1832cba8e0743896117374fc81199f27041a2c85644c23bbe",
+      "publicSha256": "42b6535d0c21c9c1832cba8e0743896117374fc81199f27041a2c85644c23bbe"
+    },
+    {
+      "path": "js/games/project-starfall/data/reward-content.js",
+      "sha256": "a2bcf57f50288dfc52b7134e030bc8ce61571fd5e0ded64dcf1cfff51ccdbf0f",
+      "publicSha256": "a2bcf57f50288dfc52b7134e030bc8ce61571fd5e0ded64dcf1cfff51ccdbf0f"
+    },
+    {
+      "path": "js/games/project-starfall/data/rewards.js",
+      "sha256": "2ae4899f3e59314940713e8c522c196f2dfdc8d938847295817094260b6d76b5",
+      "publicSha256": "2ae4899f3e59314940713e8c522c196f2dfdc8d938847295817094260b6d76b5"
+    },
+    {
+      "path": "js/games/project-starfall/data/shop-vendors.js",
+      "sha256": "23c931cea9dd7fd9cbf7619cc13602da151287e55c144831eff252f43289571c",
+      "publicSha256": "23c931cea9dd7fd9cbf7619cc13602da151287e55c144831eff252f43289571c"
+    },
+    {
+      "path": "js/games/project-starfall/data/skills.js",
+      "sha256": "1cf53bba1bbbfa0e98fb37beca0c35c0476c4d352d5467524e567d96e4402e09",
+      "publicSha256": "1cf53bba1bbbfa0e98fb37beca0c35c0476c4d352d5467524e567d96e4402e09"
+    },
+    {
+      "path": "js/games/project-starfall/data/specializations.js",
+      "sha256": "0cf0d06df859848ae5b2a7828dbc8353b91a69cc1a3cdf2cb629711168bbfc55",
+      "publicSha256": "0cf0d06df859848ae5b2a7828dbc8353b91a69cc1a3cdf2cb629711168bbfc55"
+    },
+    {
+      "path": "js/games/project-starfall/data/stat-upgrades.js",
+      "sha256": "fd42349f2ad88bc84bfa496f03f5f0b0ca4d24071fa4c0a42aaafcde6f985dd1",
+      "publicSha256": "fd42349f2ad88bc84bfa496f03f5f0b0ca4d24071fa4c0a42aaafcde6f985dd1"
+    },
+    {
+      "path": "js/games/project-starfall/data/upgrades.js",
+      "sha256": "8315dddd3118a2487b3f54666be5fdc67d9800af31e1471351d3f99ef5c79c11",
+      "publicSha256": "8315dddd3118a2487b3f54666be5fdc67d9800af31e1471351d3f99ef5c79c11"
+    },
+    {
+      "path": "js/games/project-starfall/data/world.js",
+      "sha256": "bd3da8cb065d090d342d00b9c0d8ac6cf5d50f4f1303a8c4659cec66e98ac2dc",
+      "publicSha256": "bd3da8cb065d090d342d00b9c0d8ac6cf5d50f4f1303a8c4659cec66e98ac2dc"
+    },
+    {
+      "path": "js/games/project-starfall/engine/accomplishments.js",
+      "sha256": "12ed63ea46ed42f71fb21ae15c3654e2d213639c7cff5cee1ac2b4276f322b71",
+      "publicSha256": "12ed63ea46ed42f71fb21ae15c3654e2d213639c7cff5cee1ac2b4276f322b71"
+    },
+    {
+      "path": "js/games/project-starfall/engine/assets.js",
+      "sha256": "91a06e61bfb0d9782efe8bb99efabda8172bd6567fbe6280c124c1cbdab6077f",
+      "publicSha256": "91a06e61bfb0d9782efe8bb99efabda8172bd6567fbe6280c124c1cbdab6077f"
+    },
+    {
+      "path": "js/games/project-starfall/engine/audio.js",
+      "sha256": "f3c406d9adc56893d4d3377046f5cb26b280ef7cd10236af6419aa74ad98d2b6",
+      "publicSha256": "f3c406d9adc56893d4d3377046f5cb26b280ef7cd10236af6419aa74ad98d2b6"
+    },
+    {
+      "path": "js/games/project-starfall/engine/cards.js",
+      "sha256": "8f7ee1516bc53a63866c59c2edd9687ecf6be3938fcbc549901d02da97539453",
+      "publicSha256": "8f7ee1516bc53a63866c59c2edd9687ecf6be3938fcbc549901d02da97539453"
+    },
+    {
+      "path": "js/games/project-starfall/engine/cash-shop.js",
+      "sha256": "3e22cb4eb6c1589a71771395f6ed815a78d9d6bf435a90bf29f16ac659eb9c54",
+      "publicSha256": "3e22cb4eb6c1589a71771395f6ed815a78d9d6bf435a90bf29f16ac659eb9c54"
+    },
+    {
+      "path": "js/games/project-starfall/engine/channels.js",
+      "sha256": "fbf653dc813042e67a7a109d3538fdbc0df7c6d4f976f64c0f4a3a2c2f6c7ec4",
+      "publicSha256": "fbf653dc813042e67a7a109d3538fdbc0df7c6d4f976f64c0f4a3a2c2f6c7ec4"
+    },
+    {
+      "path": "js/games/project-starfall/engine/class-mastery.js",
+      "sha256": "c01c12c9d08e95b5743254d0703beaa1f15abd31bd5b33084defa720390f10e4",
+      "publicSha256": "c01c12c9d08e95b5743254d0703beaa1f15abd31bd5b33084defa720390f10e4"
+    },
+    {
+      "path": "js/games/project-starfall/engine/class-trials.js",
+      "sha256": "b0e98984f1151fdc33dbdad0a7f57b5e07d509c542550a9830bca2f05973b36c",
+      "publicSha256": "b0e98984f1151fdc33dbdad0a7f57b5e07d509c542550a9830bca2f05973b36c"
+    },
+    {
+      "path": "js/games/project-starfall/engine/combat-feedback.js",
+      "sha256": "b992bc879a9143753c5601b1ec0a8bb3566ea2b7665f8c795a1b533d51c453bc",
+      "publicSha256": "b992bc879a9143753c5601b1ec0a8bb3566ea2b7665f8c795a1b533d51c453bc"
+    },
+    {
+      "path": "js/games/project-starfall/engine/combat-formulas.js",
+      "sha256": "879d805cb63b8df64fc46dabbe7ac8445452ed1836f31f36cc5d5275b02ac1b9",
+      "publicSha256": "879d805cb63b8df64fc46dabbe7ac8445452ed1836f31f36cc5d5275b02ac1b9"
+    },
+    {
+      "path": "js/games/project-starfall/engine/combat-metrics.js",
+      "sha256": "601c37f0e770eb78a74b0a705102a784b52c141aea53bb0502f9826a439c6112",
+      "publicSha256": "601c37f0e770eb78a74b0a705102a784b52c141aea53bb0502f9826a439c6112"
+    },
+    {
+      "path": "js/games/project-starfall/engine/cosmetics.js",
+      "sha256": "8ebaef82a4173abd75c1d344787f629a5dd631f0185a9d32f6c9419367651aae",
+      "publicSha256": "8ebaef82a4173abd75c1d344787f629a5dd631f0185a9d32f6c9419367651aae"
+    },
+    {
+      "path": "js/games/project-starfall/engine/daily-login.js",
+      "sha256": "16c1ad9c72b8cbadafdc97ded6b774315ffc6d231831b597248902a23a1f664e",
+      "publicSha256": "16c1ad9c72b8cbadafdc97ded6b774315ffc6d231831b597248902a23a1f664e"
+    },
+    {
+      "path": "js/games/project-starfall/engine/debug-log.js",
+      "sha256": "9daf4ed9e9999708e3e7cdf5a4369818470fdeef1a2defb267a9328ecb470fd2",
+      "publicSha256": "9daf4ed9e9999708e3e7cdf5a4369818470fdeef1a2defb267a9328ecb470fd2"
+    },
+    {
+      "path": "js/games/project-starfall/engine/dungeons.js",
+      "sha256": "adaed49f4312456e3ce431dd58bf6d4c113dad74ac0305d9bedbc03ca102aadb",
+      "publicSha256": "adaed49f4312456e3ce431dd58bf6d4c113dad74ac0305d9bedbc03ca102aadb"
+    },
+    {
+      "path": "js/games/project-starfall/engine/enemy-hurtboxes.js",
+      "sha256": "aa454b0b0bfcaef7bb89a04459a3c4ade8fcc11a6781deb21036e192ed642a61",
+      "publicSha256": "aa454b0b0bfcaef7bb89a04459a3c4ade8fcc11a6781deb21036e192ed642a61"
+    },
+    {
+      "path": "js/games/project-starfall/engine/equipment-attachments.js",
+      "sha256": "1c16d410cb8e9f13bfa6fbfc6dac08b84d032c0843c73fce673c8137106b2fe3",
+      "publicSha256": "1c16d410cb8e9f13bfa6fbfc6dac08b84d032c0843c73fce673c8137106b2fe3"
+    },
+    {
+      "path": "js/games/project-starfall/engine/equipment.js",
+      "sha256": "9f18b30cc2c15f79cfe08c0656197d6496b15f400bdc710b2f5e7d07bc269ed6",
+      "publicSha256": "9f18b30cc2c15f79cfe08c0656197d6496b15f400bdc710b2f5e7d07bc269ed6"
+    },
+    {
+      "path": "js/games/project-starfall/engine/generated-maps.js",
+      "sha256": "239ec52ca677173d71aabde75b0fd961c2b5d4135de41499098e9d53f12b1b46",
+      "publicSha256": "239ec52ca677173d71aabde75b0fd961c2b5d4135de41499098e9d53f12b1b46"
+    },
+    {
+      "path": "js/games/project-starfall/engine/inventory.js",
+      "sha256": "8175d65c42bee3baf74e4c6918f7b8254d8814a9eb78dfe53f623d870d79d3b2",
+      "publicSha256": "8175d65c42bee3baf74e4c6918f7b8254d8814a9eb78dfe53f623d870d79d3b2"
+    },
+    {
+      "path": "js/games/project-starfall/engine/loot.js",
+      "sha256": "01e6fa24244a08271c891a1b5817abb423e6cbbe9abb5219047c2a0c43e87ff1",
+      "publicSha256": "01e6fa24244a08271c891a1b5817abb423e6cbbe9abb5219047c2a0c43e87ff1"
+    },
+    {
+      "path": "js/games/project-starfall/engine/map-analytics.js",
+      "sha256": "887e688c7e967e910bd2068d3101d4afdce4d181a63134812136995b459ba2cc",
+      "publicSha256": "887e688c7e967e910bd2068d3101d4afdce4d181a63134812136995b459ba2cc"
+    },
+    {
+      "path": "js/games/project-starfall/engine/map-mechanics.js",
+      "sha256": "d3e078d7480a67fe907e2cc10650cc44dd8698119a229ab47f0cfc182d36f357",
+      "publicSha256": "d3e078d7480a67fe907e2cc10650cc44dd8698119a229ab47f0cfc182d36f357"
+    },
+    {
+      "path": "js/games/project-starfall/engine/map-modifiers.js",
+      "sha256": "580f696cd41c8cb40ddfb8aae5f81faa446a55db2cb5dd02fc658acbff8da273",
+      "publicSha256": "580f696cd41c8cb40ddfb8aae5f81faa446a55db2cb5dd02fc658acbff8da273"
+    },
+    {
+      "path": "js/games/project-starfall/engine/map-runtime.js",
+      "sha256": "8c137b85b34e8f97178defde3412a0be889bc90ad589773a76d23c14679764a6",
+      "publicSha256": "8c137b85b34e8f97178defde3412a0be889bc90ad589773a76d23c14679764a6"
+    },
+    {
+      "path": "js/games/project-starfall/engine/market.js",
+      "sha256": "830856a55df2c0bcb2ec6d20f79005d5d785d1f415e427bfd58e966996665462",
+      "publicSha256": "830856a55df2c0bcb2ec6d20f79005d5d785d1f415e427bfd58e966996665462"
+    },
+    {
+      "path": "js/games/project-starfall/engine/monster-guide.js",
+      "sha256": "264b760ce76f38df4546a0d90e0d9b09fb7950df0a3fcd4157d167b0a50847f5",
+      "publicSha256": "264b760ce76f38df4546a0d90e0d9b09fb7950df0a3fcd4157d167b0a50847f5"
+    },
+    {
+      "path": "js/games/project-starfall/engine/movement.js",
+      "sha256": "e69f3d3f71b76ea6c813ac9c76ada3d0d73653d044d06c99da270a5727eb10fd",
+      "publicSha256": "e69f3d3f71b76ea6c813ac9c76ada3d0d73653d044d06c99da270a5727eb10fd"
+    },
+    {
+      "path": "js/games/project-starfall/engine/party.js",
+      "sha256": "0ffd122b1283ccf56331b00a88ba7b7938e63b7ad322e3e55b2052957434a1b9",
+      "publicSha256": "0ffd122b1283ccf56331b00a88ba7b7938e63b7ad322e3e55b2052957434a1b9"
+    },
+    {
+      "path": "js/games/project-starfall/engine/performance.js",
+      "sha256": "2f32f7472607672b0006e86fc769a98a5fe5b0ec69cf4309a2291f4feda06ddd",
+      "publicSha256": "2f32f7472607672b0006e86fc769a98a5fe5b0ec69cf4309a2291f4feda06ddd"
+    },
+    {
+      "path": "js/games/project-starfall/engine/pet.js",
+      "sha256": "a6b233a59dc3f485a8eb14e24e8e090f509ea24f8f5dd06c26f9661a91b4a1c2",
+      "publicSha256": "a6b233a59dc3f485a8eb14e24e8e090f509ea24f8f5dd06c26f9661a91b4a1c2"
+    },
+    {
+      "path": "js/games/project-starfall/engine/plinko.js",
+      "sha256": "0800d591dd6d15414cd95a3648e6aa20b0ad9610d351372a2c7c5cd3a780b05c",
+      "publicSha256": "0800d591dd6d15414cd95a3648e6aa20b0ad9610d351372a2c7c5cd3a780b05c"
+    },
+    {
+      "path": "js/games/project-starfall/engine/portals.js",
+      "sha256": "d7b4577ae05b239a362766baa3105f7754a776680a616e1091954516bb5b3f8f",
+      "publicSha256": "d7b4577ae05b239a362766baa3105f7754a776680a616e1091954516bb5b3f8f"
+    },
+    {
+      "path": "js/games/project-starfall/engine/progress-objectives.js",
+      "sha256": "7d25614c323b7668421035ec21a47d7319e2a3ef97acd9aacef9288d130088dd",
+      "publicSha256": "7d25614c323b7668421035ec21a47d7319e2a3ef97acd9aacef9288d130088dd"
+    },
+    {
+      "path": "js/games/project-starfall/engine/quest-npcs.js",
+      "sha256": "6a1956d486c0cf9c7fb59002ee7f79026343ecd2aa0dd6e4d3141d70987eb17b",
+      "publicSha256": "6a1956d486c0cf9c7fb59002ee7f79026343ecd2aa0dd6e4d3141d70987eb17b"
+    },
+    {
+      "path": "js/games/project-starfall/engine/rift-counterplay.js",
+      "sha256": "a8594f427f704a9788bd669bb1d6e0e120a703ec5497befc98b3cb4ee0d19175",
+      "publicSha256": "a8594f427f704a9788bd669bb1d6e0e120a703ec5497befc98b3cb4ee0d19175"
+    },
+    {
+      "path": "js/games/project-starfall/engine/roster.js",
+      "sha256": "ee9685e612599c8a3f202ef5c25a9800bdf885e613e0aba4aa7d80a7f290b3c0",
+      "publicSha256": "ee9685e612599c8a3f202ef5c25a9800bdf885e613e0aba4aa7d80a7f290b3c0"
+    },
+    {
+      "path": "js/games/project-starfall/engine/route-progress.js",
+      "sha256": "c256cf9402a6b88e6c8b06527cfc6fca8e6c5f6ad9c8b3c690c3c54e5afe83be",
+      "publicSha256": "c256cf9402a6b88e6c8b06527cfc6fca8e6c5f6ad9c8b3c690c3c54e5afe83be"
+    },
+    {
+      "path": "js/games/project-starfall/engine/scenery-placement.js",
+      "sha256": "f36b9ce4f1e1ffdc341778743d7325d3820884ae82062a243abc876f825ce3c7",
+      "publicSha256": "f36b9ce4f1e1ffdc341778743d7325d3820884ae82062a243abc876f825ce3c7"
+    },
+    {
+      "path": "js/games/project-starfall/engine/season.js",
+      "sha256": "89f465ac95770f8476fa176c0a59ab0f2671af4053c335dd28e55e5f076af3cb",
+      "publicSha256": "89f465ac95770f8476fa176c0a59ab0f2671af4053c335dd28e55e5f076af3cb"
+    },
+    {
+      "path": "js/games/project-starfall/engine/skill-modifiers.js",
+      "sha256": "5df3319638116d40d8add0c4262b731a31d8354cf306040f24e25dced353ac4b",
+      "publicSha256": "5df3319638116d40d8add0c4262b731a31d8354cf306040f24e25dced353ac4b"
+    },
+    {
+      "path": "js/games/project-starfall/engine/skills.js",
+      "sha256": "256e7e0022fb24a9adeb54f1e4ab706f22f600d40952d3332d417f56de59ec19",
+      "publicSha256": "256e7e0022fb24a9adeb54f1e4ab706f22f600d40952d3332d417f56de59ec19"
+    },
+    {
+      "path": "js/games/project-starfall/engine/snapshots.js",
+      "sha256": "fe0d9cdbda8181239970d3dc71979c7ed981a7a2d18c1b4a66a6c23743512e86",
+      "publicSha256": "fe0d9cdbda8181239970d3dc71979c7ed981a7a2d18c1b4a66a6c23743512e86"
+    },
+    {
+      "path": "js/games/project-starfall/engine/specializations.js",
+      "sha256": "27afc3e31577ddc22334ea562a04a6682fe59b1f7329d3d783d537e964c91ddd",
+      "publicSha256": "27afc3e31577ddc22334ea562a04a6682fe59b1f7329d3d783d537e964c91ddd"
+    },
+    {
+      "path": "js/games/project-starfall/engine/stat-upgrades.js",
+      "sha256": "0738ac942daf14a88e1d66ba77b26574b3c034c63bd3ecdf38b54ed363efd34b",
+      "publicSha256": "0738ac942daf14a88e1d66ba77b26574b3c034c63bd3ecdf38b54ed363efd34b"
+    },
+    {
+      "path": "js/games/project-starfall/engine/state.js",
+      "sha256": "c398dd3d91fbf9a78abf2a1cd436f047fb3ee57d9ac5410b9eeed36075ad1c46",
+      "publicSha256": "c398dd3d91fbf9a78abf2a1cd436f047fb3ee57d9ac5410b9eeed36075ad1c46"
+    },
+    {
+      "path": "js/games/project-starfall/engine/stats.js",
+      "sha256": "ea7c0fac572db75bffc53df3afe5779c9e213585f5e6469998778e2a93e7d045",
+      "publicSha256": "ea7c0fac572db75bffc53df3afe5779c9e213585f5e6469998778e2a93e7d045"
+    },
+    {
+      "path": "js/games/project-starfall/engine/target-farm.js",
+      "sha256": "99954e0cdca0b1514af002f7626e5c8aa789135e2386b615161ead7d494e8582",
+      "publicSha256": "99954e0cdca0b1514af002f7626e5c8aa789135e2386b615161ead7d494e8582"
+    },
+    {
+      "path": "js/games/project-starfall/engine/upgrades.js",
+      "sha256": "f8346a4a73258578d5fd0b45854482d4caea71e1e833f80a733fd2955d3f586c",
+      "publicSha256": "f8346a4a73258578d5fd0b45854482d4caea71e1e833f80a733fd2955d3f586c"
+    },
+    {
+      "path": "js/games/project-starfall/engine/viewport.js",
+      "sha256": "00593522154eb219f1363d17c6a175b635e857e57af3f6f3e6d9a8749af66be5",
+      "publicSha256": "00593522154eb219f1363d17c6a175b635e857e57af3f6f3e6d9a8749af66be5"
+    },
+    {
+      "path": "js/games/project-starfall/engine/visuals.js",
+      "sha256": "f502e88767105cc790445509619d720323d63fa8b1ff114c42914bff3641acb4",
+      "publicSha256": "f502e88767105cc790445509619d720323d63fa8b1ff114c42914bff3641acb4"
+    },
+    {
+      "path": "js/games/project-starfall/engine/world-map.js",
+      "sha256": "45ef9cad4ed6cf1d56c28be8729b5157c8db8fd87d837a71e9066f07fc4bcbc5",
+      "publicSha256": "45ef9cad4ed6cf1d56c28be8729b5157c8db8fd87d837a71e9066f07fc4bcbc5"
+    },
+    {
+      "path": "js/games/project-starfall/project-starfall-data.js",
+      "sha256": "c9b1d695f526bfe3b2cbb5eca4cde1dad0a188d8c678441ae11d652f7faaf003",
+      "publicSha256": "c9b1d695f526bfe3b2cbb5eca4cde1dad0a188d8c678441ae11d652f7faaf003"
+    },
+    {
+      "path": "js/games/project-starfall/project-starfall-engine.js",
+      "sha256": "192ddba8e90ce4c98ebce68ff9d3c23c4e4544fb924324de0271264b7be6e4ff",
+      "publicSha256": "192ddba8e90ce4c98ebce68ff9d3c23c4e4544fb924324de0271264b7be6e4ff"
+    },
+    {
+      "path": "js/games/project-starfall/project-starfall-main.js",
+      "sha256": "8859003898b70440f862e6612bd1c9349116083df2ffd9c0681f4e3a87838717",
+      "publicSha256": "8859003898b70440f862e6612bd1c9349116083df2ffd9c0681f4e3a87838717"
+    },
+    {
+      "path": "js/games/project-starfall/project-starfall-renderer-pixi.js",
+      "sha256": "5f4979bfde276e1021817551fe3fb421c0a8dc2106060d3db1d97910937ebbd9",
+      "publicSha256": "5f4979bfde276e1021817551fe3fb421c0a8dc2106060d3db1d97910937ebbd9"
+    },
+    {
+      "path": "js/games/project-starfall/project-starfall-rig.js",
+      "sha256": "d514703bc4475b4cd45c2f6e0dd6e80b791d214554836887a4a4eea139671c72",
+      "publicSha256": "d514703bc4475b4cd45c2f6e0dd6e80b791d214554836887a4a4eea139671c72"
+    },
+    {
+      "path": "js/games/project-starfall/project-starfall-ui.js",
+      "sha256": "d005a4037f35e7136186a12dbfea49a4b63d9aa501c40e652e7ce45a5c0b183b",
+      "publicSha256": "d005a4037f35e7136186a12dbfea49a4b63d9aa501c40e652e7ce45a5c0b183b"
+    },
+    {
+      "path": "js/games/project-starfall/ui/admin-config.js",
+      "sha256": "ecf537ee9779bc9f2afcf87a79189b538776e1f7280a17f92ca823e2491bbaff",
+      "publicSha256": "ecf537ee9779bc9f2afcf87a79189b538776e1f7280a17f92ca823e2491bbaff"
+    },
+    {
+      "path": "js/games/project-starfall/ui/asset-preview.js",
+      "sha256": "84cc180caef113b26fc04800fc571c2b4643a3f4a05d1acfa904334a49162504",
+      "publicSha256": "84cc180caef113b26fc04800fc571c2b4643a3f4a05d1acfa904334a49162504"
+    },
+    {
+      "path": "js/games/project-starfall/ui/asset-rendering.js",
+      "sha256": "53ea1a3713a3d63a5e7224a73bb7114ea3965049b7a70f7c93171f40338224be",
+      "publicSha256": "53ea1a3713a3d63a5e7224a73bb7114ea3965049b7a70f7c93171f40338224be"
+    },
+    {
+      "path": "js/games/project-starfall/ui/attunement.js",
+      "sha256": "a213a938fe1fa4bc6232287c7dc31f40004989f5deb5f976e4ff44f78a9e6810",
+      "publicSha256": "a213a938fe1fa4bc6232287c7dc31f40004989f5deb5f976e4ff44f78a9e6810"
+    },
+    {
+      "path": "js/games/project-starfall/ui/canvas-hover.js",
+      "sha256": "bd2f9052fdaa6cbf188e096bbdd3b2df70fc35d17b8dfdb9b10ee0e4838eb996",
+      "publicSha256": "bd2f9052fdaa6cbf188e096bbdd3b2df70fc35d17b8dfdb9b10ee0e4838eb996"
+    },
+    {
+      "path": "js/games/project-starfall/ui/canvas-regions.js",
+      "sha256": "9b34b83fdfe93699bef07e7303f2bb78fb71e6200a47ba12ac715e6a313e29d4",
+      "publicSha256": "9b34b83fdfe93699bef07e7303f2bb78fb71e6200a47ba12ac715e6a313e29d4"
+    },
+    {
+      "path": "js/games/project-starfall/ui/canvas-viewport.js",
+      "sha256": "2a4ed0ebe01c948ea50b5ffa9020818d4f9379175dde967f6e5c9e27737d1745",
+      "publicSha256": "2a4ed0ebe01c948ea50b5ffa9020818d4f9379175dde967f6e5c9e27737d1745"
+    },
+    {
+      "path": "js/games/project-starfall/ui/canvas-wheel.js",
+      "sha256": "96dbb976fc1c2e28f6a51afaba769d4e59d5e42c92872c31f36ef915183f2158",
+      "publicSha256": "96dbb976fc1c2e28f6a51afaba769d4e59d5e42c92872c31f36ef915183f2158"
+    },
+    {
+      "path": "js/games/project-starfall/ui/canvas-windows.js",
+      "sha256": "8bff2b2b394f5842d62690087301b10c0d88cd15763a6a07680d60036a59ddb8",
+      "publicSha256": "8bff2b2b394f5842d62690087301b10c0d88cd15763a6a07680d60036a59ddb8"
+    },
+    {
+      "path": "js/games/project-starfall/ui/cards.js",
+      "sha256": "b2924dab6e4cb8db777e448795ee59799d7b12c7d1127b695a90f12d3ba74854",
+      "publicSha256": "b2924dab6e4cb8db777e448795ee59799d7b12c7d1127b695a90f12d3ba74854"
+    },
+    {
+      "path": "js/games/project-starfall/ui/character-record.js",
+      "sha256": "f4c4d6727d7b22d2c5c9b3a607acebe9b7cab162cb3674cd7875633acc57a62f",
+      "publicSha256": "f4c4d6727d7b22d2c5c9b3a607acebe9b7cab162cb3674cd7875633acc57a62f"
+    },
+    {
+      "path": "js/games/project-starfall/ui/character-roster.js",
+      "sha256": "ecbcab5bae6f17b06ca12c790e1bfe39258dade8da8b2d57e1159821a1436cd8",
+      "publicSha256": "ecbcab5bae6f17b06ca12c790e1bfe39258dade8da8b2d57e1159821a1436cd8"
+    },
+    {
+      "path": "js/games/project-starfall/ui/equipment-layout.js",
+      "sha256": "85123cd08b5b08309cbbf3bc54cfb39841388d3898b33fe1bbe32e73337b19fa",
+      "publicSha256": "85123cd08b5b08309cbbf3bc54cfb39841388d3898b33fe1bbe32e73337b19fa"
+    },
+    {
+      "path": "js/games/project-starfall/ui/equipment-sets.js",
+      "sha256": "4c503176cd039ace1ecbf7128e963595b3ac0347f4901e1c47198d6970406008",
+      "publicSha256": "4c503176cd039ace1ecbf7128e963595b3ac0347f4901e1c47198d6970406008"
+    },
+    {
+      "path": "js/games/project-starfall/ui/formatting.js",
+      "sha256": "6f8461244684f38a248888d392d4a3958b0c60128dbd43623cd6a93db776f0b7",
+      "publicSha256": "6f8461244684f38a248888d392d4a3958b0c60128dbd43623cd6a93db776f0b7"
+    },
+    {
+      "path": "js/games/project-starfall/ui/hud.js",
+      "sha256": "41db0e03fd7e703958e5bd952c6e2fd85efa32ec4db317c6611f70bb10a22fbf",
+      "publicSha256": "41db0e03fd7e703958e5bd952c6e2fd85efa32ec4db317c6611f70bb10a22fbf"
+    },
+    {
+      "path": "js/games/project-starfall/ui/input.js",
+      "sha256": "52c70641221a802ccdf19718ae920387f75a631aa240e12bc9510c714519ebea",
+      "publicSha256": "52c70641221a802ccdf19718ae920387f75a631aa240e12bc9510c714519ebea"
+    },
+    {
+      "path": "js/games/project-starfall/ui/inventory-config.js",
+      "sha256": "258db2a7fdac6a4398a74d59a660d21972a15de10d113eb9a3e7a288218c1e24",
+      "publicSha256": "258db2a7fdac6a4398a74d59a660d21972a15de10d113eb9a3e7a288218c1e24"
+    },
+    {
+      "path": "js/games/project-starfall/ui/inventory-drag-drop.js",
+      "sha256": "3d86681efa1217ebd4cc9a9b45ac5aa68477db46fbea478448bc58418e3a8ade",
+      "publicSha256": "3d86681efa1217ebd4cc9a9b45ac5aa68477db46fbea478448bc58418e3a8ade"
+    },
+    {
+      "path": "js/games/project-starfall/ui/inventory-items.js",
+      "sha256": "6be20e4c1bca7df73b97b467e416f5de0156f513c6ac3e2ae45955021895b91b",
+      "publicSha256": "6be20e4c1bca7df73b97b467e416f5de0156f513c6ac3e2ae45955021895b91b"
+    },
+    {
+      "path": "js/games/project-starfall/ui/item-assets.js",
+      "sha256": "cdecc769991f61f7f8565450ec5d9000f727a2675bd20326a38461ff8dbe6cec",
+      "publicSha256": "cdecc769991f61f7f8565450ec5d9000f727a2675bd20326a38461ff8dbe6cec"
+    },
+    {
+      "path": "js/games/project-starfall/ui/item-comparison.js",
+      "sha256": "db5e90cdaeb68ff9fba2d378087c083e00e45d707436ef65066981f21b5338f7",
+      "publicSha256": "db5e90cdaeb68ff9fba2d378087c083e00e45d707436ef65066981f21b5338f7"
+    },
+    {
+      "path": "js/games/project-starfall/ui/item-requirements.js",
+      "sha256": "a5c9a24bfe7dba2cd185f6cbda9fc03422708db4bb4d0ddcee02eb87f92f5aeb",
+      "publicSha256": "a5c9a24bfe7dba2cd185f6cbda9fc03422708db4bb4d0ddcee02eb87f92f5aeb"
+    },
+    {
+      "path": "js/games/project-starfall/ui/keybindings.js",
+      "sha256": "ac3963996170d64af5916c661e1973db73ae9e5aa28a030351d32b5abeee4c43",
+      "publicSha256": "ac3963996170d64af5916c661e1973db73ae9e5aa28a030351d32b5abeee4c43"
+    },
+    {
+      "path": "js/games/project-starfall/ui/lookups.js",
+      "sha256": "d14ff3c53bd17da7cccc4aa3b2ab7315ec890f552bb37dbd0cf1c6651df4c4bf",
+      "publicSha256": "d14ff3c53bd17da7cccc4aa3b2ab7315ec890f552bb37dbd0cf1c6651df4c4bf"
+    },
+    {
+      "path": "js/games/project-starfall/ui/metric-formatting.js",
+      "sha256": "fea6ef0de0c45e6960bf89b111281de276cee28eca73c7635a98b18de10d6b12",
+      "publicSha256": "fea6ef0de0c45e6960bf89b111281de276cee28eca73c7635a98b18de10d6b12"
+    },
+    {
+      "path": "js/games/project-starfall/ui/monster-guide.js",
+      "sha256": "13e168cbef58a0bc7215b41a1e32f3addf97a91eb8c531afa88ece4ef5f84899",
+      "publicSha256": "13e168cbef58a0bc7215b41a1e32f3addf97a91eb8c531afa88ece4ef5f84899"
+    },
+    {
+      "path": "js/games/project-starfall/ui/panel-cache.js",
+      "sha256": "d16ddb6350c0ac0d2904ecb2e2356599122f9b67023eccd742ed776d7c35bc69",
+      "publicSha256": "d16ddb6350c0ac0d2904ecb2e2356599122f9b67023eccd742ed776d7c35bc69"
+    },
+    {
+      "path": "js/games/project-starfall/ui/panels.js",
+      "sha256": "07b709c9710ed98f33ce137c6e316a7448ec010a81513692dcc03153829c740d",
+      "publicSha256": "07b709c9710ed98f33ce137c6e316a7448ec010a81513692dcc03153829c740d"
+    },
+    {
+      "path": "js/games/project-starfall/ui/party.js",
+      "sha256": "e4d6d134e6ac4a41794e0ffae8a9e90511853828a7730fc7eb943090e3617764",
+      "publicSha256": "e4d6d134e6ac4a41794e0ffae8a9e90511853828a7730fc7eb943090e3617764"
+    },
+    {
+      "path": "js/games/project-starfall/ui/pet.js",
+      "sha256": "581c7605f903b175a70d7d9e8239cb036a1ddba6f4af28bcfb8417e9f19a33c8",
+      "publicSha256": "581c7605f903b175a70d7d9e8239cb036a1ddba6f4af28bcfb8417e9f19a33c8"
+    },
+    {
+      "path": "js/games/project-starfall/ui/plinko.js",
+      "sha256": "4dc2379bff1f99729dec2669b9e9ff421e8f0b11283f46e26dd54c3ec411abdc",
+      "publicSha256": "4dc2379bff1f99729dec2669b9e9ff421e8f0b11283f46e26dd54c3ec411abdc"
+    },
+    {
+      "path": "js/games/project-starfall/ui/prompts.js",
+      "sha256": "69aed473c3c25fca0eca223d245124114ab8ecea5c59ed609d17d8fdb7b14a14",
+      "publicSha256": "69aed473c3c25fca0eca223d245124114ab8ecea5c59ed609d17d8fdb7b14a14"
+    },
+    {
+      "path": "js/games/project-starfall/ui/quests.js",
+      "sha256": "082a14cc7926614650e43b8d7ce7e33fa2325a04210c1d42590dedf9b0339395",
+      "publicSha256": "082a14cc7926614650e43b8d7ce7e33fa2325a04210c1d42590dedf9b0339395"
+    },
+    {
+      "path": "js/games/project-starfall/ui/resource-widgets.js",
+      "sha256": "e7225fd10956bc50bde120b7a53842e2bddd8bafe9ced675a9354740a38e5574",
+      "publicSha256": "e7225fd10956bc50bde120b7a53842e2bddd8bafe9ced675a9354740a38e5574"
+    },
+    {
+      "path": "js/games/project-starfall/ui/settings.js",
+      "sha256": "af9696ab8db9b53b9862dd0de5edd0f24db7278e6182c8e86d6e2fb451f24aa4",
+      "publicSha256": "af9696ab8db9b53b9862dd0de5edd0f24db7278e6182c8e86d6e2fb451f24aa4"
+    },
+    {
+      "path": "js/games/project-starfall/ui/shared-storage.js",
+      "sha256": "42dd6695382e26032e4263afacf8062239d7244da0ba0d00704b750c1a17fbd9",
+      "publicSha256": "42dd6695382e26032e4263afacf8062239d7244da0ba0d00704b750c1a17fbd9"
+    },
+    {
+      "path": "js/games/project-starfall/ui/shop.js",
+      "sha256": "2938dac059a518ee4ac2b1e1b5223061bfffec3c7dc3f636b6e399bc9b2f2419",
+      "publicSha256": "2938dac059a518ee4ac2b1e1b5223061bfffec3c7dc3f636b6e399bc9b2f2419"
+    },
+    {
+      "path": "js/games/project-starfall/ui/skill-display.js",
+      "sha256": "9243dd20e257b355f23970b4c2ff751c1ed449cffad55f3b3036445db6f87bc0",
+      "publicSha256": "9243dd20e257b355f23970b4c2ff751c1ed449cffad55f3b3036445db6f87bc0"
+    },
+    {
+      "path": "js/games/project-starfall/ui/skill-metadata.js",
+      "sha256": "ea23b7deeb09539538cda00bde571240b64727c856802ed2b1c386e834bcf17b",
+      "publicSha256": "ea23b7deeb09539538cda00bde571240b64727c856802ed2b1c386e834bcf17b"
+    },
+    {
+      "path": "js/games/project-starfall/ui/skill-prerequisites.js",
+      "sha256": "a027d057dd34d2b5cb3ec6ad1f2eab2e59cd26097040cfff0baf46b9fe1dd9b0",
+      "publicSha256": "a027d057dd34d2b5cb3ec6ad1f2eab2e59cd26097040cfff0baf46b9fe1dd9b0"
+    },
+    {
+      "path": "js/games/project-starfall/ui/skill-state.js",
+      "sha256": "fbd84bcb7ee0d6f484ab9c2a2158796978484449920c0a9971297044191b203f",
+      "publicSha256": "fbd84bcb7ee0d6f484ab9c2a2158796978484449920c0a9971297044191b203f"
+    },
+    {
+      "path": "js/games/project-starfall/ui/stat-metadata.js",
+      "sha256": "670ac9fb2003f3934f530c0b7d240d4c459e3ab20e5a50ba3c73e92b5a2873b7",
+      "publicSha256": "670ac9fb2003f3934f530c0b7d240d4c459e3ab20e5a50ba3c73e92b5a2873b7"
+    },
+    {
+      "path": "js/games/project-starfall/ui/upgrades.js",
+      "sha256": "e45622a37e4ea8534b0de52511df56638a5f6b839ce12c3ec08421343842766a",
+      "publicSha256": "e45622a37e4ea8534b0de52511df56638a5f6b839ce12c3ec08421343842766a"
+    },
+    {
+      "path": "js/games/project-starfall/ui/visuals.js",
+      "sha256": "a51ac3b2239a285e8a5a45e179f1e8daa94109802c20ade5cd5e149e987804d4",
+      "publicSha256": "a51ac3b2239a285e8a5a45e179f1e8daa94109802c20ade5cd5e149e987804d4"
+    }
+  ]
+}

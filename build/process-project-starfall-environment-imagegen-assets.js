@@ -1110,6 +1110,12 @@ async function validateAll(options) {
 }
 
 async function main() {
+  const overhaul = require('./process-project-starfall-overhaul-scenery.js');
+  if (overhaul.isEnabled('terrain') && overhaul.isEnabled('props')) {
+    await overhaul.processGroup('terrain', { validate: process.argv.includes('--validate') });
+    await overhaul.processGroup('props', { validate: process.argv.includes('--validate') });
+    return;
+  }
   const options = {
     terrainOnly: process.argv.includes('--terrain-only'),
     propsOnly: process.argv.includes('--props-only')

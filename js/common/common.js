@@ -73,7 +73,6 @@
                 <span class="btn-spinner" aria-hidden="true"></span>
                 <span class="btn-label">Send Message</span>
               </button>
-              <button type="button" class="btn-ghost" data-contact-reset>Clear form</button>
             </div>
           </form>
           <div class="contact-form-success" id="contact-success" hidden tabindex="-1" role="status" aria-live="polite">
@@ -2351,7 +2350,7 @@
   };
 
   const projectEmbedMobileMedia = typeof window.matchMedia === 'function'
-    ? window.matchMedia('(max-width: 768px)')
+    ? window.matchMedia('(max-width: 959px), (max-height: 619px)')
     : null;
 
   const syncProjectEmbedLoading = (root = document) => {
@@ -2438,13 +2437,39 @@
     });
   };
 
+  // Content-fit iframes measure themselves; use the host viewport for drawing
+  // density so a shorter canvas cannot recursively shrink its own breakpoint.
+  const syncDrawingDemoDensity = (ifr) => {
+    try {
+      const doc = ifr.contentDocument;
+      if (!doc?.querySelector('.drawing-demo')) return;
+      const compactDesktop = window.innerWidth > 768 && window.innerHeight <= 800;
+      doc.documentElement.style.setProperty('--drawing-canvas-size', compactDesktop ? '260px' : '300px');
+    } catch {}
+  };
+
+  const bindDrawingDemoDensity = (root = document) => {
+    root.querySelectorAll('.project-embed-frame, .project-demo-wrapper-iframe').forEach((ifr) => {
+      if (!ifr._drawingDensityHandler) {
+        ifr._drawingDensityHandler = () => syncDrawingDemoDensity(ifr);
+        ifr.addEventListener('load', ifr._drawingDensityHandler);
+      }
+      syncDrawingDemoDensity(ifr);
+    });
+  };
+
   const initProjectEmbeds = (root = document) => {
+    bindDrawingDemoDensity(root);
     bindProjectEmbedResize(root);
     bindProjectEmbedLoading(root);
     syncProjectEmbedLoading(root);
   };
 
   const cleanupProjectEmbeds = (root = document) => {
+    root.querySelectorAll?.('.project-embed-frame, .project-demo-wrapper-iframe').forEach((ifr) => {
+      if (ifr._drawingDensityHandler) ifr.removeEventListener('load', ifr._drawingDensityHandler);
+      ifr._drawingDensityHandler = null;
+    });
     root.querySelectorAll?.('.project-embed-frame').forEach((ifr) => {
       try { ifr._projectEmbedResizeObserver?.disconnect(); } catch {}
       ifr._projectEmbedResizeObserver = null;
@@ -2502,6 +2527,7 @@
       .forEach(resizeViewportProjectEmbed);
   };
   window.addEventListener('resize', () => {
+    document.querySelectorAll('.project-embed-frame, .project-demo-wrapper-iframe').forEach(syncDrawingDemoDensity);
     syncProjectEmbedLoading();
     resizeViewportProjectEmbeds();
   });

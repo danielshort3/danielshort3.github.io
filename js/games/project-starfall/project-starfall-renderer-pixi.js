@@ -2,6 +2,7 @@
   'use strict';
 
   const CoreMath = (typeof require === 'function' ? require('./core/math.js') : null) || global.ProjectStarfallCore || {};
+  const SceneryPlacement = (typeof require === 'function' ? require('./engine/scenery-placement.js') : null) || global.ProjectStarfallEngineModules && global.ProjectStarfallEngineModules.sceneryPlacement;
   const CoreGeometry = (typeof require === 'function' ? require('./core/geometry.js') : null) || global.ProjectStarfallCore || {};
   const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
   const getAssetRequestUrl = CoreAssets.getAssetRequestUrl || ((assetPath) => assetPath);
@@ -266,6 +267,7 @@
       this.textPools = {};
       this.parent = null;
       this.backgroundGraphics = null;
+      this.worldBaseBandGraphics = null;
       this.backgroundSprites = null;
       this.worldLayer = null;
       this.mapGraphics = null;
@@ -328,7 +330,7 @@
       }
       if (cache === this.runtimeTextures) return this.destroyTexture(value.texture || value, true);
       if (cache === this.frameTextures || cache === this.environmentTextures) {
-        return this.destroyTexture(value.texture || value, false);
+        return this.destroyTexture(value.texture || value, !!value.canvas);
       }
       return false;
     }
@@ -521,6 +523,7 @@
     setupScene() {
       const { Container, Graphics } = this.PIXI;
       this.backgroundGraphics = new Graphics();
+      this.worldBaseBandGraphics = new Graphics();
       this.backgroundSprites = new Container();
       this.worldLayer = new Container();
       this.mapGraphics = new Graphics();
@@ -552,15 +555,15 @@
       this.createPool('entities', this.entitySprites);
       this.createPool('damage', this.damageSprites);
       this.createTextPool('damageText', this.damageTexts);
-      this.app.stage.addChild(this.backgroundGraphics, this.backgroundSprites, this.worldLayer);
+      this.app.stage.addChild(this.backgroundGraphics, this.backgroundSprites, this.worldBaseBandGraphics, this.worldLayer);
     }
 
     configurePixelArtRendering() {
       const pixi = this.PIXI || {};
-      const nearest = pixi.SCALE_MODES && pixi.SCALE_MODES.NEAREST != null ? pixi.SCALE_MODES.NEAREST : 'nearest';
+      const nearest = pixi.SCALE_MODES && pixi.SCALE_MODES.LINEAR != null ? pixi.SCALE_MODES.LINEAR : 'linear';
       if (pixi.settings) {
         try {
-          if ('ROUND_PIXELS' in pixi.settings) pixi.settings.ROUND_PIXELS = true;
+          if ('ROUND_PIXELS' in pixi.settings) pixi.settings.ROUND_PIXELS = false;
           if ('SCALE_MODE' in pixi.settings) pixi.settings.SCALE_MODE = nearest;
         } catch {
           // Some Pixi builds expose read-only settings.
@@ -569,7 +572,7 @@
       const renderer = this.app && this.app.renderer;
       if (renderer) {
         try {
-          renderer.roundPixels = true;
+          renderer.roundPixels = false;
         } catch {
           // Optional renderer setting; safe to ignore on unsupported builds.
         }
@@ -579,7 +582,7 @@
     applyPixelArtTextureSettings(texture) {
       if (!texture) return texture;
       const pixi = this.PIXI || {};
-      const nearest = pixi.SCALE_MODES && pixi.SCALE_MODES.NEAREST != null ? pixi.SCALE_MODES.NEAREST : 'nearest';
+      const nearest = pixi.SCALE_MODES && pixi.SCALE_MODES.LINEAR != null ? pixi.SCALE_MODES.LINEAR : 'linear';
       [texture, texture.baseTexture, texture.source, texture.source && texture.source.style].forEach((target) => {
         if (!target) return;
         try {
@@ -1280,9 +1283,22 @@
     }
 
     syncCanvasStyle() {
-      if (!this.app || !this.app.canvas || !this.app.canvas.style) return;
+      if (!this.app || !this.app.renderer || !this.app.canvas || !this.app.canvas.style) return;
       this.app.canvas.style.width = '100%';
       this.app.canvas.style.height = '100%';
+    }
+
+    syncWorldViewportClip(snapshot) {
+      if (!this.app || !this.app.renderer || !this.app.canvas || !this.app.canvas.style) return;
+      const height = Math.max(1, Number(snapshot.height || this.height || 1));
+      const playfieldHeight = clamp(snapshot.playfieldHeight == null ? height : snapshot.playfieldHeight, 0, height);
+      const solidBandBottom = Math.min(height, playfieldHeight + Math.max(0, Number(snapshot.solidPlatformHeight || 0)));
+      const bottomInset = ((height - solidBandBottom) / height * 100).toFixed(6);
+      // This canvas contains only the world; the anchor canvas paints the HUD.
+      // Percentages track its CSS size and renderer resolution without clipping
+      // the separate HUD, matching Canvas 2D's solid-band-bottom world clip.
+      const clipPath = `inset(0 0 ${bottomInset}% 0)`;
+      if (this.app.canvas.style.clipPath !== clipPath) this.app.canvas.style.clipPath = clipPath;
     }
 
     resize(width, height) {
@@ -1302,8 +1318,9 @@
     }
 
     setActive(active) {
-      this.active = !!active;
-      if (this.app && this.app.canvas) this.app.canvas.hidden = !this.active;
+      const initialized = !!(this.app && this.app.renderer);
+      this.active = !!active && initialized;
+      if (initialized && this.app.canvas) this.app.canvas.hidden = !this.active;
       if (this.parent && this.parent.classList) this.parent.classList.toggle('is-pixi-renderer', this.active);
     }
 
@@ -1314,6 +1331,7 @@
       this.lastVisualQuality = snapshot.visualQuality || { level: 'normal' };
       this.frameStats = { actorFallbacks: 0, rigDraws: 0 };
       this.resize(snapshot.width, snapshot.height);
+      this.syncWorldViewportClip(snapshot);
       this.beginPools();
       this.clearGraphics();
       this.renderBackground(snapshot);
@@ -1346,6 +1364,7 @@
 
     clearGraphics() {
       this.backgroundGraphics.clear();
+      this.worldBaseBandGraphics.clear();
       this.mapGraphics.clear();
       this.vfxGraphics.clear();
       this.entityGraphics.clear();
@@ -1364,7 +1383,8 @@
 
     renderBackground(snapshot) {
       const width = Math.max(1, Number(snapshot.width || this.width || 1));
-      const height = Math.max(1, Number(snapshot.playfieldHeight || snapshot.height || this.height || 1));
+      const playfieldHeight = Math.max(1, Number(snapshot.playfieldHeight || snapshot.height || this.height || 1));
+      const height = Math.min(Number(snapshot.height || this.height || playfieldHeight), playfieldHeight + Number(snapshot.solidPlatformHeight || 0));
       const map = snapshot.map || {};
       const palette = Array.isArray(map.palette) ? map.palette : [];
       const skyTop = map.id === 'cinderHollow' ? 0x2c2632 : 0xdff7ff;
@@ -1384,7 +1404,8 @@
       }
       const imageWidth = Math.max(1, Number(texture.width || 1));
       const imageHeight = Math.max(1, Number(texture.height || 1));
-      const drawWidth = Math.max(1, Math.round(imageWidth * (height / imageHeight)));
+      const drawHeight = Math.max(height, width * imageHeight / imageWidth);
+      const drawWidth = Math.max(1, Math.round(imageWidth * (drawHeight / imageHeight)));
       const parallaxX = Number(snapshot.camera && snapshot.camera.x || 0) * MAP_BACKGROUND_PARALLAX;
       const parallaxY = Number(snapshot.camera && snapshot.camera.y || 0) * MAP_BACKGROUND_PARALLAX;
       if (map.backgroundMode === 'panorama') {
@@ -1396,14 +1417,14 @@
         const panoramaProgress = Math.max(0, Math.min(1, Number(camera.x || 0) / cameraMax));
         const drawX = -Math.round(panoramaTravel * panoramaProgress);
         const drawY = -Math.round(Math.max(0, parallaxY * 0.16));
-        this.drawTexture('background', texture, drawX, drawY, drawWidth, height + Math.abs(drawY), {
+        this.drawTexture('background', texture, drawX, drawY, drawWidth, drawHeight + Math.abs(drawY), {
           anchorX: 0,
           anchorY: 0
         });
         this.backgroundGraphics
           .rect(0, 0, width, height)
           .fill({ color: 0x08121f, alpha: 0.08 });
-        this.renderWorldBaseBand(snapshot, width, height, map);
+        this.renderWorldBaseBand(snapshot, width, playfieldHeight, map);
         return;
       }
       const tileOffset = -(((parallaxX % drawWidth) + drawWidth) % drawWidth);
@@ -1419,7 +1440,7 @@
       this.backgroundGraphics
         .rect(0, 0, width, height)
         .fill({ color: map.id === 'cinderHollow' ? 0x140a18 : 0xffffff, alpha: map.id === 'cinderHollow' ? 0.22 : 0.08 });
-      this.renderWorldBaseBand(snapshot, width, height, map);
+      this.renderWorldBaseBand(snapshot, width, playfieldHeight, map);
     }
 
     renderProceduralBackground(snapshot, width, height) {
@@ -1440,21 +1461,7 @@
           .closePath()
           .fill({ color: 0x091f3b, alpha: 0.18 });
       }
-      this.renderWorldBaseBand(snapshot, width, height, snapshot.map || {});
-    }
-
-    getWorldBaseBandStyle(map) {
-      const theme = this.getMapThemeId(map);
-      const palette = map && map.palette || [];
-      // This is reserved collision geometry, not an overlay. Keep it opaque so
-      // the canvas fallback color cannot turn the world-to-HUD seam gray.
-      if (theme.includes('cinder') || theme.includes('ember') || theme.includes('fire')) return { color: 0x140a18, alpha: 1 };
-      if (theme.includes('frost') || theme.includes('rime') || theme.includes('glacier')) return { color: 0xa3d9f2, alpha: 1 };
-      if (theme.includes('astral') || theme.includes('eclipse') || theme.includes('rift') || theme.includes('rune')) return { color: 0x1d1d40, alpha: 1 };
-      if (theme.includes('storm')) return { color: 0x2f445c, alpha: 1 };
-      if (theme.includes('ruins') || theme.includes('gearworks') || theme.includes('quarry') || theme.includes('rust') || theme.includes('titan') || theme.includes('deepcore')) return { color: 0x4e504e, alpha: 1 };
-      if (theme.includes('bandit') || theme.includes('ridge') || theme.includes('duelist') || theme.includes('sniper')) return { color: 0x654a30, alpha: 1 };
-      return { color: colorToNumber(palette[0], 0x2f6848), alpha: 1 };
+      this.renderWorldBaseBand(snapshot, width, Number(snapshot.playfieldHeight || height), snapshot.map || {});
     }
 
     renderWorldBaseBand(snapshot, width, playfieldHeight, map) {
@@ -1464,12 +1471,11 @@
         Number(playfieldHeight || 0) + Number(snapshot && snapshot.solidPlatformHeight || 0)
       )));
       if (bottom <= top) return;
-      const style = this.getWorldBaseBandStyle(map);
-      this.backgroundGraphics
-        .rect(0, top, width, bottom - top)
-        .fill({ color: style.color, alpha: style.alpha })
-        .rect(0, top, width, 2)
-        .fill({ color: 0x091f3b, alpha: 0.24 });
+      for (let y = top; y < bottom; y += 1) {
+        const progress = (y - top) / Math.max(1, bottom - top - 1);
+        this.worldBaseBandGraphics.rect(0, y, width, 1)
+          .fill({ color: 0x08121f, alpha: Math.pow(progress, 1.2) * 0.78 });
+      }
     }
 
     getEnvironmentProfile(map) {
@@ -1847,17 +1853,7 @@
     }
 
     getMapDecorationBlockers(runtime) {
-      const blockers = [];
-      const safeRuntime = runtime || {};
-      (safeRuntime.climbables || []).forEach((item) => blockers.push({ x: item.x - 36, y: item.y - 16, w: item.w + 72, h: item.h + 32 }));
-      (safeRuntime.stations || []).forEach((item) => blockers.push({ x: item.x - 52, y: item.y - 90, w: item.w + 104, h: item.h + 112 }));
-      (safeRuntime.portals || []).forEach((item) => blockers.push({ x: item.x - 56, y: item.y - 40, w: item.w + 112, h: item.h + 74 }));
-      (safeRuntime.questNpcs || []).forEach((item) => blockers.push({ x: item.x - 44, y: item.y - 54, w: item.w + 88, h: item.h + 78 }));
-      (safeRuntime.spawnPoints || []).forEach((point) => {
-        const platform = safeRuntime.platforms && safeRuntime.platforms[point.platformIndex || 0];
-        if (platform) blockers.push({ x: Number(point.x || 0) - 34, y: platform.y - 72, w: 68, h: 94 });
-      });
-      return blockers;
+      return SceneryPlacement.getDecorationBlockers(runtime);
     }
 
     getSnapshotMapDecorationBlockers(snapshot, runtime) {
@@ -1868,10 +1864,7 @@
     }
 
     isEnvironmentPropPlacementSafe(platform, x, y, w, h, blockers, visibility) {
-      if (!platform || x < platform.x + 28 || x + w > platform.x + platform.w - 28) return false;
-      const clearance = Number(visibility && visibility.combatClearancePx || 72);
-      const rect = { x: x - clearance * 0.25, y: y - clearance * 0.2, w: w + clearance * 0.5, h: h + clearance * 0.35 };
-      return !(blockers || []).some((blocker) => rectsOverlap(rect, blocker));
+      return SceneryPlacement.isPlacementSafe(platform, x, y, w, h, blockers, visibility);
     }
 
     drawMapProp(profile, kind, x, y, w, h, seed, layer) {
@@ -1921,29 +1914,8 @@
     }
 
     buildMapSceneryPlacements(snapshot, runtime, map, profile, visibility, layer, densityScale) {
-      const blockers = this.getSnapshotMapDecorationBlockers(snapshot, runtime);
-      const density = Number(profile.density || 0.5) * densityScale;
-      const spacing = layer === 'rear' ? 430 : 340;
-      const placements = [];
-      (runtime.platforms || []).forEach((platform, platformIndex) => {
-        if (!platform || platform.w < 120) return;
-        const kindPool = this.getEnvironmentPropKinds(profile, layer, platformIndex);
-        if (!kindPool.length) return;
-        const rawCount = Math.max(1, Math.round(platform.w / spacing * density));
-        const count = layer === 'rear' ? Math.min(8, rawCount) : Math.min(platformIndex === 0 ? 6 : 2, rawCount);
-        for (let index = 0; index < count; index += 1) {
-          const seed = `${map.id}:${layer}:${platformIndex}:${index}`;
-          const kind = seededPick(kindPool, seed, 'kind') || 'grass';
-          const size = this.getEnvironmentPropSize(kind, layer, platformIndex, visibility);
-          const usableW = Math.max(1, platform.w - 96);
-          const x = platform.x + 48 + Math.floor(usableW * ((index + 0.35 + seededUnit(seed, 'x') * 0.3) / Math.max(1, count)));
-          const overlap = layer === 'front' ? 0 : 10 + Math.floor(seededUnit(seed, 'y') * 6);
-          const y = platform.y - size.h + overlap;
-          if (!this.isEnvironmentPropPlacementSafe(platform, x, y, size.w, size.h, blockers, visibility)) continue;
-          placements.push({ kind, x, y, w: size.w, h: size.h, seed });
-        }
-      });
-      return placements;
+      return SceneryPlacement.buildPlacements(runtime, map, profile, visibility, layer, densityScale,
+        this.getEnvironmentPropKinds.bind(this), this.getEnvironmentPropSize.bind(this));
     }
 
     getMapSceneryPlacements(snapshot, runtime, map, profile, visibility, layer, densityScale) {
@@ -1973,9 +1945,9 @@
       });
     }
 
-    getEnvironmentStructureAsset() {
+    getEnvironmentStructureAsset(themeOverride) {
       const group = this.data && this.data.ENVIRONMENT_STRUCTURE_ASSETS || {};
-      return group.townLandmarks || null;
+      return group[themeOverride || this.currentStructureTheme || 'townLandmarks'] || group.townLandmarks || null;
     }
 
     getEnvironmentStructureCellIndex(cell) {
@@ -1984,8 +1956,8 @@
       return cells[key] == null ? DEFAULT_ENVIRONMENT_STRUCTURE_CELLS.starfallGuildHall : cells[key];
     }
 
-    getEnvironmentStructureCellTexture(cell) {
-      const asset = this.getEnvironmentStructureAsset();
+    getEnvironmentStructureCellTexture(cell, theme) {
+      const asset = this.getEnvironmentStructureAsset(theme);
       if (!asset || !asset.path) return null;
       const base = this.getTexture(asset.path);
       if (!base) return null;
@@ -2012,7 +1984,7 @@
     }
 
     drawEnvironmentStructureCell(cell, x, y, w, h, options) {
-      const texture = this.getEnvironmentStructureCellTexture(cell);
+      const texture = this.getEnvironmentStructureCellTexture(cell, options && options.structureTheme);
       if (!texture) return false;
       const settings = options || {};
       return this.drawTexture('map', texture, x, y, w, h, {
@@ -2087,6 +2059,7 @@
     renderTownStructures(snapshot, map, layer) {
       const scene = map && map.townScene;
       if (!scene) return;
+      this.currentStructureTheme = scene.structureTheme || 'townLandmarks';
       const runtime = snapshot.runtime || {};
       const groundPlatform = this.getGroundPlatform(runtime, snapshot);
       const groundY = Number(groundPlatform && groundPlatform.y || snapshot.playfieldHeight || 0);
@@ -2267,7 +2240,7 @@
       const ledgeH = Math.max(38, Math.min(48, topH + Math.round(Number(style.platformBodyDepth || 30) * 0.82)));
       const ledgeX = platform.x - ledgeOverhang;
       const ledgeW = platform.w + ledgeOverhang * 2;
-      const ledgeY = platform.y - topH + 2;
+      const ledgeY = SceneryPlacement.getTerrainSurfaceTop(platform, style, topH, false);
       this.drawTerrainSurface(snapshot, profile, cells, false, ledgeX, ledgeY, ledgeW, ledgeH, `${seed}:ledge`, { overlap: 0 });
       this.drawPlatformThemeTrim(this.mapGraphics, map, platform, index);
     }
@@ -2406,33 +2379,23 @@
 
     drawRampPlatformTerrain(snapshot, map, platform, index, profile, style, seed) {
       if (!isSlopePlatform(platform)) return false;
-      if (this.isEclipseObservatoryDeck(map, profile)) {
-        return this.drawEclipseObservatoryDeckTreatment(this.mapGraphics, map, platform, index);
-      }
+      if (this.isEclipseObservatoryDeck(map, profile)) return this.drawEclipseObservatoryDeckTreatment(this.mapGraphics, map, platform, index);
       const asset = this.getEnvironmentAsset('ramps', profile);
-      const texture = asset && asset.path ? this.getTexture(asset.path) : null;
-      if (!asset || !texture) return false;
-      const leftY = Number(platform.y || 0);
-      const rightY = Number(platform.y2 || platform.y || 0);
-      const overhang = Math.max(6, Math.min(14, Number(style && style.overhang || 8)));
-      const topPad = Math.max(8, Math.min(14, Number(style && style.topHeight || 18) * 0.55));
-      const bodyDepth = Math.max(22, Math.min(36, Number(style && style.platformBodyDepth || 28)));
-      const drawX = Number(platform.x || 0) - overhang;
-      const drawW = Math.max(1, Number(platform.w || 0) + overhang * 2);
-      const drawY = Math.min(leftY, rightY) - topPad;
-      const drawH = Math.max(36, Math.abs(rightY - leftY) + topPad + bodyDepth);
-      const drawn = this.drawEnvironmentCell(
-        'ramps',
-        profile,
-        this.getRampTerrainCell(platform, index),
-        drawX,
-        drawY,
-        drawW,
-        drawH,
-        { alpha: style && style.bodyAlpha == null ? 1 : Number(style && style.bodyAlpha || 1) }
-      );
-      if (!drawn) return false;
-      this.drawPlatformThemeTrim(this.mapGraphics, map, platform, index);
+      const base = asset && this.getTexture(asset.path);
+      const image = base && this.getTextureSourceResource(base);
+      if (!image) return false;
+      const cell = this.getRampTerrainCell(platform, index);
+      const rise = Number(platform.y2) - Number(platform.y);
+      const depth = Math.max(22, Math.min(36, Number(style && style.platformBodyDepth || 28)));
+      const key = [asset.path, 'surface', cell, platform.w, rise, depth].join(':');
+      let surface = this.getCacheValue(this.environmentTextures, key);
+      if (!surface) {
+        const raster = SceneryPlacement.createRampSurface(image, asset, cell, platform.w, rise, depth);
+        if (!raster) return false;
+        surface = { ...raster, texture: this.PIXI.Texture.from(raster.canvas) };
+        this.setCacheValue(this.environmentTextures, key, surface, ENVIRONMENT_TEXTURE_CACHE_LIMIT);
+      }
+      this.drawTexture('map', surface.texture, platform.x, platform.y + surface.topOffset, platform.w, surface.height, { anchorX: 0, anchorY: 0 });
       return true;
     }
 
@@ -2477,7 +2440,7 @@
       const bodyBaseH = this.getPlatformTerrainBodyDepth(platformList, platform, index, style, topH, isGround);
       const left = platform.x - overhang;
       const right = platform.x + platform.w + overhang;
-      const topY = platform.y - topH + (isGround ? 0 : 2);
+      const topY = SceneryPlacement.getTerrainSurfaceTop(platform, style, topH, isGround);
       const layerH = Math.max(topH, Math.round(topH + bodyBaseH));
       const bounds = snapshot.bounds || {};
       const terrainOverlap = 10;
@@ -2717,7 +2680,7 @@
         y + h - facadeH,
         facadeW,
         facadeH,
-        { alpha }
+        { alpha, structureTheme: portal.structureTheme || 'townLandmarks' }
       );
       if (facadeDrawn) {
         this.renderPortalLabel(graphics, portal, runtime, snapshot, locked, palette[2]);
@@ -3112,6 +3075,13 @@
           : clamp(Number(effect.alpha == null ? 0.7 : effect.alpha) * lifeRatio, 0, 1);
         const x = Number(effect.x || 0);
         const y = Number(effect.y || 0);
+        if (type === 'recoveryPulse' && typeof EngineVisuals.createSemanticRecoveryDrawState === 'function') {
+          const state = EngineVisuals.createSemanticRecoveryDrawState(effect);
+          const tint = colorToNumber(state.color, 0x62d995);
+          state.lines.forEach((line) => this.drawLine(line.layer === 'ground' ? 'vfx' : 'damage', line.x1, line.y1, line.x2, line.y2, line.width, { tint, alpha: state.alpha }));
+          state.orbs.forEach((orb) => this.drawShape(orb.layer === 'ground' ? 'vfx' : 'damage', 'circle', orb.x, orb.y, orb.radius * 2, orb.radius * 2, { tint, alpha: state.alpha }));
+          continue;
+        }
         const isRuneFieldEffect = type === 'field' && effect.runeField;
         const runeFieldRadius = isRuneFieldEffect ? Math.max(8, Number(effect.r || effect.radius || 32)) : 0;
         const runeFieldDuration = isRuneFieldEffect ? Math.max(0.01, Number(effect.duration || effect.baseDuration || ttl || 1)) : 1;
@@ -3138,7 +3108,7 @@
                   : Math.max(86, radius * 1.85);
             this.drawTexture('vfx', texture, x, y, size, size, {
               alpha,
-              blendMode: 'add',
+              blendMode: 'normal',
               flipX: Number(effect.facing || 1) < 0
             });
             if (type === 'field' && effect.runeField) {
@@ -3160,8 +3130,8 @@
         if (type === 'telegraph') {
           const w = Math.max(1, Number(effect.w || 0));
           const h = Math.max(1, Number(effect.h || 0));
-          this.drawSolidRect('vfx', x, y, w, h, { tint: 0xff6b35, alpha: simplified ? 0.06 : 0.08 });
-          this.drawRectOutline('vfx', x, y, w, h, 2, { tint: 0xffc857, alpha: simplified ? 0.28 : 0.42 });
+          this.drawSolidRect('vfx', x, y, w, h, { tint: 0xf06a60, alpha: simplified ? 0.06 : 0.08 });
+          this.drawRectOutline('vfx', x, y, w, h, 2, { tint: 0xf06a60, alpha: simplified ? 0.65 : 0.85 });
           continue;
         }
         if (type === 'recoveryPulse') {
@@ -3327,7 +3297,7 @@
         if (!enemy || !enemy.renderBox || !isRectInBounds(enemy.renderBox, bounds, 120)) return;
         const box = enemy.renderBox;
         const alpha = enemy.hp <= 0 ? 0.86 : enemy.telegraph > 0 ? 0.78 : 1;
-        if (!this.renderFracturedFrontierEnemy(enemy, box, alpha, now) && !this.renderActorSprite(enemy, box, alpha)) {
+        if (!this.renderActorSprite(enemy, box, alpha) && !this.renderFracturedFrontierEnemy(enemy, box, alpha, now)) {
           this.frameStats.actorFallbacks += 1;
           const color = colorToNumber(enemy.color, 0x7fbe5d);
           if (enemy.behavior === 'flyer') this.drawShape('entities', 'circle', box.x + box.w / 2, box.y + box.h / 2, box.w, box.h, { tint: color, alpha });
@@ -3578,7 +3548,7 @@
       }
       this.renderActorAtlasLayers(player, box, 1, false);
       if (player.shield > 0) {
-        this.drawShape('damage', 'ring', player.x + player.w / 2, player.y + player.h / 2, 60, 88, { tint: 0x68a9ff, alpha: 0.65 });
+        this.drawShape('damage', 'ring', player.x + player.w / 2, player.y + player.h / 2, 60, 88, { tint: 0x63d7e8, alpha: 0.85 });
       }
     }
 
@@ -3963,7 +3933,7 @@
           airborne: actor.behavior === 'flyer',
           trim: actor.kind !== 'enemy',
           registration: kind === 'enemy'
-            ? ENEMY_SPRITE_REGISTRATION
+            ? actor.registration || ENEMY_SPRITE_REGISTRATION
             : kind === 'player' || kind === 'party' ? actor.registration || PLAYER_SPRITE_REGISTRATION : null
         });
       }
@@ -3993,7 +3963,7 @@
           'entities',
           texture,
           Number(box.x || 0) + Number(box.w || 0) / 2,
-          Number(box.y || 0) + Number(box.h || 0),
+          Number(box.y || 0) + Number(box.h || 0) * (registration.centered ? 0.5 : 1),
           contentW * scale,
           contentH * scale,
           {
@@ -4084,7 +4054,7 @@
 
     destroy() {
       this.setActive(false);
-      if (this.app && typeof this.app.destroy === 'function') {
+      if (this.app && this.app.renderer && typeof this.app.destroy === 'function') {
         this.app.destroy(true);
       }
       this.clearOwnedCache(this.compositeTextures);

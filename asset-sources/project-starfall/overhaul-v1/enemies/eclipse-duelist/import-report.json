@@ -1,0 +1,1965 @@
+{
+  "fileId": "eclipse-duelist",
+  "sourceSha256": "abc1d9a45fffe9752e790a6f40118ba6dd14b89cabdf5cc2831d463dc229b776",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    183,
+    355,
+    544,
+    725,
+    908,
+    1085,
+    1272,
+    1448
+  ],
+  "sharedScale": 0.5118900343642612,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 76,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/eclipse-duelist-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 752250,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 10,
+        "top": 20,
+        "width": 168,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 147,
+        "width": 168,
+        "height": 148,
+        "pixels": 13647
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 168
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 74,
+        "right": 124,
+        "bottom": 149,
+        "width": 86,
+        "height": 76,
+        "pixels": 3640,
+        "edgePixels": 0
+      },
+      "sha256": "6604499b81d66b0482ead19e5593ee3a0218ff42afab5642593e1d43293cb1c0"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 191,
+        "top": 20,
+        "width": 169,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 147,
+        "width": 169,
+        "height": 148,
+        "pixels": 13674
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 168
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 74,
+        "right": 125,
+        "bottom": 149,
+        "width": 87,
+        "height": 76,
+        "pixels": 3671,
+        "edgePixels": 0
+      },
+      "sha256": "69acb5bc069a65b66c86712597dfc6a97ebd3b6f9ae785b3531eb0e4da12335a"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 371,
+        "top": 20,
+        "width": 167,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 147,
+        "width": 167,
+        "height": 148,
+        "pixels": 13343
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 168
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 38,
+        "top": 74,
+        "right": 122,
+        "bottom": 149,
+        "width": 85,
+        "height": 76,
+        "pixels": 3563,
+        "edgePixels": 0
+      },
+      "sha256": "7469a8600ecb64b23fd5684e18412e9193bf9cd97615ffa56ff08017b2a416b4"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 551,
+        "top": 21,
+        "width": 169,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 147,
+        "width": 169,
+        "height": 148,
+        "pixels": 13812
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 168
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 75,
+        "right": 124,
+        "bottom": 150,
+        "width": 87,
+        "height": 76,
+        "pixels": 3713,
+        "edgePixels": 0
+      },
+      "sha256": "1ff8b19ce37a9d300668bdc3ecfeb890bcad80591a2dfda74d2c045975e505c1"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 734,
+        "top": 20,
+        "width": 169,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 168,
+        "bottom": 147,
+        "width": 169,
+        "height": 148,
+        "pixels": 13657
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 168
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 74,
+        "right": 125,
+        "bottom": 149,
+        "width": 87,
+        "height": 76,
+        "pixels": 3658,
+        "edgePixels": 0
+      },
+      "sha256": "4ce3e8be2c80408c9ae2077f5e1a468f538d25037cfa8fcb39f4d51cf2e86c3d"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 915,
+        "top": 20,
+        "width": 167,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 147,
+        "width": 167,
+        "height": 148,
+        "pixels": 13476
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 168
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 74,
+        "right": 123,
+        "bottom": 149,
+        "width": 85,
+        "height": 76,
+        "pixels": 3594,
+        "edgePixels": 0
+      },
+      "sha256": "ac534ee2d61046ba965aef097a106efacd910033eb1153b1da88765ced09fa01"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 9,
+        "top": 197,
+        "width": 176,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 146,
+        "width": 176,
+        "height": 147,
+        "pixels": 12667
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 345
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 74,
+        "right": 127,
+        "bottom": 148,
+        "width": 90,
+        "height": 75,
+        "pixels": 3360,
+        "edgePixels": 0
+      },
+      "sha256": "e98c841d968e7993b754d583ef373559c8fe92500eb66b6c95c9f601aef28872"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 197,
+        "top": 197,
+        "width": 155,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 147,
+        "width": 155,
+        "height": 148,
+        "pixels": 12321
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 345
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 42,
+        "top": 74,
+        "right": 120,
+        "bottom": 149,
+        "width": 79,
+        "height": 76,
+        "pixels": 3297,
+        "edgePixels": 0
+      },
+      "sha256": "d042e54d5c311c9924d4cef3bb6d345fdae102ebc3eab748b3edf2715861a8fa"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 374,
+        "top": 197,
+        "width": 166,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 147,
+        "width": 166,
+        "height": 148,
+        "pixels": 12372
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 345
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 74,
+        "right": 124,
+        "bottom": 149,
+        "width": 85,
+        "height": 76,
+        "pixels": 3307,
+        "edgePixels": 0
+      },
+      "sha256": "b21c368a30254d82685b1c411c3ee94a99a99bb266ff84a2cb4e5fd3c6f9c25c"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 558,
+        "top": 199,
+        "width": 167,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 145,
+        "width": 167,
+        "height": 146,
+        "pixels": 12548
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 345
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 41,
+        "top": 75,
+        "right": 125,
+        "bottom": 149,
+        "width": 85,
+        "height": 75,
+        "pixels": 3358,
+        "edgePixels": 0
+      },
+      "sha256": "b75a83f292aa5617a27a92ecfcb876f64086689fd328e463c3c497d873db9cf5"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 743,
+        "top": 196,
+        "width": 161,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 160,
+        "bottom": 146,
+        "width": 161,
+        "height": 147,
+        "pixels": 11886
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 345
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 43,
+        "top": 74,
+        "right": 124,
+        "bottom": 148,
+        "width": 82,
+        "height": 75,
+        "pixels": 3134,
+        "edgePixels": 0
+      },
+      "sha256": "644061e336fbcb99c03a8f5cbea6ebfd7e7e914c1b3858bc4f767c726813e8e5"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 917,
+        "top": 196,
+        "width": 163,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 148,
+        "width": 163,
+        "height": 149,
+        "pixels": 12290
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 345
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 74,
+        "right": 122,
+        "bottom": 149,
+        "width": 83,
+        "height": 76,
+        "pixels": 3249,
+        "edgePixels": 0
+      },
+      "sha256": "d040aa685b6c6789155cb7e78fc76efc22beb3540624f1ebb7fc54856b96d558"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 8,
+        "top": 377,
+        "width": 175,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 149,
+        "width": 175,
+        "height": 150,
+        "pixels": 13264
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 528
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 73,
+        "right": 127,
+        "bottom": 149,
+        "width": 90,
+        "height": 77,
+        "pixels": 3562,
+        "edgePixels": 0
+      },
+      "sha256": "c4f542fdabd522e23572a95158e1227223bd3e1ed1d36cfbd2f1ddb3d31329c4"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 193,
+        "top": 377,
+        "width": 168,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 167,
+        "bottom": 150,
+        "width": 168,
+        "height": 151,
+        "pixels": 12934
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 528
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 40,
+        "top": 73,
+        "right": 125,
+        "bottom": 149,
+        "width": 86,
+        "height": 77,
+        "pixels": 3427,
+        "edgePixels": 0
+      },
+      "sha256": "fbb9eceaa9738c942f5faf7454c14af874eb410dc868556836f250333b7a1188"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 369,
+        "top": 373,
+        "width": 170,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 169,
+        "bottom": 154,
+        "width": 170,
+        "height": 155,
+        "pixels": 14128
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 528
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 37,
+        "top": 71,
+        "right": 123,
+        "bottom": 149,
+        "width": 87,
+        "height": 79,
+        "pixels": 3744,
+        "edgePixels": 0
+      },
+      "sha256": "a31d26cfebb4f90524a0ab79ea97eeae9e0f5848a1d184caeb83508e024f0cb7"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 552,
+        "top": 380,
+        "width": 179,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 147,
+        "width": 179,
+        "height": 148,
+        "pixels": 13683
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 528
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 74,
+        "right": 129,
+        "bottom": 149,
+        "width": 92,
+        "height": 76,
+        "pixels": 3663,
+        "edgePixels": 0
+      },
+      "sha256": "6c0b3024a383d3b05988d466f81a390efa6d467abfff97e77c142b286881b95e"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 745,
+        "top": 373,
+        "width": 163,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 153,
+        "width": 163,
+        "height": 154,
+        "pixels": 13370
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 528
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 44,
+        "top": 71,
+        "right": 126,
+        "bottom": 149,
+        "width": 83,
+        "height": 79,
+        "pixels": 3562,
+        "edgePixels": 0
+      },
+      "sha256": "10fa7fd67376e341e1ac3a66f4e438f5f8c4ff5378c85dffc54385d324925ef2"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 934,
+        "top": 365,
+        "width": 142,
+        "height": 166
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 141,
+        "bottom": 165,
+        "width": 142,
+        "height": 166,
+        "pixels": 13502
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 528
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 49,
+        "top": 67,
+        "right": 121,
+        "bottom": 151,
+        "width": 73,
+        "height": 85,
+        "pixels": 3619,
+        "edgePixels": 0
+      },
+      "sha256": "81850fc0190604f47b215a013727f2531d44eafcb3f36d5d345b8ece4b42cd98"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 8,
+        "top": 567,
+        "width": 228,
+        "height": 140
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 227,
+        "bottom": 139,
+        "width": 228,
+        "height": 140,
+        "pixels": 14321
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 710
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 77,
+        "right": 154,
+        "bottom": 148,
+        "width": 117,
+        "height": 72,
+        "pixels": 3842,
+        "edgePixels": 0
+      },
+      "sha256": "a806887b06005f216d5fe63e8e0684e1dac8a89085cc974cd644f56fb5044d0d"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 219,
+        "top": 557,
+        "width": 182,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 181,
+        "bottom": 151,
+        "width": 182,
+        "height": 152,
+        "pixels": 13726
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 710
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 53,
+        "top": 72,
+        "right": 145,
+        "bottom": 149,
+        "width": 93,
+        "height": 78,
+        "pixels": 3670,
+        "edgePixels": 0
+      },
+      "sha256": "604b0bc64ae1b89ed3ec76a9d2c7b62e4306a568691f31f93627aa72e7af57dc"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 381,
+        "top": 558,
+        "width": 177,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 150,
+        "width": 177,
+        "height": 151,
+        "pixels": 13374
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 710
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 43,
+        "top": 72,
+        "right": 133,
+        "bottom": 148,
+        "width": 91,
+        "height": 77,
+        "pixels": 3572,
+        "edgePixels": 0
+      },
+      "sha256": "fe8460c9ca5e8297da8d16a7569ce9119b7662923feb44900686a9e914a75ff1"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 555,
+        "top": 559,
+        "width": 183,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 182,
+        "bottom": 150,
+        "width": 183,
+        "height": 151,
+        "pixels": 13576
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 710
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 73,
+        "right": 133,
+        "bottom": 149,
+        "width": 94,
+        "height": 77,
+        "pixels": 3627,
+        "edgePixels": 0
+      },
+      "sha256": "14778cbff16a410c7d07e6b02a62375238442cb91457726d2b6d370690a1b893"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 739,
+        "top": 560,
+        "width": 178,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 177,
+        "bottom": 149,
+        "width": 178,
+        "height": 150,
+        "pixels": 13659
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 710
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 41,
+        "top": 73,
+        "right": 131,
+        "bottom": 149,
+        "width": 91,
+        "height": 77,
+        "pixels": 3654,
+        "edgePixels": 0
+      },
+      "sha256": "90103e127c7a2e6bd07e1fe3fed9b01027b32086b87d1c890e4a0c24f4ce99cf"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 918,
+        "top": 566,
+        "width": 163,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 144,
+        "width": 163,
+        "height": 145,
+        "pixels": 12749
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 710
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 76,
+        "right": 122,
+        "bottom": 149,
+        "width": 83,
+        "height": 74,
+        "pixels": 3363,
+        "edgePixels": 0
+      },
+      "sha256": "20836cbb297bb8ed3c287c8a4e9963ee3471ca376f479f7913ca7c6c621023a1"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 9,
+        "top": 739,
+        "width": 165,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 164,
+        "bottom": 152,
+        "width": 165,
+        "height": 153,
+        "pixels": 13647
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 893
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 71,
+        "right": 121,
+        "bottom": 148,
+        "width": 84,
+        "height": 78,
+        "pixels": 3588,
+        "edgePixels": 0
+      },
+      "sha256": "f84294c1b7a439274ab5a857b03808c5fbad42f66c17ff3cce52bad98d32f09a"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 185,
+        "top": 739,
+        "width": 175,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 174,
+        "bottom": 152,
+        "width": 175,
+        "height": 153,
+        "pixels": 13223
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 893
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 36,
+        "top": 71,
+        "right": 125,
+        "bottom": 148,
+        "width": 90,
+        "height": 78,
+        "pixels": 3543,
+        "edgePixels": 0
+      },
+      "sha256": "4b4f1e481ee4035abe693362a9f2695a7a22955f122d7373710e23363d159ecc"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 367,
+        "top": 741,
+        "width": 155,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 154,
+        "bottom": 151,
+        "width": 155,
+        "height": 152,
+        "pixels": 12785
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 893
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 72,
+        "right": 114,
+        "bottom": 149,
+        "width": 79,
+        "height": 78,
+        "pixels": 3397,
+        "edgePixels": 0
+      },
+      "sha256": "f755aeff46ddf5e0f77848b48b20bcf59bbbeafc6197adff3ee6b6f3a539c9bd"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 552,
+        "top": 739,
+        "width": 154,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 153,
+        "width": 154,
+        "height": 154,
+        "pixels": 13578
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 893
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 71,
+        "right": 116,
+        "bottom": 149,
+        "width": 79,
+        "height": 79,
+        "pixels": 3637,
+        "edgePixels": 0
+      },
+      "sha256": "0c57e545871b639d662d3a4f989e95dd8a67139bb7ed1be74413f09f5ac17bff"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 734,
+        "top": 745,
+        "width": 177,
+        "height": 148
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 176,
+        "bottom": 147,
+        "width": 177,
+        "height": 148,
+        "pixels": 13657
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 893
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 74,
+        "right": 129,
+        "bottom": 149,
+        "width": 91,
+        "height": 76,
+        "pixels": 3667,
+        "edgePixels": 0
+      },
+      "sha256": "e71818c07d920a4d32bc70a723f2761fe819343fd28b9f19db7823b8afc82b77"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 917,
+        "top": 741,
+        "width": 164,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 151,
+        "width": 164,
+        "height": 152,
+        "pixels": 13383
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 893
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 72,
+        "right": 123,
+        "bottom": 149,
+        "width": 84,
+        "height": 78,
+        "pixels": 3584,
+        "edgePixels": 0
+      },
+      "sha256": "5f9f177f82cc998d16ddc9e454a60885bbf8d1abf553787ede49278e896347f0"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 15,
+        "top": 925,
+        "width": 164,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 148,
+        "width": 164,
+        "height": 149,
+        "pixels": 12901
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1074
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 74,
+        "right": 124,
+        "bottom": 149,
+        "width": 84,
+        "height": 76,
+        "pixels": 3426,
+        "edgePixels": 0
+      },
+      "sha256": "8ad52857adcb50fef7da9af26b682ebd233e5b5060a2f6211355119231a25903"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 192,
+        "top": 922,
+        "width": 141,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 140,
+        "bottom": 151,
+        "width": 141,
+        "height": 152,
+        "pixels": 13100
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1074
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 39,
+        "top": 72,
+        "right": 110,
+        "bottom": 149,
+        "width": 72,
+        "height": 78,
+        "pixels": 3484,
+        "edgePixels": 0
+      },
+      "sha256": "b10e4c41bf8340f1724fb98354cdff3708ecea66443d2eda701b232d25b808ed"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 366,
+        "top": 930,
+        "width": 164,
+        "height": 143
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 142,
+        "width": 164,
+        "height": 143,
+        "pixels": 13200
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1074
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 36,
+        "top": 76,
+        "right": 119,
+        "bottom": 148,
+        "width": 84,
+        "height": 73,
+        "pixels": 3499,
+        "edgePixels": 0
+      },
+      "sha256": "490692e163ad87cdeb038338a413d79cc9719993d12061f24a2f01ced2882e99"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 548,
+        "top": 923,
+        "width": 174,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 173,
+        "bottom": 150,
+        "width": 174,
+        "height": 151,
+        "pixels": 15155
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1074
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 36,
+        "top": 73,
+        "right": 124,
+        "bottom": 149,
+        "width": 89,
+        "height": 77,
+        "pixels": 4004,
+        "edgePixels": 0
+      },
+      "sha256": "9db99e7ddc86f080cc1afbad2a884a16057054eb4cc172c1e9c66c617c16d1fa"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 739,
+        "top": 930,
+        "width": 166,
+        "height": 144
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 143,
+        "width": 166,
+        "height": 144,
+        "pixels": 12913
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1074
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 41,
+        "top": 76,
+        "right": 125,
+        "bottom": 149,
+        "width": 85,
+        "height": 74,
+        "pixels": 3455,
+        "edgePixels": 0
+      },
+      "sha256": "0063cb9cfa0819b52c369da2fab0085b7056addeb3b9ccec9b41debe70399d04"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 914,
+        "top": 922,
+        "width": 167,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 166,
+        "bottom": 151,
+        "width": 167,
+        "height": 152,
+        "pixels": 13627
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1074
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 38,
+        "top": 72,
+        "right": 122,
+        "bottom": 149,
+        "width": 85,
+        "height": 78,
+        "pixels": 3631,
+        "edgePixels": 0
+      },
+      "sha256": "23a68c90fb52f134e8008d0284080e26ed5f597562e65a0aa000724e095f3268"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 20,
+        "top": 1108,
+        "width": 143,
+        "height": 146
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 145,
+        "width": 143,
+        "height": 146,
+        "pixels": 12398
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1255
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 44,
+        "top": 75,
+        "right": 116,
+        "bottom": 149,
+        "width": 73,
+        "height": 75,
+        "pixels": 3312,
+        "edgePixels": 0
+      },
+      "sha256": "8e305524a18902b1a7f84e72e6d5decabf5cb49c2fc182df3a9ce287b3b7c513"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 199,
+        "top": 1096,
+        "width": 179,
+        "height": 159
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 158,
+        "width": 179,
+        "height": 159,
+        "pixels": 14794
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1255
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 43,
+        "top": 69,
+        "right": 134,
+        "bottom": 149,
+        "width": 92,
+        "height": 81,
+        "pixels": 3965,
+        "edgePixels": 0
+      },
+      "sha256": "be815181592b9f3b23446bfa2f0636ac5fa1f2c113114eaf83ff16321367238f"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 385,
+        "top": 1125,
+        "width": 133,
+        "height": 130
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 129,
+        "width": 133,
+        "height": 130,
+        "pixels": 10966
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1255
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 45,
+        "top": 83,
+        "right": 112,
+        "bottom": 149,
+        "width": 68,
+        "height": 67,
+        "pixels": 2949,
+        "edgePixels": 0
+      },
+      "sha256": "c3d496cfc65bc0fd3b70da6240d427faf0c2973965403e91255587f5e9a6498d"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 556,
+        "top": 1121,
+        "width": 145,
+        "height": 134
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 144,
+        "bottom": 133,
+        "width": 145,
+        "height": 134,
+        "pixels": 11918
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1255
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 81,
+        "right": 113,
+        "bottom": 149,
+        "width": 74,
+        "height": 69,
+        "pixels": 3198,
+        "edgePixels": 0
+      },
+      "sha256": "4330c201321f44e37d5f01ab72fa5bd7d10a5eb743ba84c1e14e89d4be4e5fdc"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 743,
+        "top": 1108,
+        "width": 166,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 165,
+        "bottom": 146,
+        "width": 166,
+        "height": 147,
+        "pixels": 13416
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1255
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 43,
+        "top": 75,
+        "right": 127,
+        "bottom": 149,
+        "width": 85,
+        "height": 75,
+        "pixels": 3571,
+        "edgePixels": 0
+      },
+      "sha256": "2919c1d70d0bb44640c156c9d770dc09fd94b7a88fabceb7718b9d84c6e55c38"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 918,
+        "top": 1104,
+        "width": 163,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 150,
+        "width": 163,
+        "height": 151,
+        "pixels": 13574
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1255
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 73,
+        "right": 122,
+        "bottom": 149,
+        "width": 83,
+        "height": 77,
+        "pixels": 3574,
+        "edgePixels": 0
+      },
+      "sha256": "1e09644689874822db99645ab9636b446efc47313b7997072d4d12eb1d819783"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 14,
+        "top": 1288,
+        "width": 162,
+        "height": 141
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 161,
+        "bottom": 140,
+        "width": 162,
+        "height": 141,
+        "pixels": 12493
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1432
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 76,
+        "right": 123,
+        "bottom": 147,
+        "width": 83,
+        "height": 72,
+        "pixels": 3315,
+        "edgePixels": 0
+      },
+      "sha256": "92fde2adb912491b06903e1eecc02c81fbef59ae988e1dfc6d34b341813ec4a0"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 189,
+        "top": 1309,
+        "width": 163,
+        "height": 120
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 162,
+        "bottom": 119,
+        "width": 163,
+        "height": 120,
+        "pixels": 11563
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1432
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 87,
+        "right": 120,
+        "bottom": 147,
+        "width": 83,
+        "height": 61,
+        "pixels": 3035,
+        "edgePixels": 0
+      },
+      "sha256": "477456f6f1b5b228a088d8ade06bea00c0679b95fb9b9adab046c98e1d084073"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 362,
+        "top": 1329,
+        "width": 179,
+        "height": 102
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 178,
+        "bottom": 101,
+        "width": 179,
+        "height": 102,
+        "pixels": 11066
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1432
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 34,
+        "top": 97,
+        "right": 125,
+        "bottom": 148,
+        "width": 92,
+        "height": 52,
+        "pixels": 2951,
+        "edgePixels": 0
+      },
+      "sha256": "88c64760089994e4ccee6a7ef091d194b1a7ee18ac1536d43589968abc99cc9f"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 552,
+        "top": 1338,
+        "width": 176,
+        "height": 94
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 175,
+        "bottom": 93,
+        "width": 176,
+        "height": 94,
+        "pixels": 9513
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1432
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 38,
+        "top": 102,
+        "right": 127,
+        "bottom": 149,
+        "width": 90,
+        "height": 48,
+        "pixels": 2514,
+        "edgePixels": 0
+      },
+      "sha256": "f822bf7e6b2ab508593f78b1a9f907810d02b413c62e895727e2573d2413ebb5"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 734,
+        "top": 1346,
+        "width": 178,
+        "height": 87
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 177,
+        "bottom": 86,
+        "width": 178,
+        "height": 87,
+        "pixels": 10110
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1432
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 39,
+        "top": 106,
+        "right": 129,
+        "bottom": 150,
+        "width": 91,
+        "height": 45,
+        "pixels": 2724,
+        "edgePixels": 0
+      },
+      "sha256": "aea634b9ef2821c14415b016a30ab01a2cffb542325f24cd1a04643c83c77bec"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 916,
+        "top": 1356,
+        "width": 164,
+        "height": 77
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 163,
+        "bottom": 76,
+        "width": 164,
+        "height": 77,
+        "pixels": 7995
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/eclipse-duelist/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1432
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 39,
+        "top": 111,
+        "right": 122,
+        "bottom": 149,
+        "width": 84,
+        "height": 39,
+        "pixels": 2120,
+        "edgePixels": 0
+      },
+      "sha256": "fe6387bbd22c267695e47266f06e08e5d670be743d3e315133efa344a95502d3"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

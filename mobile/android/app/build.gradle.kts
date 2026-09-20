@@ -6,6 +6,8 @@ plugins {
 
 val productionCatalogUrl = "https://www.danielshort.me/app-content/v1/catalog.json"
 val previewCatalogUrl = providers.gradleProperty("catalogUrl").orElse(productionCatalogUrl)
+val stableAppUpdateUrl = "https://www.danielshort.me/app-updates/stable/latest.json"
+val reviewAppUpdateUrl = "https://www.danielshort.me/app-updates/review/latest.json"
 val websiteRoot = rootProject.projectDir.resolve("../..").canonicalFile
 val generatedCatalogAssets = layout.buildDirectory.dir("generated/catalogAssets")
 
@@ -37,9 +39,10 @@ android {
     applicationId = "me.danielshort.app"
     minSdk = 26
     targetSdk = 36
-    versionCode = 2
-    versionName = "0.2.0"
+    versionCode = 6
+    versionName = "0.4.0"
     buildConfigField("String", "CONTENT_URL", "\"$productionCatalogUrl\"")
+    buildConfigField("String", "APP_UPDATE_URL", "\"$stableAppUpdateUrl\"")
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
@@ -47,6 +50,7 @@ android {
     debug {
       applicationIdSuffix = ".debug"
       versionNameSuffix = "-debug"
+      buildConfigField("String", "APP_UPDATE_URL", "\"$reviewAppUpdateUrl\"")
       buildConfigField("String", "CONTENT_URL", "\"${previewCatalogUrl.get().replace("\\", "\\\\").replace("\"", "\\\"")}\"")
     }
     release {
@@ -94,6 +98,7 @@ dependencies {
   implementation("com.google.zxing:core:3.5.3")
   implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
   implementation("androidx.exifinterface:exifinterface:1.4.1")
+  implementation("com.android.tools.build:apksig:8.13.2")
   testImplementation("junit:junit:4.13.2")
   testImplementation("org.json:json:20250517")
   androidTestImplementation(composeBom)

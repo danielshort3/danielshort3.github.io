@@ -29,8 +29,8 @@ const CATEGORY_CONFIG = Object.freeze({
   }),
   projects: Object.freeze({
     label: 'Projects',
-    color: '#155dfc',
-    colorEnd: '#0b4bd4',
+    color: '#005fed',
+    colorEnd: '#0145c8',
     href: '/#projects',
     libraryHref: '/portfolio',
     icon: '<path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path>'

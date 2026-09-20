@@ -1,0 +1,190 @@
+{
+  "schema": "starfall-enemy-source-v1",
+  "fileId": "bandit-cutter",
+  "source": "source.png",
+  "generationSourcePath": "C:\\Users\\clopt\\.codex\\generated_images\\01a0bb26-e91a-70f3-a505-99c998088311\\exec-e6ef7a37-c282-4f17-806f-3539ac602ac3.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-09-19",
+  "prompt": "generation-prompt.md",
+  "references": [
+    "img/project-starfall/enemies/bandit-cutter.png",
+    "img/project-starfall/animations/enemies/bandit-cutter-compact-sheet.png",
+    "output/starfall-animation-samples/oracle-cast-study.png",
+    "output/starfall-animation-samples/glowcap-spring-study.png"
+  ],
+  "requestedGrid": {
+    "columns": 6,
+    "rows": 8
+  },
+  "visualReview": {
+    "status": "approved-for-import",
+    "notes": "Touching actor row excluded; supplemental authored poses replace the whole row with one constant source scale.",
+    "packedSheetReview": "All eight rows inspected for coherent anatomy, complete silhouettes, alpha isolation, deliberate action poses and fixed source scale. Runtime motion review remains pending integration.",
+    "reviewedAt": "2026-09-19"
+  },
+  "import": {
+    "output": "img/project-starfall/animations/enemies/bandit-cutter-sheet.png",
+    "portrait": "img/project-starfall/enemies/bandit-cutter.png",
+    "portraitFrame": 0,
+    "aliases": [
+      "bandit-cutter-direct",
+      "bandit-cutter-reference",
+      "bandit-cutter-hybrid",
+      "bandit-cutter-puppet"
+    ]
+  },
+  "sourceSha256": "44fa1b28be0f13eaf053167ac2041d2ebbca7ad9081b7966f949114e84af851f",
+  "actualDimensions": {
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true
+  },
+  "supplementalRows": {
+    "defeat": {
+      "file": "defeat-supplement.png",
+      "columns": 3,
+      "rows": 2,
+      "neutralIndex": 0,
+      "sha256": "039fe0a90b76f7c9dd7cc1fd623c2dc71f6e0171ba3269296ea89e5a6bc747dd"
+    }
+  },
+  "sharedScale": 0.48207119741100324,
+  "frames": {
+    "0": {
+      "anchor": {
+        "x": 90.5,
+        "y": 172
+      }
+    },
+    "1": {
+      "anchor": {
+        "x": 267.3512352309345,
+        "y": 172
+      }
+    },
+    "2": {
+      "anchor": {
+        "x": 444.202470461869,
+        "y": 172
+      }
+    },
+    "3": {
+      "anchor": {
+        "x": 623.1280880773362,
+        "y": 172
+      }
+    },
+    "4": {
+      "anchor": {
+        "x": 793.7561761546724,
+        "y": 172
+      }
+    },
+    "5": {
+      "anchor": {
+        "x": 974.7561761546724,
+        "y": 172
+      }
+    }
+  },
+  "registrationReview": {
+    "status": "reviewed-horizontal",
+    "scope": "idle-horizontal only",
+    "method": "Reviewed stable anatomical-core translation against idle frame 0, corroborated by whole-silhouette translation and fixed-guide contact sheets. No bounding-box centering. Only X anchors changed; authored Y, all drawing pixels and fixed identity scale are preserved.",
+    "landmark": "hood, torso and pelvis together; blade and shield extremities are excluded",
+    "referenceFrame": 0,
+    "fixedSharedScale": 0.48207119741100324,
+    "sourceUnchanged": true,
+    "actionsChanged": [
+      "idle"
+    ],
+    "visualVerification": "Before/after fixed-guide strips inspected for the declared rigid anatomical landmarks and last-to-first horizontal closure. All six poses retain their authored vertical variation. This review does not certify other action rows or all shape and transition quality.",
+    "evidence": "output/enemy-idle-alignment/bandit-cutter/alignment-evidence.json",
+    "corrections": [
+      {
+        "frame": 0,
+        "measuredPriorBodyDriftX": 0,
+        "outputTranslationX": 0,
+        "previousAnchor": {
+          "x": 90.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 90.5,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 1,
+        "measuredPriorBodyDriftX": -2,
+        "outputTranslationX": 2,
+        "previousAnchor": {
+          "x": 271.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 267.3512352309345,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 2,
+        "measuredPriorBodyDriftX": -4,
+        "outputTranslationX": 4,
+        "previousAnchor": {
+          "x": 452.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 444.202470461869,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 3,
+        "measuredPriorBodyDriftX": -5,
+        "outputTranslationX": 5,
+        "previousAnchor": {
+          "x": 633.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 623.1280880773362,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 4,
+        "measuredPriorBodyDriftX": -10,
+        "outputTranslationX": 10,
+        "previousAnchor": {
+          "x": 814.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 793.7561761546724,
+          "y": 172
+        },
+        "scaleFactor": 1
+      },
+      {
+        "frame": 5,
+        "measuredPriorBodyDriftX": -10,
+        "outputTranslationX": 10,
+        "previousAnchor": {
+          "x": 995.5,
+          "y": 172
+        },
+        "anchor": {
+          "x": 974.7561761546724,
+          "y": 172
+        },
+        "scaleFactor": 1
+      }
+    ]
+  }
+}

@@ -144,11 +144,20 @@ function createHarness() {
   const records = new Map();
   const registrations = new Map();
   const requests = [];
+  const storedDrafts = new Map();
+  const timers = new Map();
+  let timerId = 0;
   const window = new Node('window');
   window.location = { href: 'https://example.test/contact', pathname: '/contact', hash: '' };
   window.requestAnimationFrame = (callback) => callback();
-  window.setTimeout = () => 1;
-  window.clearTimeout = () => {};
+  window.setTimeout = (callback, delay) => { const id = ++timerId; timers.set(id, { callback, delay }); return id; };
+  window.clearTimeout = (id) => timers.delete(id);
+  window.SiteSessionDrafts = {
+    read: (key) => storedDrafts.get(key) || null,
+    write: (key, fields) => storedDrafts.set(key, fields),
+    remove: (key) => storedDrafts.delete(key),
+    notice: () => () => {}
+  };
   window.fetch = (url, options) => {
     requests.push({ url, ...options });
     return new Promise(() => {});
@@ -197,7 +206,7 @@ function createHarness() {
     window,
     document,
     sessionStorage: { getItem: () => null, removeItem() {} },
-    fetch: window.fetch,
+    fetch: (...args) => window.fetch(...args),
     AbortController,
     FormData: class {
       constructor(form) { this.form = form; }
@@ -205,7 +214,7 @@ function createHarness() {
     },
     console
   }, { filename: 'js/forms/contact.js' });
-  return { document, window, createScene, evaluate, records, registrations, requests };
+  return { document, window, createScene, evaluate, records, registrations, requests, timers, storedDrafts };
 }
 
 module.exports = function runMobileContactTests({ assert }) {
@@ -311,6 +320,7 @@ module.exports = function runMobileContactTests({ assert }) {
   sendingController.dispose();
   assert(h.requests[0].signal.aborted && !h.window.__contactModalReady, 'disposal must abort an in-flight submission and clear modal readiness');
 };
+module.exports.createHarness = createHarness;
 
 if (require.main === module) {
   let assertions = 0;

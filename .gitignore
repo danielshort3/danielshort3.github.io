@@ -69,3 +69,9 @@ Baby-Names/
 
 # Local Tableau Hyper runtime output
 /hyperd.log
+
+# Local editor state, task attachments, and generated test reports
+/.idea/caches/
+/.codex-remote-attachments/
+/tests/release/tmp/
+/output/**/*.log

@@ -1,0 +1,1965 @@
+{
+  "fileId": "bandit-thrower",
+  "sourceSha256": "2b95cd89cd4a6a16f2e24443030a093839ffb1cd230a2b17603f103d38ba5175",
+  "sourceDimensions": {
+    "width": 1086,
+    "height": 1448
+  },
+  "substantialActorCount": 48,
+  "rowBoundaries": [
+    0,
+    187,
+    370,
+    550,
+    729,
+    911,
+    1090,
+    1279,
+    1448
+  ],
+  "sharedScale": 0.63931330472103,
+  "floating": false,
+  "registration": {
+    "originX": 80,
+    "groundY": 150,
+    "authoredBodyHeight": 97,
+    "centered": false,
+    "frameWidth": 160,
+    "frameHeight": 160
+  },
+  "output": "img/project-starfall/animations/enemies/bandit-thrower-sheet.png",
+  "dimensions": {
+    "width": 960,
+    "height": 1280
+  },
+  "transparentSourcePixels": 806686,
+  "alphaCleanup": "Component-isolated actor plus adjacent sub32alpha fringe; alpha below8 discarded. No color/chroma keys. Disconnected minor pixels excluded.",
+  "noManufacturedMotion": true,
+  "noPerFrameScaling": true,
+  "warnings": [],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "action": "idle",
+      "sourceRect": {
+        "left": 30,
+        "top": 21,
+        "width": 121,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 151,
+        "width": 121,
+        "height": 152,
+        "pixels": 13299
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 173
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 117,
+        "bottom": 149,
+        "width": 77,
+        "height": 97,
+        "pixels": 5461,
+        "edgePixels": 0
+      },
+      "sha256": "bd132719c6435b14166787287910ed99718f0773b27cbdbdaad17b937ac9ece3"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "action": "idle",
+      "sourceRect": {
+        "left": 212,
+        "top": 21,
+        "width": 120,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 119,
+        "bottom": 151,
+        "width": 120,
+        "height": 152,
+        "pixels": 13217
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 173
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 42,
+        "top": 53,
+        "right": 118,
+        "bottom": 149,
+        "width": 77,
+        "height": 97,
+        "pixels": 5474,
+        "edgePixels": 0
+      },
+      "sha256": "cf073af7a35d2e2d8493ab4c022414f984a5e38d980a700c8e13e56001aae405"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "action": "idle",
+      "sourceRect": {
+        "left": 395,
+        "top": 22,
+        "width": 121,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 150,
+        "width": 121,
+        "height": 151,
+        "pixels": 13281
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 173
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 43,
+        "top": 53,
+        "right": 119,
+        "bottom": 149,
+        "width": 77,
+        "height": 97,
+        "pixels": 5522,
+        "edgePixels": 0
+      },
+      "sha256": "83517bd47a2888df1df3f6f48980e2cd2fd632eea479ae2715eface78e3f4598"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "action": "idle",
+      "sourceRect": {
+        "left": 571,
+        "top": 21,
+        "width": 123,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 151,
+        "width": 123,
+        "height": 152,
+        "pixels": 13295
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 173
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 40,
+        "top": 53,
+        "right": 118,
+        "bottom": 149,
+        "width": 79,
+        "height": 97,
+        "pixels": 5529,
+        "edgePixels": 0
+      },
+      "sha256": "71903b6005f9b4409aa4090657fd17eaf63e4595006bbe71bfc135614041c104"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "action": "idle",
+      "sourceRect": {
+        "left": 754,
+        "top": 21,
+        "width": 121,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 151,
+        "width": 121,
+        "height": 152,
+        "pixels": 13276
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 173
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 117,
+        "bottom": 149,
+        "width": 77,
+        "height": 97,
+        "pixels": 5460,
+        "edgePixels": 0
+      },
+      "sha256": "a6bee39fb2d475f4c35ff7a5b89484d465a3b97988e32f2f8666a1e9f689745a"
+    },
+    {
+      "index": 5,
+      "row": 0,
+      "column": 5,
+      "action": "idle",
+      "sourceRect": {
+        "left": 933,
+        "top": 21,
+        "width": 123,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 151,
+        "width": 123,
+        "height": 152,
+        "pixels": 13297
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 173
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 53,
+        "right": 118,
+        "bottom": 149,
+        "width": 79,
+        "height": 97,
+        "pixels": 5528,
+        "edgePixels": 0
+      },
+      "sha256": "49a930018b57a68bfadf684a876d270afd1aaacab572e66d20da2dca5812db19"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 0,
+      "action": "move",
+      "sourceRect": {
+        "left": 25,
+        "top": 200,
+        "width": 143,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 142,
+        "bottom": 155,
+        "width": 143,
+        "height": 156,
+        "pixels": 13610
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 356
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 38,
+        "top": 50,
+        "right": 128,
+        "bottom": 149,
+        "width": 91,
+        "height": 100,
+        "pixels": 5628,
+        "edgePixels": 0
+      },
+      "sha256": "eb312f96da80cd1215b2e3872eff5b77b93b4ab005dc2d8dc15d6f1676c4f46c"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 1,
+      "action": "move",
+      "sourceRect": {
+        "left": 206,
+        "top": 203,
+        "width": 147,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 153,
+        "width": 147,
+        "height": 154,
+        "pixels": 14021
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 356
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 38,
+        "top": 52,
+        "right": 131,
+        "bottom": 149,
+        "width": 94,
+        "height": 98,
+        "pixels": 5773,
+        "edgePixels": 0
+      },
+      "sha256": "b60cfbb115ea065c4fe4773f4c2488768d4c799b7fa540c173cea65071bcf1d6"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 2,
+      "action": "move",
+      "sourceRect": {
+        "left": 391,
+        "top": 203,
+        "width": 133,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 151,
+        "width": 133,
+        "height": 152,
+        "pixels": 12817
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 356
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 41,
+        "top": 52,
+        "right": 125,
+        "bottom": 148,
+        "width": 85,
+        "height": 97,
+        "pixels": 5262,
+        "edgePixels": 0
+      },
+      "sha256": "7ea7248e5e4ab6eb6546e210d6e62b84f8980b4c6cb1a03ac46804c947004ac2"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 3,
+      "action": "move",
+      "sourceRect": {
+        "left": 573,
+        "top": 204,
+        "width": 137,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 136,
+        "bottom": 153,
+        "width": 137,
+        "height": 154,
+        "pixels": 14085
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 356
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 128,
+        "bottom": 150,
+        "width": 88,
+        "height": 98,
+        "pixels": 5826,
+        "edgePixels": 0
+      },
+      "sha256": "07a3563b051747e699e6f62196cb1e00a7ae587ec58c221a44c322de51002bf9"
+    },
+    {
+      "index": 10,
+      "row": 1,
+      "column": 4,
+      "action": "move",
+      "sourceRect": {
+        "left": 739,
+        "top": 201,
+        "width": 147,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 154,
+        "width": 147,
+        "height": 155,
+        "pixels": 14020
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 356
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 32,
+        "top": 51,
+        "right": 125,
+        "bottom": 149,
+        "width": 94,
+        "height": 99,
+        "pixels": 5768,
+        "edgePixels": 0
+      },
+      "sha256": "a1b39470022f8c92eb59e3228a0ce6c7883edda3aff8925c9cfc425b4ad74eb6"
+    },
+    {
+      "index": 11,
+      "row": 1,
+      "column": 5,
+      "action": "move",
+      "sourceRect": {
+        "left": 921,
+        "top": 202,
+        "width": 144,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 153,
+        "width": 144,
+        "height": 154,
+        "pixels": 13665
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 356
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 32,
+        "top": 52,
+        "right": 123,
+        "bottom": 149,
+        "width": 92,
+        "height": 98,
+        "pixels": 5620,
+        "edgePixels": 0
+      },
+      "sha256": "cf71043a00b084674ebcb46ccb3015e0413fd738e97dd9e92e97ccc978771f39"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 0,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 27,
+        "top": 382,
+        "width": 123,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 153,
+        "width": 123,
+        "height": 154,
+        "pixels": 13995
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 536
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 39,
+        "top": 52,
+        "right": 117,
+        "bottom": 149,
+        "width": 79,
+        "height": 98,
+        "pixels": 5798,
+        "edgePixels": 0
+      },
+      "sha256": "59e7e4c67e9d6379ed475cf0c979889849b5bfbc4ad70a0ebaa91720a719d71d"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 1,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 202,
+        "top": 382,
+        "width": 133,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 132,
+        "bottom": 153,
+        "width": 133,
+        "height": 154,
+        "pixels": 13953
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 536
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 36,
+        "top": 52,
+        "right": 120,
+        "bottom": 149,
+        "width": 85,
+        "height": 98,
+        "pixels": 5732,
+        "edgePixels": 0
+      },
+      "sha256": "f8b9ccac213f81eba537772b94e9deff0c0860c0edaef8320b9c86c346fc153a"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 2,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 374,
+        "top": 386,
+        "width": 147,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 149,
+        "width": 147,
+        "height": 150,
+        "pixels": 14794
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 536
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 54,
+        "right": 123,
+        "bottom": 149,
+        "width": 94,
+        "height": 96,
+        "pixels": 6094,
+        "edgePixels": 0
+      },
+      "sha256": "4ae0c73d479b82254780e8b4d17cf4f1ac7307bb07e576738f3f9865b737c608"
+    },
+    {
+      "index": 15,
+      "row": 2,
+      "column": 3,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 554,
+        "top": 387,
+        "width": 149,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 148,
+        "width": 149,
+        "height": 149,
+        "pixels": 14298
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 536
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 29,
+        "top": 55,
+        "right": 123,
+        "bottom": 149,
+        "width": 95,
+        "height": 95,
+        "pixels": 5855,
+        "edgePixels": 0
+      },
+      "sha256": "168c28b3ecea1421de51b7acb5138b2a808e0121437ced5c145c6cfa04e9ba6a"
+    },
+    {
+      "index": 16,
+      "row": 2,
+      "column": 4,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 734,
+        "top": 385,
+        "width": 147,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 150,
+        "width": 147,
+        "height": 151,
+        "pixels": 14237
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 536
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 29,
+        "top": 53,
+        "right": 122,
+        "bottom": 149,
+        "width": 94,
+        "height": 97,
+        "pixels": 5910,
+        "edgePixels": 0
+      },
+      "sha256": "219254cc251c78cb2160407520cd9521605bfff24d27dadf2a2d6326ab6a2a19"
+    },
+    {
+      "index": 17,
+      "row": 2,
+      "column": 5,
+      "action": "telegraph",
+      "sourceRect": {
+        "left": 914,
+        "top": 386,
+        "width": 146,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 145,
+        "bottom": 149,
+        "width": 146,
+        "height": 150,
+        "pixels": 14066
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 536
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 28,
+        "top": 54,
+        "right": 120,
+        "bottom": 149,
+        "width": 93,
+        "height": 96,
+        "pixels": 5794,
+        "edgePixels": 0
+      },
+      "sha256": "79423756e8596f9512406a35af5e4809fb96398e20d0e55e5994ad8c82c22723"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 0,
+      "action": "attack",
+      "sourceRect": {
+        "left": 16,
+        "top": 563,
+        "width": 191,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 190,
+        "bottom": 152,
+        "width": 191,
+        "height": 153,
+        "pixels": 14116
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 716
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 52,
+        "right": 153,
+        "bottom": 149,
+        "width": 122,
+        "height": 98,
+        "pixels": 5838,
+        "edgePixels": 0
+      },
+      "sha256": "82599421d0d451a44844e5aa87cd9954b3292408c0d09bf47098310449976868"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 1,
+      "action": "attack",
+      "sourceRect": {
+        "left": 199,
+        "top": 566,
+        "width": 173,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 172,
+        "bottom": 149,
+        "width": 173,
+        "height": 150,
+        "pixels": 13977
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 716
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 34,
+        "top": 54,
+        "right": 144,
+        "bottom": 149,
+        "width": 111,
+        "height": 96,
+        "pixels": 5787,
+        "edgePixels": 0
+      },
+      "sha256": "b2d1ccd5f65fdaf4440bdccc8273be696412854bf31ec54c9137775ba91ee7d4"
+    },
+    {
+      "index": 20,
+      "row": 3,
+      "column": 2,
+      "action": "attack",
+      "sourceRect": {
+        "left": 400,
+        "top": 567,
+        "width": 131,
+        "height": 149
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 130,
+        "bottom": 148,
+        "width": 131,
+        "height": 149,
+        "pixels": 13770
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 716
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 46,
+        "top": 55,
+        "right": 129,
+        "bottom": 149,
+        "width": 84,
+        "height": 95,
+        "pixels": 5697,
+        "edgePixels": 0
+      },
+      "sha256": "dedda38ad2f03526449d7f1f13b979b8ad7ddc67ba191d09f9d5b1fb55668ea3"
+    },
+    {
+      "index": 21,
+      "row": 3,
+      "column": 3,
+      "action": "attack",
+      "sourceRect": {
+        "left": 576,
+        "top": 566,
+        "width": 122,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 121,
+        "bottom": 149,
+        "width": 122,
+        "height": 150,
+        "pixels": 13399
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 716
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 43,
+        "top": 54,
+        "right": 120,
+        "bottom": 149,
+        "width": 78,
+        "height": 96,
+        "pixels": 5524,
+        "edgePixels": 0
+      },
+      "sha256": "d5376c4e6da0da993733df395b3af63bcd6da33867ef58dc028423ff15878b79"
+    },
+    {
+      "index": 22,
+      "row": 3,
+      "column": 4,
+      "action": "attack",
+      "sourceRect": {
+        "left": 752,
+        "top": 565,
+        "width": 124,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 123,
+        "bottom": 150,
+        "width": 124,
+        "height": 151,
+        "pixels": 13749
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 716
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 40,
+        "top": 53,
+        "right": 118,
+        "bottom": 149,
+        "width": 79,
+        "height": 97,
+        "pixels": 5706,
+        "edgePixels": 0
+      },
+      "sha256": "a982703cc64962de52c2223bdeed20c603bfa4aeb3461c8dde7e6f56b1eddf0a"
+    },
+    {
+      "index": 23,
+      "row": 3,
+      "column": 5,
+      "action": "attack",
+      "sourceRect": {
+        "left": 934,
+        "top": 564,
+        "width": 123,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 151,
+        "width": 123,
+        "height": 152,
+        "pixels": 13629
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 716
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 119,
+        "bottom": 149,
+        "width": 79,
+        "height": 97,
+        "pixels": 5656,
+        "edgePixels": 0
+      },
+      "sha256": "a921907f25c0389b5b2c29b276f13d8b4ceec2483beefa84f6274df5f36529b0"
+    },
+    {
+      "index": 24,
+      "row": 4,
+      "column": 0,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 29,
+        "top": 743,
+        "width": 154,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 153,
+        "bottom": 152,
+        "width": 154,
+        "height": 153,
+        "pixels": 13692
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 897
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 52,
+        "right": 138,
+        "bottom": 149,
+        "width": 98,
+        "height": 98,
+        "pixels": 5659,
+        "edgePixels": 0
+      },
+      "sha256": "814839d746cedc2b03f9dc993e2e442f3e41c20d0951c2b52986e5be0ccafb7e"
+    },
+    {
+      "index": 25,
+      "row": 4,
+      "column": 1,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 215,
+        "top": 742,
+        "width": 151,
+        "height": 155
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 150,
+        "bottom": 154,
+        "width": 151,
+        "height": 155,
+        "pixels": 13229
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 897
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 44,
+        "top": 51,
+        "right": 140,
+        "bottom": 149,
+        "width": 97,
+        "height": 99,
+        "pixels": 5486,
+        "edgePixels": 0
+      },
+      "sha256": "ab49f0f8722f192d9714ce163534d314733c867ef95c037a28168b19777cba65"
+    },
+    {
+      "index": 26,
+      "row": 4,
+      "column": 2,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 398,
+        "top": 746,
+        "width": 124,
+        "height": 150
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 123,
+        "bottom": 149,
+        "width": 124,
+        "height": 150,
+        "pixels": 13237
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 897
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 45,
+        "top": 53,
+        "right": 123,
+        "bottom": 148,
+        "width": 79,
+        "height": 96,
+        "pixels": 5446,
+        "edgePixels": 0
+      },
+      "sha256": "f8c5e57978137263d08af3d62ff0e785dc0bda174012c7af9beb4d9198a5e8d3"
+    },
+    {
+      "index": 27,
+      "row": 4,
+      "column": 3,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 580,
+        "top": 750,
+        "width": 125,
+        "height": 147
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 124,
+        "bottom": 146,
+        "width": 125,
+        "height": 147,
+        "pixels": 13412
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 897
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 46,
+        "top": 56,
+        "right": 125,
+        "bottom": 149,
+        "width": 80,
+        "height": 94,
+        "pixels": 5542,
+        "edgePixels": 0
+      },
+      "sha256": "2c371cdbab6d5cc90791f0f61d61bc61be0bfbaf45a80bb364bb556c918134fd"
+    },
+    {
+      "index": 28,
+      "row": 4,
+      "column": 4,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 760,
+        "top": 746,
+        "width": 122,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 121,
+        "bottom": 150,
+        "width": 122,
+        "height": 151,
+        "pixels": 13505
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 897
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 53,
+        "right": 122,
+        "bottom": 149,
+        "width": 78,
+        "height": 97,
+        "pixels": 5604,
+        "edgePixels": 0
+      },
+      "sha256": "37042c87122cced88d441a7ede8cc87e24e59cd7106b11efc1189d7af7415224"
+    },
+    {
+      "index": 29,
+      "row": 4,
+      "column": 5,
+      "action": "projectile",
+      "sourceRect": {
+        "left": 934,
+        "top": 746,
+        "width": 123,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 150,
+        "width": 123,
+        "height": 151,
+        "pixels": 13655
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 897
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 119,
+        "bottom": 149,
+        "width": 79,
+        "height": 97,
+        "pixels": 5679,
+        "edgePixels": 0
+      },
+      "sha256": "3e47568b980ec66746f1a77d634b6dbced5ef70772db668a4aaca394d516b43b"
+    },
+    {
+      "index": 30,
+      "row": 5,
+      "column": 0,
+      "action": "buff",
+      "sourceRect": {
+        "left": 29,
+        "top": 925,
+        "width": 129,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 128,
+        "bottom": 152,
+        "width": 129,
+        "height": 153,
+        "pixels": 13562
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1078
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 41,
+        "top": 52,
+        "right": 122,
+        "bottom": 149,
+        "width": 82,
+        "height": 98,
+        "pixels": 5602,
+        "edgePixels": 0
+      },
+      "sha256": "d6502117c7e1b6a0797976215eb26d00d27ebd76741994743fa32ac1146b5504"
+    },
+    {
+      "index": 31,
+      "row": 5,
+      "column": 1,
+      "action": "buff",
+      "sourceRect": {
+        "left": 211,
+        "top": 927,
+        "width": 144,
+        "height": 151
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 143,
+        "bottom": 150,
+        "width": 144,
+        "height": 151,
+        "pixels": 13704
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1078
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 53,
+        "right": 132,
+        "bottom": 149,
+        "width": 92,
+        "height": 97,
+        "pixels": 5711,
+        "edgePixels": 0
+      },
+      "sha256": "b90a6a9736d027e03f3c62eb09434436b278323e46f40d81a6e456f516a24bdf"
+    },
+    {
+      "index": 32,
+      "row": 5,
+      "column": 2,
+      "action": "buff",
+      "sourceRect": {
+        "left": 390,
+        "top": 953,
+        "width": 123,
+        "height": 125
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 124,
+        "width": 123,
+        "height": 125,
+        "pixels": 11251
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1078
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 40,
+        "top": 70,
+        "right": 118,
+        "bottom": 149,
+        "width": 79,
+        "height": 80,
+        "pixels": 4664,
+        "edgePixels": 0
+      },
+      "sha256": "0befd16227957adc19d3da11fba67b1dd827d85fc3e85a7a94cf5e3b76fa4f5a"
+    },
+    {
+      "index": 33,
+      "row": 5,
+      "column": 3,
+      "action": "buff",
+      "sourceRect": {
+        "left": 572,
+        "top": 963,
+        "width": 132,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 131,
+        "bottom": 115,
+        "width": 132,
+        "height": 116,
+        "pixels": 11305
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1078
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 41,
+        "top": 76,
+        "right": 124,
+        "bottom": 149,
+        "width": 84,
+        "height": 74,
+        "pixels": 4630,
+        "edgePixels": 0
+      },
+      "sha256": "60cfc7fe2b00394b13674fcd7d1cfda941876e77f75942d7c6008c76a2044dd3"
+    },
+    {
+      "index": 34,
+      "row": 5,
+      "column": 4,
+      "action": "buff",
+      "sourceRect": {
+        "left": 758,
+        "top": 933,
+        "width": 127,
+        "height": 145
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 126,
+        "bottom": 144,
+        "width": 127,
+        "height": 145,
+        "pixels": 13103
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1078
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 44,
+        "top": 57,
+        "right": 124,
+        "bottom": 149,
+        "width": 81,
+        "height": 93,
+        "pixels": 5407,
+        "edgePixels": 0
+      },
+      "sha256": "b2f84d176733ec442f0d6afe337a9829af46868eced5ca79a9ac8ca4fe7eb70c"
+    },
+    {
+      "index": 35,
+      "row": 5,
+      "column": 5,
+      "action": "buff",
+      "sourceRect": {
+        "left": 934,
+        "top": 925,
+        "width": 123,
+        "height": 153
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 122,
+        "bottom": 152,
+        "width": 123,
+        "height": 153,
+        "pixels": 13608
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1078
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 41,
+        "top": 52,
+        "right": 119,
+        "bottom": 149,
+        "width": 79,
+        "height": 98,
+        "pixels": 5653,
+        "edgePixels": 0
+      },
+      "sha256": "d615fed1a52cc7d72d3dddb8056b7fa650abb60b58ef14a6b48c4520b5737a8e"
+    },
+    {
+      "index": 36,
+      "row": 6,
+      "column": 0,
+      "action": "hit",
+      "sourceRect": {
+        "left": 16,
+        "top": 1105,
+        "width": 149,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 148,
+        "bottom": 153,
+        "width": 149,
+        "height": 154,
+        "pixels": 14105
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1259
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 32,
+        "top": 52,
+        "right": 126,
+        "bottom": 149,
+        "width": 95,
+        "height": 98,
+        "pixels": 5780,
+        "edgePixels": 0
+      },
+      "sha256": "7f64c1cac8cc557c6ee24fc0dc7b317eb12fffcca596bafd148d3593ff50f885"
+    },
+    {
+      "index": 37,
+      "row": 6,
+      "column": 1,
+      "action": "hit",
+      "sourceRect": {
+        "left": 196,
+        "top": 1101,
+        "width": 157,
+        "height": 156
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 156,
+        "bottom": 155,
+        "width": 157,
+        "height": 156,
+        "pixels": 13570
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1259
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 32,
+        "top": 49,
+        "right": 131,
+        "bottom": 148,
+        "width": 100,
+        "height": 100,
+        "pixels": 5605,
+        "edgePixels": 0
+      },
+      "sha256": "e4e27c4b68404aa81306f094c91dd60146711ed108b9c9adc857009fa8c5f33f"
+    },
+    {
+      "index": 38,
+      "row": 6,
+      "column": 2,
+      "action": "hit",
+      "sourceRect": {
+        "left": 385,
+        "top": 1105,
+        "width": 135,
+        "height": 154
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 134,
+        "bottom": 153,
+        "width": 135,
+        "height": 154,
+        "pixels": 13399
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1259
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 37,
+        "top": 52,
+        "right": 122,
+        "bottom": 149,
+        "width": 86,
+        "height": 98,
+        "pixels": 5475,
+        "edgePixels": 0
+      },
+      "sha256": "740026dee769a585932a2cc29e8cf5f0418c6092b51f2dc07d39cd79d7ababaa"
+    },
+    {
+      "index": 39,
+      "row": 6,
+      "column": 3,
+      "action": "hit",
+      "sourceRect": {
+        "left": 572,
+        "top": 1127,
+        "width": 130,
+        "height": 132
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 129,
+        "bottom": 131,
+        "width": 130,
+        "height": 132,
+        "pixels": 11933
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1259
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 41,
+        "top": 66,
+        "right": 123,
+        "bottom": 149,
+        "width": 83,
+        "height": 84,
+        "pixels": 4902,
+        "edgePixels": 0
+      },
+      "sha256": "9b9dfddd5660fd2b1d73233abc5db445378ccc921994df6bd4c5159edd10c72b"
+    },
+    {
+      "index": 40,
+      "row": 6,
+      "column": 4,
+      "action": "hit",
+      "sourceRect": {
+        "left": 760,
+        "top": 1127,
+        "width": 118,
+        "height": 133
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 117,
+        "bottom": 132,
+        "width": 118,
+        "height": 133,
+        "pixels": 11464
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1259
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 45,
+        "top": 66,
+        "right": 119,
+        "bottom": 150,
+        "width": 75,
+        "height": 85,
+        "pixels": 4715,
+        "edgePixels": 0
+      },
+      "sha256": "ca2916a9010e574d03dcbaa8987e71779cb815760beb1e0ce66c88da34b4364a"
+    },
+    {
+      "index": 41,
+      "row": 6,
+      "column": 5,
+      "action": "hit",
+      "sourceRect": {
+        "left": 933,
+        "top": 1107,
+        "width": 124,
+        "height": 152
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 123,
+        "bottom": 151,
+        "width": 124,
+        "height": 152,
+        "pixels": 13555
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1259
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 40,
+        "top": 53,
+        "right": 118,
+        "bottom": 149,
+        "width": 79,
+        "height": 97,
+        "pixels": 5554,
+        "edgePixels": 0
+      },
+      "sha256": "ed04e88a1cfd008b22af294217405a009385e47910d92c16915f4d10f74e5e72"
+    },
+    {
+      "index": 42,
+      "row": 7,
+      "column": 0,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 34,
+        "top": 1297,
+        "width": 128,
+        "height": 135
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 127,
+        "bottom": 134,
+        "width": 128,
+        "height": 135,
+        "pixels": 11676
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 90.5,
+        "y": 1433
+      },
+      "outputColumn": 0,
+      "outputBounds": {
+        "left": 44,
+        "top": 63,
+        "right": 125,
+        "bottom": 148,
+        "width": 82,
+        "height": 86,
+        "pixels": 4830,
+        "edgePixels": 0
+      },
+      "sha256": "28bad64ab975a8418272ae934fe4a72802ecd9cb626c0fe8a20660b5966f50e3"
+    },
+    {
+      "index": 43,
+      "row": 7,
+      "column": 1,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 211,
+        "top": 1316,
+        "width": 128,
+        "height": 116
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 127,
+        "bottom": 115,
+        "width": 128,
+        "height": 116,
+        "pixels": 11242
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 271.5,
+        "y": 1433
+      },
+      "outputColumn": 1,
+      "outputBounds": {
+        "left": 41,
+        "top": 75,
+        "right": 122,
+        "bottom": 148,
+        "width": 82,
+        "height": 74,
+        "pixels": 4656,
+        "edgePixels": 0
+      },
+      "sha256": "09b4176d7b54ada315d83b77822f374a7912b808c578059804cf28cc79430e0f"
+    },
+    {
+      "index": 44,
+      "row": 7,
+      "column": 2,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 375,
+        "top": 1325,
+        "width": 147,
+        "height": 108
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 146,
+        "bottom": 107,
+        "width": 147,
+        "height": 108,
+        "pixels": 11067
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 452.5,
+        "y": 1433
+      },
+      "outputColumn": 2,
+      "outputBounds": {
+        "left": 30,
+        "top": 81,
+        "right": 123,
+        "bottom": 149,
+        "width": 94,
+        "height": 69,
+        "pixels": 4563,
+        "edgePixels": 0
+      },
+      "sha256": "97d20269d2b22c5d27ff1e1307dbed0e8c6f2ec808c8793893f59b6fb97899b3"
+    },
+    {
+      "index": 45,
+      "row": 7,
+      "column": 3,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 558,
+        "top": 1348,
+        "width": 152,
+        "height": 85
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 151,
+        "bottom": 84,
+        "width": 152,
+        "height": 85,
+        "pixels": 9705
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 633.5,
+        "y": 1433
+      },
+      "outputColumn": 3,
+      "outputBounds": {
+        "left": 32,
+        "top": 96,
+        "right": 128,
+        "bottom": 149,
+        "width": 97,
+        "height": 54,
+        "pixels": 3976,
+        "edgePixels": 0
+      },
+      "sha256": "24e3a728cd10c0c4d9996dfe1c276449b0df3bec2799bfb7b668dbd9d1b4222b"
+    },
+    {
+      "index": 46,
+      "row": 7,
+      "column": 4,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 733,
+        "top": 1349,
+        "width": 159,
+        "height": 84
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 83,
+        "width": 159,
+        "height": 84,
+        "pixels": 9385
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 814.5,
+        "y": 1433
+      },
+      "outputColumn": 4,
+      "outputBounds": {
+        "left": 28,
+        "top": 96,
+        "right": 129,
+        "bottom": 149,
+        "width": 102,
+        "height": 54,
+        "pixels": 3904,
+        "edgePixels": 0
+      },
+      "sha256": "5af5aeec20291448b5d67baa6f6a46dbc4c4e64c9d593c29da2af49ca471cf7b"
+    },
+    {
+      "index": 47,
+      "row": 7,
+      "column": 5,
+      "action": "defeat",
+      "sourceRect": {
+        "left": 912,
+        "top": 1352,
+        "width": 159,
+        "height": 81
+      },
+      "content": {
+        "left": 0,
+        "top": 0,
+        "right": 158,
+        "bottom": 80,
+        "width": 159,
+        "height": 81,
+        "pixels": 9320
+      },
+      "sourcePath": "asset-sources/project-starfall/overhaul-v1/enemies/bandit-thrower/source.png",
+      "scaleFactor": 1,
+      "overrideAnchor": null,
+      "anchor": {
+        "x": 995.5,
+        "y": 1433
+      },
+      "outputColumn": 5,
+      "outputBounds": {
+        "left": 27,
+        "top": 98,
+        "right": 128,
+        "bottom": 149,
+        "width": 102,
+        "height": 52,
+        "pixels": 3872,
+        "edgePixels": 0
+      },
+      "sha256": "759ad97a86ea20538be1c6b091a926c9080a9cafa02dbb4da9623d4eb9407c5b"
+    }
+  ],
+  "intentionalHolds": {},
+  "sourcePoseOverrides": {},
+  "rowPoseOrder": {}
+}

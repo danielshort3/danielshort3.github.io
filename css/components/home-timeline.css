@@ -95,7 +95,7 @@
   }
 
   .home-timeline__item--certification {
-    --home-timeline-accent: #155dfc;
+    --home-timeline-accent: var(--brand-signal-blue, #005fed);
   }
 
   .home-timeline__item--degree {

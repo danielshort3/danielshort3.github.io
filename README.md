@@ -4,6 +4,8 @@
 
 Welcome to the GitHub repository for my personal portfolio website. This site showcases my data analysis and machine learning projects, credentials, areas of interest, and provides ways to contact me for collaboration or hiring.
 
+Making a change? Start with the [Repository map](docs/REPOSITORY_MAP.md) for feature-specific source files, generated-output boundaries, Android entry points, and relevant checks.
+
 ## Table of Contents
 
 - [Features](#features)
@@ -33,7 +35,7 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
 
 ## Setup and Installation
 
-1. **Clone the Repository**: 
+1. **Clone the Repository**:
     ```bash
     git clone https://github.com/danielshort3/danielshort3.github.io.git
     ```
@@ -96,9 +98,10 @@ The contact page location map is upgraded during `npm run build` with the Google
     - Navigate through credentials using the carousel buttons.
 
 - **Modifying the Website**:
-    - **HTML**: Update content in the `.html` files as needed.
-    - **CSS**: Modify styles in `css/styles.css` to change the appearance.
-    - **JavaScript**: Update functionality in `js/common.js`.
+    - **Content and HTML**: Edit managed content under `content/` or the appropriate authored tool/demo body. Use the [Repository map](docs/REPOSITORY_MAP.md) to identify generated pages before editing.
+    - **CSS**: Edit the relevant file under `css/components/` or shared tokens in `css/variables.css`; use the appropriate stylesheet entry.
+    - **JavaScript**: Start in the relevant feature directory under `js/`. Shared runtime helpers live in `js/common/common.js`.
+    - **Validation**: Rebuild generated output, run the applicable checks, and inspect the changed page through the local development server.
 
 ## Short links (private dashboard)
 
@@ -161,33 +164,21 @@ The custom `/admin` editor is a local-only content editor for managed JSON files
 
 ## File Structure
 
-```plaintext
-.
-├── css
-│   └── styles.css           # CSS styles for the website
-├── img                   # Folder for all images used in the website
-│   ├── logo.png
-│   ├── head.png
-│   ├── project_1.png
-│   ├── project_2.png
-│   ├── ...
-├── js
-│   ├── common.js                 # Site-wide utilities
-│   ├── projects-data.js          # Portfolio project definitions
-│   ├── portfolio.js              # Portfolio UI logic
-│   ├── contributions-data.js     # Public contributions definitions
-│   ├── contributions.js          # Build contributions list
-│   ├── contributions-carousel.js # Carousel helper
-│   └── ga4-events.js             # Google Analytics events
-├── portfolio.html           # Projects page
-├── contact.html             # Contact page
-├── documents                # Folder for downloadable project files
-│   ├── Resume.pdf
-│   ├── Project_1.xlsx
-│   ├── ...
-└── README.md                # This readme file
-```
+| Directory | Purpose |
+| --- | --- |
+| `content/` | Managed site, audience, project, tool, and resume content |
+| `pages/`, `demos/` | Authored tool/demo pages alongside generated pages and wrappers; check ownership before editing |
+| `css/`, `js/`, `src/` | Website styles, feature modules, and bundled application sources |
+| `api/`, `aws/` | Site API handlers and backend service subprojects |
+| `img/`, `documents/` | Visual assets and downloadable resources |
+| `build/` | Renderers, generators, bundlers, route-aware development server |
+| `mobile/android/` | Native Android app, Gradle build, and native tests |
+| `browser-extension/` | Browser extension subproject |
+| `tests/`, `docs/` | Verification suites and development documentation |
+| `dist/`, `public/` | Generated bundles and deployment output |
+
+See the [Repository map](docs/REPOSITORY_MAP.md) for task-to-file lookup and build dependencies.
 
 ## Shape Classifier Demo
 
-The interactive demo calls an AWS Lambda function for real-time predictions. Ensure your Lambda code includes CORS headers so the browser can access it. See [documents/lambda-cors.md](documents/lambda-cors.md) for a minimal example.
+The interactive demo reaches AWS inference through the site's [demo proxy](api/_lib/demo-proxy.js). See [Local Development](#local-development) for the Lambda alias configuration and the [Repository map](docs/REPOSITORY_MAP.md) for client and demo entry points.

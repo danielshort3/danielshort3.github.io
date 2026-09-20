@@ -17,17 +17,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +46,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.danielshort.app.nativefeatures.NativeFeatureHeader
+import me.danielshort.app.R
+import me.danielshort.app.ui.ScrollChromeLayout
+import me.danielshort.app.ui.LocalChromeInputFocus
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -64,12 +71,27 @@ fun NativeProjectDemoScreen(projectId: String, onBack: () -> Unit) {
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 internal fun DemoPage(title: String, description: String, onBack: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-  Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).safeDrawingPadding().imePadding()
-    .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-    NativeFeatureHeader(title, description, onBack)
-    content()
-    Spacer(Modifier.height(16.dp))
+  ScrollChromeLayout(screenKey = title, topBar = {
+    Column(Modifier.background(MaterialTheme.colorScheme.surface)) {
+      TopAppBar(title = {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+          Image(painterResource(R.drawable.brand_mark), contentDescription = null, modifier = Modifier.size(30.dp))
+          Text("Daniel Short", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+      }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to project") } },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface))
+      HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = .35f))
+    }
+  }) { padding ->
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+      .verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp,
+        top = padding.calculateTopPadding() + 20.dp, bottom = padding.calculateBottomPadding() + 20.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp)) {
+      NativeFeatureHeader(title, description, onBack, showBack = false)
+      content()
+    }
   }
 }
 
@@ -79,6 +101,20 @@ internal fun DemoStatus(busy: Boolean, status: String, onRetry: (() -> Unit)? = 
     if (busy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
     Text(status, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     if (onRetry != null && !busy) TextButton(onClick = onRetry) { Text("Retry") }
+  }
+}
+
+/** A scroll inside an editor must not be interpreted as reading further down the page. */
+@Composable
+internal fun Modifier.protectChromeWhileEditing(): Modifier {
+  val onFocus = LocalChromeInputFocus.current
+  var focused by remember { mutableStateOf(false) }
+  DisposableEffect(onFocus) {
+    onDispose { if (focused) onFocus(false) }
+  }
+  return onFocusChanged {
+    focused = it.isFocused
+    onFocus(it.isFocused)
   }
 }
 
@@ -134,8 +170,16 @@ private fun DrawingDemo(shape: Boolean, onBack: () -> Unit) {
   }
   DemoPage(if (shape) "Shape Classifier" else "Handwriting Rating",
     if (shape) "Draw a circle, triangle, square, hexagon, or octagon." else "Draw one digit to see how confidently the model reads it.", onBack) {
-    DemoStatus(busy, status)
-    Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp)).background(Color.Black)) {
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    Row(Modifier.widthIn(max = 320.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      if (busy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+      Text(status, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+      TextButton(onClick = { strokes.clear(); sample = null; predictions = emptyList() },
+        enabled = !busy && (strokes.isNotEmpty() || sample != null)) { Text("Clear") }
+    }
+    Box(Modifier.widthIn(max = 320.dp).fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(Color.Black)) {
       sample?.let { Image(it.asImageBitmap(), null, Modifier.fillMaxSize()) }
       Canvas(Modifier.fillMaxSize().semantics { contentDescription = if (shape) "Black shape drawing canvas" else "Black digit drawing canvas" }
         .pointerInput(busy) {
@@ -153,14 +197,18 @@ private fun DrawingDemo(shape: Boolean, onBack: () -> Unit) {
         }
       }
     }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-      Button(onClick = ::score, enabled = !busy && (strokes.isNotEmpty() || sample != null)) { Text(if (shape) "Classify shape" else "Rate digit") }
-      TextButton(onClick = { strokes.clear(); sample = null; predictions = emptyList() }, enabled = !busy) { Text("Clear") }
+      Button(onClick = ::score, enabled = !busy && (strokes.isNotEmpty() || sample != null),
+        modifier = Modifier.widthIn(min = 168.dp).heightIn(min = 48.dp), shape = RoundedCornerShape(10.dp)) {
+        Text(if (shape) "Classify shape" else "Rate digit")
+      }
     }
     if (!shape) {
+      Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
       Text("Try a handwriting sample", style = MaterialTheme.typography.labelLarge)
-      FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        (0..9).forEach { digit ->
+      (0..9).toList().chunked(5).forEach { row ->
+      Row(Modifier.widthIn(max = 360.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        row.forEach { digit ->
           OutlinedButton(onClick = {
             busy = true; predictions = emptyList(); status = "Loading sample $digit"
             scope.launch {
@@ -172,8 +220,11 @@ private fun DrawingDemo(shape: Boolean, onBack: () -> Unit) {
               catch (e: Exception) { status = e.message ?: "Could not load sample." }
               finally { busy = false }
             }
-          }, enabled = !busy, contentPadding = PaddingValues(12.dp)) { Text(digit.toString()) }
+          }, enabled = !busy, modifier = Modifier.weight(1f).height(48.dp), shape = RoundedCornerShape(10.dp),
+            contentPadding = PaddingValues(0.dp)) { Text(digit.toString()) }
         }
+      }
+      }
       }
     }
     predictions.firstOrNull()?.let { top ->
@@ -257,7 +308,7 @@ private fun DigitDemo(onBack: () -> Unit) {
     TextButton(onClick = { advanced = !advanced }) { Text(if (advanced) "Hide advanced settings" else "Advanced settings") }
     if (advanced) {
       DemoSelect("Grid", (2..8).map { "$it × $it" }, "$grid × $grid", { grid = it.substringBefore(' ').toInt() }, enabled = !busy)
-      OutlinedTextField(seed, { seed = it.filter(Char::isDigit).take(10).takeIf { value -> (value.toLongOrNull() ?: 0L) <= 2_147_483_647 } ?: seed }, label = { Text("Seed (optional)") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth(), enabled = !busy)
+      OutlinedTextField(seed, { seed = it.filter(Char::isDigit).take(10).takeIf { value -> (value.toLongOrNull() ?: 0L) <= 2_147_483_647 } ?: seed }, label = { Text("Seed (optional)") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth().protectChromeWhileEditing(), enabled = !busy)
       DemoSelect("Latent dimension", (0..19).map(Int::toString), dimension.toString(), { dimension = it.toInt() }, enabled = !busy)
       Text("Distortion: ${String.format(Locale.US, "%.1f", distortion)}")
       Slider(distortion, { distortion = it }, valueRange = 0f..20f, enabled = !busy)
@@ -281,7 +332,7 @@ private fun LanguageDemo(chat: Boolean, onBack: () -> Unit) {
     DemoStatus(busy, status)
     OutlinedTextField(query, { query = it.take(1200) }, label = { Text(if (chat) "Your question" else "Search phrase") },
       placeholder = { Text(if (chat) "What can I do in Grand Junction?" else "She wonders about things.") }, minLines = 3, maxLines = 8,
-      modifier = Modifier.fillMaxWidth(), enabled = !busy)
+      modifier = Modifier.fillMaxWidth().protectChromeWhileEditing(), enabled = !busy)
     if (!chat) DemoSelect("Results", listOf("3", "5", "10", "20"), top.toString(), { top = it.toInt() }, enabled = !busy)
     Button(onClick = {
       val submitted = query.trim().ifBlank { if (chat) "What can I do in Grand Junction?" else "She wonders about things." }

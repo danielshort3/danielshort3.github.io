@@ -745,13 +745,13 @@
     color:inherit;
   }
   .brand-logo{
+    flex:0 0 auto;
     width:var(--brand-logo-size);
     height:var(--brand-logo-size);
-    border-radius:12px;
-    filter:drop-shadow(0 10px 18px rgba(2,6,23,.32));
-    transition:transform .3s ease;
+    border-radius:0;
+    object-fit:contain;
+    filter:none;
   }
-  .brand:hover .brand-logo{transform:scale(1.03);}
 
   .brand-name{
     display:flex;
@@ -765,7 +765,7 @@
     font-size:var(--brand-title-size);
     font-weight:600;
     letter-spacing:.3px;
-    line-height:1.1;
+    line-height:1.25;
     white-space:nowrap;
   }
   .brand-divider{
@@ -907,7 +907,7 @@
   }
 
   #combined-header-nav[data-site-shell-header] .nav-search-button:focus-visible {
-    outline: 3px solid #155dfc;
+    outline: 3px solid var(--brand-signal-blue, #005fed);
     outline-offset: 2px;
   }
 

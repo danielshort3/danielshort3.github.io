@@ -1,0 +1,3428 @@
+{
+  "created": "2026-09-19T21:38:12.957Z",
+  "source": "Live runtime registry; generated start-screen alternatives included.",
+  "assets": [
+    {
+      "path": "img/project-starfall/animations/combat-fx/basic/basic-archer-sheet.png",
+      "sha256": "e4e6fd199ba342b28bca67f34fc966c139fc5da074f016549e156b7a5f1fa5b6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/basic/basic-fighter-sheet.png",
+      "sha256": "aa88180dfc6562a29af11ccdf173d75a04d67fe84e6fb95c597e98467eaa6590"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/basic/basic-mage-sheet.png",
+      "sha256": "65064fc78a50d476c54932750c038834f16b14696b33765f7bf5cfd8ee250623"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/ash-crawler-sheet.png",
+      "sha256": "4e49596cc5b4a0275f335bf51e0186146f29f30bbb5e5a5f22a4c3e60e5bcedc"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/astral-archivist-sheet.png",
+      "sha256": "2f06a79ffacbd6ffb6fde3ab6ad4b33b33df0393457c6c6ba88c4f3ce0c9d0e7"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-direct-sheet.png",
+      "sha256": "deab4ff79135fe1d4dfe80b929dd139e5d24035834adbdcfb1322b97d271c6eb"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-hybrid-sheet.png",
+      "sha256": "12d6692b8212b4986bd883f240fcec7339bfc36038ade0325f178cb28bd3c466"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-puppet-sheet.png",
+      "sha256": "53b91956c85629122d7ad1e9f149127db0ca9552fa897a3f87d1fd540a8aef8d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-reference-sheet.png",
+      "sha256": "49d1ff4e659f10898694f2326de3e52849d7bbb2435684c061d3640b77590f1f"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-cutter-sheet.png",
+      "sha256": "977e82ad8579cd9ab714f681c5487aa5cfe6b505e8b9aa73a3da9590eb90743c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bandit-thrower-sheet.png",
+      "sha256": "f8118b04946619cb7afad36124110bdc26eba955c331e7d1212b49e6df533c38"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/brambleking-sheet.png",
+      "sha256": "62b6f19b8ece6c9b4adaa3c32129b628fcae649d462c2c67281a05467ea39da2"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/briar-stag-sheet.png",
+      "sha256": "244cc9796be47d061a51e8d51ef8ae9edacb116a358407808896bac99501514f"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/bristle-boar-sheet.png",
+      "sha256": "0792d14926d85d0d0901d6c0f438607570ff12af0177b8dc3b895a41fcba3246"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/cinder-spitter-sheet.png",
+      "sha256": "b1f5d13c1c3e6e716caf716c7a42b14984d58e7efc2fa8a48663b95f4d362157"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/clockbug-sheet.png",
+      "sha256": "87ea781a1a12cca38826fedf6874e9700897bc90db89c4f2ae5162628acda0c8"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/clockwork-titan-sheet.png",
+      "sha256": "835944f860afc0a88db1d749def7d65860f8e40d0b273f7beee7905498350f82"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/cloudcall-acolyte-sheet.png",
+      "sha256": "0f140241bb7ab9bc792f39759e894bc342d62fc28944bd2a2ec46f91f3dc4976"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/coil-sentry-sheet.png",
+      "sha256": "514a2a34a30135d3e442d41b3bb1500207704a0910c37c8c825b3cd0e2ec3b8d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/cracked-mimic-sheet.png",
+      "sha256": "cd6a419c024977d54083f529070e586cad7d24266ce3358540502ca4acb4b62d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/dew-slime-sheet.png",
+      "sha256": "12ec27b11ffca097e17c4855a3e43a27f17669f1b174a71a58efe6efbd6eeb1c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/dust-imp-sheet.png",
+      "sha256": "76ee5fbe7cd60a04a0e54878d4372c626cff0f2f21cf9230b93c7db375a9bedb"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/eclipse-duelist-sheet.png",
+      "sha256": "a84a8e492ca71a681767a3b9b89aff9711a1862537eeb4aa7d2cd9ad67c5b5a8"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/eclipse-sovereign-sheet.png",
+      "sha256": "1dbeb1dd77896304f5449088d6c7e17b7fdb2fa90c378359e6cb5f05ace5b980"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/ember-wisp-sheet.png",
+      "sha256": "feca924db0531ea6142e92b3661dbf9f79cc93ae070e5783168d54b3c069ebfd"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/emberjaw-golem-sheet.png",
+      "sha256": "c18dce64deb2c8df6cee694e1e4c23a6e6d34084aeb3d48eaa99e475b2d3d38f"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/fault-skitter-sheet.png",
+      "sha256": "1b4d70acf3a17d3557f5d27fcdc14ad29a998c31a6bb39c2b4bab244aacf69f0"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/frostling-scout-sheet.png",
+      "sha256": "b3b99b19cbecda52abb4af5b78b9ce3865c9b02fbd17445d8778f351988047f8"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/gale-harrier-sheet.png",
+      "sha256": "5a0c0bc5819b106730631070ecbce513c4603640c73d7af66de9e6f5588229be"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/glacier-sentinel-sheet.png",
+      "sha256": "8a6c5ae221dd4827438ad9ac14039f412d0d933d4293fac17e150f6708fd641b"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/glassback-sheet.png",
+      "sha256": "cf0250c7cbd6174939bfde49bf64b8c9c6ab4e7cf811adba07c4d14e6c0fd8b8"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/glowcap-healer-sheet.png",
+      "sha256": "254ea7009772f376acf91ad082532a6da952ce5517885d7bf29aff2de2bde471"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/icebloom-oracle-sheet.png",
+      "sha256": "d6bbc07154c1c8ccb3ef9bb88dfd41de93e63a6625b604ed06c9857902a30b41"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/index-scribe-sheet.png",
+      "sha256": "afa13445bbef919efe166508a3a26939ebf8ec05368d03bf7d20bf59ee7c5eac"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/lava-tick-sheet.png",
+      "sha256": "cf729f7cc87730ccb37807dc7c70b9ca9b96fec97c4dbe08f5066008dc9f0ac4"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/lumen-sentinel-sheet.png",
+      "sha256": "71cff9ba66135e3c1955b73f0f9f6fbbe3477a18ebe7f318d4a56ee3ab2581f0"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/mossback-sheet.png",
+      "sha256": "17a0ecf4deaedbdc1dfd253c239df7ab20ef085b7f535c55baaaf0a731b04a57"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/oreback-beetle-sheet.png",
+      "sha256": "692b6959e00c155fa6780838cf58ea5f0596db5092354e253b03278114f85179"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/quarry-colossus-sheet.png",
+      "sha256": "26f578fd6b4e9252e89edaf9e3a163b660b0ff6ff6465d3f338a79f06bff0a9d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rift-aberration-sheet.png",
+      "sha256": "c65b1514554c19386912e1d1014a8c732aea0747f3b393a71d7d578eaf176a3d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rift-lantern-sheet.png",
+      "sha256": "2018ddf79582bd5236b2bbf0c7442779007c257bd859685b2fa4b137d6b6a9d6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rimeback-brute-sheet.png",
+      "sha256": "2b3e683aa92fb91579b0980e97a5a62a0349bc96db5e4daefb1c6ebff6ed3c88"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rimewarden-sheet.png",
+      "sha256": "aa7556b110ceea668045774c1b33477fc6ba9ce22f66e47ea2ce2ad983ced219"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/rust-ratchet-sheet.png",
+      "sha256": "00c2713e69cd6782a24bce90412c955b84ce70a2efac452ae2aa43f93651ff55"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/scrap-warden-sheet.png",
+      "sha256": "8070c839e5d8e2de7d1490e6c55b5dc9ad8a2a7a1593bdc0803f1bbfe364e9ff"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/shardling-sheet.png",
+      "sha256": "fafd94c4339e1f79c5a53c5420df17733bd7cc150ffbf8b7f8bb33762d2df717"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/slimelet-sheet.png",
+      "sha256": "2b7c3bf720a930a8e373622cf30602fcad45c4fc41513069408a739f7bdc58fb"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/snowglare-wisp-sheet.png",
+      "sha256": "277fbbab896d00c7c5b512e2b4813c0000b02ea51063f443df147cb85815d982"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/stormbound-archer-sheet.png",
+      "sha256": "0de6d738d08eee4343c051878361966307ab921970a55ce2ea7a366f185f7b97"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/stormbreak-roc-sheet.png",
+      "sha256": "de05fdaa6a9b8b960e7f81bbd3a7b2762bef721a0cd9196117eb0b9b8f833f24"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/thorn-sprout-sheet.png",
+      "sha256": "d7e45a9bbdd90666c562f52ea0eac99bf66515bd8c7de92ade8e6fab200f208d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/thunder-ram-sheet.png",
+      "sha256": "43064a86c76e9b4844218f7df3f6bc6ce72110d5692a33fd1bb1866262a7727c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/vine-snapper-sheet.png",
+      "sha256": "04f13d7f82050ef9c493987498eead3bc6743d58cb9095fcbe7aeeb1cab4d13d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/enemies/void-mote-sheet.png",
+      "sha256": "3b09ed66fd20c5f6aaf24a4cccfb58e78375ec4bca9e13aa139e66b3bf2ca4d9"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-eagle-stance-sheet.png",
+      "sha256": "9e5015c4281f2a5097282b9144d190b23919d279a8333c2f03e632854844ee30"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-focused-volley-sheet.png",
+      "sha256": "aa16e800bc3bd8ba3be7a42c33cc00b434d839c4d81a7a9e1cac8b10417d9f72"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-marked-shot-sheet.png",
+      "sha256": "3e20f22bfd259e53820dd28e4479931a1b8c0924ffba4f7a91ad26c318da74ae"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-piercing-arrow-sheet.png",
+      "sha256": "80c0ac37012eac85e042f4c91fce151071306bf73dfc49dec162f1bef7e96c69"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-quick-shot-sheet.png",
+      "sha256": "4ff0ed1c97c0fa7abcb917c39f63e762e0be21bb9e367fd14dbef0b27665277d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/archer-roll-shot-sheet.png",
+      "sha256": "31d7d933f8095f207eeec59ae0e51188302124e359049a5253889ad11a549b1b"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/beast-archer-companion-strike-sheet.png",
+      "sha256": "92e72e3705c27813ec6fc06147009cb9d603078aaa79bed3fef77312edc7a991"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/beast-archer-pack-call-sheet.png",
+      "sha256": "e86999eccf57aa591c37d1fd280e87d65a678b291dbdb2a8c2a3c16032bd6023"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/beast-archer-pounce-roll-sheet.png",
+      "sha256": "90ad1e5871741f745615611ae9cdb082a57f8ff988e61c7cb93f5336fa252676"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-blood-cleave-sheet.png",
+      "sha256": "96296faef1fb78f1e33279c1cafb02d85e4e31e2428dbf588398b4a8e35b598a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-crimson-recovery-sheet.png",
+      "sha256": "bbc3f3db79cdc88d3b1aad82e8a1e3709cda70b11556e6af4b1f813c57266dba"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-last-stand-sheet.png",
+      "sha256": "6d955b5ea8f6e6c365c6b3d81cac1d44d3c6fbac91d4e17633f0f27a08dbe08d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-rage-surge-sheet.png",
+      "sha256": "c1c0ebbe1c0b4962bc1f30e3782ef5620497c400d3326c5e17c28a37aa24cd65"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-reckless-leap-sheet.png",
+      "sha256": "4c7844d122a1a101c1f18db627433550f801c40a3e302f41aebf8e50bc03c6fd"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/berserker-war-cry-sheet.png",
+      "sha256": "1af92feb9f68359659177a6dce93138b26b486e1e3d68b572981e4c0ae25f2f8"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/duelist-flash-step-sheet.png",
+      "sha256": "c2bca627bc2f152482b21696cf5c1920e5a3c3c6e675c3cc98caa39e80e74033"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/duelist-quick-cut-sheet.png",
+      "sha256": "be745b9b461fe84c6db7f364a538663200be94284397aac7ecaa3a4badbe03d9"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/duelist-rallying-flourish-sheet.png",
+      "sha256": "ec25764670d96c6cfae1a56c5d60ab2b31dfb4f1e4cbf752f019787885f1ef1c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-dash-slash-sheet.png",
+      "sha256": "8f063641acdab6c143cab489013d3f3a23348c926d998cda4d21b45cc9af1750"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-ground-slam-sheet.png",
+      "sha256": "fe0d1d03786fbf7191b5215c98612a4798a796104f6e9598ee062cb08f8c5193"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-guard-sheet.png",
+      "sha256": "3f6b54c216ec008412460d415e43bd86b5cf7d3f4e533dfe521f70ae2dced633"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-heavy-strike-sheet.png",
+      "sha256": "e2411c1e3b10c222b01316d6d334aee06d88417108a232f0e1a3f020a2b00bda"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-momentum-burst-sheet.png",
+      "sha256": "a11069d0ecc4d52542807c90ae1da92335b42e30e9d10f154181dc5011c076c2"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fighter-power-break-sheet.png",
+      "sha256": "397e41e6183b69696676d59c1e0df839be2d9253daf4e75f581a369aba7e594a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-burning-mark-sheet.png",
+      "sha256": "06914e93dd8942b4197c96799978bd650bd8e7170ebb002c2ed159caf33c7b57"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-fireball-sheet.png",
+      "sha256": "fecf1aa1c86e367505f28a06e935c603d6e7eb09522d9bc5bd47a9c65a656348"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-flame-trail-sheet.png",
+      "sha256": "61468e50855a535fdace021b0a26eba17b852425164a37417f349e2d8dc4d1d1"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-heat-vent-sheet.png",
+      "sha256": "7b504ff3f13cae4cb1ae74a52cc7d908605b6fcb0a2634c907e78c64318423bc"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-ignition-aura-sheet.png",
+      "sha256": "5317f1f8361ec1422138f32ee0e1943faa72c33122ab44cffa6b0276be7ef62b"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-inferno-burst-sheet.png",
+      "sha256": "60553189bedd155ce463d52eef54e7c13b71fff4689c0ac39e1645eb35206bb8"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/fire-mage-wildfire-sheet.png",
+      "sha256": "b9691691cefacb9d64b2747bfccc18a60adba32f6e8b9b7f95793d7e744a92a2"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-impact-guard-sheet.png",
+      "sha256": "cdc8a553c3fe14a92b8c38829fba385acd057396a3580b1b15085ae9d101cd6e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-oath-barrier-sheet.png",
+      "sha256": "fb81e2c83342bd5282e14765acaef3aa27efbccd7fe89ce4b7760bfe57b6006c"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-retaliation-wave-sheet.png",
+      "sha256": "b5d2dffe9e1b55400ba47e0903e5688edbbbba617036f8754084efce90c3cb08"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-shield-bash-sheet.png",
+      "sha256": "dc0683214dada398c8abbf50db65ba9e5687c54a557479994d3d34a95f087e14"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-shield-dash-sheet.png",
+      "sha256": "690b2c42c8969e731ba1f6d9a0a65699379973df260b1bee75a7820aca750087"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-shield-wall-sheet.png",
+      "sha256": "ac927d60017c4ca86016c93a69af6066b45841160a576c1f0097d9432f4236f7"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/guardian-verdict-sheet.png",
+      "sha256": "65b220bf0e96f685b9bf17187ebf2cfd601c1f1a6fce48f564be4e649fa707ba"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-arcane-burst-sheet.png",
+      "sha256": "21a7fa15b96dd63924b6e0ae10aa7756344547db76914bfc0a26502d80c5e6a9"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-blink-sheet.png",
+      "sha256": "65ef7c6e6f3cf2ee54925444896d0aaa28d9514af953411a1b120fc9c57972aa"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-energy-release-sheet.png",
+      "sha256": "3400fb3cf054bb71be780b835bf74c340c0b42458cee4d57e47e4a820966e6bd"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-magic-bolt-sheet.png",
+      "sha256": "8797881e3a679cc556ebec00cd294c9a43a6f98750c37ea642fdad7b7904d68a"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-mana-shield-sheet.png",
+      "sha256": "707f60614ecc0f9366ab3882da82240f8d4f2671885763b87d34c95f019a50dd"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/mage-spell-mark-sheet.png",
+      "sha256": "d973197fdba8a6a2889e22a087acb6fb7c7ee423ef622eb26033ddb82aa22364"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-arcane-link-sheet.png",
+      "sha256": "c048c17fbe196c7c3e674f577081b7d8ba041f2f3e894cebab6a305c7a2f0c1e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-grand-inscription-sheet.png",
+      "sha256": "3640cf2915530139c115e0ee56a85912ad09f725bbed31710efff1893825d5d6"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-ground-glyph-sheet.png",
+      "sha256": "cd85526f5d941c590705b07ef6c580f1e65d147bf0f3d90afb93fa3302bc9444"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-mana-seal-sheet.png",
+      "sha256": "2329be682324b16783ba11336ba540bf064e14748d07f1ca88b6362dfed22d9d"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-rune-blink-sheet.png",
+      "sha256": "da62b67a5d6ff9572b43fdf40198cc86e09b0c33aa2d17f4b1d6fe5c005ff604"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-rune-circle-sheet.png",
+      "sha256": "a79c752733702f545362993fd33e9c645d82724c4c682e9e2254d50ce14a9ab9"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-rune-detonation-sheet.png",
+      "sha256": "3dc12d0dc3db905546b08283858313f136fa9d252dfabee34e682e0446dd90ad"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/rune-mage-rune-mark-sheet.png",
+      "sha256": "a3d09582a928d211f605b8facc0bbc8e1f7565dfc3b437765cc0c890457288ac"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-aimed-shot-sheet.png",
+      "sha256": "fad3cb4913753eacc749ee98ca15b1287add5482560e3062a76112b1e0071543"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-combat-roll-sheet.png",
+      "sha256": "adb6d4fe5fbf2f5e4b60d25f5d9573dd130c4652f081bd0b2529e3d57bd85541"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-eagle-eye-sheet.png",
+      "sha256": "a1f0ec1bc19c20b8cd3cd877776b9f039b5d00c13e1b5ee47644286c17506b76"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-execution-shot-sheet.png",
+      "sha256": "055e9c208490ba5301c6f2cf4e3b407036757a3d6a1bfd13b9f4a57de3fa3101"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-one-perfect-shot-sheet.png",
+      "sha256": "b24798c87238fc499aa395c992c5524b8d5bad25ffe51b3a5ea5b6e138478836"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-pierce-armor-sheet.png",
+      "sha256": "0c81e57262c5462507db979b590f86e2ce0556b3b4d2a5a41a0fd351c5a3408e"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/sniper-weak-point-mark-sheet.png",
+      "sha256": "327473296a2aa6b5f0def198b1373e4a2b67a3b6f3a15a9b106bd709dd60a516"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/storm-mage-chain-bolt-sheet.png",
+      "sha256": "b042331e737fa6fadf0891fed1800754810445716137e8fe32188014e4d291fd"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/storm-mage-static-shift-sheet.png",
+      "sha256": "e1fa21e24d1ac460e4a46fc9475e158b3a86399e1abaa120f1a697a465a2f1c2"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/storm-mage-stormfront-sheet.png",
+      "sha256": "b66bbdd4ada1a4cb86ed8fd6635bc112512eeff24a4a5a554fb698226cbe0c20"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-detonate-sheet.png",
+      "sha256": "4aefed1ff769918eadb024f458402053304e7544afa099ad86aa9cd652d8fbe0"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-grapple-dash-sheet.png",
+      "sha256": "fc87db1056091ff085f7b05c114b966836f9f8aa079d0209990e54f70879ab35"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-kill-zone-sheet.png",
+      "sha256": "c7a7ef7aa2f509385e1500dff0e84ff1333b6bb51a39cadc0d35324bbdb40417"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-lure-shot-sheet.png",
+      "sha256": "0b0fe39b17b56f224d050faa51041d3f25ca1c1b4609965ead6292cc746d9006"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-snare-trap-sheet.png",
+      "sha256": "ffa53b648e51e60d6ff365199520ebd30b0ba68d0696d49b9510184449f9d773"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-spike-trap-sheet.png",
+      "sha256": "8b4c1e1fa717bb763a2cec41115d3b9a5d019427b7c33e427c656b32db6ddf31"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-tactical-field-sheet.png",
+      "sha256": "30185ab818026603d05d9b1dec033d4fc1d900c5e4124c4b1433ceaebaca2902"
+    },
+    {
+      "path": "img/project-starfall/animations/combat-fx/skills/trapper-tripwire-sheet.png",
+      "sha256": "293093208f0c1ef1eccce903d9fb01471129300ef55cc28ab8cc2ae65184c264"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/ash-crawler-compact-sheet.png",
+      "sha256": "e867d734e5eb8d431a98ec4b51770d5f641f31a79d90872acfdeaba8185392ab"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/astral-archivist-compact-sheet.png",
+      "sha256": "f72804fed61b6ab52e35db1bbef9e35b82311127ea7836048e445e615dbaf3c6"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/bandit-cutter-compact-sheet.png",
+      "sha256": "75db0ac43e3472dcd56f4b93b9d236a1351e409993c0c2ea7ae720e4267032d1"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/bandit-cutter-direct-compact-sheet.png",
+      "sha256": "8f9b4fa11fb81d317f8fb09763bd1da52353ee0fa189fec378be43070fbeb428"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/bandit-cutter-hybrid-compact-sheet.png",
+      "sha256": "7aa816447fa254343c876faaad4746b854fa02f041204bac58c795a02cbf14d1"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/bandit-cutter-puppet-compact-sheet.png",
+      "sha256": "a9a6e1c6126188de0f7338f1f9492fb6d3f993ff9cc504af1b1f7c0f3bc8425d"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/bandit-cutter-reference-compact-sheet.png",
+      "sha256": "b55ee7f03fed3032fe0c4ae91bebe70969b633a504db40c683902fdd7df5b2e7"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/bandit-thrower-compact-sheet.png",
+      "sha256": "49e6e7d44b9411f188da1e80ae3933dc22a74e5076db1c0357440e6814dd68e8"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/brambleking-compact-sheet.png",
+      "sha256": "f8fb558ad1e45f855cdc0e97c99b80c6d431960264221cc746a2be469f500021"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/briar-stag-compact-sheet.png",
+      "sha256": "043827e3603db9688a88015cf73de1822a96c49bc6017630652644396a2dde8a"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/bristle-boar-compact-sheet.png",
+      "sha256": "551ac96a9d19e379a9f9c8d0e9c7438da5060b4ffd79f454dcc104edc3f83a43"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/cinder-spitter-compact-sheet.png",
+      "sha256": "a4f297153790028b620a095b8ffb3de32d1d8a54318be577e85617579bc82abc"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/clockbug-compact-sheet.png",
+      "sha256": "51f8f447d53cde7884226737eecf31ee9c308687f720366858a8c6c5f3daefe1"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/clockwork-titan-compact-sheet.png",
+      "sha256": "97ece26e6680ec22760696a04a9547a0841e48c657579587d54e5d224e664e40"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/cloudcall-acolyte-compact-sheet.png",
+      "sha256": "4b42fb1cf824045832bb2c7deb93d806f4bdc7625973553e45cc143134a220b2"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/coil-sentry-compact-sheet.png",
+      "sha256": "48f501d2159ea10db20ffae5b105b212c2302fc1374500af0974cd0ad76295d2"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/cracked-mimic-compact-sheet.png",
+      "sha256": "6994bf65dd45ea76c6917db0987d1d86605e1776aa064e497437c64b9d3f58d3"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/dew-slime-compact-sheet.png",
+      "sha256": "aca7ab6ed9c25b0dae4c84f93b2b0913a9e5d7c16bec0dbfc130d2948c686375"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/dust-imp-compact-sheet.png",
+      "sha256": "2e43f2d684ead05a3ebd233b60c0dc62b0851ebc212dd65b7549b362904241cd"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/eclipse-duelist-compact-sheet.png",
+      "sha256": "f6f4aff8bebbdb1b864fc61f1a4404e8f279d321556de246d2acaeb7000f3bca"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/eclipse-sovereign-compact-sheet.png",
+      "sha256": "e9ea6ad3bf87d5f4eb5a08e601b03a1b1b6745d9431f47c372a09f73a9074e62"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/ember-wisp-compact-sheet.png",
+      "sha256": "a6894433c005fd0ca85e5df14aa11e0c3780e9c96d3a4cc7776aeb9438f9468d"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/emberjaw-golem-compact-sheet.png",
+      "sha256": "f16629798a933491b39be23243176a8490c79b6f968929a5c09d3b268ef1a2d5"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/frostling-scout-compact-sheet.png",
+      "sha256": "8f0ef4b9b24d256c36387aca5c8d6b9b4913c32ea61ea1c67babba6a91029454"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/gale-harrier-compact-sheet.png",
+      "sha256": "12b7d8cc7ec24ef8cad952bbfed3b0674041968dfc92b4514e8226f0da380a34"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/glacier-sentinel-compact-sheet.png",
+      "sha256": "5a6a21944c88752de874a4dc3ab9624d16df542ef5d18d02857260eaf5a78f95"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/glowcap-healer-compact-sheet.png",
+      "sha256": "444b26d721917e0c6e54dea3e0908922c93d2fa4d462c5b198214cbd569bb8be"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/icebloom-oracle-compact-sheet.png",
+      "sha256": "9e27e3cb0f90a712cc61f14d63ac41ea0ceb1178470f177c6f94e817b5d039c2"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/index-scribe-compact-sheet.png",
+      "sha256": "78cfc92a3d7bf0b87b9d5b963cbe1110809c85996f3869faff1e1e188d5c085f"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/lava-tick-compact-sheet.png",
+      "sha256": "7a34ea38de477df4df226027a78ba73122303beee9f45eee0520f2f2b3190e36"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/lumen-sentinel-compact-sheet.png",
+      "sha256": "467bf152120b3b7e17a39dd86ce65f815077f8f0a5d959f803adbf4959d55b4e"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/mossback-compact-sheet.png",
+      "sha256": "1f529bb5e7fd803aae387558b9fec2bf7b1345b7750193d0ee022c9f44b5f597"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/oreback-beetle-compact-sheet.png",
+      "sha256": "9d2fecfd70d0a94ecedd509b5ff4c09f5eff78f4ed92049f8d5b9948be787f23"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/quarry-colossus-compact-sheet.png",
+      "sha256": "ee6f43b87565b37f4a1001d7723c5f9e25102cc524c04b9d179ed9da2f5cf242"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/rift-aberration-compact-sheet.png",
+      "sha256": "c38ea5fb9f33c32dee24c14e3dfb4fd216fcbbbf6c12981d01a7a12f014ea3b9"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/rimeback-brute-compact-sheet.png",
+      "sha256": "d970013daa7f50368ce8b5a178877c6ad51199aeb7dea2166de7771d8b3682dc"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/rimewarden-compact-sheet.png",
+      "sha256": "e7cd4fc998e21077d25a41366aa184fa062456a0d167b277611d513f6337a2e5"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/rust-ratchet-compact-sheet.png",
+      "sha256": "435479a1c5203f398606d60e542934a51048d9e037b359659281d566e8b529b0"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/scrap-warden-compact-sheet.png",
+      "sha256": "1ed586e058a9da2afc85669738a70925dab91a88d520f4cf777da20fd85ae274"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/shardling-compact-sheet.png",
+      "sha256": "3d0eac9c3aa075f20aba2e298446ca6b22ab6fb530abbb35a60a92e92caa029a"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/slimelet-compact-sheet.png",
+      "sha256": "df545b61672075ed966a4b5d493968153598a99f6fb26b127cae44adb4b8160e"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/snowglare-wisp-compact-sheet.png",
+      "sha256": "f4ff0ed9955146bdaa55d4f1ff094af1271992c442ff39c85c652100f778f3da"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/stormbound-archer-compact-sheet.png",
+      "sha256": "4ef5dd1b04323d23f7a46def7499966f79827945e00a5d6a2b7fda027392e830"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/stormbreak-roc-compact-sheet.png",
+      "sha256": "13ab59b7aadbd76b2e819503a4878f58f7eeecc79feb2a76acc821b379bcaecb"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/thorn-sprout-compact-sheet.png",
+      "sha256": "0727f80f3e86011c105ef3357db4d93ae9b71630b77bfd1a8109db16d88a91ef"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/thunder-ram-compact-sheet.png",
+      "sha256": "ea0f3f865e709c6f9aab37310d6b24fdd207bbb87d44dfcac8a85955b21e9f29"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/vine-snapper-compact-sheet.png",
+      "sha256": "29d685ce1e662f6e33e41262b777e2297771a429c5728197d652dbe0ca48444a"
+    },
+    {
+      "path": "img/project-starfall/animations/enemies/void-mote-compact-sheet.png",
+      "sha256": "416a1f18c2932ae9eea0a9b9f4db2088aa0c7fd9f234d7d9d94bc9005fa7c63c"
+    },
+    {
+      "path": "img/project-starfall/animations/enemy-projectiles/bandit-knife-sheet.png",
+      "sha256": "d874c20761ce5cc9f2528186c394c3490dd41603916d0b4d474a9310089659d2"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/arrow-release-sheet.png",
+      "sha256": "51ca1fd26e6a7416148877a59937ce5c28478ec3519a52083c5e6a8dbe2079db"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/cast-sheet.png",
+      "sha256": "e8a4b50ba09f7c6804c1177b3be7bee1ab15fea41d3c7b6a607b2e48ccf11074"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/defeat-burst-sheet.png",
+      "sha256": "2bb64d02fec7e95ed4ffaddfaef7a6c6cb4bbe4441ed4d0af7a51ae99c0c66d0"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/impact-sheet.png",
+      "sha256": "dca7d94767410f0134a82f7b159a5d31883525f6c3f5d67acea6ebbd52d483d8"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/party-buff-sheet.png",
+      "sha256": "23fe03f26df410f0fd205ef6d1558481cf8ef1d150717a48ca53f05add33acde"
+    },
+    {
+      "path": "img/project-starfall/animations/fx/slash-sheet.png",
+      "sha256": "dafa4d6d55ff5ff54e2f4f501f7c521135de5a56bb7d02d8f8eea1d4e1522e02"
+    },
+    {
+      "path": "img/project-starfall/animations/pets/starfall-fox-sheet.png",
+      "sha256": "5b693aced2704f99d9e4cb7acd764bdd1bce089f0117622711e8c99289062ab6"
+    },
+    {
+      "path": "img/project-starfall/animations/players/generic-player-sheet.png",
+      "sha256": "84e1ee0a0e9123c8b23a0d76390757eea37cbdae9cf119fe61217e212ec187d3"
+    },
+    {
+      "path": "img/project-starfall/animations/portals/boss-sheet.png",
+      "sha256": "644a7cb3848d2ac19a907474a1454e2c6d29e84e6de97d29251b8505e2be8b4b"
+    },
+    {
+      "path": "img/project-starfall/animations/portals/locked-sheet.png",
+      "sha256": "ddb8838c3f0fa6e335b7e005d48afe7f477590bd9982bf1b534c3259c8a1fe70"
+    },
+    {
+      "path": "img/project-starfall/animations/portals/standard-sheet.png",
+      "sha256": "61f4d897f1eed538d9b61ee8c86f1d50eb486aa4f7d268eb9a069efacb62bb09"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/archivist_star.png",
+      "sha256": "816d9946c3637cd5cc2a6e48b55f6cd25efd51019c326e2b6d5da0789fe52059"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/ashflare_core.png",
+      "sha256": "05afd2af55d3e139026738a66bddcd2990a8e926a55a16577b98c020a9f8ea19"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/astral_index.png",
+      "sha256": "9f7450602bf8141b95b231e020e4c9988f740b3faed1ad97aca4e2cc23a13f6c"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/bramble_heart.png",
+      "sha256": "724c9ed31fb1f21b927bd99738ad7116f8e58e5a822d73ee2961ae55e838ffa0"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/bristle_charge.png",
+      "sha256": "4ec26e22e76e76a51a31e277344ba2962663b870216385d38ff71af31f74bc0f"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/clockwork_patience.png",
+      "sha256": "8e649a275164663a46cd46c3357a3a6c1a7f5eadd29206a77ef0babd58f6eec2"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/cloudcall_vellum.png",
+      "sha256": "ff6a3cbf95cc2877a7fb026eb9189b6b389d53323231f86bd1ae2658785e7701"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/eclipse_corona.png",
+      "sha256": "95f1c1491869d5deb6bf12fc733af7c96633e17c9431c22806b2854e7d60875a"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/ember_glint.png",
+      "sha256": "5ffcad694a486816cc65432eb6e018fb548b0066efe29f61102035856ca317ad"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/frost_thread.png",
+      "sha256": "2a2877c880e9ee6d598adeb0c3c01be4524dda909b0db391f13523ecdaed3dc6"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/gel_spark.png",
+      "sha256": "ba8291254e0c529323f0bb347e9c9c162b4f1776aa19cd01d94a9bed6c28139f"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/hunter_tempo.png",
+      "sha256": "b11a9a921137ac27aeac42cebc1f68b82f4a1887e4b63f45fd8a9c5cc8e748d8"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/mimic_cache.png",
+      "sha256": "b57fa52066e06880cc2eadd6bdb30ddcfab5ee1c23959e29212905aba5b101e0"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/mossguard_oath.png",
+      "sha256": "74423d317b3bc5aa467efb44cc842d1b8885f5dc83263e38a5513083abc8d6ad"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/rift_splinter.png",
+      "sha256": "b7a31e7891089febc98d58d7c527b660c80dc4da9f3b2e3d9e2ceb9f3e535822"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/rustcoil_lens.png",
+      "sha256": "2ff116b7bfc0fe654c1eba452a1097e8185766b18881b449f8818c23cc47a3e1"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/storm_fletching.png",
+      "sha256": "7400a41fb8791dec651465800b1c6c209e157eec4819250c3b2c36f34fedca9d"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/stormbreak_plume.png",
+      "sha256": "1e1036f3427de3e0771f45cac241762ac39c372a79f9652aac3507bcca3ccb70"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/thorn_focus.png",
+      "sha256": "69aa53b297fa31680115058858426cc318306d1fc494e3436204c2ea7711b482"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/titan_gearheart.png",
+      "sha256": "66c35562e2f36403dd64513b6461f3bba071be27a331e79745ad62024f01cccf"
+    },
+    {
+      "path": "img/project-starfall/cards/icons/vinebinder_loop.png",
+      "sha256": "5321a1ad646c43a94570878198a4d2823f6a5716508d570acefd73b946d4d029"
+    },
+    {
+      "path": "img/project-starfall/characters/generic-player.png",
+      "sha256": "d1331b8980f7b060b2b6374affd3300a672768533911e246bbebf7002fc33159"
+    },
+    {
+      "path": "img/project-starfall/enemies/ash-crawler.png",
+      "sha256": "85c85cf8ebcf263e31ad17c32453982fefb5fccaff3c1b1114519ce34a724643"
+    },
+    {
+      "path": "img/project-starfall/enemies/astral-archivist.png",
+      "sha256": "beb1d8e302a2a57d8078c438ed19c46e69f586a862a256dcd3e6873f299958ae"
+    },
+    {
+      "path": "img/project-starfall/enemies/bandit-cutter-direct.png",
+      "sha256": "3a8d901b320ba5bc7f8999f3bac339da7f2966a7ebdcbcd39c7dda2f405f8134"
+    },
+    {
+      "path": "img/project-starfall/enemies/bandit-cutter-hybrid.png",
+      "sha256": "e472786b57c797038d9498f5a298b1aca7a8806468ca436c029b3890e3f11186"
+    },
+    {
+      "path": "img/project-starfall/enemies/bandit-cutter-puppet.png",
+      "sha256": "aab596b7eb2d278b516cc8121c9db5cd4ea571a46d915483e7ad5b3e076164fb"
+    },
+    {
+      "path": "img/project-starfall/enemies/bandit-cutter-reference.png",
+      "sha256": "8842764ad1f2e3eeadb79e30586febbea6276087d1b3564116cc746553a57c74"
+    },
+    {
+      "path": "img/project-starfall/enemies/bandit-cutter.png",
+      "sha256": "457efb3bc973804c67057fae6812a31d939cbfb2ed50ad20ab72455ae3430b8f"
+    },
+    {
+      "path": "img/project-starfall/enemies/bandit-thrower.png",
+      "sha256": "af628b0fd81d53195404a9f6d06de7cadb2664d3cd5880886309faee163b4616"
+    },
+    {
+      "path": "img/project-starfall/enemies/brambleking.png",
+      "sha256": "f4cd55767d65b38b804eb8e6df4df4ed3a05eac4f10d6a327d4c9785728a9cf5"
+    },
+    {
+      "path": "img/project-starfall/enemies/briar-stag.png",
+      "sha256": "1f3ba21e0e5c1265aa51f7d7cdae894fc3d904c5951adf4d6b88c853d7d7160c"
+    },
+    {
+      "path": "img/project-starfall/enemies/bristle-boar.png",
+      "sha256": "1597b0aa08b8285d915ceb861e08a54e73ca8f3befae0a4067dc3b73365e8d1f"
+    },
+    {
+      "path": "img/project-starfall/enemies/cinder-spitter.png",
+      "sha256": "5728c1f778192fbff8b6073cad10e3386f986b8580356ee4043d7e5f797bc77b"
+    },
+    {
+      "path": "img/project-starfall/enemies/clockbug.png",
+      "sha256": "f0a54b75cf1179b1f945dda4bfe73bfba87d10f5d947e8946c0dbd2d8df3de4c"
+    },
+    {
+      "path": "img/project-starfall/enemies/clockwork-titan.png",
+      "sha256": "9b2ac085f4e1b7eeff93904881841ae9fc102ab1c40fc1e1196a680b7c54fcc4"
+    },
+    {
+      "path": "img/project-starfall/enemies/cloudcall-acolyte.png",
+      "sha256": "c684d61f870b5cc8176705974fdf18babfa539c1617870eae0ad94c87adfa371"
+    },
+    {
+      "path": "img/project-starfall/enemies/coil-sentry.png",
+      "sha256": "869ae2e3886e4bd7298ccd6b18db11df1d5f4d006fcb248d2a5445974e0ee2b1"
+    },
+    {
+      "path": "img/project-starfall/enemies/cracked-mimic.png",
+      "sha256": "ecabb9156d09fd12b0d2221b5065365b2bfd0f8b4772fb078a11e11289e741b3"
+    },
+    {
+      "path": "img/project-starfall/enemies/dew-slime.png",
+      "sha256": "af72c20b8de575c7ce2bea213f51c6eb7c4639900d772de87631032f8dfda14a"
+    },
+    {
+      "path": "img/project-starfall/enemies/dust-imp.png",
+      "sha256": "0223137f3d09bc8b4df335957174db9faa7fb50aab048b15e02f210b46bb715a"
+    },
+    {
+      "path": "img/project-starfall/enemies/eclipse-duelist.png",
+      "sha256": "60c11adc90044bdab5a2d49abe751afad52c472951995f7bfdf83bc9b7b32239"
+    },
+    {
+      "path": "img/project-starfall/enemies/eclipse-sovereign.png",
+      "sha256": "a2a3d7e59d01fad784fd3be1587899bc7682c2e030572f55d21ed1bc4408c802"
+    },
+    {
+      "path": "img/project-starfall/enemies/ember-wisp.png",
+      "sha256": "4a17bef177d343b211744111713de8ca2dfde1caca3979268bf2f73228b94d59"
+    },
+    {
+      "path": "img/project-starfall/enemies/emberjaw-golem.png",
+      "sha256": "c11e85e7a1c527e7532d6f05726ad84f50ab727d2303636b15675366b32c56b3"
+    },
+    {
+      "path": "img/project-starfall/enemies/frostling-scout.png",
+      "sha256": "bdfba02fc5d054ec9da05cc1e63de18f540a483488314a38afce04355aba1b46"
+    },
+    {
+      "path": "img/project-starfall/enemies/gale-harrier.png",
+      "sha256": "8fcb186ccceff31e49a8c0dd4ecf6f230cd0666ec7bdfd29e15f3771f1781afe"
+    },
+    {
+      "path": "img/project-starfall/enemies/glacier-sentinel.png",
+      "sha256": "608c16eda9d6aadbb1011c4ddb4e121b2abf155a0a684ecb89c07b4386112c6c"
+    },
+    {
+      "path": "img/project-starfall/enemies/glowcap-healer.png",
+      "sha256": "a1a2a0bba5424de83f6eb02e23a92265b4b1c34d0606f2fdfad60972064fdd23"
+    },
+    {
+      "path": "img/project-starfall/enemies/icebloom-oracle.png",
+      "sha256": "86454e91cb9a1c33040e0334bcf57df0fa6973bb3fcbc3ea3a55470098f4f07b"
+    },
+    {
+      "path": "img/project-starfall/enemies/index-scribe.png",
+      "sha256": "c63ca17ff4e3519e18ccd99cf21970e05bf3ba14cd97b8ead74ff5b13a31e2c9"
+    },
+    {
+      "path": "img/project-starfall/enemies/lava-tick.png",
+      "sha256": "0b8132ec818b14b7922556596120e041fea92eaa39eb65e1335d21e26ff15699"
+    },
+    {
+      "path": "img/project-starfall/enemies/lumen-sentinel.png",
+      "sha256": "2d523a81b17f8c92ec9b3bd868a38d332808df3b6029493897e7ce2f4f25538c"
+    },
+    {
+      "path": "img/project-starfall/enemies/mossback.png",
+      "sha256": "ef69c584749a114339318a2010ed24c09231d545c2de8af9944e02d339b4d3ca"
+    },
+    {
+      "path": "img/project-starfall/enemies/oreback-beetle.png",
+      "sha256": "c776d88d7d509dcf648188ab5f44b7e18371923af8619f351303a9fae6613bf8"
+    },
+    {
+      "path": "img/project-starfall/enemies/quarry-colossus.png",
+      "sha256": "df86040bfeef414f2f836ae4794377860ef1e5f9828aed44986e9b0f1e8f9908"
+    },
+    {
+      "path": "img/project-starfall/enemies/rift-aberration.png",
+      "sha256": "150c7f5fe1603480ac41be1ace38f8335e9ee02f061f47e1021411fa9eceac78"
+    },
+    {
+      "path": "img/project-starfall/enemies/rimeback-brute.png",
+      "sha256": "f19e85a281d4484d1422bea2270e7784f2a5ef3dfc4d74a0e5afa38d2c1f34fa"
+    },
+    {
+      "path": "img/project-starfall/enemies/rimewarden.png",
+      "sha256": "ad72fee95ef55d347a64196bd911f34d75d9d1bb999ca1e4b5217ad1625b41a9"
+    },
+    {
+      "path": "img/project-starfall/enemies/rust-ratchet.png",
+      "sha256": "1f41511d40fbb35d1fbfce4178339e9caa4d493d0d1df83892ed92a7a5ae42f4"
+    },
+    {
+      "path": "img/project-starfall/enemies/scrap-warden.png",
+      "sha256": "926d050a1bcb744855fbc06fd2009e7b1d2346f78655253e2d30cdd922cbf314"
+    },
+    {
+      "path": "img/project-starfall/enemies/shardling.png",
+      "sha256": "e10bf621a553b1475351eeba70b8e841bc6783504e0aa0ed7c4f1d744a1eb074"
+    },
+    {
+      "path": "img/project-starfall/enemies/slimelet.png",
+      "sha256": "e665e0f32e6edb2d1c795ab0694f8405d18e814df608a319155d3d52a94daca1"
+    },
+    {
+      "path": "img/project-starfall/enemies/snowglare-wisp.png",
+      "sha256": "d520000a7cb4b89e9e1b162ffe57401ca7f29cea9827b42fc084288c13830c53"
+    },
+    {
+      "path": "img/project-starfall/enemies/stormbound-archer.png",
+      "sha256": "a0002b0b5d4916fa206f7c3b9e1c6ff60214510a5644adc786afa9668cb2dd4f"
+    },
+    {
+      "path": "img/project-starfall/enemies/stormbreak-roc.png",
+      "sha256": "91c6eabc802a0e5b149fbf39c2b9c1a2de2c41f3f9ddbedf23ffde8952b38957"
+    },
+    {
+      "path": "img/project-starfall/enemies/thorn-sprout.png",
+      "sha256": "1e8c42e826b6e60ad6c1d57b5314f633181d82b243b5236b17087f3e1dc645f0"
+    },
+    {
+      "path": "img/project-starfall/enemies/thunder-ram.png",
+      "sha256": "62efa70742348d1b994e8b7e1f2142bdf5cad93714ad6ee8c88de61fa7339eba"
+    },
+    {
+      "path": "img/project-starfall/enemies/vine-snapper.png",
+      "sha256": "a50017df137b26646c5938574051303299e0afe175587210c0b788a1f65ca1de"
+    },
+    {
+      "path": "img/project-starfall/enemies/void-mote.png",
+      "sha256": "8ed7f542fc49a28c010c0d21cd86ab42cc3e76a674748a408abb5d8389231411"
+    },
+    {
+      "path": "img/project-starfall/environment/props/ashglass-pass.png",
+      "sha256": "1541a1e6af9cca89d902f6f48be976a6d76cebdaa2e3801d54b04f3fba470736"
+    },
+    {
+      "path": "img/project-starfall/environment/props/astral-archive.png",
+      "sha256": "f142553a9f4afebf77888f5aec6bf9dbbe2fe8198be779a4b1aad48f96a5f558"
+    },
+    {
+      "path": "img/project-starfall/environment/props/astral-observatory.png",
+      "sha256": "ff0409b6b3a6b16bf286ac4020ad2a4d5674f56455f971ec2a82e525a0179c98"
+    },
+    {
+      "path": "img/project-starfall/environment/props/astral-stacks.png",
+      "sha256": "1245933e2e02a636c671b40eca5287296991eaac56844982cf9d45f1fda0c490"
+    },
+    {
+      "path": "img/project-starfall/environment/props/bandit-ridge-camp.png",
+      "sha256": "9c4ac7c4470437d1dd5840d4f13d0ac65d4ff8ae041c540a1488d65bfcc4c664"
+    },
+    {
+      "path": "img/project-starfall/environment/props/beast-archer-trial.png",
+      "sha256": "24eb08d23e31e16fc1b8ae2dc0f2c120ebf00eca0b15e60428032a649e5dcced"
+    },
+    {
+      "path": "img/project-starfall/environment/props/berserker-trial.png",
+      "sha256": "6fd4a593d4b95c9b252b82f2b234a4ae13c4f25a4ebff39458f8ed4438ddf29f"
+    },
+    {
+      "path": "img/project-starfall/environment/props/bramble-depths.png",
+      "sha256": "7422e5b987128622d78f46edd549112ae269b6810166fe6d81a663a8f927943b"
+    },
+    {
+      "path": "img/project-starfall/environment/props/brambleking-court.png",
+      "sha256": "38154626fb89fa85401efcf71ca7487f6af2693adb6784e056432bcd36601d66"
+    },
+    {
+      "path": "img/project-starfall/environment/props/cinder-hollow.png",
+      "sha256": "3ff3132f6254579aa43bcc4d8601bdf26b6374f44430e48255da7fe3b5e0d96c"
+    },
+    {
+      "path": "img/project-starfall/environment/props/cinder-refuge.png",
+      "sha256": "4425c170bb85d08848d455316952e02bb56d967e44127ee52a8e9a1adf408d3d"
+    },
+    {
+      "path": "img/project-starfall/environment/props/deepcore-core.png",
+      "sha256": "b9b99f014e470613bfd9f3ea69afe7266c2257d5d4241ec0fb43ae40c65b39f2"
+    },
+    {
+      "path": "img/project-starfall/environment/props/duelist-trial.png",
+      "sha256": "f10d851c15940b34e84174982a2ae6a3624a57096dc9a36a0b190168ca2c0d1d"
+    },
+    {
+      "path": "img/project-starfall/environment/props/eclipse-frontier.png",
+      "sha256": "a54d0b9c3338c58ba1ac322982e2bde5ebadc2d91b7a1a3379e6f8d238474c1f"
+    },
+    {
+      "path": "img/project-starfall/environment/props/eclipse-throne.png",
+      "sha256": "61de86c505d8e7483c9a0f6fd40935f4e8b9cfb025a63f9adad7a65b9b64dd08"
+    },
+    {
+      "path": "img/project-starfall/environment/props/emberjaw-furnace.png",
+      "sha256": "172cfaa568b4863ba22e564a7f18205f44493a68dfa91eb2c3183149384f143a"
+    },
+    {
+      "path": "img/project-starfall/environment/props/emberjaw-lair.png",
+      "sha256": "93f1926a0b750b52e1eaa25e8589339f9d56e4d759bb63db2bda068a70c4faaf"
+    },
+    {
+      "path": "img/project-starfall/environment/props/endless-rift.png",
+      "sha256": "726d0dc22f3e4a9502d9846b2fe58b8cf24f1b06cf690a1858f7448b15bb44bd"
+    },
+    {
+      "path": "img/project-starfall/environment/props/fire-mage-trial.png",
+      "sha256": "2cf3082c0ad2b9bdd3e3d50704d4959b64cb697d5ab68f3d8b11bac1a52c1714"
+    },
+    {
+      "path": "img/project-starfall/environment/props/frostfen-camp.png",
+      "sha256": "445217fc6a4e8edaee9c1adcb6df7ee8f9e4a86125e897d5af0371119325f60a"
+    },
+    {
+      "path": "img/project-starfall/environment/props/frostfen-outskirts.png",
+      "sha256": "1ae0a1f4bfaf60b4d94122cc6e47c70b8183a2af5cf09d86ab69f707a3d92b32"
+    },
+    {
+      "path": "img/project-starfall/environment/props/gearworks-vault.png",
+      "sha256": "9d349173d2a22a8a6e5da10d802ce9c2386a233195c39f9e76e454f5a52c594a"
+    },
+    {
+      "path": "img/project-starfall/environment/props/glacier-spine.png",
+      "sha256": "cdf1fed2ef1b2f53adb8b5c15764e2bfb86e84c1c4314e449521ddaabfb6f586"
+    },
+    {
+      "path": "img/project-starfall/environment/props/greenroot-meadow.png",
+      "sha256": "fa7113641da883a30e75a3b96d00d8bd611fc25a68a96e9e798355ed520ab544"
+    },
+    {
+      "path": "img/project-starfall/environment/props/guardian-trial.png",
+      "sha256": "0483e9ceecbd68b71b43773d508d7a16ce7529a97d428fd09e6bd4464918ab1c"
+    },
+    {
+      "path": "img/project-starfall/environment/props/oreback-quarry.png",
+      "sha256": "8fa59b7a06c3bf299ca20724f37282e45d4c62b5e28e1c900287d0c4c04f53c9"
+    },
+    {
+      "path": "img/project-starfall/environment/props/rimewarden-sanctum.png",
+      "sha256": "a18848229f44f0bca61fbbecf37ce9aa9385f760327396476ca9f4018a20d480"
+    },
+    {
+      "path": "img/project-starfall/environment/props/rimewarden-vault.png",
+      "sha256": "fc5751948dd85bf6008fb58d377ee4dee35a49ae2e2d6ce0af229c70e9a764b8"
+    },
+    {
+      "path": "img/project-starfall/environment/props/rune-mage-trial.png",
+      "sha256": "461b34d316093e99cb210533fe6df7c3878552abcd170d434155446fd508192e"
+    },
+    {
+      "path": "img/project-starfall/environment/props/rustcoil-outpost.png",
+      "sha256": "9310d9246e90a8fc7a366d4cd3ec124feac3e8d382341487f3186754b2bc2bf6"
+    },
+    {
+      "path": "img/project-starfall/environment/props/rustcoil-ruins.png",
+      "sha256": "1f55368cb607ac0798f18b451aa78657c17434c881bf394a4371c9e8701e727a"
+    },
+    {
+      "path": "img/project-starfall/environment/props/sniper-trial.png",
+      "sha256": "d5508418570807bb73453d3d6c0f330b4c932c5bb74ffe94f8d4c63518ffe436"
+    },
+    {
+      "path": "img/project-starfall/environment/props/starfall-crossing.png",
+      "sha256": "f7804204e37e8fcf29514c3bcba292767f5048531c1e7ee9184d77d84bb6dbb9"
+    },
+    {
+      "path": "img/project-starfall/environment/props/storm-mage-trial.png",
+      "sha256": "bc9666b394ba6ebab2dfc60391c45642c8fea60232c3e4bcffd20ac8668848e9"
+    },
+    {
+      "path": "img/project-starfall/environment/props/stormbreak-aerie.png",
+      "sha256": "3a6be9c5cef4ee5eb1a72cbbd38726dd847566f9d4adad3de40762d7acfba8c9"
+    },
+    {
+      "path": "img/project-starfall/environment/props/stormbreak-cliffs.png",
+      "sha256": "9d034ae0d1808b6482ec5462735c2f79b0f5353344953e26eae78bc7b2b26f4f"
+    },
+    {
+      "path": "img/project-starfall/environment/props/stormbreak-haven.png",
+      "sha256": "8f9477fd557bb0292dff58d79a6fd182b19d6c4a6d61026c9420b96e9ea1f952"
+    },
+    {
+      "path": "img/project-starfall/environment/props/thornpath-thicket.png",
+      "sha256": "c51a0c43c582b1ec0cfa93a52551bf62fb2045a06ee23d73ea3b612a225a3b7e"
+    },
+    {
+      "path": "img/project-starfall/environment/props/titan-foundry.png",
+      "sha256": "ff43f699357e3a3fff7bc3aa5d8aded8b8c5436bef9063991c07fc9fd555e673"
+    },
+    {
+      "path": "img/project-starfall/environment/props/trapper-trial.png",
+      "sha256": "368083f44f1ed755d3e09591c46bb9665b7c0ce6934ec7ce6d445e5d4b6c1dfa"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/ashglass-pass.png",
+      "sha256": "4b4f3c550ea9584669642d5762a587b5e0b573fe2780b1840f067be941d07fbf"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/astral-archive.png",
+      "sha256": "65f54002f961dd75d8be2b558822b291f74c1f82e9a141d5024502e97d81c600"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/astral-observatory.png",
+      "sha256": "65f54002f961dd75d8be2b558822b291f74c1f82e9a141d5024502e97d81c600"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/astral-stacks.png",
+      "sha256": "65f54002f961dd75d8be2b558822b291f74c1f82e9a141d5024502e97d81c600"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/bandit-ridge-camp.png",
+      "sha256": "630bd0bbe85e02bc1aadc13bfdd9cabcc2c66634e5763007108ecc8bd4ab3019"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/beast-archer-trial.png",
+      "sha256": "52b45f04781090724cee39924e24230d5021cbbc6a45901cea6ce53bddceb928"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/berserker-trial.png",
+      "sha256": "4b4f3c550ea9584669642d5762a587b5e0b573fe2780b1840f067be941d07fbf"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/bramble-depths.png",
+      "sha256": "7918d92bcaa9b71900ffb0d0e49933fb3b0b11ae5439e1f401971cc1cfbdc6d2"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/brambleking-court.png",
+      "sha256": "7918d92bcaa9b71900ffb0d0e49933fb3b0b11ae5439e1f401971cc1cfbdc6d2"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/cinder-hollow.png",
+      "sha256": "4b4f3c550ea9584669642d5762a587b5e0b573fe2780b1840f067be941d07fbf"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/cinder-refuge.png",
+      "sha256": "4b4f3c550ea9584669642d5762a587b5e0b573fe2780b1840f067be941d07fbf"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/deepcore-core.png",
+      "sha256": "58e09eecb9c6c70ea8256527fef58ea2a247a4cc834388f7e1f7915003618323"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/duelist-trial.png",
+      "sha256": "630bd0bbe85e02bc1aadc13bfdd9cabcc2c66634e5763007108ecc8bd4ab3019"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/eclipse-frontier.png",
+      "sha256": "314137dcc5023c907fcbe1eb4f379cf9fc4297aa686d6291d6d7d5e1faf11d79"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/eclipse-throne.png",
+      "sha256": "314137dcc5023c907fcbe1eb4f379cf9fc4297aa686d6291d6d7d5e1faf11d79"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/emberjaw-furnace.png",
+      "sha256": "4b4f3c550ea9584669642d5762a587b5e0b573fe2780b1840f067be941d07fbf"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/emberjaw-lair.png",
+      "sha256": "4b4f3c550ea9584669642d5762a587b5e0b573fe2780b1840f067be941d07fbf"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/endless-rift.png",
+      "sha256": "314137dcc5023c907fcbe1eb4f379cf9fc4297aa686d6291d6d7d5e1faf11d79"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/fire-mage-trial.png",
+      "sha256": "4b4f3c550ea9584669642d5762a587b5e0b573fe2780b1840f067be941d07fbf"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/frostfen-camp.png",
+      "sha256": "1bc791fef16d57be239cc3a432974fce650c3333406e1983f6b44159b49e296b"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/frostfen-outskirts.png",
+      "sha256": "1bc791fef16d57be239cc3a432974fce650c3333406e1983f6b44159b49e296b"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/gearworks-vault.png",
+      "sha256": "58e09eecb9c6c70ea8256527fef58ea2a247a4cc834388f7e1f7915003618323"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/glacier-spine.png",
+      "sha256": "1bc791fef16d57be239cc3a432974fce650c3333406e1983f6b44159b49e296b"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/greenroot-meadow.png",
+      "sha256": "52b45f04781090724cee39924e24230d5021cbbc6a45901cea6ce53bddceb928"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/guardian-trial.png",
+      "sha256": "58e09eecb9c6c70ea8256527fef58ea2a247a4cc834388f7e1f7915003618323"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/oreback-quarry.png",
+      "sha256": "58e09eecb9c6c70ea8256527fef58ea2a247a4cc834388f7e1f7915003618323"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/rimewarden-sanctum.png",
+      "sha256": "1bc791fef16d57be239cc3a432974fce650c3333406e1983f6b44159b49e296b"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/rimewarden-vault.png",
+      "sha256": "1bc791fef16d57be239cc3a432974fce650c3333406e1983f6b44159b49e296b"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/rune-mage-trial.png",
+      "sha256": "65f54002f961dd75d8be2b558822b291f74c1f82e9a141d5024502e97d81c600"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/rustcoil-outpost.png",
+      "sha256": "58e09eecb9c6c70ea8256527fef58ea2a247a4cc834388f7e1f7915003618323"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/rustcoil-ruins.png",
+      "sha256": "58e09eecb9c6c70ea8256527fef58ea2a247a4cc834388f7e1f7915003618323"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/sniper-trial.png",
+      "sha256": "630bd0bbe85e02bc1aadc13bfdd9cabcc2c66634e5763007108ecc8bd4ab3019"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/starfall-crossing.png",
+      "sha256": "88af61371a0e3db2dedb1da89d62051bd491a07d45ed797b625b83adf762aa21"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/storm-mage-trial.png",
+      "sha256": "51a2b6b92d2138cf0e6d2df0d4a99882d497540da8fdb00b5162d3cd8d9daf76"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/stormbreak-aerie.png",
+      "sha256": "51a2b6b92d2138cf0e6d2df0d4a99882d497540da8fdb00b5162d3cd8d9daf76"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/stormbreak-cliffs.png",
+      "sha256": "51a2b6b92d2138cf0e6d2df0d4a99882d497540da8fdb00b5162d3cd8d9daf76"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/stormbreak-haven.png",
+      "sha256": "51a2b6b92d2138cf0e6d2df0d4a99882d497540da8fdb00b5162d3cd8d9daf76"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/thornpath-thicket.png",
+      "sha256": "7918d92bcaa9b71900ffb0d0e49933fb3b0b11ae5439e1f401971cc1cfbdc6d2"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/titan-foundry.png",
+      "sha256": "58e09eecb9c6c70ea8256527fef58ea2a247a4cc834388f7e1f7915003618323"
+    },
+    {
+      "path": "img/project-starfall/environment/ramps/trapper-trial.png",
+      "sha256": "7918d92bcaa9b71900ffb0d0e49933fb3b0b11ae5439e1f401971cc1cfbdc6d2"
+    },
+    {
+      "path": "img/project-starfall/environment/structures/town-landmarks.png",
+      "sha256": "20a0744fa951426a212f66ac4d034f76a70d8be8d22eb88bbb10e0156be3d1ac"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/ashglass-pass.png",
+      "sha256": "c964a79ded2b80bec745ffba085f804f7ea8d6ca1597bf72ebd26d37de8d203f"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/astral-archive.png",
+      "sha256": "7725b1bb351c2860674a3e2c533ef845502c9ca56d7fbb12220219d91a6d4746"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/astral-observatory.png",
+      "sha256": "b3747ad0bf17c99ce5e2503fd29d6ba858056dd86f957396ffcee464a030908b"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/astral-stacks.png",
+      "sha256": "1537a5784f3fc4e20972327e9c71e89243cc71883830d4334e80dc9e8cb33584"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/bandit-ridge-camp.png",
+      "sha256": "b131ac3dca2ac00ee56dfa35f443a13ebd671edb4b4f096d7815fc93740abc01"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/beast-archer-trial.png",
+      "sha256": "ce94d58e0d4ce440aeab524768c3a5f768f0e250bffcdb429bafad82a046b753"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/berserker-trial.png",
+      "sha256": "9ffaf71636ee2aa93aa36feb4f36397f1feb675f5071da9c4e21d9149f52dc18"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/bramble-depths.png",
+      "sha256": "c1ac1ca033b603e9a44de20022088d770a7724d56eb9076318466957fe97b32e"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/brambleking-court.png",
+      "sha256": "f269fcaaf1b4710ea9b1958e4a1c84925a356263bcb9e2c51ea0e43eed43280b"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/cinder-hollow.png",
+      "sha256": "f00faf41db86a5443eb57eec25c340809e41e7247c3e6d657c13ec93fafa4e1e"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/cinder-refuge.png",
+      "sha256": "0d7455fafa0c891c84a81a970d22323b24c3f7f1cae89c4633857e5703430d78"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/deepcore-core.png",
+      "sha256": "d7e1895c95695f974564e90accc98884cd20595acd8152dc16381d0aa6c408fe"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/duelist-trial.png",
+      "sha256": "14f9f5fd16bdc19cba7a12105028b1d8e2fa80fa112ef0a30194fa71c65a7fbb"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/eclipse-frontier.png",
+      "sha256": "942c2b7506899f0479e04a671ac1398159b46d0c01c80fe4611b20b2b822fc93"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/eclipse-throne.png",
+      "sha256": "c8a44b9f0141c46f2f652a9092750b3762a6e5f517c4e8ec1119a104a8ed103d"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/emberjaw-furnace.png",
+      "sha256": "83a8ef5611296d31b529ddf9a4eb675aedf37475bd041381e1318f35786fe950"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/emberjaw-lair.png",
+      "sha256": "23aac56c70c086fc0ba845a64a7050e109d27a44a67227f330e241bc3a7812b3"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/endless-rift.png",
+      "sha256": "3b130e5fdab47ddbacf6a6ef45ff16eaa49345d0de7a918f2e6700aaead2e2e5"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/fire-mage-trial.png",
+      "sha256": "4d5cc4d68e321d95ac58c8b72850cafce8cd121dbd19a2ecd3e3fad11b086eb8"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/frostfen-camp.png",
+      "sha256": "f92783ec69dfd0270e59921de9997e217ece993bc62949b7304937b969948841"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/frostfen-outskirts.png",
+      "sha256": "7fd21e03520a5f39d1a9980c558f360dbfbc71f4866daf42a0ba01103dfdc66d"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/gearworks-vault.png",
+      "sha256": "af542d4561067fb74402ab8e50aea66a2789989f4b14f6069008aa907f2d48e2"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/glacier-spine.png",
+      "sha256": "e2be9785286107cfc4a4cbc431fcc518266e48946a35d39be9434b271c80bab0"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/greenroot-meadow.png",
+      "sha256": "32758aed56532e56cdadaa311f97ba041e387be36646e4c0ae4bd30c1b995f55"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/guardian-trial.png",
+      "sha256": "94e0f5bb797125abf73be5bdd85910042cc0565650d98ca98ab758a87a6c5062"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/oreback-quarry.png",
+      "sha256": "cdbad63c4d8e7b8dfd18a0d871726d35162bb3d9ec50d0c564b4311ca8723c40"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/rimewarden-sanctum.png",
+      "sha256": "3c28afa1f6b87cae8ecbfea3a6c4e743e0f51ff7557239d1c45c4f8c85f91c4d"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/rimewarden-vault.png",
+      "sha256": "f4c80f55695755bff86736d797d1b698803ef6a1607c8da2468a99a5de217a5d"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/rune-mage-trial.png",
+      "sha256": "292bd314814107c5878b28ce9010d6142f58f7a725fd0c431fd2e8a490c5e728"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/rustcoil-outpost.png",
+      "sha256": "f0fdfb7b4f146ae68f67df9b5e53927bf94bf73b701449492fd139c5a6fd9344"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/rustcoil-ruins.png",
+      "sha256": "520d8351ed288ff58cc0d87b62948c592bed155031c28472bee3e5391eb98c8a"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/sniper-trial.png",
+      "sha256": "a640e0ab1e75d118ac90c464bfc1f16d75f7e3f79dff80740e2ee9cb2ce46635"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/starfall-crossing.png",
+      "sha256": "8a5da502f8d87d3d17f2970f3c4c9220d2d2073fc33c0498b8d84f3d81f2b676"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/storm-mage-trial.png",
+      "sha256": "6364f4836558f45f6acaa6159b5601e20f15e1f53a690a2f9a44e6517c81511b"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/stormbreak-aerie.png",
+      "sha256": "acdfb2c16386a07b2170e54773b0b95f0fbc5b14375d9f969cc393b498c83b22"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/stormbreak-cliffs.png",
+      "sha256": "47dc02bc607e02047018690b23da9398909835fdac2490a56eb13ce1e3557ca7"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/stormbreak-haven.png",
+      "sha256": "c34245d23cd29068bf3ffeb3be370393a1f0b2c0bd13d4d362bf7ba82f1f659f"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/thornpath-thicket.png",
+      "sha256": "b90860a2532124f070fb7c44ac9e18c35609c13f58a96444bf6e15742d53a012"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/titan-foundry.png",
+      "sha256": "6e1b5fe01d5a1399135de9abfb044764c21032fd1791308e53e43d32c6a96380"
+    },
+    {
+      "path": "img/project-starfall/environment/terrain/trapper-trial.png",
+      "sha256": "a5c90993de5ae2813be327b36544ad6a7460e0e0a354739778ff710ae369ebab"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/adventurer-cutlass-atlas.png",
+      "sha256": "a717f73eb4e32370cbe485d9160b011029a7472b62907be380bc5e213b54a23c"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/aetherstep-boots-atlas.png",
+      "sha256": "c4af1f13957c91add83511322d883597c0f6b41cfd48811aee8ac175670704ae"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/apprentice-staff-atlas.png",
+      "sha256": "1bd5d2bfcb73ad85f88105cb53d6319533b020ceee1b2c25cd178a9f318b73e7"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/archivist-crown-atlas.png",
+      "sha256": "c70c459c675e578189a56bc07c07bab60e643e92a90898f70a818e44355bf6af"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/ashen-jaw-helm-atlas.png",
+      "sha256": "2d6ef5efc5d70eb288c85ae454b24b1d384402968d085dc1c12bba37db3c7854"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/astral-robes-atlas.png",
+      "sha256": "929f74415d4ecf61350d569c4938e4ac7982db278d0dd27f92dfc4b9242620c9"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/balanced-focus-atlas.png",
+      "sha256": "e7efda26d1403135140975e5d49a8c208d1fabe588935f3df1382f0cc2c880a8"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/barkplate-harness-atlas.png",
+      "sha256": "d804e7c43b125473cdddb8ef0b1d496fb1e529242ccc38f4c5bf3e3ab7d686a7"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/bedrock-plate-atlas.png",
+      "sha256": "9d5ad5a378af3bf9c9a40b3f5f7ac1a6299bfd942c2f9bae4c906a21f4783389"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/berserker-war-grip-atlas.png",
+      "sha256": "1536aa656fef0ac48609e21be2a032b1c7a8e9cdabaf1592be10f68e1a0fab35"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/birch-wand-atlas.png",
+      "sha256": "db372d28da1f9a6111a56a0439a2561a32d97a8483faafc4e394a31ad55c73d2"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/breaker-gauntlets-atlas.png",
+      "sha256": "48feec78e5ae9a4971b09ff1f813a1cecfd4a8034ad6ad2508ace7e4692c75ba"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/briar-crown-atlas.png",
+      "sha256": "e2feb744bc838414f6f3b6276bc1174b6eb7de315cbc9e636c746c50c23276b6"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/briarstring-longbow-atlas.png",
+      "sha256": "ce2a0079d03a50a4ccf2d1632c4874c9823c7bc88dc687b80827f0bf96310570"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/bulwark-plate-atlas.png",
+      "sha256": "81d5217d36259746d49cd0d027b107747e80aeba1712f37fd1fe4c16c95716f2"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/channeler-gloves-atlas.png",
+      "sha256": "fe1fd21f277e94b4ebb6ea9dd2cfbadee9e840a8e60ec793aa3477e5130a2b47"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/chrono-staff-atlas.png",
+      "sha256": "280e69a0b2bc25a2a0ea78e6b918a23da0381efe971af8f086855ed9b35f8d90"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/cindercoil-bow-atlas.png",
+      "sha256": "349a2f0e0067aa4884b7486a938593ef6f8d8afe962b6bcceaf825e156526675"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/clockplate-harness-atlas.png",
+      "sha256": "5fbe3dc18dbd15b7f2a5b952268e811f90f917c1a52833cfea890f605e3836af"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/cloudspine-rod-atlas.png",
+      "sha256": "3fe94f106a6679368ca8c41e34bd97c05d1c4351271c6a854cd6abcbf2ea62c8"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/colossus-maul-atlas.png",
+      "sha256": "d81df907a6eda2160cf98087bb9a0ba213e339ee048a2fd1458ac9cf9115b366"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/cometstring-bow-atlas.png",
+      "sha256": "4270be8b6ca2365fbeecbcafa448ab4c7ae74ea2af4436c21e453a994fc94938"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/copper-sword-atlas.png",
+      "sha256": "844458c23986aa012e49070c0106c900eb0f142c4e1c1efc40b22e62da4f5113"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/corona-longbow-atlas.png",
+      "sha256": "d6edab65dc7ad5b24d555802cb7a5d273b3f88308a44b6bff784cf4504fadf36"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/deadeye-scope-atlas.png",
+      "sha256": "c1e7a476af94228a16e3113a510633f51b65b824000dd69967a153363d78eb09"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/deadeye-wraps-atlas.png",
+      "sha256": "48354efe0338b11aca59214d523740780046a566fda1ce04b419782eec1ab84f"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/deepcore-helm-atlas.png",
+      "sha256": "456d457238b0a421b9326dddfe393d5fd4aa8fff87bf363942d049c2747d3692"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/eclipse-edge-atlas.png",
+      "sha256": "35c5e33071acccbdb94a8a62497c5396a2b48c8fff0676ddad6fb65059ea3073"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/eclipse-plate-atlas.png",
+      "sha256": "f23591cebed729d81a35aa7e4823e4ca9d6ff407869098f42ae1341d4bfd93a9"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/ember-core-atlas.png",
+      "sha256": "5955ae9011f7b8ff75a67b0e04d290d8c2e921d1505dc7a26120629e44d20b6d"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/emberjaw-cleaver-atlas.png",
+      "sha256": "7fbd785c68e99651d82008bd7d101f6fde2d2a61ff253ca48308297b79a26c59"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/fieldguard-helm-atlas.png",
+      "sha256": "17c6432a9dda9fdc7aa27bf11f080bf499b2fbfc6b9af8603f3807aa78111b38"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/furnaceplate-atlas.png",
+      "sha256": "fe8adf1d3fdce1199e74e37fe51d59197e90b2f203a55b22e09fe6e39f0268c1"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/gale-boots-atlas.png",
+      "sha256": "d84dc2993eb0c406c3dcf89806f5c12a57942d9c776f3b159beb485a4f96e161"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/gearcleaver-atlas.png",
+      "sha256": "72659b5823dc58fc5d6d3f486b15ece00b7459bdaff952d66f77ae9ec92a59ea"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/geode-scepter-atlas.png",
+      "sha256": "90974bdaf123a8c2e8f17c244c7a7489b83720f8c38653a093055629351a4bec"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/grasping-thorn-gloves-atlas.png",
+      "sha256": "def3705e09dbc33f96e47e17db24bc6d0f3445042c4f4573fa1248e1ec74a1ad"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/guardian-tower-shield-atlas.png",
+      "sha256": "5b9d571b83cad50ff5b22e963beab03c4af2f29923f6b97501ef00d6d0fe92f3"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/gyro-gauntlets-atlas.png",
+      "sha256": "703d925deaf797eb4d2c36f31c9d296406032edc008738d928e9652b49dc8419"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/index-blade-atlas.png",
+      "sha256": "47405fddada1b0dd8e3df3ebd5d1513fe727a90875cc44cfa5749c7cb6c0b8e3"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/iron-axe-atlas.png",
+      "sha256": "82d519293cfc147b6ee1d73a346006c5f765e9fbd0039e889e36b475bcd83bd0"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/iron-sword-atlas.png",
+      "sha256": "7ef9b3b5a99002b4d100758dd72e80d38c1d2c784f062d88d72b6359eafec172"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/lavaforged-gauntlets-atlas.png",
+      "sha256": "2291ae7c1bb8fd020036f01461b68ab2e847bc67943bd0579fc80cbd5e978506"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/lightning-grip-gloves-atlas.png",
+      "sha256": "fb20ab1dacc9fa6a9ba4325c1c46e5f133d64853f71eb778638042acdc964663"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/magma-scepter-atlas.png",
+      "sha256": "d18eed8f3d5085d4f39ebf9af0b1163dbceeb4afd6a8e9c6cd61649e09f2069f"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/oak-longbow-atlas.png",
+      "sha256": "82a456570eac9f8337f4e68bad0c0407057e93cc9c230829dc9577955e6a8d4f"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/orbit-boots-atlas.png",
+      "sha256": "bd2c5399670f5e58fac54b0632ef9c80d06edd3a13bd476a175be8353b4a0307"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/oreline-greatbow-atlas.png",
+      "sha256": "cb9ec16add4b968dc4f3228bc75d6758962709e38c75e9032cc8bd1472fbcecf"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/pathfinder-leathers-atlas.png",
+      "sha256": "baa8e8e0657cb9a15cacc596caa91b11751111f0440f11ae526647964710af7d"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/penumbra-gloves-atlas.png",
+      "sha256": "49f6b399760e20207d424171dee037e7e7a1972b4aa70c0f8395e910abdee39e"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/plain-ring-atlas.png",
+      "sha256": "ca4d12c1a2d4d54f8dce2df8a68c556b83bc314a95e8408187391d127e226f14"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/quarry-fists-atlas.png",
+      "sha256": "ae2c66af28ef7ef92903bc984d0077073f8678f6f6cc4d583a692e5e232fe7b4"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/ranger-recurve-atlas.png",
+      "sha256": "f68784cefb06f939aea8393ce67cfa0785bf793922cbcc1e574e28f3d6716e83"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/ratchet-repeater-atlas.png",
+      "sha256": "40a015f763d7bcf763cf0c2dbb6c7f89ebe98aeda764403e30ad3ef32314354f"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/rocfeather-mask-atlas.png",
+      "sha256": "9e1ffa8c729f338e63b3a921d950f8d65752964c14ac0888ac58f9578c95c462"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/rootstep-greaves-atlas.png",
+      "sha256": "4c50ef480d85fe3504fa9c0fd12d7b243e214f16bffaf6f0ce01bbcad0317735"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/rune-etched-focus-atlas.png",
+      "sha256": "f49af2a43386e7153aa87f1b30102e17f323d4c33887e6b9b50f5989b58b8ef5"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/runewoven-robes-atlas.png",
+      "sha256": "be5c8580ed695894d80c5f2bb68149f788d3cd55f6ce7d1b777a538c35b1eba2"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/scorchtrail-boots-atlas.png",
+      "sha256": "9962bb791c130a9d8cf001fa52a973a08ec74791ccc76f5f74adeafab6af757e"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/scribe-gloves-atlas.png",
+      "sha256": "aada8d414dcb1fe3988c53732f78a4e92da74b7356a661b421af3d0099852be0"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/sentinel-greaves-atlas.png",
+      "sha256": "c6107efdc4272c865b0d585679d92e279380ffc88a3d52ed6b7b009a62c1b34b"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/simple-bow-atlas.png",
+      "sha256": "42ccb84a650c641d1cc2fd7a3476f91ac0a7f54a6392d939862a5db5a82d6eaf"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/skybreaker-bow-atlas.png",
+      "sha256": "b802f36a99a13d16415b0a89682b9415ffee00feb55e4d16010d04e0c4061b87"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/sovereign-crown-atlas.png",
+      "sha256": "5f43a5b6b194e6218ef4e2b3c465790e58fb431b0fe31c194a96cf39d683f719"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/springstep-boots-atlas.png",
+      "sha256": "666723ebaad2bcd3c90ec5394718bf9bed966d47779eec7c67952d868b28268b"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/starbound-codex-atlas.png",
+      "sha256": "b5c9c69d548447175ae17ca549249e8a0704a1d9ce1f4ba87275216c7d0d53ab"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/starglass-staff-atlas.png",
+      "sha256": "b5c9c69d548447175ae17ca549249e8a0704a1d9ce1f4ba87275216c7d0d53ab"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/stitched-vest-atlas.png",
+      "sha256": "5842d0044f22971ce9f0557bddfd017b133a5b0239d44268f7bb2232ef460056"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/stonewake-boots-atlas.png",
+      "sha256": "45e0800494dcd9640b1ab90dc5117478cc975b6237df130a7091217d9c3d36eb"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/stormtalon-saber-atlas.png",
+      "sha256": "076e6dc6413cd5eb835c54dc1c4f2d7c6b48238e27c9f00e603228bfa531b80e"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/sunfall-boots-atlas.png",
+      "sha256": "6f1895b81c4ec38a0b2c4c1b577465253998ec582fa66b87b50e98002cd8866f"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/tempest-mantle-atlas.png",
+      "sha256": "d467acb73df302c058ce17bfd9721d99edcd3e1f24dd9c1c2b9be50c9106bcc5"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/thorncrown-greatsword-atlas.png",
+      "sha256": "21bdb56b56fbb3ba409ce1474270e55d659b424d3d893476201686b514631e6a"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/thornroot-staff-atlas.png",
+      "sha256": "96ac8183d4aba84c819a738a29a4c548619c3132eba67cfc705c118bd513a84b"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/titan-visor-atlas.png",
+      "sha256": "bfe3fb849b5e29ca15e521b7cded8c9d05efa2b0f75c57e4e19ef7539033d66e"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/trailwoven-gloves-atlas.png",
+      "sha256": "fadf8bf54731a9d28a004dd2cc5480bf055e86d13798433ec4276890501888fd"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/training-bow-atlas.png",
+      "sha256": "ed93f0de4638e77800a50b814e7768712b46bcd137cb799b0f18b75f4e660d61"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/training-sword-atlas.png",
+      "sha256": "f36ed50d032926a2a58f4f906398df5543643bf999459341b4dd29248406ef3a"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/training-wand-atlas.png",
+      "sha256": "dddb579dbc6e43515e75d5454af16b83fd06bd990e586bc301abe45991b0e8cf"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/trap-kit-atlas.png",
+      "sha256": "a492688d0b475ddb495a235d1c37c6724367368c54631aaf87eb147a14842574"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/traveler-boots-atlas.png",
+      "sha256": "0ce4b4f44d7164134b54e816c70403dc3616dbe14438d01cda46fcb1f656bd1b"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/umbral-starstaff-atlas.png",
+      "sha256": "b5c9c69d548447175ae17ca549249e8a0704a1d9ce1f4ba87275216c7d0d53ab"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/vanguard-blade-atlas.png",
+      "sha256": "1a44c4ac5fb001caa8c5dd89ecfc7eb75fbcabd4041f21462831d6efb65ef765"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/wanderer-charm-atlas.png",
+      "sha256": "a481c71d36fc01ee3894338fb6c63a5d8d8441e3e9e3b6c2c79f9aeeb2c96c0a"
+    },
+    {
+      "path": "img/project-starfall/equipment-atlases/windrunner-boots-atlas.png",
+      "sha256": "51ac066a437cc7de331d90299fb4c5975be6a100d5b85c6d9fa91fc019c66a67"
+    },
+    {
+      "path": "img/project-starfall/items/icons/admin-worldwright-console.png",
+      "sha256": "6b97318061c2df8d30e5b80f5f788ac05c62e69a3755849ff68c653acf8a0f1f"
+    },
+    {
+      "path": "img/project-starfall/items/icons/advanced-skill-manual.png",
+      "sha256": "80e17c111ea7aae9b14c9d1bd8ad7a295d294d9125db423768f21941d72906a0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/adventurer-cutlass.png",
+      "sha256": "6a8d1e0abb753e2cc63f0bd12694417aa11e0083cd127408cb0a8c54852e9088"
+    },
+    {
+      "path": "img/project-starfall/items/icons/aetherstep-boots.png",
+      "sha256": "e96fcdb763fa66ec89f5b4488ef0cc8d2af692c2b8f62b072731d95f07e8695c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/apprentice-staff.png",
+      "sha256": "23bad31360b5d7e79df3e0fe18af58192b4805c12944f54a739433bdc21a94df"
+    },
+    {
+      "path": "img/project-starfall/items/icons/archivist-crown.png",
+      "sha256": "14171ef8757b531f3caa5ded57f8613c1b22cec100b432fa70d375df84bcce66"
+    },
+    {
+      "path": "img/project-starfall/items/icons/archivist-index.png",
+      "sha256": "14fd4eab606cc5f61ff5f6a80e33683100dfd405d2f28ea69368f26feaa412c8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/ash-carapace.png",
+      "sha256": "fc317c4a678248de1ba9f3438e63bb610caa5fec7dceb07c4d06ef55f2fc272e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/ashen-jaw-helm.png",
+      "sha256": "5eba459ca1be0251191cd331e961b598d78ef540c74711af6e369e5628995086"
+    },
+    {
+      "path": "img/project-starfall/items/icons/astral-comet-bow.png",
+      "sha256": "a43a114491907b929f0daf44ea5161d43a928e1b6165971bb305bb0d2aa65efb"
+    },
+    {
+      "path": "img/project-starfall/items/icons/astral-index-blade.png",
+      "sha256": "41821a37ece159f5215e81dbf81294952eaf004de13b9082d1013117cf8dfc2a"
+    },
+    {
+      "path": "img/project-starfall/items/icons/astral-lens-amulet.png",
+      "sha256": "6450b192743458fde976a6bd5b63750e530a24c5e1244c66827c76a7d083c3cd"
+    },
+    {
+      "path": "img/project-starfall/items/icons/astral-orbitstep-boots.png",
+      "sha256": "f607e3506183eb1a40564d65b53bc714bcf98e012bfad93a009d359a575ab1f5"
+    },
+    {
+      "path": "img/project-starfall/items/icons/astral-robes.png",
+      "sha256": "92008e56e24d9d89a14cb15f3dc7e8dec6c5aea4bd72ebb29e799a437846cb2f"
+    },
+    {
+      "path": "img/project-starfall/items/icons/astral-star-lens-staff.png",
+      "sha256": "e1c640a001b5c725aebc39038d224bf981ce7832442eaf1fc4befd1823c997c2"
+    },
+    {
+      "path": "img/project-starfall/items/icons/astral-starwoven-robes.png",
+      "sha256": "706323a130c312a18b455e54dba4d569b8883b7355fc84e73f31785b88827a15"
+    },
+    {
+      "path": "img/project-starfall/items/icons/balanced-focus.png",
+      "sha256": "43a18f81dac8f69076ae059cb1e019815e2204d0c2dee7a6c46c3d19e7dbcbea"
+    },
+    {
+      "path": "img/project-starfall/items/icons/bandit-cloth.png",
+      "sha256": "a638929c44585d54c3962d0c3e58bd9ce5ebe8678dacf4d5e5859c141afbac14"
+    },
+    {
+      "path": "img/project-starfall/items/icons/barkplate-harness.png",
+      "sha256": "85a2448b126255ad48ad449700b14938dd9243a1bbbdb03c2258a2bc66a1ea7d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/base-skill-manual.png",
+      "sha256": "1eabcb50525aa4c21d08fd7b94f9af6ef7cb34d63eca690b79ebbecd523e45b2"
+    },
+    {
+      "path": "img/project-starfall/items/icons/beast-bond-charm.png",
+      "sha256": "1ae403bf11298cb1d48fb519f9c1efddf93119fa258183e78e0c6f302719dd1e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/bedrock-plate.png",
+      "sha256": "3b6c61f48eafb5a5e2032069342405d2b9fc75efa3596ad5e1f1653d58a4a27e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/berserker-war-grip.png",
+      "sha256": "6bff5bde911cefc82eb373c0306d297ff89f0ab68bc87beda0bcb9bb1153af9b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/birch-wand.png",
+      "sha256": "e3acef9030631589f6740904b2c135c029b9d82832d3d98b3f1ca1c0b8e9d276"
+    },
+    {
+      "path": "img/project-starfall/items/icons/blue-star-card.png",
+      "sha256": "7395c8c76ae2e17807762d8ddd54b014d61c96616bfa864cbf495c9b3aff3928"
+    },
+    {
+      "path": "img/project-starfall/items/icons/bramble-crown.png",
+      "sha256": "0ade0ecd9863d90bac9311f04043677c39dee5c4612957195b048041f6c65137"
+    },
+    {
+      "path": "img/project-starfall/items/icons/breaker-gauntlets.png",
+      "sha256": "649de26a1a7eab93979bdf63d2c746f9076a7a607a5bec43caa2252e344e51d2"
+    },
+    {
+      "path": "img/project-starfall/items/icons/briar-antler.png",
+      "sha256": "3dd66e4b7c9bac6a15085771b8ad698ede1629dbbccd30b096b9c6c1fb279545"
+    },
+    {
+      "path": "img/project-starfall/items/icons/briar-crown.png",
+      "sha256": "44cba3bb84ea6a33628d359f00fe8f7a9f8fe7d05b63c6799417478cb090b229"
+    },
+    {
+      "path": "img/project-starfall/items/icons/briarstring-longbow.png",
+      "sha256": "4c29208525f70b53d843a85af1a33b446157812985b5a6cb2de07bef1c3e0f4c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/bristle-hide.png",
+      "sha256": "0b6780315082776e74f8d1aadcd95c5fcf12a9a0a8759d74d478d06d7062df99"
+    },
+    {
+      "path": "img/project-starfall/items/icons/bulwark-plate.png",
+      "sha256": "064e1190a609edd78fcda281f3688f386d16642e4df404a138486f8f54d2ddff"
+    },
+    {
+      "path": "img/project-starfall/items/icons/camp-ration.png",
+      "sha256": "2838015f12e6ad95ce723b5afaedda48e75ed5dfb8d0ade04b80168922e67473"
+    },
+    {
+      "path": "img/project-starfall/items/icons/card-slot-coupon.png",
+      "sha256": "b26a771fcdec69a0a581dd4daaa407833d5bd59c458fa48d06f0d8aa6cea1eed"
+    },
+    {
+      "path": "img/project-starfall/items/icons/channeler-gloves.png",
+      "sha256": "f035c55d361db7f6b3b6a4caf6c7f7abc3cc64d582ad93afa5f1fb6ca57cad0b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/charged-coil.png",
+      "sha256": "beb05c1efc458cd4e25b197cf66af0239a4adf3f6ef85c0aae231e25c6bfdcf8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/chrono-staff.png",
+      "sha256": "fe6f3bd852674df9e4707d07dbdd48b9c924525b4f8761bfc2427a167dac0460"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cinder-ashwood-bow.png",
+      "sha256": "07ecdd5b23a5535ebcba70f5fef83339d60442e03e049c382a8334a047cc2c9b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cinder-ember-band.png",
+      "sha256": "1edea21ffa95d597155529df77fb2f86a8336bd39b5faa3c819d49b0828098c5"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cinder-forge-boots.png",
+      "sha256": "ee6ddbd388ad1dccdde5213bb954a7b209d54c015a18d7d2d22cab248d49b1a7"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cinder-gland.png",
+      "sha256": "b342114653a566703345f618817a819efe2e49fcf9695f7223fba16a3a8fa832"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cinder-reinforced-mail.png",
+      "sha256": "951f8fcf120586d8482ea78077b8291dff4bc7502c329cfb2d5fed2edee19a0d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cinder-steel-scepter.png",
+      "sha256": "5452d638e23cb5d466b5f540d8de24f59b9ae515ea729d89f2bc99c24e006c66"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cinder-steel-sword.png",
+      "sha256": "672bcab87f4e7104121a2dc1aab61150b5631da81008543014fc3d111430caf7"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cindercoil-bow.png",
+      "sha256": "0b1b8691838ed68b0a1cfa58646e193a3e95a0ebdb5f68cf3c13776f31161e3c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/clockplate-harness.png",
+      "sha256": "e2326b8de3b7d05cccc7d0f2468e202c70bbc4266de60ce2740b8a5802b33152"
+    },
+    {
+      "path": "img/project-starfall/items/icons/clockwork-scrap.png",
+      "sha256": "66669b85f3de815831459df92f936e57c94e425b2dac01ce2c1fde86e4f0d72b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cloud-silk.png",
+      "sha256": "b7a87a2cdb4e3b1480670a2dba212f74c22d222c063ec312fc488803f70d674a"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cloudspine-rod.png",
+      "sha256": "64b795ae0e4a078690863941d72c0d275c4ba749ed00867f6ea16361a212f02d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/coins-huge.png",
+      "sha256": "43de76036b6dac5a6fca8424edb0f8fce7e4317bf1892ab0b47aee750ff76b02"
+    },
+    {
+      "path": "img/project-starfall/items/icons/coins-large.png",
+      "sha256": "83c962a14ac9f748b858ca635c8f2f2e3fd36e3ac5c442de2b7b53576db0cfef"
+    },
+    {
+      "path": "img/project-starfall/items/icons/coins-medium.png",
+      "sha256": "29ab6feb3172df64484864495d188643a311145f4d8644d5d85dfbe3a2e65e66"
+    },
+    {
+      "path": "img/project-starfall/items/icons/coins-small.png",
+      "sha256": "93ad82a1ea5075f9699fe0f8d0b208094b32de4fd69ec1c16edbfb8cd4795a2b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/coins.png",
+      "sha256": "e157bd09266ece9a7a8880464f224eea776577c15874c3c5060dae5fe5e055e6"
+    },
+    {
+      "path": "img/project-starfall/items/icons/colossus-maul.png",
+      "sha256": "41edb9aa1e093c21e68f627f1c4db9b1feb5c39f40733640ea0c95bfe398baf3"
+    },
+    {
+      "path": "img/project-starfall/items/icons/colossus-ore.png",
+      "sha256": "a56eff01c86326c2445ad1559659e53acfc4ce1864f330dd8cbffc6fe78f5d4f"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cometstring-bow.png",
+      "sha256": "2ef6188eae7cabedc75b8d3583407ae40d33f5de16d06a28b8dfe372dd3c4791"
+    },
+    {
+      "path": "img/project-starfall/items/icons/copper-sword.png",
+      "sha256": "563824650f8308893387f48046052c09ad04f7c25487824a372ecf15a52532c8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/corona-longbow.png",
+      "sha256": "b6c2bad1b203515e53bb8957ddd29f54fb0dc545da809273d76a077aff26e448"
+    },
+    {
+      "path": "img/project-starfall/items/icons/cube-fragment.png",
+      "sha256": "d45b16894553eb0e9e5bcf72ebfcf8ca8dd5f1c6fffe04ccd8eaec0d6e605af4"
+    },
+    {
+      "path": "img/project-starfall/items/icons/deadeye-scope.png",
+      "sha256": "9c1c7c2611e405761e693384cf360bd4f15c3b13d0dd42c04244a153dbb4eeb0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/deadeye-wraps.png",
+      "sha256": "b8c32cfd94a067a6ca287618ca9a7e73b79d897256fa86aedd3f07f10c93fa53"
+    },
+    {
+      "path": "img/project-starfall/items/icons/deepcore-helm.png",
+      "sha256": "8f5319c385412dc6d7fd0a2347b1981bc6c2e73d3a78529f323fe43bfee587e0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/dew-bead.png",
+      "sha256": "1ec493f7e04c476c5907440ea3ce0cc61a5589fa305432fedd428d229a216f12"
+    },
+    {
+      "path": "img/project-starfall/items/icons/drop-coupon-1-2-1h.png",
+      "sha256": "f2d8aa43f66e482b725a4c759e581c4d8eb36cf25413b18d9829336b48e905ec"
+    },
+    {
+      "path": "img/project-starfall/items/icons/drop-coupon-1-5-1h.png",
+      "sha256": "e1c04e091769195ccfbab96310b792540443abeaa68707e2a78a7742ce85d0e9"
+    },
+    {
+      "path": "img/project-starfall/items/icons/drop-coupon-2-0-1h.png",
+      "sha256": "73e0c4b5157a8ea058ed1d1e8aa5da5280e6b7a62512d9f0f61dc962f2500279"
+    },
+    {
+      "path": "img/project-starfall/items/icons/duelist-parry-medal.png",
+      "sha256": "42c31d1002583bc20ac0f4e2c53fed06aa45b44c207820511434a9974debb1b3"
+    },
+    {
+      "path": "img/project-starfall/items/icons/dust-claw.png",
+      "sha256": "38809a533b33c26013095fbcdb67632df86266aaa58dc42ed202833c984038c3"
+    },
+    {
+      "path": "img/project-starfall/items/icons/eclipse-edge.png",
+      "sha256": "e35fc3e96f44f2362f817db358a9605ee35d2676958df2952bfbdc370e38ea64"
+    },
+    {
+      "path": "img/project-starfall/items/icons/eclipse-plate.png",
+      "sha256": "9d744e1e631888c52c27013a98a54c4e92619aadb037fa36eb317626336f7290"
+    },
+    {
+      "path": "img/project-starfall/items/icons/eclipse-silk.png",
+      "sha256": "3f38916a42a84995208a9addb2dcdc632103c1ae5e2997f0c8725d31b41c532e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/ember-core.png",
+      "sha256": "e0dea61c97552282531e15b04d674fbd0625b1444c04885327eb2a6afdbbd86a"
+    },
+    {
+      "path": "img/project-starfall/items/icons/ember-dust.png",
+      "sha256": "19a7a169ceada02f6ba76fe683602b9adf95ada3e4c749683e820c0f3db73535"
+    },
+    {
+      "path": "img/project-starfall/items/icons/emberjaw-badge.png",
+      "sha256": "fb776cf1e377948e50894e5784ed1503d156b37d6f19d9baa85d50cb0a9c3b5d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/emberjaw-cleaver.png",
+      "sha256": "f6ae41c992a9950595696406c6eb22846ea77f61561c0258abc4a78828d57f7b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/equipment-slot-coupon.png",
+      "sha256": "862d263de7b5e6f274d1dc970725598205d203656eb0488c077fe456b6b5e1b0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/etc-slot-coupon.png",
+      "sha256": "bbd4b4aa6703b6e1bbdfc61d02d98c28227bbc4fe66a813d9bab9561833154bf"
+    },
+    {
+      "path": "img/project-starfall/items/icons/expedition-ration.png",
+      "sha256": "8da6f4bf46d743ff27e1036ed500a03dde1047d03528c6d4e7d06067e63005dd"
+    },
+    {
+      "path": "img/project-starfall/items/icons/field-ration.png",
+      "sha256": "15e2f90f17a674bb0783865fd3f7e3192c455a98ab40d0aee37c8d7615e7c436"
+    },
+    {
+      "path": "img/project-starfall/items/icons/fieldguard-helm.png",
+      "sha256": "b4d0c414b4d386991926fe3508eb51efcf26ccd24fe4ddfcba74e55b8841d48f"
+    },
+    {
+      "path": "img/project-starfall/items/icons/frostfen-frostpine-bow.png",
+      "sha256": "8f8b8c52d3b87fd994f3cdc40ce7671a57bf3467f7a1d9b9002f9d01faa42d16"
+    },
+    {
+      "path": "img/project-starfall/items/icons/frostfen-iceguard-coat.png",
+      "sha256": "73a5d3708fee43f90ef58dbb953e16e17a46e068e44f5694e3edfcd0cf9f6c18"
+    },
+    {
+      "path": "img/project-starfall/items/icons/frostfen-moonlit-staff.png",
+      "sha256": "37ed840904e2049cf02fa8f05475f5dfc9a6bcecca526a22d2a1c52409bcdaa5"
+    },
+    {
+      "path": "img/project-starfall/items/icons/frostfen-rime-ring.png",
+      "sha256": "24c2c0589ad1d8c535f27f442ab64346407f4d2f419d9e2be59126b5afb7a9f2"
+    },
+    {
+      "path": "img/project-starfall/items/icons/frostfen-silver-saber.png",
+      "sha256": "0a91c99073e10ffdf075aeaa3f293bed3c3c38eff7c0e09f9af02e69afbab2ce"
+    },
+    {
+      "path": "img/project-starfall/items/icons/frostfen-snowstep-boots.png",
+      "sha256": "3621b0c73b010a4ab31606c0c485e4c69a98fbd97a4106a63ddadb89b0e2bf0e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/frozen-hide.png",
+      "sha256": "4d09180bdf739de41aba8be3c9d4a3aad23b5bd3296deaf3d23b843b7812e726"
+    },
+    {
+      "path": "img/project-starfall/items/icons/furnaceplate.png",
+      "sha256": "43252f218d0041e78cc738504921bf5a286a54d6114778074e1557fa52be9dc7"
+    },
+    {
+      "path": "img/project-starfall/items/icons/gale-boots.png",
+      "sha256": "2b29ce59cbc62f00bd99d890ba25a72348da7a991f734e49ee11619d6c1311fd"
+    },
+    {
+      "path": "img/project-starfall/items/icons/gale-feather.png",
+      "sha256": "82283eee705d8d52d677a32d5f96740c5fc73a86f991b688cf21e0f49e589409"
+    },
+    {
+      "path": "img/project-starfall/items/icons/gearcleaver.png",
+      "sha256": "5bd1acf0efe7fb39a1b63bd708c3fc135dbf466be144474d35da0c5bbc68c3e5"
+    },
+    {
+      "path": "img/project-starfall/items/icons/gel-drop.png",
+      "sha256": "299efcd5a05733e4e0244fe1bc00af284b1f3638de30613a146344c02d6d9449"
+    },
+    {
+      "path": "img/project-starfall/items/icons/geode-scepter.png",
+      "sha256": "3d6510b2c7388238b7fa6d9d2e051ed0a3ae9d2d2bea4d7640a46fc551444407"
+    },
+    {
+      "path": "img/project-starfall/items/icons/glacier-core.png",
+      "sha256": "f716defd0ddd1bede9fd97732ddc71a9d0ee058c8f45ed2d7b5ac6d7ee1322f2"
+    },
+    {
+      "path": "img/project-starfall/items/icons/glow-spores.png",
+      "sha256": "1dea442b65e5faec6f3e2bd6f9115e2aead2b9fbae52cf5cf0fb986148026841"
+    },
+    {
+      "path": "img/project-starfall/items/icons/grasping-thorn-gloves.png",
+      "sha256": "4519f54e90cddf7ef57a3b5c0b2325d0803ed8963ed9c3ddab111e9b18301117"
+    },
+    {
+      "path": "img/project-starfall/items/icons/greater-health-potion.png",
+      "sha256": "ce18896a5c0428f4716e89d6a0d47b2d451a554b56ae49ef3da14cb33412214e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/greater-resource-tonic.png",
+      "sha256": "bb1bbdec66c90b58e06b67aed1abe3107cecb7502aca894a992a193a812b2589"
+    },
+    {
+      "path": "img/project-starfall/items/icons/green-star-card.png",
+      "sha256": "eab8fe2647080baea5cc815d30306c8f7cada74e8128d6c26a6e3a5dfb564c02"
+    },
+    {
+      "path": "img/project-starfall/items/icons/guard-tonic.png",
+      "sha256": "fa99e3067876476dd72361606d58a8b2f50efcbcffd408157fad459c39871dd5"
+    },
+    {
+      "path": "img/project-starfall/items/icons/guardian-tower-shield.png",
+      "sha256": "e56cf51eed509c1e684c8270cd3c51e9211e0e20d5741dee8063c0a7834f260d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/gyro-gauntlets.png",
+      "sha256": "5692959772aab246b3b50b64bf76624bc889933b5c9b47b5d4b9f01cd5319ffd"
+    },
+    {
+      "path": "img/project-starfall/items/icons/hero-ration.png",
+      "sha256": "6ca04b6b032a22556e582bdcb69d19d48964b113b276f6b0eef6a3986752ade3"
+    },
+    {
+      "path": "img/project-starfall/items/icons/icebloom-petal.png",
+      "sha256": "5933c8ffee26ecf626c996bc2f25f8c5404fab5791be135e40b6fa4887406174"
+    },
+    {
+      "path": "img/project-starfall/items/icons/index-blade.png",
+      "sha256": "577f2dc7c549df7ff9f15d3c964a2d7ed941e3a866de356c64f069d141afae2c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/iron-axe.png",
+      "sha256": "8a756bed06b4a2a754060d1e5deed94b90da9b26177dd06bd657a799d1ee1998"
+    },
+    {
+      "path": "img/project-starfall/items/icons/iron-sword.png",
+      "sha256": "1f6d7370f132883ab83f2a11db9699bdbaa063674be7f9f3c2c263bbc64b1b95"
+    },
+    {
+      "path": "img/project-starfall/items/icons/lavaforged-gauntlets.png",
+      "sha256": "105de0448402c3c946f8aae726ee163f9eebf264663abae52e2a005fe17fdcc2"
+    },
+    {
+      "path": "img/project-starfall/items/icons/lightning-grip-gloves.png",
+      "sha256": "1473a3033dbd31d932f3850c34ff1854fc226fa23eabf12197d74c77a4d7d48b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/line-catalyst.png",
+      "sha256": "0f8cd34e574f5fa89c7bf8ad638cedf1377a2eed93f71f429870887f500ce398"
+    },
+    {
+      "path": "img/project-starfall/items/icons/lumen-plate.png",
+      "sha256": "ef60926a1c765dcf09e0a32da50d460f0af572908269365368883977bdc36e29"
+    },
+    {
+      "path": "img/project-starfall/items/icons/magma-scepter.png",
+      "sha256": "71cb1455cb969d5062bae845a269656d2fe2cb193804953e084ec1c33cd571f0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/magnet-charm.png",
+      "sha256": "afcc2f439661e0246c4d2732f505ba2c06b0638211bc1d185ff50beb23ccde91"
+    },
+    {
+      "path": "img/project-starfall/items/icons/minor-health-potion.png",
+      "sha256": "ecc4e3ad234d98bde0b40885cb04fb8e3d443ddd7b7b4f8eaa72905c58d477e8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/minor-resource-tonic.png",
+      "sha256": "637de7aeb0fbc74b33791637272b823ff65b903972c377799f16f3ac291dbc12"
+    },
+    {
+      "path": "img/project-starfall/items/icons/molten-fang.png",
+      "sha256": "ae36c6fb8f6bff881a7a640a580624749d1207304393643813f2c1e54c4c21c0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/moss-hide.png",
+      "sha256": "76dc981b99cf892b44bf6e187a261714752ad413e5f2b83714df251fe865a883"
+    },
+    {
+      "path": "img/project-starfall/items/icons/oak-longbow.png",
+      "sha256": "02d1f47b0488d8062a910b2f4d83bebf805a83ae6f8b586678f7f15e63765b31"
+    },
+    {
+      "path": "img/project-starfall/items/icons/orange-star-card.png",
+      "sha256": "cc14b2acba01e68c3f92d5cd54c61f85f28d644cb4615fc397acd838af362a78"
+    },
+    {
+      "path": "img/project-starfall/items/icons/orbit-boots.png",
+      "sha256": "99c35c25c8574a07e5945f1693e29950324468a62307a923a7add4a144780c6c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/ore-chunks.png",
+      "sha256": "008489aa26d5193f5406d504791c6b22e598e9b983b38c607e499689c66009ba"
+    },
+    {
+      "path": "img/project-starfall/items/icons/oreline-greatbow.png",
+      "sha256": "9ca0bcc2c2b6434e793478b88f96cba0c0b148fee4b42645cfd7777a0aa3c66e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/pathfinder-leathers.png",
+      "sha256": "bdf511f99cbfbffbe8ad938c805456b173ea4458a47f665b8c6197f969fdc9b7"
+    },
+    {
+      "path": "img/project-starfall/items/icons/penumbra-gloves.png",
+      "sha256": "8e80198bd41e60cf2cba7d74d93610c8a222d7efbc90f639329d1edcb2d1311b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/pet-whistle.png",
+      "sha256": "dd8aca8ea64f5e6e862b832d46a321696d4b0e34c40df815ddea8cd55654cb6c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/plain-ring.png",
+      "sha256": "a5d71c6099da504a8b9d3c4d164eb86f99b5cd3a4493be595a06690b861af588"
+    },
+    {
+      "path": "img/project-starfall/items/icons/plinko-ball-basic.png",
+      "sha256": "5c5379aed188c0271939c651672bfb3c791931399911233de72598f6a8625bd0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/plinko-ball-meteor.png",
+      "sha256": "96bfdbc047578df8e799394686e0f852be9664f537bc644a250c858096e0a3a4"
+    },
+    {
+      "path": "img/project-starfall/items/icons/plinko-ball-polished.png",
+      "sha256": "ed0d35a7d3e7452802e1581fca8f75bedf97a6f7907fd5c3787ee09c52cb3288"
+    },
+    {
+      "path": "img/project-starfall/items/icons/potential-cube.png",
+      "sha256": "9740aba7e82c0f4ad34a94833e5596e53e4ec2f0e8feef2251ef168d4d8a2a98"
+    },
+    {
+      "path": "img/project-starfall/items/icons/preservation-cube.png",
+      "sha256": "7f328eb4d75c2ec28caf9828cfbe60be54f6ef2270547364cb714c79e544f18c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/purple-star-card.png",
+      "sha256": "7aa3b835a4c73105abb9298649b9e777edfdec9c76242dff52af802fab56cdde"
+    },
+    {
+      "path": "img/project-starfall/items/icons/quarry-fists.png",
+      "sha256": "f6198f580fc176669cdccbf3fd4959524463b9915f0ac685f50d4e0bb0eec291"
+    },
+    {
+      "path": "img/project-starfall/items/icons/ranger-recurve.png",
+      "sha256": "690382d74c0ece71bcbaeab88241fb716a2cf10d413e378955344d6202930757"
+    },
+    {
+      "path": "img/project-starfall/items/icons/ratchet-repeater.png",
+      "sha256": "9892e450d6fd2523284aadbceb0d401246587edc8943b84f1dd1e4a9ce9800ef"
+    },
+    {
+      "path": "img/project-starfall/items/icons/refinement-core.png",
+      "sha256": "93183f1d36418146fc6dd55275a24b9e7a21737bdeb745951f77ff65b2bfe7bd"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rift-splinter.png",
+      "sha256": "fe31fed264bac791aa0c6881b7c9131724125047846a0c08717637be7f134986"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rime-shard.png",
+      "sha256": "7bf6a313336984e7b8e01bf2a0204519d0d91fec2a46a1c19acd1b6d23c850d6"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rimewarden-sigil.png",
+      "sha256": "85639a097916e14342f1a1febc9b68cb776cd761840bc482abbbca923e0416ca"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rocfeather-mask.png",
+      "sha256": "b185cb0eddf05085f99f4ee95017a3d83e1fcecba12d6023cf90e5f522744eba"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rootstep-greaves.png",
+      "sha256": "f4df70c478231ab497789376701a0934a4c1b47641da050e10011dc47f5e4bc9"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rune-etched-focus.png",
+      "sha256": "5089de675e3a89c2958236c6f7ee396fde8d6128ed01b4427084418f82f70ff8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/runewoven-robes.png",
+      "sha256": "8bd2b40a3249f8aaf30fe1e6eff3ec5c4b1fbd07c04a44a49323f48c0de9d787"
+    },
+    {
+      "path": "img/project-starfall/items/icons/runic-page.png",
+      "sha256": "b32ed5cde49f94a05521425395284535edb62351a838abcfa0723f9262c40f14"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rustcoil-field-helm.png",
+      "sha256": "e2df175d2d442a4101be4e8fe54d76782890b5edb25eb7e4fe62237b16a49517"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rustcoil-grip-gloves.png",
+      "sha256": "3dc5665780331bbfc58a5944f7c307710d2ab8308b3adc80e00322f52fe6e20a"
+    },
+    {
+      "path": "img/project-starfall/items/icons/rustcoil-work-vest.png",
+      "sha256": "7e5022b0781f393cc60fa5a6fdba196aac3067af5fd2e1ad7607e916ed39d8e0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/scorchtrail-boots.png",
+      "sha256": "1035c5fbc9bb25c2b7075c4f77d79eaad3907cd8379763e613ab732c92e20c41"
+    },
+    {
+      "path": "img/project-starfall/items/icons/scrap-plate.png",
+      "sha256": "b7ee11eba90143afb57fcac50c2cb9e4f50c096ca462dc80f10851815ca5e7da"
+    },
+    {
+      "path": "img/project-starfall/items/icons/scribe-gloves.png",
+      "sha256": "194221eb908b591d5c7bbbf04dfa3ee4f5e3e307781fbe2edb6a06f26e040d70"
+    },
+    {
+      "path": "img/project-starfall/items/icons/sentinel-greaves.png",
+      "sha256": "b97da8caa979e48f1a94e1bdc6b52517ceab34a570129be9bafc0c860746174c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/simple-bow.png",
+      "sha256": "1841b2a036d3f046251a53faf73858dc2de1a7f2c002ae47f86bde89f78ef890"
+    },
+    {
+      "path": "img/project-starfall/items/icons/skill-reset-scroll.png",
+      "sha256": "e464ed124f6f8fe27b1af52efa71f97fd881e19314ee82b9a95ccd2b09c41fd8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/skybreaker-bow.png",
+      "sha256": "49a6957c078aa687ecd006a8d8329e5cf5eb4fb65e9ba499daab614db2bc28c9"
+    },
+    {
+      "path": "img/project-starfall/items/icons/snowglare-dust.png",
+      "sha256": "398123d7a5146250e88766036af69f91d6774ab58cb452b600c126a60ff85092"
+    },
+    {
+      "path": "img/project-starfall/items/icons/sovereign-corona.png",
+      "sha256": "044ebe039cc4ec35e3feebca5813920d4fada9fb8103a13acda032754396776a"
+    },
+    {
+      "path": "img/project-starfall/items/icons/sovereign-crown.png",
+      "sha256": "060750fdb2c54cc8388401d0a69521a03a1a4a991007adbd181c2c80a6f66179"
+    },
+    {
+      "path": "img/project-starfall/items/icons/springstep-boots.png",
+      "sha256": "e9b953ea2a4756ce2c60a46924d3919cb6e754d4de283005fad3968946b3e7fe"
+    },
+    {
+      "path": "img/project-starfall/items/icons/standard-health-potion.png",
+      "sha256": "f87e0705eeebf13c32456280cac7c3b4f7f81a20c091c43bb58a1acd20256231"
+    },
+    {
+      "path": "img/project-starfall/items/icons/standard-resource-tonic.png",
+      "sha256": "ce5d0e4a11b1b66b02a6d3c0d28bc2584a97f53c6aba28ba05f75efeaed07db3"
+    },
+    {
+      "path": "img/project-starfall/items/icons/starbound-codex.png",
+      "sha256": "b2033a27aa4decbd2644e84daf1a4a46e564f805c214f80acce8bce14ba2781c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/starglass-staff.png",
+      "sha256": "9561908b6ffaf3cfba82a8730cdbdb2898b7f7f73649498353a096b044cc105e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stat-reset-scroll.png",
+      "sha256": "e464ed124f6f8fe27b1af52efa71f97fd881e19314ee82b9a95ccd2b09c41fd8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stitched-vest.png",
+      "sha256": "a7693e5bc4968c381577d061e1d7317a684e66d731a302e011786ee8dc803b66"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stonewake-boots.png",
+      "sha256": "75df5b836de467228462c0176033a4ec0983155bdd3642a32b85900ee5fca1b3"
+    },
+    {
+      "path": "img/project-starfall/items/icons/storm-charge-focus.png",
+      "sha256": "6586efcebadb7ade43822a833ddddd83f54cdee555862cb2b3b2a60db4b862dd"
+    },
+    {
+      "path": "img/project-starfall/items/icons/storm-fletching.png",
+      "sha256": "22e1fcd185b1b929f01b039ca5b6e9cc2e3ae634c385d2633a921fe4dd258594"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stormbreak-cloudrunner-boots.png",
+      "sha256": "e145db5ec18fcc960bd73e8a18ad26059e606e2343feffb779a41884af490f4c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stormbreak-gale-longbow.png",
+      "sha256": "7354d92ea295cdf57249efcd16c64399e9c0b204ecb150ae9f6860f2f2bb58e8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stormbreak-lightning-charm.png",
+      "sha256": "db80fe7ad45902812693b68a70fcda4f9a5ff8cdf1377ad0e5599641c75dea21"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stormbreak-plume.png",
+      "sha256": "8d361f2de7a9952c308153853ee97e82a6b2d8ff607890d870d3ef4e74f76fb6"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stormbreak-stormforged-blade.png",
+      "sha256": "a8f478db16c877e8f57cbaaedffebe797f90e322a41a4226c2c4cd412af93d1a"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stormbreak-tempest-mantle.png",
+      "sha256": "86873de9efd1cb8966bca35a1131d553b23beb18b0c8f8ff98efa7bb44dd010d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stormbreak-thunder-rod.png",
+      "sha256": "55461e9253a1e9cfb36da993c464766ef9dd21c375503d7915fdb71186b6a5fc"
+    },
+    {
+      "path": "img/project-starfall/items/icons/stormtalon-saber.png",
+      "sha256": "d38ccacc0665a3ab527b151121145887efe8b0a79852d55a4bdb12346ae62cef"
+    },
+    {
+      "path": "img/project-starfall/items/icons/sunfall-boots.png",
+      "sha256": "11074770a522346c2012b72cb2305f8722e710b12205b8fc273066ab53bc4cf0"
+    },
+    {
+      "path": "img/project-starfall/items/icons/superior-health-potion.png",
+      "sha256": "0bdb814a4f68d7be981fa318d8e1a03a808cba005197c3cea18d1b3ecf8e281e"
+    },
+    {
+      "path": "img/project-starfall/items/icons/superior-resource-tonic.png",
+      "sha256": "b798001c137e6227059ac988600242d9dcd9dcb40c570d8e65e124b39012af34"
+    },
+    {
+      "path": "img/project-starfall/items/icons/swiftstep-oil.png",
+      "sha256": "95dd36e8be31f6f4dc7544a3c8f56fe4ce31dcc2789fa57cda85a5bbff106487"
+    },
+    {
+      "path": "img/project-starfall/items/icons/tempest-mantle.png",
+      "sha256": "1ac40548c74fc267ec51952dd3ca640b0e656529906842c1a675881a09797d59"
+    },
+    {
+      "path": "img/project-starfall/items/icons/thorn-fiber.png",
+      "sha256": "ff6bf14a8ba65ad645c1bb2796a598f0d96aab2175f6dc437f09c5667e88504d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/thorncrown-greatsword.png",
+      "sha256": "802a214380ef16325ba569d72c2471d0a02d92d2c4fe9833f3a858d02cccb49c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/thornroot-staff.png",
+      "sha256": "0301d4c9f8b9fa531972148a3f7506d4421a51a12d8a57bdf7f20cd92eb41cad"
+    },
+    {
+      "path": "img/project-starfall/items/icons/throwing-knife-scrap.png",
+      "sha256": "432d709af4cdc3b48b29655683b3dda0cfda80b2e03840b775d307c183354741"
+    },
+    {
+      "path": "img/project-starfall/items/icons/thunder-horn.png",
+      "sha256": "a8440f6be495bec3f35c4744d11cfc3b4f2c89ef4ce1336c66b09dfa0ecf5403"
+    },
+    {
+      "path": "img/project-starfall/items/icons/titan-core.png",
+      "sha256": "bf25f429206fbcc4177bc911114621fc62a8ce7cd526633e5d0ea06adbe9b76b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/titan-visor.png",
+      "sha256": "2e1017efc2f8c6c9bf65c418b47f04778a11e72a2eb8b6529b7276337d097a51"
+    },
+    {
+      "path": "img/project-starfall/items/icons/town-return-scroll.png",
+      "sha256": "77490c75f2f325d88e47d31e5bc314a884783a7b0e78ab7158e54d4c75d71a08"
+    },
+    {
+      "path": "img/project-starfall/items/icons/trailwoven-gloves.png",
+      "sha256": "897a9565666c8247417e182db4b7d3bc81085604015b6a0095de379118875968"
+    },
+    {
+      "path": "img/project-starfall/items/icons/training-bow.png",
+      "sha256": "8fa1bab2a32a825b881720d245dd293040f87647544b76cb12ff1f0c7c12ec89"
+    },
+    {
+      "path": "img/project-starfall/items/icons/training-sword.png",
+      "sha256": "e915dc4fba01f01edc7f1d962031c10ab5eafa754fde92aa546d257ef262213d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/training-wand.png",
+      "sha256": "b9f98aa9ac664aed3f14af22dac4bd74369de075426a16a021ae297ab0b4032d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/trap-kit.png",
+      "sha256": "8dc754ce9799d0e4dac2e81d6c492a5538928c1d50584404158cf21e5fedb00c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/traveler-boots.png",
+      "sha256": "e21eb4ba60f136401b500197d59e40120ca386b89aaa689d85569565db6257eb"
+    },
+    {
+      "path": "img/project-starfall/items/icons/umbral-starstaff.png",
+      "sha256": "04e4431f2807442eeab57423e4059dd481968852254221aed3b3c2e2719cb22b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/upgrade-catalyst.png",
+      "sha256": "e89f18b443c40784fe597a98d436ce3b708a971bb758e4de0c951948aae0830b"
+    },
+    {
+      "path": "img/project-starfall/items/icons/upgrade-dust.png",
+      "sha256": "8e08d0b6f23574a3d277414ef5d5b5c76677f38daa5f16e8da44e7da14450e0d"
+    },
+    {
+      "path": "img/project-starfall/items/icons/usable-slot-coupon.png",
+      "sha256": "d797cde3d47cd5d1a4f8d0aa0f2b4a5cb861a93c5c34446b98d077232d020bce"
+    },
+    {
+      "path": "img/project-starfall/items/icons/vanguard-blade.png",
+      "sha256": "44e45c638863eea1190acf1a87fc657579d6569390744f4f8183fdccb90a5d55"
+    },
+    {
+      "path": "img/project-starfall/items/icons/vine-fiber.png",
+      "sha256": "47f59ca437af0b524f3466430f3e4545dc24f55c2fe07362398f02ef414aa395"
+    },
+    {
+      "path": "img/project-starfall/items/icons/void-dust.png",
+      "sha256": "6aec5292b77abeaab62c71c2613ee22ebc488f7f387eb2299f2e9ccba09b5a40"
+    },
+    {
+      "path": "img/project-starfall/items/icons/wanderer-charm.png",
+      "sha256": "f395ece38eabbcccb0d8b5c55a411817b91d9df4c16d13206ac1c18d651044b8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/warding-scroll.png",
+      "sha256": "d67fdf513cdf7bc272896d3a320198202b601a9814677d65504119a3a1dfe1d8"
+    },
+    {
+      "path": "img/project-starfall/items/icons/white-star-card.png",
+      "sha256": "5d99835921d8964272498b61ae90093cf59249301dd48ea61b326039d3c9ed9c"
+    },
+    {
+      "path": "img/project-starfall/items/icons/windrunner-boots.png",
+      "sha256": "423885bc61636fcd942f259e0d5f89163f08a3fe5be4dee1297032b1749553b7"
+    },
+    {
+      "path": "img/project-starfall/items/icons/xp-coupon-1-2-1h.png",
+      "sha256": "c966759d8d56c3c428fb7f5801b0ba9b280a808341ca93b0729a8e937b80e72a"
+    },
+    {
+      "path": "img/project-starfall/items/icons/xp-coupon-1-5-1h.png",
+      "sha256": "cd4d26a2a45a7af4ec7b0975127ff9680d0316e6530a2997a09ee4ab308a5c14"
+    },
+    {
+      "path": "img/project-starfall/items/icons/xp-coupon-2-0-1h.png",
+      "sha256": "6aada2b4e8bbc7e6b5a65bcae120a1723871d8de0c1fe3e2ee4de88454c06f50"
+    },
+    {
+      "path": "img/project-starfall/maps/ashglass-pass.webp",
+      "sha256": "2c78c425e58551befaa8625aa262136338de6127c22557653bab18ce4a046d68"
+    },
+    {
+      "path": "img/project-starfall/maps/astral-archive.webp",
+      "sha256": "0b29c01fc1f210bb3eba48f59130536ec8b80ee928e0d44ed4aa93e571fc614a"
+    },
+    {
+      "path": "img/project-starfall/maps/astral-observatory.webp",
+      "sha256": "4a5d409d4b6407054b437fd70f2778dec3e6fec1c65a7dc27b8bac89f7a66851"
+    },
+    {
+      "path": "img/project-starfall/maps/astral-stacks.webp",
+      "sha256": "72b888a1ea50ac468241610d503f4c4c5c5399911747afac2bade4e1ba93af71"
+    },
+    {
+      "path": "img/project-starfall/maps/bandit-ridge-camp.webp",
+      "sha256": "2030288331af8f28964879c1e09ea2e1586a053b61f99eb56abbb215bdaa89b3"
+    },
+    {
+      "path": "img/project-starfall/maps/bramble-depths.webp",
+      "sha256": "407982c9f17563634a71f45134e0555d6b6b4639d3c9dd4e12baa929a7722a71"
+    },
+    {
+      "path": "img/project-starfall/maps/brambleking-court.webp",
+      "sha256": "25741d3aec2683d50aa19bb4b5169741c28160394a9f57f88ebec36d6c45326c"
+    },
+    {
+      "path": "img/project-starfall/maps/cinder-hollow.webp",
+      "sha256": "0836fdd9d032122e436612c698ba9379398093fa2d5cb876e650de09c5884afe"
+    },
+    {
+      "path": "img/project-starfall/maps/cinder-refuge.webp",
+      "sha256": "413722d79ad9e66413a4cf15625ce2aaaabe016664af5334c329c6b1faad1ecc"
+    },
+    {
+      "path": "img/project-starfall/maps/deepcore-core.webp",
+      "sha256": "1dd06b83eac3db2c5a40f53b8cdd46587b3686c2540ec2b3b494eddf8bda61a7"
+    },
+    {
+      "path": "img/project-starfall/maps/eclipse-frontier.webp",
+      "sha256": "5ee095c3d654136d2bdba00d2731b34e4a0bdfaee5b42131bb43c5cc1356a983"
+    },
+    {
+      "path": "img/project-starfall/maps/eclipse-throne.webp",
+      "sha256": "335104f27635270b153c4ad7c01e3eda41f353dee57b733fb012f697c31a0cb6"
+    },
+    {
+      "path": "img/project-starfall/maps/emberjaw-furnace.webp",
+      "sha256": "8b7fc8d03ea103a84980a8a5bbc17ce1609d7fc739708b5f6ebcc58377ccf088"
+    },
+    {
+      "path": "img/project-starfall/maps/emberjaw-lair.webp",
+      "sha256": "5bcf4918a3f72e13e870d18ad9207e38965d0957a5c0fd4608a7e3ec6f57340f"
+    },
+    {
+      "path": "img/project-starfall/maps/endless-rift.webp",
+      "sha256": "529d0f84db459814f181617133bc271bb3042286e4438d3205c1771a8b948c98"
+    },
+    {
+      "path": "img/project-starfall/maps/frostfen-camp.webp",
+      "sha256": "57c0a1f9cc230d9b17395a78bfddc119efe3d6766471abbaf5d43cfaefb21e1e"
+    },
+    {
+      "path": "img/project-starfall/maps/frostfen-outskirts.webp",
+      "sha256": "b43d05c0947abcfc9b9f312ec0c8a7fef72d949560309c78609b5f6d15bee8e4"
+    },
+    {
+      "path": "img/project-starfall/maps/gearworks-vault.webp",
+      "sha256": "2b68c74eaf152f3363acfd7fc309904dda6d88453aac8dafc3aa2eb25e855697"
+    },
+    {
+      "path": "img/project-starfall/maps/glacier-spine.webp",
+      "sha256": "75037c3382835bf97cbf3379e332adcf8ce32bef64887543eb5959bc13b32748"
+    },
+    {
+      "path": "img/project-starfall/maps/greenroot-meadow.webp",
+      "sha256": "2f4ec9750c0a04d244d3fdbc9c24cf6ba3b37f5cea3359df717958da22b530d7"
+    },
+    {
+      "path": "img/project-starfall/maps/oreback-quarry.webp",
+      "sha256": "94db4f574fde4721b430bceffcd428f8dc13f78e42fa28c06177099cac67d4d3"
+    },
+    {
+      "path": "img/project-starfall/maps/rimewarden-sanctum.webp",
+      "sha256": "eafdea8bf96019a51eab64e655406422883005a3c3634418c92bb6944721bc32"
+    },
+    {
+      "path": "img/project-starfall/maps/rimewarden-vault.webp",
+      "sha256": "989e509161f16d2a4afbb32d69a47a9b6107b7e143df97f8fc9272461b17beb3"
+    },
+    {
+      "path": "img/project-starfall/maps/rustcoil-outpost.webp",
+      "sha256": "82dec1abc1c9c1031a0f16b95e26d93572125c6f52000ebdf2eb47d7d8916f56"
+    },
+    {
+      "path": "img/project-starfall/maps/rustcoil-ruins.webp",
+      "sha256": "ef9212dd49d14bd02f6cfc31de4b38b4932bdf3406dff95d52a14910ff79691b"
+    },
+    {
+      "path": "img/project-starfall/maps/starfall-crossing.webp",
+      "sha256": "004bafaf20d982e702e69f231c3c0738be829dca7cf551a19f3cf789d5c7d99c"
+    },
+    {
+      "path": "img/project-starfall/maps/stormbreak-aerie.webp",
+      "sha256": "19d49406f68d5364a5007e2e804c0765bcf06aaa625f6a2c0a54b7b5b4b84fcf"
+    },
+    {
+      "path": "img/project-starfall/maps/stormbreak-cliffs.webp",
+      "sha256": "5646a194858646721e77dc4c1ac77003de79f31b0a2bc9f79d18d8d39adae483"
+    },
+    {
+      "path": "img/project-starfall/maps/stormbreak-haven.webp",
+      "sha256": "9ee1a5483df94eed540ff32d6b1c0f0115f463865fae2ec743c6f238efeaad8b"
+    },
+    {
+      "path": "img/project-starfall/maps/thornpath-thicket.webp",
+      "sha256": "e2049cf80a732a1c6abeafdac84585dd2c25984b395139e323b105ea9191810a"
+    },
+    {
+      "path": "img/project-starfall/maps/titan-foundry.webp",
+      "sha256": "7dd80dce15360b06fc4dec2a6f09fe392765e8122bc991c0b15fd4f6ccaa8855"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/beast-archer-trial.webp",
+      "sha256": "0f0dfcee7e71e587f503e451c02cbb176e1275db9e285b748e92033463de09a7"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/berserker-trial.webp",
+      "sha256": "805cab8a8a4344657c2592ea40ddc04a076e96e67049097e835f8cb430263eb6"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/duelist-trial.webp",
+      "sha256": "7c907e75e0bd4f8ecc08e86757978f0371a61c724a9552350c799ac86245c60f"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/fire-mage-trial.webp",
+      "sha256": "9a357cedb23c9b44bc9f4396aa3af3a118639bb83c7a63f23d5833cc18e9aa5f"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/guardian-trial.webp",
+      "sha256": "ee00aaebb361ff9dad72312016eede1d8a94e24df138dfaab106f52beee0f162"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/rune-mage-trial.webp",
+      "sha256": "bd5f9cb904d13c79dcdcd605d723a1e8329c6b3812dc065f3a85c4588bd8c62c"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/sniper-trial.webp",
+      "sha256": "832aebf89f550b20eda5f68671b41fb8978d2bc90c9370b9c791e4a66ede93c7"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/storm-mage-trial.webp",
+      "sha256": "76f0cd0fcc605bbedb9240118a4abc7443ad5241a361a368cb3f0c86ffffcb6c"
+    },
+    {
+      "path": "img/project-starfall/maps/trials/trapper-trial.webp",
+      "sha256": "8d6aeee9c020fa947a86136437b948338a343a66f97e6b162b7fabfeca002aa7"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/beast-archer/beast-archer-companion-strike.png",
+      "sha256": "5a4ddff034d5fc710ac969233cd7ddd6094aad1af1a834b747fb92a668b229fc"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/beast-archer/beast-archer-damage-mastery.png",
+      "sha256": "0b5eae3981d92784c66568a961930fe52bf99f8be37a2862b8cd223f7e5c2221"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/beast-archer/beast-archer-pack-call.png",
+      "sha256": "953367616150d49d5b170403e15cbdcec4410ac7ace9ff306fd4665b440c570e"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/beast-archer/beast-archer-pounce-roll.png",
+      "sha256": "b2eec42e8aff23c68ddb0d89f28db83649f45b72d05e5d7061ae224924f9cbfc"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/berserker/berserker-blood-cleave.png",
+      "sha256": "adbbcf0fc4ebaf415d6e2e024293a0336b6123a1de447693eeae4c044db1c67a"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/berserker/berserker-crimson-recovery.png",
+      "sha256": "04d88e71d2a42d8cbfef7d95c9a7dfc1905e8e135cc6b0eafef626a93db03860"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/berserker/berserker-damage-mastery.png",
+      "sha256": "4765d5a53dd29bda55639d49ba2f033ff6d1c6248f84526da91b8eb061c17139"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/berserker/berserker-last-stand.png",
+      "sha256": "f3d73fec2890e5189318f1f2a5d3ea25b8d52d03bdd4b2568b8dcc4bbabebeac"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/berserker/berserker-pain-to-power.png",
+      "sha256": "2c31b964586ad30237e9cdb7c8ec192046046a5e868141d4facc54973c1e9779"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/berserker/berserker-rage-surge.png",
+      "sha256": "3988fc92dba4100ed58b67a75ea811b05dffc0eb4dff88dc2aad4267242fb08c"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/berserker/berserker-reckless-leap.png",
+      "sha256": "dc204cbc7e119c0c9d062f08b0caf1f7b89f604de24d9a43363ecf55ff0368c7"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/berserker/berserker-war-cry.png",
+      "sha256": "65b2d495c0594c83295a5c5f949c4e77001c7fedf73d84245c6a078546a08cae"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/duelist/duelist-damage-mastery.png",
+      "sha256": "1ebd9ef5128f872d36423a069ae9bbbde960910af796c8a4fd302cef031d9b68"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/duelist/duelist-flash-step.png",
+      "sha256": "5882433f9f6fd93038ac0c32618874c8211d44f3b960085f82afe8ebf91a60b5"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/duelist/duelist-quick-cut.png",
+      "sha256": "0d8458a692db30463dcf3903fa8e0b4359528241a57efcc41315910e98e88c4e"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/duelist/duelist-rallying-flourish.png",
+      "sha256": "9e4911a250f1886bf66ceea3e6e6dcae4ed4124b1f31c288dcde85a08b3d3433"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/fire-mage/fire-mage-burning-mark.png",
+      "sha256": "3d6b30071350000ff2749e5627f84f82655d48654a1571d010455934e35661a1"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/fire-mage/fire-mage-damage-mastery.png",
+      "sha256": "16402a424a89d1f227927102349031af6ae5994a30f79feabf7713e80ce69c94"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/fire-mage/fire-mage-fireball.png",
+      "sha256": "954e28c000ab1871f8cb3019a38b70e30ef29ffa0c46536f6be62945e1659e00"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/fire-mage/fire-mage-flame-trail.png",
+      "sha256": "eabb35b94a07a814101b50778a1d5ebdedb62c221bc73d4d4ab1658c50753c23"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/fire-mage/fire-mage-heat-vent.png",
+      "sha256": "ab7e4031749bcdc94ee13b8a5a0454275f85a546ae0915e1f6c94b9317002f7f"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/fire-mage/fire-mage-ignition-aura.png",
+      "sha256": "04819ec2e7071bb68d70712873e15325d24ff1579859853b0dd26053132f0d49"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/fire-mage/fire-mage-inferno-burst.png",
+      "sha256": "8967888bbf8d314a73ab1e733ab4c97494a8e9e67d49d6aafc9965c3177ec285"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/fire-mage/fire-mage-wildfire.png",
+      "sha256": "3a0176f66a42aa1cb8244e1a0100c3977b397d8aaea8a2f7fc5bf9bb4ada844f"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-damage-mastery.png",
+      "sha256": "b1d781efe7c3b3e1a1824b3fbc7dcdc49f33db7eae186826defbdcae9a086a52"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-hold-the-line.png",
+      "sha256": "188c52d341b0ff96a8a502c3702914a88ff1630069f0660c108f1a3e4fd508ca"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-impact-guard.png",
+      "sha256": "6af69bdc7811ac728a630d5273a684686b675ba69bb427d67220f3383a13aea0"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-oath-barrier.png",
+      "sha256": "84e99f82eb26589fc1e44fdfc04cfc5cf7129dce0648a3c6f1f932d91733f1f1"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-retaliation-wave.png",
+      "sha256": "f4ed1fa9a23d2c351b970a215af369522e39720d9d947bb5255ffbdbfdfb1d39"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-shield-bash.png",
+      "sha256": "3f6be654c619b1c922536f420329ba5496d0d798cac47320ce8782a6cf5a9022"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-shield-dash.png",
+      "sha256": "923138dfb5b6afbd2731cdb22bffd39174c97bdac7cda4541c99abf5578e3069"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-shield-wall.png",
+      "sha256": "026df02d53293b0c775e498d1ffc1f6dba37f659c3b66b84aa038efd51e5ed5c"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/guardian/guardian-verdict.png",
+      "sha256": "2eac544a789f7602442e920915a3049ed98369682a082355fc6be048bbe67008"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-arcane-link.png",
+      "sha256": "1ada869c2615e075b660e98b81626763164917e5b56e2c44ae493b6ddb537019"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-damage-mastery.png",
+      "sha256": "e706193ede7906ca2ac0787c9b4f0cee449244fec0a1d0124c133df98dc03568"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-grand-inscription.png",
+      "sha256": "9b1a1c1082dd6afe49688037155fa8591e279fc6963cd1b277b016a817780994"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-ground-glyph.png",
+      "sha256": "2488f49d665f701f410fc6bdb8607b7e5f6039061f9ccff840179a934bed6323"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-mana-seal.png",
+      "sha256": "9a8fd7e7c4ff5bbae896717695e8f572d34408042073db338fa60eeb5a200009"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-rune-blink.png",
+      "sha256": "dc8a092fd1091802b5bb864cf2973031fd221f9e7fb04a575c3d5f49d0411f5d"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-rune-circle.png",
+      "sha256": "bf6bd0b04369d57cc7aa214717bb4118b92c1a5cb9adca93fd0b79876604ee4d"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-rune-detonation.png",
+      "sha256": "8b7d529266f2a6aaea207fb2cb1a2f68acf38f5b2eaba0cc5743f7d30300f562"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/rune-mage/rune-mage-rune-mark.png",
+      "sha256": "733884f98b23bd8c55cf44b3b391f49c567ed1d29d80c19db2ff49363d40bfb3"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-aimed-shot.png",
+      "sha256": "f824ef79424d4ee63f239277263ca2dad1111f4585b78927a2b432e2da323bc5"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-combat-roll.png",
+      "sha256": "2a46fd57c309e099d8487ca0d5147706eed7e5bf1b009fdc1523cc4dc4b5f504"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-damage-mastery.png",
+      "sha256": "c854f3513d42266072478515d57398b5fb2ceb61a3f6921e98cee6c777c129f4"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-eagle-eye.png",
+      "sha256": "d3f8e6887b98c120f2b8a0b08e7f2be8768ec276422bc4ef6fea267a469a0e68"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-execution-shot.png",
+      "sha256": "3204d69482c84c50971b08d72c390fb0854595f0c155f4eca18cbd6bc7d47216"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-one-perfect-shot.png",
+      "sha256": "b8d517716168bc1c23fb2913c4e95b7a133ed8416e0b63a8bda4f6c0362f0766"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-pierce-armor.png",
+      "sha256": "2e1d6d19ef490ec181fbfe0c26fe5f72ec760b1d3a8ab2315135ca477266a58c"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-steady-breath.png",
+      "sha256": "7e3acc27cb66eba1e9b63725e88ba91ab4b76c295f29e9b09a89b6e7dffc405a"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/sniper/sniper-weak-point-mark.png",
+      "sha256": "f2f0f51bd1d9e8caeb5aadae0ebb3e8cd72553529eee33a5f09fde8172a79433"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/storm-mage/storm-mage-chain-bolt.png",
+      "sha256": "1b9f01fdca1a2cf1a9e91dad8f3d240d023f4b5bd74daa0f1fa7e1a6fbbdd572"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/storm-mage/storm-mage-damage-mastery.png",
+      "sha256": "97d50bcf224422be4bc8fc3055d66165f42b8ae45f3a957d4844f6f2fc27aeec"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/storm-mage/storm-mage-static-shift.png",
+      "sha256": "83dd6be53b8ee6a378dd6b904204a5eccba78bef127ac0e19e5dc38c9edbd442"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/storm-mage/storm-mage-stormfront.png",
+      "sha256": "a2049fa056a33f31f8a0c1fa3a2d6a10e977a19e6e00aec3b90203505b77390d"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-damage-mastery.png",
+      "sha256": "55506cea4ab7dd89a31ea92caf3c67dfc23cbb05b41afaff2986d60fcc50582e"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-detonate.png",
+      "sha256": "9d17e21cce0e970a2f81b82e57c1e89cfd12b7ca27d65a71b0148c0e77530f59"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-grapple-dash.png",
+      "sha256": "1909f869a1c06aa30e4c80caaece714554a6bb65982a8e221dc3abe6abf1c0f3"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-kill-zone.png",
+      "sha256": "ad1dd15f26e46607d07c54a67f50b6e93a5ad2c3bc531753db5d8e633603021a"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-lure-shot.png",
+      "sha256": "a28ccc14e6d9532aa47647fae5062327f5ad09a6fc05a62c22652e2daf502ba9"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-snare-trap.png",
+      "sha256": "0f37189c5cb3d10cc51910d0a0bdb4a3177ff4254d445a2832e9edcd8a545eb6"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-spike-trap.png",
+      "sha256": "05842b75571f202a9c22983b3e1bd75074d189a26b4649525a68a6ad7e38c92e"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-tactical-field.png",
+      "sha256": "90daaa2ce5b17918e3188371d650e0cec36045ee522db3206cd0ceea73471479"
+    },
+    {
+      "path": "img/project-starfall/skills/advanced/trapper/trapper-tripwire.png",
+      "sha256": "38407bace2adc50cad9146b9adfc54e2e97a03050fc235a1aecdaf89222a9ef8"
+    },
+    {
+      "path": "img/project-starfall/skills/base/archer-damage-mastery.png",
+      "sha256": "f4713f097cadd3663fb5014d15f96a53f949c1d8c0102d5133f8f47a83e217ec"
+    },
+    {
+      "path": "img/project-starfall/skills/base/archer-eagle-stance.png",
+      "sha256": "d43bc9c6727c80b978592b47a3a4f74432f67effd65db90b7739335cf777a12e"
+    },
+    {
+      "path": "img/project-starfall/skills/base/archer-focused-volley.png",
+      "sha256": "e84265f74526b757bc2b52e16405ad463040d87db05b38a3fa4ca69cfabddef8"
+    },
+    {
+      "path": "img/project-starfall/skills/base/archer-marked-shot.png",
+      "sha256": "7b2e62f264f162ff534e326d9973d56710555f7dc644a6a00885ff5f578d4ca5"
+    },
+    {
+      "path": "img/project-starfall/skills/base/archer-piercing-arrow.png",
+      "sha256": "7d97e043e7e88ce350fbe1e9b860481ea900d9d1099aad27f9cff335c637dd40"
+    },
+    {
+      "path": "img/project-starfall/skills/base/archer-quick-shot.png",
+      "sha256": "93b4dc34a9be72c1baffdbe72d574ce794951dfbd4748236c9376b4c326fba8a"
+    },
+    {
+      "path": "img/project-starfall/skills/base/archer-roll-shot.png",
+      "sha256": "a97a74af278a3bdc76bd971e3c1fb16a7ea96896d5df0f19e83b95c48c836a64"
+    },
+    {
+      "path": "img/project-starfall/skills/base/fighter-damage-mastery.png",
+      "sha256": "0d40881949129d111fc428ff8cdd10cf24350afe8e1fa4fbf812dc0ed3a4170e"
+    },
+    {
+      "path": "img/project-starfall/skills/base/fighter-dash-slash.png",
+      "sha256": "ddb7a165340574bcadb4776bb0c22c5d16e38dca1a7e8ba6e359388438db11d4"
+    },
+    {
+      "path": "img/project-starfall/skills/base/fighter-ground-slam.png",
+      "sha256": "6331b34e6ea3ed6198ed48233545363979723fa2f0872c4c9b7efe3c7c362d35"
+    },
+    {
+      "path": "img/project-starfall/skills/base/fighter-guard.png",
+      "sha256": "0bc872352fc70cbfbd829fce3c9880020cdac0d019b7674321cb402489244365"
+    },
+    {
+      "path": "img/project-starfall/skills/base/fighter-heavy-strike.png",
+      "sha256": "f8047a62570847d6b1723ac2c3f4b252df12e89eb118349bb424b27472c8b2f6"
+    },
+    {
+      "path": "img/project-starfall/skills/base/fighter-momentum-burst.png",
+      "sha256": "880019a78a04b62408ce9c58bfe09f267e873266820a0546bb62cd0c0a5a576f"
+    },
+    {
+      "path": "img/project-starfall/skills/base/fighter-power-break.png",
+      "sha256": "6133d160cb24c160d6b3f085b237ddb0adcdb0d309d7a1f1ea6fa1295b21a0cc"
+    },
+    {
+      "path": "img/project-starfall/skills/base/mage-arcane-burst.png",
+      "sha256": "d52b30899f6030ea24f858468c91a019dc2e124ece40816a47b6cf2bf411ed20"
+    },
+    {
+      "path": "img/project-starfall/skills/base/mage-blink.png",
+      "sha256": "453e62462be6715ce04fbcebefc45a840b103981b597c84d8573f2bf773f01e0"
+    },
+    {
+      "path": "img/project-starfall/skills/base/mage-damage-mastery.png",
+      "sha256": "f9693604b013d0cac867d9333bd188bae3761da18295b4bce799d03ac80808a2"
+    },
+    {
+      "path": "img/project-starfall/skills/base/mage-energy-release.png",
+      "sha256": "1d4f347bc5f34a68dfe8356de220623c77f79783d1c4370890a32c737e46633f"
+    },
+    {
+      "path": "img/project-starfall/skills/base/mage-magic-bolt.png",
+      "sha256": "6da8ace2f3fefb2ab94adb8c111b59ebc12b11d78065b1626637be1a8121cf6d"
+    },
+    {
+      "path": "img/project-starfall/skills/base/mage-mana-shield.png",
+      "sha256": "350a0864336fefb4eeec78af4460272a18524674dcff05394e1a0d8a0a7fb37c"
+    },
+    {
+      "path": "img/project-starfall/skills/base/mage-spell-mark.png",
+      "sha256": "b25ea1fcb5ac69f1610e94ad4148d9cdebb6cc9f466f86dd9f2cf75fd45d1585"
+    },
+    {
+      "path": "img/project-starfall/stations/class.png",
+      "sha256": "31305c049644ef162f6e424a2d9fb66e057a40c857d076e0aafc66e478cb36c4"
+    },
+    {
+      "path": "img/project-starfall/stations/shop.png",
+      "sha256": "95a6374e7add7e7d487e40cba23e472e2ebc2277125f2cad01493ec23a590aa1"
+    },
+    {
+      "path": "img/project-starfall/stations/slots.png",
+      "sha256": "bc80fa50526bfd3f2d773e8d126110210deb71993f2593efd055c2351b8a19a6"
+    },
+    {
+      "path": "img/project-starfall/stations/storage.png",
+      "sha256": "833e6d1799008da1bd5ac2750cd7d981812839a2db239eb0e3f830273398a839"
+    },
+    {
+      "path": "img/project-starfall/stations/upgrade.png",
+      "sha256": "962cc6db0797e93435453eddd240858eb3a63617efee3ae2ccb1778e3052d2ea"
+    },
+    {
+      "path": "img/project-starfall/ui/character-select-screen.png",
+      "sha256": "432abf24f681004e4ef6b45aa6d297106897300f82ded26e971c8dad039c5512"
+    },
+    {
+      "path": "img/project-starfall/ui/character-slot-pedestal.png",
+      "sha256": "39d8cee8f9735c6756a6911fbbbd85ec64d3ec5eff795ef63e8096db5366544b"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/admin.png",
+      "sha256": "ecb46b9ddabf68474a81cf6e8d3069c9a44abf981f2a3c02a584954f2f6c2721"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/beta.png",
+      "sha256": "e1311cec95e17da538cc0f42690cab7875c87353ac0a79803621d026c2d650b2"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/cash-shop.png",
+      "sha256": "1beb8afdf11059b06ce3399597117b51d48f4cebbd9c1cd5e6cfb3d245995807"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/character.png",
+      "sha256": "272b924ba20f3d87f0d6f6edcf2a8ad22be3975bc73432adb06cb54029720a18"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/equipment.png",
+      "sha256": "d479153d1c0abc97323c00bc72ab198ba43511eed9cdd97ec7ce20966d9d997b"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/guide.png",
+      "sha256": "7fdb3e9abe4f1ac0746020fa693e99b1f53f83fd8e1b345a018ae5e95f732bcd"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/inventory.png",
+      "sha256": "60265484a58e4a4c5acde57ba5aa067e942be276bc53e467a0452b1adb9b6f22"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/keybinds.png",
+      "sha256": "f772fb0c33887c12f3b86e79f0931ab53f7598ca8d1b9b91e712c1472a73ede6"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/log.png",
+      "sha256": "f001c7c64381b227d6f9ce7afe085886fd12031b54ca27e56604312b7365f817"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/logout.png",
+      "sha256": "68c0a37720f5c07e4fe5f51eca967e8705378e8c5868468dec4855420c0309bd"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/monsters.png",
+      "sha256": "73a20c86329b4115ffaa28ad3f499d18dfff3e8033a7caf17aa2409bdddc30be"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/party-panel.png",
+      "sha256": "4c752460502bab19afea4b6dcc187d3eaa1ec4f4384f4e7600b0367c4da43f63"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/quests.png",
+      "sha256": "1b30f374358766bbeda9b5eb177e8ad0d273e3b953f726ab0287ba29193db0df"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/settings.png",
+      "sha256": "283a331cd82bab3b7a8ff1a9934afd30ae3e1c551c821be25c581033e4575a6e"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/shop.png",
+      "sha256": "a9960caac5705f529930ea033e97532513c1072eb2c5edddebf8a474ad1b7464"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/skills.png",
+      "sha256": "a832edfef3034f0963a42120d102c6447c5f394097a866f7bc56d971a009ead9"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/upgrade.png",
+      "sha256": "7d52e03b20562ce012d38816c2fe2c0ad88110a641ade3db4eae68601ddf2cb1"
+    },
+    {
+      "path": "img/project-starfall/ui/menu-icons/worldmap.png",
+      "sha256": "c5291b932fce41baa3664d743386b84798f1b3f30b6b7b33efca6d80c1954714"
+    },
+    {
+      "path": "img/project-starfall/ui/splash-screen.png",
+      "sha256": "6d475d75f38d694e39834c86d07da578a1fc93b500cf8a2334b0111e76c92ee5"
+    },
+    {
+      "path": "img/project-starfall/ui/start-screen.avif",
+      "sha256": "a589570ef80607609f5059ac554a30017ff6e079c9efbf3ce3586d9aaff8a488"
+    },
+    {
+      "path": "img/project-starfall/ui/start-screen.png",
+      "sha256": "a2d100368333c7a3057e018a8723a8bcb9ecb3efa21bbb69b219d9bf76cb9f47"
+    },
+    {
+      "path": "img/project-starfall/ui/start-screen.webp",
+      "sha256": "46a0198d3692b508f01d9dc6e768cd86d3b36efaff68eedb8f48da7514775444"
+    },
+    {
+      "path": "img/project-starfall/world-map/starfall-atlas.webp",
+      "sha256": "b62d3e2b9096f46867592eba4d54802116de1261ba9349cee106167e645ee2ae"
+    }
+  ],
+  "protectedSessionFiles": [
+    {
+      "path": "output/starfall-animation-samples/fox-390.png",
+      "sha256": "1fa51b93f1859b76929f83a41a843219ed734d7b1fd849ca78c656f0eabdce43"
+    },
+    {
+      "path": "output/starfall-animation-samples/fox-736.png",
+      "sha256": "fc5de06666637c16c72bb7493ba9560e45cbd96d24d6a1c99807ad45002f7061"
+    },
+    {
+      "path": "output/starfall-animation-samples/glowcap-hop-study.png",
+      "sha256": "86f21abc74c63cfdee9d1a811771392db325f9a8b45c79824dbbc733b88deae3"
+    },
+    {
+      "path": "output/starfall-animation-samples/glowcap-review-320.png",
+      "sha256": "9ea723c671bcc623125d407376e35876cdd35ec46a154a8681be10695e513947"
+    },
+    {
+      "path": "output/starfall-animation-samples/glowcap-review-390.png",
+      "sha256": "b486dabc4709da7f0bc12e321debd802a267675d7a79fa25e50ae0e55bdc8551"
+    },
+    {
+      "path": "output/starfall-animation-samples/glowcap-review-736.png",
+      "sha256": "1f8939c6a787363e1254a7ff7f99821d961b4c96071f6b72a39a99c5452cbad9"
+    },
+    {
+      "path": "output/starfall-animation-samples/glowcap-spring-study.png",
+      "sha256": "6a5466fefd53d0b308b9ef071674fefe72a1ee9584849c76cb72c1024d3826e2"
+    },
+    {
+      "path": "output/starfall-animation-samples/mushroom-motion-reference.gif",
+      "sha256": "f1363811d55a95d900e730e78954e7134fe53a98a1e2bbef1f2b9c2c521e963a"
+    },
+    {
+      "path": "output/starfall-animation-samples/mushroom-reference-contact.png",
+      "sha256": "088e85444f4f68d2b871b2771bb69e281ff2e96ca32f944bdf609f97bde0301c"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-390.png",
+      "sha256": "d998eb0db862f003acbe2d8909ce80b82bd9844a4cfc7c62fb53caa9215e1ce6"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-736.png",
+      "sha256": "4879100e216b76453c01f32653f159932f474e09439daaa7d9366fb339073e2f"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-cast-study.png",
+      "sha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-heal-review-320.png",
+      "sha256": "0bb7810a605f3d719298ab248f76a8b8af56cf8099e0e5f4382f7235cb4a7bb0"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-heal-review-390.png",
+      "sha256": "075cd7cdb285a8449c8ceab1593c7bcc98180f8e638fa15b5c10da3ed56ac892"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-heal-review-736.png",
+      "sha256": "7e5225f9ede539f58f125fb33d84f6e2fe494f3cd622207cf847ac301eb545f1"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-healing-fx-study.png",
+      "sha256": "ca85357f4b383cbcde432e9e073e9a33f0019bb1de67ca75837f71b8d6642a69"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-review-320.png",
+      "sha256": "00cd61399cc9963db31b1cb9ae5396b2896d955905f4dbd8c3f54221f2701cdc"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-review-390.png",
+      "sha256": "0925b41667089e7521bdbfca03bf3fb718a4a2233e289c8929aa702dd625c8bd"
+    },
+    {
+      "path": "output/starfall-animation-samples/oracle-review-736.png",
+      "sha256": "d89d6bb6b1a85e2905661d7c9943be6105dc3eb25fa20b1a5e083160205fd47b"
+    },
+    {
+      "path": "output/starfall-animation-samples/player-run-candidate.png",
+      "sha256": "7c7e8385e56a676c1b15f935dc7110d6cdd79b679f2fcee9c8d449680591739e"
+    },
+    {
+      "path": "output/starfall-animation-samples/reference-motion-contact.png",
+      "sha256": "35e8a518191d36fb759249c3a98e6dc7ba5335edad57bf003fada200451b6d46"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png",
+      "sha256": "0885466d4ff1abb32694f5164cd9a0f6aa7f054da7789a1d88bd3586283a313d"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/bristle-boar-frame-0.png",
+      "sha256": "b4d3046ce35582cee1aaa024eaa4f25874bbbc2c7542149c21e31a612a79dccf"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/bristle-boar-frame-2.png",
+      "sha256": "6f6fa36b6e6bfa1f379ef99f7a9099e869dd95859f2157a1125c9874a56af8db"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/bristle-boar-frame-4.png",
+      "sha256": "a33c509221cb268fe763fac4e6ffcc6ae6c6eee933474a6bf4894c2066d9e304"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/bristle-boar-frame-5.png",
+      "sha256": "81ebe58821a0711da6c1a06e6d023965003c8729a131317ee62679c1771ce647"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/bristle-boar-frame-6.png",
+      "sha256": "f4dcbe67a8386c9a9f5e6b97b18a5d90a5819f7a58d9df3f05eac2c608c3ba1e"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/bristle-boar-frame-7.png",
+      "sha256": "fd1e623c28951d780b3a583960604e4635e43847fccfff0d14218b6bc47c4315"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/contact-fx-study.png",
+      "sha256": "8d97936e007bea16e3f72768395b4892015d9aba1e24cf7ebd38fff83c1d0439"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "sha256": "a66c44ee4d402b388bbcc4298667e2da7594c9bc5e05c43c93e3da2949e5c963"
+    },
+    {
+      "path": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "sha256": "d717a8ad49d8f14774648400ab81cdc38dbbc2871de818572f96aa6d7b511a0a"
+    }
+  ]
+}

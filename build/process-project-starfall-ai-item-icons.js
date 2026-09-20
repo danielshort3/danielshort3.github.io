@@ -969,6 +969,8 @@ async function writeExternalSheetIcons(sheet) {
 }
 
 async function main() {
+  const owner = require('./project-starfall-overhaul-icons.js');
+  if (owner.owns()) return owner.rebuild('items');
   const data = require(path.join(ROOT, 'js/games/project-starfall/project-starfall-data.js'));
   const assets = data.ITEM_ASSETS || {};
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });

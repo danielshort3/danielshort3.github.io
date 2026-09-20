@@ -1,0 +1,17 @@
+{
+  "counts": {
+    "items": 209,
+    "skills": 85,
+    "cards": 21,
+    "menu": 18,
+    "screens": 3,
+    "pedestal": 1,
+    "equipment": 85
+  },
+  "rasterTotal": 337,
+  "equipmentCells": 856,
+  "allOutputsChanged": true,
+  "allIconMarginsClear": true,
+  "preservedSessionImages": 30,
+  "provenance": "asset-sources/project-starfall/overhaul-v1/icons/ledger.json"
+}

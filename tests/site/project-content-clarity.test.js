@@ -42,6 +42,8 @@ function runProjectContentClarityTests({ assert }) {
       next.includes(`href="/portfolio/${nextProject.id}"`) && next.includes(escape(nextProject.title)),
     `${project.id} should link to the next project in the complete collection`);
     const question = html.match(/<div class="project-question-dock">([\s\S]*?)<\/div>/)[1];
+    assert(/<svg\b[^>]*width="22"[^>]*height="22"/.test(question),
+      `${project.id} question icon must stay small even if its stylesheet is unavailable`);
     assert(question.includes('href="/contact" data-contact-modal-link="true"') &&
       question.includes(`data-contact-message="Hi Daniel, I have a question about ${escape(project.title)}:`),
     `${project.id} should retain a native contact fallback and provide the project name to the existing prefill flow`);

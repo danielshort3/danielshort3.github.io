@@ -18,7 +18,7 @@
       "description": "Try a handwriting demo and explore how confidently a model recognizes handwritten digits.",
       "href": "/portfolio/handwritingRating",
       "icon": "pencil",
-      "accent": "#155dfc",
+      "accent": "#005fed",
       "contentType": "project",
       "resourceType": "case_study"
     },
@@ -51,15 +51,16 @@
     ]
   },
   "brandNavPrimary": "Projects, Tools, and Games",
+  "brandTagline": "Solving everyday problems with data and thoughtful tools.",
   "page": {
     "id": "home",
     "template": "visual-page",
     "outputPath": "index.html",
     "title": "Daniel Short | Data Analytics, ML Projects & Web Tools",
     "canonicalPath": "/",
-    "description": "Personal website for Daniel Short, featuring machine learning projects, analytics work, practical tools, and browser games.",
+    "description": "Solving everyday problems with data and thoughtful tools. Explore Daniel Short’s analytics, machine learning projects, and browser games.",
     "ogTitle": "Daniel Short | Projects, Tools & Games",
-    "ogDescription": "Machine learning projects, analytics work, practical tools, and browser games from Daniel Short.",
+    "ogDescription": "Solving everyday problems with data and thoughtful tools. Explore Daniel Short’s analytics, machine learning projects, and browser games.",
     "siteName": "Daniel Short",
     "ogType": "website",
     "bodyAttributes": {
@@ -109,7 +110,7 @@
               "color": "#091f3b",
               "colorEnd": "#032b57",
               "title": "Hi, I’m Daniel.",
-              "lead": "I enjoy solving everyday inefficiencies with AI and machine learning. Family is important to me, and I’ve played French horn for 20 years.",
+              "lead": "I use data, AI, and machine learning to solve everyday problems. Family is important to me, and I’ve played French horn for 20 years.",
               "context": "Based in western Colorado.",
               "currentWork": {
                 "text": "Currently building: a more useful, accessible home for my projects and browser tools.",
@@ -124,6 +125,8 @@
                     "description": "Turning repetitive tasks into useful tools.",
                     "icon": "ai",
                     "image": "img/hero/about-ai-network-v1.webp",
+                    "imageSrcSet": "img/hero/about-ai-network-v1-192.webp 192w, img/hero/about-ai-network-v1-384.webp 384w",
+                    "imageSizes": "58px",
                     "imageWidth": 512,
                     "imageHeight": 512,
                     "project": {
@@ -141,6 +144,8 @@
                     "description": "A central part of my life.",
                     "icon": "family",
                     "image": "img/hero/about-family-frame-v1.webp",
+                    "imageSrcSet": "img/hero/about-family-frame-v1-192.webp 192w, img/hero/about-family-frame-v1-384.webp 384w",
+                    "imageSizes": "58px",
                     "imageWidth": 512,
                     "imageHeight": 512,
                     "project": {
@@ -157,6 +162,8 @@
                     "title": "French horn",
                     "description": "Playing for 20 years.",
                     "image": "img/hero/about-french-horn-sheet-music-v1.webp",
+                    "imageSrcSet": "img/hero/about-french-horn-sheet-music-v1-192.webp 192w, img/hero/about-french-horn-sheet-music-v1-384.webp 384w",
+                    "imageSizes": "58px",
                     "imageWidth": 512,
                     "imageHeight": 512,
                     "project": {
@@ -332,8 +339,8 @@
             {
               "id": "projects",
               "label": "Projects",
-              "color": "#155dfc",
-              "colorEnd": "#0b4bd4",
+              "color": "#005fed",
+              "colorEnd": "#0145c8",
               "title": "Things I’ve made",
               "lead": "A few projects that started with a real question, curiosity, or problem I wanted to solve.",
               "items": [

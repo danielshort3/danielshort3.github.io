@@ -150,6 +150,11 @@ async function scrollState(page) {
     frameHeight: SiteFrame.viewport().scrollHeight,
     frameClientHeight: SiteFrame.viewport().clientHeight,
     toolbarHeight: SiteFrame.root().querySelector('.site-frame__toolbar').getBoundingClientRect().height,
+    dockHeight: SiteFrame.root().querySelector('.site-frame__slot-content > .project-question-dock')?.getBoundingClientRect().height || 0,
+    slotBorderHeight: (() => {
+      const style = getComputedStyle(SiteFrame.root().querySelector('[data-site-frame-slot]'));
+      return parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    })(),
     frameRange: Math.max(0, SiteFrame.viewport().scrollHeight - SiteFrame.viewport().clientHeight),
     frameOverflow: getComputedStyle(SiteFrame.viewport()).overflowY,
     frameBox: (() => {
@@ -249,8 +254,8 @@ async function assertSharedStage(page, homeStage, label) {
       assert(Math.abs(state.stageBox[property] - homeStage.stageBox[property]) <= 2,
         `${label} preserves the homepage stage ${property}: ${JSON.stringify({ home: homeStage.stageBox, project: state.stageBox })}`);
     }
-    assert(Math.abs(state.frameClientHeight + state.toolbarHeight - homeStage.frameClientHeight - homeStage.toolbarHeight) <= 2,
-      `${label} keeps the viewport and breadcrumb toolbar inside the homepage's fixed content height: ${JSON.stringify({ home: homeStage.frameClientHeight, viewport: state.frameClientHeight, toolbar: state.toolbarHeight })}`);
+    assert(Math.abs(state.frameClientHeight + state.toolbarHeight + state.dockHeight + state.slotBorderHeight - homeStage.frameClientHeight - homeStage.toolbarHeight - homeStage.dockHeight - homeStage.slotBorderHeight) <= 2,
+      `${label} keeps the viewport, toolbar, reserved question footer and category border inside the fixed stage: ${JSON.stringify({ home: homeStage.frameClientHeight, viewport: state.frameClientHeight, toolbar: state.toolbarHeight, dock: state.dockHeight, border: state.slotBorderHeight, homeBorder: homeStage.slotBorderHeight })}`);
     assert(state.documentRange <= 1 && state.documentTop === 0,
       `${label} keeps long content inside the frame without document overflow.`);
   } else {

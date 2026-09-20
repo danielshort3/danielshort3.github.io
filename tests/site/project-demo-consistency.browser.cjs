@@ -157,6 +157,15 @@ async function runChat(page, frame, demo, state, artifactDir, label) {
   const openSettings = async () => {
     if (!await settings.evaluate(node => node.open)) await settings.locator(':scope > summary').click();
   };
+  const selectBackend = async (id) => {
+    const select = frame.locator('#backend-select');
+    // Exercise the visible native control. A programmatic selectOption can
+    // open its dialog while the parent panel has scrolled the iframe offscreen.
+    await select.click();
+    await select.press(id === 'qwen-sagemaker' ? 'Home' : 'End');
+    await select.press('Enter');
+    assert.equal(await select.inputValue(), id, `${label} changes the backend through its native control.`);
+  };
   assert.equal(await settings.getAttribute('open'), null, `${label} keeps advanced chat controls closed initially.`);
   assert.match(await settings.locator(':scope > summary').innerText(), /Advanced settings/i);
   const composer = await frame.locator('#regular-view .chat-composer').boundingBox();
@@ -183,14 +192,14 @@ async function runChat(page, frame, demo, state, artifactDir, label) {
   await frame.locator('#regular-view-button').click();
   assert.equal(await frame.locator('#regular-prompt').inputValue(), draft);
   await openSettings();
-  await frame.locator('#backend-select').selectOption('qwen-sagemaker');
+  await selectBackend('qwen-sagemaker');
   await frame.locator('#qwen-startup-notice').waitFor({ state: 'visible' });
   await frame.locator('#qwen-startup-close').click();
   await frame.waitForFunction(() => document.querySelector('#warmup-button')?.textContent === 'Prepare demo');
   assert(await frame.locator('#warmup-button').isEnabled(), `${label} preserves explicit on-demand startup.`);
   assert.equal(state.mutations.length, 0, `${label} never warms a backend or sends a message while reviewing layout/settings.`);
   await openSettings();
-  await frame.locator('#backend-select').selectOption('bedrock');
+  await selectBackend('bedrock');
   await page.keyboard.press('Escape');
   await assertSurface(page, frame, demo, `${label} restored`);
 }
@@ -245,8 +254,8 @@ async function runCase({ browser, base, artifactDir, demo, width, project }) {
       await heading.scrollIntoViewIfNeeded();
       assert.notEqual((await heading.locator('.project-demo-title').innerText()).trim(), 'Demo', `${label} supplies one descriptive outer heading.`);
       assert((await heading.locator('.project-demo-description').innerText()).trim().length > 15, `${label} supplies one concise outer description.`);
-      if (width < 600 && await page.locator('.project-demo-mobile-launch .btn-primary').isVisible()) {
-        await page.locator('.project-demo-mobile-launch .btn-primary').click();
+      if (width < 600 && await page.locator('.project-intro-action--demo').isVisible()) {
+        await page.locator('.project-intro-action--demo').click();
         await page.waitForURL(`**/${demo.id}-demo`);
         embedded = false;
       }
