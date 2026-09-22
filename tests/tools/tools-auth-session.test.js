@@ -580,7 +580,13 @@ async function run(){
       assert(!/script-src [^;]*'unsafe-inline'/.test(policy), `${source} should not allow inline scripts`);
     } else {
       assert(policy.includes("frame-ancestors 'self'"), 'CSP missing frame-ancestors self');
-      assert(/script-src [^;]*'unsafe-inline'/.test(policy), 'CSP migration should retain script-src unsafe-inline for now');
+      const allowsInlineScripts = /script-src [^;]*'unsafe-inline'/.test(policy);
+      if (source === '/admin/:path*') {
+        assert(allowsInlineScripts, 'CMS dynamic preview compatibility must remain explicitly scoped');
+      } else {
+        assert(!allowsInlineScripts, `${source} must block arbitrary inline scripts`);
+        assert(!/script-src-elem [^;]*'unsafe-inline'/.test(policy), `${source} must block arbitrary inline script elements`);
+      }
       assert(/style-src [^;]*'unsafe-inline'/.test(policy), 'CSP migration should retain style-src unsafe-inline for now');
     }
     assert(!/frame-ancestors [^;]*https?:/i.test(policy), 'frame-ancestors should not allow external origins');
