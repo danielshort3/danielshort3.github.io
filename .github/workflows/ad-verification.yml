@@ -8,7 +8,7 @@ on:
       - 'demos/ad-verification.html'
       - 'js/demos/ad-verification*.js'
       - 'css/components/ad-verification.css'
-      - 'img/projects/ad-verification-landscape.webp'
+      - 'img/projects/ad-verification*.webp'
       - 'content/projects/adVerification.json'
       - 'tests/tools/ad-verification*'
       - 'build/**'
@@ -20,7 +20,7 @@ on:
       - 'demos/ad-verification.html'
       - 'js/demos/ad-verification*.js'
       - 'css/components/ad-verification.css'
-      - 'img/projects/ad-verification-landscape.webp'
+      - 'img/projects/ad-verification*.webp'
       - 'content/projects/adVerification.json'
       - 'tests/tools/ad-verification*'
       - 'build/**'
@@ -45,11 +45,11 @@ jobs:
         run: npm ci
       - name: Build website and publication indexes
         run: npm run build
-      - name: Test cryptography and unlisted publication
+      - name: Test cryptography, shared clock and unlisted publication
         run: node --test tests/tools/ad-verification.test.js
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Test native browser cryptography and responsive interactions
+      - name: Verify native animations frame by frame
         run: node tests/tools/ad-verification.browser.cjs
         env:
           BROWSER_ARTIFACT_DIR: ${{ runner.temp }}/ad-verification
