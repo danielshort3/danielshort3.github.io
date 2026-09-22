@@ -59,7 +59,20 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm test
+        run: |
+          status=0
+          npm test > "$RUNNER_TEMP/site-tests.log" 2>&1 || status=$?
+          tail -n 100 "$RUNNER_TEMP/site-tests.log"
+          exit "$status"
+
+      - name: Upload complete test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-test-diagnostics
+          path: ${{ runner.temp }}/site-tests.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Check delivery budgets and publish the performance report
         run: npm run performance:report
