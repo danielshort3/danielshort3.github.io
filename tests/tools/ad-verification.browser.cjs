@@ -2,81 +2,94 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const http = require('node:http');
 const os = require('node:os');
+const http = require('node:http');
 const { chromium } = require('playwright');
 const core = require('../../js/demos/ad-verification-core');
 const repository = path.resolve(__dirname, '../..');
 const root = fs.existsSync(path.join(repository, 'public/demos/ad-verification.html')) ? path.join(repository, 'public') : repository;
 const output = process.env.BROWSER_ARTIFACT_DIR || path.join(os.tmpdir(), 'ad-verification-browser');
-const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.woff2': 'font/woff2', '.webp': 'image/webp', '.json': 'application/json' };
+const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.webp': 'image/webp', '.woff2': 'font/woff2', '.json': 'application/json' };
 const server = http.createServer((request, response) => {
   try {
-    const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-    let file = path.resolve(root, '.' + pathname);
+    let file = path.resolve(root, '.' + decodeURIComponent(new URL(request.url, 'http://localhost').pathname));
     if (!file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
     if (!path.extname(file)) file += '.html';
-    const bytes = fs.readFileSync(file);
-    response.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream' });
-    response.end(bytes);
+    response.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream' }); response.end(fs.readFileSync(file));
   } catch (_) { response.writeHead(404).end('Not found'); }
 });
-
-// Runs independently of the application on every rendered animation frame.
-function installVisualAudit() {
-  window.__avAudit = { frames: 0, activeFrames: 0, commits: [], failures: [], lastCount: 0 };
-  function sample() {
-    const audit = window.__avAudit;
-    const fail = (message) => { if (audit.failures.length < 30) audit.failures.push(message); };
-    const main = document.querySelector('#main[data-block-count]');
-    if (main) {
+function installAudit() {
+  const audit = window.__campaignAudit = { frames: 0, overlappingFrames: 0, mixedStageFrames: 0, maxParallel: 0, commits: 0, replacements: 0, failures: [] };
+  let lastCount = 0;
+  let prior = [];
+  let known = new Map();
+  const fail = (text) => { if (audit.failures.length < 25) audit.failures.push(text); };
+  function tick() {
+    const main = document.querySelector('#main[data-count]');
+    const rows = [...document.querySelectorAll('[data-slot]')];
+    if (main && rows.length) {
       audit.frames += 1;
-      const count = Number(main.dataset.blockCount);
-      const blocks = [...document.querySelectorAll('.av-block')];
-      if (count !== blocks.length) fail(`Count mismatch: ${count} versus ${blocks.length}`);
-      if (count < audit.lastCount) audit.lastCount = count; // An explicit campaign reset.
-      if (count > audit.lastCount) {
-        if (count !== audit.lastCount + 1) fail('More than one block appeared in a frame.');
-        const block = blocks.at(-1);
-        const id = block.dataset.eventId;
-        const traveler = block.dataset.travelerId;
-        const type = block.dataset.type;
-        const row = traveler && document.querySelector(`[data-traveler="${traveler}"]`);
-        const target = traveler ? row?.querySelector(type === 'summary' ? '[data-summary]' : `[data-step="${type}"]`) : document.querySelector(`[data-campaign-step="${type}"]`);
-        if (target && (target.dataset.eventId !== id || target.dataset.phase !== 'committed' || target.dataset.state !== 'verified')) fail(`Traveler and block ${id} did not commit together.`);
-        if (main.dataset.running === 'true' && !target) fail(`The active traveler for ${id} was not rendered.`);
-        audit.commits.push({ id, traveler, type, count });
-        audit.lastCount = count;
+      const count = Number(main.dataset.count);
+      if (count < lastCount) { lastCount = count; known = new Map(); prior = []; }
+      const active = rows.filter((row) => row.dataset.phase === 'recording');
+      audit.maxParallel = Math.max(audit.maxParallel, active.length);
+      if (active.length > 1) audit.overlappingFrames += 1;
+      if (new Set(active.map((row) => row.dataset.key.split('/')[1])).size > 1) audit.mixedStageFrames += 1;
+      if (rows.length !== 5) fail('The five-lane pool changed size.');
+      const host = document.querySelector('[data-travelers]');
+      const box = host.getBoundingClientRect();
+      for (const row of rows) {
+        const r = row.getBoundingClientRect();
+        if (r.height < 20 || r.top < box.top - 1 || r.bottom > box.bottom + 1 || host.scrollHeight > host.clientHeight + 1) fail('A traveler was hidden behind scrolling or clipping.');
       }
-      if (main.dataset.running === 'true' && ['recording', 'verifying'].includes(main.dataset.phase)) {
-        audit.activeFrames += 1;
-        const id = main.dataset.activeEvent;
-        const pending = document.querySelector('[data-pending]');
-        const target = [...document.querySelectorAll(`[data-event-id="${id}"][data-state="active"]`)].find((node) => node !== pending);
-        const progress = Number(main.dataset.progress);
-        if (!pending || !target) fail(`Missing paired view for ${id}.`);
+      if (count > lastCount) {
+        if (count !== lastCount + 1) fail('Non-atomic append.');
+        const block = document.querySelector(`[data-blocks] [data-height="${count}"]`);
+        if (!block) fail('Latest block missing from the chain.');
         else {
-          for (const node of [pending, target]) {
-            if (node.dataset.eventId !== id || node.dataset.phase !== main.dataset.phase || node.dataset.progress !== main.dataset.progress) fail(`Phase/progress mismatch for ${id}.`);
-            if (Math.abs(parseFloat(getComputedStyle(node).getPropertyValue('--progress')) - progress) > .00001) fail(`CSS clock mismatch for ${id}.`);
-          }
-          const bar = pending.querySelector('.av-pending-bar');
-          const width = pending.getBoundingClientRect().width - 2;
-          if (width > 0 && Math.abs(bar.getBoundingClientRect().width / width - progress) > .025) fail(`Block progress animation drift for ${id}.`);
-          const row = target.closest('[data-traveler]');
-          const runner = row?.querySelector('.av-travel-runner');
-          if (runner && row.dataset.moving === 'true' && document.body.dataset.reducedMotion !== 'true') {
-            const expected = parseFloat(row.style.getPropertyValue('--runner-x')) / 100 * row.querySelector('.av-path').getBoundingClientRect().width;
-            if (Math.abs(parseFloat(getComputedStyle(runner).left) - expected) > 1) fail(`Traveler motion drift for ${id}.`);
+          known.set(block.dataset.key, count);
+          const id = block.dataset.travelerId;
+          const row = rows.find((item) => item.dataset.travelerId === id);
+          if (id && !row) fail('A traveler disappeared before their final record.');
+          if (row && id) {
+            if (block.dataset.type === 'summary') {
+              if (row.dataset.phase !== 'done' || Number(row.dataset.summaryHeight) !== count || row.dataset.summaryKey !== block.dataset.key) fail('Summary and lane completion differ.');
+            } else {
+              const step = row.querySelector(`[data-step="${block.dataset.type}"]`);
+              if (step.dataset.key !== block.dataset.key || step.dataset.phase !== 'committed' || step.dataset.state !== 'verified' || Number(step.dataset.height) !== count) fail('Recorded milestone did not match its block in the same frame.');
+            }
           }
         }
+        audit.commits += 1; lastCount = count;
+      }
+      rows.forEach((row, index) => {
+        const old = prior[index];
+        if (old?.id && row.dataset.travelerId && old.id !== row.dataset.travelerId) {
+          if (old.phase !== 'done' || !old.summary) fail('Traveler replaced before measurement ended.');
+          audit.replacements += 1;
+        }
+        for (const step of row.querySelectorAll('[data-step][data-phase="committed"]')) if (known.get(step.dataset.key) !== Number(step.dataset.height)) fail('A recorded check has no matching block.');
+      });
+      prior = rows.map((row) => ({ id: row.dataset.travelerId, phase: row.dataset.phase, summary: row.dataset.summaryHeight }));
+      const writer = document.querySelector('[data-writer]');
+      if (writer?.dataset.phase === 'verifying') {
+        const row = rows.find((item) => item.dataset.key === writer.dataset.key);
+        if (writer.dataset.key.includes('/')) {
+          if (!row || row.dataset.phase !== 'verifying' || row.dataset.progress !== writer.dataset.progress) fail('Writer and matching lane are out of sync.');
+          else {
+            const value = Number(writer.dataset.progress);
+            for (const node of [writer, row]) if (Math.abs(parseFloat(getComputedStyle(node).getPropertyValue('--progress')) - value) > .00002) fail('CSS progress differs from shared clock.');
+          }
+        }
+        const bar = writer.querySelector('.av-writer-bar');
+        const width = writer.clientWidth;
+        if (width > 0 && Math.abs(bar.getBoundingClientRect().width / width - Number(writer.dataset.progress)) > .025) fail('Block progress width drifted.');
       }
     }
-    requestAnimationFrame(sample);
+    requestAnimationFrame(tick);
   }
-  requestAnimationFrame(sample);
+  requestAnimationFrame(tick);
 }
-
 (async () => {
   let browser;
   try {
@@ -85,190 +98,131 @@ function installVisualAudit() {
     const url = origin + '/demos/ad-verification';
     fs.mkdirSync(output, { recursive: true });
     browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({ viewport: { width: 1312, height: 1199 }, reducedMotion: 'no-preference', acceptDownloads: true });
+    const context = await browser.newContext({ viewport: { width: 1280, height: 1000 }, reducedMotion: 'no-preference' });
     await context.route('**/*', (route) => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
-    await context.addInitScript(installVisualAudit);
+    await context.addInitScript(installAudit);
     const page = await context.newPage();
     const errors = [];
-    const failedResources = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    page.on('response', (response) => { if (response.status() >= 400) failedResources.push(response.url()); });
     const ready = () => page.waitForFunction(() => !document.querySelector('[data-play]').disabled);
-    const countIs = (count) => page.waitForFunction((n) => Number(document.querySelector('#main').dataset.blockCount) === n, count, { timeout: 90000 });
-    const completed = (count) => page.waitForFunction((n) => Number(document.querySelector('#main').dataset.blockCount) === n && document.querySelector('#main').dataset.running === 'false', count, { timeout: 90000 });
+    const waitState = (predicate) => page.waitForFunction(predicate, null, { timeout: 120000 });
+    const pause = async () => { if (await page.locator('#main').getAttribute('data-running') === 'true') await page.locator('[data-play]').click(); };
+    const screenshot = (name) => page.screenshot({ path: path.join(output, name + '.png'), fullPage: true });
     async function exportProof() {
-      const promise = page.waitForEvent('download');
-      await page.locator('[data-export]').click();
-      const download = await promise;
-      return JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
+      await pause();
+      await page.locator('.av-about').evaluate((node) => { node.open = true; });
+      const promise = page.waitForEvent('download'); await page.locator('[data-export]').click();
+      const download = await promise; const value = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
+      await page.locator('.av-about').evaluate((node) => { node.open = false; });
+      return value;
     }
-    await page.goto(url);
-    await ready();
-    assert.equal(await page.title(), 'Live Campaign Blockchain | Daniel Short');
-    assert.equal(await page.evaluate(() => isSecureContext && !!crypto.subtle), true);
-    assert.equal(await page.locator('.av-block').count(), 0);
-    assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex/);
-    await page.screenshot({ path: path.join(output, '01-ready-desktop.png'), fullPage: true });
-    await page.locator('[data-continuous]').uncheck();
-
-    // Wall-clock, native-browser runs at every offered speed—not just a clock mock.
-    const runs = [];
-    for (const speed of [1, 2, 4]) {
-      if (speed !== 1) { await page.locator('[data-reset]').click(); await ready(); }
-      await page.locator(`[data-speed="${speed}"]`).click();
-      const began = Date.now();
-      await page.locator('[data-play]').click();
-      await page.waitForFunction(() => document.querySelector('[data-pending]')?.dataset.phase === 'verifying');
-      if (speed === 1) {
-        await page.locator('[data-play-inline]').click();
-        const paused = await page.evaluate(() => ({ progress: document.querySelector('#main').dataset.progress, count: document.querySelector('#main').dataset.blockCount,
-          css: document.querySelector('[data-pending]').style.getPropertyValue('--progress') }));
-        await page.waitForTimeout(450);
-        assert.deepEqual(await page.evaluate(() => ({ progress: document.querySelector('#main').dataset.progress, count: document.querySelector('#main').dataset.blockCount,
-          css: document.querySelector('[data-pending]').style.getPropertyValue('--progress') })), paused);
-        await page.locator('[data-play-inline]').click();
-        await page.waitForFunction(() => document.querySelector('#main').dataset.activeEvent === 'event-7' && document.querySelector('#main').dataset.phase === 'verifying', null, { timeout: 90000 });
-        await page.screenshot({ path: path.join(output, '02-synchronized-desktop.png'), fullPage: true });
-      }
-      await completed(14);
-      const proof = await exportProof();
-      assert.equal((await core.verifyChain(proof.blocks, proof.trust)).valid, true);
-      assert.equal(proof.blocks.length, 14);
-      assert.ok(Object.values(proof.trust.publicKeys).every((key) => !('d' in key)));
-      runs.push({ speed, blocks: proof.blocks.length, milliseconds: Date.now() - began });
-    }
-    await page.screenshot({ path: path.join(output, '03-completed-desktop.png'), fullPage: true });
-
-    const expected = { none: 10, website: 14, destination: 14, both: 18 };
-    for (const [scenario, count] of Object.entries(expected)) {
+    async function reset(scenario = 'mixed') {
       await page.locator('[data-reset]').click(); await ready();
       await page.locator('[data-scenario]').selectOption(scenario);
-      await page.locator('[data-play]').click(); await completed(count);
-      const proof = await exportProof();
-      assert.equal((await core.verifyChain(proof.blocks, proof.trust)).valid, true);
-      const events = proof.blocks.map((block) => block.transactions[0].event);
-      if (scenario === 'none' || scenario === 'website') assert.equal(events.filter((event) => event.type === 'destination').length, 0);
-      if (scenario === 'none' || scenario === 'destination') assert.equal(events.filter((event) => event.type === 'website').length, 0);
     }
-
-    // Mixed first, then a different group without clearing or forking the ledger.
-    await page.locator('[data-reset]').click(); await ready();
-    await page.locator('[data-scenario]').selectOption('mixed');
-    await page.locator('[data-continuous]').check();
-    await page.locator('[data-play]').click(); await countIs(4);
-    await page.locator('[data-scenario]').selectOption('none');
-    await page.waitForFunction(() => document.querySelectorAll('[data-group] option').length === 2, null, { timeout: 90000 });
-    await page.locator('[data-continuous]').uncheck(); await completed(22);
-    const continuousProof = await exportProof();
-    assert.equal((await core.verifyChain(continuousProof.blocks, continuousProof.trust)).valid, true);
-    assert.equal(continuousProof.blocks.filter((block) => block.transactions[0].event.type === 'campaign').length, 1);
-    assert.equal(continuousProof.blocks[14].header.previousHash, continuousProof.blocks[13].hash);
-    assert.equal(continuousProof.blocks[14].transactions[0].event.travelerId, 'T005');
-    await page.locator('[data-group]').selectOption('1');
-    await page.locator('[data-highlight-person="T001"]').click();
-    assert.equal(await page.locator('.av-block[data-highlight="match"]').count(), 4);
-    assert.equal(await page.locator('.av-block').count(), 22);
-
-    // Select ANY block, edit its data, and validate original signatures are retained.
-    await page.locator('[data-inspect="2"]').click();
-    await page.locator('dialog[open]').waitFor();
-    await page.locator('[data-edit-value]').fill('9');
-    await page.getByRole('button', { name: 'Apply edit & verify', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('[data-dialog-verdict]').dataset.valid === 'false');
-    assert.equal(await page.locator('.av-block[data-state="changed"]').count(), 1);
-    assert.equal(await page.locator('.av-block[data-state="dependent"]').count(), 19);
-    assert.equal(await page.locator('[data-play]').isDisabled(), true);
-    await page.screenshot({ path: path.join(output, '04-tamper-detected.png'), fullPage: true });
-    await page.locator('dialog [data-restore]').click();
-    await page.waitForFunction(() => document.querySelector('[data-dialog-verdict]').dataset.valid === 'true');
-    await page.keyboard.press('Escape');
-    assert.equal(await page.locator('dialog[open]').count(), 0);
-    assert.deepEqual((await exportProof()).blocks, continuousProof.blocks);
-    await page.locator('[data-clear-highlight]').click();
-
-    // A reset while a candidate is visible must not append any stale work later.
-    await page.locator('[data-play]').click();
-    await page.waitForFunction(() => !!document.querySelector('[data-pending]'));
-    await page.locator('[data-reset]').click(); await ready(); await page.waitForTimeout(500);
-    assert.equal(await page.locator('.av-block').count(), 0);
-
-    for (const width of [1024, 820, 768, 390, 320]) {
-      await page.setViewportSize({ width, height: 900 });
-      await page.locator('[data-scenario]').selectOption('mixed');
+    await page.goto(url); await ready();
+    assert.equal(await page.title(), 'Live Campaign Measurement | Daniel Short');
+    assert.equal(await page.evaluate(() => isSecureContext && !!crypto.subtle), true);
+    assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex/);
+    assert.equal(await page.locator('[data-slot]').count(), 5);
+    assert.equal(await page.locator('[data-group]').count(), 0);
+    await screenshot('01-ready');
+    // Exercise every offered speed with real browser time and real cryptography.
+    for (const speed of [1, 2, 4]) {
+      await reset(); await page.locator('[data-speed]').selectOption(String(speed));
+      await page.locator('.av-about').evaluate((node) => { node.open = true; });
+      await page.locator('[data-continuous]').uncheck();
+      await page.locator('.av-about').evaluate((node) => { node.open = false; });
       await page.locator('[data-play]').click();
-      await page.waitForFunction(() => document.querySelector('#main').dataset.activeEvent === 'event-7' && document.querySelector('#main').dataset.phase === 'verifying', null, { timeout: 90000 });
-      await page.locator('[data-play-inline]').click();
-      await page.screenshot({ path: path.join(output, `05-synchronized-${width}.png`), fullPage: false });
-      const layout = await page.evaluate(() => ({ width: innerWidth, documentWidth: document.documentElement.scrollWidth,
-        overflowing: [...document.querySelectorAll('body *')].filter((node) => {
-          const bounds = node.getBoundingClientRect();
-          return bounds.width && bounds.right > innerWidth + 1;
-        }).map((node) => ({ tag: node.tagName, className: String(node.className),
-          text: (node.innerText || '').slice(0, 90), right: node.getBoundingClientRect().right })) }));
-      fs.writeFileSync(path.join(output, `layout-${width}.json`), JSON.stringify(layout, null, 2));
-      fs.writeFileSync(path.join(output, 'animation-audit-latest.json'), JSON.stringify(await page.evaluate(() => window.__avAudit), null, 2));
-      assert.ok(layout.documentWidth <= width, `Overflow at ${width}px: ${JSON.stringify(layout.overflowing)}`);
-      await page.locator('[data-reset]').click(); await ready();
+      await waitState(() => Number(document.querySelector('#main').dataset.measuring) >= 3);
+      if (speed === 1) {
+        await screenshot('02-overlapping-events'); await pause();
+        const before = await page.locator('[data-travelers]').innerHTML();
+        const count = await page.locator('#main').getAttribute('data-count');
+        await page.waitForTimeout(500);
+        assert.equal(await page.locator('[data-travelers]').innerHTML(), before);
+        assert.equal(await page.locator('#main').getAttribute('data-count'), count);
+        await page.locator('[data-play]').click();
+      }
+      await waitState(() => document.querySelector('#main').dataset.running === 'false' && Number(document.querySelector('#main').dataset.completed) === 5);
+      const proof = await exportProof();
+      assert.equal(proof.blocks.length, 17);
+      assert.equal((await core.verifyChain(proof.blocks, proof.trust)).valid, true);
     }
-    const audit = await page.evaluate(() => window.__avAudit);
-    assert.ok(audit.activeFrames > 100, 'Too few real animation frames checked.');
-    assert.deepEqual(audit.failures, []);
-    assert.deepEqual(errors, []);
-    assert.deepEqual(failedResources, []);
-    fs.writeFileSync(path.join(output, 'animation-sync-evidence.json'), JSON.stringify({ method: 'Independent requestAnimationFrame DOM and computed-CSS audit with native browser Web Crypto', runs, frames: audit.frames, activeFrames: audit.activeFrames, commitsChecked: audit.commits.length, failures: audit.failures, viewports: [1312, 1024, 820, 768, 390, 320] }, null, 2));
-
-    // Real Web Crypto with deliberately delayed signing: no early green checks.
-    const slowContext = await browser.newContext();
-    await slowContext.addInitScript(() => {
-      const original = crypto.subtle.sign.bind(crypto.subtle);
-      crypto.subtle.sign = async (...args) => {
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        return original(...args);
-      };
+    for (const [scenario, expected] of Object.entries({ none: 12, website: 17, destination: 17, both: 22 })) {
+      await reset(scenario); await page.locator('[data-play]').click();
+      await waitState(() => document.querySelector('#main').dataset.running === 'false' && Number(document.querySelector('#main').dataset.completed) === 5);
+      const proof = await exportProof(); assert.equal(proof.blocks.length, expected); assert.equal((await core.verifyChain(proof.blocks, proof.trust)).valid, true);
+      const events = proof.blocks.map((block) => block.transactions[0].event);
+      if (['none', 'website'].includes(scenario)) assert.equal(events.filter((event) => event.type === 'destination').length, 0);
+      if (['none', 'destination'].includes(scenario)) assert.equal(events.filter((event) => event.type === 'website').length, 0);
+    }
+    await reset(); await page.locator('.av-about').evaluate((node) => { node.open = true; }); await page.locator('[data-continuous]').check(); await page.locator('.av-about').evaluate((node) => { node.open = false; });
+    await page.locator('[data-play]').click();
+    await waitState(() => Number(document.querySelector('#main').dataset.admitted) === 5);
+    await page.locator('[data-scenario]').selectOption('none');
+    await waitState(() => Number(document.querySelector('#main').dataset.admitted) >= 9);
+    await pause(); await screenshot('03-individual-replacements');
+    const proof = await exportProof();
+    assert.equal(proof.blocks.filter((block) => block.transactions[0].event.type === 'campaign').length, 1);
+    assert.equal((await core.verifyChain(proof.blocks, proof.trust)).valid, true);
+    for (const block of proof.blocks) if (Number(block.transactions[0].event.travelerId?.slice(1)) > 5) assert.ok(!['website', 'destination'].includes(block.transactions[0].event.type));
+    await page.locator('[data-history]').click();
+    assert.equal(await page.locator('[data-archive] [data-inspect]').count(), proof.blocks.length);
+    await page.locator('[data-archive] [data-inspect="2"]').click(); await page.locator('[data-dialog][open]').waitFor();
+    await page.locator('[data-edit-value]').fill('9'); await page.getByRole('button', { name: 'Apply edit & verify', exact: true }).click();
+    await waitState(() => document.querySelector('[data-verdict]').dataset.valid === 'false');
+    assert.equal(await page.locator('[data-play]').isDisabled(), true); await screenshot('04-edit-detected');
+    await page.keyboard.press('Escape');
+    const altered = await exportProof(); assert.equal((await core.verifyChain(altered.blocks, altered.trust)).valid, false);
+    assert.equal(altered.blocks[2].transactions[0].signature, proof.blocks[2].transactions[0].signature);
+    await page.locator('[data-warning] [data-restore]').click(); await ready();
+    assert.deepEqual((await exportProof()).blocks, proof.blocks);
+    // Native screenshots and bounds: ALL active travelers, with no nested scrolling.
+    for (const width of [1024, 768, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 }); await reset(); await page.locator('[data-play]').click();
+      await waitState(() => Number(document.querySelector('#main').dataset.measuring) >= 3); await pause();
+      await page.locator('.av-workspace').evaluate((node) => node.scrollIntoView({ block: 'start' }));
+      const layout = await page.evaluate(() => ({ width: innerWidth, documentWidth: document.documentElement.scrollWidth,
+        lanes: [...document.querySelectorAll('[data-slot]')].map((node) => ({ top: node.getBoundingClientRect().top, bottom: node.getBoundingClientRect().bottom })),
+        innerScroll: document.querySelector('[data-travelers]').scrollHeight > document.querySelector('[data-travelers]').clientHeight + 1 }));
+      fs.writeFileSync(path.join(output, `layout-${width}.json`), JSON.stringify(layout, null, 2));
+      await page.screenshot({ path: path.join(output, `05-visible-lanes-${width}.png`), fullPage: false });
+      assert.ok(layout.documentWidth <= width, `Horizontal overflow at ${width}`);
+      assert.equal(layout.innerScroll, false);
+      assert.ok(layout.lanes.every((lane) => lane.top >= -1 && lane.bottom <= 901), `A traveler is offscreen at ${width}`);
+    }
+    await reset(); await page.locator('[data-play]').click();
+    await waitState(() => document.querySelector('[data-writer]').dataset.phase === 'verifying');
+    await reset(); await page.waitForTimeout(500); assert.equal(await page.locator('#main').getAttribute('data-count'), '0');
+    const audit = await page.evaluate(() => window.__campaignAudit);
+    fs.writeFileSync(path.join(output, 'animation-sync-evidence.json'), JSON.stringify(audit, null, 2));
+    assert.ok(audit.overlappingFrames > 100); assert.ok(audit.mixedStageFrames > 0); assert.ok(audit.maxParallel >= 3); assert.ok(audit.replacements >= 4);
+    assert.deepEqual(audit.failures, []); assert.deepEqual(errors, []);
+    // Slow native signatures: other travelers continue, but no unverified block commits.
+    const slow = await browser.newContext();
+    await slow.addInitScript(() => {
+      window.__slow = false; window.__waiting = [];
+      const sign = crypto.subtle.sign.bind(crypto.subtle);
+      crypto.subtle.sign = async (...args) => { if (window.__slow) await new Promise((resolve) => window.__waiting.push(resolve)); return sign(...args); };
     });
-    const slowPage = await slowContext.newPage();
-    await slowPage.goto(url);
-    await slowPage.waitForFunction(() => !document.querySelector('[data-play]').disabled);
-    await slowPage.locator('[data-speed="4"]').click();
+    const slowPage = await slow.newPage(); await slowPage.goto(url); await slowPage.waitForFunction(() => !document.querySelector('[data-play]').disabled);
+    await slowPage.locator('[data-play]').click(); await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.count) === 2);
+    await slowPage.evaluate(() => { window.__slow = true; });
+    await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.queued) >= 4);
+    assert.equal(await slowPage.locator('#main').getAttribute('data-count'), '2');
+    assert.equal(await slowPage.locator('[data-writer]').getAttribute('data-progress'), '0.80000');
     await slowPage.locator('[data-play]').click();
-    await slowPage.waitForFunction(() => document.querySelector('#main').dataset.progress === '0.78000');
-    assert.equal(await slowPage.locator('.av-block').count(), 0);
-    await slowPage.locator('[data-play-inline]').click();
-    await slowPage.waitForTimeout(1900);
-    assert.equal(await slowPage.locator('.av-block').count(), 0);
-    assert.equal(await slowPage.locator('#main').getAttribute('data-progress'), '0.78000');
-    await slowPage.locator('[data-play-inline]').click();
-    await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.blockCount) === 1);
-    await slowPage.waitForFunction(() => !!document.querySelector('[data-pending]'));
-    await slowPage.locator('[data-reset]').click();
-    await slowPage.waitForTimeout(1900);
-    assert.equal(await slowPage.locator('.av-block').count(), 0);
-    await slowContext.close();
-
-    const reducedContext = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 390, height: 900 } });
-    const reducedPage = await reducedContext.newPage(); await reducedPage.goto(url);
-    await reducedPage.waitForFunction(() => !document.querySelector('[data-play]').disabled);
-    await reducedPage.locator('[data-play]').click();
-    await reducedPage.waitForFunction(() => !!document.querySelector('[data-pending]'));
-    assert.equal(await reducedPage.locator('body').getAttribute('data-reduced-motion'), 'true');
-    assert.equal(await reducedPage.locator('.av-travel-runner').first().evaluate((node) => getComputedStyle(node).display), 'none');
-    await reducedContext.close();
-    const noJs = await browser.newContext({ javaScriptEnabled: false });
-    const noJsPage = await noJs.newPage(); await noJsPage.goto(url);
-    assert.match(await noJsPage.locator('noscript').innerText(), /JavaScript/);
-    assert.equal(await noJsPage.locator('[data-play]').isDisabled(), true);
-    await noJs.close();
-    const unavailable = await browser.newContext();
-    const unavailablePage = await unavailable.newPage();
-    await unavailablePage.route('**/js/demos/ad-verification-core.js*', (route) => route.abort());
-    await unavailablePage.goto(url);
-    await unavailablePage.waitForFunction(() => document.querySelector('#main').dataset.phase === 'error');
-    assert.equal(await unavailablePage.locator('.av-block').count(), 0);
-    assert.equal(await unavailablePage.locator('[data-play]').isDisabled(), true);
-    await unavailable.close();
-    console.log(`Ad verification passed: ${audit.activeFrames} synchronized animation frames, ${audit.commits.length} atomic commits, five scenarios, continuous paths, native Web Crypto, tamper/restore, pause/resume, six viewport widths.`);
-  } finally {
-    if (browser) await browser.close();
-    await new Promise((resolve) => server.close(resolve));
-  }
+    await slowPage.evaluate(() => { window.__slow = false; window.__waiting.splice(0).forEach((resolve) => resolve()); });
+    await slowPage.waitForTimeout(500); assert.equal(await slowPage.locator('#main').getAttribute('data-count'), '2');
+    await slowPage.locator('[data-play]').click(); await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.count) >= 3);
+    await slow.close();
+    const reduced = await browser.newContext({ reducedMotion: 'reduce' }); const reducedPage = await reduced.newPage(); await reducedPage.goto(url);
+    assert.equal(await reducedPage.locator('.av-dot').first().evaluate((node) => getComputedStyle(node).display), 'none'); await reduced.close();
+    const noJs = await browser.newContext({ javaScriptEnabled: false }); const noJsPage = await noJs.newPage(); await noJsPage.goto(url);
+    assert.match(await noJsPage.locator('noscript').innerText(), /JavaScript/); assert.equal(await noJsPage.locator('[data-play]').isDisabled(), true); await noJs.close();
+    const missing = await browser.newContext(); const missingPage = await missing.newPage(); await missingPage.route('**/js/demos/ad-verification-core.js*', (route) => route.abort()); await missingPage.goto(url);
+    await missingPage.waitForFunction(() => document.querySelector('#main').dataset.error === 'true'); assert.equal(await missingPage.locator('[data-play]').isDisabled(), true); await missing.close();
+    console.log(`PASS: ${audit.overlappingFrames} overlapping frames, ${audit.mixedStageFrames} mixed-stage frames, ${audit.commits} atomic commits, ${audit.replacements} individual replacements; zero mismatches.`);
+  } finally { if (browser) await browser.close(); await new Promise((resolve) => server.close(resolve)); }
 })().catch((error) => { console.error(error); process.exitCode = 1; });
