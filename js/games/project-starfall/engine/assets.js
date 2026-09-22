@@ -96,14 +96,56 @@
     return !!(image && image.complete && image.naturalWidth > 0);
   }
 
+  // Map preloads intentionally omit the icon catalog. Keep its lookup cheap on
+  // the render path, and follow the data assignments rather than hardcoded URLs.
+  const iconAssetPathCache = new WeakMap();
+
+  function isOnDemandIconAsset(path, data) {
+    if (!data || typeof data !== 'object') return false;
+    const groups = [data.ITEM_ASSETS, data.CARD_ASSETS, data.MENU_ICON_ASSETS, data.SKILLS];
+    const skillCount = Array.isArray(data.SKILLS) ? data.SKILLS.length : 0;
+    let cached = iconAssetPathCache.get(data);
+    if (!cached || cached.skillCount !== skillCount || groups.some((group, index) => group !== cached.groups[index])) {
+      const paths = [];
+      groups.slice(0, 3).forEach((group) => {
+        Object.values(group || {}).forEach((assetPath) => addAssetPath(paths, assetPath));
+      });
+      (data.SKILLS || []).forEach((skill) => addAssetPath(paths, skill && skill.iconAsset));
+      cached = { groups, skillCount, paths: new Set(paths) };
+      iconAssetPathCache.set(data, cached);
+    }
+    return cached.paths.has(path);
+  }
+
+  function requestMissingIcon(runtime, path) {
+    if (typeof global.Image !== 'function' || typeof runtime.ensureAssetReady !== 'function') return;
+    // ensureAssetReady installs the Image in runtime.assets synchronously. That
+    // deduplicates inventory, tooltip and hotbar requests while it is loading.
+    if (runtime.assets && runtime.assets[path] || runtime.failedAssets && runtime.failedAssets[path]) return;
+    const fail = () => {
+      runtime.failedAssets = runtime.failedAssets || {};
+      runtime.failedAssets[path] = true;
+      if (typeof runtime.scheduleAssetRefresh === 'function') runtime.scheduleAssetRefresh();
+    };
+    try {
+      Promise.resolve(runtime.ensureAssetReady(path)).catch(fail);
+    } catch (error) {
+      fail();
+    }
+  }
+
   function getResolvedAssetImage(runtime, assetPath, fallbackData) {
     if (!runtime) return null;
     const path = normalizeId(getAssetSourcePath(assetPath));
     if (!path) return null;
     if (imageReady(runtime.assets && runtime.assets[path])) return runtime.assets[path];
     const backupPath = getAssetBackupPath(path, runtime.data, fallbackData);
-    if (backupPath && runtime.failedAssets && runtime.failedAssets[path] && imageReady(runtime.assets && runtime.assets[backupPath])) {
-      return runtime.assets[backupPath];
+    const canRequestIcon = isOnDemandIconAsset(path, runtime.data || fallbackData);
+    if (backupPath && runtime.failedAssets && runtime.failedAssets[path]) {
+      if (imageReady(runtime.assets && runtime.assets[backupPath])) return runtime.assets[backupPath];
+      if (canRequestIcon) requestMissingIcon(runtime, backupPath);
+    } else if (canRequestIcon) {
+      requestMissingIcon(runtime, path);
     }
     return null;
   }
