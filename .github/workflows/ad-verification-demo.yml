@@ -1,0 +1,55 @@
+name: Ad verification demo
+
+on:
+  pull_request:
+    paths:
+      - 'demos/ad-verification-demo.html'
+      - 'js/demos/ad-verification-*.mjs'
+      - 'css/components/ad-verification-demo.css'
+      - 'img/demos/cedar-valley-hero.webp'
+      - 'tests/demos/ad-verification*'
+      - '.github/workflows/ad-verification-demo.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'demos/ad-verification-demo.html'
+      - 'js/demos/ad-verification-*.mjs'
+      - 'css/components/ad-verification-demo.css'
+      - 'img/demos/cedar-valley-hero.webp'
+      - 'tests/demos/ad-verification*'
+      - '.github/workflows/ad-verification-demo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-demo:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check cryptography and malformed-input handling
+        run: node --test tests/demos/ad-verification.test.cjs
+      - run: npm run build
+      - name: Verify publication and exclusion from discovery feeds
+        run: node --test tests/demos/ad-verification.test.cjs
+        env:
+          AV_REQUIRE_BUILD: '1'
+      - run: npx playwright install --with-deps chromium
+      - name: Check real routes, desktop/mobile rendering, accessibility, and tamper flow
+        run: node tests/demos/ad-verification.browser.cjs
+        env:
+          BROWSER_ARTIFACT_DIR: ${{ runner.temp }}/ad-verification-browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ad-verification-browser
+          path: ${{ runner.temp }}/ad-verification-browser
+          if-no-files-found: ignore
