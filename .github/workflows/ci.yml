@@ -75,6 +75,10 @@ jobs:
       - name: Install Chromium for rendered smoke tests
         run: npx playwright install --with-deps chromium
 
+      - name: Verify deployed CSP in a real browser
+        run: npm run test:csp:browser
+        timeout-minutes: 5
+
       - name: Test rendered desktop and mobile flows
         run: npm run test:browser
         timeout-minutes: 12
