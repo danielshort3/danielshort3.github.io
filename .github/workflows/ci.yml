@@ -5,7 +5,32 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  dependency-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ['.', 'aws/job-application-tracker', 'browser-extension/job-application-copilot']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
+      - name: Audit all locked dependencies (including build tools)
+        run: npm audit --audit-level=high
+        working-directory: ${{ matrix.directory }}
+
   build-and-test:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -121,3 +146,16 @@ jobs:
           name: mobile-lighthouse
           path: tmp/quality/lighthouse/
           if-no-files-found: ignore
+
+  release-ready:
+    name: release-ready
+    if: always()
+    needs: [dependency-security, build-and-test, release-quality, mobile-performance]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require every release check to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node -e 'const jobs = JSON.parse(process.env.RESULTS); for (const [name, job] of Object.entries(jobs)) { console.log(`${name}: ${job.result}`); if (job.result !== "success") process.exitCode = 1; }'
