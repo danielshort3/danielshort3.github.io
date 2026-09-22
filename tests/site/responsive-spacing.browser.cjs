@@ -153,6 +153,28 @@ async function runResponsiveSpacingChecks({ browser, base, settle, assertLayout,
       }
     }
 
+    activeCase = 'header-brand-900';
+    await page.setViewportSize({ width: 900, height: 900 });
+    await open('/');
+    const headerBrand = await page.evaluate(() => {
+      const title = document.querySelector('[data-site-shell-header] .brand-title');
+      const logo = document.querySelector('[data-site-shell-header] .brand-logo');
+      const brand = document.querySelector('[data-site-shell-header] .brand');
+      const titleBox = title?.getBoundingClientRect();
+      const logoBox = logo?.getBoundingClientRect();
+      return {
+        underlineContent: title ? getComputedStyle(title, '::after').content : null,
+        brandVisible: Boolean(brand && titleBox?.width && logoBox?.width),
+        titleCenterY: titleBox ? titleBox.top + titleBox.height / 2 : null,
+        logoCenterY: logoBox ? logoBox.top + logoBox.height / 2 : null
+      };
+    });
+    assert(headerBrand.brandVisible, 'The 900px header keeps both the DS logo and Daniel Short name visible.');
+    assert.equal(headerBrand.underlineContent, 'none', 'The 900px header does not add a responsive underline beneath the name.');
+    assert(Math.abs(headerBrand.titleCenterY - headerBrand.logoCenterY) <= 2,
+      'The 900px header keeps the logo and name vertically aligned as one identity.');
+    await page.screenshot({ path: path.join(artifactDir, 'spacing-header-brand-900.png'), fullPage: false });
+
     for (const viewport of [{ width: 1200, height: 900 }, { width: 1199, height: 900 }, { width: 768, height: 1024 }, { width: 320, height: 740 }]) {
       activeCase = `about-${viewport.width}`;
       await page.setViewportSize(viewport);
