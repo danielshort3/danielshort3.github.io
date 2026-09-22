@@ -5,9 +5,10 @@
 @layer utilities {
   /* reserved for future text helpers */
 
-  /* Inline link styling in text contexts */
+  /* Inline link styling in text contexts. Library cards provide their own
+     link affordance and focus treatment; do not apply prose-link styling. */
   p a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link):not(.hero-kpi-link),
-  li a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link):not(.hero-kpi-link),
+  li a:not(.home-library__card):not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link):not(.hero-kpi-link),
   .modal-text a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
     color: var(--link);
     text-decoration: underline;
@@ -15,7 +16,7 @@
   }
 
   p a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link):not(.hero-kpi-link),
-  li a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link):not(.hero-kpi-link),
+  li a:hover:not(.home-library__card):not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link):not(.hero-kpi-link),
   .modal-text a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
     color: var(--link-hover);
   }
