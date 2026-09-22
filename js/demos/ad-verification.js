@@ -1,334 +1,277 @@
-/* Quiet, persistent traveler lanes. One inline evidence view; totals from accepted records. */
+/* The UI illustrates provider activity. Public exports never contain these traveler annotations. */
 (function () {
   'use strict';
-  const main = document.querySelector('#main[data-count]');
+  const main = document.querySelector('#main[data-blocks]');
   if (!main) return;
   const one = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   const core = window.AdVerificationCore;
   const api = window.AdVerificationPlayer;
-  const narrow = window.matchMedia('(max-width:760px)');
-  const reduced = window.matchMedia('(prefers-reduced-motion:reduce)');
-  const escape = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
-  const icons = {
+  const escape = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const paths = {
     ad: '<path d="M3 9h5l11-5v16L8 15H3Zm5 6 2 6h4l-2-4M22 9v6"/>',
     website: '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6h14M5 18h14"/>',
-    destination: '<path d="M12 22S4 14 4 9a8 8 0 0 1 16 0c0 5-8 13-8 13Z" fill="currentColor" stroke="none"/><circle cx="12" cy="9" r="2.5" fill="white" stroke="none"/>',
-    people: '<circle cx="8" cy="7" r="3"/><path d="M2 21v-3a6 6 0 0 1 12 0v3Zm13-17a3 3 0 0 1 0 6m2 3a5 5 0 0 1 5 5v3"/>',
-    chain: '<path d="m10 14 4-4m-7 6-2 2a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m4 1 2-2a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0" transform="translate(1 -1)"/>',
-    check: '<circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/><path d="m7 12 3 3 7-7" stroke="white" stroke-width="2"/>',
-    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3"/>',
-    document: '<path d="M6 2h8l5 5v15H6Zm8 0v6h5M9 12h7m-7 4h7"/>',
-    play: '<path d="m8 4 12 8-12 8Z" fill="currentColor" stroke="none"/>',
-    pause: '<path d="M8 5v14m8-14v14" stroke-width="5"/>',
-    arrow: '<path d="M3 12h17m-5-5 5 5-5 5"/>'
+    visit: '<path d="M12 22S4 14 4 9a8 8 0 0 1 16 0c0 5-8 13-8 13Z"/><circle cx="12" cy="9" r="2.5"/>',
+    chain: '<path d="m9 15 6-6m-7 7-2 2a4 4 0 0 1-6-6l6-6a4 4 0 0 1 6 0m0 2 2-2a4 4 0 0 1 6 6l-6 6a4 4 0 0 1-6 0" transform="translate(1 0)"/>'
   };
-  const svg = (type) => `<svg class="av-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[type] || icons.document}</svg>`;
-  all('[data-icon]').forEach((node) => { node.innerHTML = svg(node.dataset.icon); });
-  one('[data-play-icon]').innerHTML = svg('play');
-  const types = ['ad', 'website', 'destination'];
-  const labels = ['Outdoor enthusiast', 'Weekend traveler', 'Couple getaway', 'Event attendee', 'Casual browser'];
-  const personName = (id) => id ? 'Traveler ' + Number(id.slice(1)) : 'Shared campaign';
-  const eventOf = (block) => block.transactions[0].event;
-  const titleOf = (event) => event.type === 'attribution' ? event.data.credited ? 'Visit attributed' : 'Visit not attributed' : core.TYPES[event.type].title;
-  const iconOf = (type) => ['destination', 'attribution'].includes(type) ? 'destination' : types.includes(type) ? type : 'document';
+  const icon = (type) => `<svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true">${paths[type] || paths.chain}</svg>`;
+  all('[data-icon]').forEach((node) => { node.innerHTML = icon(node.dataset.icon); });
+  const names = ['Outdoor enthusiast', 'Weekend traveler', 'Couple getaway', 'Event attendee', 'Casual browser'];
+  const types = ['ad', 'website', 'visit'];
+  const travelerName = (id) => id ? 'Traveler ' + Number(id.slice(1)) : 'Campaign';
+  const shortHash = (hash) => hash.slice(0, 9) + '…' + hash.slice(-5);
   const dialog = one('[data-dialog]');
-  const historyDialog = one('[data-history-dialog]');
+  const body = one('[data-dialog-body]');
   let player;
   let state;
   let proof = null;
-  let working = [];
-  let report = null;
-  let selected = null;
-  let inspected = null;
-  let pinned = false;
-  let highlight = null;
-  let checking = false;
-  let tampered = false;
-  let generation = 0;
-  let announcedFirst = false;
+  let records = [];
+  let byId = new Map();
+  let selectedBlock = null;
+  let uiEpoch = 0;
+  let dialogVersion = 0;
+  let returnFocus = null;
+  let currentView = null;
+  let lastReportId = null;
   const announce = (text) => { one('[data-announcement]').textContent = text; };
-  const statusOf = (index) => report?.blocks[index]?.state || 'verified';
-  one('[data-travelers]').innerHTML = Array.from({ length: 5 }, (_, slot) => `<article class="av-traveler" data-slot="${slot}"><button type="button" class="av-person" data-person disabled><span class="av-avatar" aria-hidden="true"></span><span><strong data-name>Traveler ${slot + 1}</strong><small>${labels[slot]}</small></span></button><div class="av-path">${types.map((type) => `<button type="button" class="av-step" data-step="${type}" data-state="waiting" disabled><span class="av-stop">${svg(type)}</span><span class="av-sr-only" data-step-label>Waiting</span></button>`).join('')}<i class="av-dot" aria-hidden="true"></i></div><button type="button" class="av-outcome" data-outcome disabled><span data-outcome-icon>${svg('clock')}</span><span><strong data-outcome-title>Waiting</strong><small data-lane-status>Campaign not started</small></span></button></article>`).join('');
-  const rows = all('[data-slot]').map((row) => ({ row, person: row.querySelector('[data-person]'), name: row.querySelector('[data-name]'), avatar: row.querySelector('.av-avatar'), outcome: row.querySelector('[data-outcome]'), status: row.querySelector('[data-lane-status]'), outcomeTitle: row.querySelector('[data-outcome-title]'), outcomeIcon: row.querySelector('[data-outcome-icon]'), steps: types.map((type) => row.querySelector(`[data-step="${type}"]`)) }));
+  const message = (text) => { one('[data-message]').textContent = text; announce(text); };
+  const reduce = window.matchMedia('(prefers-reduced-motion:reduce)');
+  one('[data-travelers]').innerHTML = Array.from({ length: 5 }, (_, i) => `<article class="av-traveler" data-lane="${i}"><div class="av-person"><span class="av-avatar" style="--avatar:${i}" aria-hidden="true"></span><span><strong data-person-name>Traveler ${i + 1}</strong><small>${names[i]}</small></span></div><div class="av-path">${types.map((type) => `<span class="av-stop" data-stage="${type}" data-state="waiting" role="img" aria-label="Waiting">${icon(type)}<span class="av-receipt-check" hidden aria-hidden="true">✓</span></span>`).join('')}<i class="av-motion" aria-hidden="true"></i></div><button type="button" class="av-outcome" disabled><strong data-outcome>Waiting</strong><small data-outcome-detail>Start the campaign</small></button></article>`).join('');
+  const rows = all('[data-lane]').map((row) => ({ row, name: row.querySelector('[data-person-name]'), avatar: row.querySelector('.av-avatar'),
+    outcome: row.querySelector('[data-outcome]'), detail: row.querySelector('[data-outcome-detail]'), stages: types.map((type) => row.querySelector(`[data-stage="${type}"]`)) }));
   if (!core || !api) {
     main.dataset.error = 'true'; one('[data-status]').textContent = 'Unavailable';
-    one('[data-message]').textContent = 'The verification engine did not load. Reload this page over HTTPS to retry.';
-    return;
+    message('The verification engine could not load. Open this page over HTTPS and reload to retry.'); return;
   }
-  function paintLanes() {
-    for (const lane of state.lanes) {
-      const view = rows[lane.slot];
-      const row = view.row;
-      row.dataset.travelerId = lane.id || '';
-      row.dataset.summaryHeight = String(lane.records.summary?.height || '');
-      row.dataset.summaryKey = lane.records.summary?.key || '';
-      row.dataset.attributionHeight = String(lane.records.attribution?.height || '');
-      row.dataset.attributionKey = lane.records.attribution?.key || '';
-      row.dataset.phase = lane.phase; row.dataset.key = lane.id ? lane.key : '';
-      row.dataset.progress = lane.progress.toFixed(5);
-      row.style.setProperty('--progress', lane.progress.toFixed(5));
-      row.style.setProperty('--opacity', reduced.matches ? '1' : String(lane.opacity ?? 1));
-      row.dataset.highlight = String(Boolean(lane.id && lane.id === highlight));
-      row.dataset.featured = String(Boolean(state.writer?.travelerId && state.writer.travelerId === lane.id));
-      view.name.textContent = personName(lane.id || 'T' + (lane.slot + 1));
-      view.person.disabled = !lane.records.ad;
-      view.person.setAttribute('aria-label', `Show records for ${view.name.textContent}`);
-      view.avatar.style.setProperty('--avatar', String(lane.id ? (lane.number - 1) % 5 : lane.slot));
-      for (let index = 0; index < types.length; index += 1) {
-        const type = types[index]; const node = view.steps[index]; const record = lane.records[type];
-        const active = type === lane.type && ['recording', 'queued', 'verifying'].includes(lane.phase);
-        const status = record ? statusOf(record.height - 1) : active ? lane.phase : lane.phase === 'done' ? 'skipped' : 'waiting';
-        node.dataset.state = status; node.dataset.key = record ? record.key : active ? lane.key : '';
-        node.dataset.height = record ? String(record.height) : ''; node.dataset.phase = record ? 'committed' : active ? lane.phase : status;
-        node.disabled = !record;
-        const label = record ? status === 'verified' ? 'recorded in block ' + record.height : status : status === 'skipped' ? 'not recorded' : active ? 'in progress' : 'waiting';
-        node.querySelector('[data-step-label]').textContent = label;
-        node.setAttribute('aria-label', `${view.name.textContent}, ${core.TYPES[type].title}, ${label}`);
-        row.style.setProperty('--path-' + type, record ? '1' : '0');
-      }
-      const attributionIndex = lane.records.attribution ? lane.records.attribution.height - 1 : -1;
-      const attribution = attributionIndex >= 0 ? eventOf(working[attributionIndex]).data : null;
-      const changed = Object.values(lane.records).some((record) => statusOf(record.height - 1) !== 'verified');
-      let title = lane.id ? 'In progress' : 'Waiting';
-      let detail = lane.records.website ? 'Website recorded' : lane.records.ad ? 'Ad recorded' : 'Waiting for ad';
-      let outcome = 'neutral';
-      if (lane.type === 'attribution' && !attribution) { title = 'Matching visit'; detail = 'Checking earlier ad'; outcome = 'active'; }
-      else if (lane.records.destination && !attribution) { title = 'Visit reported'; detail = 'Awaiting attribution'; }
-      if (attribution) { title = attribution.credited ? 'Attributed' : 'Not attributed'; detail = attribution.credited ? `${attribution.elapsedDays} days after ad` : 'Outside demo window'; outcome = attribution.credited ? 'credited' : 'neutral'; }
-      else if (lane.phase === 'done') { title = lane.records.website ? 'Website only' : 'No visit recorded'; detail = 'Measurement ended'; }
-      if (changed) { title = 'Record changed'; detail = 'Edited copy rejected'; outcome = 'changed'; }
-      view.outcome.dataset.state = outcome;
-      view.outcome.dataset.key = lane.records.attribution?.key || '';
-      view.outcome.dataset.height = String(lane.records.attribution?.height || '');
-      view.outcomeTitle.textContent = title; view.status.textContent = detail;
-      const desiredIcon = outcome === 'credited' ? 'check' : 'clock';
-      if (view.outcomeIcon.dataset.icon !== desiredIcon) { view.outcomeIcon.innerHTML = svg(desiredIcon); view.outcomeIcon.dataset.icon = desiredIcon; }
-      view.outcome.disabled = !attribution;
-      view.outcome.setAttribute('aria-label', `${view.name.textContent}: ${title}. ${attribution ? 'Show attribution evidence.' : detail}`);
-      // The lanes still overlap, but only the writer's lane has a prominent recording accent.
-      const target = types.indexOf(lane.type);
-      row.dataset.moving = String(lane.phase === 'recording' && target >= 0);
-      if (lane.phase === 'recording' && target >= 0) {
-        const from = target === 0 ? -.4 : target === 1 || !lane.records.website ? 0 : 1;
-        row.style.setProperty('--runner', `${16.6667 + (from + (target - from) * lane.progress) * 33.3333}%`);
-      }
-    }
+  function refreshProof(next) {
+    if (!next) return;
+    proof = next; records = core.receipts(proof.blocks);
+    byId = new Map();
+    for (const block of proof.blocks) for (const signed of block.records) byId.set(signed.receipt.id, { signed, block });
   }
-  function evidenceMarkup(block, index) {
-    const event = eventOf(block); const status = statusOf(index);
-    if (status !== 'verified') return `<div class="av-inline-evidence"><h3>Edited history does not verify</h3><p>The original evidence and campaign totals are unchanged.</p><button class="av-link" type="button" data-inspect="${index}">Inspect the mismatch</button></div>`;
-    if (event.type !== 'attribution') return `<div class="av-inline-evidence"><h3>${escape(core.TYPES[event.type].source)} reported this event</h3><p>This record is signed and links to ${index ? 'block #' + index : 'the start of the campaign'}. Verification checks its recorded contents, not the truth of the claim.</p><button type="button" class="av-link" data-inspect="${index}">Inspect or try an edit</button></div>`;
-    const data = event.data;
-    const refs = `data-support="${index}"`;
-    return `<div class="av-inline-evidence" data-evidence-for="${index + 1}" data-credited="${data.credited}"><h3>${data.credited ? 'Why this visit was counted' : 'Why this visit was not counted'}</h3><p class="av-check-line">${svg('check')}<span>Earlier ad matched to the same example traveler.</span></p><p class="av-check-line" data-pass="${data.withinWindow}">${svg(data.withinWindow ? 'check' : 'clock')}<span>${data.elapsedDays} days after the ad · ${data.withinWindow ? 'within' : 'outside'} the 30-day demo rule.</span></p><p class="av-check-line">${svg('check')}<span>This visit was not previously counted.</span></p><div class="av-evidence-actions"><button type="button" class="av-link" ${refs}>Supporting records ${svg('arrow')}</button><button type="button" class="av-link" data-inspect="${index}">Try an edit</button></div><span class="av-evidence-note">A website visit is optional. Attribution is not proof of causation.</span></div>`;
+  function receiptLabel(r) {
+    return r.type === 'attribution' ? r.data.credited ? 'Visit attributed' : 'Visit not attributed' : core.TITLES[r.type];
   }
-  function blockMarkup(block, index, archive = false) {
-    const event = eventOf(block); const status = statusOf(index);
-    const isSelected = !archive && index === selected;
-    const credited = event.type === 'attribution' && event.data.credited && status === 'verified';
-    const detail = event.type === 'website' ? 'Viewed: ' + event.data.page : event.type === 'destination' ? 'Location: ' + event.data.place : event.type === 'attribution' ? event.data.credited ? 'Matched to campaign' : 'Outside attribution window' : 'Source: ' + core.TYPES[event.type].source;
-    return `<li class="av-block" data-height="${index + 1}" data-key="${event.key}" data-traveler-id="${event.travelerId || ''}" data-type="${event.type}" data-state="${status}" data-credited="${credited}" data-selected="${isSelected}" data-highlight="${Boolean(highlight && highlight === event.travelerId)}"><span class="av-chain-marker">${svg(iconOf(event.type))}</span><div class="av-record"><button type="button" class="av-block-button" ${archive ? 'data-inspect' : 'data-select'}="${index}" ${archive ? '' : `aria-expanded="${isSelected}"`} aria-label="${archive ? 'Inspect' : 'Expand'} block ${index + 1}, ${escape(titleOf(event))}, ${personName(event.travelerId)}"><span class="av-block-number">#${index + 1}</span><span class="av-block-description"><strong>${escape(titleOf(event))}</strong><small>${event.data.exampleDay !== undefined ? 'Example day ' + event.data.exampleDay : core.TYPES[event.type].source}</small></span><span class="av-block-person"><strong>${personName(event.travelerId)}</strong><small>${escape(detail)}</small></span><span class="av-record-status">${status === 'verified' ? svg('check') + '<span>Verified</span>' : status === 'changed' ? '× Changed' : '! Prior change'}</span></button>${isSelected ? evidenceMarkup(block, index) : ''}</div></li>`;
+  function receiptButton(signed) {
+    const r = signed.receipt;
+    const privateAnnotation = player.describe(r.id)?.traveler;
+    return `<button type="button" class="av-receipt" data-receipt="${r.id}" data-type="${r.type}" data-person="${privateAnnotation || ''}" data-credited="${r.data.credited ?? ''}" data-target="${r.refs[0] || ''}"><span><strong>${receiptLabel(r)}</strong><small>${core.SOURCES[r.source]}${privateAnnotation ? ' · ' + travelerName(privateAnnotation) + ' (example)' : ''}</small></span><span aria-hidden="true">→</span></button>`;
+  }
+  function blockMarkup(block, expanded = false, archive = false) {
+    const label = block.records.length + ' signed ' + (block.records.length === 1 ? 'receipt' : 'receipts');
+    return `<li class="av-block" data-height="${block.header.height}" data-selected="${expanded}"><${archive ? 'div' : 'button type="button"'} class="av-block-title" ${archive ? '' : `data-block="${block.header.height}" aria-expanded="${expanded}"`}><span><strong>Block #${block.header.height}</strong><small>${label}</small></span><span class="av-valid">✓ Recorded</span></${archive ? 'div' : 'button'}>${expanded ? `<div class="av-records">${block.records.map(receiptButton).join('')}</div><div class="av-fingerprint">${block.header.height > 1 ? 'Previous: ' + shortHash(block.header.previous) : 'Start of the chain'}<br>Fingerprint: ${shortHash(block.hash)}</div>` : ''}</li>`;
   }
   function renderChain() {
-    const indexes = Array.from({ length: Math.min(4, working.length) }, (_, offset) => working.length - Math.min(4, working.length) + offset);
-    if (selected !== null && working[selected] && !indexes.includes(selected)) { indexes.shift(); indexes.push(selected); indexes.sort((a, b) => a - b); }
-    let previous = null;
-    one('[data-blocks]').innerHTML = indexes.map((index) => {
-      const gap = previous !== null && index > previous + 1 ? `<li class="av-gap">${index - previous - 1} intervening blocks in full history</li>` : '';
-      previous = index;
-      return gap + blockMarkup(working[index], index);
-    }).join('');
-    one('[data-empty]').hidden = working.length > 0;
-    one('[data-count-label]').textContent = working.length + ' blocks';
-    one('[data-history-note]').textContent = working.length > 4 ? `${working.length} total · recent and selected records` : 'Every block links to the one before it.';
-    one('[data-warning]').hidden = !tampered;
-  }
-  function paintWriter() {
-    const writer = state.writer; const node = one('[data-writer]');
-    node.dataset.key = writer?.key || ''; node.dataset.phase = writer ? 'verifying' : 'idle';
-    node.dataset.progress = (writer?.progress || 0).toFixed(5); node.dataset.height = writer ? String(writer.height) : '';
-    node.style.setProperty('--progress', String(writer?.progress || 0));
-    one('[data-writer-title]').textContent = writer ? `${personName(writer.travelerId)} · ${core.TYPES[writer.type].title} → verifying #${writer.height}` : state.started ? 'Every new block references the previous block.' : 'Ready to record the campaign';
+    const recent = proof ? proof.blocks.slice(-3) : [];
+    const important = recent.findLast((block) => block.records.some((r) => ['attribution', 'correction', 'report'].includes(r.receipt.type)));
+    const chosen = selectedBlock || important?.header.height || recent.at(-1)?.header.height;
+    one('[data-chain]').innerHTML = recent.map((block) => blockMarkup(block, block.header.height === chosen)).join('');
+    one('[data-empty]').hidden = recent.length > 0;
+    one('[data-count]').textContent = (proof?.blocks.length || 0) + ' blocks';
+    one('[data-retained]').textContent = proof?.blocks.length > 3 ? `${proof.blocks.length} blocks retained · latest three shown` : 'Every block references the one before it.';
   }
   function renderTotals() {
-    // Authentic totals never read from the editable working copy.
-    const totals = proof ? core.campaignTotals(proof.blocks) : { exposures: 0, websiteVisits: 0, attributedVisits: 0 };
-    for (const key of ['exposures', 'websiteVisits', 'attributedVisits']) one(`[data-metric="${key}"]`).textContent = String(totals[key]);
-    one('[data-results-note]').innerHTML = tampered ? 'Original results retained.<br>Your edited copy was rejected.' : 'Simulated results.<br>Calculated from accepted records.';
-    one('[data-results-state]').dataset.resultsState = tampered ? 'edited-copy-rejected' : 'original';
-    one('[data-result-evidence]').disabled = !proof?.blocks.some((block) => eventOf(block).type === 'attribution') || checking;
+    const totals = core.totals(records);
+    for (const key of ['exposures', 'websites', 'attributed']) one(`[data-total="${key}"]`).textContent = String(totals[key]);
+    one('[data-total="active"]').textContent = String(state.lanes.filter((lane) => lane.id && lane.phase !== 'done').length);
   }
-  function controls() {
-    const drained = state.capacityClosed && state.lanes.every((lane) => !lane.id || lane.phase === 'done');
-    const disabled = !state.ready || checking || tampered || Boolean(state.error) || drained;
-    one('[data-play]').disabled = disabled;
-    one('[data-play-label]').textContent = state.running ? 'Pause campaign' : state.started ? 'Resume campaign' : 'Start campaign';
-    const desiredIcon = state.running ? 'pause' : 'play';
-    if (one('[data-play-icon]').dataset.icon !== desiredIcon) { one('[data-play-icon]').innerHTML = svg(desiredIcon); one('[data-play-icon]').dataset.icon = desiredIcon; }
-    all('[data-history],[data-verify],[data-export]').forEach((node) => { node.disabled = !working.length || checking; });
-    all('[data-restore]').forEach((node) => { node.disabled = checking; });
-    one('[data-edit-form] button[type="submit"]').disabled = checking;
-    one('[data-status]').textContent = state.error ? 'Unavailable' : tampered ? 'Edited copy · paused' : state.running ? 'Live simulation' : !state.ready ? 'Preparing…' : state.started ? drained ? 'Complete' : 'Paused' : 'Ready';
-    one('[data-status]').dataset.running = String(state.running);
-    one('[data-metric="active"]').textContent = String(state.lanes.filter((lane) => lane.id && lane.phase !== 'done').length);
-    main.dataset.running = String(state.running); main.dataset.count = String(state.count); main.dataset.time = state.time.toFixed(3);
-    main.dataset.measuring = String(state.lanes.filter((lane) => lane.phase === 'recording').length);
-    main.dataset.admitted = String(state.admitted); main.dataset.completed = String(state.completed); main.dataset.queued = String(state.queue.length);
+  function paint() {
+    const corrected = new Set(records.filter((r) => r.type === 'correction').map((r) => r.refs[0]));
+    for (const lane of state.lanes) {
+      const view = rows[lane.slot];
+      view.row.dataset.person = lane.id || '';
+      view.row.dataset.phase = lane.phase;
+      view.row.dataset.observing = lane.active || '';
+      view.row.dataset.progress = String(lane.progress || 0);
+      view.row.dataset.attribution = lane.recorded.attribution?.id || '';
+      view.row.dataset.ended = lane.recorded.end?.id || '';
+      view.row.style.setProperty('--opacity', reduce.matches ? '1' : String(lane.opacity));
+      view.name.textContent = travelerName(lane.id || 'T' + (lane.slot + 1));
+      view.avatar.style.setProperty('--avatar', String(lane.id ? (lane.number - 1) % 5 : lane.slot));
+      for (let i = 0; i < types.length; i += 1) {
+        const type = types[i]; const node = view.stages[i]; const record = lane.recorded[type];
+        const status = record ? 'recorded' : lane.active === type ? 'observing' : lane.observed[type] ? 'reported' : lane.phase === 'done' ? 'not-recorded' : 'waiting';
+        node.dataset.state = status; node.dataset.receiptId = record?.id || ''; node.dataset.block = String(record?.block || '');
+        node.querySelector('.av-receipt-check').hidden = !record;
+        node.setAttribute('aria-label', `${view.name.textContent}: ${type === 'visit' ? 'destination visit' : type}, ${status}${record ? ' in block ' + record.block : ''}`);
+      }
+      const attr = byId.get(lane.recorded.attribution?.id)?.signed.receipt;
+      let title = !lane.id ? 'Waiting' : lane.active ? 'In progress' : 'Watching';
+      let detail = lane.active ? ({ ad: 'Ad report', website: 'Website activity', visit: 'Visit report', attribution: 'Matching evidence', end: 'Closing observation' })[lane.active] : 'Independent timeline';
+      let credited = false;
+      if (lane.observed.visit) { title = 'Visit reported'; detail = 'Awaiting receipt'; }
+      if (attr) { credited = attr.data.credited && !corrected.has(attr.id); title = credited ? 'Attributed' : corrected.has(attr.id) ? 'Corrected' : 'Not attributed'; detail = corrected.has(attr.id) ? 'Duplicate removed' : 'Provider decision recorded'; }
+      if (lane.phase === 'done' && !attr) { title = lane.observed.website ? 'Website only' : 'No visit recorded'; detail = 'Observation closed'; }
+      view.outcome.textContent = title; view.detail.textContent = detail;
+      view.outcome.parentElement.dataset.credited = String(credited);
+      view.outcome.parentElement.disabled = !attr;
+      view.outcome.parentElement.dataset.receipt = attr?.id || '';
+      view.outcome.parentElement.setAttribute('aria-label', `${view.name.textContent}: ${title}${attr ? '. Inspect the attribution receipt.' : ''}`);
+      view.row.dataset.active = String(Boolean(lane.active && types.includes(lane.active)));
+      if (lane.active && types.includes(lane.active)) {
+        const target = types.indexOf(lane.active); const from = target === 0 ? -.3 : target === 2 && !lane.observed.website ? 0 : target - 1;
+        view.row.style.setProperty('--position', `${16.6667 + (from + (target - from) * lane.progress) * 33.3333}%`);
+      }
+    }
+    const writer = one('[data-writer]');
+    writer.dataset.progress = (state.writer?.progress || 0).toFixed(5);
+    writer.dataset.ids = state.writer?.ids.join(',') || '';
+    writer.style.setProperty('--progress', writer.dataset.progress);
+    one('[data-writer-label]').textContent = state.writer ? `Verifying block #${state.writer.height} · ${state.writer.count} signed receipts` : state.queued ? `Preparing next block · ${state.queued} receipts waiting` : state.recordCount ? 'Waiting for the next measurement report' : 'Waiting for the campaign';
+    one('[data-play]').textContent = state.running ? 'Pause campaign' : state.admitted ? 'Resume campaign' : 'Start campaign';
+    one('[data-play]').disabled = !state.ready || state.busy || Boolean(state.error) || (state.limited && state.completed === state.admitted);
+    one('[data-status]').textContent = state.error ? 'Unavailable' : !state.ready ? 'Preparing…' : state.busy ? 'Checking…' : state.running ? 'Live simulation' : state.admitted ? 'Paused' : 'Ready';
+    for (const node of all('[data-history],[data-copies],[data-export]')) node.disabled = !state.blockCount || state.busy;
+    one('[data-report]').disabled = state.recordCount < 2 || state.busy;
+    main.dataset.blocks = String(state.blockCount); main.dataset.receipts = String(state.recordCount);
+    main.dataset.running = String(state.running); main.dataset.completed = String(state.completed);
+    main.dataset.admitted = String(state.admitted); main.dataset.time = String(state.time);
+    main.dataset.queue = String(state.queued);
+    one('[data-total="active"]').textContent = String(state.lanes.filter((lane) => lane.id && lane.phase !== 'done').length);
   }
-  function update(change, next) {
+  function renderCopies() {
+    one('[data-copy-states]').innerHTML = state.copies.map((copy, i) => `<span class="av-copy-summary" data-status="${copy.status}" data-copy="${i}">${copy.status === 'Up to date' ? '✓' : copy.status === 'Behind' ? '◷' : '×'} ${i === 2 ? 'Measurement' : copy.name}</span>`).join('');
+  }
+  function update(event, next) {
     state = next;
-    if (change.kind === 'reset') {
-      generation += 1; proof = null; working = []; report = null; checking = false; tampered = false;
-      selected = null; inspected = null; pinned = false; highlight = null; announcedFirst = false;
-      if (dialog.open) dialog.close(); if (historyDialog.open) historyDialog.close();
-      one('[data-message]').textContent = 'Accelerated simulation. A website visit is optional; attribution is not proof that an ad caused a trip.';
+    if (event.kind === 'reset') {
+      uiEpoch += 1; dialogVersion += 1; proof = null; records = []; byId.clear(); selectedBlock = null; lastReportId = null;
+      currentView = null; if (dialog.open) dialog.close();
+      message('Accelerated example. Website visits are optional. Attribution is not proof that an ad caused a trip.');
     }
-    if (state.proof) proof = state.proof;
-    if (change.block) {
-      working.push(core.clone(change.block)); report = null;
-      const event = eventOf(change.block); main.dataset.lastKey = event.key;
-      if (event.type === 'attribution' && !pinned) selected = working.length - 1;
-      if (event.type === 'attribution') announce(`${personName(event.travelerId)}: ${event.data.credited ? 'visit attributed' : 'visit outside the demo window, not credited'}. Block ${state.count} recorded.`);
-      else if (!announcedFirst) { announce('The first signed block is recorded. Travelers now join the campaign.'); announcedFirst = true; }
+    if (next.proof) refreshProof(next.proof);
+    if (event.block) {
+      selectedBlock = event.block.header.height;
+      main.dataset.lastIds = event.block.records.map((r) => r.receipt.id).join(',');
+      announce(`Block ${event.block.header.height} appended with ${event.block.records.length} signed receipts.`);
     }
-    if (['reset', 'ready', 'commit'].includes(change.kind)) { renderChain(); renderTotals(); }
-    paintLanes(); paintWriter(); controls();
-    if (state.error) { main.dataset.error = 'true'; one('[data-message]').textContent = 'Verification unavailable: ' + state.error + ' Reset to retry.'; }
-    else { delete main.dataset.error; if (state.capacityClosed) one('[data-message]').textContent = 'Demo limit: new arrivals stopped. Current travelers finish before the chain stops. Reset for a new campaign.'; }
+    if (['reset', 'ready', 'block', 'manual', 'action'].includes(event.kind)) { renderChain(); renderTotals(); renderCopies(); }
+    paint();
+    if (state.error) { main.dataset.error = 'true'; message('Verification unavailable: ' + state.error + ' Reset to retry.'); }
+    else delete main.dataset.error;
+    if (state.limited) one('[data-message]').textContent = 'The demo is closing admissions. Existing travelers finish; history is retained. Reset to start again.';
   }
   player = api.createPlayer({ onChange: update });
+  function openDialog(title, html, view) {
+    if (!dialog.open) returnFocus = document.activeElement;
+    one('#av-dialog-title').textContent = title; body.innerHTML = html; currentView = view;
+    if (!dialog.open) dialog.showModal();
+  }
+  function reportData(id) { return byId.get(id)?.signed.receipt; }
+  function showReport(id, note = '') {
+    const r = reportData(id); if (!r) return;
+    const latest = core.totals(records);
+    const candidates = records.filter((item) => item.type === 'attribution' && item.data.credited && !records.some((old) => old.type === 'correction' && old.refs[0] === item.id));
+    openDialog('Can this campaign report be changed quietly?', `<p>A signed report is a snapshot of committed blocks. Pending measurements appear in later reports. Corrections create new records, not hidden rewrites.</p><div class="av-checks"><p><strong>Signed report: ${r.data.totals.attributed} attributed visits</strong></p><p>Through block #${r.data.throughBlock}. Current signed-receipt total: <strong data-current-total>${latest.attributed}</strong>.</p></div><label class="av-edit-label">Try a different reported total<input data-report-value type="number" min="0" max="1000000" step="1" value="${r.data.totals.attributed + 3}" aria-label="Edited attributed-visit total"></label><button type="button" class="av-button av-primary" data-test-report="${id}">Check edited copy</button><p class="av-verdict" data-test-verdict ${note ? '' : 'hidden'}>${escape(note)}</p><h3>What about a real correction?</h3><p>Emulate an attribution service identifying a duplicate. An authorized, signed correction removes that visit from the current total while retaining the old decision.</p><label class="av-edit-label">Credited decision<select data-correction-target aria-label="Decision to correct">${candidates.map((item) => `<option value="${item.id}">${travelerName(player.describe(item.id)?.traveler)} · block ${byId.get(item.id).block.header.height}</option>`).join('') || '<option value="">None available</option>'}</select></label><div class="av-actions"><button type="button" class="av-button av-secondary" data-correct ${candidates.length ? '' : 'disabled'}>Append example correction</button><button type="button" class="av-button av-secondary" data-new-report>Sign updated report</button></div><details><summary>View signed report receipt</summary><pre>${escape(JSON.stringify(byId.get(id).signed, null, 2))}</pre></details><p>These totals describe signed reports. They do not prove the provider observed every event or that advertising caused the visits.</p>`, { kind: 'report', id });
+  }
+  async function openReceipt(id) {
+    if (!byId.has(id) || state.busy) return;
+    player.pause();
+    const version = ++dialogVersion; const generation = uiEpoch;
+    openDialog('Checking the receipt', '<p>Verifying signatures and requesting the separate example evidence…</p>', { kind: 'receipt', id });
+    try {
+      const audit = await player.audit(id);
+      if (version !== dialogVersion || generation !== uiEpoch || !dialog.open) return;
+      const entry = byId.get(id); const r = entry.signed.receipt;
+      const hidden = player.describe(id).hidden;
+      const corrected = records.some((item) => item.type === 'correction' && item.refs[0] === id);
+      const evidenceLabel = audit.evidence === 'checked' ? r.type === 'attribution' ? 'Example attribution calculation reproduced' : 'Provider evidence fingerprint checked' : audit.evidence === 'unavailable' ? 'Evidence unavailable — calculation not reproduced' : 'Evidence mismatch';
+      const calculation = audit.calculation ? `<p>${audit.calculation.days} example days after the earlier ad; ${audit.calculation.credited ? 'inside' : 'outside'} the ${audit.calculation.window}-day rule. A website visit is not required.</p>` : '';
+      const receiptFields = `<dt>Reported by</dt><dd>${core.SOURCES[r.source]}</dd><dt>Stored in</dt><dd>Block #${entry.block.header.height} · ${entry.block.records.length} receipt(s)</dd><dt>Shared receipt</dt><dd>${receiptLabel(r)}</dd>${r.type === 'attribution' ? `<dt>Signed decision</dt><dd>${r.data.credited ? 'Credited' : 'Not credited'}${corrected ? ' · subsequently corrected' : ''}</dd>` : ''}<dt>Evidence fingerprint</dt><dd><code>${r.evidenceDigest}</code></dd>`;
+      let editKey = ['credited', 'count', 'window'].find((key) => Object.hasOwn(r.data, key));
+      if (!editKey) editKey = Object.keys(r.data).find((key) => typeof r.data[key] === 'boolean' || typeof r.data[key] === 'number');
+      const edit = editKey ? `<details><summary>Try changing this shared receipt</summary><label class="av-edit-label">${escape(editKey)}${typeof r.data[editKey] === 'boolean' ? `<select data-edit-value><option value="true" ${r.data[editKey] ? 'selected' : ''}>Yes</option><option value="false" ${!r.data[editKey] ? 'selected' : ''}>No</option></select>` : `<input data-edit-value type="number" value="${r.data[editKey] + 1}" min="0" max="1000000">`}</label><button type="button" class="av-button av-secondary" data-test-receipt="${id}" data-edit-key="${editKey}">Verify edited copy</button><p class="av-verdict" data-test-verdict hidden></p></details>` : '';
+      openDialog(receiptLabel(r), `<div class="av-checks" data-record-check="${audit.record}" data-evidence-check="${audit.evidence}"><p><strong>Signed record: ${audit.record ? 'verified against the original checkpoint' : 'did not verify'}</strong></p><p>${evidenceLabel}</p>${calculation}</div><dl class="av-fields">${receiptFields}</dl><h3>Shared receipt, separate evidence</h3><p>Partners receive the signed summary and evidence fingerprint. Traveler associations, occurrence days and page/location details stay in the example provider store.</p><div class="av-actions"><button type="button" class="av-button av-secondary" data-withhold="${id}" data-hidden="${hidden}">${hidden ? 'Restore example evidence' : 'Emulate unavailable evidence'}</button></div>${r.refs.length ? `<h3>Supporting receipts</h3>${r.refs.map((ref) => receiptButton(byId.get(ref).signed)).join('')}` : ''}${audit.evidence === 'checked' ? `<details><summary>View private example evidence (not shared on-chain)</summary><pre>${escape(JSON.stringify(audit.body, null, 2))}</pre></details>` : ''}${edit}<details><summary>Block links and signed receipt</summary><p>Previous fingerprint: <code>${entry.block.header.previous}</code></p><p>This block: <code>${entry.block.hash}</code></p><pre>${escape(JSON.stringify(entry.signed, null, 2))}</pre></details><p>Record verification does not establish the accuracy of the provider's observation or prove causation. The fictional traveler labels are interface annotations, not shared receipt fields.</p>`, { kind: 'receipt', id });
+    } catch (error) { if (version === dialogVersion) openDialog('Evidence check unavailable', `<p>${escape(error.message)}</p>`, { kind: 'receipt', id }); }
+  }
+  function showCopies(note = '') {
+    openDialog('Same history, separately checked demo copies', `<p>Each participant holds a separate local copy. These are simulated organizations in one browser, not independent operators or a network consensus protocol.</p>${state.copies.map((copy, index) => `<section class="av-copy-row"><div><strong>${copy.name}</strong><span data-copy-status="${index}">${copy.status} · ${copy.length} blocks${copy.online ? '' : ' · updates paused'}</span></div><div class="av-actions"><button class="av-link" type="button" data-copy-action="pause" data-copy-index="${index}">Pause updates</button><button class="av-link" type="button" data-copy-action="alter" data-copy-index="${index}">Alter this copy</button><button class="av-link" type="button" data-copy-action="restore" data-copy-index="${index}">Restore verified history</button></div></section>`).join('')}<p data-copy-note>${escape(note || 'Pausing delivery leaves a valid older copy. Altering a stored receipt causes a signature or fingerprint mismatch. The other copies and original totals stay intact.')}</p>`, { kind: 'copies' });
+  }
+  async function manual(name, value, extra) {
+    const generation = uiEpoch;
+    const buttons = [...body.querySelectorAll('button')]; buttons.forEach((button) => { button.disabled = true; });
+    try { const result = await player.action(name, value, extra); return generation === uiEpoch ? result : null; }
+    catch (error) { if (generation === uiEpoch) message(error.message); return null; }
+    finally { if (generation === uiEpoch) buttons.filter((button) => button.isConnected).forEach((button) => { button.disabled = false; }); }
+  }
+  async function newReport() {
+    const origin = dialog.open ? dialogVersion : null;
+    const block = await manual('report');
+    if (!block) return;
+    lastReportId = block.records[0].receipt.id;
+    if (origin === null || (dialog.open && origin === dialogVersion)) showReport(lastReportId);
+  }
+  async function checkEdited(id, key, raw) {
+    const r = byId.get(id)?.signed.receipt; if (!r) return;
+    const originalValue = key === 'reportedTotal' ? r.data.totals.attributed : r.data[key];
+    const value = typeof originalValue === 'boolean' ? raw === 'true' : Number(raw);
+    if (typeof value === 'number' && (!Number.isSafeInteger(value) || value < 0 || value > 1000000)) throw new Error('Enter a whole number from 0 to 1,000,000.');
+    const edited = core.clone(proof);
+    const target = edited.blocks.flatMap((block) => block.records).find((signed) => signed.receipt.id === id).receipt;
+    if (key === 'reportedTotal') target.data.totals.attributed = value; else target.data[key] = value;
+    const version = dialogVersion; const generation = uiEpoch;
+    const result = await core.verifyProof(edited);
+    if (version !== dialogVersion || generation !== uiEpoch) return;
+    const verdict = body.querySelector('[data-test-verdict]'); if (!verdict) return;
+    verdict.hidden = false; verdict.dataset.valid = String(result.valid);
+    verdict.textContent = result.valid ? 'No mismatch: this copy still matches the signed records.' : 'Edited copy rejected. Original signatures, history and campaign totals are unchanged.';
+    announce(verdict.textContent);
+  }
   one('[data-play]').addEventListener('click', () => {
-    if (checking || tampered) return;
-    if (state.running) player.pause();
-    else { pinned = false; player.play(); if (narrow.matches) one('.av-workspace').scrollIntoView({ block: 'start', behavior: 'instant' }); }
+    if (state.busy) return;
+    if (state.running) player.pause(); else { selectedBlock = null; player.play(); if (innerWidth <= 900) one('.av-workspace').scrollIntoView({ block: 'start', behavior: 'instant' }); }
   });
   one('[data-reset]').addEventListener('click', () => player.reset());
-  one('[data-scenario]').addEventListener('change', (event) => { player.setScenario(event.target.value); one('[data-message]').textContent = 'New arrivals use ' + core.SCENARIOS[event.target.value].toLowerCase() + '. Current travelers keep their own paths.'; });
+  one('[data-scenario]').addEventListener('change', (event) => { player.setScenario(event.target.value); message('This mix applies to new arrivals. Existing travelers keep their current paths.'); });
   one('[data-speed]').addEventListener('change', (event) => player.setSpeed(Number(event.target.value)));
   one('[data-continuous]').addEventListener('change', (event) => player.setContinuous(event.target.checked));
+  one('[data-travelers]').addEventListener('click', (event) => {
+    const receipt = event.target.closest('[data-receipt]'); if (receipt?.dataset.receipt) openReceipt(receipt.dataset.receipt);
+  });
+  one('[data-chain]').addEventListener('click', (event) => {
+    const receipt = event.target.closest('[data-receipt]'); if (receipt) { openReceipt(receipt.dataset.receipt); return; }
+    const block = event.target.closest('[data-block]');
+    if (block) { player.pause(); selectedBlock = Number(block.dataset.block); renderChain(); one(`[data-chain] [data-block="${selectedBlock}"]`)?.focus({ preventScroll: true }); }
+  });
+  main.addEventListener('focusin', (event) => { if (event.target.closest('[data-block],[data-receipt]')) player.pause(); });
+  one('[data-history]').addEventListener('click', () => { player.pause(); openDialog('Full campaign blockchain', `<p>${proof.blocks.length} blocks · ${records.length} signed receipts. All earlier records are retained. Traveler labels below are private example annotations.</p><ol class="av-archive">${proof.blocks.map((block) => blockMarkup(block, true, true)).join('')}</ol>`, { kind: 'history' }); });
+  one('[data-copies]').addEventListener('click', () => { player.pause(); showCopies(); });
+  one('[data-report]').addEventListener('click', newReport);
+  one('[data-close]').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => { dialogVersion += 1; if (returnFocus?.isConnected && !returnFocus.disabled) returnFocus.focus({ preventScroll: true }); });
+  body.addEventListener('click', async (event) => {
+    const version = dialogVersion;
+    const receipt = event.target.closest('[data-receipt]'); if (receipt) { await openReceipt(receipt.dataset.receipt); return; }
+    const withholding = event.target.closest('[data-withhold]');
+    if (withholding) { if (await manual('withhold', withholding.dataset.withhold, withholding.dataset.hidden !== 'true')) if (dialog.open && version === dialogVersion) await openReceipt(withholding.dataset.withhold); return; }
+    const copy = event.target.closest('[data-copy-action]');
+    if (copy) { const result = await manual('copy', Number(copy.dataset.copyIndex), copy.dataset.copyAction); if (result && dialog.open && version === dialogVersion) showCopies(copy.dataset.copyAction === 'pause' ? 'Updates paused. Resume the campaign to see this copy fall behind.' : 'The copied history has been checked. Other participants retain their own records.'); return; }
+    const testReport = event.target.closest('[data-test-report]');
+    const testReceipt = event.target.closest('[data-test-receipt]');
+    if (testReport || testReceipt) {
+      const button = testReport || testReceipt; button.disabled = true;
+      try { await checkEdited(testReport?.dataset.testReport || testReceipt.dataset.testReceipt,
+        testReport ? 'reportedTotal' : testReceipt.dataset.editKey,
+        body.querySelector(testReport ? '[data-report-value]' : '[data-edit-value]').value); }
+      catch (error) { message(error.message); }
+      finally { if (button.isConnected) button.disabled = false; }
+      return;
+    }
+    if (event.target.closest('[data-correct]')) {
+      const id = body.querySelector('[data-correction-target]').value;
+      const block = await manual('correct', id);
+      if (block && dialog.open && version === dialogVersion) showReport(lastReportId, `Correction added in block #${block.header.height}. The old report is preserved; the current total was recalculated once.`);
+      return;
+    }
+    if (event.target.closest('[data-new-report]')) await newReport();
+  });
+  one('[data-export]').addEventListener('click', () => {
+    player.pause();
+    const url = URL.createObjectURL(new Blob([JSON.stringify(proof, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'cedar-valley-shared-audit-proof.json'; document.body.appendChild(link); link.click(); link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000); message('Shared proof exported: signed receipts and public keys, with no private provider evidence or traveler IDs.');
+  });
   document.addEventListener('visibilitychange', () => { if (document.hidden) player.pause(); });
   window.addEventListener('pagehide', () => player.pause());
-  main.addEventListener('focusin', (event) => { if (event.target.closest('[data-person],[data-step],[data-outcome],[data-select],[data-inspect],[data-support]')) player.pause(); });
-  function selectBlock(index) {
-    if (checking || !working[index]) return;
-    player.pause(); selected = index; pinned = true; highlight = eventOf(working[index]).travelerId;
-    renderChain(); paintLanes();
-    // Keep keyboard focus on the replacement selector, without stealing it on automatic updates.
-    one(`[data-blocks] [data-select="${index}"]`)?.focus({ preventScroll: true });
-    if (narrow.matches) one('.av-ledger').scrollIntoView({ block: 'start', behavior: 'instant' });
-  }
-  one('[data-travelers]').addEventListener('click', (event) => {
-    const record = event.target.closest('[data-step],[data-outcome]');
-    if (record?.dataset.height) { selectBlock(Number(record.dataset.height) - 1); return; }
-    const person = event.target.closest('[data-person]');
-    if (!person) return;
-    const id = person.closest('[data-slot]').dataset.travelerId;
-    const index = working.findLastIndex((block) => eventOf(block).travelerId === id && eventOf(block).type === 'attribution');
-    selectBlock(index >= 0 ? index : working.findLastIndex((block) => eventOf(block).travelerId === id));
-  });
-  one('[data-blocks]').addEventListener('click', (event) => {
-    const select = event.target.closest('[data-select]');
-    if (select) { selectBlock(Number(select.dataset.select)); return; }
-    const edit = event.target.closest('[data-inspect]'); if (edit) { inspect(Number(edit.dataset.inspect)); return; }
-    const support = event.target.closest('[data-support]'); if (support) showSupporting(Number(support.dataset.support));
-  });
-  one('[data-result-evidence]').addEventListener('click', () => {
-    const last = working.findLastIndex((block) => eventOf(block).type === 'attribution' && eventOf(block).data.credited);
-    const fallback = working.findLastIndex((block) => eventOf(block).type === 'attribution');
-    selectBlock(last >= 0 ? last : fallback);
-  });
-  async function recheck() {
-    if (!proof || checking) return false;
-    player.pause(); checking = true; controls();
-    const token = generation;
-    try {
-      const result = await core.verifyResults(working, proof.trust);
-      if (token !== generation) return false;
-      report = result.report; tampered = !report.valid;
-      paintLanes(); renderChain(); renderTotals();
-      announce(report.valid ? 'All recorded evidence and attribution decisions passed verification.' : 'The edited copy failed verification. Original totals are retained.');
-      return true;
-    } catch (_) {
-      if (token === generation) { tampered = true; renderTotals(); renderChain(); one('[data-message]').textContent = 'Verification could not complete. Restore the original records or reset to retry.'; }
-      return false;
-    } finally { if (token === generation) { checking = false; controls(); renderTotals(); } }
-  }
-  one('[data-verify]').addEventListener('click', async () => { if (await recheck()) one('[data-message]').textContent = report.valid ? `All ${working.length} records checked. Attribution decisions and campaign totals match the evidence.` : 'Your edited copy was rejected. The original results are unchanged.'; });
-  function showHistory() {
-    if (checking || !working.length) return;
-    player.pause(); one('[data-archive-caption]').textContent = 'One campaign, all traveler paths, in recorded order. No records are removed from this history.';
-    one('[data-archive]').innerHTML = working.map((block, index) => blockMarkup(block, index, true)).join('');
-    historyDialog.showModal();
-  }
-  function showSupporting(index) {
-    if (checking || !working[index] || eventOf(working[index]).type !== 'attribution') return;
-    player.pause(); const event = eventOf(working[index]);
-    const indexes = [event.data.exposure.blockHeight - 1, event.data.visit.blockHeight - 1, index];
-    one('[data-archive-caption]').textContent = 'Selected evidence from the same campaign chain. Other travelers’ records can sit between these block numbers. Website activity is not required.';
-    one('[data-archive]').innerHTML = indexes.map((i) => blockMarkup(working[i], i, true)).join(''); historyDialog.showModal();
-  }
-  one('[data-history]').addEventListener('click', showHistory);
-  one('[data-close-history]').addEventListener('click', () => historyDialog.close());
-  one('[data-archive]').addEventListener('click', (event) => { const node = event.target.closest('[data-inspect]'); if (node) inspect(Number(node.dataset.inspect)); });
-  const fieldLabel = (key) => ({ credited: 'Credit this campaign', elapsedDays: 'Days after ad', withinWindow: 'Inside matching window', notPreviouslyCounted: 'Not previously counted', websiteRecorded: 'Website recorded', destinationRecorded: 'Destination recorded', impressions: 'Impressions', page: 'Website page', name: 'Campaign name', exampleDay: 'Example occurrence day', place: 'Destination place' })[key] || key;
-  function editField() {
-    if (inspected === null || !working[inspected]) return;
-    const value = eventOf(working[inspected]).data[one('[data-edit-field]').value]; const boolean = typeof value === 'boolean';
-    one('[data-edit-value]').hidden = boolean; one('[data-edit-value]').required = !boolean; one('[data-edit-boolean]').hidden = !boolean;
-    one('[data-edit-value]').value = String(value); one('[data-edit-boolean]').value = String(value);
-  }
-  function fillInspector() {
-    const block = working[inspected]; if (!block || !report) return;
-    const event = eventOf(block); const row = report.blocks[inspected];
-    one('#av-dialog-title').textContent = `Block #${inspected + 1} · ${titleOf(event)}`;
-    one('[data-dialog-subtitle]').textContent = personName(event.travelerId) + ' · ' + event.campaignId;
-    const printable = (value) => value && typeof value === 'object' ? 'Block #' + value.blockHeight + ' · ' + value.eventId : String(value);
-    const fields = [['Previous block', inspected ? '#' + inspected : 'None (first block)'], ['Source', core.TYPES[event.type].source], ...Object.entries(event.data).filter(([key]) => !['synthetic', 'note'].includes(key)).map(([key, value]) => [fieldLabel(key), printable(value)])];
-    one('[data-fields]').innerHTML = fields.map(([label, value]) => `<dt>${escape(label)}</dt><dd>${escape(value)}</dd>`).join('');
-    const keys = Object.keys(event.data).filter((key) => !['synthetic', 'note'].includes(key) && ['string', 'number', 'boolean'].includes(typeof event.data[key]));
-    one('[data-edit-field]').innerHTML = keys.map((key) => `<option value="${escape(key)}">${escape(fieldLabel(key))}</option>`).join('');
-    const preferred = keys.find((key) => ['credited', 'impressions', 'page', 'place', 'name', 'websiteRecorded'].includes(key)); if (preferred) one('[data-edit-field]').value = preferred;
-    editField();
-    one('[data-verdict]').dataset.valid = String(row.state === 'verified');
-    one('[data-verdict]').textContent = row.state === 'verified' ? 'This record and its applicable rule checks match.' : row.state === 'changed' ? 'Verification failed. Your edited copy no longer matches its original evidence.' : 'This record is unchanged, but depends on earlier changed history.';
-    one('[data-previous-hash]').textContent = block.header.previousHash; one('[data-recorded-hash]').textContent = block.hash;
-    one('[data-computed-hash]').textContent = row.computedHash || 'Unable to calculate';
-    const names = { structure: 'Record structure', journey: 'Traveler path', attribution: 'Attribution rule and evidence', eventSignature: 'Event signature', merkleRoot: 'Record fingerprint', blockHash: 'Recorded block hash', previousHash: 'Previous block link', approvals: 'Three local approvals' };
-    one('[data-checks]').innerHTML = Object.entries(row.checks).map(([key, valid]) => `<li>${valid ? '✓' : '×'} ${names[key]}: ${valid ? 'passes' : 'fails'}</li>`).join('');
-    one('[data-json]').textContent = JSON.stringify(block, null, 2);
-  }
-  async function inspect(index) {
-    if (checking || !working[index]) return;
-    player.pause(); inspected = index; if (historyDialog.open) historyDialog.close();
-    if (await recheck()) { fillInspector(); dialog.showModal(); }
-  }
-  one('[data-close]').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('close', () => {
-    const target = one(`[data-select="${inspected}"]`) || one('[data-history]');
-    if (!target.disabled) target.focus({ preventScroll: true });
-  });
-  one('[data-edit-field]').addEventListener('change', editField);
-  one('[data-edit-form]').addEventListener('submit', async (event) => {
-    event.preventDefault(); if (checking || inspected === null) return;
-    const data = eventOf(working[inspected]).data; const key = one('[data-edit-field]').value; const prior = data[key];
-    let value = typeof prior === 'boolean' ? one('[data-edit-boolean]').value === 'true' : one('[data-edit-value]').value;
-    if (typeof prior === 'number') {
-      value = Number(value);
-      if (!Number.isFinite(value) || Math.abs(value) > 1e12) { one('[data-verdict]').textContent = 'Enter a finite number between -1,000,000,000,000 and 1,000,000,000,000.'; return; }
-    }
-    data[key] = value; if (await recheck()) fillInspector();
-  });
-  all('[data-restore]').forEach((button) => button.addEventListener('click', async () => {
-    if (!proof || checking) return; working = core.clone(proof.blocks);
-    if (await recheck()) { if (dialog.open) fillInspector(); one('[data-message]').textContent = 'Exact original signed records restored. Resume to continue this campaign.'; }
-  }));
-  one('[data-export]').addEventListener('click', () => {
-    if (!proof || checking) return;
-    player.pause();
-    const url = URL.createObjectURL(new Blob([JSON.stringify({ schema: 'ad-verification-demo/v4', notice: 'Fictional observations, an example attribution rule and same-browser signers. Not independent evidence of visitation or causation.', blocks: working, trust: proof.trust }, null, 2)], { type: 'application/json' }));
-    const link = document.createElement('a'); link.href = url; link.download = 'cedar-valley-campaign-proof.json'; document.body.appendChild(link); link.click(); link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000); announce('Public proof exported. No private keys are included.');
-  });
   player.reset();
 })();
