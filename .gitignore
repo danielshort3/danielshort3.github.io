@@ -4,6 +4,7 @@
 
 # Ignore editor directories and OS files
 .vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
@@ -74,4 +75,4 @@ Baby-Names/
 /.idea/caches/
 /.codex-remote-attachments/
 /tests/release/tmp/
-/output/**/*.log
+/output/

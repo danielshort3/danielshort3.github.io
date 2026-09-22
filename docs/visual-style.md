@@ -23,10 +23,10 @@ the artwork is not clipped. Do not apply the old document's universal 120px
 digital-logo minimum to header marks or favicons.
 
 Keep header marks flat and stationary, including hover: no drop shadow, glow,
-or scale animation. The small favicon is an optical exception to the master:
-it keeps the D and S letter contours, omits the tiny chart bars, and uses more
-of its flat white tile so the letters remain clear at 16–32px. Regenerate the
-SVG, PNG sizes, and ICO together with `npm run build:icons`.
+or scale animation. The favicon keeps the complete DS identity, including the
+three chart bars inside the D. Use the approved compact favicon source rather
+than simplifying the mark. Regenerate the PNG sizes and ICO together with
+`npm run build:icons`.
 
 Use the plain personal wordmark and current social card documented in
 [the brand asset index](../img/brand/README.md). The analytics descriptor belongs
