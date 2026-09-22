@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <base href="/">
+  <title>Ad Verification Demo | Daniel Short</title>
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="description" content="An unlisted, browser-only blockchain demonstration with fictional Cedar Valley Tourism advertising records. Explore record integrity and tamper detection.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://www.danielshort.me/demos/ad-verification">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/components/ad-verification.css?v=1">
+  <script defer src="js/demos/ad-verification-core.js?v=1"></script>
+  <script defer src="js/demos/ad-verification.js?v=1"></script>
+</head>
+<body class="av-page">
+  <a class="av-skip skip-link" href="#main">Skip to demo</a>
+  <header class="av-header">
+    <nav class="av-nav" aria-label="Main navigation">
+      <a class="av-brand" href="/" aria-label="Daniel Short home"><strong>Daniel Short</strong><span>Build&nbsp; Explore&nbsp; Solve</span></a>
+      <div class="av-nav-links"><a href="/">Home</a><a class="av-active" href="/portfolio">Projects</a><a href="/#about">About</a><a href="/contact">Contact</a></div>
+    </nav>
+  </header>
+  <main id="main" class="av-main">
+    <section class="av-hero" aria-labelledby="av-title">
+      <div class="av-hero-copy">
+        <p class="av-eyebrow">Project</p>
+        <h1 id="av-title">Ad Verification Demo</h1>
+        <p class="av-intro">A simple, interactive demo for Cedar Valley Tourism showing how each advertising handoff is recorded and verified, creating a tamper-evident record from ad creation to measurement.</p>
+        <div class="av-actions"><button class="av-button av-primary" type="button" data-av-run disabled><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 11 7-11 7Z" fill="currentColor" stroke="none"/></svg><span>Launch Demo</span></button><a class="av-button av-secondary" href="https://github.com/danielshort3/danielshort3.github.io/blob/main/docs/ad-verification-demo.md" target="_blank" rel="noopener noreferrer"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7m-12 5L21 3M10 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg><span>View on GitHub</span></a></div>
+      </div>
+      <aside class="av-hero-aside"><p>Greater trust<br>for a brighter<br>tomorrow.</p><span>Cedar Valley Tourism.<br>A fictional destination.</span></aside>
+    </section>
+    <section class="av-demo" id="demo" tabindex="-1" aria-labelledby="av-demo-title" data-av-demo aria-busy="true">
+      <div class="av-chain-area">
+        <div class="av-demo-heading"><h2 id="av-demo-title">Ad Delivery Chain <span>(Live Demo)</span></h2><span class="av-overall" data-av-overall data-state="pending"><i aria-hidden="true"></i><span data-av-overall-label>Preparing records</span></span></div>
+        <ol class="av-chain" aria-label="Four recorded advertising handoffs"><li class="av-step-wrap">
+            <button class="av-step" type="button" data-av-step="0" data-state="pending" disabled aria-label="Inspect Advertiser record">
+              <span class="av-step-icon"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5 5-2v18l-5-2-9-2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2l9-2ZM6 17l2 5h4l-2-4M20 8l2 1v6l-2 1"/></svg></span>
+              <strong>Advertiser</strong>
+              <span class="av-step-event">Campaign created</span>
+              <time datetime="2027-04-25T10:00:12Z">10:00:12 UTC</time>
+              <span class="av-step-value" data-av-value="0">Spring 2027 · Example</span>
+              <span class="av-badge"><span data-av-symbol="0" aria-hidden="true">○</span><span data-av-status="0">Preparing</span></span>
+            </button>
+            <svg class="av-icon av-connector" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+          </li>
+<li class="av-step-wrap">
+            <button class="av-step" type="button" data-av-step="1" data-state="pending" disabled aria-label="Inspect Agency / DSP record">
+              <span class="av-step-icon"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3" fill="currentColor" stroke="none"/><path d="M2 20v-2a7 7 0 0 1 14 0v2Zm16 0h5v-2a6 6 0 0 0-6-6m-1-7a3 3 0 0 1 0 6" fill="currentColor" stroke="none"/></svg></span>
+              <strong>Agency / DSP</strong>
+              <span class="av-step-event">Placement authorized</span>
+              <time datetime="2027-04-25T10:00:15Z">10:00:15 UTC</time>
+              <span class="av-step-value" data-av-value="1">Signed campaign record</span>
+              <span class="av-badge"><span data-av-symbol="1" aria-hidden="true">○</span><span data-av-status="1">Preparing</span></span>
+            </button>
+            <svg class="av-icon av-connector" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+          </li>
+<li class="av-step-wrap">
+            <button class="av-step" type="button" data-av-step="2" data-state="pending" disabled aria-label="Inspect Publisher record">
+              <span class="av-step-icon"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h8l5 5v15H6Zm8 0v6h5M9 12h7m-7 4h7m-7 3h5"/></svg></span>
+              <strong>Publisher</strong>
+              <span class="av-step-event">Delivery reported</span>
+              <time datetime="2027-04-25T10:00:21Z">10:00:21 UTC</time>
+              <span class="av-step-value" data-av-value="2">10,000 impressions</span>
+              <span class="av-badge"><span data-av-symbol="2" aria-hidden="true">○</span><span data-av-status="2">Preparing</span></span>
+            </button>
+            <svg class="av-icon av-connector" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+          </li>
+<li class="av-step-wrap">
+            <button class="av-step" type="button" data-av-step="3" data-state="pending" disabled aria-label="Inspect Measurement record">
+              <span class="av-step-icon"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-6m7 6V9m7 11V3" stroke-width="5"/></svg></span>
+              <strong>Measurement</strong>
+              <span class="av-step-event">Measurement recorded</span>
+              <time datetime="2027-04-25T10:00:28Z">10:00:28 UTC</time>
+              <span class="av-step-value" data-av-value="3">Signed campaign record</span>
+              <span class="av-badge"><span data-av-symbol="3" aria-hidden="true">○</span><span data-av-status="3">Preparing</span></span>
+            </button>
+            
+          </li></ol>
+        <p class="av-chain-hint">Select a step to inspect its record. All campaign data is simulated.</p>
+      </div>
+      <aside class="av-result" data-av-result data-state="pending" aria-label="Verification result">
+        <div class="av-result-top"><span class="av-result-icon" data-av-result-icon><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1c3 3 6 4 10 5v6c0 5-5 10-10 12C7 22 2 17 2 12V6c4-1 7-2 10-5Z" fill="currentColor" stroke="none"/><path d="m7 12 3 3 6-6" stroke="white" stroke-width="2.3"/></svg></span><div><span class="av-result-label">Chain status:</span><h3 data-av-verdict>Preparing</h3></div></div>
+        <p class="av-result-message" data-av-message>Creating four signed blocks in your browser.</p>
+        <button class="av-button av-primary av-change" type="button" data-av-toggle disabled><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-13h-8Z"/></svg><span data-av-toggle-label>Simulate change</span></button>
+      </aside>
+      <div class="av-change-note" data-av-change-note hidden><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20ZM12 9v5m0 3v1"/></svg><p><strong>Publisher record changed: 10,000 → 12,500 impressions.</strong> Its original signature no longer matches. The measurement record is unchanged, but follows the altered step.</p></div>
+    </section>
+    <p class="av-announcement av-visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-av-announcement></p>
+    <noscript><p class="av-error">JavaScript is required for this demo. Enable it to calculate real hashes and verify signatures in your browser.</p></noscript>
+    <section class="av-how" aria-labelledby="av-how-title">
+      <h2 id="av-how-title">How it works</h2>
+      <p class="av-how-intro">Each step is recorded, signed, and linked using cryptographic hashes.<br class="av-desktop-break"> Try changing a record to see the verification fail.</p>
+      <div class="av-how-grid"><article class="av-how-card"><span class="av-how-icon"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 6 21M18 3l-4 18M3 9h18M2 16h18"/></svg></span><div><h3>Hash event</h3><p>Each record gets a digital fingerprint. Changing its contents changes that fingerprint.</p></div><span class="av-how-number">01</span></article>
+<article class="av-how-card"><span class="av-how-icon"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 13 4-4M8 16l-1 1a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m0 2 1-1a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0" transform="translate(2 0)"/></svg></span><div><h3>Link step</h3><p>Each signed block references the one before it, connecting the campaign records.</p></div><span class="av-how-number">02</span></article>
+<article class="av-how-card"><span class="av-how-icon"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c3 3 6 3 9 4v6c0 5-5 9-9 11-4-2-9-6-9-11V6c3-1 6-1 9-4Z"/><path d="m8 12 3 3 5-6"/></svg></span><div><h3>Verify chain</h3><p>Check the fingerprints, signatures, and links against the original checkpoint.</p></div><span class="av-how-number">03</span></article></div>
+    </section>
+    <details class="av-details" data-av-details>
+      <summary>Behind the demo<svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary>
+      <div class="av-details-body">
+        <p><strong>A mini blockchain, not a cryptocurrency.</strong> Four blocks contain real SHA-256 fingerprints and ECDSA P-256 signatures. Each block links to its predecessor; three local demo validators sign its hash. The original block count and last hash are saved separately as a checkpoint.</p>
+        <p><strong>Record integrity is not proof of ad delivery.</strong> A valid signature shows that a record matches a signing key. It does not prove a human saw an ad, that a reported number is truthful, or that a visit occurred. Timestamps are fictional, not independently certified.</p>
+        <p><strong>All participants run in this browser.</strong> These are simulated identities, not independent organizations or distributed consensus. No wallet, token, live advertising connection, or visitor tracking is used by the demo. Reloading starts a new local chain.</p>
+        <div class="av-detail-actions"><button class="av-button av-secondary" type="button" data-av-check disabled><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7"/></svg><span>Check chain again</span></button><button class="av-button av-secondary" type="button" data-av-export disabled>Export public proof</button></div>
+        <p class="av-proof-note">Export contains example records, public keys, and the session checkpoint—never private keys. It is self-contained demo evidence, not a third-party certificate.</p>
+      </div>
+    </details>
+    <footer class="av-footer"><span>Unlisted project preview · Cedar Valley Tourism is fictional.</span><span>Real cryptography. Example data.</span></footer>
+  </main>
+  <dialog class="av-dialog" id="av-record-dialog" aria-labelledby="av-record-title">
+    <div class="av-dialog-heading"><h2 id="av-record-title">Record details</h2><button class="av-icon-button" type="button" data-av-close aria-label="Close record details"><svg class="av-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+    <p data-av-record-explanation></p>
+    <dl class="av-record-fields" data-av-record-fields></dl>
+    <div class="av-hash-field"><span>Recorded block hash</span><code data-av-recorded-hash></code></div>
+    <div class="av-hash-field"><span>Hash recalculated from current record</span><code data-av-computed-hash></code></div>
+    <ul class="av-record-checks" data-av-record-checks></ul>
+    <details class="av-record-json"><summary>View signed event</summary><pre data-av-record-json></pre></details>
+    <p class="av-proof-note">Checks use this session’s original public keys and checkpoint. They verify the record, not the truth of the advertising claim.</p>
+  </dialog>
+</body>
+</html>
