@@ -18,7 +18,7 @@ module.exports = defineConfig({
   use: { baseURL, viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce', serviceWorkers: 'block', actionTimeout: 15000, navigationTimeout: 20000, trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   webServer: { command: 'node tests/release/server.cjs', cwd: path.resolve(__dirname, '../..'), url: baseURL, reuseExistingServer: !process.env.CI, timeout: 30000 },
   projects: [
-    ...['chromium', 'firefox', 'webkit'].map((browserName) => ({ name: browserName, testMatch: 'release.spec.cjs', use: { browserName } })),
+    ...['chromium', 'firefox', 'webkit'].map((browserName) => ({ name: browserName, testMatch: ['release.spec.cjs', 'library-links.spec.cjs'], use: { browserName } })),
     { name: 'visual', testMatch: 'visual.spec.cjs', use: { browserName: 'chromium' }, snapshotPathTemplate: '{testDir}/baselines/{arg}{ext}' }
   ]
 });
