@@ -197,6 +197,9 @@ private fun DrawingDemo(shape: Boolean, onBack: () -> Unit) {
         }
       }
     }
+      Text("Your drawing is sent to the website’s AWS model only when you submit it.",
+        modifier = Modifier.widthIn(max = 320.dp), style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
       Button(onClick = ::score, enabled = !busy && (strokes.isNotEmpty() || sample != null),
         modifier = Modifier.widthIn(min = 168.dp).heightIn(min = 48.dp), shape = RoundedCornerShape(10.dp)) {
         Text(if (shape) "Classify shape" else "Rate digit")
@@ -232,7 +235,6 @@ private fun DrawingDemo(shape: Boolean, onBack: () -> Unit) {
       Text("${percent(top.confidence)} model confidence", color = MaterialTheme.colorScheme.onSurfaceVariant)
       predictions.forEach { ScoreRow(it.label, it.confidence) }
     }
-    Text("Your drawing is sent to the website’s AWS model only when you submit it.", style = MaterialTheme.typography.bodySmall)
   }
 }
 
@@ -291,6 +293,8 @@ private fun DigitDemo(onBack: () -> Unit) {
     Surface(shape = RoundedCornerShape(16.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
       Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(status, Modifier.align(Alignment.End), style = MaterialTheme.typography.bodySmall)
+        Text("Digit settings are sent to the website’s AWS model. The first grid is generated automatically.",
+          style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
           DemoSelect("Digit", listOf("Auto") + (0..9).map(Int::toString), digit, { digit = it }, Modifier.weight(1f), !busy)
           Button(onClick = ::generate, enabled = !busy) { Text("Regenerate") }
@@ -334,6 +338,8 @@ private fun LanguageDemo(chat: Boolean, onBack: () -> Unit) {
       placeholder = { Text(if (chat) "What can I do in Grand Junction?" else "She wonders about things.") }, minLines = 3, maxLines = 8,
       modifier = Modifier.fillMaxWidth().protectChromeWhileEditing(), enabled = !busy)
     if (!chat) DemoSelect("Results", listOf("3", "5", "10", "20"), top.toString(), { top = it.toInt() }, enabled = !busy)
+    Text("${if (chat) "Questions" else "Search phrases"} are sent to the website’s AWS service. ${if (chat) "AI answers can be mistaken; verify current details." else "Similarity scores describe related wording, not certainty."}",
+      style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Button(onClick = {
       val submitted = query.trim().ifBlank { if (chat) "What can I do in Grand Junction?" else "She wonders about things." }
       busy = true; results = emptyList(); answer = ""; sources = emptyList(); status = "AWS · ${if (chat) "Thinking" else "Searching"}"
@@ -385,7 +391,6 @@ private fun LanguageDemo(chat: Boolean, onBack: () -> Unit) {
         HorizontalDivider()
       }
     }
-    Text("${if (chat) "Questions" else "Search phrases"} are sent to the website’s AWS service. ${if (chat) "AI answers can be mistaken; verify current details." else "Similarity scores describe related wording, not certainty."}", style = MaterialTheme.typography.bodySmall)
   }
 }
 
@@ -408,6 +413,8 @@ private fun NonogramDemo(onBack: () -> Unit) {
   }
   DemoPage("Nonogram Solver", "Follow the real reinforcement-learning agent’s decisions.", onBack) {
     DemoStatus(busy, status)
+    Text("Loads a puzzle from the website’s AWS service.", style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant)
     Button(onClick = {
       busy = true; playing = false; status = "AWS · Loading puzzle"
       scope.launch {

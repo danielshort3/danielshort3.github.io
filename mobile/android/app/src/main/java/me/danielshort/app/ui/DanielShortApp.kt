@@ -91,6 +91,12 @@ fun DanielShortApp(
   val snackbar = remember { SnackbarHostState() }
   val context = LocalContext.current
   val screenState = rememberSaveableStateHolder()
+  val openSettings: (Boolean) -> Unit = { updates ->
+    val route = if (updates) "settings:updates" else "settings"
+    // A new entry honors its destination; rotations within that entry still restore state.
+    screenState.removeState("native:$route")
+    nativeFeature = route
+  }
   val content = state.content
   val project = content?.projects?.find { it.id == projectId }
   val safeToInstallCallback by rememberUpdatedState(onSafeToInstall)
@@ -150,7 +156,7 @@ fun DanielShortApp(
           }, navigationIcon = {
             if (project != null) IconButton(onClick = { projectId = null }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to projects") }
           }, actions = {
-            IconButton(onClick = { nativeFeature = "settings" }) { Icon(Icons.Outlined.Settings, "Settings") }
+            IconButton(onClick = { openSettings(false) }) { Icon(Icons.Outlined.Settings, "Settings") }
             if (project != null) {
               IconButton(onClick = { repository.toggleSaved(project.id) }) { Icon(if (project.id in saved) Icons.Outlined.BookmarkAdded else Icons.Outlined.BookmarkBorder, if (project.id in saved) "Unsave project" else "Save project") }
               IconButton(onClick = { share(context, project.title, project.url) }) { Icon(Icons.Outlined.Share, "Share project") }
@@ -158,7 +164,7 @@ fun DanielShortApp(
               BrowseOverflowMenu(state.refreshing) { scope.launch { repository.refresh(force = true) } }
             }
           }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White))
-          globalNotice { nativeFeature = "settings:updates" }
+          globalNotice { openSettings(true) }
           HorizontalDivider(thickness = 2.dp, color = section.color.copy(alpha = .35f))
         }
       },

@@ -179,11 +179,13 @@ class SettingsFlowTest {
     }
     compose.onNodeWithTag("site-rail-tools").performClick()
     compose.onNodeWithContentDescription("Settings").performClick()
-    compose.onNodeWithTag("native-feature-panel").assertWidthIsAtMost(760.dp)
+    val panel = compose.onNodeWithTag("native-feature-panel").getUnclippedBoundsInRoot()
+    assertTrue("Settings panel exceeds its reading width", panel.right - panel.left <= 760.5.dp)
     compose.onNodeWithTag("settings-updates").assertIsDisplayed()
     capture("overview-wide")
     compose.onNodeWithTag("settings-storage").performClick()
     compose.onNodeWithTag("clear-cached-images").assertIsDisplayed()
+    capture("storage-wide")
     pressBack()
     compose.onNodeWithTag("settings-storage").assertIsDisplayed()
     pressBack()
@@ -191,7 +193,7 @@ class SettingsFlowTest {
     compose.onNodeWithTag("settings-body").assertDoesNotExist()
   }
 
-  @Test fun updateNoticeOpensUpdatesDirectlyAndDoesNotMakeInstallationSafe() {
+  @Test fun updateNoticeAlwaysOpensUpdatesDirectlyAndDoesNotMakeInstallationSafe() {
     val repository = ContentRepository(context, settings)
     var safeToInstall = false
     compose.setContent {
@@ -199,15 +201,17 @@ class SettingsFlowTest {
         TextButton(onClick = openUpdates) { Text("Test update notice") }
       })
     }
-    compose.onNodeWithText("Test update notice").performClick()
-    compose.onNodeWithText("App updates").assertIsDisplayed()
-    compose.onNodeWithTag("settings-updates").assertDoesNotExist()
-    compose.runOnIdle { assertFalse(safeToInstall) }
-    capture("updates")
-    compose.onNodeWithTag("settings-back").performClick()
-    compose.onNodeWithTag("settings-updates").assertIsDisplayed()
-    compose.onNodeWithTag("settings-back").performClick()
-    compose.onNodeWithText("Test update notice").assertIsDisplayed()
+    repeat(2) { visit ->
+      compose.onNodeWithText("Test update notice").performClick()
+      compose.onNodeWithText("App updates").assertIsDisplayed()
+      compose.onNodeWithTag("settings-updates").assertDoesNotExist()
+      compose.runOnIdle { assertFalse(safeToInstall) }
+      if (visit == 0) capture("updates")
+      compose.onNodeWithTag("settings-back").performClick()
+      compose.onNodeWithTag("settings-updates").assertIsDisplayed()
+      compose.onNodeWithTag("settings-back").performClick()
+      compose.onNodeWithText("Test update notice").assertIsDisplayed()
+    }
   }
 
   @Test fun settingsUseOneAccentRegardlessOfTheCallingSection() {
