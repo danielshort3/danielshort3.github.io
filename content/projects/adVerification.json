@@ -4,9 +4,9 @@
   "hidden": true,
   "noindex": true,
   "visibility": "unlisted",
-  "title": "Live Campaign Blockchain",
-  "subtitle": "Follow fictional Cedar Valley travelers as their events become signed, linked blocks.",
-  "metaDescription": "Run multiple traveler scenarios in one campaign, watch a shared blockchain grow, and try editing its signed records. Fictional people, real browser cryptography.",
+  "title": "Live Campaign Measurement",
+  "subtitle": "Parallel travelers. One verifiable campaign history.",
+  "metaDescription": "Five fictional travelers follow overlapping paths as their events join one signed blockchain. Inspect records, test edits, and watch individual travelers cycle through.",
   "image": "img/projects/ad-verification-landscape.webp",
   "imageAlt": "Illustrative mountain landscape for fictional Cedar Valley Tourism",
   "imageWidth": 224,
@@ -19,17 +19,17 @@
     { "label": "Open unlisted demo", "url": "/demos/ad-verification" },
     { "label": "Source and technical notes", "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/docs/ad-verification-demo.md" }
   ],
-  "problem": "Campaign outcomes follow different traveler paths, while records need a consistent, auditable history.",
-  "task": "Make live event recording and tamper detection understandable without a complex technical dashboard.",
+  "problem": "People respond to campaigns at different times, while measurement records need one auditable history.",
+  "task": "Show overlapping traveler journeys and an understandable blockchain without grouped or turn-based playback.",
   "actions": [
-    "Built a single shared animation clock and atomic commit boundary for traveler milestones and new blocks.",
-    "Added five scenarios, interleaved traveler paths, continuous appending, and pause/speed controls.",
-    "Kept real hashes, digital signatures, original checkpoints, and editable-copy verification."
+    "Gave five visible traveler lanes independent event timing on one shared simulation clock.",
+    "Added a sequential verified block writer and individual traveler replacement after measurement ends.",
+    "Kept a compact linked record view, complete history inspection, and editable-copy verification."
   ],
   "results": [
-    "One campaign accumulates multiple traveler groups without rewriting its earlier records.",
-    "An edited record fails verification; exact original records can be restored without re-signing."
+    "Traveler observations overlap, while each recorded check appears with its verified block.",
+    "Finished travelers leave individually; earlier records remain in the same campaign chain."
   ],
-  "notes": "Unlisted browser-only educational blockchain with synthetic people and events. All validators run locally; this is not distributed consensus or proof of physical visitation. Illustration assets are derived from approved AI concepts.",
+  "notes": "Unlisted, browser-local educational blockchain. All people and outcomes are fictional; local signatures do not prove real ad delivery, visitation or independent consensus. Timing and outcome mixes are illustrative.",
   "order": 999
 }

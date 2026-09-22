@@ -1,73 +1,59 @@
-# Live Campaign Blockchain
+# Live Campaign Measurement
 
-Unlisted entry: `/demos/ad-verification`. **Cedar Valley Tourism and every traveler are fictional.** Real SHA-256 and ECDSA operations run locally in the browser; there is no real advertising, device tracking, or location collection.
+Unlisted entry: `/demos/ad-verification`. Cedar Valley Tourism, all travelers and all observations are fictional. Hashes and signatures are real; no advertising or location service is connected.
 
-## The experience
+## One campaign, independent travelers
 
-Choose **Mixed results**, **No website or destination visit**, **Website only**, **Destination only**, or **Website + destination**. Start the campaign to watch four travelers proceed while one shared ledger grows alongside them. Each group has four distinct synthetic traveler IDs. Mixed results uses one of each outcome; other scenarios give all four travelers the selected outcome. These are illustrative scenarios, not population estimates or conversion rates.
+Five visible lanes each hold one traveler. Each traveler has an independent observation schedule: ad exposure, an optional website event, an optional destination-attribution event, and the end of its observation window. Different travelers and different stages genuinely overlap. Nobody waits for an entire batch to finish.
 
-The campaign is created and purchased once. Traveler events then interleave: ad exposures, optional website sessions, optional attributed destination visits, and observation-window summaries. Each actual example event adds one block. A skipped visit does **not** create a placeholder visit block. The summary records which matching events were observed; no observation is not proof that no real-world trip happened.
+Only a traveler whose final summary has been committed can leave. After a short hold/fade, a new ID takes that lane while the other four continue. The campaign and all earlier blocks remain intact. There is no group selector, group schedule, or group field in v3 records. The selected scenario applies to the next individual arrival, not travelers already on screen.
 
-**Keep adding travelers** appends more groups to the same campaign. Changing the scenario affects the next group, not an in-progress traveler. Earlier blocks and traveler histories remain intact. There are no ledger forks for different traveler paths: all blocks remain in one chronological chain, while `travelerId` and `previousTravelerEvent` identify the separate business-event paths. Playback stops before 256 blocks as a browser-performance safeguard.
+All five lanes remain visible, including on phones. The traveler list has no internal scrolling, pagination or hidden active rows. The compact blockchain shows the latest six records on desktop and three on narrow screens; **View full chain** retains access to every earlier record. The full chain is one linear sequence, not a separate chain per traveler. Traveler IDs and prior-traveler-event references connect business journeys across interleaved records.
 
-Pause/resume and 1×/2×/4× controls share the same clock. A hidden tab pauses instead of racing ahead. Reset explicitly discards the session and generates new local signing keys. Group selection and traveler highlighting let visitors inspect earlier paths without deleting or filtering blocks out of the chain. The ledger follows new events until the visitor scrolls through history or switches off auto-follow.
-
-On narrow screens, the traveler list and blockchain become two compact, scrollable panels. Starting playback scrolls to this paired view so both animations can be seen together. Reduced-motion preferences retain status changes and verification, without the moving traveler indicator or entry motion.
+The mixed outcome pattern and timing are illustrative, not estimates of real conversion rates or travel durations. An absent observation is not proof of no visit. Skipped outcomes create no pretend visit blocks; the signed closing summary records only what was observed in that simulated window.
 
 ## Source ownership
 
-| Responsibility | Source |
-| --- | --- |
-| Authored page and explanatory copy | [`demos/ad-verification.html`](../demos/ad-verification.html) |
-| Sign, verify, prepare and append blocks; build scenario plans | [`js/demos/ad-verification-core.js`](../js/demos/ad-verification-core.js) |
-| Shared playback clock, event queue, cancellation and commit boundary | [`js/demos/ad-verification-player.js`](../js/demos/ad-verification-player.js) |
-| Traveler/ledger DOM views, inspection and editing | [`js/demos/ad-verification.js`](../js/demos/ad-verification.js) |
-| Isolated light-theme layout and motion geometry | [`css/components/ad-verification.css`](../css/components/ad-verification.css) |
-| Visibility metadata | [`content/projects/adVerification.json`](../content/projects/adVerification.json) |
+- `demos/ad-verification.html`: authored interface and educational copy.
+- `js/demos/ad-verification-core.js`: v3 record schema, signing, verification, checkpoint, candidate/commit boundary, and individual traveler plans.
+- `js/demos/ad-verification-player.js`: independent lane schedules, bounded observation queue, one block writer, replacement and cancellation on one RAF clock.
+- `js/demos/ad-verification.js`: stable lane DOM, compact chain, full history, editing and export.
+- `css/components/ad-verification.css`: isolated light layout; all five lanes visible without list scrolling.
+- `content/projects/adVerification.json`: unpublished/unlisted metadata.
 
-The existing static copy step publishes `demos/`, `js/`, `css/`, and `img/`; the existing `cleanUrls` setting resolves the route. No new dependency, API, environment variable, wallet, or token is required. Shared site navigation and other project pages are unchanged.
+The existing static copy step and clean-URL handling publish the same entry point. No shared site bundle, dependency, credential, API or deployment setting is changed. The existing approved traveler illustration sprite is reused.
 
-The landscape and four-avatar sprite are cropped from the approved AI-generated concepts. They contain illustration pixels only; all UI labels, controls, data, and animation are native HTML/CSS/JavaScript. The existing site Inter font is referenced, not copied into a new asset.
+## Timing and synchronization contract
 
-## How animation synchronization works
+Traveler measurement animations run concurrently on one shared simulation clock. A completed observation enters an ordered queue. A lane can have at most one outstanding record, bounding the queue to the active pool. Subsequent observations for that traveler wait for its preceding record; other travelers continue independently.
 
-The player owns **one `requestAnimationFrame` clock**, one queue, and one active event. Both views receive that event's ID, phase and normalized progress. The traveler indicator moves while the corresponding pending block enters and shows the same progress. There are no independent playback timers in the two views.
+The block writer processes one queued record at a time. It uses real Web Crypto to create and verify a signed candidate. Both the writer panel and its matching traveler display the same event key and verification progress. A slow cryptographic operation holds at 80%; it never produces an early recorded check. Other lanes may finish observations and queue behind it.
 
-The stages are:
+On completion, one synchronous update commits the verified private candidate, updates the corresponding traveler milestone, and renders the new block. There is at most one commit per frame. Events retain an observation time separately from the block's recording timestamp; neither is an externally certified time.
 
-1. **Record:** show the event in its traveler path and a pending block. Nothing has been appended yet.
-2. **Verify:** calculate a real record fingerprint, event signature, block hash, previous-block link, and validator approvals. Verify the proposed history against the trusted registry.
-3. **Append:** once real verification and the visual interval have both finished, commit the private verified candidate and synchronously update both DOM views in the same animation frame.
+Pause freezes lane progress, incoming blocks, observation waits, and replacement fades, even if background signing finishes. A hidden tab pauses automatically. Reset retires the signing session and invalidates pending callbacks, so no old candidate or traveler can appear in a new campaign. Inspecting/focusing a record or traveler pauses playback to protect keyboard focus.
 
-Slow cryptography holds progress at 78% with a verifying status; it cannot produce a premature valid block. Pause freezes the clock even if signing finishes in the background. Speed changes affect the single clock. Reset retires the old signing session and invalidates all pending callbacks, preventing stale events from appearing in a new campaign. The UI does not clone or reverify the entire history on every animation frame.
+The demo caps history at 256 blocks. Before admitting a traveler, it reserves capacity for every remaining event in that traveler's plan. At the cap, new arrivals stop and every admitted traveler can finish; history is never silently truncated or reset. The optional continuous-replacement checkbox can also let current travelers finish without admitting more.
 
-## Cryptography and trust boundary
+## What the blockchain verifies
 
-Each block holds one ECDSA P-256-signed event, its SHA-256 Merkle root, a previous-hash-linked header, and three distinct local validator signatures approving the recorded block hash. One event per block makes the teaching view straightforward; the Merkle helper also handles multiple transactions. Canonical JSON sorts keys, and hashing/signing messages use separate versioned domain prefixes.
+Each block contains one signed event, a SHA-256 Merkle root, a previous-hash-linked header and three distinct local validator signatures. The verifier checks schema, campaign identity, traveler ordering, original event signatures, Merkle roots, header hashes, prior-block references, approvals, and the original length/head checkpoint. Original records and the public-key registry remain separate from the editable copy. Non-extractable private keys are never exported.
 
-Verification checks schema, sequence, campaign ID, expected actor, traveler-event ordering, event signatures, Merkle roots, header hashes, prior-block references, and all three approvals. A separately retained public-key registry, original length and terminal hash detect changes relative to the original session. An internal verified-ticket map prevents mutation of a public candidate copy from replacing the actual prepared block.
+One event per block is a teaching simplification. All signers and validators are inside the same browser: this is not independently operated consensus or external notarization. Someone controlling the code, keys and checkpoint can construct a different valid-looking example. A matching signature authenticates bytes relative to the session key; it does not prove a human saw an ad, a website session was genuine, or a destination visit occurred.
 
-All validators and signing identities are in **one browser**, not independent organizations or Byzantine-fault-tolerant consensus. A person controlling the browser code and replacing its keys and checkpoint can create a different valid-looking demo. A signature authenticates bytes relative to a key; it does not prove an ad was shown to a human, a website session was genuine, or a trip happened. Destination attribution is a simulated measurement-provider claim. Timestamps are compressed example times, not trusted clock attestations or a realistic travel schedule.
+## Inspect, edit and restore
 
-Private keys are non-extractable and are not returned, serialized or exported. No real device IDs, raw coordinates, location requests, campaign network calls or campaign storage are added. Normal site-wide privacy/consent components may be injected by the standard website build and are not bypassed by the demo.
+Select any recent block, a recorded traveler milestone, or an older block from **View full chain**. Change a data field and apply verification. The original signatures and checkpoint are not replaced. An edited record fails; untouched subsequent records show that they depend on changed history, not that their own data was necessarily edited. Playback stays disabled until the exact original signed bytes are restored.
 
-## Inspect and edit
+Export contains records, original public keys and the session checkpoint, never private keys. An edited export also fails independent verification. There is no new campaign network traffic, storage, GPS permission or real device identification. Normal site-wide privacy controls injected by the standard build remain intact.
 
-Select any committed block to pause and inspect its campaign/traveler references, event data, original hash, recalculated hash, signature checks and raw record. Change a field and select **Apply edit & verify**. Only an editable copy changes; the original signing material and checkpoint are not replaced.
+## Visibility
 
-The altered record fails verification, and subsequent blocks show **Earlier change** rather than falsely claiming their own data was edited. Playback is blocked while history is invalid. **Restore original** restores the exact original signed bytes without generating new signatures. Playback can then resume from its paused event.
+`published: false`, `hidden: true`, `noindex: true`, and `visibility: "unlisted"` are retained. The page uses `noindex, nofollow, noarchive`. Generated search, sitemap and app catalog exclusion is tested after building. Anyone with the URL can still open the page, and the repository is public: unlisted is not access control. Reset/reload intentionally discards the local session.
 
-Public-proof export includes the displayed records, original public keys and checkpoint. An edited export therefore also fails independent verification. It is self-contained educational evidence, not external certification.
+## Checks
 
-## Unlisted, not confidential
-
-The metadata retains `published: false`, `hidden: true`, `noindex: true` and `visibility: "unlisted"`. The standalone page retains `noindex, nofollow, noarchive`. No public navigation entry is added. Tests check generated discovery indexes for accidental inclusion.
-
-Anyone with the URL can still open the demo, and GitHub source is public. Unlisted and noindex settings are **not access controls**. Reloading or resetting discards the local session.
-
-## Verification
-
-On Node 22 with the repository's existing dependencies:
+On Node 22 with existing repository dependencies:
 
 ```sh
 node --test tests/tools/ad-verification.test.js
@@ -77,8 +63,8 @@ npx playwright install chromium
 node tests/tools/ad-verification.browser.cjs
 ```
 
-The focused Node suite tests genuine cryptography, every scenario, append-only history, interleaved traveler links, edit detection, rehash attacks, original restoration, approval requirements, malformed proofs, slow signing, pause/resume, reset cancellation, speed settings and continuous scenario changes. Publication checks explicitly skip until a full build exists.
+Node checks cover all five scenarios, overlapping stages at 1x/2x/4x, per-lane replacement, new-arrival scenario changes, append-only history, slow signing, queue behavior, pause/reset, capacity reservation, tampering, rehashing, malformed proofs, distinct approvals, original restoration and noindex publication. The built-output test explicitly skips until the full site build exists.
 
-The native Chromium suite independently samples the rendered DOM **on every animation frame**. It compares event IDs, phases, shared progress values, actual block-progress widths and traveler-indicator positions. At each append, it checks that the matching traveler milestone commits in the same frame, that block count grows by one, and that no nonexistent visit was added. It runs at 1×, 2× and 4×, exercises all five scenarios and multiple groups, exports and independently verifies proofs, tests tamper/restore and reset, and checks six widths (1312, 1024, 820, 768, 390 and 320 pixels). Additional checks cover delayed native signing, reduced motion, missing engine and JavaScript-disabled states.
+Native Chromium independently samples rendered frames for simultaneous measurements, different overlapping stages, atomic traveler/block commits, matching verification progress, and replacement only after the closing record. It checks full-history access, edited proof failure, byte-identical restoration, native slow signing, missing-engine/no-JavaScript states, reduced motion, and all five visible lanes at 1280/1024/768/390/320px.
 
-The scoped workflow builds the actual website before testing and uploads screenshots plus `animation-sync-evidence.json`. Set `BROWSER_ARTIFACT_DIR` to keep evidence outside tracked source. Browser tests use loopback only and do not submit production forms or contact advertising systems. A full build and focused tests are separate from production deployment verification.
+The existing scoped GitHub workflow runs the full build and both focused suites. Browser screenshots, viewport bounds and `animation-sync-evidence.json` are stored in workflow artifacts, not source. `BROWSER_ARTIFACT_DIR` can choose another evidence directory. Tests use a loopback server and do not submit production forms or use real advertising services.
