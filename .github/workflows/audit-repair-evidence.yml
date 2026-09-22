@@ -25,6 +25,7 @@ jobs:
           npm update brace-expansion --package-lock-only --ignore-scripts --prefix aws/job-application-tracker
           npm update @xmldom/xmldom pdfjs-dist --package-lock-only --ignore-scripts --prefix browser-extension/job-application-copilot
           git diff --binary -- package.json package-lock.json aws/job-application-tracker/package-lock.json browser-extension/job-application-copilot/package-lock.json > "$RUNNER_TEMP/audit-repair/dependency-repair.patch"
+          git hash-object package-lock.json aws/job-application-tracker/package-lock.json browser-extension/job-application-copilot/package-lock.json | tee "$RUNNER_TEMP/audit-repair/lockfile-hashes.txt"
           npm audit --json > "$RUNNER_TEMP/audit-repair/root-audit.json"
           npm audit --json --prefix aws/job-application-tracker > "$RUNNER_TEMP/audit-repair/tracker-audit.json"
           npm audit --json --prefix browser-extension/job-application-copilot > "$RUNNER_TEMP/audit-repair/extension-audit.json"
@@ -32,12 +33,31 @@ jobs:
       - run: npm run build
       - name: Run backend regressions
         run: node --test tests/tools/cognito-jwt-rotation.test.js tests/tools/chatbot-request-boundaries.test.js
-      - name: Capture exact source and built browser assets
+      - name: Capture source and representative browser assets
         if: always()
         run: |
           git ls-files -z > "$RUNNER_TEMP/audit-repair/tracked-paths.bin"
           git diff --binary > "$RUNNER_TEMP/audit-repair/working.patch"
-          tar -czf "$RUNNER_TEMP/audit-repair/source-and-browser.tar.gz" --exclude='./.git' --exclude='./public/vendor' --exclude='./img/project-starfall' --exclude='./public/img/project-starfall' --exclude='./asset-sources' --exclude='./mobile/android' --exclude='./.github' --exclude='./documents' --exclude='./pdf' --exclude='./public/documents' --exclude='./public/pdf' --exclude='./node_modules' --exclude='./aws/*/node_modules' --exclude='./browser-extension/*/node_modules' --exclude='./tmp' .
+          python3 - <<'PY'
+          import os, pathlib, subprocess, tarfile
+          root = pathlib.Path('.')
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          paths = {pathlib.Path(p) for p in tracked if p}
+          paths.update(p for p in pathlib.Path('public').rglob('*') if p.is_file())
+          text = {'.js', '.cjs', '.mjs', '.json', '.html', '.css', '.md', '.yml', '.yaml', '.py', '.txt', '.svg', '.xml', '.webmanifest', '.csv', '.ts', '.tsx'}
+          images = {'.png', '.jpg', '.jpeg', '.avif', '.webp', '.woff', '.woff2'}
+          output = pathlib.Path(os.environ['RUNNER_TEMP']) / 'audit-repair/source-and-browser.tar.gz'
+          selected = []
+          with tarfile.open(output, 'w:gz') as archive:
+              for p in sorted(paths):
+                  if not p.is_file() or p.is_symlink(): continue
+                  if any(part in {'node_modules', '.git', 'asset-sources', 'mobile', 'documents', 'pdf', 'archive', 'archives'} for part in p.parts): continue
+                  if p.suffix.lower() in text or (p.suffix.lower() in images and p.stat().st_size < 500000):
+                      archive.add(p, arcname=str(p), recursive=False)
+                      selected.append(str(p))
+          (output.parent / 'included-paths.txt').write_text('\n'.join(selected))
+          print(f'Captured {len(selected)} files; archive is {output.stat().st_size} bytes')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
