@@ -225,7 +225,9 @@ function processHtml(html, relPath) {
 
   const isToolsLanding = relPath === 'pages/tools.html';
   const isProjectStarfall = relPath === 'pages/games/project-starfall.html';
-  const isIsolatedCaptureSurface = relPath === 'pages/job-application-tracker.html';
+  // This standalone cryptography demo has no telemetry, accounts, or storage.
+  const isIsolatedCaptureSurface = relPath === 'pages/job-application-tracker.html'
+    || relPath === 'demos/ad-verification-demo.html';
 
   lines.forEach((line) => {
     const trimmed = line.trim();
