@@ -5,18 +5,12 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
@@ -29,7 +23,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import me.danielshort.app.BuildConfig
 import me.danielshort.app.SiteApplication
 import me.danielshort.app.updates.AppUpdateManager
 import me.danielshort.app.updates.AutomaticAppInstaller
@@ -111,7 +104,7 @@ fun AppUpdateSection(
           throw cancelled
         } catch (error: Exception) {
           installerNotice = if (error is UpdateFailure) error.message.orEmpty()
-            else "Android couldn’t open the installer. Please try again from Settings."
+            else "Android couldn’t open the installer. Please try again from Updates."
         } finally {
           openingInstaller = false
         }
@@ -142,22 +135,18 @@ internal fun AppUpdateSectionContent(
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
     Text("App updates", Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-    Text("Installed · ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    preferences()
     val status = when (state) {
-      is AppUpdateState.Idle -> "Check for a new version of the app."
-      is AppUpdateState.Checking -> "Checking the release and verifying this app…"
-      is AppUpdateState.UpToDate -> "You’re up to date. Installed app verified."
-      is AppUpdateState.Available -> "${state.offer.versionName} is available · ${formatUpdateBytes(state.offer.downloadBytes)}${if (state.offer.usingPatch) " patch" else " download"}"
-      is AppUpdateState.Downloading -> when {
-        state.progress == null -> "Verifying app files…"
-        state.usingPatch -> "Downloading patch · ${formatUpdateBytes(state.offer.downloadBytes)}…"
-        else -> "Downloading full app · ${formatUpdateBytes(state.offer.downloadBytes)}…"
-      }
-      is AppUpdateState.Ready -> "${state.offer.versionName} is verified and ready to install."
+      is AppUpdateState.Idle -> "Check for an app update"
+      is AppUpdateState.Checking -> "Checking for updates…"
+      is AppUpdateState.UpToDate -> "You’re up to date"
+      is AppUpdateState.Available -> "Update available · ${state.offer.versionName} · ${formatUpdateBytes(state.offer.downloadBytes)}"
+      is AppUpdateState.Downloading -> if (state.progress == null) "Verifying update files…"
+        else "Downloading update… ${formatUpdateBytes(state.offer.downloadBytes)}"
+      is AppUpdateState.Ready -> "Ready to install · ${state.offer.versionName}"
       is AppUpdateState.Error -> state.message
     }
-    Text(status, Modifier.semantics { liveRegion = LiveRegionMode.Polite }, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(status, Modifier.testTag("app-update-status").semantics { liveRegion = LiveRegionMode.Polite },
+      color = if (state is AppUpdateState.Error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
     when (state) {
       is AppUpdateState.Checking -> {
         LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -175,9 +164,12 @@ internal fun AppUpdateSectionContent(
       is AppUpdateState.Error -> if (state.retryAction == UpdateRetryAction.DOWNLOAD) {
         OutlinedButton(onClick = onDownload) { Text("Retry download") }
       } else OutlinedButton(onClick = onCheck) { Text("Check again") }
-      else -> OutlinedButton(onClick = onCheck) { Text("Check for updates") }
+      is AppUpdateState.UpToDate -> OutlinedButton(onClick = onCheck) { Text("Check again") }
+      is AppUpdateState.Idle -> OutlinedButton(onClick = onCheck) { Text("Check now") }
     }
     if (installerNotice.isNotBlank()) Text(installerNotice, Modifier.semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.bodySmall)
+    Spacer(Modifier.height(8.dp))
+    preferences()
   }
 }
 

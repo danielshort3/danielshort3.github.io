@@ -82,6 +82,7 @@ fun DanielShortApp(
   val state by repository.state.collectAsStateWithLifecycle()
   val saved by repository.favorites.collectAsStateWithLifecycle()
   val settings by repository.settings.state.collectAsStateWithLifecycle()
+  val reduceMotion = effectiveReduceMotion(settings.reduceMotion, rememberSystemReduceMotion())
   var selectedName by rememberSaveable { mutableStateOf(Section.ABOUT.name) }
   var projectId by rememberSaveable { mutableStateOf<String?>(null) }
   var nativeFeature by rememberSaveable { mutableStateOf<String?>(null) }
@@ -97,8 +98,12 @@ fun DanielShortApp(
     safeToInstallCallback(nativeFeature == null && projectId == null)
     onDispose { safeToInstallCallback(false) }
   }
+  // Settings owns feedback for its own actions; do not replay that feedback on return.
+  LaunchedEffect(state.message) {
+    if (nativeFeature == null && state.message.isNotBlank()) snackbar.showSnackbar(state.message)
+  }
   MaterialTheme(colorScheme = lightColorScheme(primary = section.color, onPrimary = Color.White, primaryContainer = section.color.copy(alpha = .10f), onPrimaryContainer = Navy, secondary = Teal, secondaryContainer = section.color.copy(alpha = .10f), onSecondaryContainer = Navy, background = Color.White, surface = Color.White, surfaceTint = section.color, surfaceContainer = Paper, surfaceContainerLow = Paper, onSurface = Navy, onBackground = Navy, surfaceVariant = Paper, onSurfaceVariant = Muted, outline = Line, outlineVariant = Line)) {
-    CompositionLocalProvider(LocalNativeReduceMotion provides settings.reduceMotion) {
+    CompositionLocalProvider(LocalNativeReduceMotion provides reduceMotion) {
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White, contentColor = Navy) {
     AdaptiveSiteLayout(
       selected = section,
@@ -109,7 +114,7 @@ fun DanielShortApp(
       val back = { nativeFeature = null }
       val feature = nativeFeature!!
       val featureWidth = when {
-        feature == "settings" -> 760.dp
+        feature == "settings" || feature == "settings:updates" -> 760.dp
         feature.startsWith("game:") || feature == "roulette" -> 1200.dp
         else -> 1000.dp
       }
@@ -117,12 +122,13 @@ fun DanielShortApp(
       Box(Modifier.widthIn(max = featureWidth).fillMaxSize().testTag("native-feature-panel")) {
       screenState.SaveableStateProvider("native:$feature") {
       when {
-        nativeFeature == "settings" -> SettingsScreen(repository, back)
+        feature == "settings" || feature == "settings:updates" -> SettingsScreen(repository, back,
+          initialPage = if (feature == "settings:updates") SettingsPage.UPDATES else SettingsPage.OVERVIEW)
         nativeFeature == "tool:text-compare" || nativeFeature == "text-compare" -> NativeTextCompareScreen(back)
         nativeFeature == "tool:screen-recorder" -> NativeScreenRecorder(back)
         nativeFeature == "game:roulette" || nativeFeature == "roulette" -> NativeGameScreen(back)
         nativeFeature!!.startsWith("tool:") -> NativeToolsScreen(nativeFeature!!.substringAfter(":"), back)
-        nativeFeature!!.startsWith("game:") -> NativeGamesScreen(nativeFeature!!.substringAfter(":"), back, settings.reduceMotion)
+        nativeFeature!!.startsWith("game:") -> NativeGamesScreen(nativeFeature!!.substringAfter(":"), back, reduceMotion)
         nativeFeature!!.startsWith("demo:") -> NativeProjectDemoScreen(nativeFeature!!.substringAfter(":"), back)
       }
       }
@@ -130,7 +136,6 @@ fun DanielShortApp(
       }
     } else {
     BackHandler(projectId != null) { projectId = null }
-    LaunchedEffect(state.message) { if (state.message.isNotBlank()) snackbar.showSnackbar(state.message) }
     ScrollChromeLayout(
       screenKey = "${section.name}:${project?.id.orEmpty()}",
       snackbar = { SnackbarHost(snackbar) },
@@ -150,11 +155,10 @@ fun DanielShortApp(
               IconButton(onClick = { repository.toggleSaved(project.id) }) { Icon(if (project.id in saved) Icons.Outlined.BookmarkAdded else Icons.Outlined.BookmarkBorder, if (project.id in saved) "Unsave project" else "Save project") }
               IconButton(onClick = { share(context, project.title, project.url) }) { Icon(Icons.Outlined.Share, "Share project") }
             } else {
-              if (state.refreshing) CircularProgressIndicator(modifier = Modifier.padding(14.dp).size(22.dp), strokeWidth = 2.dp)
-              else IconButton(onClick = { scope.launch { repository.refresh(force = true) } }) { Icon(Icons.Outlined.Refresh, "Refresh website content") }
+              BrowseOverflowMenu(state.refreshing) { scope.launch { repository.refresh(force = true) } }
             }
           }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White))
-          globalNotice { nativeFeature = "settings" }
+          globalNotice { nativeFeature = "settings:updates" }
           HorizontalDivider(thickness = 2.dp, color = section.color.copy(alpha = .35f))
         }
       },
@@ -184,7 +188,11 @@ fun DanielShortApp(
         }
       } else screenState.SaveableStateProvider(section.name) { when (section) {
         Section.ABOUT -> AboutScreen(content, body, contentPadding, onProjects = { selectedName = Section.PROJECTS.name })
-        Section.PROJECTS -> ProjectsScreen(content.projects, saved, body, contentPadding, onProject = { projectId = it })
+        Section.PROJECTS -> ProjectsScreen(content.projects, saved, body, contentPadding,
+          onProject = { projectId = it }, onRemoveSaved = {
+            repository.clearSavedProjects()
+            scope.launch { snackbar.showSnackbar("Saved projects removed") }
+          })
         Section.TOOLS -> CatalogScreen("Useful little utilities", "Practical tools for everyday tasks.", content.tools, Teal, body, contentPadding, NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"), "Open tool", onNative = { nativeFeature = "tool:$it" })
         Section.GAMES -> CatalogScreen("Play and explore", "Games, simulations, and small experiments.", content.games, Orange, body, contentPadding, NATIVE_GAME_IDS + "roulette", "Play in app", onNative = { nativeFeature = "game:$it" })
         Section.CONTACT -> ContactScreen(content.site, content.about.location, body, contentPadding)
@@ -262,8 +270,9 @@ private fun Milestones(title: String, entries: List<Milestone>, context: Context
   }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ProjectsScreen(projects: List<Project>, saved: Set<String>, modifier: Modifier, contentPadding: PaddingValues, onProject: (String) -> Unit) {
+private fun ProjectsScreen(projects: List<Project>, saved: Set<String>, modifier: Modifier, contentPadding: PaddingValues, onProject: (String) -> Unit, onRemoveSaved: () -> Unit) {
   var query by rememberSaveable { mutableStateOf("") }
   var savedOnly by rememberSaveable { mutableStateOf(false) }
   val inputFocus = LocalChromeInputFocus.current
@@ -274,9 +283,12 @@ private fun ProjectsScreen(projects: List<Project>, saved: Set<String>, modifier
     item(key = "filters", span = { GridItemSpan(maxLineSpan) }) {
       Column {
       OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth().testTag("project-search").onFocusChanged { inputFocus(it.isFocused) }, label = { Text("Search projects") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, "Clear search") } }, singleLine = true, shape = RoundedCornerShape(12.dp))
-      Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(selected = !savedOnly, onClick = { savedOnly = false }, label = { Text("All ${projects.size}") })
-        FilterChip(selected = savedOnly, onClick = { savedOnly = true }, label = { Text("Saved ${saved.count { id -> projects.any { it.id == id } }}") }, leadingIcon = { Icon(Icons.Outlined.BookmarkBorder, null, Modifier.size(16.dp)) })
+      Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          FilterChip(selected = !savedOnly, onClick = { savedOnly = false }, label = { Text("All ${projects.size}") })
+          FilterChip(selected = savedOnly, onClick = { savedOnly = true }, label = { Text("Saved ${saved.count { id -> projects.any { it.id == id } }}") }, leadingIcon = { Icon(Icons.Outlined.BookmarkBorder, null, Modifier.size(16.dp)) })
+        }
+        if (savedOnly && saved.isNotEmpty()) SavedProjectsMenu(saved.size, onRemoveSaved)
       }
       }
     }
@@ -386,7 +398,6 @@ private fun ContactScreen(site: SiteInfo, location: String, modifier: Modifier, 
     item { ContactCard("Send a message", site.email, Icons.Outlined.MailOutline) { email(context, site.email, "Hello from the Android app") } }
     if (site.githubUrl.isNotBlank()) item { ContactCard("GitHub", "Explore the code behind the projects", Icons.Outlined.Code) { openWeb(context, site.githubUrl) } }
     item { Text(location, color = Muted, style = MaterialTheme.typography.bodyLarge) }
-    item { HorizontalDivider(color = Line); Text("About this app", Modifier.padding(top = 18.dp), fontWeight = FontWeight.Bold); Text("Native Android screens with content from danielshort.me. Saved projects stay on this device. Website content refreshes on launch and periodically when connected.", Modifier.padding(top = 8.dp), color = Muted, lineHeight = 23.sp) }
     if (site.privacyUrl.isNotBlank()) item { TextButton(onClick = { openWeb(context, site.privacyUrl) }) { Text("Website privacy details"); Spacer(Modifier.width(7.dp)); Icon(Icons.AutoMirrored.Outlined.OpenInNew, null, Modifier.size(16.dp)) } }
   }
 }
