@@ -1,0 +1,35 @@
+{
+  "id": "adVerification",
+  "published": false,
+  "hidden": true,
+  "noindex": true,
+  "visibility": "unlisted",
+  "title": "Ad Verification Demo",
+  "subtitle": "A simple, tamper-evident advertising record for fictional Cedar Valley Tourism.",
+  "metaDescription": "Inspect four signed advertising records, simulate a change, and see a local miniature blockchain detect the mismatch. Fictional campaign; real cryptography.",
+  "image": "img/projects/ad-verification-landscape.webp",
+  "imageAlt": "Illustrative mountain landscape for fictional Cedar Valley Tourism",
+  "imageWidth": 287,
+  "imageHeight": 297,
+  "tools": ["JavaScript", "Web Crypto API"],
+  "concepts": ["Data Integrity", "Digital Signatures", "Blockchain"],
+  "audiences": ["analytics", "tourism"],
+  "embed": { "type": "iframe", "url": "/demos/ad-verification", "fit": "viewport", "minHeight": 850 },
+  "resources": [
+    { "label": "Open unlisted demo", "url": "/demos/ad-verification" },
+    { "label": "Source and technical notes", "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/docs/ad-verification-demo.md" }
+  ],
+  "problem": "Advertising reports can be altered after a handoff, making record reconciliation difficult.",
+  "task": "Make record-integrity verification understandable without wallets, tokens, or a technical dashboard.",
+  "actions": [
+    "Built four SHA-256-linked blocks with signed advertising events and three local validator approvals per block.",
+    "Added a one-button tamper scenario, original-record restoration, and optional evidence inspection.",
+    "Used fictional campaign data and kept signing keys within the browser session."
+  ],
+  "results": [
+    "An intact example chain verifies; an edited publisher record fails and flags the dependent next step.",
+    "Visitors can inspect calculated hashes and export public proof without exporting private keys."
+  ],
+  "notes": "Unlisted preview at /demos/ad-verification. This metadata is deliberately unpublished, so no public portfolio page is generated. All identities and validators run in one browser: this is not distributed consensus or proof of ad delivery. The hero landscape is extracted from the approved AI concept.",
+  "order": 999
+}
