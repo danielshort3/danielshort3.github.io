@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const { readJson: readJsonBody } = require('./_lib/json-body');
 const {
   BedrockRuntimeClient,
   ConverseCommand,
@@ -133,25 +134,14 @@ function sendJson(res, statusCode, payload) {
 }
 
 async function readJson(req, maxBytes = 24_000) {
-  if (req.body && typeof req.body === 'object') return req.body;
-  if (typeof req.body === 'string' && req.body.trim()) return JSON.parse(req.body);
-
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of req) {
-    const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk));
-    size += buf.length;
-    if (size > maxBytes) {
-      const err = new Error('Request body too large');
-      err.code = 'BODY_TOO_LARGE';
-      throw err;
-    }
-    chunks.push(buf);
+  const body = await readJsonBody(req, { maxBytes });
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw new TypeError('Expected a JSON object');
   }
-
-  const raw = Buffer.concat(chunks).toString('utf8').trim();
-  if (!raw) return {};
-  return JSON.parse(raw);
+  if (body.history !== undefined && (!Array.isArray(body.history) || body.history.length > 32)) {
+    throw new TypeError('History must contain at most 32 turns');
+  }
+  return body;
 }
 
 function isEnabled() {
@@ -269,12 +259,12 @@ function normalizePageContext(value) {
 
 function normalizeHistory(value) {
   return (Array.isArray(value) ? value : [])
+    .slice(-8)
     .map((turn) => ({
       role: String(turn && turn.role || '').trim() === 'assistant' ? 'assistant' : 'user',
       text: String(turn && turn.text || '').replace(/\s+/g, ' ').trim().slice(0, 700)
     }))
-    .filter((turn) => turn.text)
-    .slice(-8);
+    .filter((turn) => turn.text);
 }
 
 function normalizeFollowupContext(value) {
@@ -1597,6 +1587,8 @@ module.exports = async (req, res) => {
 };
 
 module.exports._private = {
+  readJson,
+  normalizeHistory,
   audienceProfile,
   buildContext,
   bedrockSystemPrompt,

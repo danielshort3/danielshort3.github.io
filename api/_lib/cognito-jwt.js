@@ -10,7 +10,11 @@
 const crypto = require('crypto');
 
 const JWKS_CACHE_TTL_MS = 10 * 60 * 1000;
+const JWKS_FETCH_TIMEOUT_MS = 5_000;
+const JWKS_REFRESH_COOLDOWN_MS = 30_000;
 const jwksCache = new Map();
+const jwksInFlight = new Map();
+const jwksRefreshAttempts = new Map();
 
 function getCognitoEnv(){
   const issuer = typeof process.env.TOOLS_COGNITO_ISSUER === 'string'
@@ -55,26 +59,71 @@ function parseJwt(token){
   return { header, payload, signature, signingInput };
 }
 
-async function fetchJwks(issuer){
+async function fetchJwks(issuer, force = false){
   const cached = jwksCache.get(issuer);
-  if (cached && cached.expiresAt > Date.now()) return cached.keysByKid;
+  if (!force && cached && cached.expiresAt > Date.now()) return cached.keysByKid;
+  if (jwksInFlight.has(issuer)) return jwksInFlight.get(issuer);
 
-  const url = `${issuer}/.well-known/jwks.json`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const err = new Error(`Unable to fetch JWKS (${res.status})`);
-    err.code = 'JWKS_FETCH_FAILED';
-    err.status = res.status;
-    throw err;
-  }
-  const data = await res.json();
-  const keys = Array.isArray(data?.keys) ? data.keys : [];
-  const keysByKid = new Map();
-  keys.forEach((key) => {
-    if (key && key.kid) keysByKid.set(String(key.kid), key);
+  const controller = new AbortController();
+  let timer;
+  const deadline = new Promise((resolve, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error('JWKS request timed out');
+      err.code = 'JWKS_FETCH_TIMEOUT';
+      reject(err);
+      controller.abort();
+    }, JWKS_FETCH_TIMEOUT_MS);
   });
-  jwksCache.set(issuer, { keysByKid, expiresAt: Date.now() + JWKS_CACHE_TTL_MS });
-  return keysByKid;
+  const request = Promise.race([
+    (async () => {
+      const res = await fetch(`${issuer}/.well-known/jwks.json`, { signal: controller.signal });
+      if (!res.ok) {
+        const err = new Error(`Unable to fetch JWKS (${res.status})`);
+        err.code = 'JWKS_FETCH_FAILED';
+        err.status = res.status;
+        throw err;
+      }
+      // The deadline includes reading/parsing the response, not just headers.
+      const data = await res.json();
+      const keysByKid = new Map();
+      for (const key of Array.isArray(data?.keys) ? data.keys : []) {
+        if (key && typeof key.kid === 'string' && key.kid && key.kty === 'RSA'
+            && (!key.use || key.use === 'sig') && (!key.alg || key.alg === 'RS256')) {
+          keysByKid.set(key.kid, key);
+        }
+      }
+      if (!keysByKid.size) {
+        const err = new Error('JWKS contains no supported signing keys');
+        err.code = 'JWKS_INVALID';
+        throw err;
+      }
+      return keysByKid;
+    })(),
+    deadline
+  ]);
+  jwksInFlight.set(issuer, request);
+  try {
+    const keysByKid = await request;
+    jwksCache.set(issuer, { keysByKid, expiresAt: Date.now() + JWKS_CACHE_TTL_MS });
+    return keysByKid;
+  } finally {
+    clearTimeout(timer);
+    jwksInFlight.delete(issuer);
+  }
+}
+
+async function refreshUnknownKid(issuer, observedKeys){
+  if (jwksInFlight.has(issuer)) return jwksInFlight.get(issuer);
+  const current = jwksCache.get(issuer);
+  if (current && current.keysByKid !== observedKeys) return current.keysByKid;
+  const lastAttempt = jwksRefreshAttempts.get(issuer);
+  // Bound forced refreshes per trusted issuer, not per attacker-controlled kid.
+  // Failed refreshes also consume the cooldown; known cached keys remain usable.
+  if (lastAttempt !== undefined && Date.now() - lastAttempt < JWKS_REFRESH_COOLDOWN_MS) {
+    return observedKeys;
+  }
+  jwksRefreshAttempts.set(issuer, Date.now());
+  return fetchJwks(issuer, true);
 }
 
 function verifyJwtSignature(jwt, jwk){
@@ -134,7 +183,11 @@ async function verifyCognitoIdToken(token){
   }
 
   const jwks = await fetchJwks(env.issuer);
-  const jwk = jwks.get(kid);
+  let jwk = jwks.get(kid);
+  if (!jwk) {
+    const refreshed = await refreshUnknownKid(env.issuer, jwks);
+    jwk = refreshed.get(kid);
+  }
   if (!jwk) {
     const err = new Error('Unknown token kid');
     err.code = 'JWT_KID_UNKNOWN';
