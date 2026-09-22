@@ -1,0 +1,47 @@
+name: Audit repair evidence
+on:
+  push:
+    branches: [fix/technical-audit-hardening]
+    paths: ['.github/workflows/audit-repair-evidence.yml']
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Generate targeted dependency repairs with npm
+        run: |
+          mkdir -p "$RUNNER_TEMP/audit-repair"
+          git rev-parse HEAD > "$RUNNER_TEMP/audit-repair/source-sha.txt"
+          npm install --package-lock-only --ignore-scripts --save-dev --save-exact sharp@0.35.4
+          npm update brace-expansion --package-lock-only --ignore-scripts --prefix aws/job-application-tracker
+          npm update @xmldom/xmldom pdfjs-dist --package-lock-only --ignore-scripts --prefix browser-extension/job-application-copilot
+          git diff --binary -- package.json package-lock.json aws/job-application-tracker/package-lock.json browser-extension/job-application-copilot/package-lock.json > "$RUNNER_TEMP/audit-repair/dependency-repair.patch"
+          npm audit --json > "$RUNNER_TEMP/audit-repair/root-audit.json"
+          npm audit --json --prefix aws/job-application-tracker > "$RUNNER_TEMP/audit-repair/tracker-audit.json"
+          npm audit --json --prefix browser-extension/job-application-copilot > "$RUNNER_TEMP/audit-repair/extension-audit.json"
+      - run: npm ci && npm ci --prefix aws/job-application-tracker && npm ci --prefix browser-extension/job-application-copilot
+      - run: npm run build
+      - name: Run backend regressions
+        run: node --test tests/tools/cognito-jwt-rotation.test.js tests/tools/chatbot-request-boundaries.test.js
+      - name: Capture exact source and built browser assets
+        if: always()
+        run: |
+          git ls-files -z > "$RUNNER_TEMP/audit-repair/tracked-paths.bin"
+          git diff --binary > "$RUNNER_TEMP/audit-repair/working.patch"
+          tar -czf "$RUNNER_TEMP/audit-repair/source-and-browser.tar.gz" --exclude='./.git' --exclude='./public/vendor' --exclude='./img/project-starfall' --exclude='./public/img/project-starfall' --exclude='./asset-sources' --exclude='./mobile/android' --exclude='./.github' --exclude='./documents' --exclude='./pdf' --exclude='./public/documents' --exclude='./public/pdf' --exclude='./node_modules' --exclude='./aws/*/node_modules' --exclude='./browser-extension/*/node_modules' --exclude='./tmp' .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-repair-evidence
+          path: ${{ runner.temp }}/audit-repair/
+          retention-days: 3
+          if-no-files-found: error
