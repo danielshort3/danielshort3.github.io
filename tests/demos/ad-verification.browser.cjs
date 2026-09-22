@@ -7,6 +7,8 @@ const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const AxeBuilder = require('@axe-core/playwright').default;
 const { createLocalServer } = require('../../build/dev');
+const { processHtml } = require('../../build/inject-script-bundles');
+const root = path.resolve(__dirname, '../..');
 const artifactDir = process.env.BROWSER_ARTIFACT_DIR || path.join(os.tmpdir(), 'ad-verification-browser');
 const envDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ad-verification-env-'));
 fs.mkdirSync(artifactDir, { recursive: true });
@@ -16,11 +18,25 @@ let browser;
 const settle = page => page.waitForFunction(() => document.querySelector('[data-av-verdict-title]')?.textContent === 'Verified' && document.querySelector('#verification-demo')?.getAttribute('aria-busy') === 'false');
 async function states(page) { return page.locator('[data-av-status]').allTextContents(); }
 async function run() {
+  // Ensure builds do not inject telemetry into the isolated page or remove it elsewhere.
+  const html = fs.readFileSync(path.join(root, 'public/demos/ad-verification-demo.html'), 'utf8');
+  assert.deepEqual([...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map(match => match[1]), ['/js/demos/ad-verification-demo.mjs']);
+  const processed = processHtml(html, 'demos/ad-verification-demo.html').html;
+  assert.equal(processHtml(processed, 'demos/ad-verification-demo.html').html, processed);
+  assert.doesNotMatch(processed, /site-consent/);
+  const fixture = '<html>\n<head></head>\n<body>\n<main></main>\n</body>\n</html>\n';
+  for (const name of ['index.html', 'pages/contact.html', 'demos/other-example.html']) {
+    assert.match(processHtml(fixture, name).html, /site-consent/, `Preserve existing consent policy: ${name}`);
+  }
+  assert.doesNotMatch(processHtml(fixture, 'pages/job-application-tracker.html').html, /site-consent/);
+  cases.push({ buildIsolation: 'pass' });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
   browser = await chromium.launch({ headless: true, executablePath: process.env.BROWSER_EXECUTABLE_PATH || undefined });
   for (const width of [1448, 1024, 768, 390, 320]) {
-    const page = await browser.newPage({ viewport: { width, height: width === 1448 ? 1086 : 900 } });
+    // Axe opens a second page to collect results; an explicit context is required.
+    const context = await browser.newContext({ viewport: { width, height: width === 1448 ? 1086 : 900 } });
+    const page = await context.newPage();
     const errors = [];
     const external = [];
     page.on('pageerror', error => errors.push(String(error)));
@@ -65,7 +81,7 @@ async function run() {
       await page.screenshot({ path: path.join(artifactDir, `failure-${width}.png`), fullPage: true }).catch(() => {});
       cases.push({ width, status: 'fail', error: String(error), errors });
       throw error;
-    } finally { await page.close(); }
+    } finally { await context.close(); }
   }
   const reduced = await browser.newPage({ reducedMotion: 'reduce', viewport: { width: 390, height: 844 } });
   await reduced.goto(`${base}/demos/ad-verification-demo`);
@@ -83,7 +99,6 @@ async function run() {
   assert(await unavailable.getByRole('button', { name: 'Try again', exact: true }).isEnabled());
   cases.push({ cryptoUnavailable: 'fails closed' });
   await unavailable.close();
-  // Confirm the direct .html alias retains noindex as well.
   const alias = await browser.newPage();
   await alias.goto(`${base}/demos/ad-verification-demo.html`);
   await settle(alias);
@@ -94,7 +109,7 @@ run().catch(error => { console.error(error); process.exitCode = 1; }).finally(as
   fs.writeFileSync(path.join(artifactDir, 'results.json'), JSON.stringify(cases, null, 2));
   await browser?.close();
   server.closeAllConnections();
-  await new Promise(resolve => server.close(resolve));
+  if (server.listening) await new Promise(resolve => server.close(resolve));
   fs.rmSync(envDir, { recursive: true, force: true });
   console.log(JSON.stringify(cases, null, 2));
 });
