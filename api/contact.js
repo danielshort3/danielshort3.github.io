@@ -2,6 +2,7 @@
 
 const DEFAULT_UPSTREAM = 'https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact';
 const UPSTREAM_DEADLINE_MS = 20000;
+const MAX_REQUEST_BYTES = 32 * 1024;
 const DELIVERY_UNKNOWN = 'CONTACT_DELIVERY_UNKNOWN';
 const UNKNOWN_MESSAGE = 'We couldn’t confirm delivery. Your message may have been sent. Your draft is still here.';
 
@@ -12,17 +13,33 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function bodyTooLargeError() {
+  const error = new Error('Request body too large');
+  error.code = 'CONTACT_BODY_TOO_LARGE';
+  return error;
+}
+
+function assertBodySize(value) {
+  if (Buffer.byteLength(value, 'utf8') > MAX_REQUEST_BYTES) throw bodyTooLargeError();
+}
+
 async function readJson(req) {
   if (req.body && typeof req.body === 'object') {
+    assertBodySize(JSON.stringify(req.body));
     return req.body;
   }
   if (typeof req.body === 'string' && req.body.trim()) {
+    assertBodySize(req.body);
     return JSON.parse(req.body);
   }
 
   const chunks = [];
+  let totalBytes = 0;
   for await (const chunk of req) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk));
+    totalBytes += buffer.length;
+    if (totalBytes > MAX_REQUEST_BYTES) throw bodyTooLargeError();
+    chunks.push(buffer);
   }
 
   const raw = Buffer.concat(chunks).toString('utf8').trim();
@@ -47,8 +64,12 @@ module.exports = async (req, res) => {
   let payload;
   try {
     payload = await readJson(req);
-  } catch {
-    sendJson(res, 400, { ok: false, error: 'Invalid JSON body' });
+  } catch (error) {
+    if (error?.code === 'CONTACT_BODY_TOO_LARGE') {
+      sendJson(res, 413, { ok: false, error: 'Request body too large' });
+    } else {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON body' });
+    }
     return;
   }
 

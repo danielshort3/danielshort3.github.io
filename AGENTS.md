@@ -69,7 +69,7 @@ Use 2-space indentation everywhere; HTML attributes stay in double quotes. JavaS
 Follow clear imperative subjects (e.g., “Update hero copy”); prefixes like `feat:` or `fix:` are welcome but optional. Before pushing, run `npm run build && npm test` and describe any visual changes or build-script updates. Pull requests should link issues, summarize scope, and attach screenshots for UI tweaks. Keep diffs focused and mention if build tooling or deployment assets changed.
 
 ## Security & Configuration Tips
-Never commit secrets or API keys; analytics helpers belong in `js/analytics/`. Deployment reads from `public/` via `vercel.json`, so ensure `robots.txt` and `sitemap.xml` remain current, especially when adding pages or blocking crawlers.
+Never commit secrets, API keys, local editor state, browser/MCP snapshots, chat attachments, or generated review artifacts. Analytics helpers belong in `js/analytics/`. Deployment reads from `public/` via `vercel.json`, so ensure `robots.txt` and `sitemap.xml` remain current, especially when adding pages or blocking crawlers.
 
 ## AWS Notes & Debugging Checklist
 The tools account backend is designed to run on AWS (Cognito + DynamoDB), with optional KV fallback.
@@ -77,7 +77,7 @@ The tools account backend is designed to run on AWS (Cognito + DynamoDB), with o
 Tools accounts env vars (serverless / Vercel):
 - Auth verification: `TOOLS_COGNITO_ISSUER`, `TOOLS_COGNITO_CLIENT_ID` (see `api/_lib/cognito-jwt.js`)
 - DynamoDB storage: `TOOLS_DDB_TABLE` (or `TOOLS_DDB_TABLE_NAME`), plus `AWS_REGION` / `AWS_DEFAULT_REGION`
-- Credentials: prefer `TOOLS_AWS_ACCESS_KEY_ID` + `TOOLS_AWS_SECRET_ACCESS_KEY` (optional `TOOLS_AWS_SESSION_TOKEN`)
+- Credentials: prefer `TOOLS_AWS_ROLE_ARN` with Vercel OIDC in deployed environments. Static `TOOLS_AWS_ACCESS_KEY_ID` + `TOOLS_AWS_SECRET_ACCESS_KEY` (optional `TOOLS_AWS_SESSION_TOKEN`) are local/recovery fallbacks only; do not introduce long-lived static keys into Vercel.
 
 Short links env vars:
 - `SHORTLINKS_ADMIN_TOKEN` (dashboard + health check)
