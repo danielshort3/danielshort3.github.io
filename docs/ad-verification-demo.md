@@ -29,11 +29,12 @@ There are no coins, tokens, mining, wallets, payments, accounts, API calls, anal
 - `js/demos/ad-verification-core.mjs`: dependency-free cryptographic builder and verifier, shared with Node tests.
 - `js/demos/ad-verification-demo.mjs`: replay, tamper/reset, accessible status updates and record inspection.
 - `img/demos/cedar-valley-hero.webp`: decorative mountain scenery derived from the unlettered landscape in the approved AI-generated Cedar Valley concept. The screenshot/UI itself is not shipped as the interface.
+- `build/inject-script-bundles.js`: explicitly excludes this standalone page from consent/analytics injection, preserving its network-isolated behavior. Other pages keep their existing consent policy.
 - `tests/demos/ad-verification.test.cjs`: cryptographic, schema, privacy and discovery regressions.
-- `tests/demos/ad-verification.browser.cjs`: real built-route, responsive, accessibility, interaction, failure-state and console checks.
-- `.github/workflows/ad-verification-demo.yml`: focused CI with screenshot artifacts.
+- `tests/demos/ad-verification.browser.cjs`: real built-route, responsive, accessibility, interaction, failure-state, build-isolation and console checks.
+- `.github/workflows/ad-verification-demo.yml`: focused CI with screenshot artifacts; also runs when shared script injection changes.
 
-Existing `build/copy-to-public.js` recursively publishes `demos`, `js`, `css` and `img`. Vercel's existing `cleanUrls` policy serves this authored page at `/demos/ad-verification-demo`; no new rewrite, global navigation, CMS record, native catalog entry or generated shell is needed. The project is intentionally absent from public catalogs, home cards, search, chatbot knowledge, short-link destination suggestions and sitemaps. The browser and discovery tests guard that behavior. The shared site remains unchanged.
+Existing `build/copy-to-public.js` recursively publishes `demos`, `js`, `css` and `img`. Vercel's existing `cleanUrls` policy serves this authored page at `/demos/ad-verification-demo`; no new rewrite, global navigation, CMS record, native catalog entry or generated shell is needed. The project is intentionally absent from public catalogs, home cards, search, chatbot knowledge, short-link destination suggestions and sitemaps. The browser and discovery tests guard that behavior. The shared site remains unchanged apart from the explicit build exemption for this page.
 
 **Unlisted is not private:** anyone with the direct link can open the page, and source is visible in this public repository. `noindex` is a request to search engines, not access control. No authentication is claimed.
 
