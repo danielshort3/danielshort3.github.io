@@ -24,10 +24,13 @@ async function run() {
   const processed = processHtml(html, 'demos/ad-verification-demo.html').html;
   assert.equal(processHtml(processed, 'demos/ad-verification-demo.html').html, processed);
   assert.doesNotMatch(processed, /site-consent/);
-  const fixture = '<html>\n<head></head>\n<body>\n<main></main>\n</body>\n</html>\n';
-  for (const name of ['index.html', 'pages/contact.html', 'demos/other-example.html']) {
-    assert.match(processHtml(fixture, name).html, /site-consent/, `Preserve existing consent policy: ${name}`);
+  // Use genuine generated documents: managed personal routes require their shell hooks.
+  for (const name of ['index.html', 'pages/contact.html']) {
+    const document = fs.readFileSync(path.join(root, name), 'utf8');
+    assert.match(processHtml(document, name).html, /site-consent/, `Preserve existing consent policy: ${name}`);
   }
+  const fixture = '<html>\n<head></head>\n<body>\n<main></main>\n</body>\n</html>\n';
+  assert.match(processHtml(fixture, 'demos/other-example.html').html, /site-consent/);
   assert.doesNotMatch(processHtml(fixture, 'pages/job-application-tracker.html').html, /site-consent/);
   cases.push({ buildIsolation: 'pass' });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -105,7 +108,11 @@ async function run() {
   assert.match(await alias.locator('meta[name="robots"]').getAttribute('content'), /noindex/);
   await alias.close();
 }
-run().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => {
+run().catch(error => {
+  cases.push({ stage: 'runner', status: 'fail', error: String(error), stack: error.stack });
+  console.error(error);
+  process.exitCode = 1;
+}).finally(async () => {
   fs.writeFileSync(path.join(artifactDir, 'results.json'), JSON.stringify(cases, null, 2));
   await browser?.close();
   server.closeAllConnections();
