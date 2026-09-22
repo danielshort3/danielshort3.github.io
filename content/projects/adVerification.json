@@ -1,35 +1,18 @@
 {
-  "id": "adVerification",
-  "published": false,
-  "hidden": true,
-  "noindex": true,
-  "visibility": "unlisted",
-  "title": "Live Campaign Measurement",
-  "subtitle": "Parallel travelers. One verifiable campaign history.",
-  "metaDescription": "Five fictional travelers follow overlapping paths as their events join one signed blockchain. Inspect records, test edits, and watch individual travelers cycle through.",
-  "image": "img/projects/ad-verification-landscape.webp",
-  "imageAlt": "Illustrative mountain landscape for fictional Cedar Valley Tourism",
-  "imageWidth": 224,
-  "imageHeight": 267,
-  "tools": ["JavaScript", "Web Crypto API"],
-  "concepts": ["Data Integrity", "Digital Signatures", "Blockchain", "Event-driven Animation"],
-  "audiences": ["analytics", "tourism"],
+  "id": "adVerification", "published": false, "hidden": true, "noindex": true, "visibility": "unlisted",
+  "title": "From an Ad to a Visit", "subtitle": "A campaign result with supporting records you can check.",
+  "metaDescription": "Follow fictional travelers, inspect the evidence behind an attribution decision, and detect edits to a signed campaign blockchain.",
+  "image": "img/projects/ad-verification-landscape.webp", "imageAlt": "Illustrative mountain landscape for fictional Cedar Valley Tourism", "imageWidth": 224, "imageHeight": 267,
+  "tools": ["JavaScript", "Web Crypto API"], "concepts": ["Data Integrity", "Digital Signatures", "Blockchain", "Attribution"], "audiences": ["analytics", "tourism"],
   "embed": { "type": "iframe", "url": "/demos/ad-verification", "fit": "viewport", "minHeight": 850 },
   "resources": [
     { "label": "Open unlisted demo", "url": "/demos/ad-verification" },
     { "label": "Source and technical notes", "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/docs/ad-verification-demo.md" }
   ],
-  "problem": "People respond to campaigns at different times, while measurement records need one auditable history.",
-  "task": "Show overlapping traveler journeys and an understandable blockchain without grouped or turn-based playback.",
-  "actions": [
-    "Gave five visible traveler lanes independent event timing on one shared simulation clock.",
-    "Added a sequential verified block writer and individual traveler replacement after measurement ends.",
-    "Kept a compact linked record view, complete history inspection, and editable-copy verification."
-  ],
-  "results": [
-    "Traveler observations overlap, while each recorded check appears with its verified block.",
-    "Finished travelers leave individually; earlier records remain in the same campaign chain."
-  ],
-  "notes": "Unlisted, browser-local educational blockchain. All people and outcomes are fictional; local signatures do not prove real ad delivery, visitation or independent consensus. Timing and outcome mixes are illustrative.",
+  "problem": "Campaign results need a checkable connection to their evidence, not only a reported total.",
+  "task": "Keep a quiet five-traveler simulation while explaining attribution and tamper-evident recordkeeping.",
+  "actions": ["Kept overlapping traveler lanes and individual replacement within a simpler two-panel layout.", "Separated reported visits from a computed attribution decision with explicit evidence and an example 30-day rule.", "Added inline explanations, supporting-record links, record-derived totals, and editable-copy verification."],
+  "results": ["A visit can be recorded without receiving campaign credit; a website visit is not required.", "Changes to attribution evidence, rules or credit fail verification without changing original campaign totals."],
+  "notes": "Unlisted, browser-local educational blockchain. All people, occurrence dates and outcomes are fictional. Local signatures verify bytes and rule consistency, not independent consensus or marketing causation.",
   "order": 999
 }
