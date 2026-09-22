@@ -43,11 +43,11 @@
         },
         {
           "title": "Choose the right variant",
-          "body": "Use the personal wordmark without a role descriptor for general materials. Analytics has its own labeled variant. The all-white mark serves dark backgrounds. The favicon is a dedicated DS silhouette on a flat white tile: it omits the three small chart bars while the full master retains them."
+          "body": "Use the personal wordmark without a role descriptor for general materials. Analytics has its own labeled variant. The all-white mark serves dark backgrounds. The favicon uses the complete DS mark on a flat white tile, including the three chart bars inside the D."
         },
         {
           "title": "Preserve the drawing",
-          "body": "Preserve the geometry of the chosen variant; use the purpose-built favicon instead of removing details yourself. Contain the full image rather than cropping it into rounded corners. Give the mark breathing room and keep the name readable. Do not stretch, add outlines, or invent effects."
+          "body": "Preserve the geometry of the chosen variant; use the purpose-built favicon without removing the chart bars or other identifying details. Contain the full image rather than cropping it into rounded corners. Give the mark breathing room and keep the name readable. Do not stretch, add outlines, or invent effects."
         }
       ],
       "sourceNotes": [
@@ -270,8 +270,8 @@
       "kind": "improvements",
       "sections": [
         {
-          "title": "Implemented: an optical favicon",
-          "body": "The new favicon enlarges the DS letter silhouette and removes the small chart bars, shadow, and decorative border. A flat white backing protects the navy on light and dark browser chrome. Use the generated 16-32px exports at actual tab sizes; retain the detailed master in the website header."
+          "title": "Restored: the complete DS favicon",
+          "body": "The favicon retains the DS letterforms and the three chart bars that distinguish the mark. A flat white backing protects the navy on light and dark browser chrome. Use the generated 16-32px exports at actual tab sizes and keep the same complete identity in the website header."
         },
         {
           "title": "Implemented: a dependable variant kit",
@@ -288,7 +288,7 @@
       ],
       "sourceNotes": [
         "img/brand/: refreshed favicon, wordmarks, all-white mark, and social assets",
-        "build/resize_logo.js: optical favicon generated from approved master contours",
+        "build/resize_logo.js: favicon PNG/ICO exports generated from the approved compact DS source",
         "css/layout/nav.css and css/components/mobile-site-dock.css: flat logo treatment",
         "Optional new-logo exploration remains a proposal; master geometry is unchanged"
       ]

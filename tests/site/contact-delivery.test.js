@@ -10,7 +10,7 @@ const UNKNOWN = 'We couldn’t confirm delivery. Your message may have been sent
 const settle = async () => { for (let index = 0; index < 12; index += 1) await Promise.resolve(); };
 const deferred = () => { let resolve; const promise = new Promise((done) => { resolve = done; }); return { promise, resolve }; };
 
-async function apiCase(fetcher, { timeout = false } = {}) {
+async function apiCase(fetcher, { timeout = false, body = { name: 'Test', email: 'test@example.com', message: 'Never actually sent' } } = {}) {
   const timers = new Map();
   const requests = [];
   const module = { exports: {} };
@@ -22,7 +22,7 @@ async function apiCase(fetcher, { timeout = false } = {}) {
   });
   const result = { headers: {} };
   const response = { setHeader: (name, value) => { result.headers[name] = value; }, end: (body) => { result.body = JSON.parse(body); result.status = response.statusCode; } };
-  const pending = module.exports({ method: 'POST', body: { name: 'Test', email: 'test@example.com', message: 'Never actually sent' } }, response);
+  const pending = module.exports({ method: 'POST', body }, response);
   await settle();
   if (timeout) {
     assert.equal(timers.get(1)?.delay, 20000);
@@ -51,6 +51,11 @@ async function main() {
   const valid = await apiCase(async () => ({ ok: true, status: 200, text: async () => '{"ok":true}' }));
   assert.equal(valid.result.status, 200);
   assert.deepEqual(valid.result.body, { ok: true });
+  const oversized = await apiCase(async () => { throw new Error('oversized bodies must not reach the upstream'); }, {
+    body: { name: 'Test', email: 'test@example.com', message: 'x'.repeat(40 * 1024) }
+  });
+  assert.equal(oversized.result.status, 413);
+  assert.equal(oversized.requests.length, 0);
   for (const body of ['', '{}', 'not json', '{"ok":false}', '{"ok":true,"error":"secret upstream detail"}']) {
     const malformed = await apiCase(async () => ({ ok: true, status: 200, text: async () => body }));
     assert.equal(malformed.result.status, 502);

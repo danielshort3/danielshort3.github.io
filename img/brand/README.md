@@ -10,7 +10,7 @@ The full-color DS master remains `00-ds-logo-master-full-color.svg`. Use that ma
 | `03-ds-logo-monochrome-midnight.svg` | Existing one-color navy mark. |
 | `04-ds-logo-reversed-white-blue.svg` | Existing white-and-blue mark for dark surfaces. |
 | `04c-ds-logo-all-white.svg` / `.png` | Flat white artwork with genuine transparency, for dark backgrounds. |
-| `05-ds-favicon-small-icon.svg` | Compact optical icon derived from the master's letter contours by `build/resize_logo.js`, which also creates the PNG/ICO exports. Do not edit this output or use it as the full-size master. |
+| `05-ds-favicon-small-icon.svg` | Compact favicon using the complete DS mark, including the three chart bars. `build/resize_logo.js` creates the PNG/ICO exports from this approved source. Do not edit generated PNG/ICO outputs by hand. |
 | `06-wordmark-horizontal-assembly.svg` / `.png` | Plain personal wordmark: DS plus Daniel Short. No audience descriptor. |
 | `06b-wordmark-analytics.svg` / `.png` | Professional wordmark retaining the `Data Analytics & BI` descriptor. |
 | `09-linkedin-banner-1584x396.svg` / `.png` | Personal banner with a clear lower-left area for an overlapping profile photo. Check the final platform crop when uploading. |
