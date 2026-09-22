@@ -1,15 +1,25 @@
 {
   "framework": null,
   "fluid": true,
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "buildCommand": "node build/verify-production-release.cjs && npm run build",
   "outputDirectory": "public",
   "functions": {
-    "api/demos/**/*.js": { "maxDuration": 150 },
-    "api/sentence-demo/**/*.js": { "maxDuration": 150 },
-    "api/chatbot.js": { "maxDuration": 60 },
-    "api/chatbot-stream.js": { "maxDuration": 60 },
-    "api/tools/**/*.js": { "maxDuration": 60 }
+    "api/demos/**/*.js": {
+      "maxDuration": 150
+    },
+    "api/sentence-demo/**/*.js": {
+      "maxDuration": 150
+    },
+    "api/chatbot.js": {
+      "maxDuration": 60
+    },
+    "api/chatbot-stream.js": {
+      "maxDuration": 60
+    },
+    "api/tools/**/*.js": {
+      "maxDuration": 60
+    }
   },
   "cleanUrls": true,
   "trailingSlash": false,
@@ -23,982 +33,2701 @@
     "CHATBOT_BEDROCK_EMBED_DIMENSIONS": "512"
   },
   "rewrites": [
-    { "source": "/api/demos/covid-outbreak/state/:state", "destination": "/api/demos/covid-outbreak%2Fstate%2F:state" },
-    { "source": "/api/demos/:demo/:action", "destination": "/api/demos/:demo%2F:action" },
-    { "source": "/api/tools/transcribe/:action", "destination": "/api/tools/transcribe%2F:action" },
-    { "source": "/api/tools/auth/:action", "destination": "/api/tools/auth%2F:action" },
-    { "source": "/api/chatbot/logs", "destination": "/api/chatbot?__route=logs" },
-    { "source": "/api/short-links/test/:slug*", "destination": "/api/short-links/test%2F:slug*" },
-    { "source": "/api/short-links/sets", "destination": "/api/short-links/sets%2F__collection__" },
-    { "source": "/api/short-links/sets/:setId/generate", "destination": "/api/short-links/sets%2F:setId%2Fgenerate" },
-    { "source": "/api/short-links/sets/:setId", "destination": "/api/short-links/sets%2F:setId" },
-    { "source": "/api/short-links/clicks/:slug*", "destination": "/api/short-links/clicks%2F:slug*" },
-    { "source": "/go/:first/:rest", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:first%2F:rest" },
-    { "source": "/go/:slug", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:slug" },
-    { "source": "/:first/:rest", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:first%2F:rest" },
-    { "source": "/:slug", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:slug" },
-    { "source": "/go/:first/:rest", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "/api/go/:first%2F:rest" },
-    { "source": "/go/:slug", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "/api/go/:slug" },
-    { "source": "/:first/:rest", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "/api/go/:first%2F:rest" },
-    { "source": "/:slug", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "/api/go/:slug" },
-    { "source": "/go/:first/:rest", "destination": "/api/go/:first%2F:rest" },
-    { "source": "/go/:slug", "destination": "/api/go/:slug" },
-    { "source": "/ai/:path*", "destination": "/dist/ai-pages/:path*" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
-    { "source": "/portfolio/:project", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/portfolio/:project" },
-    { "source": "/portfolio/:project", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/portfolio/:project" },
-    { "source": "/portfolio/:project", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/portfolio/:project" },
-    { "source": "/portfolio/:project", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/portfolio/:project" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/portfolio" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/portfolio" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/portfolio" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/portfolio" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/portfolio" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/portfolio" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/portfolio" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/portfolio" },
-    { "source": "/portfolio/:project", "destination": "/pages/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
-    { "source": "/portfolio",         "destination": "/pages/portfolio" },
-    { "source": "/portfolio.html",    "destination": "/pages/portfolio" },
-    { "source": "/contact", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/contact" },
-    { "source": "/contact.html", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/contact" },
-    { "source": "/contact", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/contact" },
-    { "source": "/contact.html", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/contact" },
-    { "source": "/contact", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/contact" },
-    { "source": "/contact.html", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/contact" },
-    { "source": "/contact", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/contact" },
-    { "source": "/contact.html", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/contact" },
-    { "source": "/contact",           "destination": "/pages/contact" },
-    { "source": "/contact.html",      "destination": "/pages/contact" },
-    { "source": "/solutions",         "destination": "/pages/solutions" },
-    { "source": "/solutions.html",    "destination": "/pages/solutions" },
-    { "source": "/privacy",           "destination": "/pages/privacy" },
-    { "source": "/privacy.html",      "destination": "/pages/privacy" },
-    { "source": "/job-application-copilot", "destination": "/pages/job-application-copilot" },
-    { "source": "/job-application-copilot.html", "destination": "/pages/job-application-copilot" },
-    { "source": "/job-application-copilot/privacy", "destination": "/pages/job-application-copilot-privacy" },
-    { "source": "/job-application-copilot/privacy.html", "destination": "/pages/job-application-copilot-privacy" },
-    { "source": "/search", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/search" },
-    { "source": "/search.html", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/search" },
-    { "source": "/search", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/search" },
-    { "source": "/search.html", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/search" },
-    { "source": "/search", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/search" },
-    { "source": "/search.html", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/search" },
-    { "source": "/search",            "destination": "/pages/search" },
-    { "source": "/search.html",       "destination": "/pages/search" },
-    { "source": "/sitemap",           "destination": "/pages/sitemap" },
-    { "source": "/sitemap.html",      "destination": "/pages/sitemap" },
-    { "source": "/sitemap-pretty",    "destination": "/pages/sitemap-pretty" },
-    { "source": "/sitemap-pretty.html","destination": "/pages/sitemap-pretty" },
-    { "source": "/word-frequency",    "destination": "/pages/word-frequency" },
-    { "source": "/word-frequency.html","destination": "/pages/word-frequency" },
-    { "source": "/tools/word-frequency","destination": "/pages/word-frequency" },
-    { "source": "/tools/word-frequency.html","destination": "/pages/word-frequency" },
-    { "source": "/tools/text-compare","destination": "/pages/text-compare" },
-    { "source": "/tools/text-compare.html","destination": "/pages/text-compare" },
-    { "source": "/tools/short-links","destination": "/pages/short-links" },
-    { "source": "/tools/short-links.html","destination": "/pages/short-links" },
-    { "source": "/short-links","destination": "/pages/short-links" },
-    { "source": "/short-links.html","destination": "/pages/short-links" },
-    { "source": "/tools/point-of-view-checker","destination": "/pages/point-of-view-checker" },
-    { "source": "/tools/point-of-view-checker.html","destination": "/pages/point-of-view-checker" },
-    { "source": "/tools/oxford-comma-checker","destination": "/pages/oxford-comma-checker" },
-    { "source": "/tools/oxford-comma-checker.html","destination": "/pages/oxford-comma-checker" },
-    { "source": "/oxford-comma-checker","destination": "/pages/oxford-comma-checker" },
-    { "source": "/oxford-comma-checker.html","destination": "/pages/oxford-comma-checker" },
-    { "source": "/tools/background-remover","destination": "/pages/background-remover" },
-    { "source": "/tools/background-remover.html","destination": "/pages/background-remover" },
-    { "source": "/tools/image-optimizer","destination": "/pages/image-optimizer" },
-    { "source": "/tools/image-optimizer.html","destination": "/pages/image-optimizer" },
-    { "source": "/tools/qr-code-generator","destination": "/pages/qr-code-generator" },
-    { "source": "/tools/qr-code-generator.html","destination": "/pages/qr-code-generator" },
-    { "source": "/tools/dashboard","destination": "/pages/tools-dashboard" },
-    { "source": "/tools/dashboard.html","destination": "/pages/tools-dashboard" },
-    { "source": "/tools/screen-recorder","destination": "/pages/screen-recorder" },
-    { "source": "/tools/screen-recorder.html","destination": "/pages/screen-recorder" },
-    { "source": "/tools/job-application-tracker","destination": "/pages/job-application-tracker" },
-    { "source": "/tools/job-application-tracker.html","destination": "/pages/job-application-tracker" },
-    { "source": "/tools",             "destination": "/pages/tools" },
-    { "source": "/tools.html",        "destination": "/pages/tools" },
-    { "source": "/nbsp-cleaner",      "destination": "/pages/nbsp-cleaner" },
-    { "source": "/nbsp-cleaner.html", "destination": "/pages/nbsp-cleaner" },
-    { "source": "/tools/nbsp-cleaner","destination": "/pages/nbsp-cleaner" },
-    { "source": "/tools/nbsp-cleaner.html","destination": "/pages/nbsp-cleaner" },
-
-    { "source": "/tools/utm-batch-builder","destination": "/pages/utm-batch-builder" },
-    { "source": "/tools/utm-batch-builder.html","destination": "/pages/utm-batch-builder" },
-    { "source": "/tools/campaign-creative-tracker","destination": "/pages/campaign-creative-tracker" },
-    { "source": "/tools/campaign-creative-tracker.html","destination": "/pages/campaign-creative-tracker" },
-    { "source": "/tools/ga4-utm-performance","destination": "/pages/ga4-utm-performance" },
-    { "source": "/tools/ga4-utm-performance.html","destination": "/pages/ga4-utm-performance" },
-    { "source": "/tools/transcribe","destination": "/pages/transcribe" },
-    { "source": "/tools/transcribe.html","destination": "/pages/transcribe" },
-
-    { "source": "/games/project-starfall", "destination": "/pages/games/project-starfall" },
-    { "source": "/games/project-starfall.html", "destination": "/pages/games/project-starfall" },
-    { "source": "/games/stellar-dogfight", "destination": "/pages/games/stellar-dogfight" },
-    { "source": "/games/stellar-dogfight.html", "destination": "/pages/games/stellar-dogfight" },
-    { "source": "/games/roulette", "destination": "/pages/games/roulette" },
-    { "source": "/games/roulette.html", "destination": "/pages/games/roulette" },
-    { "source": "/games/probability-engine", "destination": "/pages/games/probability-engine" },
-    { "source": "/games/probability-engine.html", "destination": "/pages/games/probability-engine" },
-    { "source": "/games/stormbreak", "destination": "/pages/games/stormbreak" },
-    { "source": "/games/stormbreak.html", "destination": "/pages/games/stormbreak" },
-    { "source": "/games/ocean-wave-simulation", "destination": "/pages/ocean-wave-simulation" },
-    { "source": "/games/ocean-wave-simulation.html", "destination": "/pages/ocean-wave-simulation" },
-    { "source": "/games",             "destination": "/pages/games" },
-    { "source": "/games.html",        "destination": "/pages/games" },
-
-    { "source": "/analytics", "destination": "/pages/analytics" },
-    { "source": "/analytics.html", "destination": "/pages/analytics" },
-    { "source": "/data-science", "destination": "/pages/data-science" },
-    { "source": "/data-science.html", "destination": "/pages/data-science" },
-    { "source": "/tourism", "destination": "/pages/tourism" },
-    { "source": "/tourism.html", "destination": "/pages/tourism" },
-    { "source": "/resume", "destination": "/pages/resume" },
-    { "source": "/resume.html", "destination": "/pages/resume" },
-    { "source": "/resume-pdf", "destination": "/pages/resume-pdf" },
-    { "source": "/resume-pdf.html", "destination": "/pages/resume-pdf" },
-    { "source": "/resume-analytics", "destination": "/pages/resume-analytics" },
-    { "source": "/resume-analytics.html", "destination": "/pages/resume-analytics" },
-    { "source": "/resume-analytics-pdf", "destination": "/pages/resume-analytics-pdf" },
-    { "source": "/resume-analytics-pdf.html", "destination": "/pages/resume-analytics-pdf" },
-    { "source": "/resume-data-science", "destination": "/pages/resume-data-science" },
-    { "source": "/resume-data-science.html", "destination": "/pages/resume-data-science" },
-    { "source": "/resume-data-science-pdf", "destination": "/pages/resume-data-science-pdf" },
-    { "source": "/resume-data-science-pdf.html", "destination": "/pages/resume-data-science-pdf" },
-    { "source": "/resume-tourism", "destination": "/pages/resume-tourism" },
-    { "source": "/resume-tourism.html", "destination": "/pages/resume-tourism" },
-    { "source": "/resume-tourism-pdf", "destination": "/pages/resume-tourism-pdf" },
-    { "source": "/resume-tourism-pdf.html", "destination": "/pages/resume-tourism-pdf" },
-
-    { "source": "/chatbot-demo",      "destination": "/pages/demos/chatbot-demo" },
-    { "source": "/chatbot-demo.html", "destination": "/pages/demos/chatbot-demo" },
-    { "source": "/shape-demo",        "destination": "/pages/demos/shape-demo" },
-    { "source": "/shape-demo.html",   "destination": "/pages/demos/shape-demo" },
-    { "source": "/handwriting-rating-demo",     "destination": "/pages/demos/handwriting-rating-demo" },
-    { "source": "/handwriting-rating-demo.html","destination": "/pages/demos/handwriting-rating-demo" },
-    { "source": "/sentence-demo",     "destination": "/pages/demos/sentence-demo" },
-    { "source": "/sentence-demo.html","destination": "/pages/demos/sentence-demo" },
-    { "source": "/covid-outbreak-demo",     "destination": "/pages/demos/covid-outbreak-demo" },
-    { "source": "/covid-outbreak-demo.html","destination": "/pages/demos/covid-outbreak-demo" },
-    { "source": "/baby-names-demo",     "destination": "/pages/demos/baby-names-demo" },
-    { "source": "/baby-names-demo.html","destination": "/pages/demos/baby-names-demo" },
-    { "source": "/nonogram-demo",     "destination": "/pages/demos/nonogram-demo" },
-    { "source": "/nonogram-demo.html","destination": "/pages/demos/nonogram-demo" },
-    { "source": "/minesweeper-demo",     "destination": "/pages/demos/minesweeper-demo" },
-    { "source": "/minesweeper-demo.html","destination": "/pages/demos/minesweeper-demo" },
-    { "source": "/digit-generator-demo",     "destination": "/pages/demos/digit-generator-demo" },
-    { "source": "/digit-generator-demo.html","destination": "/pages/demos/digit-generator-demo" },
-    { "source": "/pizza-tips-demo", "destination": "/pages/demos/pizza-tips-demo" },
-    { "source": "/pizza-tips-demo.html", "destination": "/pages/demos/pizza-tips-demo" },
-    { "source": "/target-empty-package-demo", "destination": "/pages/demos/target-empty-package-demo" },
-    { "source": "/target-empty-package-demo.html", "destination": "/pages/demos/target-empty-package-demo" },
-    { "source": "/retail-loss-sales-demo", "destination": "/pages/demos/retail-loss-sales-demo" },
-    { "source": "/retail-loss-sales-demo.html", "destination": "/pages/demos/retail-loss-sales-demo" }
+    {
+      "source": "/api/demos/covid-outbreak/state/:state",
+      "destination": "/api/demos/covid-outbreak%2Fstate%2F:state"
+    },
+    {
+      "source": "/api/demos/:demo/:action",
+      "destination": "/api/demos/:demo%2F:action"
+    },
+    {
+      "source": "/api/tools/transcribe/:action",
+      "destination": "/api/tools/transcribe%2F:action"
+    },
+    {
+      "source": "/api/tools/auth/:action",
+      "destination": "/api/tools/auth%2F:action"
+    },
+    {
+      "source": "/api/chatbot/logs",
+      "destination": "/api/chatbot?__route=logs"
+    },
+    {
+      "source": "/api/short-links/test/:slug*",
+      "destination": "/api/short-links/test%2F:slug*"
+    },
+    {
+      "source": "/api/short-links/sets",
+      "destination": "/api/short-links/sets%2F__collection__"
+    },
+    {
+      "source": "/api/short-links/sets/:setId/generate",
+      "destination": "/api/short-links/sets%2F:setId%2Fgenerate"
+    },
+    {
+      "source": "/api/short-links/sets/:setId",
+      "destination": "/api/short-links/sets%2F:setId"
+    },
+    {
+      "source": "/api/short-links/clicks/:slug*",
+      "destination": "/api/short-links/clicks%2F:slug*"
+    },
+    {
+      "source": "/go/:first/:rest",
+      "has": [
+        {
+          "type": "host",
+          "value": "dshort.me"
+        }
+      ],
+      "destination": "/api/go/:first%2F:rest"
+    },
+    {
+      "source": "/go/:slug",
+      "has": [
+        {
+          "type": "host",
+          "value": "dshort.me"
+        }
+      ],
+      "destination": "/api/go/:slug"
+    },
+    {
+      "source": "/:first/:rest",
+      "has": [
+        {
+          "type": "host",
+          "value": "dshort.me"
+        }
+      ],
+      "destination": "/api/go/:first%2F:rest"
+    },
+    {
+      "source": "/:slug",
+      "has": [
+        {
+          "type": "host",
+          "value": "dshort.me"
+        }
+      ],
+      "destination": "/api/go/:slug"
+    },
+    {
+      "source": "/go/:first/:rest",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.dshort.me"
+        }
+      ],
+      "destination": "/api/go/:first%2F:rest"
+    },
+    {
+      "source": "/go/:slug",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.dshort.me"
+        }
+      ],
+      "destination": "/api/go/:slug"
+    },
+    {
+      "source": "/:first/:rest",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.dshort.me"
+        }
+      ],
+      "destination": "/api/go/:first%2F:rest"
+    },
+    {
+      "source": "/:slug",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.dshort.me"
+        }
+      ],
+      "destination": "/api/go/:slug"
+    },
+    {
+      "source": "/go/:first/:rest",
+      "destination": "/api/go/:first%2F:rest"
+    },
+    {
+      "source": "/go/:slug",
+      "destination": "/api/go/:slug"
+    },
+    {
+      "source": "/ai/:path*",
+      "destination": "/dist/ai-pages/:path*"
+    },
+    {
+      "source": "/portfolio",
+      "has": [
+        {
+          "type": "query",
+          "key": "project"
+        }
+      ],
+      "destination": "/api/portfolio-redirect"
+    },
+    {
+      "source": "/portfolio.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "project"
+        }
+      ],
+      "destination": "/api/portfolio-redirect"
+    },
+    {
+      "source": "/portfolio/:project",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/pages/professional/analytics/portfolio/:project"
+    },
+    {
+      "source": "/portfolio/:project.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/pages/professional/analytics/portfolio/:project"
+    },
+    {
+      "source": "/portfolio/:project",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
+      ],
+      "destination": "/pages/professional/data-science/portfolio/:project"
+    },
+    {
+      "source": "/portfolio/:project.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
+      ],
+      "destination": "/pages/professional/data-science/portfolio/:project"
+    },
+    {
+      "source": "/portfolio/:project",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
+      ],
+      "destination": "/pages/professional/tourism/portfolio/:project"
+    },
+    {
+      "source": "/portfolio/:project.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
+      ],
+      "destination": "/pages/professional/tourism/portfolio/:project"
+    },
+    {
+      "source": "/portfolio/:project",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "(professional|work|career|analytics)"
+        }
+      ],
+      "destination": "/pages/professional/analytics/portfolio/:project"
+    },
+    {
+      "source": "/portfolio/:project.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "(professional|work|career|analytics)"
+        }
+      ],
+      "destination": "/pages/professional/analytics/portfolio/:project"
+    },
+    {
+      "source": "/portfolio",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/pages/professional/analytics/portfolio"
+    },
+    {
+      "source": "/portfolio.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/pages/professional/analytics/portfolio"
+    },
+    {
+      "source": "/portfolio",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
+      ],
+      "destination": "/pages/professional/data-science/portfolio"
+    },
+    {
+      "source": "/portfolio.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
+      ],
+      "destination": "/pages/professional/data-science/portfolio"
+    },
+    {
+      "source": "/portfolio",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
+      ],
+      "destination": "/pages/professional/tourism/portfolio"
+    },
+    {
+      "source": "/portfolio.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
+      ],
+      "destination": "/pages/professional/tourism/portfolio"
+    },
+    {
+      "source": "/portfolio",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "(professional|work|career|analytics)"
+        }
+      ],
+      "destination": "/pages/professional/analytics/portfolio"
+    },
+    {
+      "source": "/portfolio.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "(professional|work|career|analytics)"
+        }
+      ],
+      "destination": "/pages/professional/analytics/portfolio"
+    },
+    {
+      "source": "/portfolio/:project",
+      "destination": "/pages/portfolio/:project"
+    },
+    {
+      "source": "/portfolio/:project.html",
+      "destination": "/pages/portfolio/:project"
+    },
+    {
+      "source": "/portfolio",
+      "destination": "/pages/portfolio"
+    },
+    {
+      "source": "/portfolio.html",
+      "destination": "/pages/portfolio"
+    },
+    {
+      "source": "/contact",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/pages/professional/analytics/contact"
+    },
+    {
+      "source": "/contact.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/pages/professional/analytics/contact"
+    },
+    {
+      "source": "/contact",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
+      ],
+      "destination": "/pages/professional/data-science/contact"
+    },
+    {
+      "source": "/contact.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
+      ],
+      "destination": "/pages/professional/data-science/contact"
+    },
+    {
+      "source": "/contact",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
+      ],
+      "destination": "/pages/professional/tourism/contact"
+    },
+    {
+      "source": "/contact.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
+      ],
+      "destination": "/pages/professional/tourism/contact"
+    },
+    {
+      "source": "/contact",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "(professional|work|career|analytics)"
+        }
+      ],
+      "destination": "/pages/professional/analytics/contact"
+    },
+    {
+      "source": "/contact.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "(professional|work|career|analytics)"
+        }
+      ],
+      "destination": "/pages/professional/analytics/contact"
+    },
+    {
+      "source": "/contact",
+      "destination": "/pages/contact"
+    },
+    {
+      "source": "/contact.html",
+      "destination": "/pages/contact"
+    },
+    {
+      "source": "/solutions",
+      "destination": "/pages/solutions"
+    },
+    {
+      "source": "/solutions.html",
+      "destination": "/pages/solutions"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/pages/privacy"
+    },
+    {
+      "source": "/privacy.html",
+      "destination": "/pages/privacy"
+    },
+    {
+      "source": "/job-application-copilot",
+      "destination": "/pages/job-application-copilot"
+    },
+    {
+      "source": "/job-application-copilot.html",
+      "destination": "/pages/job-application-copilot"
+    },
+    {
+      "source": "/job-application-copilot/privacy",
+      "destination": "/pages/job-application-copilot-privacy"
+    },
+    {
+      "source": "/job-application-copilot/privacy.html",
+      "destination": "/pages/job-application-copilot-privacy"
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/pages/professional/analytics/search"
+    },
+    {
+      "source": "/search.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/pages/professional/analytics/search"
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
+      ],
+      "destination": "/pages/professional/data-science/search"
+    },
+    {
+      "source": "/search.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
+      ],
+      "destination": "/pages/professional/data-science/search"
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
+      ],
+      "destination": "/pages/professional/tourism/search"
+    },
+    {
+      "source": "/search.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
+      ],
+      "destination": "/pages/professional/tourism/search"
+    },
+    {
+      "source": "/search",
+      "destination": "/pages/search"
+    },
+    {
+      "source": "/search.html",
+      "destination": "/pages/search"
+    },
+    {
+      "source": "/sitemap",
+      "destination": "/pages/sitemap"
+    },
+    {
+      "source": "/sitemap.html",
+      "destination": "/pages/sitemap"
+    },
+    {
+      "source": "/sitemap-pretty",
+      "destination": "/pages/sitemap-pretty"
+    },
+    {
+      "source": "/sitemap-pretty.html",
+      "destination": "/pages/sitemap-pretty"
+    },
+    {
+      "source": "/word-frequency",
+      "destination": "/pages/word-frequency"
+    },
+    {
+      "source": "/word-frequency.html",
+      "destination": "/pages/word-frequency"
+    },
+    {
+      "source": "/tools/word-frequency",
+      "destination": "/pages/word-frequency"
+    },
+    {
+      "source": "/tools/word-frequency.html",
+      "destination": "/pages/word-frequency"
+    },
+    {
+      "source": "/tools/text-compare",
+      "destination": "/pages/text-compare"
+    },
+    {
+      "source": "/tools/text-compare.html",
+      "destination": "/pages/text-compare"
+    },
+    {
+      "source": "/tools/short-links",
+      "destination": "/pages/short-links"
+    },
+    {
+      "source": "/tools/short-links.html",
+      "destination": "/pages/short-links"
+    },
+    {
+      "source": "/short-links",
+      "destination": "/pages/short-links"
+    },
+    {
+      "source": "/short-links.html",
+      "destination": "/pages/short-links"
+    },
+    {
+      "source": "/tools/point-of-view-checker",
+      "destination": "/pages/point-of-view-checker"
+    },
+    {
+      "source": "/tools/point-of-view-checker.html",
+      "destination": "/pages/point-of-view-checker"
+    },
+    {
+      "source": "/tools/oxford-comma-checker",
+      "destination": "/pages/oxford-comma-checker"
+    },
+    {
+      "source": "/tools/oxford-comma-checker.html",
+      "destination": "/pages/oxford-comma-checker"
+    },
+    {
+      "source": "/oxford-comma-checker",
+      "destination": "/pages/oxford-comma-checker"
+    },
+    {
+      "source": "/oxford-comma-checker.html",
+      "destination": "/pages/oxford-comma-checker"
+    },
+    {
+      "source": "/tools/background-remover",
+      "destination": "/pages/background-remover"
+    },
+    {
+      "source": "/tools/background-remover.html",
+      "destination": "/pages/background-remover"
+    },
+    {
+      "source": "/tools/image-optimizer",
+      "destination": "/pages/image-optimizer"
+    },
+    {
+      "source": "/tools/image-optimizer.html",
+      "destination": "/pages/image-optimizer"
+    },
+    {
+      "source": "/tools/qr-code-generator",
+      "destination": "/pages/qr-code-generator"
+    },
+    {
+      "source": "/tools/qr-code-generator.html",
+      "destination": "/pages/qr-code-generator"
+    },
+    {
+      "source": "/tools/dashboard",
+      "destination": "/pages/tools-dashboard"
+    },
+    {
+      "source": "/tools/dashboard.html",
+      "destination": "/pages/tools-dashboard"
+    },
+    {
+      "source": "/tools/screen-recorder",
+      "destination": "/pages/screen-recorder"
+    },
+    {
+      "source": "/tools/screen-recorder.html",
+      "destination": "/pages/screen-recorder"
+    },
+    {
+      "source": "/tools/job-application-tracker",
+      "destination": "/pages/job-application-tracker"
+    },
+    {
+      "source": "/tools/job-application-tracker.html",
+      "destination": "/pages/job-application-tracker"
+    },
+    {
+      "source": "/tools",
+      "destination": "/pages/tools"
+    },
+    {
+      "source": "/tools.html",
+      "destination": "/pages/tools"
+    },
+    {
+      "source": "/nbsp-cleaner",
+      "destination": "/pages/nbsp-cleaner"
+    },
+    {
+      "source": "/nbsp-cleaner.html",
+      "destination": "/pages/nbsp-cleaner"
+    },
+    {
+      "source": "/tools/nbsp-cleaner",
+      "destination": "/pages/nbsp-cleaner"
+    },
+    {
+      "source": "/tools/nbsp-cleaner.html",
+      "destination": "/pages/nbsp-cleaner"
+    },
+    {
+      "source": "/tools/utm-batch-builder",
+      "destination": "/pages/utm-batch-builder"
+    },
+    {
+      "source": "/tools/utm-batch-builder.html",
+      "destination": "/pages/utm-batch-builder"
+    },
+    {
+      "source": "/tools/campaign-creative-tracker",
+      "destination": "/pages/campaign-creative-tracker"
+    },
+    {
+      "source": "/tools/campaign-creative-tracker.html",
+      "destination": "/pages/campaign-creative-tracker"
+    },
+    {
+      "source": "/tools/ga4-utm-performance",
+      "destination": "/pages/ga4-utm-performance"
+    },
+    {
+      "source": "/tools/ga4-utm-performance.html",
+      "destination": "/pages/ga4-utm-performance"
+    },
+    {
+      "source": "/tools/transcribe",
+      "destination": "/pages/transcribe"
+    },
+    {
+      "source": "/tools/transcribe.html",
+      "destination": "/pages/transcribe"
+    },
+    {
+      "source": "/games/project-starfall",
+      "destination": "/pages/games/project-starfall"
+    },
+    {
+      "source": "/games/project-starfall.html",
+      "destination": "/pages/games/project-starfall"
+    },
+    {
+      "source": "/games/stellar-dogfight",
+      "destination": "/pages/games/stellar-dogfight"
+    },
+    {
+      "source": "/games/stellar-dogfight.html",
+      "destination": "/pages/games/stellar-dogfight"
+    },
+    {
+      "source": "/games/roulette",
+      "destination": "/pages/games/roulette"
+    },
+    {
+      "source": "/games/roulette.html",
+      "destination": "/pages/games/roulette"
+    },
+    {
+      "source": "/games/probability-engine",
+      "destination": "/pages/games/probability-engine"
+    },
+    {
+      "source": "/games/probability-engine.html",
+      "destination": "/pages/games/probability-engine"
+    },
+    {
+      "source": "/games/stormbreak",
+      "destination": "/pages/games/stormbreak"
+    },
+    {
+      "source": "/games/stormbreak.html",
+      "destination": "/pages/games/stormbreak"
+    },
+    {
+      "source": "/games/ocean-wave-simulation",
+      "destination": "/pages/ocean-wave-simulation"
+    },
+    {
+      "source": "/games/ocean-wave-simulation.html",
+      "destination": "/pages/ocean-wave-simulation"
+    },
+    {
+      "source": "/games",
+      "destination": "/pages/games"
+    },
+    {
+      "source": "/games.html",
+      "destination": "/pages/games"
+    },
+    {
+      "source": "/analytics",
+      "destination": "/pages/analytics"
+    },
+    {
+      "source": "/analytics.html",
+      "destination": "/pages/analytics"
+    },
+    {
+      "source": "/data-science",
+      "destination": "/pages/data-science"
+    },
+    {
+      "source": "/data-science.html",
+      "destination": "/pages/data-science"
+    },
+    {
+      "source": "/tourism",
+      "destination": "/pages/tourism"
+    },
+    {
+      "source": "/tourism.html",
+      "destination": "/pages/tourism"
+    },
+    {
+      "source": "/resume",
+      "destination": "/pages/resume"
+    },
+    {
+      "source": "/resume.html",
+      "destination": "/pages/resume"
+    },
+    {
+      "source": "/resume-pdf",
+      "destination": "/pages/resume-pdf"
+    },
+    {
+      "source": "/resume-pdf.html",
+      "destination": "/pages/resume-pdf"
+    },
+    {
+      "source": "/resume-analytics",
+      "destination": "/pages/resume-analytics"
+    },
+    {
+      "source": "/resume-analytics.html",
+      "destination": "/pages/resume-analytics"
+    },
+    {
+      "source": "/resume-analytics-pdf",
+      "destination": "/pages/resume-analytics-pdf"
+    },
+    {
+      "source": "/resume-analytics-pdf.html",
+      "destination": "/pages/resume-analytics-pdf"
+    },
+    {
+      "source": "/resume-data-science",
+      "destination": "/pages/resume-data-science"
+    },
+    {
+      "source": "/resume-data-science.html",
+      "destination": "/pages/resume-data-science"
+    },
+    {
+      "source": "/resume-data-science-pdf",
+      "destination": "/pages/resume-data-science-pdf"
+    },
+    {
+      "source": "/resume-data-science-pdf.html",
+      "destination": "/pages/resume-data-science-pdf"
+    },
+    {
+      "source": "/resume-tourism",
+      "destination": "/pages/resume-tourism"
+    },
+    {
+      "source": "/resume-tourism.html",
+      "destination": "/pages/resume-tourism"
+    },
+    {
+      "source": "/resume-tourism-pdf",
+      "destination": "/pages/resume-tourism-pdf"
+    },
+    {
+      "source": "/resume-tourism-pdf.html",
+      "destination": "/pages/resume-tourism-pdf"
+    },
+    {
+      "source": "/chatbot-demo",
+      "destination": "/pages/demos/chatbot-demo"
+    },
+    {
+      "source": "/chatbot-demo.html",
+      "destination": "/pages/demos/chatbot-demo"
+    },
+    {
+      "source": "/shape-demo",
+      "destination": "/pages/demos/shape-demo"
+    },
+    {
+      "source": "/shape-demo.html",
+      "destination": "/pages/demos/shape-demo"
+    },
+    {
+      "source": "/handwriting-rating-demo",
+      "destination": "/pages/demos/handwriting-rating-demo"
+    },
+    {
+      "source": "/handwriting-rating-demo.html",
+      "destination": "/pages/demos/handwriting-rating-demo"
+    },
+    {
+      "source": "/sentence-demo",
+      "destination": "/pages/demos/sentence-demo"
+    },
+    {
+      "source": "/sentence-demo.html",
+      "destination": "/pages/demos/sentence-demo"
+    },
+    {
+      "source": "/covid-outbreak-demo",
+      "destination": "/pages/demos/covid-outbreak-demo"
+    },
+    {
+      "source": "/covid-outbreak-demo.html",
+      "destination": "/pages/demos/covid-outbreak-demo"
+    },
+    {
+      "source": "/baby-names-demo",
+      "destination": "/pages/demos/baby-names-demo"
+    },
+    {
+      "source": "/baby-names-demo.html",
+      "destination": "/pages/demos/baby-names-demo"
+    },
+    {
+      "source": "/nonogram-demo",
+      "destination": "/pages/demos/nonogram-demo"
+    },
+    {
+      "source": "/nonogram-demo.html",
+      "destination": "/pages/demos/nonogram-demo"
+    },
+    {
+      "source": "/minesweeper-demo",
+      "destination": "/pages/demos/minesweeper-demo"
+    },
+    {
+      "source": "/minesweeper-demo.html",
+      "destination": "/pages/demos/minesweeper-demo"
+    },
+    {
+      "source": "/digit-generator-demo",
+      "destination": "/pages/demos/digit-generator-demo"
+    },
+    {
+      "source": "/digit-generator-demo.html",
+      "destination": "/pages/demos/digit-generator-demo"
+    },
+    {
+      "source": "/pizza-tips-demo",
+      "destination": "/pages/demos/pizza-tips-demo"
+    },
+    {
+      "source": "/pizza-tips-demo.html",
+      "destination": "/pages/demos/pizza-tips-demo"
+    },
+    {
+      "source": "/target-empty-package-demo",
+      "destination": "/pages/demos/target-empty-package-demo"
+    },
+    {
+      "source": "/target-empty-package-demo.html",
+      "destination": "/pages/demos/target-empty-package-demo"
+    },
+    {
+      "source": "/retail-loss-sales-demo",
+      "destination": "/pages/demos/retail-loss-sales-demo"
+    },
+    {
+      "source": "/retail-loss-sales-demo.html",
+      "destination": "/pages/demos/retail-loss-sales-demo"
+    }
   ],
   "redirects": [
-    { "source": "/", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
-    { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
-    { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
-    { "source": "/:path*", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/:path*", "permanent": true },
-    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "professional" }], "destination": "/analytics", "permanent": false },
-    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "work" }], "destination": "/analytics", "permanent": false },
-    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "career" }], "destination": "/analytics", "permanent": false },
-    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "analytics" }], "destination": "/analytics", "permanent": false },
-    { "source": "/resume", "destination": "/resume-analytics", "permanent": true },
-    { "source": "/resume.html", "destination": "/resume-analytics", "permanent": true },
-    { "source": "/resume-pdf", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/resume-pdf.html", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/documents/Resume.pdf", "destination": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf", "permanent": true },
-    { "source": "/index.html", "destination": "/", "permanent": true },
-    { "source": "/portfolio/:project.html", "destination": "/portfolio/:project", "permanent": true },
-    { "source": "/tools/whisper-transcribe-monitor", "destination": "/tools/transcribe", "permanent": true },
-    { "source": "/tools/whisper-transcribe-monitor.html", "destination": "/tools/transcribe", "permanent": true },
-    { "source": "/demos/stellar-dogfight-demo", "destination": "/games/stellar-dogfight", "permanent": true },
-    { "source": "/demos/stellar-dogfight-demo.html", "destination": "/games/stellar-dogfight", "permanent": true },
-    { "source": "/demos/roulette-double-zero-demo", "destination": "/games/roulette", "permanent": true },
-    { "source": "/demos/roulette-double-zero-demo.html", "destination": "/games/roulette", "permanent": true },
-    { "source": "/probability-engine", "destination": "/games/probability-engine", "permanent": true },
-    { "source": "/probability-engine.html", "destination": "/games/probability-engine", "permanent": true },
-    { "source": "/word-frequency", "destination": "/tools/word-frequency", "permanent": true },
-    { "source": "/word-frequency.html", "destination": "/tools/word-frequency", "permanent": true },
-    { "source": "/short-links", "destination": "/tools/short-links", "permanent": true },
-    { "source": "/short-links.html", "destination": "/tools/short-links", "permanent": true },
-    { "source": "/oxford-comma-checker", "destination": "/tools/oxford-comma-checker", "permanent": true },
-    { "source": "/oxford-comma-checker.html", "destination": "/tools/oxford-comma-checker", "permanent": true },
-    { "source": "/nbsp-cleaner", "destination": "/tools/nbsp-cleaner", "permanent": true },
-    { "source": "/nbsp-cleaner.html", "destination": "/tools/nbsp-cleaner", "permanent": true },
-    { "source": "/project-starfall", "destination": "/games/project-starfall", "permanent": true },
-    { "source": "/project-starfall.html", "destination": "/games/project-starfall", "permanent": true },
-    { "source": "/tools/:tool.html", "destination": "/tools/:tool", "permanent": true },
-    { "source": "/games/:game.html", "destination": "/games/:game", "permanent": true },
-    { "source": "/:slug.html", "destination": "/:slug", "permanent": true },
-    { "source": "/tools/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true },
-    { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
-    { "source": "/projects", "destination": "/portfolio", "permanent": true },
-    { "source": "/projects/:project.html", "destination": "/portfolio/:project", "permanent": true },
-    { "source": "/projects/:project", "destination": "/portfolio/:project", "permanent": true },
-    { "source": "/pages/:path*", "destination": "/:path*", "permanent": true },
-    { "source": "/dist/ai-pages/:path*", "destination": "/ai/:path*", "permanent": true },
-    { "source": "/destination-analytics", "destination": "/tourism", "permanent": true },
-    { "source": "/destination-analytics.html", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/destination-analytics", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/destination-analytics.html", "destination": "/tourism", "permanent": true },
-    { "source": "/contributions", "destination": "/tourism", "permanent": true },
-    { "source": "/contributions.html", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/contributions", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/contributions.html", "destination": "/tourism", "permanent": true }
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "danielshort.me"
+        }
+      ],
+      "destination": "https://www.danielshort.me/",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "dshort.me"
+        }
+      ],
+      "destination": "https://www.danielshort.me/",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.dshort.me"
+        }
+      ],
+      "destination": "https://www.danielshort.me/",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "danielshort.me"
+        }
+      ],
+      "destination": "https://www.danielshort.me/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "professional"
+        }
+      ],
+      "destination": "/analytics",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "work"
+        }
+      ],
+      "destination": "/analytics",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "career"
+        }
+      ],
+      "destination": "/analytics",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "analytics"
+        }
+      ],
+      "destination": "/analytics",
+      "permanent": false
+    },
+    {
+      "source": "/resume",
+      "destination": "/resume-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/resume.html",
+      "destination": "/resume-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/resume-pdf",
+      "destination": "/resume-analytics-pdf",
+      "permanent": true
+    },
+    {
+      "source": "/resume-pdf.html",
+      "destination": "/resume-analytics-pdf",
+      "permanent": true
+    },
+    {
+      "source": "/documents/Resume.pdf",
+      "destination": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio/:project.html",
+      "destination": "/portfolio/:project",
+      "permanent": true
+    },
+    {
+      "source": "/tools/whisper-transcribe-monitor",
+      "destination": "/tools/transcribe",
+      "permanent": true
+    },
+    {
+      "source": "/tools/whisper-transcribe-monitor.html",
+      "destination": "/tools/transcribe",
+      "permanent": true
+    },
+    {
+      "source": "/demos/stellar-dogfight-demo",
+      "destination": "/games/stellar-dogfight",
+      "permanent": true
+    },
+    {
+      "source": "/demos/stellar-dogfight-demo.html",
+      "destination": "/games/stellar-dogfight",
+      "permanent": true
+    },
+    {
+      "source": "/demos/roulette-double-zero-demo",
+      "destination": "/games/roulette",
+      "permanent": true
+    },
+    {
+      "source": "/demos/roulette-double-zero-demo.html",
+      "destination": "/games/roulette",
+      "permanent": true
+    },
+    {
+      "source": "/probability-engine",
+      "destination": "/games/probability-engine",
+      "permanent": true
+    },
+    {
+      "source": "/probability-engine.html",
+      "destination": "/games/probability-engine",
+      "permanent": true
+    },
+    {
+      "source": "/word-frequency",
+      "destination": "/tools/word-frequency",
+      "permanent": true
+    },
+    {
+      "source": "/word-frequency.html",
+      "destination": "/tools/word-frequency",
+      "permanent": true
+    },
+    {
+      "source": "/short-links",
+      "destination": "/tools/short-links",
+      "permanent": true
+    },
+    {
+      "source": "/short-links.html",
+      "destination": "/tools/short-links",
+      "permanent": true
+    },
+    {
+      "source": "/oxford-comma-checker",
+      "destination": "/tools/oxford-comma-checker",
+      "permanent": true
+    },
+    {
+      "source": "/oxford-comma-checker.html",
+      "destination": "/tools/oxford-comma-checker",
+      "permanent": true
+    },
+    {
+      "source": "/nbsp-cleaner",
+      "destination": "/tools/nbsp-cleaner",
+      "permanent": true
+    },
+    {
+      "source": "/nbsp-cleaner.html",
+      "destination": "/tools/nbsp-cleaner",
+      "permanent": true
+    },
+    {
+      "source": "/project-starfall",
+      "destination": "/games/project-starfall",
+      "permanent": true
+    },
+    {
+      "source": "/project-starfall.html",
+      "destination": "/games/project-starfall",
+      "permanent": true
+    },
+    {
+      "source": "/tools/:tool.html",
+      "destination": "/tools/:tool",
+      "permanent": true
+    },
+    {
+      "source": "/games/:game.html",
+      "destination": "/games/:game",
+      "permanent": true
+    },
+    {
+      "source": "/:slug.html",
+      "destination": "/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/tools/ocean-wave-simulation",
+      "destination": "/games/ocean-wave-simulation",
+      "permanent": true
+    },
+    {
+      "source": "/tools/ocean-wave-simulation.html",
+      "destination": "/games/ocean-wave-simulation",
+      "permanent": true
+    },
+    {
+      "source": "/projects",
+      "destination": "/portfolio",
+      "permanent": true
+    },
+    {
+      "source": "/projects/:project.html",
+      "destination": "/portfolio/:project",
+      "permanent": true
+    },
+    {
+      "source": "/projects/:project",
+      "destination": "/portfolio/:project",
+      "permanent": true
+    },
+    {
+      "source": "/pages/:path*",
+      "destination": "/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/dist/ai-pages/:path*",
+      "destination": "/ai/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/destination-analytics",
+      "destination": "/tourism",
+      "permanent": true
+    },
+    {
+      "source": "/destination-analytics.html",
+      "destination": "/tourism",
+      "permanent": true
+    },
+    {
+      "source": "/pages/destination-analytics",
+      "destination": "/tourism",
+      "permanent": true
+    },
+    {
+      "source": "/pages/destination-analytics.html",
+      "destination": "/tourism",
+      "permanent": true
+    },
+    {
+      "source": "/contributions",
+      "destination": "/tourism",
+      "permanent": true
+    },
+    {
+      "source": "/contributions.html",
+      "destination": "/tourism",
+      "permanent": true
+    },
+    {
+      "source": "/pages/contributions",
+      "destination": "/tourism",
+      "permanent": true
+    },
+    {
+      "source": "/pages/contributions.html",
+      "destination": "/tourism",
+      "permanent": true
+    }
   ],
   "headers": [
     {
       "source": "/app-updates/:channel/latest.json",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/app-content/v1/catalog.json",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "mode" }
+        {
+          "type": "query",
+          "key": "mode"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "mode" }
+        {
+          "type": "query",
+          "key": "mode"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "audience" }
+        {
+          "type": "query",
+          "key": "audience"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "audience" }
+        {
+          "type": "query",
+          "key": "audience"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "mode", "value": "professional" }
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "professional"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "mode", "value": "professional" }
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "professional"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "mode", "value": "work" }
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "work"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "mode", "value": "work" }
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "work"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "mode", "value": "career" }
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "career"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "mode", "value": "career" }
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "career"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "mode", "value": "analytics" }
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "analytics"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "mode", "value": "analytics" }
+        {
+          "type": "query",
+          "key": "mode",
+          "value": "analytics"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "audience", "value": "analytics" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "audience", "value": "analytics" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "analytics"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "audience", "value": "data-science" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "audience", "value": "data-science" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data-science"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "audience", "value": "tourism" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "audience", "value": "tourism" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "audience", "value": "datascience" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "datascience"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "audience", "value": "datascience" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "datascience"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "audience", "value": "data_science" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data_science"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "audience", "value": "data_science" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "data_science"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "query", "key": "audience", "value": "tourism-analytics" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism-analytics"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/",
       "has": [
-        { "type": "query", "key": "audience", "value": "tourism-analytics" }
+        {
+          "type": "query",
+          "key": "audience",
+          "value": "tourism-analytics"
+        }
       ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/job-application-copilot",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
       ]
     },
     {
       "source": "/job-application-copilot.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
       ]
     },
     {
       "source": "/job-application-copilot/privacy",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
       ]
     },
     {
       "source": "/job-application-copilot/privacy.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
       ]
     },
     {
       "source": "/analytics",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/analytics.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/data-science",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/data-science.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tourism",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tourism.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-pdf",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-pdf.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-analytics",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-analytics.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-analytics-pdf",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-analytics-pdf.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-data-science",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-data-science.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-data-science-pdf",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-data-science-pdf.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-tourism",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-tourism.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-tourism-pdf",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/resume-tourism-pdf.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/documents/Resume.pdf",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/documents/Resume-Analytics.pdf",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/documents/Resume-Data-Science.pdf",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/documents/Resume-Tourism.pdf",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/img/resume-previews/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noimageindex" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noimageindex"
+        }
       ]
     },
     {
       "source": "/js/common/audience-config.js",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/js/common/site-realm.js",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/js/admin/short-links.js",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/dist/site-shell(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/pages/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
       ]
     },
     {
       "source": "/ai/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
       ]
     },
     {
       "source": "/dist/ai-pages/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
       ]
     },
     {
       "source": "/admin",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/admin/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/destination-analytics",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/destination-analytics.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/contributions",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/contributions.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/sitemap-pretty",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
       ]
     },
     {
       "source": "/sitemap-pretty.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
       ]
     },
     {
       "source": "/short-links",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/short-links.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/short-links",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/short-links.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/dashboard",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/dashboard.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/campaign-creative-tracker",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/campaign-creative-tracker.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/ga4-utm-performance",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/ga4-utm-performance.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/tools/transcribe",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store, max-age=0" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "no-referrer" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: http://127.0.0.1:8765 http://localhost:8765 https://daniel-pc.tail9686c5.ts.net https://daniel-pc.tail9686c5.ts.net:8443 https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: http://127.0.0.1:8765 http://localhost:8765 https://daniel-pc.tail9686c5.ts.net https://daniel-pc.tail9686c5.ts.net:8443 https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com"
         }
       ]
     },
     {
       "source": "/tools/transcribe.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store, max-age=0" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "no-referrer" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: http://127.0.0.1:8765 http://localhost:8765 https://daniel-pc.tail9686c5.ts.net https://daniel-pc.tail9686c5.ts.net:8443 https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: http://127.0.0.1:8765 http://localhost:8765 https://daniel-pc.tail9686c5.ts.net https://daniel-pc.tail9686c5.ts.net:8443 https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com"
         }
       ]
     },
     {
       "source": "/tools/job-application-tracker",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store, max-age=0" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "no-referrer" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com"
         }
       ]
     },
     {
       "source": "/tools/job-application-tracker.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store, max-age=0" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "no-referrer" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com"
         }
       ]
     },
     {
       "source": "/pages/job-application-tracker",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store, max-age=0" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "no-referrer" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com"
         }
       ]
     },
     {
       "source": "/pages/job-application-tracker.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store, max-age=0" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "no-referrer" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com"
         }
       ]
     },
     {
       "source": "/tools/background-remover",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com"
         }
       ]
     },
     {
       "source": "/tools/background-remover.html",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com"
         }
       ]
     },
     {
       "source": "/pages/background-remover",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com"
         }
       ]
     },
     {
       "source": "/pages/background-remover.html",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com"
         }
       ]
     },
     {
-      "source": "/:path((?!tools/background-remover$|tools/background-remover\\.html$|pages/background-remover$|pages/background-remover\\.html$|tools/job-application-tracker$|tools/job-application-tracker\\.html$|pages/job-application-tracker$|pages/job-application-tracker\\.html$|tools/transcribe$|tools/transcribe\\.html$).*)",
+      "source": "/:path((?!tools/background-remover$|tools/background-remover\\.html$|pages/background-remover$|pages/background-remover\\.html$|tools/job-application-tracker$|tools/job-application-tracker\\.html$|pages/job-application-tracker$|pages/job-application-tracker\\.html$|tools/transcribe$|tools/transcribe\\.html$|admin$|admin/|demos/).*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com https://k8bys9gicf.execute-api.us-east-2.amazonaws.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://4kvebym8b3.execute-api.us-east-2.amazonaws.com https://public.tableau.com; frame-src 'self' https://www.googletagmanager.com https://public.tableau.com https://docs.google.com https://www.google.com https://challenges.cloudflare.com"
+        }
+      ]
+    },
+    {
+      "source": "/img/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000"
+        }
+      ]
+    },
+    {
+      "source": "/dist/:file([a-z0-9-]+\\.[0-9a-f]{8}\\.(?:css|js))",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/dist/:file([a-z0-9-]+\\.(?:css|js))",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/css/privacy.css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/js/tools/:file(utm-batch-builder(?:\\.worker)?\\.js)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/dist/:file(.*\\.json)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, stale-while-revalidate=60"
+        }
+      ]
+    },
+    {
+      "source": "/admin/:path*",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com https://k8bys9gicf.execute-api.us-east-2.amazonaws.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://4kvebym8b3.execute-api.us-east-2.amazonaws.com https://public.tableau.com; frame-src 'self' https://www.googletagmanager.com https://public.tableau.com https://docs.google.com https://www.google.com https://challenges.cloudflare.com;"
@@ -1006,39 +2735,28 @@
       ]
     },
     {
-      "source": "/img/(.*)",
+      "source": "/demos/:path*",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=2592000" }
-      ]
-    },
-    {
-      "source": "/dist/:file([a-z0-9-]+\\.[0-9a-f]{8}\\.(?:css|js))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/dist/:file([a-z0-9-]+\\.(?:css|js))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/css/privacy.css",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/js/tools/:file(utm-batch-builder(?:\\.worker)?\\.js)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/dist/:file(.*\\.json)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=60" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(self), display-capture=(self), geolocation=(), microphone=(self), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com 'sha256-/t2f9HHXj9MDUIK2zsLXETGwCohltnNhvIeY54oMC8A=' 'sha256-188J2Ai6/WeF7jnLyXuqMEtXmB4S3DVYIOIQD/A2/xo=' 'sha256-2K6kBvwxs9Lo+B1kAkaXtKPoWpemIEMcqfbwvG5qOkk=' 'sha256-7ASGpWo6wxNdUb3VuDlyLhxtCZ5J99cF+QvHdhqZWTA=' 'sha256-7oEd6PS/eRvoBvPItXnL/nvQ6M6xNtrwfmbshh3V51U=' 'sha256-A8yemPPnTKEzOj6zTpT4V7MPclIeHQR5Fq0Ln/mv8Bo=' 'sha256-D2RRPfthrSTvXSpW87/AQ2egtqoulRjzXoUIPSaLTYM=' 'sha256-FgqfyuHgAPb8q1Nl1cGRaqh2oEHIPUWY7FhXzDN90mw=' 'sha256-Ft+ndyDTrS+v2QdpH7MaTvmBzZDD3gV7Rh9oYflaZjA=' 'sha256-Hnhi9S3srnb5QNaGbgWgJDZW0l3TrkUeaJC7jaXjZDY=' 'sha256-MyZOihK3W5awdGSZEIn0p3KG1Q0uBs9i256Fl90TXnE=' 'sha256-TBMPcRnnWL5JRcf7X72gNs/8zz6wdGTIXRef0dHFJhg=' 'sha256-TmCcrDcpbmCJ1pUxiHB7nbUSKZxH156/f86qa7QJXTg=' 'sha256-Tnwxh2cmVdrR4/BQGMiSjXAhG5WZq/1qbWD9XishCjk=' 'sha256-UVJhFAq66SEnWQKfxkuhyhb99z/iWd69qazleS7t3Ns=' 'sha256-VWX4BK3d5mbF1tDCLG3MhvZKjXewFbt+nuANY24lBM8=' 'sha256-a0Inj0ZWOWkOHyApzMGhVatzMSDjSPz+8RMOuNtHuy0=' 'sha256-cIjTK1oFvJq2RZQx8brMze9AEhaueaGTdeGOEDun0fE=' 'sha256-fO6gPMPv/QF66gEDm+cMkofQYm5TpiDh4cVJcyVlIp0=' 'sha256-i2YTQ1JduxtWPoU3I0IhFgYHQbEZuJ8YEBN8Atxy1dc=' 'sha256-jD+vfs9+5/YapyvVvUdiNQ5cRsln/8QWeEiHCmFnVH4=' 'sha256-jkeyHgAAbPzK/6JcHu9hm9w5MQE9cX7FtnihXj2rins=' 'sha256-lyN8cs7r+OIn2WZiG4tMZBAyqwSybZ76leWEqE+Azh8=' 'sha256-nj8cUsazOypOpf9LyECshq1XXrkiBfLPG4Oz4qpEX1c=' 'sha256-pWoSc1C9ovFJjnnhE+5wdbYCnnWSgnLAeG3MfMFK0Q0=' 'sha256-s/7oI3e7J9LPPIhWoP54UQ3RAMMcI+00IfaBvALp2BE=' 'sha256-t90SzyPW3Lv9snS41ST/3Q1nkuN98Naog7IjbO9BhFU=' 'sha256-u/1kcadSgNm7lbsJO8J7HCxGqsDtbfFm0B/M76ebw68=' 'sha256-udDsVOxAH1jRWBivNOghWW4Ur4N+pwZoQ1EhsZ9z110=' 'sha256-w4b9vkro4CbLrOvyBy4WzCGQOB6yOqneJyDCtI2N3rM=' 'sha256-xkmxFU0ZdrWhsOXukmApMgzsVzYNCTegs/544qPpZLk='; script-src-elem 'self' blob: 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com 'sha256-/t2f9HHXj9MDUIK2zsLXETGwCohltnNhvIeY54oMC8A=' 'sha256-188J2Ai6/WeF7jnLyXuqMEtXmB4S3DVYIOIQD/A2/xo=' 'sha256-2K6kBvwxs9Lo+B1kAkaXtKPoWpemIEMcqfbwvG5qOkk=' 'sha256-7ASGpWo6wxNdUb3VuDlyLhxtCZ5J99cF+QvHdhqZWTA=' 'sha256-7oEd6PS/eRvoBvPItXnL/nvQ6M6xNtrwfmbshh3V51U=' 'sha256-A8yemPPnTKEzOj6zTpT4V7MPclIeHQR5Fq0Ln/mv8Bo=' 'sha256-D2RRPfthrSTvXSpW87/AQ2egtqoulRjzXoUIPSaLTYM=' 'sha256-FgqfyuHgAPb8q1Nl1cGRaqh2oEHIPUWY7FhXzDN90mw=' 'sha256-Ft+ndyDTrS+v2QdpH7MaTvmBzZDD3gV7Rh9oYflaZjA=' 'sha256-Hnhi9S3srnb5QNaGbgWgJDZW0l3TrkUeaJC7jaXjZDY=' 'sha256-MyZOihK3W5awdGSZEIn0p3KG1Q0uBs9i256Fl90TXnE=' 'sha256-TBMPcRnnWL5JRcf7X72gNs/8zz6wdGTIXRef0dHFJhg=' 'sha256-TmCcrDcpbmCJ1pUxiHB7nbUSKZxH156/f86qa7QJXTg=' 'sha256-Tnwxh2cmVdrR4/BQGMiSjXAhG5WZq/1qbWD9XishCjk=' 'sha256-UVJhFAq66SEnWQKfxkuhyhb99z/iWd69qazleS7t3Ns=' 'sha256-VWX4BK3d5mbF1tDCLG3MhvZKjXewFbt+nuANY24lBM8=' 'sha256-a0Inj0ZWOWkOHyApzMGhVatzMSDjSPz+8RMOuNtHuy0=' 'sha256-cIjTK1oFvJq2RZQx8brMze9AEhaueaGTdeGOEDun0fE=' 'sha256-fO6gPMPv/QF66gEDm+cMkofQYm5TpiDh4cVJcyVlIp0=' 'sha256-i2YTQ1JduxtWPoU3I0IhFgYHQbEZuJ8YEBN8Atxy1dc=' 'sha256-jD+vfs9+5/YapyvVvUdiNQ5cRsln/8QWeEiHCmFnVH4=' 'sha256-jkeyHgAAbPzK/6JcHu9hm9w5MQE9cX7FtnihXj2rins=' 'sha256-lyN8cs7r+OIn2WZiG4tMZBAyqwSybZ76leWEqE+Azh8=' 'sha256-nj8cUsazOypOpf9LyECshq1XXrkiBfLPG4Oz4qpEX1c=' 'sha256-pWoSc1C9ovFJjnnhE+5wdbYCnnWSgnLAeG3MfMFK0Q0=' 'sha256-s/7oI3e7J9LPPIhWoP54UQ3RAMMcI+00IfaBvALp2BE=' 'sha256-t90SzyPW3Lv9snS41ST/3Q1nkuN98Naog7IjbO9BhFU=' 'sha256-u/1kcadSgNm7lbsJO8J7HCxGqsDtbfFm0B/M76ebw68=' 'sha256-udDsVOxAH1jRWBivNOghWW4Ur4N+pwZoQ1EhsZ9z110=' 'sha256-w4b9vkro4CbLrOvyBy4WzCGQOB6yOqneJyDCtI2N3rM=' 'sha256-xkmxFU0ZdrWhsOXukmApMgzsVzYNCTegs/544qPpZLk='; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com https://k8bys9gicf.execute-api.us-east-2.amazonaws.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://4kvebym8b3.execute-api.us-east-2.amazonaws.com https://public.tableau.com; frame-src 'self' https://www.googletagmanager.com https://public.tableau.com https://docs.google.com https://www.google.com https://challenges.cloudflare.com"
+        }
       ]
     }
   ]

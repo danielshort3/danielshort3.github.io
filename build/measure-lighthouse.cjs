@@ -6,6 +6,7 @@ const http = require('node:http');
 const { gzipSync } = require('node:zlib');
 const { chromium } = require('playwright');
 const { createLocalServer } = require('./dev');
+const { ABSOLUTE, assertBudgets } = require('./lighthouse-budgets.cjs');
 
 async function main() {
   const { default: lighthouse } = await import('lighthouse');
@@ -65,7 +66,7 @@ async function main() {
       }
       results.push({ route, runs, median: Object.fromEntries(Object.keys(runs[0]).map(key => [key, median(runs.map(run => run[key]))])) });
     }
-    const report = { generatedAt: new Date().toISOString(), lighthouse: require('lighthouse/package.json').version, browser: await (await fetch(`http://localhost:${chrome.port}/json/version`)).json(), note: 'Three mobile lab runs; TBT is not real-user INP. External services blocked; no cloud inference or contact submissions.', results };
+    const report = { absoluteBudgets: ABSOLUTE, generatedAt: new Date().toISOString(), lighthouse: require('lighthouse/package.json').version, browser: await (await fetch(`http://localhost:${chrome.port}/json/version`)).json(), note: 'Three mobile lab runs; TBT is not real-user INP. External services blocked; no cloud inference or contact submissions.', results };
     fs.writeFileSync(path.join(output, 'summary.json'), JSON.stringify(report, null, 2));
     const baselinePath = path.resolve('tests/site/baselines/lighthouse.json');
     if (process.argv.includes('--update-baseline')) {
@@ -75,11 +76,7 @@ async function main() {
       const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
       for (const result of results) {
         const before = baseline.results.find(item => item.route === result.route)?.median;
-        if (!before) throw Error(`Missing reviewed baseline: ${result.route}`);
-        if (result.median.cls > .1) throw Error(`${result.route}: CLS exceeds 0.1`);
-        for (const [key, floor] of [['lcp', 250], ['tbt', 50]]) {
-          if (result.median[key] > before[key] * 1.2 + floor) throw Error(`${result.route}: ${key} regressed beyond baseline tolerance`);
-        }
+        assertBudgets(result, before);
       }
     }
   } finally {

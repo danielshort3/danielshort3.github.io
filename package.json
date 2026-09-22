@@ -84,7 +84,10 @@
     "analyze:starfall:training": "node build/analyze-project-starfall-training.js",
     "test:starfall:map-visuals": "node tests/project-starfall/project-starfall-ramp-scenery.browser.cjs",
     "compare:starfall:training": "node build/compare-project-starfall-training.js",
-    "test:starfall:icons": "node tests/project-starfall/project-starfall-icon-loading.test.js"
+    "test:starfall:icons": "node tests/project-starfall/project-starfall-icon-loading.test.js",
+    "pretest": "npm run test:security",
+    "test:security": "node --test tests/tools/cognito-jwt-rotation.test.js tests/tools/chatbot-request-boundaries.test.js tests/site/production-release-gate.test.cjs tests/site/lighthouse-budgets.test.cjs tests/site/csp-policy.test.cjs",
+    "test:csp:browser": "node tests/site/csp.browser.cjs"
   },
   "engines": {
     "node": "22.x"
@@ -108,7 +111,7 @@
     "playwright": "1.63.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "sharp": "^0.35.3",
+    "sharp": "0.35.4",
     "web-vitals": "6.2.2"
   }
 }
