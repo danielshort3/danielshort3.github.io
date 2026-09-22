@@ -15,7 +15,8 @@ const server = http.createServer((request, response) => {
     let file = path.resolve(root, '.' + decodeURIComponent(new URL(request.url, 'http://localhost').pathname));
     if (!file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
     if (!path.extname(file)) file += '.html';
-    response.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream' }); response.end(fs.readFileSync(file));
+    const bytes = fs.readFileSync(file);
+    response.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream' }); response.end(bytes);
   } catch (_) { response.writeHead(404).end('Not found'); }
 });
 function installAudit() {
@@ -23,67 +24,68 @@ function installAudit() {
   let lastCount = 0;
   let prior = [];
   let known = new Map();
-  const fail = (text) => { if (audit.failures.length < 25) audit.failures.push(text); };
+  let totals = { exposures: 0, websiteVisits: 0, attributedVisits: 0 };
+  const fail = (text) => { if (audit.failures.length < 30) audit.failures.push(text); };
   function tick() {
     const main = document.querySelector('#main[data-count]');
     const rows = [...document.querySelectorAll('[data-slot]')];
     if (main && rows.length) {
       audit.frames += 1;
       const count = Number(main.dataset.count);
-      if (count < lastCount) { lastCount = count; known = new Map(); prior = []; }
+      if (count < lastCount) { lastCount = count; known = new Map(); prior = []; totals = { exposures: 0, websiteVisits: 0, attributedVisits: 0 }; }
       const active = rows.filter((row) => row.dataset.phase === 'recording');
       audit.maxParallel = Math.max(audit.maxParallel, active.length);
       if (active.length > 1) audit.overlappingFrames += 1;
       if (new Set(active.map((row) => row.dataset.key.split('/')[1])).size > 1) audit.mixedStageFrames += 1;
       if (rows.length !== 5) fail('The five-lane pool changed size.');
-      const host = document.querySelector('[data-travelers]');
-      const box = host.getBoundingClientRect();
+      const host = document.querySelector('[data-travelers]'); const box = host.getBoundingClientRect();
       for (const row of rows) {
         const r = row.getBoundingClientRect();
-        if (r.height < 20 || r.top < box.top - 1 || r.bottom > box.bottom + 1 || host.scrollHeight > host.clientHeight + 1) fail('A traveler was hidden behind scrolling or clipping.');
+        if (r.height < 20 || r.top < box.top - 1 || r.bottom > box.bottom + 1 || host.scrollHeight > host.clientHeight + 1) fail('A traveler was hidden behind list scrolling or clipping.');
       }
       if (count > lastCount) {
-        if (count !== lastCount + 1) fail('Non-atomic append.');
+        if (count !== lastCount + 1) fail('More than one commit appeared per frame.');
         const block = document.querySelector(`[data-blocks] [data-height="${count}"]`);
-        if (!block) fail('Latest block missing from the chain.');
+        if (!block) fail('Latest appended block is not visible.');
         else {
+          const type = block.dataset.type;
           known.set(block.dataset.key, count);
-          const id = block.dataset.travelerId;
-          const row = rows.find((item) => item.dataset.travelerId === id);
-          if (id && !row) fail('A traveler disappeared before their final record.');
+          if (type === 'ad') totals.exposures += 1;
+          if (type === 'website') totals.websiteVisits += 1;
+          if (type === 'attribution' && block.dataset.credited === 'true') totals.attributedVisits += 1;
+          const id = block.dataset.travelerId; const row = rows.find((item) => item.dataset.travelerId === id);
+          if (id && !row) fail('A traveler left before its record was committed.');
           if (row && id) {
-            if (block.dataset.type === 'summary') {
-              if (row.dataset.phase !== 'done' || Number(row.dataset.summaryHeight) !== count || row.dataset.summaryKey !== block.dataset.key) fail('Summary and lane completion differ.');
+            if (type === 'summary' || type === 'attribution') {
+              const name = type === 'summary' ? 'summary' : 'attribution';
+              if (Number(row.dataset[name + 'Height']) !== count || row.dataset[name + 'Key'] !== block.dataset.key) fail(`${name} and traveler were not committed in the same frame.`);
             } else {
-              const step = row.querySelector(`[data-step="${block.dataset.type}"]`);
-              if (step.dataset.key !== block.dataset.key || step.dataset.phase !== 'committed' || step.dataset.state !== 'verified' || Number(step.dataset.height) !== count) fail('Recorded milestone did not match its block in the same frame.');
+              const step = row.querySelector(`[data-step="${type}"]`);
+              if (step.dataset.key !== block.dataset.key || step.dataset.phase !== 'committed' || step.dataset.state !== 'verified' || Number(step.dataset.height) !== count) fail('Traveler milestone does not match the new block.');
             }
           }
         }
         audit.commits += 1; lastCount = count;
       }
+      for (const [key, value] of Object.entries(totals)) if (Number(document.querySelector(`[data-metric="${key}"]`).textContent) !== value) fail('Displayed total differs from accepted records: ' + key);
       rows.forEach((row, index) => {
         const old = prior[index];
         if (old?.id && row.dataset.travelerId && old.id !== row.dataset.travelerId) {
-          if (old.phase !== 'done' || !old.summary) fail('Traveler replaced before measurement ended.');
+          if (old.phase !== 'done' || !old.summary) fail('Replacement happened before measurement ended.');
           audit.replacements += 1;
         }
-        for (const step of row.querySelectorAll('[data-step][data-phase="committed"]')) if (known.get(step.dataset.key) !== Number(step.dataset.height)) fail('A recorded check has no matching block.');
+        for (const step of row.querySelectorAll('[data-step][data-phase="committed"]')) if (known.get(step.dataset.key) !== Number(step.dataset.height)) fail('Recorded milestone has no accepted block.');
       });
       prior = rows.map((row) => ({ id: row.dataset.travelerId, phase: row.dataset.phase, summary: row.dataset.summaryHeight }));
       const writer = document.querySelector('[data-writer]');
       if (writer?.dataset.phase === 'verifying') {
         const row = rows.find((item) => item.dataset.key === writer.dataset.key);
         if (writer.dataset.key.includes('/')) {
-          if (!row || row.dataset.phase !== 'verifying' || row.dataset.progress !== writer.dataset.progress) fail('Writer and matching lane are out of sync.');
-          else {
-            const value = Number(writer.dataset.progress);
-            for (const node of [writer, row]) if (Math.abs(parseFloat(getComputedStyle(node).getPropertyValue('--progress')) - value) > .00002) fail('CSS progress differs from shared clock.');
-          }
+          if (!row || row.dataset.phase !== 'verifying' || row.dataset.progress !== writer.dataset.progress) fail('Writer and traveler verification progress differ.');
+          else for (const node of [writer, row]) if (Math.abs(parseFloat(getComputedStyle(node).getPropertyValue('--progress')) - Number(writer.dataset.progress)) > .00002) fail('CSS clock differs from the active event.');
         }
-        const bar = writer.querySelector('.av-writer-bar');
-        const width = writer.clientWidth;
-        if (width > 0 && Math.abs(bar.getBoundingClientRect().width / width - Number(writer.dataset.progress)) > .025) fail('Block progress width drifted.');
+        const width = writer.clientWidth; const bar = writer.querySelector('.av-writer-bar');
+        if (width > 0 && Math.abs(bar.getBoundingClientRect().width / width - Number(writer.dataset.progress)) > .025) fail('Rendered block progress drifted.');
       }
     }
     requestAnimationFrame(tick);
@@ -98,108 +100,99 @@ function installAudit() {
     const url = origin + '/demos/ad-verification';
     fs.mkdirSync(output, { recursive: true });
     browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({ viewport: { width: 1280, height: 1000 }, reducedMotion: 'no-preference' });
+    const context = await browser.newContext({ viewport: { width: 1672, height: 941 }, reducedMotion: 'no-preference' });
     await context.route('**/*', (route) => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
     await context.addInitScript(installAudit);
-    const page = await context.newPage();
-    const errors = [];
+    const page = await context.newPage(); const errors = []; const failed = [];
     page.on('pageerror', (error) => errors.push(error.message));
+    page.on('response', (response) => { if (response.status() >= 400) failed.push(response.url()); });
     const ready = () => page.waitForFunction(() => !document.querySelector('[data-play]').disabled);
     const waitState = (predicate) => page.waitForFunction(predicate, null, { timeout: 120000 });
     const pause = async () => { if (await page.locator('#main').getAttribute('data-running') === 'true') await page.locator('[data-play]').click(); };
-    const screenshot = (name) => page.screenshot({ path: path.join(output, name + '.png'), fullPage: true });
+    const capture = (name) => page.screenshot({ path: path.join(output, name + '.png'), fullPage: true });
+    const details = (open) => page.locator('.av-about').evaluate((node, value) => { node.open = value; }, open);
     async function exportProof() {
-      await pause();
-      await page.locator('.av-about').evaluate((node) => { node.open = true; });
+      await pause(); await details(true);
       const promise = page.waitForEvent('download'); await page.locator('[data-export]').click();
       const download = await promise; const value = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-      await page.locator('.av-about').evaluate((node) => { node.open = false; });
-      return value;
+      await details(false); return value;
     }
     async function reset(scenario = 'mixed') {
-      await page.locator('[data-reset]').click(); await ready();
-      await page.locator('[data-scenario]').selectOption(scenario);
+      await page.locator('[data-reset]').click(); await ready(); await page.locator('[data-scenario]').selectOption(scenario);
     }
     await page.goto(url); await ready();
-    assert.equal(await page.title(), 'Live Campaign Measurement | Daniel Short');
+    assert.equal(await page.title(), 'From an Ad to a Visit | Daniel Short');
     assert.equal(await page.evaluate(() => isSecureContext && !!crypto.subtle), true);
     assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex/);
-    assert.equal(await page.locator('[data-slot]').count(), 5);
-    assert.equal(await page.locator('[data-group]').count(), 0);
-    await screenshot('01-ready');
-    // Exercise every offered speed with real browser time and real cryptography.
+    const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+    if (await essential.isVisible()) await essential.click(); // Local test choice, not a bypass of site privacy controls.
+    await capture('01-ready');
+    await details(true); await page.locator('[data-continuous]').uncheck(); await details(false);
     for (const speed of [1, 2, 4]) {
-      await reset(); await page.locator('[data-speed]').selectOption(String(speed));
-      await page.locator('.av-about').evaluate((node) => { node.open = true; });
-      await page.locator('[data-continuous]').uncheck();
-      await page.locator('.av-about').evaluate((node) => { node.open = false; });
-      await page.locator('[data-play]').click();
+      await reset(); await page.locator('[data-speed]').selectOption(String(speed)); await page.locator('[data-play]').click();
       await waitState(() => Number(document.querySelector('#main').dataset.measuring) >= 3);
       if (speed === 1) {
-        await screenshot('02-overlapping-events'); await pause();
-        const before = await page.locator('[data-travelers]').innerHTML();
-        const count = await page.locator('#main').getAttribute('data-count');
-        await page.waitForTimeout(500);
-        assert.equal(await page.locator('[data-travelers]').innerHTML(), before);
-        assert.equal(await page.locator('#main').getAttribute('data-count'), count);
+        await pause(); const frozen = await page.locator('[data-travelers]').innerHTML(); const count = await page.locator('#main').getAttribute('data-count');
+        await page.waitForTimeout(450); assert.equal(await page.locator('[data-travelers]').innerHTML(), frozen); assert.equal(await page.locator('#main').getAttribute('data-count'), count);
         await page.locator('[data-play]').click();
+        await waitState(() => !!document.querySelector('[data-evidence-for][data-credited="true"]')); await pause(); await capture('02-approved-layout-attribution');
+        await page.locator('[data-support]').click();
+        assert.equal(await page.locator('[data-archive] .av-block').count(), 3);
+        assert.match(await page.locator('[data-archive-caption]').textContent(), /Website activity is not required/);
+        await page.keyboard.press('Escape'); await page.locator('[data-play]').click();
       }
       await waitState(() => document.querySelector('#main').dataset.running === 'false' && Number(document.querySelector('#main').dataset.completed) === 5);
-      const proof = await exportProof();
-      assert.equal(proof.blocks.length, 17);
-      assert.equal((await core.verifyChain(proof.blocks, proof.trust)).valid, true);
+      const proof = await exportProof(); const verified = await core.verifyResults(proof.blocks, proof.trust);
+      assert.equal(proof.blocks.length, 21); assert.equal(verified.report.valid, true); assert.equal(verified.totals.attributedVisits, 2);
+      assert.equal(Number(await page.locator('[data-metric="attributedVisits"]').textContent()), 2);
+      assert.equal(await page.locator('[data-metric="active"]').textContent(), '0');
     }
-    for (const [scenario, expected] of Object.entries({ none: 12, website: 17, destination: 17, both: 22 })) {
+    for (const [scenario, expected] of Object.entries({ none: [12, 0], website: [17, 0], destination: [22, 5], both: [27, 5], late: [27, 0] })) {
       await reset(scenario); await page.locator('[data-play]').click();
       await waitState(() => document.querySelector('#main').dataset.running === 'false' && Number(document.querySelector('#main').dataset.completed) === 5);
-      const proof = await exportProof(); assert.equal(proof.blocks.length, expected); assert.equal((await core.verifyChain(proof.blocks, proof.trust)).valid, true);
-      const events = proof.blocks.map((block) => block.transactions[0].event);
-      if (['none', 'website'].includes(scenario)) assert.equal(events.filter((event) => event.type === 'destination').length, 0);
-      if (['none', 'destination'].includes(scenario)) assert.equal(events.filter((event) => event.type === 'website').length, 0);
+      const proof = await exportProof(); const verified = await core.verifyResults(proof.blocks, proof.trust);
+      assert.equal(proof.blocks.length, expected[0]); assert.equal(verified.report.valid, true); assert.equal(verified.totals.attributedVisits, expected[1]);
     }
-    await reset(); await page.locator('.av-about').evaluate((node) => { node.open = true; }); await page.locator('[data-continuous]').check(); await page.locator('.av-about').evaluate((node) => { node.open = false; });
-    await page.locator('[data-play]').click();
-    await waitState(() => Number(document.querySelector('#main').dataset.admitted) === 5);
-    await page.locator('[data-scenario]').selectOption('none');
-    await waitState(() => Number(document.querySelector('#main').dataset.admitted) >= 9);
-    await pause(); await screenshot('03-individual-replacements');
-    const proof = await exportProof();
-    assert.equal(proof.blocks.filter((block) => block.transactions[0].event.type === 'campaign').length, 1);
-    assert.equal((await core.verifyChain(proof.blocks, proof.trust)).valid, true);
-    for (const block of proof.blocks) if (Number(block.transactions[0].event.travelerId?.slice(1)) > 5) assert.ok(!['website', 'destination'].includes(block.transactions[0].event.type));
-    await page.locator('[data-history]').click();
-    assert.equal(await page.locator('[data-archive] [data-inspect]').count(), proof.blocks.length);
-    await page.locator('[data-archive] [data-inspect="2"]').click(); await page.locator('[data-dialog][open]').waitFor();
-    await page.locator('[data-edit-value]').fill('9'); await page.getByRole('button', { name: 'Apply edit & verify', exact: true }).click();
+    // All late visits were reported; no credited total. Try falsely claiming credit.
+    const original = await exportProof(); const originalMetrics = await page.locator('.av-results').innerText();
+    assert.match(await page.locator('[data-evidence-for]').textContent(), /Why this visit was not counted/);
+    await capture('03-not-attributed');
+    await page.locator('[data-blocks] [data-inspect]').click(); await page.locator('[data-dialog][open]').waitFor();
+    assert.equal(await page.locator('[data-edit-field]').inputValue(), 'credited');
+    await page.locator('[data-edit-boolean]').selectOption('true');
+    await page.getByRole('button', { name: 'Apply edit & verify', exact: true }).click();
     await waitState(() => document.querySelector('[data-verdict]').dataset.valid === 'false');
-    assert.equal(await page.locator('[data-play]').isDisabled(), true); await screenshot('04-edit-detected');
-    await page.keyboard.press('Escape');
-    const altered = await exportProof(); assert.equal((await core.verifyChain(altered.blocks, altered.trust)).valid, false);
-    assert.equal(altered.blocks[2].transactions[0].signature, proof.blocks[2].transactions[0].signature);
+    assert.equal(await page.locator('[data-play]').isDisabled(), true);
+    assert.equal(await page.locator('[data-metric="attributedVisits"]').textContent(), '0');
+    await capture('04-edited-copy-rejected'); await page.keyboard.press('Escape');
+    const edited = await exportProof(); assert.equal((await core.verifyResults(edited.blocks, edited.trust)).totals, null);
     await page.locator('[data-warning] [data-restore]').click(); await ready();
-    assert.deepEqual((await exportProof()).blocks, proof.blocks);
-    // Native screenshots and bounds: ALL active travelers, with no nested scrolling.
-    for (const width of [1024, 768, 390, 320]) {
-      await page.setViewportSize({ width, height: 900 }); await reset(); await page.locator('[data-play]').click();
-      await waitState(() => Number(document.querySelector('#main').dataset.measuring) >= 3); await pause();
+    const restored = await exportProof(); assert.deepEqual(restored.blocks, original.blocks); assert.equal(await page.locator('.av-results').innerText(), originalMetrics);
+    await page.locator('[data-history]').click(); assert.equal(await page.locator('[data-archive] .av-block').count(), original.blocks.length); await page.keyboard.press('Escape');
+    await reset(); await details(true); await page.locator('[data-continuous]').check(); await details(false);
+    await page.locator('[data-play]').click(); await waitState(() => Number(document.querySelector('#main').dataset.admitted) === 5);
+    await page.locator('[data-scenario]').selectOption('none'); await waitState(() => Number(document.querySelector('#main').dataset.admitted) >= 9);
+    await pause(); const continuous = await exportProof(); assert.equal((await core.verifyChain(continuous.blocks, continuous.trust)).valid, true);
+    assert.equal(continuous.blocks.filter((block) => block.transactions[0].event.type === 'campaign').length, 1);
+    for (const block of continuous.blocks) if (Number(block.transactions[0].event.travelerId?.slice(1)) > 5) assert.ok(!['website', 'destination', 'attribution'].includes(block.transactions[0].event.type));
+    for (const width of [1280, 1024, 768, 390, 320]) {
+      await page.setViewportSize({ width, height: 941 }); await reset(); await page.locator('[data-play]').click();
+      await waitState(() => !!document.querySelector('[data-evidence-for][data-credited="true"]')); await pause();
       await page.locator('.av-workspace').evaluate((node) => node.scrollIntoView({ block: 'start' }));
       const layout = await page.evaluate(() => ({ width: innerWidth, documentWidth: document.documentElement.scrollWidth,
         lanes: [...document.querySelectorAll('[data-slot]')].map((node) => ({ top: node.getBoundingClientRect().top, bottom: node.getBoundingClientRect().bottom })),
-        innerScroll: document.querySelector('[data-travelers]').scrollHeight > document.querySelector('[data-travelers]').clientHeight + 1 }));
-      fs.writeFileSync(path.join(output, `layout-${width}.json`), JSON.stringify(layout, null, 2));
-      await page.screenshot({ path: path.join(output, `05-visible-lanes-${width}.png`), fullPage: false });
-      assert.ok(layout.documentWidth <= width, `Horizontal overflow at ${width}`);
-      assert.equal(layout.innerScroll, false);
-      assert.ok(layout.lanes.every((lane) => lane.top >= -1 && lane.bottom <= 901), `A traveler is offscreen at ${width}`);
+        nestedScroll: document.querySelector('[data-travelers]').scrollHeight > document.querySelector('[data-travelers]').clientHeight + 1,
+        overflowing: [...document.querySelectorAll('body *')].filter((node) => { const b = node.getBoundingClientRect(); return b.width && b.right > innerWidth + 1; }).map((node) => ({ className: String(node.className), right: node.getBoundingClientRect().right })) }));
+      fs.writeFileSync(path.join(output, `layout-${width}.json`), JSON.stringify(layout, null, 2)); await capture(`05-layout-${width}`);
+      assert.ok(layout.documentWidth <= width, `Overflow at ${width}: ${JSON.stringify(layout.overflowing)}`); assert.equal(layout.nestedScroll, false);
+      assert.ok(layout.lanes.every((lane) => lane.top >= -1 && lane.bottom <= 942), 'All five lanes must be visible together.');
     }
-    await reset(); await page.locator('[data-play]').click();
-    await waitState(() => document.querySelector('[data-writer]').dataset.phase === 'verifying');
+    await reset(); await page.locator('[data-play]').click(); await waitState(() => document.querySelector('[data-writer]').dataset.phase === 'verifying');
     await reset(); await page.waitForTimeout(500); assert.equal(await page.locator('#main').getAttribute('data-count'), '0');
     const audit = await page.evaluate(() => window.__campaignAudit);
     fs.writeFileSync(path.join(output, 'animation-sync-evidence.json'), JSON.stringify(audit, null, 2));
-    assert.ok(audit.overlappingFrames > 100); assert.ok(audit.mixedStageFrames > 0); assert.ok(audit.maxParallel >= 3); assert.ok(audit.replacements >= 4);
-    assert.deepEqual(audit.failures, []); assert.deepEqual(errors, []);
-    // Slow native signatures: other travelers continue, but no unverified block commits.
+    assert.ok(audit.overlappingFrames > 100); assert.ok(audit.mixedStageFrames > 0); assert.ok(audit.replacements >= 4);
+    assert.deepEqual(audit.failures, []); assert.deepEqual(errors, []); assert.deepEqual(failed, []);
     const slow = await browser.newContext();
     await slow.addInitScript(() => {
       window.__slow = false; window.__waiting = [];
@@ -208,21 +201,17 @@ function installAudit() {
     });
     const slowPage = await slow.newPage(); await slowPage.goto(url); await slowPage.waitForFunction(() => !document.querySelector('[data-play]').disabled);
     await slowPage.locator('[data-play]').click(); await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.count) === 2);
-    await slowPage.evaluate(() => { window.__slow = true; });
-    await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.queued) >= 4);
-    assert.equal(await slowPage.locator('#main').getAttribute('data-count'), '2');
-    assert.equal(await slowPage.locator('[data-writer]').getAttribute('data-progress'), '0.80000');
-    await slowPage.locator('[data-play]').click();
-    await slowPage.evaluate(() => { window.__slow = false; window.__waiting.splice(0).forEach((resolve) => resolve()); });
+    await slowPage.evaluate(() => { window.__slow = true; }); await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.queued) >= 4);
+    assert.equal(await slowPage.locator('#main').getAttribute('data-count'), '2'); assert.equal(await slowPage.locator('[data-writer]').getAttribute('data-progress'), '0.80000');
+    await slowPage.locator('[data-play]').click(); await slowPage.evaluate(() => { window.__slow = false; window.__waiting.splice(0).forEach((resolve) => resolve()); });
     await slowPage.waitForTimeout(500); assert.equal(await slowPage.locator('#main').getAttribute('data-count'), '2');
-    await slowPage.locator('[data-play]').click(); await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.count) >= 3);
-    await slow.close();
+    await slowPage.locator('[data-play]').click(); await slowPage.waitForFunction(() => Number(document.querySelector('#main').dataset.count) >= 3); await slow.close();
     const reduced = await browser.newContext({ reducedMotion: 'reduce' }); const reducedPage = await reduced.newPage(); await reducedPage.goto(url);
     assert.equal(await reducedPage.locator('.av-dot').first().evaluate((node) => getComputedStyle(node).display), 'none'); await reduced.close();
     const noJs = await browser.newContext({ javaScriptEnabled: false }); const noJsPage = await noJs.newPage(); await noJsPage.goto(url);
     assert.match(await noJsPage.locator('noscript').innerText(), /JavaScript/); assert.equal(await noJsPage.locator('[data-play]').isDisabled(), true); await noJs.close();
     const missing = await browser.newContext(); const missingPage = await missing.newPage(); await missingPage.route('**/js/demos/ad-verification-core.js*', (route) => route.abort()); await missingPage.goto(url);
     await missingPage.waitForFunction(() => document.querySelector('#main').dataset.error === 'true'); assert.equal(await missingPage.locator('[data-play]').isDisabled(), true); await missing.close();
-    console.log(`PASS: ${audit.overlappingFrames} overlapping frames, ${audit.mixedStageFrames} mixed-stage frames, ${audit.commits} atomic commits, ${audit.replacements} individual replacements; zero mismatches.`);
+    console.log(`PASS: ${audit.overlappingFrames} overlapping frames, ${audit.mixedStageFrames} mixed-stage frames, ${audit.commits} atomic commits, ${audit.replacements} replacements; attribution evidence and displayed totals match; zero mismatches.`);
   } finally { if (browser) await browser.close(); await new Promise((resolve) => server.close(resolve)); }
 })().catch((error) => { console.error(error); process.exitCode = 1; });

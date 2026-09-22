@@ -1,4 +1,4 @@
-/* Parallel traveler clocks, one ordered block writer, one shared animation frame. */
+/* Parallel traveler clocks, one verified block writer, one shared animation frame. */
 (function (root, factory) {
   'use strict';
   if (typeof module === 'object' && module.exports) module.exports = factory(require('./ad-verification-core.js'));
@@ -6,8 +6,8 @@
 })(globalThis, function (core) {
   'use strict';
   const LANES = 5;
-  const SEAL_MS = 520;
-  const HOLD_MS = 1200;
+  const SEAL_MS = 650;
+  const HOLD_MS = 2200;
   function createPlayer(options = {}) {
     const raf = options.requestFrame || requestAnimationFrame;
     const cancel = options.cancelFrame || cancelAnimationFrame;
@@ -51,7 +51,7 @@
     function admit(slot, first = false) {
       if (capacityClosed) return false;
       const plan = core.createTraveler(scenario, admitted + 1);
-      // Reserve every remaining event: the cap cannot strand half-finished travelers.
+      // Reserve closing and attribution records, not just the next observation.
       if (count + reserved + plan.events.length > core.MAX_BLOCKS) { capacityClosed = true; return false; }
       admitted += 1;
       reserved += plan.events.length;
@@ -59,10 +59,11 @@
         nextAt: time + (first ? slot * 410 : 120), beganAt: 0, duration: 0, replaceAt: Infinity };
       return true;
     }
-    const duration = (lane) => lane.events[lane.step].type === 'summary' ? 450 : 1700 + (lane.number * 137 + lane.step * 211) % 950;
+    const duration = (lane) => ['summary', 'attribution'].includes(lane.events[lane.step].type) ? 700 : 2200 + (lane.number * 137 + lane.step * 211) % 950;
     function nextDue(lane) {
       const type = lane.events[lane.step]?.type;
-      if (type === 'summary') return Math.max(time + 650, lane.born + 9400 + (lane.number * 2311) % 9000);
+      if (type === 'attribution') return time + 500;
+      if (type === 'summary') return Math.max(time + 2200, lane.born + 11600 + (lane.number * 2311) % 9000);
       return time + (type === 'destination' ? 1900 + (lane.number * 919) % 3000 : 650 + (lane.number * 367) % 1350);
     }
     function startWriter() {
@@ -134,7 +135,6 @@
           } catch (reason) { fail(reason); return; }
         }
       }
-      // The writer is serial; observation above keeps running in all five lanes.
       if (!writer && queue.length) { startWriter(); changes.push({ type: 'write', key: writer.draft.key }); }
       if (started && admitted >= LANES && !writer && !queue.length && lanes.every((lane) => !lane || lane.phase === 'done') && (!continuous || capacityClosed)) stop();
       emit(block ? 'commit' : 'frame', { changes, block }, Boolean(block));
@@ -144,8 +144,10 @@
       if (!ready || retired || error || running || (capacityClosed && lanes.every((lane) => !lane || lane.phase === 'done'))) return;
       if (!started) {
         started = true; reserved = 2;
-        queue.push({ key: 'campaign', type: 'campaign', travelerId: null, observedAtMs: 0, data: { destination: 'Cedar Valley Tourism', name: 'A little closer to nature', synthetic: true } },
-          { key: 'purchase', type: 'purchase', travelerId: null, observedAtMs: 1, data: { agency: 'Example Media', placement: 'Display and streaming video', synthetic: true } });
+        queue.push({ key: 'campaign', type: 'campaign', travelerId: null, observedAtMs: 0,
+          data: { destination: 'Cedar Valley Tourism', name: 'A little closer to nature', ruleId: core.RULE.id, windowDays: core.RULE.windowDays, synthetic: true } },
+        { key: 'purchase', type: 'purchase', travelerId: null, observedAtMs: 1,
+          data: { agency: 'Example Media', placement: 'Display and streaming video', synthetic: true } });
       }
       running = true; lastTime = null; emit('play'); frame = raf(tick);
     }
