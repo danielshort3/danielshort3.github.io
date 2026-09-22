@@ -1,176 +1,188 @@
-/* Parallel traveler clocks, one verified block writer, one shared animation frame. */
+/* Parallel activity is independent of batching. Only the final append changes recorded checks. */
 (function (root, factory) {
   'use strict';
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./ad-verification-core.js'));
-  else root.AdVerificationPlayer = factory(root.AdVerificationCore);
+  const core = typeof module === 'object' && module.exports ? require('./ad-verification-core.js') : root.AdVerificationCore;
+  const api = factory(core);
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.AdVerificationPlayer = api;
 })(globalThis, function (core) {
   'use strict';
   const LANES = 5;
-  const SEAL_MS = 650;
-  const HOLD_MS = 2200;
+  const OBSERVE_MS = 1150;
+  const SEAL_MS = 850;
+  const WAIT_MS = 1600;
+  const HOLD_MS = 1800;
   function createPlayer(options = {}) {
+    const notify = options.onChange || (() => {});
     const raf = options.requestFrame || requestAnimationFrame;
     const cancel = options.cancelFrame || cancelAnimationFrame;
-    const notify = options.onChange || (() => {});
-    let ledger = null;
+    let session = null;
     let epoch = 0;
+    let writerToken = 0;
+    let running = false;
+    let ready = false;
+    let busy = false;
+    let error = '';
     let frame = null;
-    let lastTime = null;
+    let last = null;
     let time = 0;
     let speed = 1;
     let scenario = 'mixed';
     let continuous = true;
-    let ready = false;
-    let running = false;
-    let started = false;
-    let retired = false;
-    let capacityClosed = false;
-    let error = '';
-    let count = 0;
     let admitted = 0;
     let completed = 0;
-    let reserved = 0;
+    let recordCount = 0;
+    let blockCount = 0;
+    let reserved = 2;
+    let limited = false;
     let lanes = Array(LANES).fill(null);
     let queue = [];
+    let messages = [];
     let writer = null;
-    function laneView(lane, slot) {
-      if (!lane) return { slot, id: null, phase: 'waiting', progress: 0, records: {} };
+    const annotations = new Map();
+    function viewLane(lane, slot) {
+      if (!lane) return { slot, id: null, phase: 'waiting', recorded: {}, observed: {}, active: null, opacity: 1 };
+      const active = lane.stages.find((stage) => time >= lane.born + stage.at && time < lane.born + stage.at + OBSERVE_MS);
       return { slot, id: lane.id, number: lane.number, path: lane.path, phase: lane.phase,
-        type: lane.events[lane.step]?.type || 'summary', key: lane.events[lane.step]?.key || lane.id + '/summary',
-        progress: lane.progress, records: { ...lane.records },
-        opacity: lane.phase === 'done' && continuous && !capacityClosed ? Math.max(.1, Math.min(1, (lane.replaceAt - time) / 300)) : Math.min(1, (time - lane.born + 200) / 400) };
+        recorded: core.clone(lane.recorded), observed: { ...lane.observed }, active: active?.type || null,
+        progress: active ? Math.min(1, (time - lane.born - active.at) / OBSERVE_MS) : 0,
+        opacity: lane.phase === 'done' && continuous && !limited ? Math.max(.15, Math.min(1, (lane.replaceAt - time) / 250)) : 1 };
     }
-    const snapshot = (includeProof = true) => ({ ready, running, started, speed, scenario, continuous, time,
-      count, admitted, completed, capacityClosed, error, lanes: lanes.map(laneView),
-      queue: queue.map((draft) => ({ key: draft.key, type: draft.type, travelerId: draft.travelerId })),
-      writer: writer ? { key: writer.draft.key, type: writer.draft.type, travelerId: writer.draft.travelerId, height: count + 1, progress: writer.progress } : null,
-      proof: includeProof && ledger ? ledger.snapshot() : null });
-    const emit = (kind, extra = {}, includeProof = false) => notify({ kind, ...extra }, snapshot(includeProof));
-    function stop() { running = false; if (frame !== null) cancel(frame); frame = null; lastTime = null; }
-    function fail(reason) { stop(); error = reason.message || String(reason); emit('error'); }
-    function admit(slot, first = false) {
-      if (capacityClosed) return false;
-      const plan = core.createTraveler(scenario, admitted + 1);
-      // Reserve closing and attribution records, not just the next observation.
-      if (count + reserved + plan.events.length > core.MAX_BLOCKS) { capacityClosed = true; return false; }
-      admitted += 1;
-      reserved += plan.events.length;
-      lanes[slot] = { ...plan, slot, step: 0, records: {}, phase: 'waiting', progress: 0, born: time,
-        nextAt: time + (first ? slot * 410 : 120), beganAt: 0, duration: 0, replaceAt: Infinity };
-      return true;
+    function snapshot(full = true) {
+      return { ready, running, busy, error, time, speed, scenario, continuous, admitted, completed,
+        recordCount, blockCount, limited, lanes: lanes.map(viewLane), queued: queue.length,
+        writer: writer ? { ids: writer.records.map((r) => r.receipt.id), count: writer.records.length, progress: writer.progress, height: blockCount + 1 } : null,
+        copies: session ? session.copyStates() : [], proof: full && session ? session.snapshot() : null };
     }
-    const duration = (lane) => ['summary', 'attribution'].includes(lane.events[lane.step].type) ? 700 : 2200 + (lane.number * 137 + lane.step * 211) % 950;
-    function nextDue(lane) {
-      const type = lane.events[lane.step]?.type;
-      if (type === 'attribution') return time + 500;
-      if (type === 'summary') return Math.max(time + 2200, lane.born + 11600 + (lane.number * 2311) % 9000);
-      return time + (type === 'destination' ? 1900 + (lane.number * 919) % 3000 : 650 + (lane.number * 367) % 1350);
+    const emit = (kind, data = {}, full = false) => notify({ kind, ...data }, snapshot(full));
+    function pause() {
+      running = false; if (frame !== null) cancel(frame); frame = null; last = null;
+      emit('pause');
     }
-    function startWriter() {
-      if (writer || !queue.length) return;
-      queue.sort((a, b) => a.observedAtMs - b.observedAtMs || a.key.localeCompare(b.key));
-      const draft = queue.shift();
-      const target = { draft, progress: 0, elapsed: 0, ticket: null };
-      const owner = ledger;
-      const generation = epoch;
-      writer = target;
-      const lane = lanes.find((item) => item?.id === draft.travelerId);
-      if (lane) { lane.phase = 'verifying'; lane.progress = 0; }
-      owner.prepare(draft).then((ticket) => {
-        if (!retired && generation === epoch && owner === ledger && writer === target) target.ticket = ticket;
-      }).catch((reason) => {
-        if (!retired && generation === epoch && owner === ledger && writer === target) fail(reason);
-      });
+    function fail(reason) { pause(); error = reason.message || String(reason); emit('error'); }
+    function admit(slot) {
+      if (limited) return;
+      const plan = core.traveler(scenario, admitted + 1);
+      if (recordCount + reserved + plan.stages.length > core.LIMIT - 12) { limited = true; return; }
+      admitted += 1; reserved += plan.stages.length;
+      lanes[slot] = { ...plan, born: time + (admitted <= LANES ? slot * 380 : 0), phase: 'live',
+        recorded: {}, observed: {}, requested: new Set(), refs: {}, sourceTail: Promise.resolve(), replaceAt: Infinity };
+    }
+    function requestObservation(lane, stage) {
+      const generation = epoch; const owner = session;
+      lane.requested.add(stage.type); lane.observed[stage.type] = true;
+      // Source work is ordered per traveler; it never waits for a blockchain append.
+      lane.sourceTail = lane.sourceTail.then(async () => {
+        const record = await owner.observe(stage.type, lane.id, stage.day, lane.refs, Math.round(lane.born + stage.at + OBSERVE_MS));
+        lane.refs[stage.type] = record.receipt.id;
+        if (generation === epoch) messages.push({ record, traveler: lane.id, type: stage.type });
+      }).catch((reason) => { if (generation === epoch) fail(reason); });
+    }
+    function prepareBatch() {
+      const generation = epoch; const token = ++writerToken; const owner = session;
+      const records = queue.splice(0, core.BATCH_SIZE).map((item) => item.record);
+      const item = { records, elapsed: 0, progress: 0, ticket: null };
+      writer = item;
+      owner.prepare(records).then((ticket) => {
+        if (generation === epoch && token === writerToken && writer === item) item.ticket = ticket;
+      }).catch((reason) => { if (generation === epoch && token === writerToken) fail(reason); });
+    }
+    function publish(block, manual = false) {
+      blockCount += 1; recordCount += block.records.length;
+      for (const { receipt } of block.records) {
+        if (!['report', 'correction'].includes(receipt.type)) reserved -= 1;
+        const annotation = annotations.get(receipt.id);
+        const lane = lanes.find((item) => item?.id === annotation?.traveler);
+        if (lane) lane.recorded[receipt.type] = { id: receipt.id, block: block.header.height };
+      }
+      // A traveler exits only after all its receipts, including the closing record, are committed.
+      for (const lane of lanes) {
+        if (lane && lane.phase !== 'done' && lane.stages.every((stage) => lane.recorded[stage.type])) {
+          lane.phase = 'done'; lane.replaceAt = time + HOLD_MS; completed += 1;
+        }
+      }
+      emit(manual ? 'manual' : 'block', { block }, true);
     }
     function tick(timestamp) {
-      frame = null;
-      if (!running || retired) return;
-      const delta = lastTime === null ? 0 : Math.max(0, Math.min(80, timestamp - lastTime)) * speed;
-      lastTime = timestamp;
-      time += delta;
-      const changes = [];
-      if (count >= 2) {
-        lanes.forEach((lane, slot) => {
-          if (!lane || (lane.phase === 'done' && time >= lane.replaceAt && continuous)) {
-            if (admit(slot, !lane)) changes.push({ type: 'enter', slot, travelerId: lanes[slot].id, replaced: lane?.id || null });
-          }
-        });
-        lanes.forEach((lane) => {
-          if (!lane) return;
-          if (lane.phase === 'waiting' && time >= lane.nextAt) {
-            lane.phase = 'recording'; lane.beganAt = lane.nextAt; lane.duration = duration(lane);
-            changes.push({ type: 'observe', travelerId: lane.id, key: lane.events[lane.step].key });
-          }
-          if (lane.phase === 'recording') {
-            lane.progress = Math.min(1, (time - lane.beganAt) / lane.duration);
-            if (lane.progress >= 1) {
-              queue.push({ ...core.clone(lane.events[lane.step]), observedAtMs: Math.round(lane.beganAt + lane.duration) });
-              lane.phase = 'queued';
-            }
-          }
-        });
+      frame = null; if (!running || busy) return;
+      const delta = last === null ? 0 : Math.min(80, Math.max(0, timestamp - last)) * speed;
+      last = timestamp; time += delta;
+      for (const message of messages.splice(0)) {
+        annotations.set(message.record.receipt.id, { traveler: message.traveler, type: message.type });
+        queue.push({ record: message.record, since: time });
       }
-      let block = null;
+      if (recordCount >= 2) {
+        for (let slot = 0; slot < LANES; slot += 1) {
+          const lane = lanes[slot];
+          if (!lane || (lane.phase === 'done' && continuous && time >= lane.replaceAt)) admit(slot);
+        }
+        for (const lane of lanes) {
+          if (!lane || lane.phase === 'done') continue;
+          for (const stage of lane.stages) {
+            if (!lane.requested.has(stage.type) && time >= lane.born + stage.at + OBSERVE_MS) requestObservation(lane, stage);
+          }
+        }
+      }
+      if (!writer && queue.length && (queue.length >= core.BATCH_SIZE || time - queue[0].since >= WAIT_MS)) prepareBatch();
       if (writer) {
         writer.elapsed += delta;
         if (!writer.ticket) writer.elapsed = Math.min(writer.elapsed, SEAL_MS * .8);
         writer.progress = Math.min(1, writer.elapsed / SEAL_MS);
-        const lane = lanes.find((item) => item?.id === writer.draft.travelerId);
-        if (lane) lane.progress = writer.progress;
         if (writer.ticket && writer.progress >= 1) {
-          try {
-            block = ledger.commit(writer.ticket);
-            count += 1; reserved -= 1;
-            const event = block.transactions[0].event;
-            if (lane) {
-              lane.records[event.type] = { height: count, key: event.key };
-              if (event.type === 'summary') {
-                completed += 1; lane.phase = 'done'; lane.replaceAt = time + HOLD_MS;
-              } else {
-                lane.step += 1; lane.phase = 'waiting'; lane.progress = 0; lane.nextAt = nextDue(lane);
-              }
-            }
-            changes.push({ type: 'commit', key: event.key, travelerId: event.travelerId, height: count });
-            writer = null;
-          } catch (reason) { fail(reason); return; }
+          try { const block = session.commit(writer.ticket); writer = null; publish(block); }
+          catch (reason) { fail(reason); return; }
         }
       }
-      if (!writer && queue.length) { startWriter(); changes.push({ type: 'write', key: writer.draft.key }); }
-      if (started && admitted >= LANES && !writer && !queue.length && lanes.every((lane) => !lane || lane.phase === 'done') && (!continuous || capacityClosed)) stop();
-      emit(block ? 'commit' : 'frame', { changes, block }, Boolean(block));
+      if (admitted >= LANES && lanes.every((lane) => lane.phase === 'done') && !writer && !queue.length && (!continuous || limited)) running = false;
+      emit('frame');
       if (running) frame = raf(tick);
     }
     function play() {
-      if (!ready || retired || error || running || (capacityClosed && lanes.every((lane) => !lane || lane.phase === 'done'))) return;
-      if (!started) {
-        started = true; reserved = 2;
-        queue.push({ key: 'campaign', type: 'campaign', travelerId: null, observedAtMs: 0,
-          data: { destination: 'Cedar Valley Tourism', name: 'A little closer to nature', ruleId: core.RULE.id, windowDays: core.RULE.windowDays, synthetic: true } },
-        { key: 'purchase', type: 'purchase', travelerId: null, observedAtMs: 1,
-          data: { agency: 'Example Media', placement: 'Display and streaming video', synthetic: true } });
-      }
-      running = true; lastTime = null; emit('play'); frame = raf(tick);
+      if (!ready || busy || error || running || (limited && lanes.every((lane) => !lane || lane.phase === 'done'))) return;
+      running = true; last = null; emit('play'); frame = raf(tick);
     }
-    function pause() { if (running) { stop(); emit('pause'); } }
+    function abandonCandidate() {
+      writerToken += 1;
+      if (writer) queue.unshift(...writer.records.map((record) => ({ record, since: time })));
+      writer = null;
+    }
     async function reset() {
-      epoch += 1;
-      const generation = epoch;
-      stop(); if (ledger) ledger.dispose(); ledger = null;
-      lanes = Array(LANES).fill(null); queue = []; writer = null;
-      time = 0; count = 0; admitted = 0; completed = 0; reserved = 0;
-      ready = false; started = false; capacityClosed = false; error = '';
-      emit('reset');
+      epoch += 1; const generation = epoch;
+      pause(); if (session) session.dispose(); session = null; abandonCandidate();
+      ready = false; busy = false; error = ''; time = 0; admitted = 0; completed = 0;
+      recordCount = 0; blockCount = 0; reserved = 2; limited = false;
+      lanes = Array(LANES).fill(null); queue = []; messages = []; annotations.clear(); emit('reset');
       try {
-        const next = await (options.createLedger || core.createLedger)();
-        if (generation !== epoch || retired) { next.dispose(); return; }
-        ledger = next; ready = true; emit('ready', {}, true);
-      } catch (reason) { if (generation === epoch && !retired) fail(reason); }
+        const next = await (options.createSession || core.createSession)();
+        if (generation !== epoch) { next.dispose(); return; }
+        session = next;
+        const campaign = await session.issue('campaign', { notice: 'Fictional campaign authorization' }, { rule: core.RULE.id, window: core.RULE.days });
+        const purchase = await session.issue('purchase', { notice: 'Fictional media authorization' }, { authorized: true });
+        if (generation !== epoch) return;
+        queue = [campaign, purchase].map((record) => ({ record, since: 0 })); ready = true; emit('ready', {}, true);
+      } catch (reason) { if (generation === epoch) fail(reason); }
     }
-    function setScenario(value) { if (Object.hasOwn(core.SCENARIOS, value)) { scenario = value; emit('settings'); } }
-    function setSpeed(value) { if ([1, 2, 4].includes(value)) { speed = value; lastTime = null; emit('settings'); } }
-    function setContinuous(value) { continuous = Boolean(value); emit('settings'); }
-    function destroy() { retired = true; epoch += 1; stop(); if (ledger) ledger.dispose(); }
-    return Object.freeze({ play, pause, reset, snapshot, setScenario, setSpeed, setContinuous, destroy });
+    async function action(name, value, extra) {
+      if (!ready || busy) return null;
+      pause(); abandonCandidate(); busy = true; emit('busy');
+      const generation = epoch; const owner = session;
+      try {
+        let result;
+        if (name === 'report') { result = await owner.report(); if (generation === epoch) publish(result, true); }
+        else if (name === 'correct') { result = await owner.correct(value); if (generation === epoch) publish(result, true); }
+        else if (name === 'copy') result = await owner.manageCopy(value, extra);
+        else if (name === 'withhold') { owner.withhold(value, extra); result = await owner.audit(value); }
+        else throw new Error('Unknown action.');
+        return generation === epoch ? result : null;
+      } finally { if (generation === epoch) { busy = false; emit('action', {}, true); } }
+    }
+    const audit = (id) => session.audit(id);
+    const describe = (id) => session.describe(id);
+    function setSpeed(value) { if ([1, 2, 4].includes(value)) { speed = value; last = null; emit('setting'); } }
+    function setScenario(value) { if (Object.hasOwn(core.SCENARIOS, value)) { scenario = value; emit('setting'); } }
+    function setContinuous(value) { continuous = Boolean(value); emit('setting'); }
+    function destroy() { epoch += 1; pause(); if (session) session.dispose(); }
+    return Object.freeze({ reset, play, pause, snapshot, action, audit, describe, setSpeed, setScenario, setContinuous, destroy });
   }
-  return Object.freeze({ LANES, SEAL_MS, HOLD_MS, createPlayer });
+  return Object.freeze({ createPlayer, LANES, OBSERVE_MS, SEAL_MS, WAIT_MS, HOLD_MS });
 });

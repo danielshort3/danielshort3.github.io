@@ -1,67 +1,106 @@
-# From an Ad to a Visit
+# Campaign Results You Can Check
 
-Unlisted entry: `/demos/ad-verification`. Cedar Valley, its travelers, source systems and occurrence dates are fictional. Native Web Crypto calculates real signatures and hashes locally. No advertising, analytics, device or location service is connected by this demo.
+Unlisted entry: `/demos/ad-verification`. This is an educational **campaign-attribution audit layer**, not a visitor-tracking service. All travelers, provider observations, matching arrangements and participants are fictional. The browser performs real ECDSA signature, SHA-256, Merkle-root and checkpoint checks.
 
-## Approved first concept
+## Product story and visual scope
 
-The interface follows the selected calm two-panel design: a small destination header, one headline and control row, five visible traveler lanes with an Outcome column, a compact blockchain with one inline expanded record, and one results band. There is no permanent third inspector, extra dashboard, group selector or group schedule.
+The approved white, navy and blue two-panel layout is retained: five independent traveler lanes, a compact shared blockchain, one results band, and optional details. The headline remains “From an ad to a visit. With a record you can check.” The story is now explicit:
 
-All five lanes have independent observation timing and cycle individually. Motion is restrained: small progress cues, a single block-writer accent, and a short replacement fade. No spinning status widgets or simultaneous moving connector network is used. Reduced motion disables movement but retains real verification and status updates. On narrow screens the panels stack; all five traveler lanes remain visible without nested list scrolling.
+**Partners measure. Attribution assigns credit. Blockchain preserves the record.**
 
-Illustration-only portions of the user-approved AI concept supply `ad-verification-mark.webp`, `ad-verification-mountains.webp` and the five-portrait sprite `ad-verification-portraits.webp`. UI, controls, text, totals and blockchain records are native DOM content, not a screenshot. The existing Inter font URL is reused, with no new font distribution.
+A visitor can inspect a source receipt, check separate example evidence, deliberately make that evidence unavailable, compare participant copies, test an edited campaign report, and append an authorized correction. Only the relevant detail dialog opens; no permanent third dashboard or animated network is added. Existing Cedar Valley illustration assets and the site's Inter font reference are reused unchanged. No new dependency or font file is introduced.
 
-## What attribution actually does
+## Parallel people, batched records
 
-The v4 schema separates **Visit reported** from **Attribution recorded**. After an ad and a destination observation exist, the attribution service calculates a decision from those earlier records. It does not accept a scenario's claimed credit boolean.
+Five lanes run on one simulation clock with independent event schedules. People can continue to the website or destination while earlier receipts are still waiting for a block. Provider work is sequenced within each fictional journey so an attribution calculation has its prerequisite observations; it does **not** wait for the blockchain writer. The illustration separates a reported observation (blue) from a recorded signed receipt (green).
 
-The illustrative rule is `example-exposure-window-v1`: the same synthetic traveler and campaign have an earlier exposure; the visit's authored example occurrence day is 0–30 days after that exposure, inclusive; the visit has not already been credited. Website activity is optional. A later visit is still recorded but receives no campaign credit. The mixed scenario includes such an example; a dedicated **Outside the window** scenario makes it directly testable.
+Completed source receipts enter a buffer. Up to four are included in a block, or a smaller batch is prepared after the maximum example wait. Each block contains actual signed receipts and a Merkle root; it links to the previous block's hash. A batch can contain different people and different event types. Each matching recorded check changes in the same synchronous update as the block append. The example is not a claim that production systems should publish each individual observation; larger batches or periodic report commitments would also be possible.
 
-Each attribution record contains the rule ID, window, elapsed days, decision and exact ad/visit references (event ID, block height and block hash). Verification recomputes the expected decision from the preceding chain and compares all these fields. Cross-traveler references, edited windows, fabricated credit, altered elapsed time and mismatched fingerprints cannot pass that check. The journey checker also rejects a second attribution for the same traveler and requires the decision before closing a reported-visit path.
+All five active lanes remain visible without a nested traveler scroll region. A traveler is replaced only after the closing receipt and every earlier receipt in that lane have been committed. Other lanes continue. Mix changes apply only to new arrivals. Pause freezes the animation clock, queued receipt admission, block commits and replacement fades, even if cryptographic work finishes in the background. Reset retires stale callbacks and signing material. Reduced motion removes the moving indicators and fades.
 
-Example occurrence days are authored fictional dates, not derived from animation speed. `observedAtMs` represents accelerated receipt order; `recordedAt` is the browser's local recording timestamp. These are different concepts, and neither is an independently certified clock. These illustrative outcome patterns are not observed conversion rates.
+The session is limited to 192 issued receipts. Admission reserves the entire future receipt cost of each traveler and leaves 12 slots for review/correction exercises. Existing travelers can finish before the simulation stops. Repeated manual exercises can consume the remaining headroom and require a reset; the demo does not silently discard old history.
 
-## Inspectable evidence, not more panels
+## Private provider evidence versus shared audit receipts
 
-The newest attribution opens **Why this visit was counted** (or **not counted**) inside its block. A selected earlier block can remain beside three recent records; omitted intervening blocks are labeled and retained in full history. There is always a single chronological chain, not branches per traveler.
+The core owns a separate, in-memory provider-evidence map. An evidence packet contains a random salt plus an example source record: synthetic traveler association, occurrence day, source-specific page/place detail, or calculation evidence. `evidenceDigest` commits to the canonical salted packet using a separate hashing domain.
 
-Selecting a traveler, its outcome or a block pauses the simulation and pins that record. Supporting-record buttons show the original ad, visit report and attribution decision. No website prerequisite is implied. Technical fingerprints and signatures stay behind an optional disclosure. Every committed block, including older records, remains inspectable through **View full chain**.
+The shared receipt contains only:
 
-## Results and edited copies
+- Version, campaign and chain identity, and an opaque random receipt ID.
+- Record type and registered reporting role.
+- The evidence fingerprint and opaque references to prerequisite receipts.
+- The small signed summary or decision needed for the audit trail.
+- The provider's ECDSA signature, outside the signed receipt payload.
 
-The results band recomputes ad exposures, website visits and attributed visits from accepted original records. The active-traveler count reflects the currently measured lanes and is deliberately not labeled as the cumulative number of measured travelers. Counts are not independent animation counters. **Recheck results** verifies the evidence, signatures, links, attribution rule and original checkpoint.
+The shared proof export contains the blockchain, signed receipts, public keys and original length/head checkpoint. It does **not** contain the provider map, salts, traveler IDs, page paths, location histories or private keys. Traveler labels displayed beside receipts are local teaching annotations, not shared receipt fields.
 
-Editing affects only a working copy. Original signatures, keys and checkpoint are not replaced; the authentic ledger and its totals remain unchanged. The UI rejects the edited copy, labels the original totals accordingly and blocks playback until restoration. `verifyResults` returns `totals: null` for invalid evidence rather than calculating an apparently trusted result. **Restore original** restores the exact original signed bytes, without creating new signatures. An exported edited copy fails independent verification too.
+This separation is a demonstration, **not an access-control system**. All components still run in the visitor's browser. The unavailability toggle emulates a provider failing to supply evidence; it is not a deletion, retention or compliance implementation. Salted hashes and opaque IDs are not a general privacy guarantee: receipt relationships, timing and results can still be sensitive. A real deployment needs permitted matching, access control, retention decisions and a threat model.
 
-## Source ownership
+## Two verification levels
 
-| Responsibility | Source |
+`verifyProof` checks the shared history against the supplied original trust registry and checkpoint: provider signatures, registered roles, receipt schemas, unique IDs, prerequisite receipt types, no reuse of a visit for a second attribution, known rule versions, valid correction targets, recomputed report totals, Merkle roots, block links and three distinct local validator signatures. It never claims to have obtained raw evidence merely because a hash matches a receipt.
+
+`session.audit` first verifies the recorded receipt, then requests the separate provider packet and checks its salted fingerprint. For an attribution receipt, it also retrieves the referenced exposure and visit evidence and reproduces the example calculation. Its result distinguishes:
+
+| State | Meaning |
 | --- | --- |
-| Authored layout and copy | `demos/ad-verification.html` |
-| v4 schema, attribution rule, signed ledger, verification and totals | `js/demos/ad-verification-core.js` |
-| Parallel scheduling, one block writer, capacity reservation and cancellation | `js/demos/ad-verification-player.js` |
-| Persistent lane DOM, inline evidence, supporting records, editing and controls | `js/demos/ad-verification.js` |
-| Isolated light-only responsive styles | `css/components/ad-verification.css` |
-| Visibility and project metadata | `content/projects/adVerification.json` |
+| Record verified; evidence checked | The signed receipt matches the original ledger and the accessible packet matches its fingerprint. For attribution, the example rule was reproduced. |
+| Record verified; evidence unavailable | The signature/history remain valid, but the independent evidence calculation cannot be completed. |
+| Record verified; evidence mismatch | The source claim or accessible evidence does not reproduce the recorded result. |
+| Record invalid | The supplied history does not match its original proof. |
 
-The existing static copy step and clean-URL configuration publish this same route. No shared website bundle, dependency, API, credential or deployment setting changes. No session migration is needed: earlier demo versions do not persist browser campaigns. v3 exported examples require the v3 verifier; v4 intentionally uses a new schema and signing domain.
+The tests intentionally include a correctly signed but false attribution claim: shared-record verification succeeds while an evidence check finds the calculation mismatch. This is a deliberate illustration of the external-data/oracle boundary, not a defect to hide. Neither level proves the underlying observation is accurate, that all relevant observations were submitted, or that an ad caused a visit.
 
-## Clock and blockchain contract
+## Attribution and matching
 
-All traveler schedules share one RAF simulation clock but progress independently. Completed observations enter a bounded queue; a traveler has at most one pending record. The single writer prepares a real signed candidate and verifies it before committing. The corresponding lane and block update synchronously in the same frame. Slow cryptography holds the writer at 80%, while other lanes can complete and queue observations. Pause freezes all animation and commits, even if a signature finishes in the background. Reset retires pending work so it cannot enter the next campaign.
+The example rule is `demo-window-v1`: a provider's ad and visit evidence identify the same fictional traveler and campaign; the visit occurs 0–30 example days after exposure, inclusive. A website visit is optional. An out-of-window visit can be faithfully recorded without receiving credit. The scenario chooses observations, but the attribution service computes its result from that evidence rather than trusting a scenario-supplied credit flag.
 
-Each block uses SHA-256 Merkle hashing, an ECDSA P-256 event signature, the preceding block hash and three distinct local validator approvals. Original public keys, length and final hash are held separately from the editable copy. Non-extractable private keys are never returned or exported. Capacity is reserved for each admitted traveler's entire remaining path, including attribution and the closing summary, so the 256-block limit does not strand people midway.
+Public ledger validation can confirm references and signatures without knowing the traveler identity or occurrence days. An authorized evidence check can reproduce the matching calculation. A production system would need a real, permitted matching arrangement or an existing provider; this project does not implement a data clean room, privacy-enhancing attribution protocol or cross-device identity service.
 
-## Limits and privacy
+Authored occurrence days are different from accelerated receipt time and the browser's block-recording timestamp. None is independently certified. The mixes are teaching examples, not estimated campaign conversion rates.
 
-This is a browser-local educational blockchain, not an independently operated consensus network. All identities and validators are simulated in the same browser. A party controlling the code, keys and trust checkpoint could construct a different valid-looking demonstration. Verification establishes consistency of recorded bytes and the example attribution rule, not that a real human saw an ad or that advertising caused a trip.
+## Reports, discrepancies and corrections
 
-No real identifiers, GPS permissions, campaign network requests, persistent campaign storage, wallet, tokens or payments are added. Normal site-wide consent controls injected by the standard build are preserved. No observation is not proof of no visit. One event per block is an educational simplification; Merkle hashing supports multiple events per block.
+**Check a campaign report** pauses playback and safely cancels/requeues an uncommitted batch candidate. It appends a signed report through the latest committed block. Pending source measurements are excluded and may appear in a later report. The receipt records its exact coverage height, previous head hash and totals. Validation recomputes these totals from the historical prefix, not from current animation counters.
 
-Metadata remains `published: false`, `hidden: true`, `noindex: true`, `visibility: "unlisted"`; the page remains `noindex, nofollow, noarchive`. Anyone with the URL can open it and repository source is public. These are not access controls.
+The report dialog edits a copy of that reported total. The copied proof is actually reverified; altered totals fail its signature/hash/policy checks. The original report and current totals are not modified. Entering the original value correctly passes instead of producing a scripted failure.
 
-## Validation
+**Append example correction** emulates an attribution service withdrawing a previously credited decision because the provider reported a duplicate visit. A new signed receipt references that exact decision. Current totals are reduced once, while the earlier decision and signed report remain byte-identical. The correction reason is still a provider claim, not a newly proven real-world fact. This limited example supports one withdrawal per credited decision; it is not a general accounting or dispute-resolution system. **Sign updated report** creates a new snapshot of the corrected current total.
 
-On Node 22 with the existing repository dependencies:
+## Separately checked local copies
+
+Advertiser, Agency and Measurement partner each hold a separate copy of the block history. Their reporting identities are separate from the three local ledger-signing identities. Before a block commits, the copy's own history is verified against the canonical prefix; a candidate update is checked before being applied. The synchronous commit uses these prechecked copies and a revision guard, so a copy changed during preparation cannot silently receive a stale approval.
+
+- **Up to date** means that copy verifies against the current head.
+- **Behind** means it is a valid earlier prefix, checked against the canonical prefix hash—not an arbitrary self-supplied head.
+- **Mismatch** means the copied history no longer verifies.
+
+Pausing delivery does not corrupt old records. Altering one local copy does not modify the other copies or the canonical history. Restore verifies the source history before replacing that demo copy. A mismatched copy is never silently healed by the next append.
+
+All three identities, keys and copies are controlled by **one browser**. This is not independently governed distributed consensus or an assertion of Byzantine fault tolerance. A real consortium would need independently controlled participants, trust anchors, membership/key rotation and dispute/update rules. Even a correctly signed self-contained exported proof requires a separately trusted original key registry/checkpoint to establish external provenance.
+
+## Source ownership and deployment
+
+| File | Responsibility |
+| --- | --- |
+| `demos/ad-verification.html` | Authoritative entry page, controls, explanatory copy and one dialog host. |
+| `js/demos/ad-verification-core.js` | v5 schemas, evidence store, signed receipts, batching, report/correction rules, proof/evidence checks and replica states. |
+| `js/demos/ad-verification-player.js` | Independent source schedules, queue, shared clock, batch preparation, synchronous publish, cancellation and manual review actions. |
+| `js/demos/ad-verification.js` | Persistent traveler DOM, receipt/block inspection, copy exercises, reports and public export. |
+| `css/components/ad-verification.css` | Isolated, light-only two-panel styles and responsive/reduced-motion behavior. |
+| `content/projects/adVerification.json` | Unpublished/unlisted metadata. |
+
+Existing static copying and clean-URL handling publish the same route. No shared site bundles, route settings, dependencies or persistent data are modified. Schema v5 intentionally does not accept v4 proofs; earlier versions are available in Git history. No browser campaign migration is required because this project has never persisted campaign state.
+
+The page retains `noindex, nofollow, noarchive`; metadata retains `published: false`, `hidden: true`, `noindex: true`, `visibility: "unlisted"`. The URL and GitHub source remain public to anyone who has them. Normal site-wide consent components injected by the website build are preserved. No real advertising, location collection, campaign network request, token, wallet or payment is added.
+
+## Production decision
+
+An ordinary signed, append-only audit log may be sufficient when all parties accept one operator. A jointly maintained blockchain needs an actual shared-governance requirement and partner participation. Production would also require access agreements, data availability/completeness reconciliation, reporting-period definitions, permissioned identity matching, security review and operational ownership. The demo is a candidate audit workflow, not a production deployment or proof of commercial feasibility.
+
+## Verification
+
+Using the existing Node 22 dependencies:
 
 ```sh
 node --test tests/tools/ad-verification.test.js
@@ -71,10 +110,8 @@ npx playwright install chromium
 node tests/tools/ad-verification.browser.cjs
 ```
 
-Node checks cover evidence references, inclusive attribution boundaries, missing/cross-campaign evidence, optional websites, no duplicate credit, every scenario, overlapping stages at all speeds, per-person replacement, pause/reset, delayed signing, capacity, modified rules, edited credit, invalid-result rejection, rehashing, approval requirements and publication exclusions. Built-output checks explicitly skip until the full site is built.
+Node checks cover cryptography, batched receipt ordering, source/evidence separation, unavailable evidence, false signed claims, attribution boundaries, duplicate credit, historical reports, authorized corrections, independent copy corruption/lag, all scenarios/speeds, overlapping activity while crypto waits, pause/reset, requeued manual reviews, reserved capacity, replay/rehash attacks and publication exclusions. The publication check explicitly skips before a full website build.
 
-Native Chromium independently audits rendered frames for simultaneous traveler activity, mixed stages, matching writer progress, same-frame committed milestones, individual replacement and totals derived from accepted block events. It exercises all scenarios, evidence links, full history, invalid edited exports, byte-identical restoration, delayed native signatures, error/no-JavaScript states, reduced motion, and 1672/1280/1024/768/390/320px layouts.
+Native Chromium independently audits rendered frames, checks every newly committed receipt against its matching traveler milestone, reconstructs displayed totals from the accepted record stream and verifies exported proof using Node Web Crypto. It exercises evidence availability, reporting discrepancies, corrections and copy lag/corruption, plus 1500/1280/1024/768/390/320px layouts and native slow-verification/reduced-motion/error states. The existing scoped workflow uploads screenshots, viewport bounds and `animation-sync-evidence.json` as evidence, outside tracked source. Tests run on loopback and do not interact with real campaigns.
 
-The existing scoped workflow runs the full website build and both suites, uploading native screenshots, layout bounds and `animation-sync-evidence.json`. Evidence goes outside tracked source. Tests use loopback and do not submit production forms. Browser-plugin absence permits the Playwright fallback; a blocked local browser environment must not be presented as a successful native browser test.
-
-API references: [Web Crypto ECDSA parameters](https://developer.mozilla.org/en-US/docs/Web/API/EcdsaParams) and [signature verification](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify).
+References: [Web Crypto verification](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify), [Hyperledger Fabric private-data architecture](https://hyperledger-fabric.readthedocs.io/en/latest/private-data-arch.html). This implementation is a dependency-free educational model, not an integration with Fabric.
