@@ -70,7 +70,7 @@ for (const width of [1440, 390, 320]) {
         await page.keyboard.press('Enter');
         await expect.poll(() => new URL(page.url()).pathname).toBe(destination.pathname);
         await settle(page);
-        await expect(page.locator('main')).toBeVisible();
+        await expect(page.locator('main#main')).toBeVisible();
       }
     }
   });
