@@ -242,7 +242,7 @@
   .av-controls { padding:12px; flex-wrap:wrap; gap:12px; }
   .av-scenario { flex-basis:100%; }
   .av-scenario select { font-size:12px; }
-  .av-run-controls { display:flex; align-items:center; gap:16px; }
+  .av-run-controls { display:flex; align-items:center; flex-wrap:wrap; gap:10px 16px; max-width:100%; }
   .av-loop { margin:0; font-size:10px; }
   .av-simulation { padding:11px 8px 8px; max-height:45svh; }
   .av-simulation-head { gap:7px; }

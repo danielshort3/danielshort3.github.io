@@ -198,8 +198,16 @@ function installVisualAudit() {
       await page.locator('[data-play]').click();
       await page.waitForFunction(() => document.querySelector('#main').dataset.activeEvent === 'event-7' && document.querySelector('#main').dataset.phase === 'verifying', null, { timeout: 90000 });
       await page.locator('[data-play-inline]').click();
-      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Overflow at ${width}px`);
       await page.screenshot({ path: path.join(output, `05-synchronized-${width}.png`), fullPage: false });
+      const layout = await page.evaluate(() => ({ width: innerWidth, documentWidth: document.documentElement.scrollWidth,
+        overflowing: [...document.querySelectorAll('body *')].filter((node) => {
+          const bounds = node.getBoundingClientRect();
+          return bounds.width && bounds.right > innerWidth + 1;
+        }).map((node) => ({ tag: node.tagName, className: String(node.className),
+          text: (node.innerText || '').slice(0, 90), right: node.getBoundingClientRect().right })) }));
+      fs.writeFileSync(path.join(output, `layout-${width}.json`), JSON.stringify(layout, null, 2));
+      fs.writeFileSync(path.join(output, 'animation-audit-latest.json'), JSON.stringify(await page.evaluate(() => window.__avAudit), null, 2));
+      assert.ok(layout.documentWidth <= width, `Overflow at ${width}px: ${JSON.stringify(layout.overflowing)}`);
       await page.locator('[data-reset]').click(); await ready();
     }
     const audit = await page.evaluate(() => window.__avAudit);
