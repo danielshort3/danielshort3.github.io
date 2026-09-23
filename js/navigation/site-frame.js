@@ -178,7 +178,8 @@
     description.tabSources?.forEach((source) => ensureTab(source.dataset.siteTab || source.dataset.homeAccordionTrigger, source));
     const order = description.audience === 'personal' ? personalOrder : professionalOrder;
     const overview = description.home && description.view === 'overview';
-    const visible = closed || order.includes(description.category) ? order : [description.category];
+    const compact = compactQuery.matches;
+    const visible = closed || overview || description.audience !== 'personal' || compact ? order : [description.category];
     visible.forEach((id) => ensureTab(id));
     tabs.forEach((link, id) => {
       const active = id === description.category;
@@ -200,7 +201,6 @@
         link.removeAttribute('aria-controls');
       }
     });
-    const compact = compactQuery.matches;
     frame.dataset.frameCompact = String(compact);
     const activeIndex = visible.indexOf(description.category);
     // Reorder only the lightweight rails. Moving the panel or one of its

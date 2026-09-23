@@ -113,6 +113,10 @@ check(['about', 'projects', 'resume', 'contact'].every(id => !layoutTabs.get(id)
 configurationContext.compactQuery.matches = false;
 configurationContext.configure({ audience: 'personal', category: 'projects', view: 'overview', home: true });
 check(order.every(id => !layoutTabs.get(id).hidden), 'Desktop retains every vertical rail even during a mobile class handoff.');
+configurationContext.configure({ audience: 'personal', category: 'tools', view: 'detail', home: false });
+check(order.every(id => layoutTabs.get(id).hidden === (id !== 'tools')) &&
+  configurationContext.stage.style.gridTemplateColumns === '68px minmax(0, 1fr)',
+  'Desktop detail keeps its active rail beside the full-width content panel.');
 layoutDocument.body.classList.contains = () => false;
 
 let adoptedCommit;

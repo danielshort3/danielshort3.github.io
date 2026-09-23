@@ -100,7 +100,9 @@ async function assertLayout(page) {
   assert(layout.pageWidth <= layout.width + 1, `Document overflows horizontally: ${JSON.stringify(layout)}`);
   const visibleTabs = layout.tabs.filter(tab => !tab.hidden);
   assert.deepEqual(visibleTabs.map(tab => tab.category), layout.audience !== 'personal'
-    ? ['about', 'projects', 'resume', 'contact'] : ['about', 'projects', 'tools', 'games', 'contact'],
+    ? ['about', 'projects', 'resume', 'contact']
+    : !layout.compact && !layout.overview && !layout.closed
+      ? [layout.category] : ['about', 'projects', 'tools', 'games', 'contact'],
   'Navigation exposes the correct categories for the audience and route.');
   if (layout.compact && layout.mobileNavigation) {
     assert.deepEqual(layout.mobileCategories, ['about', 'projects', 'tools', 'games', 'contact'],
