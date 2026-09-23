@@ -44,6 +44,8 @@ The Settings top bar stays visible while the body scrolls. Settings uses a stabl
 
 `AppUpdateSection.kt` keeps the current status and action ahead of preferences. Routine patch/full-download implementation details and repeated version text are removed from the primary UI. Verification, error messages, cancellation, retry, permissions, and Android installation handoff remain intact. Settings is still a native workspace and never grants automatic-install eligibility.
 
+On Android 8–11, Automatic can download a verified update, but the user must tap **Install update** to complete installation. The automatic-install permission invitation appears only on Android 12 and later, where the platform may permit an idle installation.
+
 Successful refresh or cleanup uses a snackbar. Recoverable failures remain beside their action. Cache clearing touches Coil's image caches only and does not advertise a fabricated storage total. AI-demo notices appear beside submission controls; the digit generator explicitly discloses its automatic initial example request.
 
 ## Validation
