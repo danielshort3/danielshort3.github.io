@@ -1,5 +1,6 @@
 package me.danielshort.app.ui
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +28,13 @@ internal val appUpdateChoices = listOf(
   SettingsChoice(AppUpdateMode.AUTOMATIC, "Automatic", "Download automatically and install when the app is idle and Android permits. Confirmation may still be required."),
   SettingsChoice(AppUpdateMode.MANUAL, "Manual", "Check only when you choose Check now.")
 )
+internal fun appUpdateChoicesForSdk(sdkVersion: Int): List<SettingsChoice<AppUpdateMode>> =
+  if (sdkVersion >= 31) appUpdateChoices else appUpdateChoices.map { choice ->
+    if (choice.value == AppUpdateMode.AUTOMATIC) choice.copy(
+      description = "Download updates automatically. On this Android version, tap Install update to finish."
+    ) else choice
+  }
+
 internal val contentRefreshChoices = listOf(
   SettingsChoice(ContentRefreshMode.AUTOMATIC, "Automatic", "Refresh on launch and in the background using any connection."),
   SettingsChoice(ContentRefreshMode.UNMETERED_ONLY, "Unmetered connections only", "Refresh automatically on connections Android considers unmetered, usually Wi-Fi."),
@@ -64,7 +72,8 @@ internal fun SettingSwitch(title: String, description: String, checked: Boolean,
 internal fun AppUpdatePreferences(options: AppSettings, onChange: (AppSettings) -> Unit) {
   var chooseMode by rememberSaveable { mutableStateOf(false) }
   var chooseNetwork by rememberSaveable { mutableStateOf(false) }
-  val selected = appUpdateChoices.first { it.value == options.appUpdateMode }
+  val choices = appUpdateChoicesForSdk(Build.VERSION.SDK_INT)
+  val selected = choices.first { it.value == options.appUpdateMode }
   SettingsNavigationRow("Update mode", selected.title, Modifier.testTag("app-update-mode")) { chooseMode = true }
   Text(selected.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
   if (options.appUpdateMode == AppUpdateMode.AUTOMATIC) {
@@ -72,7 +81,7 @@ internal fun AppUpdatePreferences(options: AppSettings, onChange: (AppSettings) 
       Modifier.testTag("app-update-network")) { chooseNetwork = true }
     Text("Manual downloads work on any connection.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
   }
-  if (chooseMode) SettingsChoiceDialog("App updates", appUpdateChoices, options.appUpdateMode,
+  if (chooseMode) SettingsChoiceDialog("App updates", choices, options.appUpdateMode,
     onDismiss = { chooseMode = false }, onSelect = { onChange(options.withAppUpdateMode(it)); chooseMode = false })
   if (chooseNetwork && options.appUpdateMode == AppUpdateMode.AUTOMATIC) SettingsChoiceDialog(
     "Automatic downloads",

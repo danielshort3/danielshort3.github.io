@@ -2,6 +2,7 @@ package me.danielshort.app.ui
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -112,7 +113,7 @@ fun AppUpdateSection(
     },
     preferences = {
       preferences()
-      if (automaticUpdatesEnabled && !installationAllowed) {
+      if (shouldOfferAutomaticInstallPermission(automaticUpdatesEnabled, installationAllowed, Build.VERSION.SDK_INT)) {
         Text("Allow installation from this app so Android can apply automatic updates when permitted.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         TextButton(onClick = {
           permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}")))
@@ -121,6 +122,9 @@ fun AppUpdateSection(
     }
   )
 }
+
+internal fun shouldOfferAutomaticInstallPermission(automaticUpdatesEnabled: Boolean, installationAllowed: Boolean, sdkVersion: Int): Boolean =
+  automaticUpdatesEnabled && !installationAllowed && sdkVersion >= 31
 
 @Composable
 internal fun AppUpdateSectionContent(
