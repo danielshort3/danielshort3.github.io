@@ -153,6 +153,10 @@ function installAudit() {
     await page.goto(url); await ready();
     assert.equal(await page.title(), 'Campaign Attribution Lab | Daniel Short');
     assert.equal(await page.locator('h1').textContent(), 'Campaign Attribution Lab');
+    assert.match(await page.locator('.av-intro').textContent(), /advertiser.*agency.*measurement partner/i);
+    assert.match(await page.locator('.av-explainer').textContent(), /original report.*correction/i);
+    assert.equal(await page.locator('[data-continuous]').isChecked(), false);
+    assert.equal(await page.locator('[data-speed]').inputValue(), '2');
     assert.equal(await page.locator('.av-header img').count(), 0);
     assert.doesNotMatch(await page.locator('body').textContent(), /Cedar Valley|Visit Grand Junction/);
     assert.equal(await page.evaluate(() => isSecureContext && !!crypto.subtle), true);
@@ -201,7 +205,7 @@ function installAudit() {
     assert.equal(await page.locator('[data-total="attributed"]').textContent(), '2');
     await page.locator('[data-correct]').click();
     await waitState(() => document.querySelector('[data-current-total]')?.textContent === '1');
-    assert.match(await page.locator('[data-test-verdict]').textContent(), /old report is preserved/);
+    assert.match(await page.locator('[data-test-verdict]').textContent(), /original report stays in the history/);
     const oldReportId = await page.locator('[data-test-report]').getAttribute('data-test-report');
     await page.locator('[data-new-report]').click();
     await page.waitForFunction((old) => document.querySelector('[data-test-report]')?.dataset.testReport !== old, oldReportId);

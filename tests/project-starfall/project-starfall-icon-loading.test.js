@@ -221,7 +221,56 @@ async function repositoryTests() {
   console.log(`Starfall assignment and engine checks passed: ${items.length} item mappings; ${assignments.length} icon assignments; ${files.size} decoded, visibly nonempty icon files; real-engine lazy loading and canvas draw.`);
 }
 
+function canvasCacheRefreshTests() {
+  const { ProjectStarfallEngine } = require('../../js/games/project-starfall/project-starfall-engine.js');
+  const { ProjectStarfallUi } = require('../../js/games/project-starfall/project-starfall-ui.js');
+  const progress = { total: 1, settled: 1, loaded: 1, failed: 0 };
+  const engine = Object.assign(Object.create(ProjectStarfallEngine.prototype), {
+    running: true,
+    getAssetLoadProgress: () => progress,
+    invalidateRenderLayerCaches() {},
+    invalidateOverlaySnapshotCache() {}
+  });
+  const ui = Object.assign(Object.create(ProjectStarfallUi.prototype), {
+    engine,
+    canvasTileLayerCaches: {},
+    shouldBypassCanvasTileLayerCache: () => false,
+    createPerformanceDebugOverlayCanvas: () => {
+      const canvas = { visible: false };
+      canvas.getContext = () => ({
+        clearRect() {},
+        markVisible() { canvas.visible = true; }
+      });
+      return canvas;
+    }
+  });
+  const painted = [];
+  const ctx = { drawImage(canvas) { painted.push(canvas.visible); } };
+  let imageLoaded = false;
+  let tileDraws = 0;
+  const drawTile = (tileCtx) => {
+    tileDraws += 1;
+    if (imageLoaded) tileCtx.markVisible();
+  };
+  ui.drawCachedCanvasTileLayer(ctx, 'inventoryEquipmentTile', 0, 0, 64, 64, 'iron-sword', drawTile);
+  ui.drawCachedCanvasTileLayer(ctx, 'inventoryEquipmentTile', 0, 0, 64, 64, 'iron-sword', drawTile);
+  assert.deepEqual(painted, [false, false], 'the cold slot initially reuses its cached blank tile');
+  assert.equal(tileDraws, 1);
+
+  imageLoaded = true;
+  engine.assetRefreshQueued = true;
+  engine.scheduleAssetRefresh();
+  assert.equal(engine.getAssetLoadProgress(), progress, 'demand-loaded icons do not change map preload progress');
+  ui.drawCachedCanvasTileLayer(ctx, 'inventoryEquipmentTile', 0, 0, 64, 64, 'iron-sword', drawTile);
+  assert.deepEqual(painted, [false, false, true], 'a loaded icon must replace the cached blank tile');
+  assert.equal(tileDraws, 2);
+  console.log('Starfall Canvas inventory cache check passed: a demand-loaded icon replaces a previously blank tile.');
+}
+
 (async () => {
   await unitTests();
-  if (!process.argv.includes('--unit')) await repositoryTests();
+  if (!process.argv.includes('--unit')) {
+    await repositoryTests();
+    canvasCacheRefreshTests();
+  }
 })().catch(error => { console.error(error); process.exitCode = 1; });

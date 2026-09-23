@@ -178,10 +178,8 @@
     description.tabSources?.forEach((source) => ensureTab(source.dataset.siteTab || source.dataset.homeAccordionTrigger, source));
     const order = description.audience === 'personal' ? personalOrder : professionalOrder;
     const overview = description.home && description.view === 'overview';
-    const mobileSectionNavigation = compactQuery.matches && overview && description.audience === 'personal'
-      && document.body.classList.contains('has-mobile-scroll-chrome');
-    const visible = mobileSectionNavigation ? [description.category]
-      : overview || closed || description.audience !== 'personal' ? order : [description.category];
+    const compact = compactQuery.matches;
+    const visible = closed || overview || description.audience !== 'personal' || compact ? order : [description.category];
     visible.forEach((id) => ensureTab(id));
     tabs.forEach((link, id) => {
       const active = id === description.category;
@@ -195,14 +193,14 @@
         link.href = `/#${id}`;
         link.dataset.homeAccordionTrigger = id;
         link.setAttribute('aria-expanded', String(active));
-        link.setAttribute('aria-controls', `home-accordion-panel-${id}`);
+        if (active && !closed) link.setAttribute('aria-controls', `home-accordion-panel-${id}`);
+        else link.removeAttribute('aria-controls');
       } else {
         delete link.dataset.homeAccordionTrigger;
         link.removeAttribute('aria-expanded');
         link.removeAttribute('aria-controls');
       }
     });
-    const compact = compactQuery.matches;
     frame.dataset.frameCompact = String(compact);
     const activeIndex = visible.indexOf(description.category);
     // Reorder only the lightweight rails. Moving the panel or one of its

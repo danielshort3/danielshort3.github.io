@@ -124,8 +124,14 @@ async function runViewport({ browser, base, artifactDir }, settings) {
 
   try {
     await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
-    await settle(page, 'about');
+    await page.waitForFunction(() => SiteFrame.root()?.dataset.frameView === 'closed' &&
+      !SiteFrame.root()?.classList.contains('site-frame--moving'));
+    assert.equal(new URL(page.url()).hash, '', `${settings.name} starts on the clean closed homepage URL.`);
+    assert.equal(await page.locator('[data-site-tab].is-active').count(), 0,
+      `${settings.name} has no selected rail before opening About.`);
     await page.locator('#pcz-reject').click();
+    await page.locator('[data-site-tab="about"]').click();
+    await settle(page, 'about');
     await page.evaluate(() => document.fonts.ready);
     assert.equal(mapRequests, 0, `${settings.name} does not preload the unopened Contact map.`);
     await page.evaluate(() => {

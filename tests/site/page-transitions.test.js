@@ -35,8 +35,10 @@ module.exports = function runPageTransitionTests({ assert }) {
   for (const url of ['/analytics', '/data-science', '/tourism', '/professional/analytics/contact', '/contact?audience=analytics', '/resume-analytics']) {
     assert(intent(url) !== null, url + ' should be eligible for validated shared-frame navigation');
   }
-  assert(intent('/#games').category === 'games' && intent('/#unknown') === null,
-    'homepage categories must remain explicit and unknown hashes must stay native');
+  assert(intent('/').view === 'closed' && intent('/').category === '' &&
+    intent('/#closed').view === 'closed' && intent('/#about').category === 'about' &&
+    intent('/#games').category === 'games' && intent('/#unknown') === null,
+    'the bare homepage and closed alias should be condensed while explicit category hashes open their panels');
   assert(intent('/tools').view === 'library' && intent('/tools/text-compare').view === 'detail',
     'library and detail links should carry their geometry intent before resources arrive');
   assert(!sandbox.isDocumentLikeUrl(new URL('https://external.test/tools')) &&

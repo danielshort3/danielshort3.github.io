@@ -84,6 +84,7 @@ async function assertLayout(page) {
       category: frame?.dataset.frameCategory,
       audience: frame?.dataset.frameAudience,
       overview: frame?.dataset.frameHome === 'true' && frame?.dataset.frameView === 'overview',
+      closed: frame?.dataset.frameHome === 'true' && frame?.dataset.frameView === 'closed',
       compact: frame?.dataset.frameCompact === 'true',
       mobileNavigation: document.body.classList.contains('has-mobile-scroll-chrome'),
       mobileCategories: [...document.querySelectorAll('[data-mobile-section-nav] [data-mobile-section]')].map(node => node.dataset.mobileSection),
@@ -99,14 +100,16 @@ async function assertLayout(page) {
   assert(layout.pageWidth <= layout.width + 1, `Document overflows horizontally: ${JSON.stringify(layout)}`);
   const visibleTabs = layout.tabs.filter(tab => !tab.hidden);
   assert.deepEqual(visibleTabs.map(tab => tab.category), layout.audience !== 'personal'
-    ? ['about', 'projects', 'resume', 'contact'] : layout.overview && !(layout.compact && layout.mobileNavigation)
-      ? ['about', 'projects', 'tools', 'games', 'contact'] : [layout.category],
+    ? ['about', 'projects', 'resume', 'contact']
+    : !layout.compact && !layout.overview && !layout.closed
+      ? [layout.category] : ['about', 'projects', 'tools', 'games', 'contact'],
   'Navigation exposes the correct categories for the audience and route.');
   if (layout.compact && layout.mobileNavigation) {
     assert.deepEqual(layout.mobileCategories, ['about', 'projects', 'tools', 'games', 'contact'],
-      'The mobile bottom navigation retains every category while only the active rail is displayed.');
+      'The mobile bottom navigation retains every category alongside the visible overview rails.');
   }
-  assert.equal(layout.tabs.filter(tab => tab.active).length, 1, 'Exactly one category is active.');
+  assert.equal(layout.tabs.filter(tab => tab.active).length, layout.closed ? 0 : 1,
+    layout.closed ? 'The closed homepage has no active category.' : 'Exactly one category is active.');
   for (const tab of layout.tabs.filter(tab => tab.hidden)) {
     assert(tab.inert && tab.tabIndex === -1 && tab.box?.width === 0 && tab.box?.height === 0,
       `${tab.category} inactive rail is removed from layout and keyboard navigation.`);
@@ -124,14 +127,14 @@ async function assertLayout(page) {
     assert(visibleTabs.every((tab, index) => index === 0 || tab.box.left > visibleTabs[index - 1].box.left),
       'Desktop rails keep the original category order around the expanded panel.');
   } else {
-    if (layout.audience === 'personal') {
+    if (layout.audience === 'personal' && (layout.overview || layout.closed)) {
       assert(visibleTabs.every(tab => tab.box.height <= 100 && tab.box.width >= layout.width - 12),
-        'Personal mobile tabs remain full-width compact rows.');
+        'Personal mobile tabs remain full-width compact rows in open and closed views.');
     } else {
       assert(visibleTabs.every(tab => tab.box.height <= 100 && tab.box.width >= layout.width / visibleTabs.length - 12),
-        'Professional mobile tabs retain usable compact columns.');
+        'Mobile detail and professional tabs retain usable compact columns.');
       assert(Math.max(...visibleTabs.map(tab => tab.box.top)) - Math.min(...visibleTabs.map(tab => tab.box.top)) <= 2,
-        'Professional mobile categories align in their navigation row.');
+        'Mobile detail and professional categories align in their navigation row.');
     }
     if (layout.overview) {
       assert(visibleTabs.every((tab, index) => index === 0 || tab.box.top >= visibleTabs[index - 1].box.bottom - 2),
@@ -142,6 +145,9 @@ async function assertLayout(page) {
       const nextTab = visibleTabs[activeIndex + 1];
       if (nextTab) assert(layout.viewportBox.bottom <= nextTab.box.top + 2,
         'The next mobile category remains below the expanded content.');
+    } else if (layout.closed) {
+      assert(visibleTabs.every((tab, index) => index === 0 || tab.box.top >= visibleTabs[index - 1].box.bottom - 2),
+        'Closed mobile category rows remain vertically ordered beneath the welcome.');
     }
   }
   return layout;
@@ -391,9 +397,17 @@ async function runViewport(browser, base, settings) {
     await settle(page);
     assert.match(await page.title(), /Daniel Short/);
     assert.equal(new URL(page.url()).pathname, '/');
+    assert.equal(new URL(page.url()).hash, '', 'The bare homepage has a clean URL.');
+    assert.equal(await page.locator('.site-frame').getAttribute('data-frame-view'), 'closed',
+      'The bare homepage starts with all sections closed.');
+    assert.equal(await page.locator('[data-site-tab].is-active').count(), 0,
+      'No category is selected before the visitor opens one.');
     await page.locator('#pcz-reject').waitFor({ state: 'visible' });
     await page.locator('#pcz-reject').click();
     await page.locator('#pcz-banner').waitFor({ state: 'hidden' });
+    await (await categoryControl(page, 'about')).click();
+    await page.waitForURL(url => url.pathname === '/' && url.hash === '#about');
+    await settle(page);
     await page.evaluate(() => document.fonts.ready);
     await resetScroll(page);
     await page.evaluate(() => { window.smokeFrame = SiteFrame.root(); window.smokeTimeOrigin = performance.timeOrigin; });

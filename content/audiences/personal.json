@@ -103,6 +103,7 @@
         "props": {
           "accessibleTitle": "Explore Daniel Short",
           "defaultPanel": "about",
+          "initialView": "closed",
           "categories": [
             {
               "id": "about",

@@ -11753,6 +11753,9 @@
     }
 
     scheduleAssetRefresh() {
+      // Demand-loaded icons are excluded from map asset progress, so give UI
+      // tile caches a revision for every image that settles.
+      this.assetRefreshRevision = (this.assetRefreshRevision || 0) + 1;
       if (this.assetRefreshQueued) return;
       this.assetRefreshQueued = true;
       const run = () => {

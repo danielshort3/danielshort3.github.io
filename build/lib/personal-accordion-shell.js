@@ -214,13 +214,14 @@ function renderSiteRouteManifest(html, options = {}) {
   const bodyMetadata = readBodyRouteMetadata(html);
   const path = getCanonicalRoutePath(html, options.path);
   const id = String(options.id || bodyMetadata.id || '').trim();
-  const category = String(options.category || bodyMetadata.category || '').trim();
+  const category = String(options.category ?? bodyMetadata.category ?? '').trim();
   const view = String(options.view || bodyMetadata.view || '').trim();
   const navigation = isHardNavigationPath(path) || options.navigation === 'hard' || bodyMetadata.navigation === 'hard'
     ? 'hard'
     : 'soft';
-  if (!id || !category || !view) {
-    throw new Error('Personal route manifest requires id, category, and view metadata.');
+  const closedHome = id === 'home' && path === '/' && view === 'closed' && !category;
+  if (!id || !view || (!closedHome && !category)) {
+    throw new Error('Personal route manifest requires id, view, and a category except for the closed homepage.');
   }
   const manifest = {
     version: SITE_ROUTE_MANIFEST_VERSION,
@@ -332,14 +333,17 @@ function finalizePersonalRouteDocument(html, options = {}) {
   const bodyMetadata = readBodyRouteMetadata(output);
   if (!isHomepage && (!bodyMetadata.id || !bodyMetadata.category || !bodyMetadata.view)) return output;
 
+  const homeTag = isHomepage ? /<section\b[^>]*\bdata-home-accordion\b[^>]*>/i.exec(output)?.[0] || '' : '';
+  const homeView = getTagAttribute(homeTag, 'data-home-view') === 'closed' ? 'closed' : 'overview';
+  const homeCategory = homeView === 'closed' ? '' : getTagAttribute(homeTag, 'data-active-panel') || 'about';
   const routeOptions = isHomepage
-    ? { id: 'home', category: 'about', view: 'overview', navigation: 'soft', path: '/', module: 'home' }
+    ? { id: 'home', category: homeCategory, view: homeView, navigation: 'soft', path: '/', module: 'home' }
     : options;
   const routePath = getCanonicalRoutePath(output, routeOptions.path);
   const navigation = isHardNavigationPath(routePath) || routeOptions.navigation === 'hard' || (!isHomepage && bodyMetadata.navigation === 'hard') ? 'hard' : 'soft';
   output = output.replace(/<body\b[^>]*>/i, (bodyTag) => {
     let next = setTagAttribute(bodyTag, 'data-site-route-id', routeOptions.id || bodyMetadata.id);
-    next = setTagAttribute(next, 'data-site-route-category', routeOptions.category || bodyMetadata.category);
+    next = setTagAttribute(next, 'data-site-route-category', routeOptions.category ?? bodyMetadata.category);
     next = setTagAttribute(next, 'data-site-route-view', routeOptions.view || bodyMetadata.view);
     next = setTagAttribute(next, 'data-site-route-navigation', navigation);
     next = setTagAttribute(next, 'data-site-route-module', routeOptions.module || bodyMetadata.module || getRouteModule(output, routeOptions.id || bodyMetadata.id));

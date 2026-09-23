@@ -206,7 +206,7 @@ test('pause freezes all visible clocks and reset rejects stale source work', asy
   assert.equal(h.player.snapshot(false).recordCount, 0); assert.equal(h.player.snapshot(false).admitted, 0); h.player.destroy();
 });
 test('individual replacement and new-arrival mix do not rewrite existing history', async () => {
-  const h = harness(); await h.player.reset(); h.player.setSpeed(4); h.player.play();
+  const h = harness(); await h.player.reset(); h.player.setSpeed(4); h.player.setContinuous(true); h.player.play();
   await h.until((s) => s.admitted === 5); const paths = h.player.snapshot(false).lanes.map((l) => l.path);
   h.player.setScenario('none'); assert.deepEqual(h.player.snapshot(false).lanes.map((l) => l.path), paths);
   await h.until((s) => s.admitted >= 8); h.player.pause(); assert.ok(h.evidence.replacements >= 3);
@@ -223,7 +223,7 @@ test('manual review cancels a pending candidate without losing or duplicating it
   assert.equal((await core.verifyProof(proof)).valid, true); h.player.destroy();
 });
 test('capacity reservations finish every admitted traveler and preserve review headroom', async () => {
-  const h = harness(); await h.player.reset(); h.player.setSpeed(4); h.player.play();
+  const h = harness(); await h.player.reset(); h.player.setSpeed(4); h.player.setContinuous(true); h.player.play();
   await h.until((s) => s.limited && !s.running, 3000000);
   const state = h.player.snapshot(false);
   assert.ok(state.recordCount <= core.LIMIT - 12); assert.equal(state.completed, state.admitted);

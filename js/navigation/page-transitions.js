@@ -211,7 +211,7 @@
     if (/^\/(?:api|admin|documents|demos)(?:\/|$)/i.test(path)) return null;
 
     if (path === '/') {
-      let category = String(url.hash || '').replace(/^#/, '') || 'about';
+      let category = String(url.hash || '').replace(/^#/, '') || 'closed';
       try {
         category = decodeURIComponent(category);
       } catch (_) {

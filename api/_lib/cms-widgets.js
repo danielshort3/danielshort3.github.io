@@ -816,6 +816,7 @@ function renderHomeLibraryView(category, categoryId) {
 function renderHomeAccordion(section) {
   const props = section.props || {};
   const categories = Array.isArray(props.categories) ? props.categories : [];
+  const initialView = props.initialView === 'closed' ? 'closed' : 'overview';
   const allowedIds = new Set(categories.map((category) => String(category && category.id || '').trim()).filter(Boolean));
   const defaultPanel = allowedIds.has(String(props.defaultPanel || '').trim())
     ? String(props.defaultPanel).trim()
@@ -824,7 +825,7 @@ function renderHomeAccordion(section) {
   const panels = categories.map((category) => {
     const id = String(category && category.id || '').trim();
     const label = String(category && category.label || id || 'Section').trim();
-    const isActive = id === defaultPanel;
+    const isActive = initialView !== 'closed' && id === defaultPanel;
     const items = Array.isArray(category && category.items) ? category.items : [];
     const meta = Array.isArray(category && category.meta) ? category.meta : [];
     const context = String(category && category.context || '').trim();
@@ -941,9 +942,9 @@ function renderHomeAccordion(section) {
     .join('');
 
   return [
-    `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${escapeHtml(defaultPanel)}" data-home-view="overview" aria-labelledby="home-accordion-title">`,
+    `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${initialView === 'closed' ? '' : escapeHtml(defaultPanel)}" data-home-view="${initialView}" aria-labelledby="home-accordion-title">`,
     `  <h1 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h1>`,
-    '  <div class="home-accordion__shell" data-site-tab-rail data-site-tab-rail-mode="overview">',
+    `  <div class="home-accordion__shell" data-site-tab-rail data-site-tab-rail-mode="${initialView}">`,
     panels,
     '  </div>',
     noScriptLinks ? `  <noscript><nav class="home-accordion__noscript" aria-label="Explore the site">${noScriptLinks}</nav></noscript>` : '',
@@ -1146,11 +1147,13 @@ const WIDGETS = [
     defaultProps: {
       accessibleTitle: 'Explore Daniel Short',
       defaultPanel: 'about',
+      initialView: 'closed',
       categories: []
     },
     fields: [
       { name: 'accessibleTitle', label: 'Accessible title', type: 'text' },
       { name: 'defaultPanel', label: 'Default panel', type: 'text' },
+      { name: 'initialView', label: 'Initial view', type: 'text' },
       { name: 'categories', label: 'Categories', type: 'json' }
     ],
     render: renderHomeAccordion

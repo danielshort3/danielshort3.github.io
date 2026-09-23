@@ -60,7 +60,7 @@ async function runMobileScrollChromeChecks({ browser, base, artifactDir, prepare
       }
       await chromeState(page, false);
       assert.deepEqual(await page.locator(`${navSelector} a`).evaluateAll(nodes => nodes.map(node => node.dataset.mobileSection)), categories);
-      assert.equal(await page.locator('[data-site-tab]:visible').count(), 1, 'Open mobile home keeps its active rail without duplicate inactive rows.');
+      assert.equal(await page.locator('[data-site-tab]:visible').count(), 5, 'Open mobile home keeps every colored tab row available around the active content.');
       for (const link of await page.locator(`${navSelector} a`).all()) {
         const box = await link.boundingBox();
         assert(box.width >= 44 && box.height >= 44, 'Each category has a usable touch target.');

@@ -66,6 +66,17 @@ function assertDesktopFrame(metrics, label) {
     `${label} keeps scrolling inside the desktop frame.`);
 }
 
+function assertClosedDesktopFrame(metrics) {
+  const { viewport, document, stage, footer, footerVisible } = metrics;
+  assert.equal(stage.width, 360, 'The closed homepage keeps its compact tab block on wide screens.');
+  assert(stage.height >= 320 && stage.height <= 470 && stage.x >= 0 && stage.right <= viewport.width,
+    'The closed tab block remains fully visible within the viewport.');
+  assert(footerVisible && footer && Math.abs(footer.bottom - viewport.height) <= 1,
+    'The closed homepage keeps the footer at the bottom of the screen.');
+  assert(document.width <= viewport.width + 1 && document.height <= viewport.height + 1,
+    'The closed desktop homepage does not scroll outside the viewport.');
+}
+
 function assertLibraryColumns(metrics, route) {
   const threshold = route === '/tools' ? 1180 : 1500;
   const expected = metrics.contentWidth >= threshold ? 3 : metrics.contentWidth >= 760 ? 2 : 1;
@@ -93,7 +104,8 @@ async function runResponsiveSpacingChecks({ browser, base, settle, assertLayout,
   });
 
   const open = async (route) => {
-    const response = await page.goto(base + route, { waitUntil: 'domcontentloaded' });
+    const navigation = await page.goto(base + route, { waitUntil: 'domcontentloaded' });
+    const response = navigation || await page.reload({ waitUntil: 'domcontentloaded' });
     assert.equal(response.status(), 200, `${route} loads normally.`);
     await settle(page);
     await page.evaluate(() => document.fonts.ready);
@@ -122,11 +134,15 @@ async function runResponsiveSpacingChecks({ browser, base, settle, assertLayout,
         embeddedDemo = { status: 'ready', ratingEntries };
       }
       const metrics = await measure(page);
-      baseline ||= metrics.stage;
-      assertDesktopFrame(metrics, route);
-      assert(metrics.stage.height > 960, `${route} uses the extra height available on a tall desktop screen.`);
-      for (const key of ['x', 'y', 'width', 'height']) {
-        assert(Math.abs(metrics.stage[key] - baseline[key]) <= 1, `${route} shares the home frame's ${key}.`);
+      if (route === '/') {
+        assertClosedDesktopFrame(metrics);
+      } else {
+        baseline ||= metrics.stage;
+        assertDesktopFrame(metrics, route);
+        assert(metrics.stage.height > 960, `${route} uses the extra height available on a tall desktop screen.`);
+        for (const key of ['x', 'y', 'width', 'height']) {
+          assert(Math.abs(metrics.stage[key] - baseline[key]) <= 1, `${route} shares the expanded frame's ${key}.`);
+        }
       }
       if (['/portfolio', '/tools', '/games'].includes(route)) assertLibraryColumns(metrics, route);
       if (route === '/games/stellar-dogfight') {
@@ -178,7 +194,7 @@ async function runResponsiveSpacingChecks({ browser, base, settle, assertLayout,
     for (const viewport of [{ width: 1200, height: 900 }, { width: 1199, height: 900 }, { width: 768, height: 1024 }, { width: 320, height: 740 }]) {
       activeCase = `about-${viewport.width}`;
       await page.setViewportSize(viewport);
-      await open('/');
+      await open('/#about');
       await page.locator('.home-about__portrait').evaluate((image) => image.decode());
       const metrics = await measure(page);
       assert(metrics.about && metrics.profile && metrics.story && metrics.timeline,

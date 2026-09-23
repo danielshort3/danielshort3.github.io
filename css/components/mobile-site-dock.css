@@ -832,7 +832,14 @@
   @media (max-width: 768px), (max-width: 959px) and (max-height: 619px) {
     body.has-mobile-scroll-chrome {
       padding-top: var(--mobile-site-masthead-height, 62px) !important;
-      padding-bottom: var(--mobile-section-nav-height, 72px) !important;
+      padding-bottom: 0 !important;
+    }
+    body.has-mobile-scroll-chrome > .site-frame {
+      flex-grow: 1;
+    }
+    body.has-mobile-scroll-chrome > [data-site-shell-footer] {
+      padding-bottom: var(--mobile-section-nav-height, 72px);
+      background: #091f3b;
     }
     body.has-mobile-scroll-chrome #combined-header-nav { display: none; }
     html:has(body.has-mobile-scroll-chrome) {

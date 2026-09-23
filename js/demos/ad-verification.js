@@ -33,6 +33,7 @@
   let returnFocus = null;
   let currentView = null;
   let lastReportId = null;
+  let completionAnnounced = false;
   const announce = (text) => { one('[data-announcement]').textContent = text; };
   const message = (text) => { one('[data-message]').textContent = text; announce(text); };
   const reduce = window.matchMedia('(prefers-reduced-motion:reduce)');
@@ -50,7 +51,7 @@
     for (const block of proof.blocks) for (const signed of block.records) byId.set(signed.receipt.id, { signed, block });
   }
   function receiptLabel(r) {
-    return r.type === 'attribution' ? r.data.credited ? 'Visit attributed' : 'Visit not attributed' : core.TITLES[r.type];
+    return r.type === 'attribution' ? r.data.credited ? 'Visit credited to an ad' : 'Visit not credited to an ad' : core.TITLES[r.type];
   }
   function receiptButton(signed) {
     const r = signed.receipt;
@@ -111,7 +112,7 @@
       let detail = lane.active ? ({ ad: 'Ad report', website: 'Website activity', visit: 'Visit report', attribution: 'Matching evidence', end: 'Closing observation' })[lane.active] : 'Independent timeline';
       let credited = false;
       if (lane.observed.visit) { title = 'Visit reported'; detail = 'Awaiting receipt'; }
-      if (attr) { credited = attr.data.credited && !corrected.has(attr.id); title = credited ? 'Attributed' : corrected.has(attr.id) ? 'Corrected' : 'Not attributed'; detail = corrected.has(attr.id) ? 'Duplicate removed' : 'Provider decision recorded'; }
+      if (attr) { credited = attr.data.credited && !corrected.has(attr.id); title = credited ? 'Visit counted' : corrected.has(attr.id) ? 'Corrected' : 'Visit not counted'; detail = corrected.has(attr.id) ? 'Duplicate removed' : credited ? 'Credited to ad' : 'Outside agreed rule'; }
       if (lane.phase === 'done' && !attr) { title = lane.observed.website ? 'Website only' : 'No visit recorded'; detail = 'Observation closed'; }
       view.outcome.textContent = title; view.detail.textContent = detail;
       view.outcome.parentElement.dataset.credited = String(credited);
@@ -128,12 +129,14 @@
     writer.dataset.progress = (state.writer?.progress || 0).toFixed(5);
     writer.dataset.ids = state.writer?.ids.join(',') || '';
     writer.style.setProperty('--progress', writer.dataset.progress);
-    one('[data-writer-label]').textContent = state.writer ? `Verifying block #${state.writer.height} · ${state.writer.count} signed receipts` : state.queued ? `Preparing next block · ${state.queued} receipts waiting` : state.recordCount ? 'Waiting for the next measurement report' : 'Waiting for the campaign';
-    one('[data-play]').textContent = state.running ? 'Pause campaign' : state.admitted ? 'Resume campaign' : 'Start campaign';
+    const finished = !state.continuous && state.admitted >= api.LANES && state.completed === state.admitted && !state.running && !state.queued && !state.writer;
+    one('[data-writer-label]').textContent = state.writer ? `Verifying block #${state.writer.height} · ${state.writer.count} signed receipts` : state.queued ? `Preparing next block · ${state.queued} receipts waiting` : finished ? 'Example complete · review the shared history' : state.recordCount ? 'Waiting for the next measurement report' : 'Waiting for the campaign';
+    one('[data-play]').textContent = state.running ? 'Pause campaign' : finished ? 'Replay example' : state.admitted ? 'Resume campaign' : 'Start campaign';
     one('[data-play]').disabled = !state.ready || state.busy || Boolean(state.error) || (state.limited && state.completed === state.admitted);
-    one('[data-status]').textContent = state.error ? 'Unavailable' : !state.ready ? 'Preparing…' : state.busy ? 'Checking…' : state.running ? 'Live simulation' : state.admitted ? 'Paused' : 'Ready';
+    one('[data-status]').textContent = state.error ? 'Unavailable' : !state.ready ? 'Preparing…' : state.busy ? 'Checking…' : state.running ? 'Live simulation' : finished ? 'Complete' : state.admitted ? 'Paused' : 'Ready';
     for (const node of all('[data-history],[data-copies],[data-export]')) node.disabled = !state.blockCount || state.busy;
-    one('[data-report]').disabled = state.recordCount < 2 || state.busy;
+    for (const node of all('[data-report],[data-report-shortcut]')) node.disabled = state.recordCount < 2 || state.busy || (!state.continuous && !finished);
+    one('[data-report-prompt]').textContent = finished ? 'Now challenge the campaign result.' : state.continuous ? 'You can challenge the result at any time.' : 'After the five journeys finish, challenge the result.';
     main.dataset.blocks = String(state.blockCount); main.dataset.receipts = String(state.recordCount);
     main.dataset.running = String(state.running); main.dataset.completed = String(state.completed);
     main.dataset.admitted = String(state.admitted); main.dataset.time = String(state.time);
@@ -146,9 +149,9 @@
   function update(event, next) {
     state = next;
     if (event.kind === 'reset') {
-      uiEpoch += 1; dialogVersion += 1; proof = null; records = []; byId.clear(); selectedBlock = null; lastReportId = null;
+      uiEpoch += 1; dialogVersion += 1; proof = null; records = []; byId.clear(); selectedBlock = null; lastReportId = null; completionAnnounced = false;
       currentView = null; if (dialog.open) dialog.close();
-      message('Accelerated example. Website visits are optional. Attribution is not proof that an ad caused a trip.');
+      message('These are fictional reports. Crediting a visit to an ad does not prove the ad caused it.');
     }
     if (next.proof) refreshProof(next.proof);
     if (event.block) {
@@ -158,6 +161,10 @@
     }
     if (['reset', 'ready', 'block', 'manual', 'action'].includes(event.kind)) { renderChain(); renderTotals(); renderCopies(); }
     paint();
+    if (!completionAnnounced && !state.continuous && state.admitted >= api.LANES && state.completed === state.admitted && !state.running && !state.busy && !state.queued && !state.writer) {
+      completionAnnounced = true;
+      message(`The example is complete: ${core.totals(records).attributed} visits were credited to ads. Challenge the report to see how a changed number and a real correction differ.`);
+    }
     if (state.error) { main.dataset.error = 'true'; message('Verification unavailable: ' + state.error + ' Reset to retry.'); }
     else delete main.dataset.error;
     if (state.limited) one('[data-message]').textContent = 'The demo is closing admissions. Existing travelers finish; history is retained. Reset to start again.';
@@ -173,7 +180,17 @@
     const r = reportData(id); if (!r) return;
     const latest = core.totals(records);
     const candidates = records.filter((item) => item.type === 'attribution' && item.data.credited && !records.some((old) => old.type === 'correction' && old.refs[0] === item.id));
-    openDialog('Can this campaign report be changed quietly?', `<p>A signed report is a snapshot of committed blocks. Pending measurements appear in later reports. Corrections create new records, not hidden rewrites.</p><div class="av-checks"><p><strong>Signed report: ${r.data.totals.attributed} attributed visits</strong></p><p>Through block #${r.data.throughBlock}. Current signed-receipt total: <strong data-current-total>${latest.attributed}</strong>.</p></div><label class="av-edit-label">Try a different reported total<input data-report-value type="number" min="0" max="1000000" step="1" value="${r.data.totals.attributed + 3}" aria-label="Edited attributed-visit total"></label><button type="button" class="av-button av-primary" data-test-report="${id}">Check edited copy</button><p class="av-verdict" data-test-verdict ${note ? '' : 'hidden'}>${escape(note)}</p><h3>What about a real correction?</h3><p>Emulate an attribution service identifying a duplicate. An authorized, signed correction removes that visit from the current total while retaining the old decision.</p><label class="av-edit-label">Credited decision<select data-correction-target aria-label="Decision to correct">${candidates.map((item) => `<option value="${item.id}">${travelerName(player.describe(item.id)?.traveler)} · block ${byId.get(item.id).block.header.height}</option>`).join('') || '<option value="">None available</option>'}</select></label><div class="av-actions"><button type="button" class="av-button av-secondary" data-correct ${candidates.length ? '' : 'disabled'}>Append example correction</button><button type="button" class="av-button av-secondary" data-new-report>Sign updated report</button></div><details><summary>View signed report receipt</summary><pre>${escape(JSON.stringify(byId.get(id).signed, null, 2))}</pre></details><p>These totals describe signed reports. They do not prove the provider observed every event or that advertising caused the visits.</p>`, { kind: 'report', id });
+    openDialog('Can someone quietly change a campaign result?', `<p>The advertiser and agency can compare this report with the shared record. It shows what was reported before any later correction.</p>
+      <div class="av-checks"><p class="av-checks-label">Original report</p><p><strong>${r.data.totals.attributed} visits credited to ads</strong></p><p>Through record group #${r.data.throughBlock}. Current total after later entries: <strong data-current-total>${latest.attributed}</strong>.</p></div>
+      <h3>Try changing the old number</h3><p>Imagine someone sends a copy with a different total. Check whether it still matches the original record.</p>
+      <label class="av-edit-label">Changed total<input data-report-value type="number" min="0" max="1000000" step="1" value="${r.data.totals.attributed + 3}" aria-label="Changed credited-visit total"></label>
+      <button type="button" class="av-button av-primary" data-test-report="${id}">Check changed number</button>
+      <p class="av-verdict" data-test-verdict ${note ? '' : 'hidden'}>${escape(note)}</p>
+      <h3>What if the original claim was wrong?</h3><p>The measurement partner can add a correction for a duplicate. Everyone can still see the earlier report and the reason the current total changed.</p>
+      <label class="av-edit-label">Visit to correct<select data-correction-target aria-label="Visit to correct">${candidates.map((item) => `<option value="${item.id}">${travelerName(player.describe(item.id)?.traveler)} · group ${byId.get(item.id).block.header.height}</option>`).join('') || '<option value="">None available</option>'}</select></label>
+      <div class="av-actions"><button type="button" class="av-button av-secondary" data-correct ${candidates.length ? '' : 'disabled'}>Add visible correction</button><button type="button" class="av-button av-secondary" data-new-report>Create updated report</button></div>
+      <details><summary>View the signed report entry</summary><pre>${escape(JSON.stringify(byId.get(id).signed, null, 2))}</pre></details>
+      <p>These are reported results. The shared record cannot prove every visit happened or that an ad caused it.</p>`, { kind: 'report', id });
   }
   async function openReceipt(id) {
     if (!byId.has(id) || state.busy) return;
@@ -196,7 +213,7 @@
     } catch (error) { if (version === dialogVersion) openDialog('Evidence check unavailable', `<p>${escape(error.message)}</p>`, { kind: 'receipt', id }); }
   }
   function showCopies(note = '') {
-    openDialog('Same history, separately checked demo copies', `<p>Each participant holds a separate local copy. These are simulated organizations in one browser, not independent operators or a network consensus protocol.</p>${state.copies.map((copy, index) => `<section class="av-copy-row"><div><strong>${copy.name}</strong><span data-copy-status="${index}">${copy.status} · ${copy.length} blocks${copy.online ? '' : ' · updates paused'}</span></div><div class="av-actions"><button class="av-link" type="button" data-copy-action="pause" data-copy-index="${index}">Pause updates</button><button class="av-link" type="button" data-copy-action="alter" data-copy-index="${index}">Alter this copy</button><button class="av-link" type="button" data-copy-action="restore" data-copy-index="${index}">Restore verified history</button></div></section>`).join('')}<p data-copy-note>${escape(note || 'Pausing delivery leaves a valid older copy. Altering a stored receipt causes a signature or fingerprint mismatch. The other copies and original totals stay intact.')}</p>`, { kind: 'copies' });
+    openDialog('Do the partners still have the same record?', `<p>Compare each partner’s copy. If one falls behind or changes an old entry, the others can spot the difference. These are simulated copies in one browser, not independent organizations.</p>${state.copies.map((copy, index) => `<section class="av-copy-row"><div><strong>${copy.name}</strong><span data-copy-status="${index}">${copy.status} · ${copy.length} groups${copy.online ? '' : ' · updates paused'}</span></div><div class="av-actions"><button class="av-link" type="button" data-copy-action="pause" data-copy-index="${index}">Pause updates</button><button class="av-link" type="button" data-copy-action="alter" data-copy-index="${index}">Change this copy</button><button class="av-link" type="button" data-copy-action="restore" data-copy-index="${index}">Restore original copy</button></div></section>`).join('')}<p data-copy-note>${escape(note || 'A paused copy is simply behind. A changed old entry is a mismatch; the other copies and original totals remain intact.')}</p>`, { kind: 'copies' });
   }
   async function manual(name, value, extra) {
     const generation = uiEpoch;
@@ -225,12 +242,18 @@
     if (version !== dialogVersion || generation !== uiEpoch) return;
     const verdict = body.querySelector('[data-test-verdict]'); if (!verdict) return;
     verdict.hidden = false; verdict.dataset.valid = String(result.valid);
-    verdict.textContent = result.valid ? 'No mismatch: this copy still matches the signed records.' : 'Edited copy rejected. Original signatures, history and campaign totals are unchanged.';
+    verdict.textContent = result.valid ? 'This copy still matches the original record.' : 'Changed number detected. The original report and campaign total are unchanged.';
     announce(verdict.textContent);
   }
-  one('[data-play]').addEventListener('click', () => {
+  one('[data-play]').addEventListener('click', async () => {
     if (state.busy) return;
-    if (state.running) player.pause(); else { selectedBlock = null; player.play(); if (innerWidth <= 900) one('.av-workspace').scrollIntoView({ block: 'start', behavior: 'instant' }); }
+    if (state.running) player.pause();
+    else {
+      if (!state.continuous && state.admitted >= api.LANES && state.completed === state.admitted && !state.queued && !state.writer) await player.reset();
+      selectedBlock = null;
+      player.play();
+      if (innerWidth <= 900) one('.av-workspace').scrollIntoView({ block: 'start', behavior: 'instant' });
+    }
   });
   one('[data-reset]').addEventListener('click', () => player.reset());
   one('[data-speed]').addEventListener('change', (event) => player.setSpeed(Number(event.target.value)));
@@ -247,6 +270,7 @@
   one('[data-history]').addEventListener('click', () => { player.pause(); openDialog('Full campaign blockchain', `<p>${proof.blocks.length} blocks · ${records.length} signed receipts. All earlier records are retained. Traveler labels below are private example annotations.</p><ol class="av-archive">${proof.blocks.map((block) => blockMarkup(block, true, true)).join('')}</ol>`, { kind: 'history' }); });
   one('[data-copies]').addEventListener('click', () => { player.pause(); showCopies(); });
   one('[data-report]').addEventListener('click', newReport);
+  one('[data-report-shortcut]').addEventListener('click', newReport);
   one('[data-close]').addEventListener('click', () => dialog.close());
   dialog.addEventListener('close', () => { dialogVersion += 1; if (returnFocus?.isConnected && !returnFocus.disabled) returnFocus.focus({ preventScroll: true }); });
   body.addEventListener('click', async (event) => {
@@ -270,7 +294,7 @@
     if (event.target.closest('[data-correct]')) {
       const id = body.querySelector('[data-correction-target]').value;
       const block = await manual('correct', id);
-      if (block && dialog.open && version === dialogVersion) showReport(lastReportId, `Correction added in block #${block.header.height}. The old report is preserved; the current total was recalculated once.`);
+      if (block && dialog.open && version === dialogVersion) showReport(lastReportId, `Correction recorded in group #${block.header.height}. The original report stays in the history; the current total has been updated.`);
       return;
     }
     if (event.target.closest('[data-new-report]')) await newReport();
