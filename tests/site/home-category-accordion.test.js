@@ -499,7 +499,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const specificIconIds = [...categoryIconIds, ...uniqueCardIconIds, ...gameFallbackIconIds];
   assert(specificIconIds.every((id) => iconDefinitions[id]) &&
     new Set(specificIconIds.map((id) => iconDefinitions[id])).size === specificIconIds.length,
-  'category, glyph-backed card, and game fallback icons should resolve to distinct on-brand SVG definitions');
+  'category, card fallback, and game fallback icons should resolve to distinct on-brand SVG definitions');
   const authoredIconIds = categories.flatMap((category) => (category.items || [])
     .map((item) => item.icon)
     .filter(Boolean));
@@ -905,9 +905,17 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     count(credentialsOnlyHtml, /data-home-timeline-item=/g) === 1 &&
     !credentialsOnlyHtml.includes('data-home-background-section="other"'),
   'a resume with only credentials should omit empty experience, education, and other sections');
-  uniqueCardIconIds.forEach((id) => {
-    assert(count(html, new RegExp(`data-home-icon="${id}"`, 'g')) === 1,
-      `${id} should render exactly once as a unique homepage card glyph`);
+  const contactIconImages = {
+    'contact-form': 'img/icons/contact-message-v2.png',
+    email: 'img/icons/contact-email-v2.png',
+    github: 'img/icons/contact-github-v2.png'
+  };
+  Object.entries(contactIconImages).forEach(([id, image]) => {
+    const item = contact.items.find((entry) => entry.id === id);
+    assert(item?.iconImage === image && fs.existsSync(path.join(ROOT, image)) &&
+      html.split(`src="${image}"`).length === 2 &&
+      count(html, new RegExp(`data-home-icon="${item.icon}"`, 'g')) === 0,
+    `${id} should render its selected image once, with its SVG glyph reserved as a fallback`);
   });
   assert(count(getItemHtml('contact'), /data-home-icon="external-arrow"/g) === 1,
     'the external GitHub card should use one dedicated external-link arrow');

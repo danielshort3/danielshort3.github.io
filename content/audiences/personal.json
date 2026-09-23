@@ -506,6 +506,7 @@
                   "title": "Send a message",
                   "summary": "Use the short contact form and share what’s on your mind.",
                   "href": "/contact#contact-modal",
+                  "iconImage": "img/icons/contact-message-v2.png",
                   "icon": "message",
                   "contentType": "page",
                   "contentId": "contact",
@@ -516,6 +517,7 @@
                   "title": "Email",
                   "summary": "daniel@danielshort.me",
                   "href": "mailto:daniel@danielshort.me",
+                  "iconImage": "img/icons/contact-email-v2.png",
                   "icon": "email"
                 },
                 {
@@ -523,6 +525,7 @@
                   "title": "GitHub",
                   "summary": "github.com/danielshort3",
                   "href": "https://github.com/danielshort3",
+                  "iconImage": "img/icons/contact-github-v2.png",
                   "icon": "github",
                   "external": true
                 }
