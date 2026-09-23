@@ -3,13 +3,13 @@
   "channel": "review",
   "packageName": "me.danielshort.app.debug",
   "latest": {
-    "versionCode": 6,
-    "versionName": "0.4.0-debug",
+    "versionCode": 7,
+    "versionName": "0.5.0-debug",
     "minSdk": 26,
     "apk": {
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.4.0-review/Daniel-Short-review-v6-21283723b7cc6aa7.apk",
-      "sha256": "21283723b7cc6aa74200f189926e227eaacdb7389ac7bc5c03e4b5e700a2fbe5",
-      "size": 24747980
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.0-review/Daniel-Short-review-v7-3c101f91381daa05.apk",
+      "sha256": "3c101f91381daa0511fc77b66ffe6ddbb0f1ac4eb2cbe4dfe951cb2240ebc15f",
+      "size": 24780748
     },
     "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
   },
@@ -43,23 +43,21 @@
       "sha256": "21283723b7cc6aa74200f189926e227eaacdb7389ac7bc5c03e4b5e700a2fbe5",
       "size": 24747980,
       "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
+    },
+    {
+      "versionCode": 7,
+      "sha256": "3c101f91381daa0511fc77b66ffe6ddbb0f1ac4eb2cbe4dfe951cb2240ebc15f",
+      "size": 24780748,
+      "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
     }
   ],
   "patches": [
     {
-      "fromSha256": "67eb0fa49d23e932ece0bbc9fbbc41a06a8206dcbe161773315f0e144d089409",
-      "toSha256": "21283723b7cc6aa74200f189926e227eaacdb7389ac7bc5c03e4b5e700a2fbe5",
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.4.0-review/patch-67eb0fa49d23e932-21283723b7cc6aa7-c816ad18ca03cfd3.dsupd.gz",
-      "sha256": "c816ad18ca03cfd360ebf994c0de59d9426b5af4a30640fd6d61a5816a861e42",
-      "size": 506397,
-      "format": "dsupd1-gzip"
-    },
-    {
-      "fromSha256": "6b250314e3800cd5c5fceffb8e9ce0555b1082938e8bf04f8c64e648b6b5b5e2",
-      "toSha256": "21283723b7cc6aa74200f189926e227eaacdb7389ac7bc5c03e4b5e700a2fbe5",
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.4.0-review/patch-6b250314e3800cd5-21283723b7cc6aa7-faa0cf6c94d04968.dsupd.gz",
-      "sha256": "faa0cf6c94d049689a9c48fa9557f124571e155b775786c9c64f36f59caf5e86",
-      "size": 743242,
+      "fromSha256": "21283723b7cc6aa74200f189926e227eaacdb7389ac7bc5c03e4b5e700a2fbe5",
+      "toSha256": "3c101f91381daa0511fc77b66ffe6ddbb0f1ac4eb2cbe4dfe951cb2240ebc15f",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.0-review/patch-21283723b7cc6aa7-3c101f91381daa05-a0fcdb11e9f4839d.dsupd.gz",
+      "sha256": "a0fcdb11e9f4839d1f976b1358e2caf7052446d859fd1cd8fe6cc005125a977e",
+      "size": 809259,
       "format": "dsupd1-gzip"
     }
   ]
