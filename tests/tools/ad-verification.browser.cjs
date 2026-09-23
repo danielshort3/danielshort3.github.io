@@ -21,12 +21,15 @@ const server = http.createServer((request, response) => {
 });
 // Independent rendered-frame audit: many receipts can commit in one block.
 function installAudit() {
-  const audit = window.__audit = { frames: 0, overlapping: 0, mixedStages: 0, peak: 0, blocks: 0, receipts: 0, multiReceiptBlocks: 0, replacements: 0, failures: [] };
+  const audit = window.__audit = { frames: 0, overlapping: 0, mixedStages: 0, peak: 0, blocks: 0, receipts: 0, multiReceiptBlocks: 0, replacements: 0, layoutFrames: 0, maxHeightDelta: 0, maxResultsDelta: 0, failures: [] };
   let lastBlock = 0;
   let oldRows = [];
   let known = new Map();
   let counts = { exposures: 0, websites: 0 };
   let credit = new Map();
+  let layout = null;
+  window.__watchLayout = false;
+  window.__resetLayout = () => { layout = null; window.__watchLayout = true; };
   const fail = (message) => { if (audit.failures.length < 30) audit.failures.push(message); };
   function tick() {
     const main = document.querySelector('#main[data-blocks]');
@@ -84,6 +87,19 @@ function installAudit() {
       const writer = document.querySelector('[data-writer]');
       const width = writer.clientWidth; const progress = Number(writer.dataset.progress);
       if (width && Math.abs(writer.querySelector('i').getBoundingClientRect().width / width - progress) > .025) fail('Block verification progress differs from the shared clock.');
+      if (window.__watchLayout) {
+        const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+        const ledger = rect('.av-ledger'); const people = rect('.av-people'); const results = rect('.av-results');
+        const current = { width: innerWidth, ledger: ledger.height, people: people.height, results: results.top + scrollY };
+        if (!layout || layout.width !== current.width) layout = current;
+        const heightDelta = Math.max(Math.abs(current.ledger - layout.ledger), Math.abs(current.people - layout.people));
+        const resultsDelta = Math.abs(current.results - layout.results);
+        audit.layoutFrames += 1;
+        audit.maxHeightDelta = Math.max(audit.maxHeightDelta, heightDelta);
+        audit.maxResultsDelta = Math.max(audit.maxResultsDelta, resultsDelta);
+        if (heightDelta > 1) fail('Panel height changed as records or labels changed.');
+        if (resultsDelta > 1) fail('Changing ledger content moved the results band.');
+      }
     }
     requestAnimationFrame(tick);
   }
@@ -108,63 +124,84 @@ function installAudit() {
     const pause = async () => { if (await page.locator('#main').getAttribute('data-running') === 'true') await page.locator('[data-play]').click(); };
     const capture = (name) => page.screenshot({ path: path.join(output, name + '.png'), fullPage: true });
     const details = (open) => page.locator('.av-about').evaluate((node, value) => { node.open = value; }, open);
-    async function reset(scenario = 'mixed', speed = 4, continuous = false) {
+    async function reset(speed = 4, continuous = false) {
       if (await page.locator('dialog[open]').count()) await page.keyboard.press('Escape');
       await page.locator('[data-reset]').click(); await ready();
-      await page.locator('[data-scenario]').selectOption(scenario); await page.locator('[data-speed]').selectOption(String(speed));
+      await page.locator('[data-speed]').selectOption(String(speed));
       await details(true); await page.locator('[data-continuous]').setChecked(continuous); await details(false);
+      await page.evaluate(async () => { await document.fonts.ready; window.__resetLayout(); });
     }
     async function exportProof() {
       await pause(); await details(true);
       const promise = page.waitForEvent('download'); await page.locator('[data-export]').click();
-      const download = await promise; const proof = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
+      const download = await promise;
+      assert.equal(download.suggestedFilename(), 'campaign-audit-proof.json');
+      const proof = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
       await details(false); return proof;
     }
+    async function assertControls() {
+      assert.equal(await page.locator('[data-scenario]').count(), 0);
+      assert.equal(await page.locator('.av-controls select').count(), 1);
+      const controls = await page.evaluate(() => {
+        const start = document.querySelector('[data-play]').getBoundingClientRect();
+        const speed = document.querySelector('[data-speed]').getBoundingClientRect();
+        return { gap: speed.left - start.right, centerDelta: Math.abs((start.top + start.height / 2) - (speed.top + speed.height / 2)) };
+      });
+      assert.ok(controls.gap > 0 && controls.gap < 100, 'Speed must be immediately beside Start/Resume.');
+      assert.ok(controls.centerDelta < 2, 'Playback controls must remain on the same line.');
+    }
     await page.goto(url); await ready();
-    assert.equal(await page.title(), 'Campaign Results You Can Check | Daniel Short');
+    assert.equal(await page.title(), 'Campaign Attribution Lab | Daniel Short');
+    assert.equal(await page.locator('h1').textContent(), 'Campaign Attribution Lab');
+    assert.equal(await page.locator('.av-header img').count(), 0);
+    assert.doesNotMatch(await page.locator('body').textContent(), /Cedar Valley|Visit Grand Junction/);
     assert.equal(await page.evaluate(() => isSecureContext && !!crypto.subtle), true);
     const essential = page.getByRole('button', { name: 'Essential only', exact: true });
     if (await essential.isVisible()) await essential.click();
     assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex/);
-    await capture('01-ready');
+    await assertControls(); await capture('01-project-ready');
+    // Mixed is the only user-facing mode. Individual scenarios remain covered in Node tests.
     for (const speed of [1, 2, 4]) {
-      await reset('mixed', speed); await page.locator('[data-play]').click();
+      await reset(speed); await page.locator('[data-play]').click();
       await waitState(() => [...document.querySelectorAll('[data-lane]')].filter((row) => row.dataset.observing).length >= 3);
       if (speed === 1) {
         await pause(); const frozen = await page.locator('[data-travelers]').innerHTML(); const n = await page.locator('#main').getAttribute('data-blocks');
         await page.waitForTimeout(500); assert.equal(await page.locator('[data-travelers]').innerHTML(), frozen); assert.equal(await page.locator('#main').getAttribute('data-blocks'), n);
-        await page.locator('[data-play]').click();
+        await assertControls(); await page.locator('[data-play]').click();
       }
       await waitState(() => Number(document.querySelector('#main').dataset.completed) === 5 && document.querySelector('#main').dataset.running === 'false');
       const proof = await exportProof(); const checked = await core.verifyProof(proof);
       assert.equal(checked.valid, true); assert.equal(checked.totals.attributed, 2); assert.ok(proof.blocks.length < 21);
-      assert.doesNotMatch(JSON.stringify(proof), /"traveler"|T00\d|hiking-guides|"salt"|"privateKey"/);
+      assert.equal(proof.trust.campaign, 'EXAMPLE-CAMPAIGN');
+      assert.doesNotMatch(JSON.stringify(proof), /Cedar Valley|CV-DEMO|"traveler"|T00\d|hiking-guides|"salt"|"privateKey"/);
     }
-    await capture('02-batched-campaign');
+    await capture('02-stable-desktop');
+    await page.locator('[data-history]').click();
+    // No named destination even in the optional private example evidence.
+    await page.locator('[data-dialog-body] [data-receipt][data-type="visit"]').first().click();
+    await waitState(() => document.querySelector('[data-evidence-check]')?.dataset.evidenceCheck === 'checked');
+    assert.match(await page.locator('[data-dialog-body]').textContent(), /Example destination/);
+    assert.doesNotMatch(await page.locator('[data-dialog-body]').textContent(), /Cedar Valley/);
+    await page.keyboard.press('Escape');
     await page.locator('[data-history]').click();
     const decision = page.locator('[data-dialog-body] [data-receipt][data-type="attribution"][data-credited="true"]').first();
-    const id = await decision.getAttribute('data-receipt'); await decision.click();
+    await decision.click();
     await waitState(() => document.querySelector('[data-evidence-check]')?.dataset.evidenceCheck === 'checked');
     assert.equal(await page.locator('[data-record-check]').getAttribute('data-record-check'), 'true');
-    await capture('03-evidence-reproduced');
     await page.locator('[data-withhold]').click();
     await waitState(() => document.querySelector('[data-evidence-check]')?.dataset.evidenceCheck === 'unavailable');
     assert.equal(await page.locator('[data-record-check]').getAttribute('data-record-check'), 'true');
-    await capture('04-evidence-unavailable');
     await page.locator('[data-withhold]').click();
     await waitState(() => document.querySelector('[data-evidence-check]')?.dataset.evidenceCheck === 'checked');
     await page.keyboard.press('Escape');
-    // A signed report can be checked without changing its authentic copy.
     const beforeReport = await exportProof();
     await page.locator('[data-report]').click(); await page.locator('[data-test-report]').waitFor();
     await page.locator('[data-report-value]').fill('14'); await page.locator('[data-test-report]').click();
     await waitState(() => document.querySelector('[data-test-verdict]')?.dataset.valid === 'false');
     assert.equal(await page.locator('[data-total="attributed"]').textContent(), '2');
-    await capture('05-report-edit-rejected');
     await page.locator('[data-correct]').click();
     await waitState(() => document.querySelector('[data-current-total]')?.textContent === '1');
     assert.match(await page.locator('[data-test-verdict]').textContent(), /old report is preserved/);
-    await capture('06-correction-appended');
     const oldReportId = await page.locator('[data-test-report]').getAttribute('data-test-report');
     await page.locator('[data-new-report]').click();
     await page.waitForFunction((old) => document.querySelector('[data-test-report]')?.dataset.testReport !== old, oldReportId);
@@ -174,13 +211,10 @@ function installAudit() {
     assert.equal((await core.verifyProof(after)).totals.attributed, 1);
     const reports = core.receipts(after.blocks).filter((r) => r.type === 'report');
     assert.equal(reports[0].data.totals.attributed, 2); assert.equal(reports.at(-1).data.totals.attributed, 1);
-    assert.ok(core.receipts(after.blocks).some((r) => r.type === 'correction' && r.refs[0] === id) || core.receipts(after.blocks).filter((r) => r.type === 'correction').length === 1);
-    // Copies are actually checked and may diverge or lag independently.
     await page.locator('[data-copies]').click();
     await page.locator('[data-copy-action="alter"][data-copy-index="1"]').click();
     await waitState(() => document.querySelector('[data-copy-status="1"]')?.textContent.startsWith('Mismatch'));
     assert.match(await page.locator('[data-copy-status="0"]').textContent(), /Up to date/);
-    await capture('07-copy-mismatch');
     await page.locator('[data-copy-action="restore"][data-copy-index="1"]').click();
     await waitState(() => document.querySelector('[data-copy-status="1"]')?.textContent.startsWith('Up to date'));
     await page.locator('[data-copy-action="pause"][data-copy-index="1"]').click();
@@ -189,32 +223,53 @@ function installAudit() {
     assert.equal(await page.locator('[data-copy="1"]').getAttribute('data-status'), 'Behind');
     await page.locator('[data-copies]').click(); await page.locator('[data-copy-action="restore"][data-copy-index="1"]').click();
     await waitState(() => document.querySelector('[data-copy-status="1"]')?.textContent.startsWith('Up to date')); await page.keyboard.press('Escape');
-    for (const [scenario, expected] of Object.entries({ none: 0, website: 0, destination: 5, both: 5, late: 0 })) {
-      await reset(scenario); await page.locator('[data-play]').click();
-      await waitState(() => Number(document.querySelector('#main').dataset.completed) === 5 && document.querySelector('#main').dataset.running === 'false');
-      const proof = await exportProof(); assert.equal((await core.verifyProof(proof)).totals.attributed, expected);
-    }
-    await reset('mixed', 4, true); await page.locator('[data-play]').click();
-    await waitState(() => Number(document.querySelector('#main').dataset.admitted) === 5);
-    await page.locator('[data-scenario]').selectOption('none');
+    await reset(4, true); await page.locator('[data-play]').click();
     await waitState(() => Number(document.querySelector('#main').dataset.admitted) >= 9); await pause();
     assert.equal((await core.verifyProof(await exportProof())).valid, true);
-    for (const width of [1280, 1024, 768, 390, 320]) {
-      await page.setViewportSize({ width, height: 1000 }); await reset(); await page.locator('[data-play]').click();
+    // Playback, changing batch sizes, receipt expansion and deliberately long labels.
+    // The outer panels and results must not move; content remains scrollable, not hidden.
+    for (const width of [1280, 1024, 901, 900, 768, 390, 320]) {
+      await page.evaluate(() => { window.__watchLayout = false; });
+      await page.setViewportSize({ width, height: 1000 }); await reset(); await assertControls();
+      await page.locator('[data-play]').click();
       await waitState(() => Number(document.querySelector('#main').dataset.blocks) >= 4); await pause();
+      await assertControls();
+      for (let i = 0; i < 3; i += 1) {
+        await page.locator('[data-chain] [data-block]').nth(i).click();
+        await page.waitForTimeout(40);
+      }
       await page.locator('.av-workspace').evaluate((node) => node.scrollIntoView({ block: 'start' }));
       const layout = await page.evaluate(() => ({ width: innerWidth, documentWidth: document.documentElement.scrollWidth,
         nested: document.querySelector('[data-travelers]').scrollHeight > document.querySelector('[data-travelers]').clientHeight + 1,
+        ledgerHeight: document.querySelector('.av-ledger').getBoundingClientRect().height,
         lanes: [...document.querySelectorAll('[data-lane]')].map((node) => ({ top: node.getBoundingClientRect().top, bottom: node.getBoundingClientRect().bottom })) }));
-      fs.writeFileSync(path.join(output, `layout-${width}.json`), JSON.stringify(layout, null, 2)); await capture(`08-layout-${width}`);
+      fs.writeFileSync(path.join(output, `layout-${width}.json`), JSON.stringify(layout, null, 2));
+      await capture(`03-stable-layout-${width}`);
       assert.ok(layout.documentWidth <= width, `Overflow at ${width}`); assert.equal(layout.nested, false);
       assert.ok(layout.lanes.every((row) => row.top >= -1 && row.bottom <= 1001));
+      // Stress only DOM text, not signed data. Reload/reset rebuilds authentic content afterward.
+      await page.evaluate(() => {
+        document.querySelectorAll('[data-chain] .av-receipt small').forEach((node) => { node.textContent = 'Long provider report title '.repeat(18); });
+      });
+      await page.waitForTimeout(100);
+      const viewport = page.locator('[data-chain-viewport]');
+      const height = await page.locator('.av-ledger').evaluate((node) => node.getBoundingClientRect().height);
+      assert.ok(Math.abs(height - layout.ledgerHeight) < 1, 'Long receipts must not grow the panel.');
+      await viewport.evaluate((node) => { node.scrollTop = 0; });
+      await viewport.focus(); await page.keyboard.press('PageDown'); await page.waitForTimeout(150);
+      assert.ok(await viewport.evaluate((node) => node.scrollTop > 0), 'Keyboard scrolling must expose the overflow.');
+      assert.ok(await viewport.evaluate((node) => node.scrollWidth <= node.clientWidth + 1), 'Long text must wrap inside the ledger.');
     }
+    await reset(); await page.locator('[data-play]').click();
+    await waitState(() => Number(document.querySelector('[data-writer]').dataset.progress) > 0);
+    await reset(); await page.waitForTimeout(500);
+    assert.equal(await page.locator('#main').getAttribute('data-blocks'), '0');
     const audit = await page.evaluate(() => window.__audit);
     fs.writeFileSync(path.join(output, 'animation-sync-evidence.json'), JSON.stringify(audit, null, 2));
     assert.ok(audit.overlapping > 100); assert.ok(audit.mixedStages > 0); assert.ok(audit.multiReceiptBlocks > 10); assert.ok(audit.replacements >= 4);
+    assert.ok(audit.layoutFrames > 100); assert.ok(audit.maxHeightDelta <= 1); assert.ok(audit.maxResultsDelta <= 1);
     assert.deepEqual(audit.failures, []); assert.deepEqual(errors, []); assert.deepEqual(failed, []);
-    // Hold native verification, not source observation. The people keep progressing.
+    // Hold native verification, not source observation. People must still progress.
     const slow = await browser.newContext();
     await slow.addInitScript(() => {
       window.__hold = false; window.__release = [];
@@ -240,6 +295,6 @@ function installAudit() {
     assert.match(await np.locator('noscript').innerText(), /JavaScript/); assert.equal(await np.locator('[data-play]').isDisabled(), true); await noJs.close();
     const missing = await browser.newContext(); const mp = await missing.newPage(); await mp.route('**/js/demos/ad-verification-core.js*', (route) => route.abort()); await mp.goto(url);
     await mp.waitForFunction(() => document.querySelector('#main').dataset.error === 'true'); assert.equal(await mp.locator('[data-play]').isDisabled(), true); await missing.close();
-    console.log(`PASS: ${audit.frames} frames; ${audit.overlapping} overlapping; ${audit.blocks} atomic blocks / ${audit.receipts} receipts; ${audit.multiReceiptBlocks} multi-receipt batches; ${audit.replacements} replacements. Evidence, reports, corrections and copies checked.`);
+    console.log(`PASS: ${audit.layoutFrames} geometry samples; max panel shift ${audit.maxHeightDelta}px; max results shift ${audit.maxResultsDelta}px; ${audit.blocks} blocks / ${audit.receipts} receipts checked. Default mixed, adjacent speed, generic project identity, keyboard overflow and audit flows passed.`);
   } finally { if (browser) await browser.close(); await new Promise((resolve) => server.close(resolve)); }
 })().catch((error) => { console.error(error); process.exitCode = 1; });

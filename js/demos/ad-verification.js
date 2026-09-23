@@ -69,6 +69,17 @@
     one('[data-empty]').hidden = recent.length > 0;
     one('[data-count]').textContent = (proof?.blocks.length || 0) + ' blocks';
     one('[data-retained]').textContent = proof?.blocks.length > 3 ? `${proof.blocks.length} blocks retained · latest three shown` : 'Every block references the one before it.';
+    // Only the inner ledger scrolls. Never scroll the document as campaign records arrive.
+    const viewport = one('[data-chain-viewport]');
+    if (!recent.length) viewport.scrollTop = 0;
+    else if (chosen === recent.at(-1).header.height) viewport.scrollTop = viewport.scrollHeight;
+    else {
+      const selected = viewport.querySelector(`[data-height="${chosen}"]`);
+      if (selected) {
+        const top = selected.getBoundingClientRect().top - viewport.getBoundingClientRect().top + viewport.scrollTop;
+        if (top < viewport.scrollTop || top + selected.offsetHeight > viewport.scrollTop + viewport.clientHeight) viewport.scrollTop = top;
+      }
+    }
   }
   function renderTotals() {
     const totals = core.totals(records);
@@ -222,7 +233,6 @@
     if (state.running) player.pause(); else { selectedBlock = null; player.play(); if (innerWidth <= 900) one('.av-workspace').scrollIntoView({ block: 'start', behavior: 'instant' }); }
   });
   one('[data-reset]').addEventListener('click', () => player.reset());
-  one('[data-scenario]').addEventListener('change', (event) => { player.setScenario(event.target.value); message('This mix applies to new arrivals. Existing travelers keep their current paths.'); });
   one('[data-speed]').addEventListener('change', (event) => player.setSpeed(Number(event.target.value)));
   one('[data-continuous]').addEventListener('change', (event) => player.setContinuous(event.target.checked));
   one('[data-travelers]').addEventListener('click', (event) => {
@@ -268,7 +278,7 @@
   one('[data-export]').addEventListener('click', () => {
     player.pause();
     const url = URL.createObjectURL(new Blob([JSON.stringify(proof, null, 2)], { type: 'application/json' }));
-    const link = document.createElement('a'); link.href = url; link.download = 'cedar-valley-shared-audit-proof.json'; document.body.appendChild(link); link.click(); link.remove();
+    const link = document.createElement('a'); link.href = url; link.download = 'campaign-audit-proof.json'; document.body.appendChild(link); link.click(); link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000); message('Shared proof exported: signed receipts and public keys, with no private provider evidence or traveler IDs.');
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden) player.pause(); });
