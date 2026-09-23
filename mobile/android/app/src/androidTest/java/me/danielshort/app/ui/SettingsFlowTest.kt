@@ -15,6 +15,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
@@ -28,6 +29,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalTestApi::class)
 class SettingsFlowTest {
@@ -172,15 +174,22 @@ class SettingsFlowTest {
   @Test fun wideSettingsStayBoundedAndBackReturnsToTheOriginalSection() {
     val repository = ContentRepository(context, settings)
     compose.waitUntil(10_000) { repository.state.value.content != null }
+    var layoutDensity = 0f
     compose.setContent {
       DeviceConfigurationOverride(DeviceConfigurationOverride.ForcedSize(DpSize(1280.dp, 800.dp))) {
+        val density = LocalDensity.current.density
+        SideEffect { layoutDensity = density }
         DanielShortApp(repository)
       }
     }
     compose.onNodeWithTag("site-rail-tools").performClick()
     compose.onNodeWithContentDescription("Settings").performClick()
     val panel = compose.onNodeWithTag("native-feature-panel").getUnclippedBoundsInRoot()
-    assertTrue("Settings panel exceeds its reading width", panel.right - panel.left <= 760.5.dp)
+    // ForcedSize can produce less than one pixel per dp; widthIn rounds its 760dp cap to whole pixels.
+    val actualWidthPx = (panel.right - panel.left).value * layoutDensity
+    val maximumWidthPx = (760 * layoutDensity).roundToInt()
+    assertTrue("Settings panel $actualWidthPx px exceeds its $maximumWidthPx px reading width",
+      actualWidthPx <= maximumWidthPx + .01f)
     compose.onNodeWithTag("settings-updates").assertIsDisplayed()
     capture("overview-wide")
     compose.onNodeWithTag("settings-storage").performClick()
