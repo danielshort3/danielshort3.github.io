@@ -54,6 +54,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 2
+
+      - name: Check patch whitespace
+        run: git diff --check HEAD^ HEAD
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -105,4 +109,63 @@ jobs:
             mobile/android/app/build/reports/tests/
             mobile/android/app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
+          retention-days: 14
+
+  settings-device-tests:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        with:
+          accept-android-sdk-licenses: false
+          packages: 'platform-tools platforms;android-36.1 build-tools;36.1.0'
+
+      - name: Setup Gradle cache and validate wrapper
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+        with:
+          cache-read-only: true
+          dependency-graph: disabled
+
+      - name: Enable emulator acceleration on the disposable runner
+        run: sudo chmod a+rw /dev/kvm
+
+      - name: Exercise settings, navigation, and update UI on Android 16
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-boot-timeout: 600
+          script: bash mobile/android/scripts/test-settings-device.sh
+
+      - name: Upload device test reports and settings screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-settings-device-${{ github.sha }}
+          path: |
+            mobile/android/app/build/reports/androidTests/connected/
+            mobile/android/app/build/outputs/androidTest-results/connected/
+            output/android-settings/
+          if-no-files-found: warn
           retention-days: 14
