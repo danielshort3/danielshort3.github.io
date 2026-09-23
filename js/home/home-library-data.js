@@ -436,7 +436,7 @@
           "href": "/games/project-starfall",
           "image": "/img/home-previews/games/project-starfall.webp",
           "imageAlt": "",
-          "iconImage": "/img/games/icons/project-starfall.png?v=e1311cec95e1",
+          "iconImage": "/img/games/icons/project-starfall.png?v=a29dea41122a",
           "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\" class=\"icon-fill\" opacity=\".12\"></path>\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\"></path>\n  <path d=\"M12 7.3v6.1M9.2 10.2h5.6\"></path>\n</svg>",
           "external": false,
           "contentType": "game",
