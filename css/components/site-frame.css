@@ -323,6 +323,19 @@
     .site-frame .site-frame__tab-icon { position: static; width: 23px; height: 23px; }
     .site-frame .site-frame__tab-label,
     .site-frame[data-frame-audience="personal"] .site-frame__tab-label { transform: rotate(0deg); font-size: .78rem; letter-spacing: .02em; }
+    .site-frame[data-frame-audience="personal"]:not([data-frame-home="true"]) .site-frame__tab {
+      flex-direction: column;
+      gap: 3px;
+      padding: 5px 1px;
+    }
+    .site-frame[data-frame-audience="personal"]:not([data-frame-home="true"]) .site-frame__tab-label {
+      font-size: clamp(.6875rem, 2.8vw, .75rem);
+      letter-spacing: 0;
+      line-height: 1.1;
+      text-align: center;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
     .site-frame[data-frame-view="overview"] .site-frame__tab { justify-content: flex-start; padding-inline: 18px; }
     .site-frame[data-frame-view="overview"] .site-frame__tab-label { font-size: .98rem; }
     /* Hover keeps each card's own padding so narrow text columns do not rewrap. */

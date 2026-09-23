@@ -168,11 +168,17 @@ async function runChat(page, frame, demo, state, artifactDir, label) {
   };
   assert.equal(await settings.getAttribute('open'), null, `${label} keeps advanced chat controls closed initially.`);
   assert.match(await settings.locator(':scope > summary').innerText(), /Advanced settings/i);
-  const composer = await frame.locator('#regular-view .chat-composer').boundingBox();
-  const messages = await frame.locator('#regular-messages').boundingBox();
-  const shell = await frame.locator('#regular-view .chat-shell').boundingBox();
-  assert(composer.y >= messages.y + messages.height - 1, `${label} retains the conversation composer at the bottom.`);
-  assert(Math.abs(composer.y + composer.height - shell.y - shell.height) <= 2, `${label} keeps the empty-state composer at the bottom of the chat shell.`);
+  await frame.evaluate(() => document.fonts.ready);
+  const layout = await frame.evaluate(() => {
+    const composer = document.querySelector('#regular-view .chat-composer').getBoundingClientRect();
+    const messages = document.querySelector('#regular-messages').getBoundingClientRect();
+    const shell = document.querySelector('#regular-view .chat-shell').getBoundingClientRect();
+    return { composerTop: composer.top, composerBottom: composer.bottom, messagesBottom: messages.bottom, shellBottom: shell.bottom };
+  });
+  const bottomGap = Math.abs(layout.composerBottom - layout.shellBottom);
+  if (process.env.BROWSER_GEOMETRY_DEBUG) console.log(`${label} composer bottom gap: ${bottomGap.toFixed(2)}px`);
+  assert(layout.composerTop >= layout.messagesBottom - 1, `${label} retains the conversation composer at the bottom.`);
+  assert(bottomGap <= 2, `${label} keeps the empty-state composer at the bottom of the chat shell (${bottomGap.toFixed(2)}px gap).`);
   await assertSurface(page, frame, demo, label);
   await page.screenshot({ path: path.join(artifactDir, `${label}-ready.png`) });
   const draft = 'A local draft for layout review. Do not submit.';

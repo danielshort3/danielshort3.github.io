@@ -46,9 +46,14 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
   });
   try {
     await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
-    await settle(page, 'about');
+    await settle(page, '', 'closed');
+    assert.equal(new URL(page.url()).hash, '', 'The bare mobile homepage keeps its clean URL.');
+    assert.equal(await page.locator('[data-site-tab].is-active').count(), 0,
+      'The mobile homepage begins with no selected section.');
     await page.locator('#pcz-reject').click();
     await page.locator('#pcz-banner').waitFor({ state: 'hidden' });
+    await page.locator('[data-site-tab="about"]').click();
+    await settle(page, 'about');
     await page.evaluate(() => document.fonts.ready);
     const button = page.locator(buttonSelector);
     const menu = page.locator(menuSelector);
@@ -65,7 +70,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert(await page.evaluate(() => Boolean(document.activeElement.closest('[data-home-accordion-item="about"]'))),
       'Tab from About enters its visible content instead of jumping to Projects below it.');
     assert(await page.evaluate(() => scrollY < 700), 'Entering About content avoids the former multi-screen jump.');
-    assert.equal(await page.locator('[data-site-tab]:visible').count(), 1, 'The active mobile rail remains above its content; other sections use the bottom navigation.');
+    assert.equal(await page.locator('[data-site-tab]:visible').count(), 5, 'All five mobile rails remain available around the expanded content.');
     await page.locator('[data-mobile-section="about"]').focus();
     await page.keyboard.press('Tab');
     assert(await page.locator('[data-mobile-section="projects"]').evaluate(node => node === document.activeElement),

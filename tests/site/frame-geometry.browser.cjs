@@ -239,13 +239,18 @@ function analyze(record) {
     const x = (r.x + r.right) / 2, y = (r.y + r.bottom) / 2 - s.scrollY;
     return x >= 0 && x <= s.width && y >= 0 && y <= s.height;
   });
-  const maxGap = Math.max(...samples.map((s) => s.maxGap));
+  // The closed home layout deliberately has no perimeter border or panel. A
+  // return to a hashed home section briefly mounts that fetched closed layout
+  // beneath a fully closed wipe before the requested section opens. Require
+  // uninterrupted border coverage for every other frame in the transition.
+  const borderedSamples = samples.filter((s) => s.view !== "closed");
+  const maxGap = Math.max(0, ...borderedSamples.map((s) => s.maxGap));
   const continuity = samples.every((s) => Object.values(s.identity).every(Boolean) && s.styles.frame.opacity === 1 && s.styles.panel.opacity === 1 && s.stage.w > 0 && s.stage.h > 0);
-  const gapPeak = samples.reduce((p, s) => s.maxGap > p.maxGap ? s : p, samples[0]);
+  const gapPeak = borderedSamples.reduce((p, s) => s.maxGap > p.maxGap ? s : p, borderedSamples[0] || samples[0]);
   const preference = record.heldPreference;
   const heldPreferenceApplied = !options.reduced || Boolean(preference?.held && preference.reduced && !preference.moving && preference.audience === "analytics" && [...preference.tabs].sort().join(",") === "about,contact,projects,resume" && preference.runningAnimations === 0);
   const rootFlowRestored = record.rootMinHeight.original.value === record.rootMinHeight.final.value && record.rootMinHeight.original.priority === record.rootMinHeight.final.priority;
-  return { fixed, checks: { continuity, stableViewportEdges: !fixed || fixedDrift <= 1, endpointEnvelope: !sameViewport || envelope <= 1, containedPaint: overflow <= 1, borderCoverage: maxGap <= 1, contentSlot: slotOverflow <= 1, heldLoaderVisible: loaderVisible, heldPreferenceApplied, rootFlowRestored }, slotOverflow, fixedDrift, envelope, overflow, maxGap, peakGapAt: gapPeak.t - a.t, stageWidths: [a.stage.w, Math.max(...samples.map((s) => s.stage.w)), b.stage.w], stageHeights: [a.stage.h, Math.max(...samples.map((s) => s.stage.h)), b.stage.h], samples: samples.length };
+  return { fixed, checks: { continuity, stableViewportEdges: !fixed || fixedDrift <= 1, endpointEnvelope: !sameViewport || envelope <= 1, containedPaint: overflow <= 1, borderCoverage: maxGap <= 1, contentSlot: slotOverflow <= 1, heldLoaderVisible: loaderVisible, heldPreferenceApplied, rootFlowRestored }, slotOverflow, fixedDrift, envelope, overflow, maxGap, peakGapAt: borderedSamples.length ? gapPeak.t - a.t : 0, stageWidths: [a.stage.w, Math.max(...samples.map((s) => s.stage.w)), b.stage.w], stageHeights: [a.stage.h, Math.max(...samples.map((s) => s.stage.h)), b.stage.h], samples: samples.length };
 }
 async function finish(page, prefix) {
   await settle(page);

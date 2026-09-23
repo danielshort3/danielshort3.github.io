@@ -1513,6 +1513,63 @@ window.PROJECTS = [
     "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site.",
     "imageAlt": "Daniel Short homepage with all five colored navigation tabs fully collapsed.",
     "relatedProjectId": "smartSentence"
+  },
+  {
+    "id": "adVerification",
+    "published": false,
+    "hidden": true,
+    "noindex": true,
+    "visibility": "unlisted",
+    "title": "Campaign Attribution Lab",
+    "subtitle": "An interactive campaign audit demo with a checkable history.",
+    "metaDescription": "A fictional campaign audit layer demonstrates batched signed receipts, provider evidence checks, local ledger copies, report discrepancies and traceable corrections.",
+    "image": "img/projects/ad-verification-landscape.webp",
+    "imageAlt": "Illustrative landscape for a generic fictional campaign example",
+    "imageWidth": 224,
+    "imageHeight": 267,
+    "tools": [
+      "JavaScript",
+      "Web Crypto API"
+    ],
+    "concepts": [
+      "Data Integrity",
+      "Digital Signatures",
+      "Blockchain",
+      "Attribution Auditing"
+    ],
+    "audiences": [
+      "analytics",
+      "tourism"
+    ],
+    "embed": {
+      "type": "iframe",
+      "url": "/demos/ad-verification",
+      "fit": "viewport",
+      "minHeight": 850
+    },
+    "resources": [
+      {
+        "label": "Open unlisted demo",
+        "url": "/demos/ad-verification"
+      },
+      {
+        "label": "Source and technical notes",
+        "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/docs/ad-verification-demo.md"
+      }
+    ],
+    "problem": "Campaign partners need a checkable history of reported outcomes, evidence and corrections without sharing raw visitor data on a ledger.",
+    "task": "Demonstrate a realistic audit role for blockchain while keeping five overlapping traveler illustrations and a simple two-panel interface.",
+    "actions": [
+      "Separated provider evidence from signed public audit receipts and batched several receipts per block.",
+      "Added three independently checked local copies and distinction between record verification and evidence reproduction.",
+      "Made reporting discrepancies and authorized append-only corrections interactive."
+    ],
+    "results": [
+      "Missing evidence does not invalidate a signed receipt, but prevents independently reproducing the attribution calculation.",
+      "Corrections preserve earlier reports while updating the current total exactly once."
+    ],
+    "notes": "Browser-local educational simulation, not an independent network or production attribution service. All source observations and participants are fictional. No real tourism destination is represented. Shared receipts contain no synthetic traveler IDs or raw provider records. All sessions are transient; unlisted is not access control.",
+    "order": 999
   }
 ];
 
