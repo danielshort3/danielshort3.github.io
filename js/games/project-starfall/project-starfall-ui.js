@@ -25703,10 +25703,12 @@
 
     getCanvasAssetReadyCacheKey() {
       const progress = this.engine && this.engine.getAssetLoadProgress ? this.engine.getAssetLoadProgress() : null;
-      if (CoreAssets.getAssetReadyCacheKey) return CoreAssets.getAssetReadyCacheKey(progress);
-      return progress
+      const progressKey = CoreAssets.getAssetReadyCacheKey
+        ? CoreAssets.getAssetReadyCacheKey(progress)
+        : progress
         ? [progress.settled || 0, progress.loaded || 0, progress.failed || 0, progress.total || 0].join(':')
         : 'no-assets';
+      return `${progressKey}:${this.engine && this.engine.assetRefreshRevision || 0}`;
     }
 
     isCanvasAssetPrewarmReady() {

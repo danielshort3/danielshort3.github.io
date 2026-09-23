@@ -470,15 +470,20 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(JSON.stringify(ids) === JSON.stringify(['about', 'projects', 'tools', 'games', 'contact']),
     'homepage categories should stay in the approved About, Projects, Tools, Games, Contact order');
   assert(section.props.defaultPanel === 'about',
-    'homepage should open the About panel by default');
+    'About should remain the fallback panel for invalid category selections');
+  assert(section.props.initialView === 'closed',
+    'the public homepage should initially show the fully condensed view');
   assert(homeAccordionWidget?.defaultProps?.defaultPanel === 'about',
     'new CMS homepage accordion widgets should also default to About');
+  assert(homeAccordionWidget?.defaultProps?.initialView === 'closed',
+    'new CMS homepage accordion widgets should initially start closed');
   assert(count(html, /data-site-tab="(?:about|projects|tools|games|contact)"/g) === 5 &&
-    count(html, /data-site-tab-active="true"/g) === 1 &&
-    html.includes('data-site-tab-rail data-site-tab-rail-mode="overview"') &&
+    count(html, /data-site-tab-active="true"/g) === 0 &&
+    html.includes('data-site-tab-rail data-site-tab-rail-mode="closed"') &&
+    html.includes('data-home-view="closed"') &&
     /<main\b[^>]*\bdata-site-route-content\b/i.test(html) &&
     count(html, /data-site-route-toolbar/g) === 1,
-  'generated homepage markup should expose five stable tab slots, default About, and one complete route scene');
+  'generated homepage markup should expose five collapsed tab slots and one complete route scene');
   assert(count(indexHtml, /data-site-shell-header/g) === 1 &&
     count(indexHtml, /data-site-shell-footer/g) === 1 &&
     count(indexHtml, /data-site-route-toolbar/g) === 1 &&
@@ -626,12 +631,12 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     count(html, /data-home-accordion-trigger=/g) === 5 &&
     count(html, /data-home-accordion-panel=/g) === 5,
   'generated homepage should render one static item, trigger, and attached panel per category');
-  assert(count(html, /aria-expanded="true"/g) === 1 &&
-    count(html, /aria-expanded="false"/g) >= 4 &&
-    count(html, /aria-disabled="true"/g) === 1 &&
-    count(html, /data-home-accordion-panel="[^"]+" hidden inert/g) === 4 &&
+  assert(count(html, /aria-expanded="true"/g) === 0 &&
+    count(html, /aria-expanded="false"/g) >= 5 &&
+    count(html, /aria-disabled="true"/g) === 0 &&
+    count(html, /data-home-accordion-panel="[^"]+" hidden inert/g) === 5 &&
     !html.includes('aria-current="page"'),
-  'homepage should author only About as expanded and noncollapsible, without treating same-page accordion buttons as page links');
+  'homepage should author all five panels as collapsed and interactive, without treating same-page accordion buttons as page links');
   const getItemHtml = (id) => {
     const marker = html.indexOf(`data-home-accordion-item="${id}"`);
     const itemMarker = '<article class="home-accordion__item';
@@ -642,18 +647,10 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   ids.forEach((id) => {
     const itemHtml = getItemHtml(id);
     const panelTag = itemHtml.match(new RegExp(`<section[^>]+data-home-accordion-panel="${id}"[^>]*>`))?.[0] || '';
-    if (id === 'about') {
-      assert(itemHtml.includes('home-accordion__item--about is-active') &&
-        itemHtml.includes('aria-expanded="true"') &&
-        itemHtml.includes('aria-disabled="true"') &&
-        panelTag && !/\bhidden\b/.test(panelTag) && !/\binert\b/.test(panelTag),
-      'About should be the specific expanded and interactive panel in authored homepage markup');
-    } else {
-      assert(!itemHtml.includes(`home-accordion__item--${id} is-active`) &&
-        itemHtml.includes('aria-expanded="false"') &&
-        /\bhidden\b/.test(panelTag) && /\binert\b/.test(panelTag),
-      `${id} should be specifically authored as collapsed and non-interactive`);
-    }
+    assert(!itemHtml.includes(`home-accordion__item--${id} is-active`) &&
+      itemHtml.includes('aria-expanded="false"') &&
+      /\bhidden\b/.test(panelTag) && /\binert\b/.test(panelTag),
+    `${id} should initially be collapsed with inaccessible panel content`);
     assert(count(itemHtml, new RegExp(`data-home-icon="${id}"`, 'g')) === (id === 'about' ? 1 : 2),
       `${id} should retain its category icon, with About using the personal portrait beside the greeting`);
     assert(itemHtml.indexOf('home-accordion__rail-icon') >= 0 &&
@@ -940,12 +937,12 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(count(html, /data-home-library-view=/g) === 3 &&
     count(html, /data-home-library-open=/g) === 3 &&
     count(html, /data-home-library-close=/g) === 3 &&
-    html.includes('data-home-view="overview"') &&
+    html.includes('data-home-view="closed"') &&
     !html.includes('Back to categories') &&
     ['Projects overview', 'Tools overview', 'Games overview'].every((label) => html.includes(label)) &&
     html.includes('data-personal-tool-account="true"') &&
     !html.includes('>All tools<'),
-  'homepage markup should author three progressively enhanced libraries while retaining the five-category overview');
+  'homepage markup should author three progressively enhanced libraries while retaining five collapsed categories');
   assert(html.includes('<ul class="home-accordion__cards">') &&
     html.includes('<li class="home-accordion__card-item">') &&
     /<a class="home-accordion__card" href="\/tools\/text-compare"/.test(html) &&

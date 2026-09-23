@@ -73,6 +73,8 @@ for (const compact of [false, true]) {
   check(order.every(id => !layoutTabs.get(id).hidden && layoutTabs.get(id).tabIndex === 0 &&
     layoutTabs.get(id).attributes.get('aria-expanded') === 'false' &&
     !layoutTabs.get(id).classList.states.get('is-active')), 'All five folded tabs stay available with no expanded or active selection.');
+  check(order.every(id => !layoutTabs.get(id).attributes.has('aria-controls')),
+    'Folded tabs do not reference panels that are absent from the document.');
   check(configurationContext.stage.style.gridTemplateColumns === (compact ? 'minmax(0, 1fr)' : 'repeat(5, minmax(0, 1fr))') &&
     order.every((id, index) => layoutTabs.get(id).style.gridArea === (compact ? `${index + 1} / 1` : `1 / ${index + 1}`)),
   'The folded navigation uses one seamless mobile column or five adjacent desktop rails.');
@@ -80,6 +82,9 @@ for (const compact of [false, true]) {
   check(configurationContext.welcome.hidden && configurationContext.welcome.inert && configurationContext.body.id === 'main' &&
     !configurationContext.body.hidden && !configurationContext.body.inert && !configurationContext.panel.hidden,
   'Reopening About restores the retained category body and hides the resting welcome.');
+  check(layoutTabs.get('about').attributes.get('aria-controls') === 'home-accordion-panel-about' &&
+    order.slice(1).every(id => !layoutTabs.get(id).attributes.has('aria-controls')),
+  'Only the mounted home panel is referenced by an expanded rail.');
   check(JSON.stringify(layoutStage.children.filter(node => !node.hidden).map(node => node.id)) ===
     JSON.stringify(compact ? ['about', 'content', ...order.slice(1)] : [...order, 'content']),
   'Compact keyboard order places the active content directly after its rail while desktop keeps its navigation grouping.');
@@ -92,10 +97,14 @@ check(JSON.stringify(layoutStage.children.filter(node => !node.hidden).map(node 
 'Changing compact categories updates the DOM reading order around the connected panel.');
 layoutDocument.body.classList.contains = name => name === 'has-mobile-scroll-chrome';
 configurationContext.configure({ audience: 'personal', category: 'tools', view: 'overview', home: true });
-check(order.filter(id => !layoutTabs.get(id).hidden).join() === 'tools',
-  'The personal mobile section bar removes only redundant inactive overview rails.');
+check(order.every(id => !layoutTabs.get(id).hidden),
+  'The personal mobile section bar keeps every overview rail available around the expanded panel.');
 check(layoutPanel === layoutStage.children.find(node => node.id === 'content'),
   'Enabling mobile section navigation preserves the connected content panel and map.');
+configurationContext.configure({ audience: 'personal', category: 'tools', view: 'detail', home: false });
+check(order.every(id => !layoutTabs.get(id).hidden) &&
+  configurationContext.stage.style.gridTemplateColumns === 'repeat(5, minmax(0, 1fr))',
+  'Personal detail pages keep all five directly navigable mobile tabs.');
 configurationContext.configure({ audience: 'personal', category: '', view: 'closed', home: true });
 check(order.every(id => !layoutTabs.get(id).hidden), 'The closed mobile homepage keeps all five flush category rows.');
 configurationContext.configure({ audience: 'analytics', category: 'projects', view: 'overview', home: true });

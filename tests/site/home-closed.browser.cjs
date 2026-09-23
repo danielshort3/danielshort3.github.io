@@ -21,10 +21,10 @@ async function settle(page, view, category = '') {
     const viewport = window.SiteFrame?.viewport();
     const path = view === 'library' ? { projects: '/portfolio', tools: '/tools', games: '/games' }[category] : '/';
     const hash = view === 'closed' ? '#closed' : view === 'overview' ? `#${category}` : '';
-    const initialAbout = view === 'overview' && category === 'about' && !location.hash;
+    const bareClosed = view === 'closed' && !location.hash;
     // Geometry ends before the viewport reveal. select() commits its URL only
     // after both finish, so the next action must wait for that complete state.
-    const routeCommitted = location.pathname === path && (location.hash === hash || initialAbout);
+    const routeCommitted = location.pathname === path && (location.hash === hash || bareClosed);
     const revealing = viewport?.getAnimations().some(animation => animation.pending || animation.playState === 'running');
     return frame?.dataset.frameView === view && frame.dataset.frameCategory === category
       && !frame.classList.contains('site-frame--held') && !frame.classList.contains('site-frame--moving')
@@ -54,10 +54,12 @@ async function geometry(page) {
   });
 }
 
-async function assertClosed(page, label) {
+async function assertClosed(page, label, expectedHash = '') {
   await settle(page, 'closed');
   assert.equal(new URL(page.url()).pathname, '/', `${label} remains on the homepage.`);
-  assert.equal(new URL(page.url()).hash, '#closed', `${label} has a reloadable closed-state URL.`);
+  const actualHash = new URL(page.url()).hash;
+  assert(Array.isArray(expectedHash) ? expectedHash.includes(actualHash) : actualHash === expectedHash,
+    `${label} has the expected closed-state URL (received ${actualHash || '/'}).`);
   assert(await page.locator('.site-frame__welcome').isVisible(), `${label} displays the welcome message.`);
   assert((await page.locator('.site-frame__welcome').innerText()).trim().length >= 20,
     `${label} presents an intentional resting state with meaningful copy.`);
@@ -116,7 +118,7 @@ async function runViewport({ browser, base, artifactDir }, settings) {
   page.setDefaultTimeout(12000);
   const errors = [];
   let mapRequests = 0;
-  let stage = 'initial-about';
+  let stage = 'initial-closed';
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => {
     if (response.url().startsWith(base) && response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
@@ -129,15 +131,16 @@ async function runViewport({ browser, base, artifactDir }, settings) {
   try {
     const response = await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
     assert.equal(response.status(), 200);
-    await settle(page, 'overview', 'about');
+    await assertClosed(page, 'Bare homepage', '');
     await page.locator('#pcz-reject').waitFor({ state: 'visible' });
     await page.locator('#pcz-reject').click();
     await page.locator('#pcz-banner').waitFor({ state: 'hidden' });
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => { window.closedTestDocument = performance.timeOrigin; window.closedTestFrame = SiteFrame.root(); });
-    assert.equal(mapRequests, 0, 'The initial About view does not request a map.');
+    assert.equal(mapRequests, 0, 'The initial closed homepage does not request a map.');
 
     stage = 'close-about';
+    await openCategory(page, 'about');
     await page.locator('[data-site-tab="about"]').click();
     await assertClosed(page, settings.name);
     assert(await page.locator('[data-site-tab="about"]').evaluate(node => node === document.activeElement),
@@ -246,11 +249,20 @@ async function runViewport({ browser, base, artifactDir }, settings) {
     const direct = await context.newPage();
     direct.setDefaultTimeout(12000);
     await direct.goto(`${base}/#closed`, { waitUntil: 'domcontentloaded' });
-    await assertClosed(direct, 'Fresh direct closed URL');
+    await assertClosed(direct, 'Fresh direct closed URL', ['', '#closed']);
     await openCategory(direct, 'about');
     await direct.goBack();
-    await assertClosed(direct, 'Back to a fresh closed entry');
+    await assertClosed(direct, 'Back to a fresh closed entry', ['', '#closed']);
     await direct.close();
+
+    const directAbout = await context.newPage();
+    directAbout.setDefaultTimeout(12000);
+    await directAbout.goto(`${base}/#about`, { waitUntil: 'domcontentloaded' });
+    await settle(directAbout, 'overview', 'about');
+    assert(await directAbout.locator('[data-home-accordion-item="about"]').isVisible(),
+      'A direct About URL still opens the About content.');
+    await directAbout.close();
+
     assert.deepEqual(errors, [], 'The closed-state flow has no runtime or local HTTP errors.');
     console.log(`Closed homepage passed: ${settings.name} (${settings.reducedMotion}; one mocked map load).`);
   } catch (error) {

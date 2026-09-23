@@ -26,9 +26,9 @@
     let frame = null;
     let last = null;
     let time = 0;
-    let speed = 1;
+    let speed = 2;
     let scenario = 'mixed';
-    let continuous = true;
+    let continuous = false;
     let admitted = 0;
     let completed = 0;
     let recordCount = 0;

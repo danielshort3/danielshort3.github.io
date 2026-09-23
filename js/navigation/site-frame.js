@@ -178,10 +178,7 @@
     description.tabSources?.forEach((source) => ensureTab(source.dataset.siteTab || source.dataset.homeAccordionTrigger, source));
     const order = description.audience === 'personal' ? personalOrder : professionalOrder;
     const overview = description.home && description.view === 'overview';
-    const mobileSectionNavigation = compactQuery.matches && overview && description.audience === 'personal'
-      && document.body.classList.contains('has-mobile-scroll-chrome');
-    const visible = mobileSectionNavigation ? [description.category]
-      : overview || closed || description.audience !== 'personal' ? order : [description.category];
+    const visible = closed || order.includes(description.category) ? order : [description.category];
     visible.forEach((id) => ensureTab(id));
     tabs.forEach((link, id) => {
       const active = id === description.category;
@@ -195,7 +192,8 @@
         link.href = `/#${id}`;
         link.dataset.homeAccordionTrigger = id;
         link.setAttribute('aria-expanded', String(active));
-        link.setAttribute('aria-controls', `home-accordion-panel-${id}`);
+        if (active && !closed) link.setAttribute('aria-controls', `home-accordion-panel-${id}`);
+        else link.removeAttribute('aria-controls');
       } else {
         delete link.dataset.homeAccordionTrigger;
         link.removeAttribute('aria-expanded');

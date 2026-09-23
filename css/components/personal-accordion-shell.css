@@ -1216,6 +1216,12 @@ body.personal-accordion-page .footer.footer-classic.footer--personal-compact {
   padding: 0;
 }
 
+@media (max-width: 768px), (max-width: 959px) and (max-height: 619px) {
+  body.personal-accordion-page.has-mobile-scroll-chrome > .footer.footer-classic.footer--personal-compact[data-site-shell-footer] {
+    padding-bottom: var(--mobile-section-nav-height, 72px);
+  }
+}
+
 /* Game pages ship unlayered styles of their own. These narrowly scoped
    adapters intentionally remain unlayered so the shared shell can contain
    each live app without changing the app's internal visual system. */

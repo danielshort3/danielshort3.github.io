@@ -7,8 +7,11 @@ const sharp = require('sharp');
 
 const root = path.resolve(__dirname, '..');
 const sourceFavicon = path.join(root, 'img', 'brand', '05-ds-favicon-small-icon.svg');
+const sourceBrandMark = path.join(root, 'img', 'brand', '00-ds-logo-master-full-color.svg');
 const uiDir = path.join(root, 'img', 'ui');
 const faviconBackground = { r: 255, g: 255, b: 255, alpha: 1 };
+const pwaIconSize = 512;
+const pwaMarkSize = 240;
 
 const logoSizes = [
   ['logo-16.png', 16],
@@ -69,6 +72,7 @@ function createIco(images) {
 
 async function generateMainLogo() {
   await fs.access(sourceFavicon);
+  await fs.access(sourceBrandMark);
   await fs.mkdir(uiDir, { recursive: true });
 
   await Promise.all(
@@ -80,6 +84,31 @@ async function generateMainLogo() {
       console.log(`[resize_logo] Wrote ${rel(output)}`);
     })
   );
+
+  // A maskable icon can lose its outer area to a platform's icon shape.
+  // Keep the complete master mark inside the central safe circle.
+  const pwaMark = await sharp(sourceBrandMark)
+    .resize(pwaMarkSize, pwaMarkSize, {
+      fit: 'contain',
+      background: { r: 255, g: 255, b: 255, alpha: 0 },
+    })
+    .png()
+    .toBuffer();
+  const pwaIcon = path.join(uiDir, 'logo-512-maskable.png');
+  await sharp({
+    create: {
+      width: pwaIconSize,
+      height: pwaIconSize,
+      channels: 4,
+      background: faviconBackground,
+    },
+  })
+    .composite([{ input: pwaMark, gravity: 'centre' }])
+    .flatten({ background: faviconBackground })
+    .removeAlpha()
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toFile(pwaIcon);
+  console.log(`[resize_logo] Wrote ${rel(pwaIcon)}`);
 
   const faviconImages = await Promise.all(
     faviconSizes.map(async (size) => ({ size, buffer: await pngBuffer(size) }))

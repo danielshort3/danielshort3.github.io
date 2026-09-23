@@ -545,14 +545,14 @@ function runPersonalAccordionShellTests({ assert }) {
   const homeHtml = read('index.html');
   const homeManifest = getRouteManifest(homeHtml);
   assert(homeManifest && homeManifest.id === 'home' && homeManifest.path === '/' &&
-    homeManifest.category === 'about' && homeManifest.view === 'overview' &&
+    homeManifest.category === '' && homeManifest.view === 'closed' &&
     homeManifest.navigation === 'soft' && homeManifest.module === 'home' &&
     count(homeHtml, /data-site-tab="(?:about|projects|tools|games|contact)"/g) === 5 &&
-    count(homeHtml, /data-site-tab-active="true"/g) === 1 &&
+    count(homeHtml, /data-site-tab-active="true"/g) === 0 &&
     count(homeHtml, /data-site-route-content/g) === 1 &&
     count(homeHtml, /data-site-shell-header/g) === 1 &&
     count(homeHtml, /data-site-shell-footer/g) === 1,
-  'Homepage should expose its five tabs, default About state, persistent chrome, and route manifest');
+  'Homepage should expose its five collapsed tabs, persistent chrome, and closed route manifest');
   assert(read('build/templates/header.partial.html').includes('data-site-shell-header') &&
     read('build/templates/footer.partial.html').includes('data-site-shell-footer') &&
     read('build/lib/cms-renderers.js').includes("'<header id=\"combined-header-nav\" data-site-shell-header>'") &&

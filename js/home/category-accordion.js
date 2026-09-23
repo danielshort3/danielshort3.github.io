@@ -175,7 +175,7 @@
         frame.root().dataset.frameCategory === category && frame.root().dataset.frameView === view) return false;
       const sequence = ++operation;
       requested = { category, view };
-      const targetUrl = view === 'library' ? routes[category] : `/#${closed ? 'closed' : category}`;
+      const targetUrl = view === 'library' ? routes[category] : closed ? '/' : `/#${category}`;
       if (!options.initial && options.history !== false && window.SiteNavigation?.isNavigating?.() && !window.SiteNavigation.cancelPending()) {
         return window.SiteNavigation.navigate(new URL(targetUrl, window.location.href));
       }
@@ -253,7 +253,7 @@
       const library = Object.keys(routes).find((id) => routes[id] === window.location.pathname);
       let hash = window.location.hash.slice(1);
       try { hash = decodeURIComponent(hash); } catch (_) {}
-      const closed = !library && (hash === 'closed' || (!hash && state?.homeView === 'closed'));
+      const closed = !library && (!hash || hash === 'closed');
       select(closed ? '' : library || (items.has(hash) ? hash : state?.homePanel) || 'about',
         closed ? 'closed' : library ? 'library' : 'overview', { history: false, focus: false, reveal: false });
     }
@@ -274,10 +274,10 @@
     const library = Object.keys(routes).find((id) => routes[id] === window.location.pathname);
     let hash = window.location.hash.slice(1);
     try { hash = decodeURIComponent(hash); } catch (_) {}
-    const closed = !library && (hash === 'closed' || (!hash && window.history.state?.homeView === 'closed'));
+    const closed = !library && (!hash || hash === 'closed');
     select(closed ? '' : library || (items.has(hash) ? hash : 'about'),
       closed ? 'closed' : library || window.location.search.includes('view=library') ? 'library' : 'overview', {
-      animate: false, history: closed ? 'replace' : false, focus: false, reveal: false, notify: false, initial: true
+      animate: false, history: 'replace', focus: false, reveal: false, notify: false, initial: true
     });
     return;
   }
