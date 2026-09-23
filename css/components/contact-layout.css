@@ -155,6 +155,24 @@
     color: inherit;
   }
 
+  body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card__icon img {
+    display: block;
+    width: var(--illustration-fill, 82%);
+    height: var(--illustration-fill, 82%);
+    object-fit: contain;
+  }
+
+  body.professional-contact-page #contact-options .contact-card__copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  body.professional-contact-page #contact-options .contact-card__copy small {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+  }
+
   body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card__copy {
     display: grid;
     grid-column: 2;
@@ -306,6 +324,61 @@
     body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card__arrow svg {
       width: 18px;
       height: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    body.professional-contact-page #contact-options .contact-card {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) 20px;
+      grid-template-rows: auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 88px;
+      padding: 12px;
+    }
+
+    body.professional-contact-page #contact-options .contact-card__icon {
+      display: grid;
+      grid-column: 1;
+      grid-row: 1;
+      width: 64px;
+      height: 64px;
+      place-items: center;
+      border: 1px solid var(--surface-border, #dce3ec);
+      border-radius: var(--radius-card, 10px);
+      background: #f8fafc;
+    }
+
+    body.professional-contact-page #contact-options .contact-card__icon img {
+      width: 82%;
+      height: 82%;
+    }
+
+    body.professional-contact-page #contact-options .contact-card__copy {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    body.professional-contact-page #contact-options .contact-card__arrow {
+      display: grid;
+      grid-column: 3;
+      grid-row: 1;
+      place-items: center;
+    }
+  }
+
+  @media (max-width: 360px) {
+    body.professional-contact-page #contact-options .contact-card {
+      grid-template-columns: 48px minmax(0, 1fr) 16px;
+      gap: 5px;
+      min-height: 76px;
+      padding: 10px;
+    }
+
+    body.professional-contact-page #contact-options .contact-card__icon {
+      width: 48px;
+      height: 48px;
     }
   }
 

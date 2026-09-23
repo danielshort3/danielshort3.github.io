@@ -154,7 +154,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Work in progress, Action RPG, Character progression"
       ],
-      "iconImage": "img/games/icons/project-starfall.png?v=e1311cec95e1",
+      "iconImage": "img/games/icons/project-starfall.png?v=a29dea41122a",
       "image": "img/home-previews/games/project-starfall.webp",
       "imageWidth": 640,
       "imageHeight": 360,
