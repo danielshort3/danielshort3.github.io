@@ -112,6 +112,45 @@ async function openCategory(page, category) {
   }
 }
 
+async function captureFrameAnimations(page) {
+  await page.evaluate(() => {
+    if (!window.closedTestAnimationCapture) {
+      const animate = Element.prototype.animate;
+      Element.prototype.animate = function (...args) {
+        if (this.classList?.contains('site-frame') || this.closest?.('.site-frame')) {
+          const options = args[1];
+          window.closedTestAnimationCalls?.push({
+            tab: this.classList?.contains('site-frame__tab') || false,
+            duration: Number(typeof options === 'number' ? options : options?.duration) || 0
+          });
+        }
+        return animate.apply(this, args);
+      };
+      window.closedTestAnimationCapture = true;
+    }
+    window.closedTestAnimationCalls = [];
+    window.closedTestReturnDocument = document;
+    window.closedTestReturnFrame = window.SiteFrame.root();
+  });
+}
+
+async function assertAnimatedHomeReturn(page, label, reducedMotion) {
+  await assertClosed(page, label, '');
+  const result = await page.evaluate(() => ({
+    documentPreserved: document === window.closedTestReturnDocument,
+    framePreserved: window.SiteFrame.root() === window.closedTestReturnFrame,
+    animations: window.closedTestAnimationCalls || []
+  }));
+  assert(result.documentPreserved && result.framePreserved,
+    `${label} keeps the document and frame mounted instead of reloading the homepage.`);
+  const animatedTabs = result.animations.filter(animation => animation.tab && animation.duration > 0);
+  if (reducedMotion === 'reduce') {
+    assert.equal(animatedTabs.length, 0, `${label} respects reduced motion.`);
+  } else {
+    assert(animatedTabs.length > 0, `${label} animates the category tabs into their condensed positions.`);
+  }
+}
+
 async function runViewport({ browser, base, artifactDir }, settings) {
   const context = await browser.newContext({ viewport: settings.viewport, reducedMotion: settings.reducedMotion, serviceWorkers: 'block' });
   const page = await context.newPage();
@@ -138,6 +177,16 @@ async function runViewport({ browser, base, artifactDir }, settings) {
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => { window.closedTestDocument = performance.timeOrigin; window.closedTestFrame = SiteFrame.root(); });
     assert.equal(mapRequests, 0, 'The initial closed homepage does not request a map.');
+
+    stage = 'header-home';
+    await openCategory(page, 'about');
+    await captureFrameAnimations(page);
+    const logo = page.locator(settings.viewport.width < 960
+      ? '[data-mobile-site-masthead] .mobile-site-masthead__brand'
+      : '[data-site-shell-header] .brand');
+    assert.equal(await logo.getAttribute('href'), '/', 'The header logo points to the clean homepage URL.');
+    await logo.click();
+    await assertAnimatedHomeReturn(page, `${settings.name} header logo`, settings.reducedMotion);
 
     stage = 'close-about';
     await openCategory(page, 'about');
@@ -262,6 +311,25 @@ async function runViewport({ browser, base, artifactDir }, settings) {
     assert(await directAbout.locator('[data-home-accordion-item="about"]').isVisible(),
       'A direct About URL still opens the About content.');
     await directAbout.close();
+
+    if (settings.name === 'desktop') {
+      for (const target of [
+        { label: 'Project Home breadcrumb', selector: '[data-header-breadcrumb-list] a' },
+        { label: 'Project header logo', selector: '[data-site-shell-header] .brand' }
+      ]) {
+        stage = target.label;
+        const project = await context.newPage();
+        project.setDefaultTimeout(12000);
+        await project.goto(`${base}/portfolio/digitGenerator`, { waitUntil: 'domcontentloaded' });
+        const homeLink = project.locator(target.selector).first();
+        await homeLink.waitFor({ state: 'visible' });
+        assert.equal(await homeLink.getAttribute('href'), '/', `${target.label} points to the clean homepage URL.`);
+        await captureFrameAnimations(project);
+        await homeLink.click();
+        await assertAnimatedHomeReturn(project, target.label, settings.reducedMotion);
+        await project.close();
+      }
+    }
 
     assert.deepEqual(errors, [], 'The closed-state flow has no runtime or local HTTP errors.');
     console.log(`Closed homepage passed: ${settings.name} (${settings.reducedMotion}; one mocked map load).`);
