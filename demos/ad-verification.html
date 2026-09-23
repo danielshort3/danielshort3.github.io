@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <base href="/">
+  <title>Campaign Attribution Lab | Daniel Short</title>
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="description" content="An interactive campaign audit demo with signed receipts, separate provider evidence, and a checkable blockchain history. All examples are fictional.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://www.danielshort.me/demos/ad-verification">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/components/ad-verification.css?v=5.1">
+  <script defer src="js/demos/ad-verification-core.js?v=5.1"></script>
+  <script defer src="js/demos/ad-verification-player.js?v=5.1"></script>
+  <script defer src="js/demos/ad-verification.js?v=5.1"></script>
+</head>
+<body class="av-page">
+  <a class="skip-link av-skip" href="#main">Skip to campaign</a>
+  <header class="av-header"><a class="av-back" href="/portfolio">← Projects</a><span class="av-byline">Daniel Short · Unlisted preview</span></header>
+  <main id="main" class="av-main" data-blocks="0" data-running="false">
+    <section class="av-intro" aria-labelledby="av-title"><h1 id="av-title">Campaign Attribution Lab</h1><p>Follow a fictional campaign and check the signed records behind its results.</p></section>
+    <section class="av-controls" aria-label="Campaign controls">
+      <div class="av-playback">
+        <button type="button" class="av-button av-primary" data-play disabled>Start campaign</button>
+        <label for="av-speed">Speed<select id="av-speed" data-speed><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+      </div>
+      <button type="button" class="av-link" data-reset>Reset</button>
+    </section>
+    <p class="av-principle">Mixed outcomes run automatically. Partners measure; the blockchain preserves their signed reports.</p>
+    <div class="av-workspace">
+      <section class="av-panel av-people" aria-labelledby="av-activity-title">
+        <div class="av-heading"><div><h2 id="av-activity-title">Campaign activity</h2><p>Five illustrated journeys. Independent timing.</p></div><span class="av-live" data-status>Preparing…</span></div>
+        <div class="av-columns" aria-hidden="true"><span>Traveler</span><span>Ad</span><span>Website</span><span>Destination</span><span>Outcome</span></div>
+        <div class="av-travelers" data-travelers></div>
+        <p class="av-footnote">Blue: activity reported · Green: signed receipt recorded. Completed travelers cycle out individually.</p>
+      </section>
+      <section class="av-panel av-ledger" aria-labelledby="av-ledger-title">
+        <div class="av-heading"><div><h2 id="av-ledger-title">Shared campaign blockchain</h2><p>Small batches of signed audit receipts.</p></div><span class="av-count" data-count>0 blocks</span></div>
+        <div class="av-chain-viewport" data-chain-viewport tabindex="0" role="region" aria-label="Recent blockchain records. Scroll to inspect expanded blocks.">
+          <ol class="av-chain" data-chain aria-label="Recent blockchain blocks"></ol>
+          <div class="av-empty" data-empty><span data-icon="chain"></span><strong>A shared history starts here.</strong><p>Measurements stay with their providers.<br>Signed receipts join the blockchain.</p></div>
+        </div>
+        <div class="av-writer" data-writer data-progress="0"><span data-writer-label>Waiting for the campaign</span><i aria-hidden="true"></i></div>
+        <div class="av-chain-actions"><span data-retained>Every block links to the one before it.</span><button class="av-link" type="button" data-history disabled>View full chain →</button></div>
+        <button class="av-copies" type="button" data-copies disabled aria-label="Inspect the three simulated ledger copies"><span>Demo copies</span><span data-copy-states>Advertiser · Agency · Measurement</span></button>
+      </section>
+    </div>
+    <section class="av-results" aria-label="Totals from signed receipts">
+      <div><strong data-total="exposures">0</strong><span>Ad exposures</span></div>
+      <div><strong data-total="websites">0</strong><span>Website visits</span></div>
+      <div><strong data-total="attributed">0</strong><span>Attributed visits</span></div>
+      <div><strong data-total="active">0</strong><span>Active travelers</span></div>
+      <div class="av-report-action"><span>Reported totals, with a checkable history.</span><button type="button" class="av-link" data-report disabled>Check a campaign report →</button></div>
+    </section>
+    <p class="av-message" data-message>Accelerated example. Website visits are optional. Attribution is not proof that an ad caused a trip.</p>
+    <details class="av-about"><summary>How this could fit your campaign</summary><div>
+      <p><strong>Keep your existing measurement tools.</strong> This proposed audit layer preserves who submitted each result, the attribution rule used, fingerprints of supporting evidence, and later corrections. It does not replace measurement, provide identity matching, or establish causation.</p>
+      <p><strong>Private evidence, shared receipt.</strong> Raw example records live in a separate in-memory provider store. The ledger contains signed summaries, opaque receipt references and salted evidence fingerprints—not traveler IDs, page paths or location histories. The traveler labels in this interface are teaching annotations, not fields in the shared ledger. Even relationship metadata can be sensitive; a real deployment still needs access, consent and retention controls.</p>
+      <p><strong>Two different checks.</strong> Record verification checks signatures, block links and the original checkpoint. An evidence check also retrieves the provider material and reproduces the example 30-day attribution calculation. Unavailable evidence does not invalidate a signature, but prevents that independent calculation. Neither check proves an observation was accurate, complete, or caused by an advertisement.</p>
+      <p><strong>A local blockchain, not an independent network.</strong> SHA-256, ECDSA signatures, batched Merkle roots and three separately checked ledger copies operate here. All participants, keys and evidence are controlled by this browser session. This is not distributed consensus or real organizational independence. The ledger cannot prove that every relevant measurement was submitted.</p>
+      <p><strong>Compare the alternatives.</strong> A signed append-only audit log may be enough if all partners trust one operator. A jointly maintained blockchain needs a reason for shared governance, participating providers, authorized matching arrangements, key management and a dispute process. This demo is not a production architecture or a promise of integration.</p>
+      <p>All people, locations, and dates are fictional examples. No real tourism destination is represented. Nothing connects to advertising, device, analytics or location services. Example days differ from accelerated playback time. Resetting or reloading discards the session. Admissions stop before 192 receipts so current travelers can finish; extra capacity is reserved for review and correction exercises.</p>
+      <label class="av-loop"><input type="checkbox" data-continuous checked> Keep replacing completed travelers</label>
+      <div class="av-detail-actions"><button type="button" class="av-link" data-export disabled>Export shared proof (no private evidence)</button><a href="https://github.com/danielshort3/danielshort3.github.io/blob/main/docs/ad-verification-demo.md" target="_blank" rel="noopener noreferrer">Source and technical notes</a></div>
+    </div></details>
+    <footer class="av-footer">Unlisted preview · Fictional observations · Real record verification</footer>
+    <p class="av-sr-only" data-announcement role="status" aria-live="polite" aria-atomic="true"></p>
+    <noscript><p class="av-warning">JavaScript is required to create and verify the example records. No campaign is running.</p></noscript>
+  </main>
+  <dialog class="av-dialog" data-dialog aria-labelledby="av-dialog-title"><div class="av-dialog-head"><h2 id="av-dialog-title">Inspect the evidence</h2><button type="button" class="av-close" data-close aria-label="Close details">×</button></div><div data-dialog-body></div></dialog>
+</body>
+</html>

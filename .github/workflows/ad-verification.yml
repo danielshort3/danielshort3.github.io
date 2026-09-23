@@ -1,0 +1,62 @@
+name: Ad verification preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ad-verification.yml'
+      - 'demos/ad-verification.html'
+      - 'js/demos/ad-verification*.js'
+      - 'css/components/ad-verification.css'
+      - 'img/projects/ad-verification*.webp'
+      - 'content/projects/adVerification.json'
+      - 'tests/tools/ad-verification*'
+      - 'build/**'
+      - 'package*.json'
+      - 'vercel.json'
+  pull_request:
+    paths:
+      - '.github/workflows/ad-verification.yml'
+      - 'demos/ad-verification.html'
+      - 'js/demos/ad-verification*.js'
+      - 'css/components/ad-verification.css'
+      - 'img/projects/ad-verification*.webp'
+      - 'content/projects/adVerification.json'
+      - 'tests/tools/ad-verification*'
+      - 'build/**'
+      - 'package*.json'
+      - 'vercel.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-demo:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install existing website dependencies
+        run: npm ci
+      - name: Build website and publication indexes
+        run: npm run build
+      - name: Test cryptography, shared clock and unlisted publication
+        run: node --test tests/tools/ad-verification.test.js
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify native animations frame by frame
+        run: node tests/tools/ad-verification.browser.cjs
+        env:
+          BROWSER_ARTIFACT_DIR: ${{ runner.temp }}/ad-verification
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ad-verification-preview
+          path: ${{ runner.temp }}/ad-verification
+          if-no-files-found: ignore
