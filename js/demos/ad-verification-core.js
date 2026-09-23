@@ -182,7 +182,7 @@
       keys[id] = await cryptoAPI().exportKey('jwk', pair.publicKey);
     }
     const chain = 'local-' + random();
-    const campaign = 'CV-DEMO';
+    const campaign = 'EXAMPLE-CAMPAIGN';
     const blocks = [];
     // Private provider evidence and the UI's fictional associations are NOT in public receipts.
     const evidence = new Map();
@@ -208,7 +208,7 @@
       if (!['ad', 'website', 'visit', 'attribution', 'end'].includes(type) || !/^T\d{3,4}$/.test(traveler) || !Number.isSafeInteger(day)) throw new Error('Invalid fictional observation.');
       const body = { traveler, day, receiptTime };
       if (type === 'website') body.page = '/hiking-guides';
-      if (type === 'visit') body.place = 'Cedar Valley';
+      if (type === 'visit') body.place = 'Example destination';
       if (type === 'attribution') {
         const ad = evidence.get(prior.ad)?.body;
         const visit = evidence.get(prior.visit)?.body;
