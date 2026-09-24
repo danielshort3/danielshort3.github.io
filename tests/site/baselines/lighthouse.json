@@ -1,5 +1,6 @@
 {
   "lighthouse": "13.5.0",
+  "referenceCommit": "39b333abc7fd8d163ef12997ba08bd440ddffd2b",
   "results": [
     {
       "route": "/",
