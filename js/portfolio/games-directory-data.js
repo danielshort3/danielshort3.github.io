@@ -204,9 +204,9 @@ window.DIRECTORY_WORKBENCH = {
     },
     {
       "id": "ocean-wave-simulation",
-      "title": "Ocean Wave Simulation",
+      "title": "Ocean Wave Simulator",
       "subtitle": "Simulation",
-      "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",
+      "summary": "Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound.",
       "href": "games/ocean-wave-simulation",
       "type": "Simulation",
       "category": "Simulation",
@@ -229,7 +229,7 @@ window.DIRECTORY_WORKBENCH = {
         "Simulation"
       ],
       "results": [
-        "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox."
+        "Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound."
       ],
       "actions": [
         "Focus areas: Parameter sandbox, Realtime canvas, Visual systems"
