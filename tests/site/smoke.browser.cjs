@@ -368,6 +368,10 @@ async function checkDemo(page, homeStage, settings) {
 
 async function runViewport(browser, base, settings) {
   const context = await browser.newContext({ viewport: settings.viewport, reducedMotion: settings.reducedMotion });
+  await context.route(/^https:\/\/www\.google\.com\/maps\?/, async route => {
+    if (new URL(route.request().url()).searchParams.get('output') !== 'embed') return route.continue();
+    await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>Test map</title><p>Contact map fixture</p>' });
+  });
   const page = await context.newPage();
   page.setDefaultTimeout(12000);
   const errors = [];
