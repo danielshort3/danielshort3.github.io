@@ -3,13 +3,13 @@
   "channel": "review",
   "packageName": "me.danielshort.app.debug",
   "latest": {
-    "versionCode": 8,
-    "versionName": "0.5.1-debug",
+    "versionCode": 9,
+    "versionName": "0.5.2-debug",
     "minSdk": 26,
     "apk": {
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.1-review/Daniel-Short-review-v8-29dd8e166a521218.apk",
-      "sha256": "29dd8e166a5212188e3c3b9d0eb37f9415d5f7c9b21b385b1fd272b4e323d490",
-      "size": 24782821
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.2-review/Daniel-Short-review-v9-937c9d3c350fcbe5.apk",
+      "sha256": "937c9d3c350fcbe5ad982bab867192783d4ecf98b4fcdac077a74356485b9f13",
+      "size": 24831973
     },
     "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
   },
@@ -55,15 +55,21 @@
       "sha256": "29dd8e166a5212188e3c3b9d0eb37f9415d5f7c9b21b385b1fd272b4e323d490",
       "size": 24782821,
       "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
+    },
+    {
+      "versionCode": 9,
+      "sha256": "937c9d3c350fcbe5ad982bab867192783d4ecf98b4fcdac077a74356485b9f13",
+      "size": 24831973,
+      "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
     }
   ],
   "patches": [
     {
-      "fromSha256": "3c101f91381daa0511fc77b66ffe6ddbb0f1ac4eb2cbe4dfe951cb2240ebc15f",
-      "toSha256": "29dd8e166a5212188e3c3b9d0eb37f9415d5f7c9b21b385b1fd272b4e323d490",
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.1-review/patch-3c101f91381daa05-29dd8e166a521218-79df993ed2bf821a.dsupd.gz",
-      "sha256": "79df993ed2bf821a9f1d8ca8d5531c6c441a869a143bdef22f73df02e29530f3",
-      "size": 593456,
+      "fromSha256": "29dd8e166a5212188e3c3b9d0eb37f9415d5f7c9b21b385b1fd272b4e323d490",
+      "toSha256": "937c9d3c350fcbe5ad982bab867192783d4ecf98b4fcdac077a74356485b9f13",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.2-review/patch-29dd8e166a521218-937c9d3c350fcbe5-6bdfe30f873c1c6e.dsupd.gz",
+      "sha256": "6bdfe30f873c1c6e9f9eab58e0ebb1d17c9ac7d220a16f80ed71a457a799ed3f",
+      "size": 720563,
       "format": "dsupd1-gzip"
     }
   ]
