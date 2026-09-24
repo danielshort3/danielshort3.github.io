@@ -384,7 +384,11 @@ for (const { stored, search, expected } of [
   const originalPose = cameraPose(app);
   assert.equal(app.contextRequests.find(request => request.type === 'webgl').options.powerPreference, 'high-performance',
     'WebGL must be allowed to use the graphics processor appropriate for the higher quality tiers.');
-  assert.equal(app.uniforms.renderQuality, 2, 'Auto must begin at the high-detail shader tier.');
+  assert.equal(app.uniforms.renderQuality, 1, 'Auto must begin at the Medium shader tier.');
+  assert.deepEqual(app.dimensions(), [800, 600], 'Auto must begin within the Medium render profile.');
+  assert.deepEqual(app.spectrumAllocations, ['medium'], 'Auto must allocate the Medium FFT without a transient High allocation.');
+  assert.equal(app.get('stage').dataset.oceanSpectrum, '128');
+  assert.equal(app.get('stage').dataset.oceanFoamResolution, '256');
   for (const tier of qualityTiers) {
     app.input('quality', tier.name, 'change');
     assert.equal(app.get('quality').value, tier.name);
@@ -528,6 +532,44 @@ for (const refreshRate of [60, 75, 100, 120, 144]) {
   staleFrame(1000);
   assert.equal(app.queue.size, 0, 'A callback already queued during teardown must not revive a disposed render loop.');
   assert.equal(app.drawCount, draws);
+}
+
+{
+  const app = harness();
+  app.input('wind', '5.5');
+  app.window.dispatchEvent({ type: 'pagehide', persisted: false });
+  assert.equal(app.queue.size, 0, 'Leaving the document must stop animation before the browser releases its context.');
+  assert.equal(app.deletedGpuResources.size, app.gpuResources.size,
+    'A full navigation must release the same GPU resources as a soft route change.');
+  assert.equal(app.preferences().wind, 5.5, 'Full navigation must save the latest scene preferences.');
+  app.dispose();
+  app.window.dispatchEvent({ type: 'pageshow', persisted: true });
+  assert.equal(app.queue.size, 0, 'A disposed page must never resume animation.');
+}
+
+{
+  const app = harness();
+  app.window.dispatchEvent({ type: 'pagehide', persisted: true });
+  assert.equal(app.queue.size, 0, 'Entering the page cache must suspend animation.');
+  assert.ok(app.deletedGpuResources.size < app.gpuResources.size,
+    'A page-cache visit must retain GPU resources for restoration.');
+  app.visible(true);
+  assert.equal(app.queue.size, 0, 'Visibility callbacks must not restart a page cached scene.');
+  const draws = app.drawCount;
+  app.window.dispatchEvent({ type: 'pageshow', persisted: true });
+  assert.equal(app.queue.size, 1, 'Returning from the page cache must resume one animation loop.');
+  app.frame();
+  assert.ok(app.drawCount > draws);
+  app.dispose();
+}
+
+{
+  const app = harness({ viewport: { width: 1920, height: 1080 }, dpr: 2 });
+  app.setDrawingBuffer([0, 0]);
+  app.step(6, 100);
+  assert.equal(app.get('toggle').disabled, true, 'Adaptive resize must detect an unavailable GPU buffer.');
+  assert.equal(app.queue.size, 0, 'A buffer failure during an animation frame must not restart the render loop.');
+  app.dispose();
 }
 
 {
@@ -768,17 +810,34 @@ for (const interruption of ['hidden', 'paused', 'offscreen']) {
   const app = harness({ search: '?quality=auto', viewport: { width: 1920, height: 1080 }, dpr: 2 });
   const initialDimensions = app.dimensions();
   const originalPose = cameraPose(app);
-  app.step(14, 100);
+  assert.ok(pixelCount(initialDimensions) <= 1500000 * 1.002, 'Auto must begin within the Medium pixel budget.');
+  app.step(3, 100);
+  assert.equal(app.uniforms.renderQuality, 1, 'A brief slowdown must leave Auto at Medium.');
+  assert.deepEqual(app.dimensions(), initialDimensions);
+  app.step(2, 100);
+  assert.equal(app.uniforms.renderQuality, 0, 'Sustained slow frames must lower Auto to Low at the first adjustment gate.');
+  assert.ok(pixelCount(app.dimensions()) <= 720000 * 1.002, 'The Low tier must also use its smaller pixel budget.');
+  assert.equal(app.get('stage').dataset.oceanSpectrum, '64');
+  assert.equal(app.get('stage').dataset.oceanFoamResolution, '128');
+  const lowDimensions = app.dimensions();
+  app.step(15, 100);
   const floorDimensions = app.dimensions();
-  assert.equal(app.uniforms.renderQuality, 2, 'Auto must exhaust its resolution adjustment before lowering reflection detail.');
-  assert.ok(pixelCount(floorDimensions) < pixelCount(initialDimensions) * .51);
-  app.step(12, 100);
-  assert.deepEqual(app.dimensions(), floorDimensions, 'Auto must keep its established resolution floor when lowering shader detail.');
-  assert.equal(app.uniforms.renderQuality, 0, 'Sustained slow frames at the resolution floor must reach the lowest reflection tier.');
+  assert.ok(pixelCount(floorDimensions) < pixelCount(lowDimensions) * .51,
+    'Auto must reduce Low resolution further if the slowdown continues.');
+  app.step(6, 100);
+  assert.deepEqual(app.dimensions(), floorDimensions, 'Auto must keep its bounded Low resolution floor.');
   assert.equal(app.get('stage').dataset.oceanDetail, '0');
   app.step(18);
-  assert.equal(app.uniforms.renderQuality, 2, 'Smooth frames must restore reflection detail before increasing resolution.');
-  assert.deepEqual(app.dimensions(), floorDimensions);
+  assert.equal(app.uniforms.renderQuality, 0, 'Smooth frames must recover Low resolution before raising the tier.');
+  assert.ok(pixelCount(app.dimensions()) > pixelCount(floorDimensions));
+  app.step(8);
+  const recoveredLowPixels = pixelCount(app.dimensions());
+  assert.equal(app.uniforms.renderQuality, 0, 'Auto must finish recovering the Low pixel budget before raising detail.');
+  assert.ok(recoveredLowPixels <= 720000 * 1.002);
+  app.step(8);
+  assert.equal(app.uniforms.renderQuality, 1, 'Sustained smooth rendering must restore Medium detail.');
+  assert.ok(pixelCount(app.dimensions()) <= recoveredLowPixels * 1.05,
+    'Restoring Medium detail must not double the GPU pixel workload in one step.');
   app.step(30);
   assert.deepEqual(app.dimensions(), initialDimensions, 'Continued smooth rendering must recover the original Auto pixel budget.');
   assert.deepEqual(cameraPose(app), originalPose);

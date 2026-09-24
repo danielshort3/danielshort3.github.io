@@ -463,8 +463,8 @@
         },
         {
           "id": "ocean-wave-simulation",
-          "title": "Ocean Wave Simulation",
-          "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",
+          "title": "Ocean Wave Simulator",
+          "summary": "Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound.",
           "href": "/games/ocean-wave-simulation",
           "image": "/img/home-previews/games/ocean-wave-simulation.webp",
           "imageAlt": "",

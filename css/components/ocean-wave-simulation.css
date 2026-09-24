@@ -154,8 +154,9 @@
   width: calc(100% - 48px);
   border: 0;
 }
-#ocean-wave-header [data-page-masthead-intro] { grid-column: 2; width: auto; }
+#ocean-wave-header [data-page-masthead-intro] { grid-column: 2; width: auto; text-align: center; }
 #ocean-wave-header h1 { font-size: 26px; font-weight: 550; line-height: 1.2; letter-spacing: -.035em; }
+#ocean-wave-header .ocean-wave-lead { max-width: 46ch; margin: 4px auto 0; color: #405b7b; font-size: 14px; line-height: 1.4; }
 #ocean-wave-header [data-page-masthead-parent] { margin: 0; }
 #ocean-wave-settings h2 { color: #f4f8fa; font-size: 16px; font-weight: 550; line-height: 1.4; }
 #ocean-wave-quality { color: #f4f8fa; background: #1d3e50; border-color: #587684; }
@@ -164,10 +165,11 @@
 #ocean-wave-stage button { font-weight: 500; }
 #ocean-wave-camera-hint { color: #f4f8fa; }
 @media (max-width: 700px) {
-  #ocean-wave-header { margin-inline: 18px; width: calc(100% - 36px); padding: 17px 0; }
+  #ocean-wave-header { grid-template-columns: minmax(0, 1fr); gap: 7px; margin-inline: 18px; width: calc(100% - 36px); padding: 14px 0; }
+  #ocean-wave-header [data-page-masthead-intro] { grid-column: 1; text-align: left; }
   #ocean-wave-header h1 { font-size: 23px; }
+  #ocean-wave-header .ocean-wave-lead { margin: 3px 0 0; font-size: 13px; }
 }
 @media (max-width: 360px) {
-  #ocean-wave-header { display: flex; }
   #ocean-wave-header [data-page-masthead-parent] { white-space: nowrap; }
 }
