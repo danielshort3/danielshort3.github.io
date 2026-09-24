@@ -423,7 +423,7 @@ private fun StarfallScreen(onBack: () -> Unit, reduceMotion: Boolean) {
   val background = GameBitmap("greenroot-meadow.webp")
   val hero = GameBitmap(game.hero.name.lowercase() + ".png")
   val enemy = GameBitmap("shardling.png")
-  GamePage("Project Starfall", "Explore Starfall Verge, defeat Glassbacks, and equip better gear.", onBack) {
+  GamePage("Project Starfall: Offline Expedition", "A compact mission with progress saved on this device.", onBack) {
     tick
     Stats("Level" to game.level.toString(), "HP" to "${game.hp.toInt()}/${game.maxHp.toInt()}", "Gold" to game.gold.toString())
     if (game.kills == 0) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
