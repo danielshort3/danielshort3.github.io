@@ -918,6 +918,19 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'the external GitHub card should use one dedicated external-link arrow');
   assert(count(html, /<h1\b/g) === 1 && html.includes('id="home-accordion-title"'),
     'homepage should expose one accessible H1');
+  const welcomeHtml = html.match(/<div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>([\s\S]*?)<\/div>/)?.[1] || '';
+  const welcomeLinks = [...welcomeHtml.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)]
+    .map((match) => ({ label: match[2], href: match[1] }));
+  assert(welcomeHtml.includes(`<h1 class="site-frame__welcome-title">${personal.page.sections[0].props.welcome.title}</h1>`) &&
+    welcomeHtml.includes(personal.brandTagline) &&
+    welcomeHtml.includes(personal.page.sections[0].props.welcome.detail) &&
+    html.indexOf('data-site-home-welcome') < html.indexOf('hidden inert') &&
+    !/\b(?:hidden|inert)\b/.test(welcomeHtml) &&
+    /<h2 class="visually-hidden" id="home-accordion-title">/.test(html),
+  'closed homepage should contain a visible authored introduction before hidden panels');
+  assert(personal.page.sections[0].props.welcome.summary === personal.brandTagline &&
+    JSON.stringify(welcomeLinks) === JSON.stringify(personal.page.sections[0].props.welcome.links),
+  'closed homepage should use the canonical tagline and render the authored destination links');
   [
     ['projects', '/portfolio', 'View all projects'],
     ['tools', '/tools', 'View all tools'],
@@ -954,6 +967,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       `<h2[^>]+home-accordion__heading[^>]*>\\s*<button[^>]+id="home-accordion-trigger-${id}"[^>]+type="button"[^>]+aria-controls="home-accordion-panel-${id}"[\\s\\S]*?<\\/button>\\s*<\\/h2>\\s*<section[^>]+id="home-accordion-panel-${id}"[^>]+role="region"[^>]+aria-labelledby="home-accordion-trigger-${id}"`
     );
     assert(pairPattern.test(html), `${id} rail should be a heading-wrapped native button followed by its labeled region`);
+  });
+
+  ['projects', 'tools', 'games', 'contact'].forEach((id) => {
+    assert(/<div class="home-accordion__title-row">[\s\S]*?<h2>[^<]+<\/h2>/.test(getItemHtml(id)),
+      `${id} visible panel title should be a level-two heading when its rail is collapsed`);
   });
 
   const requiredRoutes = [

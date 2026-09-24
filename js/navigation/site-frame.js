@@ -64,6 +64,7 @@
       title: scope.title,
       canonical: scope.querySelector('link[rel="canonical"]')?.href || '',
       tabSources: [...source.querySelectorAll('[data-site-tab], [data-home-accordion-trigger]')],
+      homeWelcome: home?.querySelector('[data-site-home-welcome]') || null,
       toolbar: shell?.querySelector('[data-site-route-toolbar]'),
       content: home || shell.querySelector('[data-personal-detail-content]')
     };
@@ -135,8 +136,13 @@
       });
       result.items = items;
       result.libraryBackButtons = libraryBackButtons;
-      result.heading = source.querySelector('h1');
-      if (result.heading) nextBody.append(result.heading);
+      const sourceHeading = source.querySelector('#home-accordion-title');
+      if (sourceHeading) {
+        result.heading = make('h1', sourceHeading.className);
+        result.heading.id = sourceHeading.id;
+        result.heading.textContent = sourceHeading.textContent;
+        nextBody.append(result.heading);
+      }
       nextBody.append(items.get(result.category) || items.values().next().value);
     } else {
       const content = source.querySelector('[data-personal-detail-content]');
@@ -894,6 +900,8 @@
     current = next;
     desiredTarget = next;
     body = next.body;
+    if (description.homeWelcome) welcome.replaceChildren(...[...description.homeWelcome.childNodes]
+      .map((node) => document.importNode(node, true)));
     replaceRouteBody(body);
     toolbar.replaceChildren(...(description.toolbar ? [...document.importNode(description.toolbar, true).childNodes] : []));
     toolbar.hidden = !description.toolbar;
@@ -935,6 +943,8 @@
     current = saved.description;
     desiredTarget = current;
     body = saved.body;
+    if (current.homeWelcome) welcome.replaceChildren(...[...current.homeWelcome.childNodes]
+      .map((node) => document.importNode(node, true)));
     replaceRouteBody(body);
     toolbar.replaceChildren(...saved.toolbar);
     toolbar.hidden = !saved.toolbar.length;

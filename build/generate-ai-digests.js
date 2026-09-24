@@ -26,6 +26,7 @@ const MAX_FACTS = 10;
 const MAX_EVIDENCE = 8;
 const MAX_BODY_POINTS = 6;
 const MAX_LINKS = 14;
+let nonpublicCatalogRoutesCache = null;
 
 const excludedPathPatterns = [
   /^\/admin(?:\/|$)/i,
@@ -135,6 +136,7 @@ function cleanText(value) {
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
     .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, ' ')
     .replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, ' ')
+    .replace(/<\/?(?:a|abbr|b|cite|code|em|i|mark|small|span|strong|sub|sup|time)\b[^>]*>/gi, '')
     .replace(/<[^>]+>/g, ' '));
 }
 
@@ -296,6 +298,16 @@ function isPublicVisibility(value) {
   return !visibility || visibility === 'public';
 }
 
+function isPublicProject(project) {
+  return Boolean(project && project.id && project.published !== false && !project.hidden &&
+    !project.noindex && isPublicVisibility(project.visibility));
+}
+
+function isPublicTool(tool) {
+  return Boolean(tool && tool.slug && tool.published !== false && !tool.hidden &&
+    !tool.noindex && isPublicVisibility(tool.visibility));
+}
+
 function loadPublicToolSlugs() {
   const slugs = new Set();
   walkFiles(path.join(root, 'content', 'tools'), (filePath) => filePath.endsWith('.json')).forEach((filePath) => {
@@ -303,11 +315,28 @@ function loadPublicToolSlugs() {
       const tool = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       const slug = normalizeWhitespace(tool && tool.slug);
       const visibility = normalizeWhitespace(tool && tool.visibility).toLowerCase();
-      if (!slug || tool.hidden || tool.noindex || !isPublicVisibility(visibility)) return;
+      if (!slug || !isPublicTool({ ...tool, slug, visibility })) return;
       slugs.add(slug);
     } catch {}
   });
   return slugs;
+}
+
+function loadNonpublicCatalogRoutes() {
+  if (nonpublicCatalogRoutesCache) return nonpublicCatalogRoutesCache;
+  const routes = new Set();
+  loadJsonRecords('content/projects').forEach((record) => {
+    const project = record.data;
+    const id = normalizeWhitespace(project.id || path.basename(record.relPath, '.json'));
+    if (id && !isPublicProject({ ...project, id })) routes.add(`/portfolio/${id}`);
+  });
+  loadJsonRecords('content/tools').forEach((record) => {
+    const tool = record.data;
+    const slug = normalizeWhitespace(tool.slug || path.basename(record.relPath, '.json'));
+    if (slug && !isPublicTool({ ...tool, slug })) routes.add(`/tools/${slug}`);
+  });
+  nonpublicCatalogRoutesCache = routes;
+  return routes;
 }
 
 function toPathFromCanonical(canonical) {
@@ -361,16 +390,56 @@ function shouldExcludeUrl(urlPath, html, noindexPathnames, override) {
 
 function stripIndexNoise(html) {
   return String(html || '')
-    .replace(/<article\b[^>]*\bdata-tools-visibility="[^"]+"[^>]*>[\s\S]*?<\/article>/gi, ' ')
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
     .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, ' ');
 }
 
+function pruneHiddenMarkup(html) {
+  const source = String(html || '');
+  const tokens = /<!--[\s\S]*?-->|<![^>]*>|<\/?[A-Za-z][^>]*>/g;
+  const voidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+  const stack = [];
+  const output = [];
+  let cursor = 0;
+  let match;
+  while ((match = tokens.exec(source))) {
+    if (!stack.some((entry) => entry.hidden)) output.push(source.slice(cursor, match.index));
+    const token = match[0];
+    cursor = tokens.lastIndex;
+    if (/^<!/.test(token)) continue;
+    const tagMatch = /^<\/?([A-Za-z][\w:-]*)\b/.exec(token);
+    if (!tagMatch) continue;
+    const tag = tagMatch[1].toLowerCase();
+    if (/^<\//.test(token)) {
+      const index = stack.findLastIndex((entry) => entry.tag === tag);
+      if (index < 0) continue;
+      const hidden = stack[index].hidden;
+      stack.splice(index);
+      if (!hidden && !stack.some((entry) => entry.hidden)) output.push(token);
+      continue;
+    }
+    const attributes = token.slice(tagMatch[0].length, -1);
+    const attrs = parseAttributes(attributes);
+    const hidden = stack.some((entry) => entry.hidden) ||
+      /(?:^|\s)(?:hidden|inert)(?:\s|=|$)/i.test(attributes) ||
+      /^(?:true|1)$/i.test(attrs['aria-hidden'] || '') ||
+      /^(?:status|alert)$/i.test(attrs.role || '') ||
+      /^(?:polite|assertive)$/i.test(attrs['aria-live'] || '') ||
+      /(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)(?:\s*[;!]|$)/i.test(attrs.style || '') ||
+      /\bsitemap-(?:counts|generated)\b/i.test(attrs.class || '') ||
+      Boolean(attrs['data-tools-visibility'] && !isPublicVisibility(attrs['data-tools-visibility']));
+    if (!hidden) output.push(token);
+    if (!voidTags.has(tag) && !/\/\s*>$/.test(token)) stack.push({ tag, hidden });
+  }
+  if (!stack.some((entry) => entry.hidden)) output.push(source.slice(cursor));
+  return output.join('');
+}
+
 function extractMainRegion(html) {
   const stripped = stripIndexNoise(html);
   const mainMatch = /<main\b[^>]*>([\s\S]*?)<\/main>/i.exec(stripped);
-  let region = mainMatch ? mainMatch[1] : stripped;
+  let region = pruneHiddenMarkup(mainMatch ? mainMatch[1] : stripped);
   region = region
     .replace(/<header\b[^>]*>[\s\S]*?<\/header>/gi, ' ')
     .replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, ' ')
@@ -422,18 +491,26 @@ function parseAttributes(raw) {
 function normalizeHref(href) {
   const raw = normalizeWhitespace(href);
   if (!raw || raw.startsWith('#') || /^javascript:/i.test(raw)) return '';
-  if (/^(?:mailto:|tel:)/i.test(raw)) return raw;
+  if (/^(?:mailto:|tel:)/i.test(raw)) return raw.split(/[?#]/, 1)[0];
   try {
     const url = new URL(raw, SITE_ORIGIN);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return '';
     if (url.origin === SITE_ORIGIN) {
       const pathname = normalizePathname(url.pathname || '/');
-      if (/^\/(?:pages|api|ai)(?:\/|$)/i.test(pathname)) return '';
-      return `${SITE_ORIGIN}${pathname}${url.search || ''}${url.hash || ''}`;
+      if (/^\/(?:pages|api|ai|admin|professional)(?:\/|$)/i.test(pathname)) return '';
+      if (excludedPathPatterns.some((pattern) => pattern.test(pathname)) ||
+        loadNonpublicCatalogRoutes().has(pathname)) return '';
+      return `${SITE_ORIGIN}${pathname}`;
     }
-    return url.toString();
+    return `${url.origin}${url.pathname}`;
   } catch {
     return '';
   }
+}
+
+function linkLabel(html) {
+  const heading = /<h[2-6]\b[^>]*>([\s\S]*?)<\/h[2-6]>/i.exec(String(html || ''));
+  return cleanText(heading ? heading[1] : html);
 }
 
 function extractLinks(region) {
@@ -443,7 +520,7 @@ function extractLinks(region) {
   while ((match = re.exec(String(region || '')))) {
     const attrs = parseAttributes(match[1]);
     const href = normalizeHref(attrs.href || '');
-    const label = cleanText(match[2]);
+    const label = linkLabel(match[2]);
     if (!href || !label) continue;
     if (label.length > 120) continue;
     links.push({ label, url: href });
@@ -468,8 +545,8 @@ function splitSentences(text) {
 function isNoiseText(text) {
   const value = normalizeWhitespace(text);
   if (!value) return true;
-  if (value.length > 220) return true;
-  if (/\b(?:Resume Portfolio Contact|View credential Certification|Send a Message|Clear form|Required|Scroll for)\b/i.test(value)) return true;
+  if (value.length > 900) return true;
+  if (/^(?:Resume Portfolio Contact|View credential Certification|Send a Message|Clear form|Required|Scroll for)[.!?]?$/i.test(value)) return true;
   if ((value.match(/\b(?:Resume|Portfolio|Contact|Certification|Project Examples|Work Experience)\b/g) || []).length >= 3) return true;
   return false;
 }
@@ -573,7 +650,7 @@ function normalizeSection(section) {
   const title = normalizeWhitespace(section.title || section.heading || '');
   if (!title) return null;
   const paragraphs = uniqueList(normalizeTextArray(section.paragraphs || section.text || section.summary), 6);
-  const items = uniqueList(normalizeTextArray(section.items || section.facts || section.bullets), 16);
+  const items = uniqueList(normalizeTextArray(section.items || section.facts || section.bullets));
   const links = normalizeStructuredLinks(section.links || []);
   const level = Math.min(6, Math.max(2, Number(section.level) || 2));
   if (!paragraphs.length && !items.length && !links.length) return null;
@@ -623,6 +700,7 @@ function renderDigest(page) {
   <main id="main" data-ai-digest="true" data-canonical-url="${escapeHtml(page.canonicalUrl)}">
     <article>
       <h1>${escapeHtml(page.title)}</h1>
+      <p><a href="${escapeHtml(page.canonicalUrl)}">View the full page</a></p>
 ${introParagraphs}
 ${sections.join('\n')}
     </article>
@@ -748,10 +826,10 @@ function extractHtmlLinks(html, maxItems = MAX_LINKS) {
 }
 
 function projectSummary(project) {
-  const subtitle = normalizeWhitespace(project && project.subtitle);
-  const problem = normalizeWhitespace(project && project.problem);
-  const summary = [subtitle, problem].filter(Boolean).join(': ');
-  return trimToSentence(summary || normalizeWhitespace(project && project.notes), MAX_SUMMARY_CHARS);
+  return trimToSentence(
+    project && (project.metaDescription || project.subtitle || project.problem || project.notes),
+    MAX_SUMMARY_CHARS
+  );
 }
 
 function readableLabel(value) {
@@ -793,32 +871,41 @@ function createStructuredPage(urlPath, fields) {
 function buildProjectStructuredPage(record) {
   const project = record.data;
   const id = normalizeWhitespace(project.id || path.basename(record.relPath, '.json'));
-  if (!id || project.hidden || project.noindex) return null;
+  if (!isPublicProject({ ...project, id })) return null;
   const urlPath = `/portfolio/${id}`;
   const resources = normalizeStructuredLinks(project.resources || []);
-  const links = resources.length ? resources : [];
+  const links = resources.length ? resources : [{ label: 'View project', url: urlPath }];
+  const demo = project.embed || {};
+  const instructions = project.demoInstructions || {};
+  const demoSection = normalizeSection({
+    title: demo.heading || 'Project Preview',
+    paragraphs: [demo.description, instructions.lead].filter(Boolean),
+    items: normalizeTextArray(instructions.bullets)
+  });
   return createStructuredPage(urlPath, {
     title: project.title,
-    description: projectSummary(project),
+    description: project.metaDescription || projectSummary(project),
     summary: projectSummary(project),
     category: 'Portfolio',
     sourcePath: record.relPath,
     sourceText: JSON.stringify(project),
+    introParagraphs: [project.subtitle].filter(Boolean),
     keywords: [...(project.tools || []), ...(project.concepts || []), ...(project.audiences || [])],
     links,
     sections: [
+      demoSection,
       {
         title: 'STAR Summary',
-        items: uniqueList([
+        items: [
           project.problem ? `Situation: ${project.problem}` : '',
           project.task ? `Task: ${project.task}` : '',
           ...normalizeTextArray(project.actions).map((item) => `Action: ${item}`),
           ...normalizeTextArray(project.results).map((item) => `Result: ${item}`)
-        ].filter(Boolean), 16)
+        ].filter(Boolean)
       },
-      { title: 'Notes', paragraphs: [project.notes].filter(Boolean) },
+      { title: 'Additional Context', paragraphs: [project.notes].filter(Boolean) },
       { title: 'Links', links }
-    ]
+    ].filter(Boolean)
   });
 }
 
@@ -976,7 +1063,7 @@ function buildToolsDirectoryStructuredPage(pageRecord, toolRecords) {
   const categories = Array.isArray(page.categories) ? page.categories : [];
   const publicTools = toolRecords
     .map((record) => record.data)
-    .filter((tool) => tool && !tool.hidden && !tool.noindex && isPublicVisibility(tool.visibility))
+    .filter(isPublicTool)
     .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
   const sections = [
     { title: 'Summary', paragraphs: [page.description].filter(Boolean) }
@@ -1000,7 +1087,7 @@ function buildToolsDirectoryStructuredPage(pageRecord, toolRecords) {
     summary: page.description,
     category: 'Tools',
     sourcePath: pageRecord.relPath,
-    sourceText: JSON.stringify(page),
+    sourceText: JSON.stringify({ page, tools: publicTools }),
     keywords: ['tools', 'utilities', 'privacy-first'],
     links: publicTools.map((tool) => ({ label: tool.title, url: tool.href || `/tools/${tool.slug}`, description: tool.summary })),
     sections
@@ -1011,7 +1098,8 @@ function buildGamesDirectoryStructuredPage(pageRecord) {
   const page = pageRecord && pageRecord.data;
   if (!page) return null;
   const games = (Array.isArray(page.games) ? page.games : [])
-    .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id))
+    .filter((game) => game && game.published !== false && !game.hidden && !game.noindex &&
+      isPublicVisibility(game.visibility) && (game.href || game.id))
     .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
   const links = games.map((game) => ({
     label: game.title,
@@ -1036,13 +1124,9 @@ function buildGamesDirectoryStructuredPage(pageRecord) {
 function buildToolStructuredPage(record, categoriesById) {
   const tool = record.data || {};
   const slug = normalizeWhitespace(tool.slug || path.basename(record.relPath, '.json'));
-  if (!slug || tool.hidden || tool.noindex || !isPublicVisibility(tool.visibility)) return null;
+  if (!isPublicTool({ ...tool, slug })) return null;
   const pills = (tool.pills || []).map((pill) => normalizeWhitespace(pill && pill.label)).filter(Boolean);
   const category = categoriesById.get(tool.categoryId);
-  const isLocal = pills.some((pill) => /^local$/i.test(pill)) || /\b(?:locally|local|no uploads)\b/i.test(tool.summary || '');
-  const privacy = isLocal
-    ? 'Designed for local, browser-based use where supported; avoid sending sensitive inputs unless the tool explicitly states it uses a backend.'
-    : 'May use an account, API, or server-side compute depending on the tool workflow.';
   const links = [{ label: tool.title, url: tool.href || `/tools/${slug}`, description: tool.summary }];
   return createStructuredPage(`/tools/${slug}`, {
     title: tool.title,
@@ -1054,10 +1138,10 @@ function buildToolStructuredPage(record, categoriesById) {
     keywords: [...pills, category && category.title].filter(Boolean),
     links,
     sections: [
-      { title: 'Summary', paragraphs: [tool.summary].filter(Boolean) },
-      { title: 'What It Does', items: [tool.summary].filter(Boolean) },
-      { title: 'Privacy And Runtime', items: [privacy] },
-      { title: 'Use Cases', items: pills.filter((pill) => !/^local$/i.test(pill)) },
+      { title: 'What It Does', paragraphs: [tool.summary].filter(Boolean) },
+      { title: 'Inputs', items: normalizeTextArray(tool.inputs) },
+      { title: 'Outputs', items: normalizeTextArray(tool.outputs) },
+      { title: 'Privacy and runtime', paragraphs: [tool.privacy].filter(Boolean) },
       { title: 'Links', links }
     ]
   });
@@ -1066,7 +1150,7 @@ function buildToolStructuredPage(record, categoriesById) {
 function buildPortfolioStructuredPage(projectRecords) {
   const projects = projectRecords
     .map((record) => record.data)
-    .filter((project) => project && project.id && !project.hidden && !project.noindex)
+    .filter(isPublicProject)
     .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
   const links = projects.map((project) => ({
     label: project.title,
@@ -1084,13 +1168,14 @@ function buildPortfolioStructuredPage(projectRecords) {
     links,
     sections: [
       { title: 'Summary', paragraphs: ['Project library of data projects, software experiments, tools, and demos by Daniel Short.'] },
-      { title: 'Featured Projects', links: links.slice(0, 12) }
+      { title: 'Projects', links }
     ]
   });
 }
 
 function buildGameStructuredPage(game, pageRecord) {
-  if (!game || game.hidden || game.noindex || !(game.href || game.id)) return null;
+  if (!game || game.published === false || game.hidden || game.noindex ||
+    !isPublicVisibility(game.visibility) || !(game.href || game.id)) return null;
   const rawPath = String(game.href || `games/${game.id}`).trim();
   const urlPath = `/${rawPath.replace(/^\/+/, '').replace(/\.html$/i, '')}`;
   const title = normalizeWhitespace(game.title || game.id || 'Browser game');
@@ -1139,15 +1224,16 @@ function buildPersonalHomeStructuredPage(audienceRecord, projectRecords, toolRec
 
   const projects = projectRecords
     .map((record) => record.data)
-    .filter((project) => project && project.id && project.published !== false && !project.hidden && !project.noindex)
+    .filter(isPublicProject)
     .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
   const tools = toolRecords
     .map((record) => record.data)
-    .filter((tool) => tool && !tool.hidden && !tool.noindex && isPublicVisibility(tool.visibility))
+    .filter(isPublicTool)
     .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
   const gamesPage = gamesPageRecord && gamesPageRecord.data;
   const games = (Array.isArray(gamesPage && gamesPage.games) ? gamesPage.games : [])
-    .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id))
+    .filter((game) => game && game.published !== false && !game.hidden && !game.noindex &&
+      isPublicVisibility(game.visibility) && (game.href || game.id))
     .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
 
   const projectLinks = projects.map((project) => ({
@@ -1218,6 +1304,45 @@ function buildPersonalHomeStructuredPage(audienceRecord, projectRecords, toolRec
   });
 }
 
+function sitemapRouteLabel(urlPath) {
+  if (urlPath === '/') return 'Home';
+  return urlPath.slice(1).split('/').map((part) => {
+    const words = part.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[-_]+/g, ' ');
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }).join(' / ');
+}
+
+function buildSitemapStructuredPage(structuredPages) {
+  const sitemapPath = path.join(root, 'sitemap.xml');
+  if (!fs.existsSync(sitemapPath)) return null;
+  const xml = fs.readFileSync(sitemapPath, 'utf8');
+  const urls = uniqueList([...xml.matchAll(/<loc>([^<]+)<\/loc>/gi)]
+    .map((match) => toPathFromCanonical(decodeHtml(match[1])))
+    .filter(Boolean));
+  if (!urls.length) return null;
+  const groups = [
+    ['Main pages', urls.filter((url) => routeCategory(url) === 'Core' || routeCategory(url) === 'Page')],
+    ['Projects', urls.filter((url) => routeCategory(url) === 'Portfolio')],
+    ['Tools', urls.filter((url) => routeCategory(url) === 'Tools')],
+    ['Games', urls.filter((url) => routeCategory(url) === 'Games')]
+  ];
+  const labels = new Map(urls.map((url) => [url, structuredPages.get(url)?.title || sitemapRouteLabel(url)]));
+  return createStructuredPage('/sitemap', {
+    title: 'Sitemap',
+    description: 'Browse indexable public pages across Daniel Short’s projects, tools, games, and site information.',
+    summary: 'Browse indexable public pages across Daniel Short’s projects, tools, games, and site information.',
+    category: 'Page',
+    sourcePath: 'sitemap.xml',
+    sourceText: JSON.stringify({ xml, labels: [...labels] }),
+    introParagraphs: [`Browse ${urls.length} indexable public pages. The XML sitemap is the source for this list.`],
+    links: [{ label: 'XML sitemap', url: '/sitemap.xml' }],
+    sections: groups.map(([title, routes]) => ({
+      title,
+      links: routes.map((url) => ({ label: labels.get(url), url }))
+    }))
+  });
+}
+
 function loadStructuredPages() {
   const structured = new Map();
   const projectRecords = loadJsonRecords('content/projects');
@@ -1263,14 +1388,16 @@ function loadStructuredPages() {
     if (page) structured.set(page.url, page);
   });
 
+  const sitemapPage = buildSitemapStructuredPage(structured);
+  if (sitemapPage) structured.set(sitemapPage.url, sitemapPage);
+
   return structured;
 }
 
 function applyStructuredPage(basePage, structuredPage) {
   if (!structuredPage) return basePage;
-  // The homepage's collapsible panels and client-filled libraries need the
-  // authored content model even when a featured card introduces an HTML h2.
-  const useHomeContent = structuredPage.url === '/';
+  // Authored catalog data is the source of truth. Scraped HTML can contain
+  // hidden controls, status text, or cards unavailable to public visitors.
   return {
     ...basePage,
     title: structuredPage.title || basePage.title,
@@ -1279,10 +1406,13 @@ function applyStructuredPage(basePage, structuredPage) {
     category: structuredPage.category || basePage.category,
     sourcePath: structuredPage.sourcePath || basePage.sourcePath,
     sourceHash: structuredPage.sourceHash || basePage.sourceHash,
-    sections: !useHomeContent && basePage.sections && basePage.sections.length ? basePage.sections : structuredPage.sections,
-    introParagraphs: !useHomeContent && basePage.introParagraphs && basePage.introParagraphs.length ? basePage.introParagraphs : structuredPage.introParagraphs,
-    keywords: uniqueList([...(structuredPage.keywords || []), ...(basePage.keywords || [])], 30),
-    links: normalizeStructuredLinks([...(structuredPage.links || []), ...(basePage.links || [])])
+    sections: structuredPage.sections,
+    introParagraphs: structuredPage.introParagraphs,
+    keywords: structuredPage.keywords,
+    links: structuredPage.links,
+    facts: [],
+    evidence: [],
+    bodyPoints: []
   };
 }
 
@@ -1316,6 +1446,10 @@ function extractSectionsFromRegion(region) {
     }
 
     if (tag === 'p') {
+      const inlineLinks = extractLinks(match[3]);
+      if (current) current.links.push(...inlineLinks);
+      const prose = cleanText(match[3].replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, ' '));
+      if (inlineLinks.length && !prose) continue;
       if (text.length < 20) continue;
       if (current) current.paragraphs.push(text);
       else introParagraphs.push(text);
@@ -1331,8 +1465,9 @@ function extractSectionsFromRegion(region) {
     if (tag === 'a' && current) {
       const attrs = parseAttributes(match[2]);
       const href = normalizeHref(attrs.href || '');
-      if (!href || text.length > 140) continue;
-      current.links.push({ label: text, url: href });
+      const label = linkLabel(match[3]);
+      if (!href || !label || label.length > 140) continue;
+      current.links.push({ label, url: href });
     }
   }
   pushCurrent();
@@ -1391,7 +1526,7 @@ function buildDigestPage({ html, relPath, urlPath, override, generatedAt, struct
   });
 
   const keywords = uniqueList([
-    ...extractKeywords(html),
+    ...extractKeywords(region),
     ...headings.filter((heading) => heading.length <= 80)
   ], 30);
   const canonicalUrl = `${SITE_ORIGIN}${urlPath}`;
@@ -1416,7 +1551,7 @@ function buildDigestPage({ html, relPath, urlPath, override, generatedAt, struct
     bodyPoints,
     introParagraphs: extractedSections.introParagraphs.length
       ? extractedSections.introParagraphs
-      : paragraphs.slice(0, 4),
+      : extractedSections.sections.length ? [] : paragraphs.slice(0, 4),
     sections: extractedSections.sections,
     keywords,
     links: dedupedLinks.slice(0, MAX_LINKS)
@@ -1426,6 +1561,7 @@ function buildDigestPage({ html, relPath, urlPath, override, generatedAt, struct
 function buildDigests() {
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const publicToolSlugs = loadPublicToolSlugs();
+  const nonpublicCatalogRoutes = loadNonpublicCatalogRoutes();
   const overrides = loadAiDigestOverrides();
   const structuredPages = loadStructuredPages();
   const candidates = [
@@ -1451,7 +1587,8 @@ function buildDigests() {
     const urlPath = toPathFromCanonical(extractCanonical(html)) || toPathFromRelFile(relPath, publicToolSlugs);
     const normalizedUrl = normalizePathname(urlPath);
     const override = overrides.get(normalizedUrl);
-    if (shouldExcludeUrl(normalizedUrl, html, noindexPathnames, override)) return;
+    if (nonpublicCatalogRoutes.has(normalizedUrl) ||
+      shouldExcludeUrl(normalizedUrl, html, noindexPathnames, override)) return;
 
     const structuredPage = structuredPages.get(normalizedUrl);
     let page = buildDigestPage({ html, relPath, urlPath: normalizedUrl, override, generatedAt, structuredPage });
@@ -1493,7 +1630,8 @@ function llmsLine(page) {
   const label = escapeMarkdown(page.title || page.url);
   const url = page.canonicalUrl || `${SITE_ORIGIN}${page.url}`;
   const description = trimLlmsDescription(page.summary || page.description || '');
-  return `- [${label}](${url})${description ? `: ${description}` : ''}`;
+  const aiUrl = page.aiUrl || routeToAiUrl(page.url);
+  return `- [${label}](${url})${description ? `: ${description}` : ''} ([AI summary](${aiUrl}))`;
 }
 
 function llmsSection(title, pages) {
@@ -1504,43 +1642,23 @@ function llmsSection(title, pages) {
 
 function renderLlmsTxt(pages) {
   const byUrl = new Map((pages || []).map((page) => [page.url, page]));
-  const pick = (urls) => urls.map((url) => byUrl.get(url)).filter(Boolean);
-  const portfolioUrls = [
-    '/portfolio',
-    '/portfolio/retailStore',
-    '/portfolio/targetEmptyPackage',
-    '/portfolio/pizzaDashboard',
-    '/portfolio/deliveryTip',
-    '/portfolio/ufoDashboard',
-    '/portfolio/chatbotLora',
-    '/portfolio/smartSentence'
-  ];
-  const toolUrls = [
-    '/tools',
-    '/tools/text-compare',
-    '/tools/utm-batch-builder',
-    '/tools/word-frequency',
-    '/tools/qr-code-generator',
-    '/tools/image-optimizer'
-  ];
-  const gameUrls = [
-    '/games',
-    '/games/stellar-dogfight',
-    '/games/roulette',
-    '/games/probability-engine',
-    '/games/project-starfall',
-    '/games/stormbreak',
-    '/games/ocean-wave-simulation'
-  ];
-  const optionalPages = [
-    ...pick(['/privacy', '/sitemap'])
-  ];
+  const assigned = new Set();
+  const pick = (urls) => urls.map((url) => byUrl.get(url)).filter((page) => {
+    if (!page || assigned.has(page.url)) return false;
+    assigned.add(page.url);
+    return true;
+  });
+  const startPages = pick(['/', '/portfolio', '/tools', '/games', '/contact']);
+  const projectPages = pick((pages || []).filter((page) => page.category === 'Portfolio').map((page) => page.url));
+  const toolPages = pick((pages || []).filter((page) => page.category === 'Tools').map((page) => page.url));
+  const gamePages = pick((pages || []).filter((page) => page.category === 'Games').map((page) => page.url));
+  const otherPages = pick((pages || []).map((page) => page.url));
   const sections = [
-    llmsSection('Start Here', pick(['/', '/portfolio', '/tools', '/games', '/contact'])),
-    llmsSection('Projects', pick(portfolioUrls)),
-    llmsSection('Tools', pick(toolUrls)),
-    llmsSection('Games', pick(gameUrls)),
-    llmsSection('Optional', optionalPages)
+    llmsSection('Start Here', startPages),
+    llmsSection('Projects', projectPages),
+    llmsSection('Tools', toolPages),
+    llmsSection('Games', gamePages),
+    llmsSection('Other Pages', otherPages)
   ].filter(Boolean);
 
   return [
@@ -1549,7 +1667,7 @@ function renderLlmsTxt(pages) {
     '> Supplemental, AI-readable summaries of Daniel Short\'s projects, tools, experiments, and contact information.',
     '',
     'Canonical site: https://www.danielshort.me/',
-    'The public canonical HTML is authoritative. Optional /ai/ summaries contain the same source-backed information and canonicalize back to the public pages.',
+    'Each main link opens the authoritative public page. Its adjacent AI summary link opens a shorter, optional /ai/ page that canonicalizes back to that public page. AI platforms may use either version; this file does not change what the main URL serves.',
     '',
     sections.join('\n\n'),
     ''
