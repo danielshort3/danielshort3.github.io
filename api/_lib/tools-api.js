@@ -23,70 +23,69 @@ const KNOWN_TOOL_IDS = new Set([
   'word-frequency'
 ]);
 
-function sendJson(res, status, body){
-  res.statusCode = status;
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
-  res.end(JSON.stringify(body));
-}
-
-function createBodyTooLargeError(maxBytes){
+function tooLarge(maxBytes){
   const err = new Error(`JSON request body exceeds ${maxBytes} bytes.`);
   err.code = 'BODY_TOO_LARGE';
   err.statusCode = 413;
   return err;
 }
 
-function assertBodyWithinLimit(body, maxBytes){
-  const raw = typeof body === 'string' ? body : JSON.stringify(body);
-  if (Buffer.byteLength(raw, 'utf8') > maxBytes) throw createBodyTooLargeError(maxBytes);
-}
+async function readJson(req, options = {}){
+  const configured = Number(options.maxBytes);
+  const maxBytes = Number.isFinite(configured) && configured > 0
+    ? Math.max(1, Math.floor(configured)) : MAX_JSON_BODY_BYTES;
+  const declared = Number(req?.headers?.['content-length']);
+  if (Number.isFinite(declared) && declared > maxBytes) throw tooLarge(maxBytes);
 
-function readJson(req, options = {}){
-  const maxBytes = Math.max(1, Number(options.maxBytes) || MAX_JSON_BODY_BYTES);
+  if (req.body !== undefined) {
+    if (Buffer.isBuffer(req.body) || typeof req.body === 'string') {
+      if (Buffer.byteLength(req.body, 'utf8') > maxBytes) throw tooLarge(maxBytes);
+      const raw = req.body.toString();
+      return raw.trim() ? JSON.parse(raw) : {};
+    }
+    const raw = JSON.stringify(req.body);
+    if (typeof raw !== 'string') throw new TypeError('Invalid JSON body');
+    if (Buffer.byteLength(raw, 'utf8') > maxBytes) throw tooLarge(maxBytes);
+    return req.body;
+  }
+
   return new Promise((resolve, reject) => {
-    const declaredBytes = Number(req?.headers?.['content-length']);
-    if (Number.isFinite(declaredBytes) && declaredBytes > maxBytes) {
-      reject(createBodyTooLargeError(maxBytes));
-      return;
-    }
-    if (req.body && typeof req.body === 'object') {
-      try {
-        assertBodyWithinLimit(req.body, maxBytes);
-        return resolve(req.body);
-      } catch (err) {
-        return reject(err);
-      }
-    }
-    if (typeof req.body === 'string') {
-      try {
-        assertBodyWithinLimit(req.body, maxBytes);
-        return resolve(JSON.parse(req.body));
-      } catch (err) {
-        return reject(err);
-      }
-    }
-    let raw = '';
-    let bytes = 0;
-    let tooLarge = false;
+    let chunks = [];
+    let size = 0;
+    let settled = false;
+    const fail = (err) => {
+      if (settled) return;
+      settled = true;
+      chunks = [];
+      reject(err);
+    };
     req.on('data', chunk => {
-      if (tooLarge) return;
-      bytes += Buffer.isBuffer(chunk) ? chunk.length : Buffer.byteLength(String(chunk), 'utf8');
-      if (bytes > maxBytes) {
-        tooLarge = true;
-        raw = '';
-        reject(createBodyTooLargeError(maxBytes));
-        return;
-      }
-      raw += chunk;
+      if (settled) return;
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), 'utf8');
+      size += bytes.length;
+      if (size > maxBytes) { fail(tooLarge(maxBytes)); return; }
+      chunks.push(bytes);
     });
     req.on('end', () => {
-      if (tooLarge) return;
-      if (!raw) return resolve({});
-      try { resolve(JSON.parse(raw)); } catch (err) { reject(err); }
+      if (settled) return;
+      const raw = Buffer.concat(chunks).toString('utf8');
+      chunks = [];
+      try {
+        const body = raw.trim() ? JSON.parse(raw) : {};
+        settled = true;
+        resolve(body);
+      } catch (err) { fail(err); }
     });
-    req.on('error', reject);
+    req.on('error', fail);
+    req.on('aborted', () => fail(new Error('Request aborted')));
   });
+}
+
+function sendJson(res, status, body){
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  res.end(JSON.stringify(body));
 }
 
 function getBearerToken(req){

@@ -5,7 +5,32 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  dependency-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ['.', 'aws/job-application-tracker', 'browser-extension/job-application-copilot']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
+      - name: Audit all locked dependencies (including build tools)
+        run: npm audit --audit-level=high
+        working-directory: ${{ matrix.directory }}
+
   build-and-test:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -34,7 +59,20 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm test
+        run: |
+          status=0
+          npm test > "$RUNNER_TEMP/site-tests.log" 2>&1 || status=$?
+          tail -n 100 "$RUNNER_TEMP/site-tests.log"
+          exit "$status"
+
+      - name: Upload complete test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-test-diagnostics
+          path: ${{ runner.temp }}/site-tests.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Check delivery budgets and publish the performance report
         run: npm run performance:report
@@ -49,6 +87,10 @@ jobs:
 
       - name: Install Chromium for rendered smoke tests
         run: npx playwright install --with-deps chromium
+
+      - name: Verify deployed CSP in a real browser
+        run: npm run test:csp:browser
+        timeout-minutes: 5
 
       - name: Test rendered desktop and mobile flows
         run: npm run test:browser
@@ -121,3 +163,16 @@ jobs:
           name: mobile-lighthouse
           path: tmp/quality/lighthouse/
           if-no-files-found: ignore
+
+  release-ready:
+    name: release-ready
+    if: always()
+    needs: [dependency-security, build-and-test, release-quality, mobile-performance]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require every release check to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node -e 'const jobs = JSON.parse(process.env.RESULTS); for (const [name, job] of Object.entries(jobs)) { console.log(`${name}: ${job.result}`); if (job.result !== "success") process.exitCode = 1; }'
