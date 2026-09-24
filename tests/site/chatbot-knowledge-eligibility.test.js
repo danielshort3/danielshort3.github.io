@@ -4,8 +4,8 @@ const assert = require('node:assert/strict');
 const { buildKnowledge, hasIndexableContent } = require('../../build/generate-chatbot-knowledge');
 
 assert.equal(hasIndexableContent(
-  'Ocean Wave Simulation',
-  'Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.',
+  'Ocean Wave Simulator',
+  'Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound.',
   'Your browser does not support the HTML canvas element. Calm dawn'
 ), true, 'A concise canvas experience must remain discoverable from its real title and description.');
 assert.equal(hasIndexableContent('Coming soon', '', 'Coming soon.'), false, 'Placeholder pages must remain excluded.');
@@ -15,7 +15,7 @@ assert.equal(hasIndexableContent('', '', ''), false);
 const knowledge = buildKnowledge();
 const ocean = knowledge.pages.find(page => page.url === '/games/ocean-wave-simulation');
 assert(ocean, 'The actual concise simulator page must survive the generator pipeline.');
-assert.equal(ocean.title, 'Ocean Wave Simulation');
+assert.equal(ocean.title, 'Ocean Wave Simulator');
 assert(knowledge.chunks.some(chunk => chunk.url === ocean.url && chunk.text.includes(ocean.description)),
   'The simulator must retain a citeable chunk grounded in its page description.');
 assert(!knowledge.pages.some(page => ['/privacy', '/games/project-starfall', '/tools/dashboard'].includes(page.url)),
