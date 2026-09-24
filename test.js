@@ -1185,7 +1185,7 @@ try {
       'pages/sitemap.html': 'Sitemap | Daniel Short',
       'pages/point-of-view-checker.html': 'Point of View Checker | Daniel Short',
       'pages/oxford-comma-checker.html': 'Oxford Comma Checker | Daniel Short',
-      'pages/ocean-wave-simulation.html': 'Ocean Wave Simulation | Daniel Short',
+      'pages/ocean-wave-simulation.html': 'Ocean Wave Simulator | Daniel Short',
       'pages/qr-code-generator.html': 'QR Code Generator | Daniel Short',
       'pages/image-optimizer.html': 'Image Optimizer | Daniel Short',
       'pages/campaign-creative-tracker.html': 'Campaign Creative Tracker | Daniel Short',
@@ -45192,6 +45192,12 @@ try {
     const oceanHtml = fs.readFileSync('pages/ocean-wave-simulation.html', 'utf8');
     const oceanCss = fs.readFileSync('css/components/ocean-wave-simulation.css', 'utf8');
     const oceanJs = fs.readFileSync('js/tools/ocean-wave-simulation.js', 'utf8');
+    const oceanCatalog = JSON.parse(fs.readFileSync('content/pages/games.json', 'utf8')).games
+      .find(game => game.id === 'ocean-wave-simulation');
+    assert(oceanCatalog && oceanHtml.includes(`<h1>${oceanCatalog.title}</h1>`) &&
+           /<p class="ocean-wave-lead">[^<]+<\/p>/.test(oceanHtml) &&
+           oceanHtml.includes(`<meta name="description" content="${oceanCatalog.summary}">`),
+      'Ocean Wave should expose its simulator name and purpose in visible page text and search metadata');
     const oceanScripts = Array.from(oceanHtml.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g), match => match[1]);
     const oceanSimulationIndex = oceanScripts.indexOf('js/tools/ocean-wave-simulation.js');
     assert(['camera', 'spectrum', 'environment', 'shaders'].every(name => {

@@ -87,9 +87,10 @@
     high: { label: 'High', tier: 2, fps: 60, dprMax: 2, maxPixels: 4000000, scale: 1, maxW: 3200, maxH: 2560 },
     ultra: { label: 'Ultra', tier: 3, fps: 30, dprMax: 2, maxPixels: 8300000, scale: 1.5, maxW: 4096, maxH: 4096 },
   };
-  const AUTO_QUALITY_PROFILE = { ...QUALITY_PROFILES.high, fps: 30 };
-  const AUTO_DETAIL_PROFILES = [AUTO_QUALITY_PROFILE,
-    { ...AUTO_QUALITY_PROFILE, tier: 1 }, { ...AUTO_QUALITY_PROFILE, tier: 0 }];
+  const AUTO_DETAIL_PROFILES = [
+    { ...QUALITY_PROFILES.medium, fps: 30 },
+    { ...QUALITY_PROFILES.low, fps: 30 },
+  ];
   const QUALITY_MODES = new Set(['auto', ...Object.keys(QUALITY_PROFILES)]);
   const normalizeQuality = value => {
     const migrated = value === 'battery' ? 'low' : value === 'quality' ? 'high' : value;
@@ -567,6 +568,7 @@
   let fastFrameCount = 0;
   let lastQualityAdjustment = 0;
   let disposed = false;
+  let pageSuspended = false;
   let displayedScene = null;
   let lastGpuTime = null;
   let waveTimeSec = 0;
@@ -679,7 +681,7 @@
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      spectrum = window.OceanWaveSpectrum?.create(gl, { quality: state.qualityMode === 'auto' ? 'high' : state.qualityMode });
+      spectrum = window.OceanWaveSpectrum?.create(gl, { quality: state.qualityMode === 'auto' ? 'medium' : state.qualityMode });
       environment = window.OceanWaveEnvironment?.create(gl, { onChange: (sky) => {
         if (disposed || contextLost) return;
         if (sky === currentSky) {
@@ -822,7 +824,7 @@
     stage.dataset.oceanSpectrum = String(spectrum?.fields[0].size || 0);
     stage.dataset.oceanFoamResolution = String(spectrum?.foam?.size || 0);
     spectrum?.setView?.(state.sceneKind, camera.x, camera.z);
-    const spectrumInterval = state.qualityMode === 'auto' && adaptiveDetail === 2 ? 1 / 20 : 0;
+    const spectrumInterval = state.qualityMode === 'auto' && adaptiveDetail > 0 ? 1 / 20 : 0;
     if (spectrum && (lastSpectrumTime === null || (waveTimeSec - lastSpectrumTime >= spectrumInterval
       && lastSpectrumTime !== waveTimeSec) || lastSpectrumWind !== spectralWind
       || Math.abs(lastSpectrumHeight - displayedScene.waveHeight) > 0.005 || lastSpectrumSwell !== state.swell
@@ -1405,9 +1407,11 @@
     ctx.putImageData(imageData, 0, 0);
   };
 
+  const canAnimate = () => !disposed && !pageSuspended && rendererAvailable && !state.paused && !document.hidden
+    && stage.dataset.oceanVisible !== 'false' && !contextLost && (!gl || !!gpuProgram);
+
   const start = () => {
-    if (rafId || disposed || !rendererAvailable || state.paused || document.hidden || stage.dataset.oceanVisible === 'false'
-      || contextLost || (gl && !gpuProgram)) return;
+    if (rafId || !canAnimate()) return;
     lastFrame = null;
     lastRenderedAt = null;
     slowFrameCount = 0;
@@ -1425,7 +1429,7 @@
   };
 
   const tick = (ts) => {
-    if (disposed || state.paused || document.hidden || stage.dataset.oceanVisible === 'false' || contextLost) {
+    if (!canAnimate()) {
       stop();
       return;
     }
@@ -1449,28 +1453,37 @@
     }
     if (gl && (state.qualityMode === 'auto' || state.qualityMode === 'ultra')) {
       const minimumScale = state.qualityMode === 'ultra' ? 0.5 : 0.7;
-      const canReduceDetail = state.qualityMode === 'auto' && adaptiveDetail < 2;
+      const canReduceDetail = state.qualityMode === 'auto' && adaptiveDetail < AUTO_DETAIL_PROFILES.length - 1;
       const slow = elapsed > minimumFrameInterval * 1.35;
       slowFrameCount = slow ? slowFrameCount + 1 : Math.max(0, slowFrameCount - 1);
       // A 30 FPS cap lands on 40 ms frames at 75/100 Hz. Allow that normal
       // display cadence to recover resolution, below the overload threshold.
       fastFrameCount = elapsed > 0 && elapsed <= minimumFrameInterval * 1.28 ? fastFrameCount + 1 : 0;
       if (slowFrameCount >= 24 && (adaptiveScale > minimumScale || canReduceDetail) && ts - lastQualityAdjustment > 4000) {
-        if (adaptiveScale > minimumScale) adaptiveScale = Math.max(minimumScale, adaptiveScale * 0.85);
-        else adaptiveDetail++;
+        if (canReduceDetail) adaptiveDetail++;
+        else adaptiveScale = Math.max(minimumScale, adaptiveScale * 0.85);
         slowFrameCount = 0;
         fastFrameCount = 0;
         lastQualityAdjustment = ts;
         resize();
       } else if (fastFrameCount >= 180 && (adaptiveScale < 1 || adaptiveDetail > 0) && ts - lastQualityAdjustment > 8000) {
-        if (adaptiveDetail > 0) adaptiveDetail--;
-        else adaptiveScale = Math.min(1, adaptiveScale / 0.85);
+        if (adaptiveScale < 1) adaptiveScale = Math.min(1, adaptiveScale / 0.85);
+        else {
+          adaptiveDetail--;
+          // Enter Medium at its resolution floor so its larger pixel budget
+          // does not double GPU work in a single recovery step.
+          adaptiveScale = minimumScale;
+        }
         fastFrameCount = 0;
         lastQualityAdjustment = ts;
         resize();
       }
     }
     renderFrame(simTimeSec);
+    if (!canAnimate()) {
+      stop();
+      return;
+    }
     rafId = window.requestAnimationFrame(tick);
   };
 
@@ -1768,7 +1781,6 @@
     else if (!state.paused) start();
   };
   document.addEventListener('visibilitychange', onVisibilityChange);
-  window.addEventListener('pagehide', savePreferences);
 
   const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(onResize) : null;
   resizeObserver?.observe(stage);
@@ -1782,7 +1794,8 @@
   }, { threshold: 0.01 }) : null;
   intersectionObserver?.observe(stage);
 
-  window.SiteRoutes?.addCleanup?.(() => {
+  const cleanup = () => {
+    if (disposed) return;
     savePreferences();
     disposed = true;
     stop();
@@ -1793,7 +1806,8 @@
     intersectionObserver?.disconnect();
     window.removeEventListener('resize', onResize);
     document.removeEventListener('visibilitychange', onVisibilityChange);
-    window.removeEventListener('pagehide', savePreferences);
+    window.removeEventListener('pagehide', onPageHide);
+    window.removeEventListener('pageshow', onPageShow);
     motionPreference?.removeEventListener?.('change', updateFloatAvailability);
     stage.removeEventListener('ocean:rest', onRest);
     stage.removeEventListener('ocean:resume', onResume);
@@ -1807,7 +1821,24 @@
     gpuBuffer = null;
     gpuProgram = null;
     gpuUniforms = null;
-  });
+  };
+  const onPageHide = (event) => {
+    if (!event.persisted) {
+      cleanup();
+      return;
+    }
+    savePreferences();
+    pageSuspended = true;
+    stop();
+  };
+  const onPageShow = (event) => {
+    if (!event.persisted) return;
+    pageSuspended = false;
+    start();
+  };
+  window.addEventListener('pagehide', onPageHide);
+  window.addEventListener('pageshow', onPageShow);
+  window.SiteRoutes?.addCleanup?.(cleanup);
 
   restoreSceneFromUrl();
   cameraController = window.OceanWaveCamera.create({
