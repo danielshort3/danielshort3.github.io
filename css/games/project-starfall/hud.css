@@ -43,6 +43,10 @@
     font-size: calc(1rem * var(--starfall-hud-scale, 1));
   }
 
+  .project-starfall-hud > .project-starfall-muted {
+    color: #b8cad8;
+  }
+
   .project-starfall-hud-main,
   .project-starfall-meter-group,
   .project-starfall-resource-widget,
