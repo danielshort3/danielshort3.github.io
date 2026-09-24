@@ -38863,6 +38863,10 @@ try {
       cwd: __dirname,
       stdio: 'pipe'
     });
+    childProcess.execFileSync(process.execPath, ['tests/site/ai-digest-output.test.js'], {
+      cwd: __dirname,
+      stdio: 'pipe'
+    });
     const robots = readFile('robots.txt');
     const vercelConfig = JSON.parse(readFile('vercel.json'));
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
@@ -38940,8 +38944,9 @@ try {
     assert(llms.includes('\n> Supplemental, AI-readable summaries') && llms.includes('\n## Start Here\n') && llms.includes('\n## Projects\n') && llms.includes('\n## Tools\n') && llms.includes('\n## Games\n'),
       'llms.txt should use the expected Markdown summary and sections');
     assert(llms.includes('](https://www.danielshort.me/)') && llms.includes('](https://www.danielshort.me/portfolio)') &&
-      !llms.includes('](https://www.danielshort.me/ai/'),
-      'llms.txt should link to the same canonical pages that people visit');
+      llms.includes('](https://www.danielshort.me/ai/index)') &&
+      llms.includes('](https://www.danielshort.me/ai/portfolio)'),
+      'llms.txt should identify public canonical pages and their optional AI summaries');
     assert(!llms.includes('/dist/ai-pages/') && !llms.includes('/pages/') && !llms.includes('/api/'),
       'llms.txt should not expose implementation, source, or API paths');
     const manifest = JSON.parse(readFile('dist/ai-digest-manifest.json'));

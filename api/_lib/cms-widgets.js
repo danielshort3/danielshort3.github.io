@@ -816,6 +816,8 @@ function renderHomeLibraryView(category, categoryId) {
 function renderHomeAccordion(section) {
   const props = section.props || {};
   const categories = Array.isArray(props.categories) ? props.categories : [];
+  const welcome = props.welcome || {};
+  const welcomeLinks = Array.isArray(welcome.links) ? welcome.links.filter((link) => link && link.href && link.label) : [];
   const initialView = props.initialView === 'closed' ? 'closed' : 'overview';
   const allowedIds = new Set(categories.map((category) => String(category && category.id || '').trim()).filter(Boolean));
   const defaultPanel = allowedIds.has(String(props.defaultPanel || '').trim())
@@ -870,7 +872,7 @@ function renderHomeAccordion(section) {
           `              <p class="home-accordion__eyebrow">${escapeHtml(label)}</p>`,
           '              <div class="home-accordion__title-row">',
           `                <span class="home-accordion__title-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
-          `                <h3>${escapeHtml(category && category.title || label)}</h3>`,
+          `                <h2>${escapeHtml(category && category.title || label)}</h2>`,
           '              </div>',
           category && category.lead ? `              <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
           context ? `              <p class="home-accordion__context home-accordion__context--profile">${escapeHtml(context)}</p>` : '',
@@ -888,7 +890,7 @@ function renderHomeAccordion(section) {
           `            <p class="home-accordion__eyebrow">${escapeHtml(label)}</p>`,
           '            <div class="home-accordion__title-row">',
           `              <span class="home-accordion__title-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
-          `              <h3>${escapeHtml(category && category.title || label)}</h3>`,
+          `              <h2>${escapeHtml(category && category.title || label)}</h2>`,
           '            </div>',
           category && category.lead ? `            <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
           hasMasthead ? '            </div></div>' : '',
@@ -943,11 +945,19 @@ function renderHomeAccordion(section) {
 
   return [
     `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${initialView === 'closed' ? '' : escapeHtml(defaultPanel)}" data-home-view="${initialView}" aria-labelledby="home-accordion-title">`,
-    `  <h1 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h1>`,
+    '  <div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>',
+    `    <p class="site-frame__welcome-eyebrow">${escapeHtml(welcome.eyebrow || 'WELCOME')}</p>`,
+    `    <h1 class="site-frame__welcome-title">${escapeHtml(welcome.title || 'Daniel Short.')}</h1>`,
+    `    <p class="site-frame__welcome-summary">${escapeHtml(welcome.summary || 'Solving everyday problems with data and thoughtful tools.')}</p>`,
+    welcome.detail ? `    <p class="site-frame__welcome-detail">${escapeHtml(welcome.detail)}</p>` : '',
+    welcomeLinks.length ? '    <p class="site-frame__welcome-hint">Start exploring</p>' : '',
+    welcomeLinks.length ? `    <nav class="site-frame__welcome-links" aria-label="Explore the site">${welcomeLinks.map((link) => `<a href="${escapeHtml(normalizeHref(link.href))}">${escapeHtml(link.label)}</a>`).join('')}</nav>` : '',
+    '  </div>',
+    `  <h2 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h2>`,
     `  <div class="home-accordion__shell" data-site-tab-rail data-site-tab-rail-mode="${initialView}">`,
     panels,
     '  </div>',
-    noScriptLinks ? `  <noscript><nav class="home-accordion__noscript" aria-label="Explore the site">${noScriptLinks}</nav></noscript>` : '',
+    noScriptLinks && !welcomeLinks.length ? `  <noscript><nav class="home-accordion__noscript" aria-label="Explore the site">${noScriptLinks}</nav></noscript>` : '',
     '</section>'
   ].filter(Boolean).join('\n');
 }
