@@ -1,24 +1,24 @@
 # Daniel Short for Android
 
-A Kotlin and Jetpack Compose app that shares the website's public content. Navigation, project details, tools, game adaptations, dashboards, and AI demo interfaces use Android UI and Kotlin code. There is no WebView, embedded website shell, or HTML renderer. Website updates supply content and data rather than executable web code.
+A Kotlin and Jetpack Compose app that shares the website's public content. Its 16 published project cards open first-party website case studies in an in-app WebView, with native offline summaries. Eleven first-party demos and five games also use the website in-app by default, with native alternatives. Nine public tools and Probability Engine open their canonical website routes in the Android browser, with native alternatives; Screen Recorder stays native. Navigation, settings, bookmarks, recording, and the retained adaptations use Android UI and Kotlin code.
 
-## What is native
+## How each area opens
 
 | Area | Current behavior |
 | --- | --- |
 | About | Native profile, interests, experience, education, and credentials |
-| Projects | Native searchable catalog and project details, local bookmarks, and Android share sheet |
-| Tools | Ten public utilities with native text processing, QR generation, image processing, and screen recording |
-| Games | Six native experiences: Roulette, Stellar Dogfight, Ocean Wave Simulation, Project Starfall, Probability Engine, and Stormbreak |
-| Project demos | Native drawing, digit generation, language inputs, Nonogram replay, historical datasets, and dashboard filters/charts |
+| Projects | Native searchable catalog, local bookmarks, and Android share sheet; all published cards open the website case study in-app, with an offline native summary available |
+| Tools | Nine website tools open in the Android browser, each with an optional native adaptation. Screen Recorder uses Android screen capture |
+| Games | Project Starfall, Stellar Dogfight, Roulette, Stormbreak, and Ocean Wave Simulation open their website games in-app, with native alternatives. Probability Engine opens in the browser, with a native alternative |
+| Project demos | Eleven first-party website demos open in-app with native alternatives. The Pizza Delivery and UFO Tableau dashboard adaptations remain native |
 | Settings | Header gear; automatic content updates, unmetered updates, reduced motion, refresh, image cache, and bookmark controls |
 | App updates | Checks for published releases on launch by default; optional automatic verified downloads and installation while the app is out of use, subject to Android's permissions |
 | Contact | Native contact cards; project questions open an email app with the project in the subject |
 | External resources | PDFs, source repositories, credentials, and unsupported future catalog entries are explicitly opened in another app |
 
-The larger games preserve core gameplay rather than every website mechanic or visual effect. Tableau projects use native charts over the published historical records, not Tableau's HTML embed. Website accounts and cloud session saving remain separate; native bookmarks and game checkpoints are local and do not sync with website accounts.
+The native game alternatives preserve core gameplay rather than every website mechanic or visual effect. The optional native Tableau dashboard adaptations use charts over published historical records; the website case studies contain Tableau embeds. Website accounts and cloud session saving remain separate; native bookmarks and game checkpoints are local and do not sync with website accounts. In-app WebView storage, Android browser storage, and native app storage are separate. Opening a website game does not convert a native checkpoint into a website save.
 
-Text utilities and QR generation run on the device. Image optimization uses Android bitmap codecs and preserves EXIF orientation. Background removal uses Google ML Kit subject segmentation locally; it requires Google Play services and a first-use model download. AI demos send only submitted input to the existing website/AWS inference services and show service failures explicitly. The app does not embed server credentials.
+The optional native text utilities and QR generator run on the device. Native image optimization uses Android bitmap codecs and preserves EXIF orientation. Native background removal uses Google ML Kit subject segmentation locally; it requires Google Play services and a first-use model download. Native AI demos send only submitted input to the existing website/AWS inference services and show service failures explicitly. The app does not embed server credentials. Website tools open in the Android browser so their file import/export and account flows remain available.
 
 Screen recording uses Android MediaProjection with system consent for each recording. Optional microphone audio is requested only when enabled; device playback audio is not captured. Clips are limited to 15 minutes/512 MiB, retained privately across restarts, and can be previewed, exported through Android's document picker, shared, or deleted. Record only content you choose in Android's capture prompt.
 
@@ -34,6 +34,8 @@ https://www.danielshort.me/app-content/v1/catalog.json
 Native repository → Compose screens
 ```
 
+For published project case studies, 11 first-party demos, and five games (Project Starfall, Stellar Dogfight, Roulette, Stormbreak, and Ocean Wave Simulation), the app loads the deployed first-party route in a WebView. The project view retains Android bookmark/share actions and an **Offline summary** option. Nine website tools and Probability Engine open in the Android browser; their cards provide **Open Android version** as an alternative. Screen Recorder stays native. Website HTML, CSS, and JavaScript changes to the web routes reach them after the website is deployed. Installing an app version with this routing is required first; native alternatives continue to use the installed app code and data.
+
 The generator uses the website's content loader and explicitly selects public fields. The normal website build generates `dist/app-content/v1/catalog.json` and copies it into `public/app-content/v1/catalog.json` for deployment. Changes to supported text, lists, project entries, images, and links appear in the app after the updated feed is deployed and refreshed. New entries appear automatically; a new entry does not automatically gain a native implementation.
 
 With automatic updates enabled, the app checks when opened or brought to the foreground, throttled to 15 minutes after the last successful check. The refresh icon and Settings' Refresh now request an immediate check. WorkManager also schedules a network-dependent refresh approximately every six hours. Settings can disable these automatic checks or restrict them to unmetered networks. Manual refresh overrides those preferences. Background refresh is best effort: Android can delay it for battery saving, idle mode, or connectivity.
@@ -42,7 +44,7 @@ The repository validates schema version 1, identifiers, HTTPS links, and payload
 
 **The production feed is live** at `https://www.danielshort.me/app-content/v1/catalog.json`, deployed through website PR #209. The existing default APK can refresh from it without reinstalling. Future content edits reach phones after the website build is deployed; building only the Android project or running a local preview does not publish those edits. The bundled catalog remains available offline.
 
-Native layouts, Kotlin behavior, dependencies, permissions, and new native features require a rebuilt and installed app update. Website CSS or JavaScript changes do not alter the native UI. No code is fetched and executed to bypass Android app updates.
+Native layouts, Kotlin behavior, dependencies, permissions, and new native features require a rebuilt and installed app update. Website CSS or JavaScript changes affect the in-app website case studies, demos, and games, plus the browser tools and Probability Engine, after deployment. They do not alter native features. The WebView runs deployed website code; the app does not download code to change its native implementation.
 
 ### Updating native features from Settings
 
@@ -56,15 +58,15 @@ The first updater-enabled APK must be installed manually once. In-app updates th
 
 The available app window determines navigation. Below 840dp, the app retains its phone layout and bottom navigation. Wider windows use the website's five colored vertical tabs, with the active page expanding between them. The window can change size without resetting the selected section or saved editor state.
 
-Wide libraries use additional columns when cards have enough room; reading and settings panels keep a comfortable maximum width. Text Compare places its editors side by side when space and the text-size setting allow it. The tabs remain available on wide screens, while the header can hide as content scrolls. Phone headers and bottom navigation keep their existing scroll behavior.
+Wide libraries use additional columns when cards have enough room; reading and settings panels keep a comfortable maximum width. The optional native Text Compare adaptation places its editors side by side when space and the text-size setting allow it. The tabs remain available on wide screens, while the header can hide as content scrolls. Phone headers and bottom navigation keep their existing scroll behavior.
 
 ## Offline behavior
 
 Every Android build runs the feed generator and bundles its latest JSON as `catalog.json`. The app first loads a valid cached remote catalog, or falls back to that bundled snapshot. This supports the first launch without a working production feed and later use without a connection.
 
-Text tools, QR generation, image optimization, recording, and native games work offline. Background removal works after its Google model is downloaded. Tableau dashboards bundle a reproducible historical snapshot from the repository's published sources; use `scripts/extract-tableau-data.py` (requires `tableauhyperapi`) to regenerate those assets for an app update. Other historical dashboards fetch the published website JSON and use cached datasets offline after first loading. AI inference requires a reachable backend.
+The native text tools, QR generator, image optimizer, recorder, and game adaptations work offline; native background removal works after its Google model is downloaded. Native project summaries use the cached catalog offline. Website case studies, demos, and games need connectivity for a reliable first load. Smart Sentence, Travel Chat, Nonogram, and other model-backed website demos also need their remote services. Pizza Tips map tiles need connectivity, while its retained native model works offline. Website caching may make previously visited resources available offline, but it is not a complete offline copy. The nine browser tools and browser Probability Engine depend on the Android browser and its own cache; their native alternatives can be used offline where their functions permit. Tableau dashboards bundle a reproducible historical snapshot from the repository's published sources; use `scripts/extract-tableau-data.py` (requires `tableauhyperapi`) to regenerate those assets for an app update. Other native historical dashboards fetch the published website JSON and use cached datasets offline after first loading. Other native AI inference requires a reachable backend.
 
-Images use Coil's cache after being fetched; remote images that have never loaded can show placeholders offline. Browser resources and email delivery depend on their external apps and connectivity. Clearing app data or uninstalling removes private recordings, bookmarks, checkpoints, and cached content; exported files are separate.
+Images use Coil's cache after being fetched; remote images that have never loaded can show placeholders offline. Browser resources and email delivery depend on their external apps and connectivity. In-app website experiences share the app's WebView storage; website tools and Probability Engine use Android browser storage. Both are separate from native checkpoints, and no account, demo-state, tool-state, or game-save transfer between them is implemented. Clearing app data or uninstalling removes private recordings, bookmarks, checkpoints, WebView storage, and cached content; browser data and exported files are separate.
 
 ## Build locally
 
@@ -122,7 +124,7 @@ If that server is listening on port 4173, build the debug variant with:
 
 For a USB-connected phone, use `adb reverse tcp:4173 tcp:4173` and a debug override of `http://127.0.0.1:4173/app-content/v1/catalog.json`. The phone must remain connected for that route to work.
 
-Rebuild without `-PcatalogUrl` to return to the production endpoint before sharing an APK for normal phone use. The override changes the JSON endpoint only; image URLs generated by the feed still reference the website. New images therefore need to be published before they can load from their production URLs.
+Rebuild without `-PcatalogUrl` to return to the production endpoint before sharing an APK for normal phone use. The override changes the JSON endpoint only; image URLs generated by the feed, in-app web routes, and browser tool/game links still reference the website. New images and web behavior therefore need to be published before they can load from their production URLs.
 
 ## Checks and source locations
 
@@ -141,6 +143,7 @@ node tests/site/mobile-content.test.js
 Important files:
 
 - `app/src/main/java/me/danielshort/app/ui/DanielShortApp.kt`: native screen hierarchy and Android actions.
+- `app/src/main/java/me/danielshort/app/ui/WebExperienceScreen.kt` and `WebExperiencePolicy.kt`: first-party WebView presentation and allowed project, game, and demo routes.
 - `app/src/main/java/me/danielshort/app/ui/AdaptiveSiteLayout.kt`: window-width policy, native vertical tabs, and stable content placement across resizing.
 - `app/src/main/java/me/danielshort/app/updates/AppUpdateCoordinator.kt`: launch checks, network-aware downloads, and background installation eligibility.
 - `app/src/main/java/me/danielshort/app/updates/AutomaticInstallEngine.kt` and `AutomaticAppInstaller.kt`: persistent installation state, Android package sessions, and manual-confirmation fallback. See [UPDATES.md](UPDATES.md) for the verification and publication contract.
@@ -161,4 +164,4 @@ The debug APK is for installation and review. Published review APKs and their up
 
 For stable distribution, create and securely retain a release signing/upload key, configure signing outside committed source, increment `versionCode` for app updates, build a signed release APK or App Bundle, and complete the selected distribution channel's setup. Do not commit keystores or passwords. Review-channel publication follows [UPDATES.md](UPDATES.md).
 
-The website feed deployment and Android app publication are separate release steps. Once the feed is public, supported content updates can reach installed apps without a new APK. Changes to native app code continue to require a normal signed app update.
+The website feed deployment and Android app publication are separate release steps. Once the feed is public, supported content updates can reach installed apps without a new APK. After an app version with the current web routing is installed, deployed website changes to the case studies, demos, games, and browser tools can reach the app without another APK. Changes to native app code or route selection continue to require a normal signed app update.
