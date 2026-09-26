@@ -718,10 +718,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(!timelineCss.includes('.home-timeline__head') &&
     !aboutHtml.includes('A timeline of real milestones in learning and work.'),
   'timeline should remove its heading, subtext, and reserved heading styles at every viewport');
-  assert(/data-home-timeline-item="purdue-bs-data-analytics"[\s\S]*?class="home-background__icon" aria-hidden="true"><svg/.test(aboutHtml) &&
-    !aboutHtml.includes('class="home-timeline__media"'),
-  'the resume should use consistent decorative category icons rather than the legacy logo plaques');
   const milestoneHtml = (markup, id) => markup.match(new RegExp(`<li[^>]+data-home-timeline-item="${id}"[^>]*>[\\s\\S]*?<\\/li>`))?.[0] || '';
+  const milestoneIconHtml = (id) => milestoneHtml(aboutHtml, id)
+    .match(/<span class="home-background__icon" aria-hidden="true">([\s\S]*?)<\/span>/)?.[1] || '';
+  assert(/<img src="\/img\/ui\/site-icons\/about-job\.webp" alt="" width="128" height="128" decoding="async" loading="lazy">/.test(milestoneIconHtml('visit-grand-junction')) &&
+    /<img src="\/img\/ui\/site-icons\/about-degree\.webp" alt="" width="128" height="128" decoding="async" loading="lazy">/.test(milestoneIconHtml('purdue-bs-data-analytics')) &&
+    !aboutHtml.includes('class="home-timeline__media"'),
+  'the resume should use accessible decorative AI category icons rather than the legacy logo plaques');
   const backgroundSectionHtml = (markup, id) => {
     const start = markup.indexOf(`data-home-background-section="${id}"`);
     const next = start >= 0 ? markup.indexOf('data-home-background-section="', start + 1) : -1;
@@ -905,7 +908,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const contactIconImages = {
     'contact-form': 'img/icons/contact-message-v2.png',
     email: 'img/icons/contact-email-v2.png',
-    github: 'img/icons/contact-github-v2.png'
+    github: 'img/icons/github-icon.png'
   };
   Object.entries(contactIconImages).forEach(([id, image]) => {
     const item = contact.items.find((entry) => entry.id === id);
@@ -914,7 +917,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       count(html, new RegExp(`data-home-icon="${item.icon}"`, 'g')) === 0,
     `${id} should render its selected image once, with its SVG glyph reserved as a fallback`);
   });
-  assert(count(getItemHtml('contact'), /data-home-icon="external-arrow"/g) === 1,
+  assert(count(getItemHtml('contact'), /<span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><img src="\/img\/ui\/site-icons\/action-external\.webp" alt="" width="128" height="128" decoding="async" loading="lazy"><\/span>/g) === 1,
     'the external GitHub card should use one dedicated external-link arrow');
   assert(count(html, /<h1\b/g) === 1 && html.includes('id="home-accordion-title"'),
     'homepage should expose one accessible H1');

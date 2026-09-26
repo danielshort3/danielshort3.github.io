@@ -91,13 +91,15 @@
       tabs.set(category, link);
     }
     if (source) {
-      const icon = source.querySelector('svg');
+      const icon = source.querySelector('.home-accordion__rail-icon img, .home-accordion__rail-icon svg, .personal-accordion__rail-icon img, .personal-accordion__rail-icon svg') || source.querySelector('svg');
       if (icon) {
         const copy = document.importNode(icon, true);
         // Keep icons legible while their route stylesheet is being prepared.
-        [['width', '24'], ['height', '24'], ['fill', 'none'], ['stroke', 'currentColor'], ['stroke-width', '1.9']].forEach(([name, value]) => {
-          if (!copy.hasAttribute(name)) copy.setAttribute(name, value);
-        });
+        if (copy.localName !== 'img') {
+          [['width', '24'], ['height', '24'], ['fill', 'none'], ['stroke', 'currentColor'], ['stroke-width', '1.9']].forEach(([name, value]) => {
+            if (!copy.hasAttribute(name)) copy.setAttribute(name, value);
+          });
+        }
         link.firstElementChild.replaceChildren(copy);
       }
       const label = source.querySelector('[class$="rail-label"]');

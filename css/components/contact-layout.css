@@ -208,6 +208,13 @@
     color: inherit;
   }
 
+  body:is(.contact-page, .professional-contact-page) #contact-options .contact-card__arrow img {
+    display: block;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
   body.contact-page #grand-junction-location {
     min-width: 0;
   }
@@ -246,6 +253,13 @@
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
+  }
+
+  body:is(.contact-page, .professional-contact-page) [data-page-masthead-parent] img {
+    display: block;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
   }
 
   body.contact-page[data-audience="personal"] .site-frame #grand-junction-location {
@@ -321,7 +335,8 @@
     }
 
     body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card__arrow,
-    body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card__arrow svg {
+    body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card__arrow svg,
+    body.contact-page[data-audience="personal"] .site-frame #contact-options .contact-card__arrow img {
       width: 18px;
       height: 18px;
     }

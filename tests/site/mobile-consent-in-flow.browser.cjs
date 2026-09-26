@@ -69,9 +69,23 @@ async function run() {
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
       try {
+        await page.addInitScript(() => {
+          window.__firstVisitLayoutShifts = [];
+          new PerformanceObserver(list => {
+            for (const entry of list.getEntries()) {
+              if (!entry.hadRecentInput) window.__firstVisitLayoutShifts.push(entry.value);
+            }
+          }).observe({ type: 'layout-shift', buffered: true });
+        });
+        await page.route('**/dist/site-consent.*.js', async route => {
+          await new Promise(resolve => setTimeout(resolve, 600));
+          await route.continue();
+        });
         await page.goto(base);
         await settle(page);
         await checkMobilePlacement(page, `Home ${viewport.width}`);
+        const firstVisitCls = await page.evaluate(() => window.__firstVisitLayoutShifts.reduce((sum, shift) => sum + shift, 0));
+        assert(firstVisitCls <= 0.1, `Home ${viewport.width} stays stable while the consent bundle loads late: CLS ${firstVisitCls}`);
         await page.screenshot({ path: path.join(artifactDir, `home-first-visit-${viewport.width}.png`) });
 
         await page.locator('#pcz-manage').click();
@@ -96,6 +110,10 @@ async function run() {
         const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pcz_consent_v1'))?.categories);
         assert(saved && saved.necessary === true && saved.analytics === (viewport.width === 390),
           `The ${consentChoice} choice persists accurately.`);
+        await page.reload();
+        await settle(page);
+        assert.equal(await page.locator('#pcz-banner').count(), 0, 'Saved consent has no first-visit banner.');
+        assert.equal(await page.locator('html[data-consent-reserve]').count(), 0, 'Saved consent has no reserved banner gap.');
         assert.deepEqual(errors, [], `Mobile ${viewport.width} has no page errors`);
         console.log(`Mobile consent passed: ${viewport.width}x${viewport.height}, settings, route changes, ${consentChoice}.`);
       } finally {

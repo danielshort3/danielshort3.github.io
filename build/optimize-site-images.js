@@ -72,13 +72,14 @@ const jobs = [
   }
 ];
 
-const catalogDirectories = ['img/projects/icons', 'img/tools/icons', 'img/games/icons'];
+const catalogDirectories = ['img/projects/icons', 'img/tools/icons', 'img/games/icons', 'img/ui/site-icons'];
 const catalogJobs = catalogDirectories.flatMap((directory) => fs.readdirSync(path.join(root, directory))
   .filter((file) => /\.png$/i.test(file))
   .sort()
   .map((file) => ({
     source: `${directory}/${file}`,
-    outputs: [{ extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }]
+    outputs: [{ extension: '.webp', format: 'webp', width: directory === 'img/ui/site-icons' ? 128 : null,
+      options: { quality: directory === 'img/games/icons' || directory === 'img/ui/site-icons' ? 80 : 90, effort: 6, smartSubsample: true } }]
   })));
 
 function formatBytes(bytes) {

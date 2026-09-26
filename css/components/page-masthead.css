@@ -160,6 +160,14 @@
     stroke-width: 1.8;
   }
 
+  [data-page-masthead-parent] > img {
+    display: block;
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent]:hover {
     text-decoration: underline;
     text-underline-offset: 4px;

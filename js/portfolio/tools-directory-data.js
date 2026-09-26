@@ -79,7 +79,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Highlighted changes with both drafts visible"
       ],
-      "iconImage": "img/tools/icons/text-compare.png?v=de1801cee7ef",
+      "iconImage": "img/tools/icons/text-compare.png?v=2845cf7f4c69",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -123,7 +123,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Cleaned text and replacement count"
       ],
-      "iconImage": "img/tools/icons/nbsp-cleaner.png?v=682889a7b68c",
+      "iconImage": "img/tools/icons/nbsp-cleaner.png?v=36ef91ced1bd",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -167,7 +167,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Serial-list suggestions"
       ],
-      "iconImage": "img/tools/icons/oxford-comma-checker.png?v=04fafc42ea75",
+      "iconImage": "img/tools/icons/oxford-comma-checker.png?v=81e5330a9c00",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -211,7 +211,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Point-of-view and pronoun breakdown"
       ],
-      "iconImage": "img/tools/icons/point-of-view-checker.png?v=f2cefa61c7cd",
+      "iconImage": "img/tools/icons/point-of-view-checker.png?v=f41030738bb4",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -255,7 +255,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Word-frequency analysis"
       ],
-      "iconImage": "img/tools/icons/word-frequency.png?v=7d5f74adb531",
+      "iconImage": "img/tools/icons/word-frequency.png?v=31a1180d04e2",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -299,7 +299,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Tagged URLs and CSV export"
       ],
-      "iconImage": "img/tools/icons/utm-batch-builder.png?v=dd43253e26fb",
+      "iconImage": "img/tools/icons/utm-batch-builder.png?v=f1d819baf0f3",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -343,7 +343,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "High-resolution QR image"
       ],
-      "iconImage": "img/tools/icons/qr-code-generator.png?v=9eb436c81a29",
+      "iconImage": "img/tools/icons/qr-code-generator.png?v=17c29eb950a5",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -389,7 +389,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Validated campaign links, rendition matrix, and export-ready handoff data"
       ],
-      "iconImage": "img/tools/icons/campaign-creative-tracker.png?v=6c2385ebdd6a",
+      "iconImage": "img/tools/icons/campaign-creative-tracker.png?v=db9693924ecb",
       "iconHtml": "",
       "visibility": "admin",
       "hidden": true,
@@ -433,7 +433,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Resized, compressed, or converted images"
       ],
-      "iconImage": "img/tools/icons/image-optimizer.png?v=4125f07a70ea",
+      "iconImage": "img/tools/icons/image-optimizer.png?v=63971580e573",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -477,7 +477,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Transparent or solid-background image"
       ],
-      "iconImage": "img/tools/icons/background-remover.png?v=6648c89ee21c",
+      "iconImage": "img/tools/icons/background-remover.png?v=70bf2c5c448e",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -521,7 +521,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Browser-supported video file"
       ],
-      "iconImage": "img/tools/icons/screen-recorder.png?v=1e8465d1d4cf",
+      "iconImage": "img/tools/icons/screen-recorder.png?v=f6e8232709d4",
       "iconHtml": "",
       "visibility": "public",
       "hidden": false,
@@ -565,7 +565,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Saved tracker, KPIs, trends, and heatmaps"
       ],
-      "iconImage": "img/tools/icons/job-application-tracker.png?v=975a4e0dc071",
+      "iconImage": "img/tools/icons/job-application-tracker.png?v=44d37cbba29a",
       "iconHtml": "",
       "visibility": "authed",
       "hidden": true,
@@ -609,7 +609,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Short link, saved QR design, and link activity"
       ],
-      "iconImage": "img/tools/icons/short-links.png?v=2164dacc484e",
+      "iconImage": "img/tools/icons/short-links.png?v=5a1b57921862",
       "iconHtml": "",
       "visibility": "admin",
       "hidden": true,
@@ -655,7 +655,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Aggregated performance table and CSV"
       ],
-      "iconImage": "img/tools/icons/ga4-utm-performance.png?v=adf5b0da214b",
+      "iconImage": "img/tools/icons/ga4-utm-performance.png?v=248dc02111c9",
       "iconHtml": "",
       "visibility": "admin",
       "hidden": true,
@@ -700,7 +700,7 @@ window.DIRECTORY_WORKBENCH = {
       "outputs": [
         "Completed transcript download"
       ],
-      "iconImage": "img/tools/icons/transcribe.png?v=67fa3d60f82c",
+      "iconImage": "img/tools/icons/transcribe.png?v=10a9d4877399",
       "iconHtml": "",
       "visibility": "authed",
       "hidden": true,

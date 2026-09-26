@@ -371,6 +371,14 @@
       stroke-linejoin: round;
     }
 
+    .mobile-site-masthead__search-button img {
+      display: block;
+      width: 21px;
+      height: 21px;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+    }
+
     .mobile-site-masthead__brand:focus-visible,
     .mobile-site-masthead__search-button:focus-visible {
       outline: 2px solid color-mix(in srgb, var(--brand-signal-blue, #005fed) 42%, transparent);
@@ -735,6 +743,15 @@
       stroke-linejoin: round;
     }
 
+    .mobile-site-dock__icon img {
+      display: block;
+      width: 27px;
+      height: 27px;
+      border-radius: 5px;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+    }
+
     .mobile-site-dock__label {
       max-width: 100%;
       overflow: hidden;
@@ -829,6 +846,23 @@
 /* The personal mobile shell uses five ordinary section links. Its full bars
    slide beyond the viewport; stable page clearances prevent scroll jumps. */
 @layer overrides {
+  @media (max-width: 768px) {
+    html[data-consent-reserve="true"] #pcz-banner {
+      display: none !important;
+    }
+    html[data-consent-reserve="true"] body {
+      --pcz-reserved-height: 132px;
+      padding-top: calc(var(--nav-height, 72px) + var(--pcz-reserved-height)) !important;
+    }
+    html[data-consent-reserve="true"] body.has-mobile-site-masthead[data-page] {
+      padding-top: calc(var(--mobile-site-masthead-height, 62px) + var(--pcz-reserved-height)) !important;
+    }
+  }
+  @media (max-width: 360px) {
+    html[data-consent-reserve="true"] body {
+      --pcz-reserved-height: 160px;
+    }
+  }
   @media (max-width: 768px), (max-width: 959px) and (max-height: 619px) {
     body.has-mobile-scroll-chrome {
       padding-top: var(--mobile-site-masthead-height, 62px) !important;
@@ -900,6 +934,17 @@
       stroke-width: 1.7;
       stroke-linecap: round;
       stroke-linejoin: round;
+    }
+    .mobile-section-nav__link img {
+      box-sizing: border-box;
+      display: block;
+      flex: 0 0 27px;
+      width: 27px;
+      height: 27px;
+      padding: 1px;
+      border-radius: 5px;
+      object-fit: contain;
+      mix-blend-mode: multiply;
     }
     .mobile-section-nav__link[data-mobile-section="about"] { --section-accent: var(--category-about, #091f3b); }
     .mobile-section-nav__link[data-mobile-section="projects"] { --section-accent: var(--category-projects, #005fed); }

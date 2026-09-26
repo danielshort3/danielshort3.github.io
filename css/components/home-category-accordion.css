@@ -175,6 +175,26 @@
     stroke-linejoin: round;
   }
 
+  .home-accordion__rail-icon img {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 2px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, .96);
+    object-fit: contain;
+  }
+
+  .home-accordion__title-icon img,
+  .home-accordion__card-arrow img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
   .home-accordion__rail-label {
     position: absolute;
     top: 50%;
@@ -459,6 +479,14 @@
     object-position: center;
   }
 
+  .home-accordion__card-media--glyph img {
+    width: 58%;
+    height: 58%;
+    background: transparent;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
   .home-accordion__card-media--glyph,
   .home-accordion__card-media--icon,
   .home-accordion__item--tools .home-accordion__card-media {
@@ -586,6 +614,13 @@
   .home-accordion__panel-cta svg {
     width: 18px;
     height: 18px;
+  }
+  .home-accordion__panel-cta img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
   }
 
   .home-accordion__noscript {

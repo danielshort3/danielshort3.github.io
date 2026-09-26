@@ -278,6 +278,10 @@
     } catch (err) {}
   }
 
+  function releaseReservedBannerSpace() {
+    document.documentElement?.removeAttribute?.('data-consent-reserve');
+  }
+
   function isolateModalBackground(modal) {
     const backgroundState = new Map();
     if (!modal || !document.body) return function () {};
@@ -565,6 +569,7 @@
   function showBanner(localeStrings) {
     const existingBanner = document.getElementById('pcz-banner');
     if (existingBanner && existingBanner.dataset.state !== 'closing') {
+      releaseReservedBannerSpace();
       setBannerUiState(true);
       return;
     }
@@ -587,6 +592,13 @@
       while (content && content.parentElement !== document.body) content = content.parentElement;
       if (content) content.before(banner);
       else document.body.appendChild(banner);
+    }
+    const stylesheet = document.getElementById(STYLE_ID);
+    if (stylesheet && !stylesheet.sheet) {
+      stylesheet.addEventListener('load', releaseReservedBannerSpace, { once: true });
+      stylesheet.addEventListener('error', releaseReservedBannerSpace, { once: true });
+    } else {
+      releaseReservedBannerSpace();
     }
     setBannerUiState(true);
     if (window.SiteMotion) window.SiteMotion.presence(banner, true, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false });
@@ -775,6 +787,7 @@
    */
   function init() {
     if (isEmbeddedSameOrigin()) {
+      releaseReservedBannerSpace();
       setBannerUiState(false);
       const saved = loadConsent();
       const embeddedState = Object.assign(
@@ -814,6 +827,7 @@
     } catch (e) {}
     const saved = loadConsent();
     if (saved) {
+      releaseReservedBannerSpace();
       setBannerUiState(false);
       if (hasGPC() && saved.categories && saved.categories.advertising) {
         saved.categories.advertising = false;
@@ -854,7 +868,7 @@
   };
 
   // Initialise when DOM is ready
-  if (document.readyState === 'loading') {
+  if (document.readyState === 'loading' || (document.readyState === 'interactive' && document.currentScript?.defer)) {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();

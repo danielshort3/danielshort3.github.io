@@ -72,6 +72,13 @@
   }
 
   .home-background__icon svg { display: block; width: 100%; height: 100%; }
+  .home-background__icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
 
   .home-background .home-background__entry {
     display: block;
@@ -176,6 +183,14 @@
     stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+  .home-background__arrow img {
+    display: block;
+    flex: 0 0 13px;
+    width: 13px;
+    height: 13px;
+    object-fit: contain;
+    mix-blend-mode: multiply;
   }
 
   .home-background a.home-background__entry:hover .home-background__title,
