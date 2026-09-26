@@ -25,7 +25,7 @@ const CATEGORY_CONFIG = Object.freeze({
     color: '#091f3b',
     colorEnd: '#032b57',
     href: '/#about',
-    icon: 'nav-about'
+    icon: '<circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path>'
   }),
   projects: Object.freeze({
     label: 'Projects',
@@ -33,7 +33,7 @@ const CATEGORY_CONFIG = Object.freeze({
     colorEnd: '#0145c8',
     href: '/#projects',
     libraryHref: '/portfolio',
-    icon: 'nav-projects'
+    icon: '<path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path>'
   }),
   tools: Object.freeze({
     label: 'Tools',
@@ -41,7 +41,7 @@ const CATEGORY_CONFIG = Object.freeze({
     colorEnd: '#006973',
     href: '/#tools',
     libraryHref: '/tools',
-    icon: 'nav-tools'
+    icon: '<path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path>'
   }),
   games: Object.freeze({
     label: 'Games',
@@ -49,7 +49,7 @@ const CATEGORY_CONFIG = Object.freeze({
     colorEnd: '#e35d00',
     href: '/#games',
     libraryHref: '/games',
-    icon: 'nav-games'
+    icon: '<path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path>'
   }),
   resume: Object.freeze({
     label: 'Resume',
@@ -64,7 +64,7 @@ const CATEGORY_CONFIG = Object.freeze({
     colorEnd: '#263648',
     href: '/#contact',
     libraryHref: '/contact',
-    icon: 'nav-contact'
+    icon: '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path>'
   })
 });
 
@@ -431,12 +431,11 @@ function renderPersonalLibraryHeader(options = {}) {
 }
 
 function renderIcon(paths, className = '') {
-  if (/^nav-(about|projects|tools|games|contact)$/.test(paths)) return renderSiteIcon(paths, className);
   return `<svg${className ? ` class="${escapeHtml(className)}"` : ''} viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
 }
 
 function renderSiteIcon(name, className = '') {
-  return `<img${className ? ` class="${escapeHtml(className)}"` : ''} src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async"${/^nav-/.test(name) ? '' : ' loading="lazy"'}>`;
+  return `<img${className ? ` class="${escapeHtml(className)}"` : ''} src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async" loading="lazy">`;
 }
 
 function renderToolsAccountBar() {
