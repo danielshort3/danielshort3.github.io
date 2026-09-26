@@ -390,14 +390,14 @@ function renderLegacyHtml(section) {
   );
 }
 
-const siteIconImage = (name) => `<img src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async"${/^nav-/.test(name) ? '' : ' loading="lazy"'}>`;
+const siteIconImage = (name) => `<img src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async" loading="lazy">`;
 
 const HOME_ACCORDION_ICONS = {
-  about: siteIconImage('nav-about'),
-  projects: siteIconImage('nav-projects'),
-  tools: siteIconImage('nav-tools'),
-  games: siteIconImage('nav-games'),
-  contact: siteIconImage('nav-contact'),
+  about: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg>',
+  projects: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg>',
+  tools: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg>',
+  games: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg>',
+  contact: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg>',
   playground: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><path d="M17.5 14v7M14 17.5h7"></path></svg>',
   stormbreak: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 5 13h6l-1 9 9-13h-6z"></path><path d="M4 5h5M15 19h5"></path></svg>',
   'stellar-dogfight': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3z"></path><circle cx="12" cy="12" r="2.2"></circle><path d="M3 5h3M18 19h3"></path></svg>',
