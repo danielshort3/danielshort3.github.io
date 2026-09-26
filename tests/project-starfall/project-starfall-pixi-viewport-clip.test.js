@@ -35,11 +35,20 @@ renderer.renderFrame({ width: 900, height: 600, playfieldHeight: 590, solidPlatf
 assertVisibleBottom(600, 600);
 
 const bandRects = [];
-renderer.worldBaseBandGraphics = { rect(x, y, w, h) { bandRects.push({ x, y, w, h }); return this; }, fill(style) { Object.assign(bandRects[bandRects.length - 1], style); return this; } };
+let bandBuilds = 0;
+renderer.worldBaseBandGraphics = { clear() { bandRects.length = 0; bandBuilds += 1; }, rect(x, y, w, h) { bandRects.push({ x, y, w, h }); return this; }, fill(style) { Object.assign(bandRects[bandRects.length - 1], style); return this; } };
 renderer.renderWorldBaseBand({ height: 806, solidPlatformHeight: 48 }, 1280, 674, {});
 assert.strictEqual(bandRects[0].y, 672, 'the fade overlaps the scenery by two pixels');
 assert.strictEqual(bandRects[bandRects.length - 1].y + 1, 722, 'the fade ends at the reserved boundary above the HUD');
 assert.strictEqual(bandRects[0].alpha, 0, 'the boundary starts without a visible stripe');
 assert.strictEqual(bandRects[bandRects.length - 1].alpha, 0.78, 'the boundary settles into the dark HUD');
 assert(bandRects.every((rect, index) => rect.w === 1280 && rect.h === 1 && (!index || rect.alpha >= bandRects[index - 1].alpha)), 'the boundary darkens smoothly without gaps');
+renderer.renderWorldBaseBand({ height: 806, solidPlatformHeight: 48 }, 1280, 674, {});
+assert.strictEqual(bandBuilds, 1, 'unchanged boundary geometry must stay retained across frames');
+renderer.renderWorldBaseBand({ height: 600, solidPlatformHeight: 46 }, 900, 470, {});
+assert.strictEqual(bandBuilds, 2, 'viewport changes rebuild the retained gradient');
+assert.strictEqual(bandRects[0].w, 900);
+assert.strictEqual(bandRects[bandRects.length - 1].y + 1, 516);
+renderer.renderWorldBaseBand({ height: 400, solidPlatformHeight: 0 }, 900, 470, {});
+assert.strictEqual(bandRects.length, 0, 'a collapsed boundary clears previous retained geometry');
 console.log('Project Starfall Pixi world viewport clipping and boundary fade tests passed.');
