@@ -42,6 +42,9 @@
     cropOverlay: $('[data-screenrec="crop-overlay"]'),
     cropSelection: $('[data-screenrec="crop-selection"]'),
     grid: $('[data-screenrec="grid"]'),
+    supportNotice: $('[data-screenrec="support-notice"]'),
+    supportReason: $('[data-screenrec="support-reason"]'),
+    captureOnly: $$('[data-screenrec-capture-only]'),
     controlsPanel: $('[data-screenrec="controls-panel"]'),
     previewPanel: $('[data-screenrec="preview-panel"]'),
     stage: $('[data-screenrec="stage"]'),
@@ -88,8 +91,9 @@
     } catch {}
   };
 
-  const supportsCapture = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
-  const supportsRecorder = typeof window.MediaRecorder !== 'undefined';
+  const supportsCapture = typeof navigator.mediaDevices?.getDisplayMedia === 'function';
+  const supportsRecorder = typeof window.MediaRecorder === 'function';
+  const canRecordScreen = supportsCapture && supportsRecorder;
   const supportsMicrophone = Boolean(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 
   const state = {
@@ -1021,9 +1025,19 @@
   };
 
   const setView = () => {
-    if (el.controlsPanel) el.controlsPanel.hidden = false;
-    if (el.previewPanel) el.previewPanel.hidden = false;
+    const hasClip = Boolean(state.recordedUrl || state.downloadFiles.length);
+    if (el.supportNotice) el.supportNotice.hidden = canRecordScreen;
+    if (el.supportReason) {
+      el.supportReason.textContent = supportsCapture
+        ? 'This browser does not provide video recording.'
+        : 'This browser does not provide screen sharing.';
+    }
+    if (el.controlsPanel) el.controlsPanel.hidden = !canRecordScreen;
+    if (el.previewPanel) el.previewPanel.hidden = !canRecordScreen && !hasClip;
+    el.captureOnly.forEach((control) => { control.hidden = !canRecordScreen; });
     if (el.grid) {
+      el.grid.hidden = !canRecordScreen && !hasClip;
+      el.grid.dataset.captureSupport = canRecordScreen ? 'available' : 'unavailable';
       el.grid.dataset.view = state.captureActive || state.recordedUrl ? 'preview' : 'controls';
     }
     updatePlaceholder();
@@ -1799,7 +1813,7 @@
     el.video.loop = false;
     el.video.muted = false;
     el.video.play().catch(() => {});
-    updatePlaceholder();
+    setView();
 
     const handleMetadata = () => {
       state.recordedDuration = Number.isFinite(el.video.duration) ? el.video.duration : 0;

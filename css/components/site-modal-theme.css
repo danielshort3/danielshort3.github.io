@@ -73,6 +73,24 @@
   }
   #contact-modal .contact-form { gap: 14px; }
   #contact-modal .contact-form textarea { min-height: 120px; }
+  @media (max-width: 600px) {
+    /* Keep the action in view while the fields scroll on short phones. */
+    #contact-modal .contact-form .form-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 1;
+      margin-inline: -6px;
+      padding: 10px 6px 0;
+      border-top: 1px solid var(--modal-border);
+      background: #ffffff;
+    }
+  }
+  @media (max-width: 600px) and (max-height: 700px) {
+    #contact-modal .contact-form { gap: 10px; }
+    #contact-modal .contact-form input:not([type="checkbox"]):not([type="radio"]) { padding-block: 7px; }
+    #contact-modal .contact-form textarea { block-size: 120px; }
+    #contact-modal .contact-form .form-actions .btn-primary { padding-block: 7px; }
+  }
   #contact-modal .contact-form input:not([type="checkbox"]):not([type="radio"]),
   #contact-modal .contact-form textarea { background: #ffffff; }
   #contact-modal .contact-form :is(input:not([type="checkbox"]):not([type="radio"]), textarea):focus {

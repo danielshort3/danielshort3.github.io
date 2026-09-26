@@ -78,7 +78,7 @@ function assertClosedDesktopFrame(metrics) {
 }
 
 function assertLibraryColumns(metrics, route) {
-  const threshold = route === '/tools' ? 1180 : 1500;
+  const threshold = route === '/games' ? 1500 : 1180;
   const expected = metrics.contentWidth >= threshold ? 3 : metrics.contentWidth >= 760 ? 2 : 1;
   assert(metrics.libraryLists.length > 0, `${route} displays its library at ${metrics.viewport.width}px.`);
   for (const list of metrics.libraryLists) {
@@ -87,6 +87,36 @@ function assertLibraryColumns(metrics, route) {
       `${route} keeps every card within the screen.`);
     const firstRow = list.cards.filter((card) => Math.abs(card.y - list.cards[0].y) <= 1);
     assert.equal(firstRow.length, Math.min(expected, list.cards.length), `${route} lays out the expected number of cards side by side.`);
+  }
+}
+
+async function assertProjectRailNavigation(page, viewport) {
+  const railSelector = '.personal-library--projects .home-library__jump-links';
+  for (const [index, label] of [[2, 'Data stories'], [3, 'Practical applications'], [2, 'Data stories']]) {
+    const link = page.locator(`${railSelector} a[data-home-library-jump]`).nth(index);
+    const headingId = (await link.getAttribute('href')).slice(1);
+    await link.click();
+    await page.waitForTimeout(250);
+    const position = await page.evaluate(({ railSelector, headingId }) => {
+      const rail = document.querySelector(railSelector);
+      const heading = document.getElementById(headingId);
+      return {
+        current: rail.querySelector('a[aria-current="location"]')?.textContent.trim(),
+        currentCount: rail.querySelectorAll('a[aria-current="location"]').length,
+        railBottom: rail.getBoundingClientRect().bottom,
+        headingTop: heading.getBoundingClientRect().top
+      };
+    }, { railSelector, headingId });
+    assert.equal(position.current, label, `${viewport.width}px keeps ${label} current after the jump settles.`);
+    assert.equal(position.currentCount, 1, `${viewport.width}px marks only one current project category.`);
+    assert(position.headingTop >= position.railBottom + 8,
+      `${viewport.width}px keeps the ${label} heading below the sticky category rail.`);
+  }
+  if (viewport.width === 1440) {
+    await page.evaluate(() => { SiteFrame.viewport().scrollTop = 400; });
+    await page.waitForTimeout(80);
+    assert.equal((await page.locator(`${railSelector} a[aria-current="location"]`).textContent()).trim(), 'Machine learning',
+      'Manual desktop scrolling updates the current project category after a jump.');
   }
 }
 
@@ -163,6 +193,9 @@ async function runResponsiveSpacingChecks({ browser, base, settle, assertLayout,
         await open(route);
         const metrics = await measure(page);
         assertLibraryColumns(metrics, route);
+        if (route === '/portfolio' && [1440, 390].includes(viewport.width)) {
+          await assertProjectRailNavigation(page, viewport);
+        }
         if (viewport.width >= 960) assertDesktopFrame(metrics, activeCase);
         assert(metrics.document.width <= viewport.width + 1, `${activeCase} avoids horizontal document scrolling.`);
         results.librarySizes.push({ route, ...metrics });

@@ -411,33 +411,25 @@
     font-weight: 700;
     line-height: 1.5;
   }
-  .site-frame__welcome-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    max-width: 540px;
-    margin-top: 12px;
-  }
-  .site-frame__welcome-links a {
+  .site-frame__welcome-browse {
     display: inline-flex;
     align-items: center;
-    min-height: 38px;
-    padding: 6px 12px;
-    border: 1px solid #c9d6e5;
-    border-radius: 999px;
-    color: #091f3b;
-    background: #fff;
-    font-size: .875rem;
+    gap: 4px;
+    min-height: 44px;
+    margin-top: 20px;
+    padding-block: 10px;
+    color: #0145c8;
+    font-size: 1rem;
     font-weight: 700;
-    line-height: 1.25;
-    text-decoration: none;
+    line-height: 1.35;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
   }
-  .site-frame__welcome-links a:is(:hover, :focus-visible) {
-    border-color: var(--brand-signal-blue, #005fed);
-    color: var(--brand-signal-blue, #005fed);
-    background: #f0f6ff;
+  .site-frame__welcome-browse:hover {
+    color: #003d9e;
   }
-  .site-frame__welcome-links a:focus-visible {
+  .site-frame__welcome-browse:focus-visible {
     outline: 2px solid var(--brand-signal-blue, #005fed);
     outline-offset: 2px;
   }
@@ -517,6 +509,21 @@
     .site-frame__tab.is-active .site-frame__tab-toggle::after { display: none; }
     .site-frame--moving .site-frame__tab-toggle,
     .site-frame--held .site-frame__tab-toggle { visibility: hidden; }
+  }
+  @media (max-width: 600px) {
+    body[data-page="home"] .site-frame[data-frame-view="closed"] .site-frame__welcome,
+    body[data-page="home"] .home-accordion__welcome {
+      padding: 36px 24px 14px;
+    }
+    body[data-page="home"] .site-frame__welcome-detail { margin-top: 10px; }
+    body[data-page="home"] .site-frame__welcome-browse {
+      margin-top: 18px;
+      padding-block: 12px;
+      font-size: .9rem;
+    }
+  }
+  @media (min-width: 370px) and (max-width: 600px) and (min-height: 800px) {
+    .site-frame[data-frame-view="closed"] .site-frame__tab { min-height: 78px; }
   }
 
   /* Keep the personal introduction and featured projects inside the original accordion. */

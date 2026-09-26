@@ -230,11 +230,13 @@
 
   /* Put a compact account action beside Back only when both can fit. The
      expanded account/history panel retains its normal row below the copy. */
-  @container site-content (min-width: 360px) and (max-width: 759px) {
+  @container site-content (max-width: 759px) {
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) > .wrapper {
-      grid-template-columns: minmax(0, 1fr) auto;
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      column-gap: 12px;
+      justify-content: space-between;
+      gap: 10px 12px;
     }
 
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) [data-page-masthead-intro] {
@@ -242,19 +244,23 @@
     }
 
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) [data-page-masthead-copy] {
-      grid-column: 1 / -1;
-      grid-row: 2;
+      flex: 1 0 100%;
+      order: 2;
     }
 
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) .personal-tool-header__account {
-      grid-column: 2;
-      grid-row: 1;
-      justify-self: end;
+      order: 1;
+      margin-inline-start: auto;
       align-self: center;
     }
 
     body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) .tools-account-actions {
       justify-content: flex-end;
+    }
+
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead] .tools-account-signed-in-actions {
+      flex-wrap: wrap;
+      max-width: 100%;
     }
   }
 

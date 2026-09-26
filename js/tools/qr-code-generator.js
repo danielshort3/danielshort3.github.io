@@ -56,6 +56,8 @@
   const canvas = $('#qrtool-canvas');
   const stage = $('#qrtool-stage');
   const emptyOverlay = $('#qrtool-empty');
+  const emptyTitle = $('[data-qrtool-empty-title]');
+  const emptyDescription = $('[data-qrtool-empty-description]');
   const metaEl = $('#qrtool-meta');
   const qualityEl = $('#qrtool-quality');
   const verifyEl = $('#qrtool-verify');
@@ -2807,6 +2809,32 @@
     runScanVerification();
   }, 220);
 
+  const updateEmptyPreviewCopy = () => {
+    if (emptyTitle) emptyTitle.textContent = managedMode && linkedLoading
+      ? 'Loading your saved QR…'
+      : 'Your QR code will appear here';
+    if (emptyDescription) emptyDescription.textContent = managedMode && !linkedLink
+      ? (linkedLoading ? 'Your preview will be ready shortly.' : 'Create or select a link to preview its QR code.')
+      : ({
+        url: 'Enter a destination URL to see a preview.',
+        text: 'Enter text to see a preview.',
+        wifi: 'Enter your Wi-Fi network details to see a preview.',
+        vcard: 'Enter contact details to see a preview.',
+      }[getPayloadMode()]);
+  };
+
+  const setPreviewState = (value) => {
+    if (stage) stage.dataset.previewState = value;
+    emptyOverlay?.classList.toggle('hide', value === 'ready');
+    canvas.setAttribute('aria-hidden', value === 'ready' ? 'false' : 'true');
+    metaEl.hidden = value === 'empty';
+    if (value === 'empty') updateEmptyPreviewCopy();
+    if (value === 'error') {
+      if (emptyTitle) emptyTitle.textContent = 'Preview unavailable';
+      if (emptyDescription) emptyDescription.textContent = 'Review the message above and try again.';
+    }
+  };
+
   const render = () => {
     const data = (state.data || '').trim();
     if (!data) {
@@ -2816,8 +2844,8 @@
       try {
         stage?.style?.setProperty('--qrtool-stage-ratio', '1');
       } catch {}
-      emptyOverlay?.classList.remove('hide');
-      metaEl.textContent = 'Enter data to generate a QR code.';
+      setPreviewState('empty');
+      metaEl.textContent = '';
       setQuality('');
       setWarnings([]);
       setVerification('');
@@ -2848,7 +2876,7 @@
       state.qr = null;
       state.darkModules = null;
       state.moduleCount = 0;
-      emptyOverlay?.classList.remove('hide');
+      setPreviewState('error');
       metaEl.textContent = isMissing
         ? 'QR encoder failed to load.'
         : 'That URL is too long for a QR code at the selected settings.';
@@ -2876,7 +2904,7 @@
     state.moduleCount = moduleCount;
     state.darkModules = darkModules;
 
-    emptyOverlay?.classList.add('hide');
+    setPreviewState('ready');
     const version = Math.max(1, Math.round((moduleCount - 17) / 4));
     metaEl.textContent = `Version ${version} • ${moduleCount}×${moduleCount} modules • ECC ${state.ecc} • Quiet zone ${state.marginModules}`;
 
@@ -3319,9 +3347,7 @@
       $('[data-qrtool-manage-link]').href = `/tools/short-links?link=${encodeURIComponent(linkedLink.slug)}`;
       dataInput.value = linkedLink.destination || '';
     }
-    if (emptyOverlay) emptyOverlay.textContent = managedMode && !hasLink
-      ? (linkedLoading ? 'Loading your saved QR…' : 'Create or select a link to preview its QR code.')
-      : 'Paste a URL to begin.';
+    if (stage?.dataset.previewState !== 'error') updateEmptyPreviewCopy();
   };
   const showLinkError = (error, target = linkStatus) => {
     const needsAccess = error?.status === 401 || error?.status === 403;

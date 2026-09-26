@@ -3,13 +3,13 @@
   "channel": "review",
   "packageName": "me.danielshort.app.debug",
   "latest": {
-    "versionCode": 9,
-    "versionName": "0.5.2-debug",
+    "versionCode": 10,
+    "versionName": "0.5.3-debug",
     "minSdk": 26,
     "apk": {
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.2-review/Daniel-Short-review-v9-937c9d3c350fcbe5.apk",
-      "sha256": "937c9d3c350fcbe5ad982bab867192783d4ecf98b4fcdac077a74356485b9f13",
-      "size": 24831973
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.3-review/Daniel-Short-review-v10-ef5ef1369bad12cb.apk",
+      "sha256": "ef5ef1369bad12cb6b5a125334d52ac57a71eb8b7efb2cfbdd13011479c30c3e",
+      "size": 24864737
     },
     "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
   },
@@ -57,19 +57,47 @@
       "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
     },
     {
+      "versionCode": 8,
+      "sha256": "e04ceb41472be46001709b115038ca15eb3d08caee0fa03f5b7c8b38930e316f",
+      "size": 25122525,
+      "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
+    },
+    {
       "versionCode": 9,
       "sha256": "937c9d3c350fcbe5ad982bab867192783d4ecf98b4fcdac077a74356485b9f13",
       "size": 24831973,
+      "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
+    },
+    {
+      "versionCode": 10,
+      "sha256": "ef5ef1369bad12cb6b5a125334d52ac57a71eb8b7efb2cfbdd13011479c30c3e",
+      "size": 24864737,
       "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
     }
   ],
   "patches": [
     {
       "fromSha256": "29dd8e166a5212188e3c3b9d0eb37f9415d5f7c9b21b385b1fd272b4e323d490",
-      "toSha256": "937c9d3c350fcbe5ad982bab867192783d4ecf98b4fcdac077a74356485b9f13",
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.2-review/patch-29dd8e166a521218-937c9d3c350fcbe5-6bdfe30f873c1c6e.dsupd.gz",
-      "sha256": "6bdfe30f873c1c6e9f9eab58e0ebb1d17c9ac7d220a16f80ed71a457a799ed3f",
-      "size": 720563,
+      "toSha256": "ef5ef1369bad12cb6b5a125334d52ac57a71eb8b7efb2cfbdd13011479c30c3e",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.3-review/patch-29dd8e166a521218-ef5ef1369bad12cb-526335f24d71279a.dsupd.gz",
+      "sha256": "526335f24d71279aa8aede4a022ba2f1fdab0f9d1a1048cef8e56be66cf45b8e",
+      "size": 802041,
+      "format": "dsupd1-gzip"
+    },
+    {
+      "fromSha256": "937c9d3c350fcbe5ad982bab867192783d4ecf98b4fcdac077a74356485b9f13",
+      "toSha256": "ef5ef1369bad12cb6b5a125334d52ac57a71eb8b7efb2cfbdd13011479c30c3e",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.3-review/patch-937c9d3c350fcbe5-ef5ef1369bad12cb-83f3bf34fb3e9b35.dsupd.gz",
+      "sha256": "83f3bf34fb3e9b3555d3c2eaea9f9147c3cbfbf2185fa0304d8d6bce2245007c",
+      "size": 741138,
+      "format": "dsupd1-gzip"
+    },
+    {
+      "fromSha256": "e04ceb41472be46001709b115038ca15eb3d08caee0fa03f5b7c8b38930e316f",
+      "toSha256": "ef5ef1369bad12cb6b5a125334d52ac57a71eb8b7efb2cfbdd13011479c30c3e",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.3-review/patch-e04ceb41472be460-ef5ef1369bad12cb-f0ac6d5f89f88454.dsupd.gz",
+      "sha256": "f0ac6d5f89f88454f74e5958b657496e931821be180756da1024a68e4f3c110c",
+      "size": 897787,
       "format": "dsupd1-gzip"
     }
   ]

@@ -203,6 +203,8 @@ async function run() {
   assert.strictEqual(pov.document.querySelectorAll('[role="tab"]').length, 0, 'POV keeps input and highlighted results together');
   assert.strictEqual(pov.get('povcheck-paste'), null);
   assert.strictEqual(pov.get('povcheck-stats').hidden, true, 'empty counts are not presented as analyzed results');
+  assert.strictEqual(pov.get('povcheck-summary').textContent, '', 'empty input has no verdict');
+  assert(pov.html.indexOf('id="povcheck-summary"') < pov.html.indexOf('id="povcheck-stats"'), 'the verdict precedes detailed counts and highlights');
   pov.fill('povcheck-text', 'I reviewed the draft. You can share it. They will review the final version.');
   pov.fire(pov.get('povcheck-form'), 'submit');
   assert.strictEqual(pov.get('povcheck-stats').hidden, false);
@@ -224,8 +226,36 @@ async function run() {
   pov.fire(pov.document, 'tools:session-applied', { detail: { toolId: 'point-of-view-checker' } });
   assert.strictEqual(pov.get('povcheck-first-count').textContent, '1', 'restored POV text rebuilds the count strip');
   assert(pov.get('povcheck-settings-summary').textContent.includes('4 words'), 'restored text updates the setup summary');
+  assert.strictEqual(pov.get('povcheck-summary').querySelector('strong').textContent, 'First-person markers detected', 'restoring recomputes the verdict');
   pov.fire(pov.get('povcheck-clear'), 'click');
   assert.strictEqual(pov.get('povcheck-stats').hidden, true);
+  assert.strictEqual(pov.get('povcheck-summary').textContent, '', 'clearing removes the previous verdict');
+  pov.fire(pov.get('povcheck-form'), 'submit');
+  assert.strictEqual(pov.get('povcheck-summary').textContent, '', 'checking empty text does not claim a no-match analysis');
+
+  const checkPov = (text, verdict, detail) => {
+    pov.fill('povcheck-text', text);
+    pov.fire(pov.get('povcheck-form'), 'submit');
+    assert.strictEqual(pov.get('povcheck-summary').querySelector('strong').textContent, verdict);
+    assert.strictEqual(pov.get('povcheck-summary').querySelector('span').textContent, detail);
+  };
+  checkPov('The draft is ready.', 'No point-of-view matches found', 'No pronouns or third-person references were detected with the current settings.');
+  checkPov('I reviewed the draft.', 'First-person markers detected', '1 match in first person with the current settings.');
+  checkPov('You reviewed your draft.', 'Second-person markers detected', '2 matches in second person with the current settings.');
+  checkPov('They reviewed the draft.', 'Third-person markers detected', '1 match in third person with the current settings.');
+  checkPov('I wrote. You read.', 'Mixed point of view detected', '2 matches across first and second person. 1 sentence switch is worth reviewing.');
+  checkPov('I know you.', 'Mixed point of view detected', '2 matches across first and second person. No sentence switches detected.');
+  pov.fire(pov.get('povcheck-example'), 'click');
+  pov.fire(pov.get('povcheck-form'), 'submit');
+  assert.strictEqual(pov.get('povcheck-summary').querySelector('span').textContent, '5 matches across first, second, and third person. 2 sentence switches are worth reviewing.', 'example guidance is derived from all three detected groups');
+  pov.get('povcheck-ignore-terms').value = 'you';
+  pov.fire(pov.get('povcheck-ignore-terms'), 'input');
+  assert.strictEqual(pov.get('povcheck-summary').querySelector('span').textContent, '3 matches across first and third person. 1 sentence switch is worth reviewing.', 'custom rules regenerate the verdict from effective matches');
+  const povPayload = {};
+  pov.fire(pov.document, 'tools:session-capture', { detail: { toolId: 'point-of-view-checker', payload: povPayload } });
+  assert(povPayload.outputSummary.includes('Mixed point of view detected'));
+  assert(povPayload.outputSummary.includes('3 matches across first and third person.'));
+  assert.strictEqual(povPayload.output.summary, povPayload.outputSummary, 'session output retains the current verdict');
 
   const nbsp = harness('nbsp-cleaner');
   assert.strictEqual(nbsp.document.querySelectorAll('[role="tab"]').length, 0, 'cleaned text is always the primary result');

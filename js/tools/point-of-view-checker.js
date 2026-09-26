@@ -862,16 +862,6 @@
     });
   };
 
-  const dominantGroupFromTotals = (analysis) => {
-    const ordered = [
-      { key: 'first', value: analysis.groups.first.total },
-      { key: 'second', value: analysis.groups.second.total },
-      { key: 'third', value: analysis.groups.third.total }
-    ].sort((a, b) => b.value - a.value);
-    if (!ordered[0].value) return '';
-    return ordered[0].key;
-  };
-
   const dominantLabel = (key) => {
     if (key === 'first') return 'first person';
     if (key === 'second') return 'second person';
@@ -886,29 +876,28 @@
       return;
     }
 
-    if (!analysis.total) {
-      summaryEl.textContent = 'No pronouns or third-person references were detected with the current settings.';
-      return;
+    const detected = ['first', 'second', 'third'].filter((key) => analysis.groups[key].total > 0);
+    let verdict = 'No point-of-view matches found';
+    let detail = 'No pronouns or third-person references were detected with the current settings.';
+
+    if (detected.length) {
+      const matches = `${formatNumber(analysis.total)} ${analysis.total === 1 ? 'match' : 'matches'}`;
+      if (detected.length === 1) {
+        const person = detected[0];
+        verdict = `${person.charAt(0).toUpperCase()}${person.slice(1)}-person markers detected`;
+        detail = `${matches} in ${person} person with the current settings.`;
+      } else {
+        verdict = 'Mixed point of view detected';
+        const persons = detected.length === 2 ? detected.join(' and ') : `${detected.slice(0, -1).join(', ')}, and ${detected[detected.length - 1]}`;
+        const switches = analysis.drift.switches;
+        const drift = switches
+          ? `${formatNumber(switches)} sentence ${switches === 1 ? 'switch is' : 'switches are'} worth reviewing.`
+          : 'No sentence switches detected.';
+        detail = `${matches} across ${persons} person. ${drift}`;
+      }
     }
 
-    const detected = [];
-    if (analysis.groups.first.total) detected.push('first person');
-    if (analysis.groups.second.total) detected.push('second person');
-    if (analysis.groups.third.total) detected.push('third person');
-
-    const modeLabel = analysis.config.mode === 'advanced' ? 'Advanced mode' : 'Basic mode';
-    const dominant = dominantLabel(dominantGroupFromTotals(analysis));
-
-    const parts = [
-      `${modeLabel}.`,
-      `Total matches: <strong>${formatNumber(analysis.total)}</strong>.`,
-      `Detected: <strong>${detected.join(', ')}</strong>.`,
-      dominant !== 'none' ? `Dominant POV: <strong>${dominant}</strong>.` : '',
-      analysis.drift.switches ? `Sentence-level switches: <strong>${formatNumber(analysis.drift.switches)}</strong>.` : ''
-    ].filter(Boolean);
-
-    const lead = detected.length > 1 ? 'Mixed point of view. ' : '';
-    summaryEl.innerHTML = `${lead}${parts.join(' ')}`;
+    summaryEl.innerHTML = `<strong class="povcheck-summary-verdict">${escapeHtml(verdict)}</strong> <span>${escapeHtml(detail)}</span>`;
   };
 
   const renderHighlightedOutput = (analysis) => {
