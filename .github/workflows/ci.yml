@@ -102,7 +102,7 @@ jobs:
 
   mobile-performance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -111,9 +111,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Test Lighthouse regression comparison
+        run: node --test tests/site/lighthouse-regression.test.cjs
+      - name: Build reviewed Lighthouse reference
+        run: |
+          reference_sha="$(node -p "require('./tests/site/baselines/lighthouse.json').referenceCommit")"
+          git fetch --no-tags --depth=1 origin "$reference_sha"
+          git worktree add --detach "$RUNNER_TEMP/lighthouse-reference" "$reference_sha"
+          npm --prefix "$RUNNER_TEMP/lighthouse-reference" ci
+          npm --prefix "$RUNNER_TEMP/lighthouse-reference" run build
       - run: npx playwright install --with-deps chromium
-      - name: Three-run mobile Lighthouse medians
-        run: npm run performance:lab
+      - name: Three paired mobile Lighthouse runs per route
+        run: npm run performance:lab -- --reference-dir "$RUNNER_TEMP/lighthouse-reference"
         timeout-minutes: 12
       - uses: actions/upload-artifact@v4
         if: always()

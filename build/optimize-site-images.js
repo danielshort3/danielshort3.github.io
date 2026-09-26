@@ -78,7 +78,7 @@ const catalogJobs = catalogDirectories.flatMap((directory) => fs.readdirSync(pat
   .sort()
   .map((file) => ({
     source: `${directory}/${file}`,
-    outputs: [{ extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }]
+    outputs: [{ extension: '.webp', format: 'webp', options: { quality: directory === 'img/games/icons' ? 80 : 90, effort: 6, smartSubsample: true } }]
   })));
 
 function formatBytes(bytes) {

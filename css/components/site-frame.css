@@ -85,6 +85,10 @@
     min-height: 0;
     padding: var(--frame-panel-border-width, 4px) var(--frame-panel-border-width, 4px) var(--frame-panel-border-width, 4px) 0;
   }
+  /* Released Android WebViews reserve a zero-height first row for hidden rails. */
+  html:has(#android-feature-chrome) .site-frame[data-frame-navigation="dock"] .site-frame__slot {
+    grid-area: 2 / 1 !important;
+  }
   .site-frame__slot::after {
     content: "";
     position: absolute;

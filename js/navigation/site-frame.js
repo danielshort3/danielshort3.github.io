@@ -915,7 +915,8 @@
   }
 
   function commit(description, options = {}) {
-    const from = (held?.refreshing ? capture() : held?.from) || options.from || capture();
+    const initialMount = Boolean(options.original && options.animate === false && !current);
+    const from = initialMount ? null : (held?.refreshing ? capture() : held?.from) || options.from || capture();
     const next = loadContent(description, Boolean(options.original));
     current = next;
     desiredTarget = next;
@@ -926,7 +927,12 @@
     toolbar.replaceChildren(...(description.toolbar ? [...document.importNode(description.toolbar, true).childNodes] : []));
     toolbar.hidden = !description.toolbar;
     updateHomeToolbar(next);
-    if (options.defer) prepareHeldTarget(next, from);
+    // The first frame has no previous geometry to animate from. Mount it
+    // directly instead of measuring every rail and child twice.
+    if (initialMount) {
+      configure(next);
+      updateBoundary();
+    } else if (options.defer) prepareHeldTarget(next, from);
     else transition(next, { from, animate: options.animate !== false });
     return body;
   }

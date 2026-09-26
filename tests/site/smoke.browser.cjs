@@ -34,6 +34,7 @@ const runCompactProjectLayoutChecks = require('./compact-project-layout.browser.
 const runDashboardProjectLayoutChecks = require('./dashboard-project-layout.browser.cjs');
 const runProjectDemoConsistencyChecks = require('./project-demo-consistency.browser.cjs');
 const runTableauProjectIntegrationChecks = require('./tableau-project-integration.browser.cjs');
+const runAndroidWebViewLayoutChecks = require('./android-webview-layout.browser.cjs');
 
 const root = path.resolve(__dirname, '../..');
 const personalContent = require('../../content/audiences/personal.json');
@@ -371,6 +372,10 @@ async function checkDemo(page, homeStage, settings) {
 
 async function runViewport(browser, base, settings) {
   const context = await browser.newContext({ viewport: settings.viewport, reducedMotion: settings.reducedMotion });
+  await context.route(/^https:\/\/www\.google\.com\/maps\?/, async route => {
+    if (new URL(route.request().url()).searchParams.get('output') !== 'embed') return route.continue();
+    await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>Test map</title><p>Contact map fixture</p>' });
+  });
   const page = await context.newPage();
   page.setDefaultTimeout(12000);
   const errors = [];
@@ -455,7 +460,15 @@ async function runViewport(browser, base, settings) {
       'The resume has no disclosure, nested scroll region, or prominent year chapters.');
     assert.equal(await timeline.locator('[data-home-timeline-item]:visible').count(), 10,
       'All ten milestones stay rendered without opening a dropdown.');
-    assert.equal(await timeline.locator('img:visible').count(), 0, 'Organization logos do not crowd the resume.');
+    const visibleTimelineImages = timeline.locator('img:visible');
+    assert.equal(await timeline.locator('.home-background__icon img:visible').count(), 5,
+      'Experience and education use the five decorative category icons.');
+    assert.equal(await visibleTimelineImages.count(),
+      await timeline.locator('.home-background__icon img:visible, .home-background__arrow img:visible').count(),
+      'Only category and action icons appear; organization logos do not crowd the resume.');
+    assert(await visibleTimelineImages.evaluateAll(images => images.every(image =>
+      image.alt === '' && image.closest('[aria-hidden="true"]'))),
+    'Resume icons stay decorative for screen readers.');
     assert.deepEqual(await timeline.locator('[data-home-background-section] > h4').allTextContents(),
       ['Experience', 'Education', 'Credentials'], 'The resume exposes all three labelled sections.');
     const expectedSectionItems = {
@@ -851,6 +864,7 @@ async function main() {
     await runDashboardProjectLayoutChecks({ browser, base, artifactDir });
     await runProjectDemoConsistencyChecks({ browser, base, artifactDir });
     await runTableauProjectIntegrationChecks({ browser, base, artifactDir });
+    await runAndroidWebViewLayoutChecks({ browser, base, artifactDir });
     await runAccountSaveChecks({ browser, base, artifactDir });
     console.log(`Browser artifacts: ${artifactDir}`);
   } finally {
