@@ -254,6 +254,8 @@
       this.rigTextures = new Map();
       this.environmentTextures = new Map();
       this.mapSceneryPlacementCache = new Map();
+      this.textureRevision = 0;
+      this.staticMapCache = null;
       this.loadingTextures = new Map();
       this.runtimeTextures = new Map();
       this.idlePrewarmQueue = [];
@@ -271,6 +273,10 @@
       this.backgroundSprites = null;
       this.worldLayer = null;
       this.mapGraphics = null;
+      this.mapRearGraphics = null;
+      this.mapFrontGraphics = null;
+      this.mapClimbableGraphics = null;
+      this.mapInteractionGraphics = null;
       this.vfxGraphics = null;
       this.entityGraphics = null;
       this.uiGraphics = null;
@@ -286,6 +292,14 @@
 
     getCacheValue(cache, key) {
       if (!cache || !cache.has(key)) return null;
+      if (this.staticMapDerivativeCollector && (cache === this.environmentTextures || cache === this.trimmedTextures)) {
+        let keys = this.staticMapDerivativeCollector.get(cache);
+        if (!keys) {
+          keys = new Set();
+          this.staticMapDerivativeCollector.set(cache, keys);
+        }
+        keys.add(key);
+      }
       const value = cache.get(key);
       cache.delete(key);
       cache.set(key, value);
@@ -299,6 +313,14 @@
         else this.deleteCacheValue(cache, key);
       }
       cache.set(key, value);
+      if (this.staticMapDerivativeCollector && (cache === this.environmentTextures || cache === this.trimmedTextures)) {
+        let keys = this.staticMapDerivativeCollector.get(cache);
+        if (!keys) {
+          keys = new Set();
+          this.staticMapDerivativeCollector.set(cache, keys);
+        }
+        keys.add(key);
+      }
       const maxSize = Math.max(1, Number(limit || 0));
       while (cache.size > maxSize) {
         const oldest = cache.keys().next().value;
@@ -339,7 +361,16 @@
       if (!cache || !cache.has(key)) return false;
       const value = cache.get(key);
       cache.delete(key);
-      this.releaseCacheValue(cache, value);
+      if (cache === this.environmentTextures || cache === this.trimmedTextures) this.textureRevision += 1;
+      const retainedKeys = this.staticMapCache && this.staticMapCache.derivatives && this.staticMapCache.derivatives.get(cache);
+      const buildingKeys = this.staticMapDerivativeCollector && this.staticMapDerivativeCollector.get(cache);
+      if (this.deferredMapTextureReleases && (retainedKeys && retainedKeys.has(key) || buildingKeys && buildingKeys.has(key))) {
+        // A later actor draw can evict scenery already queued in this frame.
+        // Release it only after presentation; the revision rebuilds next frame.
+        this.deferredMapTextureReleases.push({ cache, value });
+      } else {
+        this.releaseCacheValue(cache, value);
+      }
       return true;
     }
 
@@ -370,6 +401,7 @@
       if (!this.textures.has(path)) return false;
       const texture = this.textures.get(path);
       this.textures.delete(path);
+      this.textureRevision += 1;
       this.releaseBaseTexture(path, texture);
       return true;
     }
@@ -398,6 +430,7 @@
         }
       }
       this.textures.set(src, texture);
+      this.textureRevision += 1;
       const maxSize = Math.max(1, Number(limit || this.baseTextureCacheLimit || BASE_TEXTURE_CACHE_LIMIT));
       while (this.textures.size > maxSize) {
         const oldest = this.textures.keys().next().value;
@@ -527,6 +560,11 @@
       this.backgroundSprites = new Container();
       this.worldLayer = new Container();
       this.mapGraphics = new Graphics();
+      this.mapRearGraphics = new Graphics();
+      this.mapFrontGraphics = new Graphics();
+      this.mapClimbableGraphics = new Graphics();
+      this.mapInteractionGraphics = new Graphics();
+      this.staticMapCache = null;
       this.vfxGraphics = new Graphics();
       this.entityGraphics = new Graphics();
       this.uiGraphics = new Graphics();
@@ -538,7 +576,11 @@
       this.damageTexts = new Container();
       this.worldLayer.addChild(
         this.mapSprites,
+        this.mapRearGraphics,
         this.mapGraphics,
+        this.mapFrontGraphics,
+        this.mapClimbableGraphics,
+        this.mapInteractionGraphics,
         this.worldSprites,
         this.vfxGraphics,
         this.vfxSprites,
@@ -648,14 +690,8 @@
       }
       pool.active += 1;
       sprite.visible = true;
-      sprite.texture = this.PIXI.Texture.WHITE;
-      sprite.position.set(0, 0);
-      sprite.rotation = 0;
-      sprite.scale.set(1, 1);
-      sprite.anchor.set(0.5);
-      sprite.alpha = 1;
-      sprite.tint = FALLBACK_COLOR;
-      sprite.blendMode = 'normal';
+      // drawTexture writes every varying property. Resetting first dirties the
+      // retained Pixi transform and texture even when the draw is unchanged.
       return sprite;
     }
 
@@ -689,11 +725,6 @@
       }
       pool.active += 1;
       text.visible = true;
-      text.position.set(0, 0);
-      text.rotation = 0;
-      text.scale.set(1, 1);
-      text.alpha = 1;
-      if (text.anchor && typeof text.anchor.set === 'function') text.anchor.set(0.5);
       return text;
     }
 
@@ -910,6 +941,7 @@
     getTexture(path) {
       const src = getAssetSourcePath(path);
       if (!src) return null;
+      if (this.staticMapAssetCollector) this.staticMapAssetCollector.add(src);
       const texture = this.textures.get(src);
       if (texture) {
         this.textures.delete(src);
@@ -1326,46 +1358,57 @@
 
     renderFrame(snapshot) {
       if (!this.ready || !this.app || !this.active) return null;
-      const timings = {};
-      let marker = nowMs();
-      this.lastVisualQuality = snapshot.visualQuality || { level: 'normal' };
-      this.frameStats = { actorFallbacks: 0, rigDraws: 0 };
-      this.resize(snapshot.width, snapshot.height);
-      this.syncWorldViewportClip(snapshot);
-      this.beginPools();
-      this.clearGraphics();
-      this.renderBackground(snapshot);
-      marker = markTiming(timings, 'background', marker);
-      this.updateWorldTransform(snapshot);
-      this.renderMap(snapshot);
-      marker = markTiming(timings, 'map', marker);
-      this.renderWorldEffects(snapshot);
-      marker = markTiming(timings, 'effects', marker);
-      this.renderProjectiles(snapshot);
-      marker = markTiming(timings, 'projectiles', marker);
-      this.renderLoot(snapshot);
-      marker = markTiming(timings, 'loot', marker);
-      this.renderEnemies(snapshot);
-      marker = markTiming(timings, 'enemies', marker);
-      this.renderParty(snapshot);
-      marker = markTiming(timings, 'party', marker);
-      this.renderPet(snapshot);
-      marker = markTiming(timings, 'pet', marker);
-      this.renderPlayer(snapshot);
-      marker = markTiming(timings, 'player', marker);
-      this.renderDamageSplats(snapshot);
-      marker = markTiming(timings, 'damageSplats', marker);
-      this.hideUnusedSprites();
-      marker = markTiming(timings, 'poolCleanup', marker);
-      this.app.render();
-      markTiming(timings, 'present', marker);
-      return timings;
+      this.deferredMapTextureReleases = [];
+      try {
+        const timings = {};
+        let marker = nowMs();
+        this.lastVisualQuality = snapshot.visualQuality || { level: 'normal' };
+        this.frameStats = { actorFallbacks: 0, rigDraws: 0 };
+        this.resize(snapshot.width, snapshot.height);
+        this.syncWorldViewportClip(snapshot);
+        this.beginPools();
+        this.clearGraphics();
+        this.renderBackground(snapshot);
+        marker = markTiming(timings, 'background', marker);
+        this.updateWorldTransform(snapshot);
+        this.renderMap(snapshot);
+        marker = markTiming(timings, 'map', marker);
+        this.renderWorldEffects(snapshot);
+        marker = markTiming(timings, 'effects', marker);
+        this.renderProjectiles(snapshot);
+        marker = markTiming(timings, 'projectiles', marker);
+        this.renderLoot(snapshot);
+        marker = markTiming(timings, 'loot', marker);
+        this.renderEnemies(snapshot);
+        marker = markTiming(timings, 'enemies', marker);
+        this.renderParty(snapshot);
+        marker = markTiming(timings, 'party', marker);
+        this.renderPet(snapshot);
+        marker = markTiming(timings, 'pet', marker);
+        this.renderPlayer(snapshot);
+        marker = markTiming(timings, 'player', marker);
+        this.renderDamageSplats(snapshot);
+        marker = markTiming(timings, 'damageSplats', marker);
+        this.hideUnusedSprites();
+        marker = markTiming(timings, 'poolCleanup', marker);
+        this.app.render();
+        markTiming(timings, 'present', marker);
+        return timings;
+      } finally {
+        const releases = this.deferredMapTextureReleases;
+        this.deferredMapTextureReleases = null;
+        for (const { cache, value } of releases) this.releaseCacheValue(cache, value);
+      }
     }
 
     clearGraphics() {
-      this.backgroundGraphics.clear();
-      this.worldBaseBandGraphics.clear();
-      this.mapGraphics.clear();
+      if (this.mapInteractionGraphics) {
+        this.mapRearGraphics.clear();
+        this.mapFrontGraphics.clear();
+        this.mapInteractionGraphics.clear();
+      } else {
+        this.mapGraphics.clear();
+      }
       this.vfxGraphics.clear();
       this.entityGraphics.clear();
       this.uiGraphics.clear();
@@ -1390,14 +1433,21 @@
       const skyTop = map.id === 'cinderHollow' ? 0x2c2632 : 0xdff7ff;
       const skyMid = colorToNumber(palette[1], 0x91dbe8);
       const ground = colorToNumber(palette[0], 0x77bf65);
-      this.backgroundGraphics
-        .rect(0, 0, width, height * 0.58)
-        .fill({ color: skyTop, alpha: 1 })
-        .rect(0, height * 0.42, width, height * 0.58)
-        .fill({ color: skyMid, alpha: 0.9 })
-        .rect(0, height * 0.82, width, height * 0.18)
-        .fill({ color: ground, alpha: 0.24 });
       const texture = this.getTexture(map.asset);
+      const graphicsKey = texture ? [width, height, map.id, map.backgroundMode, skyTop, skyMid, ground].join(':') : '';
+      const rebuildGraphics = !graphicsKey || this.backgroundGraphicsKey !== graphicsKey || this.cachedBackgroundGraphics !== this.backgroundGraphics;
+      if (rebuildGraphics) {
+        this.backgroundGraphicsKey = graphicsKey;
+        this.cachedBackgroundGraphics = this.backgroundGraphics;
+        this.backgroundGraphics.clear();
+        this.backgroundGraphics
+          .rect(0, 0, width, height * 0.58)
+          .fill({ color: skyTop, alpha: 1 })
+          .rect(0, height * 0.42, width, height * 0.58)
+          .fill({ color: skyMid, alpha: 0.9 })
+          .rect(0, height * 0.82, width, height * 0.18)
+          .fill({ color: ground, alpha: 0.24 });
+      }
       if (!texture) {
         this.renderProceduralBackground(snapshot, width, height);
         return;
@@ -1421,9 +1471,11 @@
           anchorX: 0,
           anchorY: 0
         });
-        this.backgroundGraphics
-          .rect(0, 0, width, height)
-          .fill({ color: 0x08121f, alpha: 0.08 });
+        if (rebuildGraphics) {
+          this.backgroundGraphics
+            .rect(0, 0, width, height)
+            .fill({ color: 0x08121f, alpha: 0.08 });
+        }
         this.renderWorldBaseBand(snapshot, width, playfieldHeight, map);
         return;
       }
@@ -1437,9 +1489,11 @@
           anchorY: 0
         });
       }
-      this.backgroundGraphics
-        .rect(0, 0, width, height)
-        .fill({ color: map.id === 'cinderHollow' ? 0x140a18 : 0xffffff, alpha: map.id === 'cinderHollow' ? 0.22 : 0.08 });
+      if (rebuildGraphics) {
+        this.backgroundGraphics
+          .rect(0, 0, width, height)
+          .fill({ color: map.id === 'cinderHollow' ? 0x140a18 : 0xffffff, alpha: map.id === 'cinderHollow' ? 0.22 : 0.08 });
+      }
       this.renderWorldBaseBand(snapshot, width, playfieldHeight, map);
     }
 
@@ -1470,6 +1524,11 @@
         Number(snapshot && snapshot.height || this.height || top),
         Number(playfieldHeight || 0) + Number(snapshot && snapshot.solidPlatformHeight || 0)
       )));
+      const key = `${width}:${top}:${bottom}`;
+      if (this.worldBaseBandCacheKey === key && this.worldBaseBandCacheGraphics === this.worldBaseBandGraphics) return;
+      this.worldBaseBandCacheKey = key;
+      this.worldBaseBandCacheGraphics = this.worldBaseBandGraphics;
+      this.worldBaseBandGraphics.clear();
       if (bottom <= top) return;
       for (let y = top; y < bottom; y += 1) {
         const progress = (y - top) / Math.max(1, bottom - top - 1);
@@ -1875,11 +1934,11 @@
       return this.drawEnvironmentCell('props', profile, cell, x, y, w, h, { alpha, flip, trim: true });
     }
 
-    getMapSceneryRuntimeSignature(snapshot, runtime) {
-      if (snapshot && snapshot._mapSceneryRuntimeSignature) return snapshot._mapSceneryRuntimeSignature;
+    getMapSceneryRuntimeSignature(snapshot, runtime, refresh) {
+      if (snapshot && snapshot._mapSceneryRuntimeSignature && !refresh) return snapshot._mapSceneryRuntimeSignature;
       const safeRuntime = runtime || {};
       const rectSignature = (list, fields) => (list || [])
-        .map((item) => fields.map((field) => Math.round(Number(item && item[field] || 0))).join(','))
+        .map((item) => fields.map((field) => Number(item && item[field] || 0)).join(','))
         .join(';');
       const signature = [
         safeRuntime.id || '',
@@ -1893,7 +1952,10 @@
         rectSignature(safeRuntime.questNpcs, ['x', 'y', 'w', 'h']),
         rectSignature(safeRuntime.spawnPoints, ['x', 'platformIndex'])
       ].join('|');
-      if (snapshot) snapshot._mapSceneryRuntimeSignature = signature;
+      if (snapshot) {
+        if (snapshot._mapSceneryRuntimeSignature !== signature) snapshot._mapDecorationBlockers = null;
+        snapshot._mapSceneryRuntimeSignature = signature;
+      }
       return signature;
     }
 
@@ -2453,7 +2515,7 @@
       }
     }
 
-    renderBossRoomAmbience(snapshot, layer) {
+    renderBossRoomAmbience(snapshot, layer, targetGraphics) {
       const map = snapshot.map || {};
       if (map.id !== 'eclipseThrone') return;
       const runtime = snapshot.runtime || {};
@@ -2466,7 +2528,7 @@
       const totality = phaseId === 'totality';
       const solarColor = totality ? 0xd9c891 : phaseId === 'lunarCourt' ? 0x7bdff2 : 0xffbe55;
       const lunarColor = totality ? 0x9f91bd : phaseId === 'lunarCourt' ? 0xffbe55 : 0x7bdff2;
-      const graphics = this.mapGraphics;
+      const graphics = targetGraphics || this.mapGraphics;
       if (layer === 'rear') {
         if (centerX < Number(bounds.left || 0) - 180 || centerX > Number(bounds.right || 0) + 180) return;
         const pulse = 0.5 + Math.sin(time * 0.75) * 0.5;
@@ -2505,12 +2567,34 @@
       }
     }
 
-    renderMap(snapshot) {
-      const graphics = this.mapGraphics;
+    getStaticMapRenderState(snapshot) {
+      const map = snapshot.map || {};
+      const runtime = snapshot.runtime || {};
+      const bounds = snapshot.bounds || {};
+      // Retain a little offscreen terrain so smooth camera movement does not
+      // rebuild all tile transforms and graphics tessellation every frame.
+      const step = 256;
+      const left = Math.floor(Number(bounds.left || 0) / step) * step;
+      const right = Math.ceil(Number(bounds.right || 0) / step) * step;
+      const top = Math.floor(Number(bounds.top || 0) / step) * step;
+      const bottom = Math.ceil(Number(bounds.bottom || 0) / step) * step;
+      const key = [
+        left, right, top, bottom, snapshot.width, snapshot.height, snapshot.playfieldHeight, this.textureRevision,
+        this.getMapSceneryRuntimeSignature(snapshot, runtime, true),
+        JSON.stringify([
+          (runtime.platforms || []).map((platform) => [platform.id, platform.shape, platform.terrainVisual]),
+          (runtime.climbables || []).map((climbable) => climbable.id),
+          (runtime.stations || []).map((station) => station.id)
+        ]),
+        JSON.stringify([map.id, map.palette, this.getEnvironmentProfile(map), map.townScene, map.fieldComposition])
+      ].join('|');
+      return { key, snapshot: Object.assign({}, snapshot, { bounds: { left, right, top, bottom } }) };
+    }
+
+    renderStaticMap(snapshot) {
       const runtime = snapshot.runtime || {};
       const map = snapshot.map || {};
       const bounds = snapshot.bounds || {};
-      this.renderBossRoomAmbience(snapshot, 'rear');
       this.renderTownStructures(snapshot, map, 'rear');
       this.renderFieldCompositionLandmarks(snapshot, map);
       this.renderMapScenery(snapshot, map, 'rear');
@@ -2520,11 +2604,56 @@
       });
       this.renderMapScenery(snapshot, map, 'front');
       this.renderTownStructures(snapshot, map, 'front');
-      this.renderBossRoomAmbience(snapshot, 'front');
-      this.renderClimbables(graphics, runtime, map);
+    }
+
+    renderMap(snapshot) {
+      const runtime = snapshot.runtime || {};
+      const map = snapshot.map || {};
+      const bounds = snapshot.bounds || {};
+      const retained = this.mapInteractionGraphics && this.spritePools.map;
+      this.renderBossRoomAmbience(snapshot, 'rear', this.mapRearGraphics);
+      if (retained) {
+        const state = this.getStaticMapRenderState(snapshot);
+        if (!this.staticMapCache || this.staticMapCache.key !== state.key) {
+          this.mapGraphics.clear();
+          this.mapClimbableGraphics.clear();
+          const assets = new Set();
+          const derivatives = new Map();
+          this.staticMapAssetCollector = assets;
+          this.staticMapDerivativeCollector = derivatives;
+          try {
+            this.renderStaticMap(state.snapshot);
+          } finally {
+            this.staticMapAssetCollector = null;
+            this.staticMapDerivativeCollector = null;
+          }
+          this.renderClimbables(this.mapClimbableGraphics, runtime, map, state.snapshot.bounds);
+          this.staticMapCache = { key: state.key, spriteCount: this.spritePools.map.active, assets, derivatives };
+          this.frameStats.staticMapRebuilt = true;
+        } else {
+          this.spritePools.map.active = this.staticMapCache.spriteCount;
+          // Cached scenery still uses these sources; keep them recent in the
+          // same bounded texture LRU used by freshly drawn actors and effects.
+          for (const path of this.staticMapCache.assets) {
+            const texture = this.textures.get(path);
+            if (!texture) continue;
+            this.textures.delete(path);
+            this.textures.set(path, texture);
+          }
+          for (const [cache, keys] of this.staticMapCache.derivatives) {
+            for (const key of keys) this.getCacheValue(cache, key);
+          }
+          this.frameStats.staticMapRebuilt = false;
+        }
+      } else {
+        this.renderStaticMap(snapshot);
+      }
+      this.renderBossRoomAmbience(snapshot, 'front', this.mapFrontGraphics);
+      if (!retained) this.renderClimbables(this.mapGraphics, runtime, map, bounds);
+      const graphics = this.mapInteractionGraphics || this.mapGraphics;
       this.renderPortals(graphics, runtime, snapshot);
-      this.renderQuestNpcs(graphics, runtime);
-      this.renderStations(graphics, runtime);
+      this.renderQuestNpcs(graphics, runtime, bounds);
+      this.renderStations(graphics, runtime, bounds);
     }
 
     getClimbableVisualStyle(map, climbable) {
@@ -2554,8 +2683,9 @@
       return { kind: 'rope', rail: 0x5b3d2d, railAlpha: 0.76, rung: 0xf7d28a, rungAlpha: 0.68 };
     }
 
-    renderClimbables(graphics, runtime, map) {
+    renderClimbables(graphics, runtime, map, bounds) {
       (runtime.climbables || []).forEach((climbable) => {
+        if (!isRectInBounds(climbable, bounds, 24)) return;
         const style = this.getClimbableVisualStyle(map, climbable);
         const left = climbable.x + climbable.w * 0.28;
         const right = climbable.x + climbable.w * 0.72;
@@ -2751,6 +2881,9 @@
     renderPortals(graphics, runtime, snapshot) {
       const now = Number(snapshot.nowSec || 0);
       (runtime.portals || []).forEach((portal) => {
+        // Include the edge-clamped label and any larger shop facade.
+        const padding = Math.max(240, Number(portal.facadeWidth || 0), Number(portal.facadeHeight || 0));
+        if (!isRectInBounds(portal, snapshot.bounds, padding) && !this.getPortalLabelRenderState(portal, runtime, snapshot)) return;
         const cx = portal.x + portal.w / 2;
         const cy = portal.y + portal.h / 2;
         const locked = !!portal.locked;
@@ -2774,8 +2907,9 @@
       });
     }
 
-    renderQuestNpcs(graphics, runtime) {
+    renderQuestNpcs(graphics, runtime, bounds) {
       (runtime.questNpcs || []).forEach((npc) => {
+        if (!isRectInBounds(npc, bounds, 160)) return;
         const color = colorToNumber(npc.color, 0x4f7f63);
         const accent = colorToNumber(npc.accent, 0xffd166);
         const cx = npc.x + npc.w / 2;
@@ -2795,8 +2929,9 @@
       });
     }
 
-    renderStations(graphics, runtime) {
+    renderStations(graphics, runtime, bounds) {
       (runtime.stations || []).forEach((station) => {
+        if (!isRectInBounds(station, bounds, 160)) return;
         const stationTexture = this.getTexture(station.asset);
         if (stationTexture) {
           const drawWidth = station.id === 'upgrade' ? 112 : 124;
@@ -4004,7 +4139,7 @@
       const sprite = this.acquireSprite(poolName);
       if (!sprite) return false;
       const settings = options || {};
-      sprite.texture = texture;
+      if (sprite.texture !== texture) sprite.texture = texture;
       sprite.anchor.set(
         settings.anchorX == null ? 0.5 : Number(settings.anchorX),
         settings.anchorY == null ? 0.5 : Number(settings.anchorY)
@@ -4041,6 +4176,7 @@
         visualQuality: this.lastVisualQuality && this.lastVisualQuality.level || 'normal',
         actorFallbacks: this.frameStats && this.frameStats.actorFallbacks || 0,
         rigDraws: this.frameStats && this.frameStats.rigDraws || 0,
+        staticMapRebuilt: !!(this.frameStats && this.frameStats.staticMapRebuilt),
         spritePools: Object.entries(this.spritePools).reduce((result, entry) => {
           result[entry[0]] = { size: entry[1].items.length, active: entry[1].active };
           return result;
@@ -4069,6 +4205,9 @@
       this.idlePrewarmScheduled = false;
       if (this.mapSceneryPlacementCache) this.mapSceneryPlacementCache.clear();
       this.loadingTextures.clear();
+      this.staticMapCache = null;
+      this.staticMapAssetCollector = null;
+      this.staticMapDerivativeCollector = null;
       this.app = null;
       this.ready = false;
     }
