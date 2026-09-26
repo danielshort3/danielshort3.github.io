@@ -19,7 +19,11 @@ import android.webkit.WebViewClient
 import android.webkit.RenderProcessGoneDetail
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
@@ -30,15 +34,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.delay
 
 /** The website is the source of behavior for browser-ready games, demos, and project pages. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,6 +79,19 @@ internal fun WebExperienceScreen(
   var fullscreenView by remember(url, rendererVersion) { mutableStateOf<View?>(null) }
   var fullscreenCallback by remember(url, rendererVersion) { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
   var actionsExpanded by remember(url) { mutableStateOf(false) }
+  var playOptionsExpanded by remember(url) { mutableStateOf(false) }
+  var loadAttempt by remember(url, rendererVersion) { mutableIntStateOf(0) }
+  var showProjectLoadingDetails by remember(url, rendererVersion) { mutableStateOf(false) }
+  val hasStarfallPlayOptions = experience.canonicalPath == WebExperience.STARFALL.canonicalPath && onOpenNative != null
+
+  LaunchedEffect(url, rendererVersion, loadAttempt, prepared, error) {
+    showProjectLoadingDetails = false
+    if (experience.kind == WebExperienceKind.PROJECT && !prepared && !error) {
+      delay(1_200L)
+      // A finished page only needs the short layout preparation, not a message flash.
+      if (loading && !prepared && !error) showProjectLoadingDetails = true
+    }
+  }
 
   fun closeFullscreen() {
     fullscreenCallback?.onCustomViewHidden()
@@ -125,7 +146,9 @@ internal fun WebExperienceScreen(
                 }
               }
             } else {
-              if (onOpenNative != null) TextButton(onClick = onOpenNative) { Text(nativeLabel) }
+              if (onOpenNative != null) TextButton(onClick = {
+                if (hasStarfallPlayOptions) playOptionsExpanded = true else onOpenNative()
+              }) { Text(if (hasStarfallPlayOptions) "Play options" else nativeLabel) }
               IconButton(onClick = { openExternalExperience(context, Uri.parse(url)) }) {
                 Icon(Icons.AutoMirrored.Outlined.OpenInNew, "Open in browser")
               }
@@ -192,6 +215,8 @@ internal fun WebExperienceScreen(
                 override fun onPageStarted(view: WebView, pageUrl: String?, favicon: Bitmap?) {
                   pendingLayout[0]?.let { view.removeCallbacks(it) }
                   pendingLayout[0] = null
+                  loadAttempt += 1
+                  showProjectLoadingDetails = false
                   loading = true
                   prepared = false
                   error = false
@@ -367,10 +392,41 @@ internal fun WebExperienceScreen(
         )
         }
         if (!prepared && !error && fullscreenView == null) {
-          Surface(Modifier.fillMaxSize().pointerInput(Unit) {
-            awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } }
-          }, color = MaterialTheme.colorScheme.surface) {
-            Box(contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+          Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+            BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              // Keep taps off the WebView while leaving the fallback action clickable above it.
+              Box(Modifier.matchParentSize().pointerInput(Unit) {
+                awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } }
+              })
+              CircularProgressIndicator()
+              if (showProjectLoadingDetails) Column(
+                Modifier.align(Alignment.TopCenter)
+                  .padding(top = maxHeight / 2 + 22.dp, start = 24.dp, end = 24.dp)
+                  .widthIn(max = 460.dp)
+                  .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+              ) {
+                Text("WEBSITE PROJECT", color = MaterialTheme.colorScheme.primary,
+                  style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                Text("Opening ${experience.title}", style = MaterialTheme.typography.titleLarge,
+                  fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Spacer(Modifier.height(8.dp))
+                Text("The full case study is loading.", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  style = MaterialTheme.typography.bodyMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                if (onOpenNative != null) {
+                  Spacer(Modifier.height(20.dp))
+                  OutlinedButton(onClick = onOpenNative, modifier = Modifier.heightIn(min = 48.dp)
+                    .testTag("project-loading-offline-summary"), shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = .45f))) {
+                    Text("Read offline summary")
+                  }
+                  Spacer(Modifier.height(8.dp))
+                  Text("Available without a connection", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall)
+                }
+              }
+            }
           }
         }
         if (error && fullscreenView == null) {
@@ -393,7 +449,9 @@ internal fun WebExperienceScreen(
                   rendererGone = false
                 } else webView.loadUrl(url)
               }) { Text(if (rendererGone) "Restart" else "Retry") }
-              if (onOpenNative != null) TextButton(onClick = onOpenNative) { Text("Open $nativeLabel") }
+              if (onOpenNative != null) TextButton(onClick = onOpenNative) {
+                Text(if (hasStarfallPlayOptions) "Open Offline Expedition" else "Open $nativeLabel")
+              }
               TextButton(onClick = { openExternalExperience(context, Uri.parse(url)) }) { Text("Open in browser") }
             }
           }
@@ -403,6 +461,49 @@ internal fun WebExperienceScreen(
     val customView = fullscreenView
     if (customView != null) {
       AndroidView(factory = { customView }, modifier = Modifier.fillMaxSize().testTag("website-fullscreen-view"))
+    }
+  }
+  if (hasStarfallPlayOptions && playOptionsExpanded) {
+    ModalBottomSheet(onDismissRequest = { playOptionsExpanded = false },
+      scrimColor = Color.Transparent, containerColor = MaterialTheme.colorScheme.surface,
+      shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)) {
+      Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 32.dp)) {
+        Text("Play options", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(14.dp))
+        val accent = MaterialTheme.colorScheme.primary
+        OutlinedCard(onClick = { playOptionsExpanded = false },
+          modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("starfall-website-choice"),
+          shape = RoundedCornerShape(8.dp), border = BorderStroke(1.dp, accent.copy(alpha = .45f)),
+          colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFFFF8F3))) {
+          Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+              Text("Website game", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+              Text("Full experience in this app", style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text("✓ Current", color = accent, fontWeight = FontWeight.Bold,
+              style = MaterialTheme.typography.labelLarge)
+          }
+        }
+        Spacer(Modifier.height(8.dp))
+        OutlinedCard(onClick = { playOptionsExpanded = false; onOpenNative?.invoke() },
+          modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("starfall-offline-choice"),
+          shape = RoundedCornerShape(8.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+          Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+              Text("Offline Expedition", style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold)
+              Text("Compact Android game · progress on this device",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text("→", color = accent, style = MaterialTheme.typography.titleMedium)
+          }
+        }
+        Spacer(Modifier.height(12.dp))
+        Text("Progress stays separate between versions.",
+          style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+      }
     }
   }
 }

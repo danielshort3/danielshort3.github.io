@@ -910,6 +910,7 @@ function replaceMainHtml(html, mainHtml) {
 }
 
 function renderLibraryCard(item, categoryId) {
+  const isProject = categoryId === 'projects';
   const href = String(item && item.href || '').trim();
   const title = String(item && item.title || 'Explore').trim();
   const summary = String(item && item.summary || '').trim();
@@ -934,10 +935,12 @@ function renderLibraryCard(item, categoryId) {
     `        <a class="home-library__card${iconImage ? ' home-library__card--icon' : ''}" href="${escapeHtml(href)}" data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="personal_library_page">`,
     `          <span class="home-library__media home-library__media--${mediaType}" aria-hidden="${imageAlt ? 'false' : 'true'}">${media}</span>`,
     '          <span class="home-library__copy">',
+    isProject ? '            <span class="home-library__headline">' : '',
     item.badge ? `            <small class="home-library__badge">${escapeHtml(item.badge)}</small>` : '',
     `            <strong>${escapeHtml(title)}</strong>`,
+    isProject ? '            </span>' : '',
     visibility === 'admin' ? `            <span class="home-library__access">${renderIcon(ACCESS_KEY)}Admin access</span>` : '',
-    summary ? `            <span>${escapeHtml(summary)}</span>` : '',
+    summary ? `            <span${isProject ? ' class="home-library__summary"' : ''}>${escapeHtml(summary)}</span>` : '',
     '          </span>',
     `          <span class="home-library__arrow" aria-hidden="true">${renderIcon(ARROW_RIGHT)}</span>`,
     '        </a>',

@@ -34,9 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -146,7 +149,7 @@ fun DanielShortApp(
           content?.games?.firstOrNull { it.id == feature.substringAfterLast(':') }?.url.orEmpty(),
           back,
           onOpenNative = { nativeFeature = "game:${feature.substringAfterLast(':')}" },
-          nativeLabel = "Offline mode"
+          nativeLabel = if (feature.endsWith(":project-starfall")) "Play options" else "Offline mode"
         )
         feature.startsWith("web:demo:") && feature.substringAfterLast(':') in WEB_DEMO_EXPERIENCES -> WebExperienceScreen(
           WEB_DEMO_EXPERIENCES.getValue(feature.substringAfterLast(':')),
@@ -160,7 +163,10 @@ fun DanielShortApp(
         nativeFeature == "tool:screen-recorder" -> NativeScreenRecorder(back)
         nativeFeature == "game:roulette" || nativeFeature == "roulette" -> NativeGameScreen(back)
         nativeFeature!!.startsWith("tool:") -> NativeToolsScreen(nativeFeature!!.substringAfter(":"), back)
-        nativeFeature!!.startsWith("game:") -> NativeGamesScreen(nativeFeature!!.substringAfter(":"), back, reduceMotion)
+        nativeFeature!!.startsWith("game:") -> NativeGamesScreen(nativeFeature!!.substringAfter(":"), back, reduceMotion,
+          onOpenWebsite = if (feature == "game:project-starfall") {
+            { nativeFeature = "web:game:project-starfall" }
+          } else null)
         nativeFeature!!.startsWith("demo:") -> NativeProjectDemoScreen(nativeFeature!!.substringAfter(":"), back)
       }
       }
@@ -367,7 +373,10 @@ private fun ProjectsScreen(projects: List<Project>, saved: Set<String>, modifier
           Column(Modifier.weight(1f)) {
             Text(project.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(5.dp)); Text(project.summary, color = Muted, style = MaterialTheme.typography.bodyMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(10.dp)); Text(if (project.id in saved) "Saved project" else "View project  →", color = Blue, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+            FlowRow(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+              if (project.id in saved) Text("✓ Saved", Modifier.clip(RoundedCornerShape(6.dp)).background(Blue.copy(alpha = .10f)).padding(horizontal = 7.dp, vertical = 4.dp), color = Blue, style = MaterialTheme.typography.labelMedium)
+              Text("View project  →", color = Blue, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+            }
           }
         }
       }
@@ -397,28 +406,67 @@ private fun CatalogScreen(title: String, subtitle: String, entries: List<Catalog
     items(filtered, key = { it.id }) { entry ->
       val hasNativeAlternative = entry.id in nativeAlternatives
       val isNative = entry.id in nativeIds && !hasNativeAlternative
-      OutlinedCard(onClick = { if (isNative) onNative(entry.id) else openWeb(context, entry.url) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, Line), colors = CardDefaults.outlinedCardColors(containerColor = Color.White)) {
-          Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            NativeThumbnail(entry.iconUrl, entry.title, accent)
-            Column(Modifier.weight(1f)) {
-              Text(entry.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-              Spacer(Modifier.height(5.dp))
-              val summary = when (entry.id) {
-                "screen-recorder" -> "Record a screen or app to MP4 with an optional microphone."
-                else -> entry.summary
-              }
-              Text(summary, color = Muted, style = MaterialTheme.typography.bodyMedium)
-              Text(if (isNative) nativeLabel else if (hasNativeAlternative) "Open website in browser" else "Open in browser", color = accent, style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 9.dp))
-              if (hasNativeAlternative) TextButton(onClick = { onNative(entry.id) }, contentPadding = PaddingValues(0.dp)) {
-                Text("Open Android version")
-              }
+      val cardModifier = Modifier.fillMaxWidth().testTag("catalog-card-${entry.id}")
+      val cardShape = RoundedCornerShape(12.dp)
+      val cardBorder = BorderStroke(1.dp, Line)
+      val cardColors = CardDefaults.outlinedCardColors(containerColor = Color.White)
+      if (hasNativeAlternative) {
+        OutlinedCard(modifier = cardModifier, shape = cardShape, border = cardBorder, colors = cardColors) {
+          CatalogCardDetails(entry, accent)
+          HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = Line)
+          BoxWithConstraints(Modifier.fillMaxWidth().padding(12.dp)) {
+            if (maxWidth < 280.dp * LocalDensity.current.fontScale) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              CatalogWebsiteButton(entry, accent, Modifier.fillMaxWidth()) { openWeb(context, entry.url) }
+              CatalogAndroidButton(entry, accent, Modifier.fillMaxWidth()) { onNative(entry.id) }
+            } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+              CatalogWebsiteButton(entry, accent, Modifier.weight(1f)) { openWeb(context, entry.url) }
+              CatalogAndroidButton(entry, accent, Modifier.weight(1.3f)) { onNative(entry.id) }
             }
-            Icon(if (isNative) Icons.AutoMirrored.Outlined.ArrowForward else Icons.AutoMirrored.Outlined.OpenInNew,
-              contentDescription = null, modifier = Modifier.size(18.dp), tint = accent)
           }
+        }
+      } else {
+        OutlinedCard(onClick = { if (isNative) onNative(entry.id) else openWeb(context, entry.url) }, modifier = cardModifier, shape = cardShape, border = cardBorder, colors = cardColors) {
+          CatalogCardDetails(entry, accent, if (isNative) nativeLabel else "Open in browser", isNative)
+        }
       }
     }
+  }
+}
+
+@Composable
+private fun CatalogCardDetails(entry: CatalogItem, accent: Color, actionLabel: String? = null, isNative: Boolean = false) {
+  Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+    NativeThumbnail(entry.iconUrl, entry.title, accent)
+    Column(Modifier.weight(1f)) {
+      Text(entry.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+      Spacer(Modifier.height(5.dp))
+      Text(if (entry.id == "screen-recorder") "Record a screen or app to MP4 with an optional microphone." else entry.summary,
+        color = Muted, style = MaterialTheme.typography.bodyMedium)
+      if (actionLabel != null) Text(actionLabel, color = accent, style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 9.dp))
+    }
+    if (actionLabel != null) Icon(if (isNative) Icons.AutoMirrored.Outlined.ArrowForward else Icons.AutoMirrored.Outlined.OpenInNew,
+      contentDescription = null, modifier = Modifier.size(18.dp), tint = accent)
+  }
+}
+
+@Composable
+private fun CatalogWebsiteButton(entry: CatalogItem, accent: Color, modifier: Modifier, onClick: () -> Unit) {
+  Button(onClick = onClick, modifier = modifier.heightIn(min = 48.dp).semantics { contentDescription = "Open ${entry.title} website in browser" },
+    shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 8.dp),
+    colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+    Text("Website", maxLines = 1)
+    Spacer(Modifier.width(4.dp))
+    Icon(Icons.AutoMirrored.Outlined.OpenInNew, null, Modifier.size(16.dp))
+  }
+}
+
+@Composable
+private fun CatalogAndroidButton(entry: CatalogItem, accent: Color, modifier: Modifier, onClick: () -> Unit) {
+  OutlinedButton(onClick = onClick, modifier = modifier.heightIn(min = 48.dp).semantics { contentDescription = "Open ${entry.title} Android version" },
+    shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 8.dp),
+    border = BorderStroke(1.dp, accent.copy(alpha = .45f)), colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)) {
+    Text("Android version", maxLines = 1)
   }
 }
 

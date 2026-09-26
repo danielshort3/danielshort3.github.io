@@ -48,11 +48,11 @@ val NATIVE_GAME_IDS = setOf("stellar-dogfight", "ocean-wave-simulation", "projec
 internal val LocalGameLoopLifecycleOwner = staticCompositionLocalOf<LifecycleOwner?> { null }
 
 @Composable
-fun NativeGamesScreen(gameId: String, onBack: () -> Unit, reduceMotion: Boolean = false) {
+fun NativeGamesScreen(gameId: String, onBack: () -> Unit, reduceMotion: Boolean = false, onOpenWebsite: (() -> Unit)? = null) {
   when (gameId) {
     "stellar-dogfight" -> StellarScreen(onBack, reduceMotion)
     "ocean-wave-simulation" -> OceanScreen(onBack, reduceMotion)
-    "project-starfall" -> StarfallScreen(onBack, reduceMotion)
+    "project-starfall" -> StarfallScreen(onBack, reduceMotion, onOpenWebsite)
     "probability-engine" -> ProbabilityScreen(onBack)
     "stormbreak" -> StormbreakScreen(onBack, reduceMotion)
   }
@@ -62,11 +62,14 @@ private val StageColor = Color(0xFF06162A)
 private val Gold = Color(0xFFFFD577)
 
 @Composable
-private fun GamePage(title: String, subtitle: String, onBack: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+private fun GamePage(title: String, subtitle: String, onBack: () -> Unit, onOpenWebsite: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
   Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).safeDrawingPadding()
     .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp)) {
-    TextButton(onClick = onBack) { Text("‹  Games") }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+      TextButton(onClick = onBack) { Text("‹  Games") }
+      if (onOpenWebsite != null) TextButton(onClick = onOpenWebsite) { Text("Website game →") }
+    }
     Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { heading() })
     Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary)
@@ -408,7 +411,7 @@ private fun ProbabilityScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun StarfallScreen(onBack: () -> Unit, reduceMotion: Boolean) {
+private fun StarfallScreen(onBack: () -> Unit, reduceMotion: Boolean, onOpenWebsite: (() -> Unit)?) {
   val context = LocalContext.current
   val store = remember { GameStorage(context) }
   val game = remember { StarfallModel().apply { restore(store.read("project-starfall")) } }
@@ -423,7 +426,13 @@ private fun StarfallScreen(onBack: () -> Unit, reduceMotion: Boolean) {
   val background = GameBitmap("greenroot-meadow.webp")
   val hero = GameBitmap(game.hero.name.lowercase() + ".png")
   val enemy = GameBitmap("shardling.png")
-  GamePage("Project Starfall: Offline Expedition", "A compact mission with progress saved on this device.", onBack) {
+  GamePage("Project Starfall: Offline Expedition", "A compact mission with progress saved on this device.", onBack,
+    onOpenWebsite = onOpenWebsite?.let { openWebsite -> {
+      game.move = 0f
+      paused = true
+      save()
+      openWebsite()
+    } }) {
     tick
     Stats("Level" to game.level.toString(), "HP" to "${game.hp.toInt()}/${game.maxHp.toInt()}", "Gold" to game.gold.toString())
     if (game.kills == 0) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

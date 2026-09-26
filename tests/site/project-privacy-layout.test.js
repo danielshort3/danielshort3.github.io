@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { preparePersonalProjectDetailHtml, renderProjectPage } = require('../../build/generate-project-pages');
-const { wrapPersonalAccordionHtml } = require('../../build/lib/personal-accordion-shell');
+const { markProfessionalInternalHtml, wrapPersonalAccordionHtml } = require('../../build/lib/personal-accordion-shell');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
@@ -27,14 +27,26 @@ function runProjectPrivacyLayoutTests({ assert }) {
   'Intro actions enter existing content-click measurement as resources rather than counting another project view.');
   assert(babyNames.includes('class="project-demo-shell"') && babyNames.includes('project-link-label">Notebook'),
     'Promoting two actions preserves the embedded demo and supporting resources.');
-  assert(!babyNames.includes('class="project-demo-open"') && !babyNames.includes('class="project-demo-launch-copy"'),
-    'The project masthead is the only demo launch control, including mobile preview layouts.');
+  assert(!babyNames.includes('class="project-demo-open"') && !babyNames.includes('class="project-demo-launch-copy"')
+    && babyNames.includes('class="project-demo-preview-label"')
+    && babyNames.includes('class="project-demo-mobile-open btn-primary"'),
+  'The mobile image is labeled as a preview with a nearby full-demo action.');
+  assert(babyNames.includes('data-source-surface="project_preview"')
+    && babyNames.includes('>Open interactive demo <span aria-hidden="true">↗</span></a>'),
+  'The preview launch uses the existing resource measurement with its own source surface.');
   assert(babyNames.includes('style="--project-preview-aspect: 1280 / 800;"'),
     'The project preview reserves its supplied aspect ratio before a lazy image has loaded.');
+  assert(babyNames.includes('<nav class="project-next-steps" aria-label="Continue exploring">')
+    && babyNames.includes('<a class="project-all-link" href="/portfolio">All projects</a>'),
+  'Every project keeps a library return at the end, even without a next-project suggestion.');
+  assert(markProfessionalInternalHtml(babyNames, 'analytics').includes('<a class="project-all-link" href="/portfolio?audience=analytics">All projects</a>'),
+  'Professional project copies keep their audience when returning to the library.');
   for (const id of ['handwritingRating', 'shapeClassifier']) {
     const drawing = renderProjectPage(project(id));
     assert(drawing.includes('project-main--drawing') && !drawing.includes('class="project-demo-header"'),
       `${id} uses one page introduction without repeating it above the canvas.`);
+    assert(drawing.includes('class="project-demo-preview-label"') && !drawing.includes('class="project-demo-mobile-open btn-primary"'),
+      `${id} labels its static preview without adding an action inside the cropped drawing image.`);
     assert(intro(drawing).includes('aria-label="Demo instructions"')
       && (drawing.match(/aria-label="Demo instructions"/g) || []).length === 1,
     `${id} keeps its instructions beside the masthead actions exactly once.`);

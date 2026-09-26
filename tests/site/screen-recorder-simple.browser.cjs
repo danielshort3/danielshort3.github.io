@@ -93,6 +93,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
   try {
     await page.goto(base + '/tools/screen-recorder', { waitUntil: 'networkidle' });
     await control('start-capture').waitFor();
+    assert(await control('support-notice').isHidden(), 'Supported browsers do not show a capability warning, including at narrow widths.');
     const essential = page.getByRole('button', { name: 'Essential only', exact: true });
     if (await essential.isVisible()) await essential.click();
     assert.equal(await page.locator('[data-screenrec="test-capture"], [data-screenrec="delay-record"], [data-screenrec="countdown"]').count(), 0, 'Removed test/countdown controls should not remain in the page');
@@ -116,6 +117,8 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert.match(await control('status').innerText(), /cancel|blocked|denied|permission/i);
     assert(await control('start-record').isDisabled(), 'Permission cancellation must not enable recording');
     assert(await control('stop-capture').isDisabled(), 'Permission cancellation must not leave an active capture');
+    assert(await control('support-notice').isHidden(), 'Cancelling sharing does not mark the browser unsupported.');
+    assert(await control('controls-panel').isVisible(), 'Capture settings remain available after cancellation.');
     await checkStatusLayout(page, viewport, stage);
 
     stage = 'capture';
@@ -155,6 +158,16 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert(await control('pause-record').isDisabled(), 'Pause is disabled after finalizing');
     assert(await control('stop-record').isDisabled(), 'Stop recording is disabled after finalizing');
     assert((await control('download-items').innerText()).trim().length > 0, 'Completed download shows its format and size');
+    const session = await page.evaluate(() => {
+      const payload = {};
+      document.dispatchEvent(new CustomEvent('tools:session-capture', { detail: { toolId: 'screen-recorder', payload } }));
+      document.dispatchEvent(new CustomEvent('tools:session-applied', { detail: { toolId: 'screen-recorder' } }));
+      return payload;
+    });
+    assert.match(session.outputSummary, /^Recorded/);
+    assert.equal(session.inputs.FPS, '30 fps');
+    assert(await control('preview-panel').isVisible(), 'Applying settings retains an existing clip preview.');
+    assert(await control('download-all').isEnabled(), 'Applying settings retains the existing download.');
     await checkStatusLayout(page, viewport, 'clip ready');
     const downloadEvent = page.waitForEvent('download');
     await control('download-all').click();
@@ -182,9 +195,73 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
   }
 }
 
+async function checkUnavailable({ browser, base, artifactDir }, viewport, missingApi) {
+  const context = await browser.newContext({ viewport, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  await context.addInitScript(api => {
+    window.__screenRecorderSupportTest = { captureRequests: 0, microphoneRequests: 0 };
+    Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async () => {
+      window.__screenRecorderSupportTest.microphoneRequests += 1;
+      throw new Error('Unsupported capture must not request microphone access.');
+    } });
+    Object.defineProperty(navigator.mediaDevices, 'getDisplayMedia', { configurable: true, value: api === 'capture' ? undefined : async () => {
+      window.__screenRecorderSupportTest.captureRequests += 1;
+      throw new Error('Unsupported capture must not request screen access.');
+    } });
+    if (api === 'recorder') Object.defineProperty(window, 'MediaRecorder', { configurable: true, value: undefined });
+  }, missingApi);
+  await context.route('**/api/tools/**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"authenticated":false}' }));
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  const label = `${missingApi}-${viewport.width}`;
+  try {
+    await page.goto(base + '/tools/screen-recorder', { waitUntil: 'networkidle' });
+    assert.equal(new URL(page.url()).pathname, '/tools/screen-recorder');
+    assert.match(await page.title(), /^Screen Recorder/);
+    const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+    if (await essential.isVisible()) await essential.click();
+    await page.evaluate(() => document.fonts.ready);
+    const notice = page.locator('[data-screenrec="support-notice"]');
+    assert(await notice.isVisible(), `${label}: a missing API immediately explains support.`);
+    assert.match(await notice.innerText(), /Screen capture is unavailable here/);
+    assert.match(await notice.innerText(), missingApi === 'capture' ? /does not provide screen sharing/ : /does not provide video recording/);
+    for (const key of ['controls-panel', 'preview-panel', 'start-capture', 'start-record', 'download-all']) {
+      assert(await page.locator(`[data-screenrec="${key}"]`).isHidden(), `${label}: inapplicable ${key} controls are hidden.`);
+    }
+    const layout = await notice.evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      const hero = document.querySelector('.tools-hero').getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, heroBottom: hero.bottom, overflow: document.documentElement.scrollWidth - innerWidth };
+    });
+    assert(layout.left >= 0 && layout.right <= viewport.width + 1 && layout.overflow <= 1, `${label}: the support notice fits without horizontal clipping.`);
+    assert(layout.top >= layout.heroBottom && layout.top - layout.heroBottom <= 40, `${label}: the notice immediately follows the hero.`);
+    assert(layout.bottom < viewport.height, `${label}: the explanation is visible in the first viewport.`);
+    await page.screenshot({ path: path.join(artifactDir, `screen-recorder-unsupported-${label}.png`) });
+    const payload = await page.evaluate(() => {
+      document.querySelector('[data-screenrec="fps-select"]').value = '60';
+      document.dispatchEvent(new CustomEvent('tools:session-applied', { detail: { toolId: 'screen-recorder' } }));
+      const payload = {};
+      document.dispatchEvent(new CustomEvent('tools:session-capture', { detail: { toolId: 'screen-recorder', payload } }));
+      return payload;
+    });
+    assert.equal(payload.inputs.FPS, '60 fps', 'Restored settings remain serializable.');
+    assert.equal(payload.outputSummary, 'No clip yet');
+    assert(await page.locator('[data-screenrec="grid"]').isHidden(), 'Session restoration does not reveal inapplicable controls.');
+    assert.deepEqual(await page.evaluate(() => window.__screenRecorderSupportTest), { captureRequests: 0, microphoneRequests: 0 });
+    assert.deepEqual(errors, [], `${label}: unsupported state does not produce runtime or console errors.`);
+    console.log(`Recorder support passed: missing ${missingApi}, ${viewport.width}px, immediate notice, hidden capture controls, restored settings.`);
+  } finally {
+    await context.close();
+  }
+}
+
 async function runScreenRecorderSimpleChecks(options) {
   fs.mkdirSync(options.artifactDir, { recursive: true });
-  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) await checkViewport(options, viewport);
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
+    for (const missingApi of ['capture', 'recorder']) await checkUnavailable(options, viewport, missingApi);
+    await checkViewport(options, viewport);
+  }
 }
 
 module.exports = runScreenRecorderSimpleChecks;

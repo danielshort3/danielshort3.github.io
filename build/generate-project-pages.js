@@ -545,7 +545,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
     if (!lead && !bullets.length) return '';
     const tooltipId = `project-demo-${toDomIdSafe(id)}-instructions`;
     return `<div class="project-demo-help">
-      <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="${escapeHtml(tooltipId)}">
+      <button class="project-demo-help-trigger" type="button" aria-label="${dashboard ? 'Dashboard instructions' : 'Demo instructions'}" aria-describedby="${escapeHtml(tooltipId)}">
         <span aria-hidden="true">?</span>
       </button>
       <div class="project-demo-tooltip" id="${escapeHtml(tooltipId)}" role="tooltip">
@@ -592,7 +592,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
           const externalAttrs = /^https?:\/\//i.test(action.href) ? ' target="_blank" rel="noopener noreferrer"' : '';
           return `<a class="project-intro-action project-intro-action--${action.type}" href="${escapeHtml(action.href)}"${externalAttrs} data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project_resource" data-resource-type="${action.type}" data-source-surface="project_intro">${escapeHtml(action.label)}</a>`;
         }).join('\n        ')}
-        ${drawingDemo ? renderDemoInstructions() : ''}
+        ${drawingDemo || dashboard ? renderDemoInstructions() : ''}
       </nav>`
     : '';
 
@@ -709,6 +709,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
   const contactMessage = `Hi Daniel, I have a question about ${title}:\n\n`;
   const nextSteps = `<nav class="project-next-steps" aria-label="Continue exploring">
       ${nextProject ? `<a class="project-next-link" href="/portfolio/${escapeHtml(encodeURIComponent(nextProject.id))}" data-content-open="true" data-content-id="${escapeHtml(nextProject.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>${escapeHtml(nextProject.title)} <span aria-hidden="true">→</span></strong></a>` : ''}
+      <a class="project-all-link" href="/portfolio">All projects</a>
     </nav>`;
   const projectQuestion = `<div class="project-question-dock">
       <a class="project-question-link" href="/contact" data-contact-modal-link="true" data-contact-message="${escapeHtml(contactMessage)}" aria-haspopup="dialog">
@@ -933,14 +934,20 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
       ? `<div class="project-demo-heading">${headingHtml}<p class="project-demo-description">${escapeHtml(demoDescription)}</p></div>`
       : headingHtml;
 
-    const mobileLaunch = (embedFit === 'content' || dashboard) && launchHref
+    const mobilePreviewImage = renderDemoLaunchPreview();
+    const mobilePreviewAction = embedFit === 'content' && !drawingDemo && launchHref
+      ? `<a class="project-demo-mobile-open btn-primary" href="${escapeHtml(launchHref)}"${/^https?:\/\//i.test(launchHref) ? ' target="_blank" rel="noopener noreferrer"' : ''} data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project_resource" data-resource-type="demo" data-source-surface="project_preview">Open interactive demo <span aria-hidden="true">↗</span></a>`
+      : '';
+    const mobileLaunch = (embedFit === 'content' || dashboard) && launchHref && mobilePreviewImage
       ? `<div class="project-demo-mobile-launch">
-          ${renderDemoLaunchPreview()}
+          ${mobilePreviewImage}
+          ${embedFit === 'content' ? '<span class="project-demo-preview-label" aria-hidden="true">Preview image</span>' : ''}
+          ${mobilePreviewAction}
         </div>`
       : '';
 
-    return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(embedFit)}" aria-label="Interactive demo">
-      ${drawingDemo ? '' : `<div class="project-demo-header">
+    return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(embedFit)}" aria-label="Project demo">
+      ${drawingDemo || dashboard ? '' : `<div class="project-demo-header">
         ${demoCopy}
         <div class="project-demo-header-actions">
           ${renderDemoInstructions()}

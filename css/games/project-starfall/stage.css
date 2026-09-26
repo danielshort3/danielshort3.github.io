@@ -159,9 +159,10 @@
     display: none !important;
   }
 
-  @media (max-width: 768px), (max-width: 959px) and (max-height: 619px) {
+  @media (max-width: 768px) {
     body.project-starfall-page.has-mobile-scroll-chrome #pcz-banner {
-      padding-bottom: calc(20px + var(--mobile-section-nav-height, 72px) + env(safe-area-inset-bottom, 0px)) !important;
+      padding: 8px max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)) !important;
+      background: transparent !important;
     }
   }
 

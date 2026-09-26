@@ -109,12 +109,7 @@
             "title": "Daniel Short.",
             "summary": "Solving everyday problems with data and thoughtful tools.",
             "detail": "I use data, AI, and machine learning to build practical projects and browser tools.",
-            "links": [
-              { "label": "Projects", "href": "/portfolio" },
-              { "label": "Tools", "href": "/tools" },
-              { "label": "Games", "href": "/games" },
-              { "label": "Contact", "href": "/contact" }
-            ]
+            "browseLink": { "label": "Browse all projects", "href": "/portfolio" }
           },
           "categories": [
             {

@@ -135,17 +135,22 @@
         }
         const copy = document.createElement('span');
         copy.className = 'home-library__copy';
+        const headline = id === 'projects' ? document.createElement('span') : copy;
+        if (id === 'projects') headline.className = 'home-library__headline';
         const title = document.createElement('strong');
         title.textContent = entry.title || 'Explore';
         const summary = document.createElement('span');
         summary.textContent = entry.summary || '';
+        if (id === 'projects') summary.className = 'home-library__summary';
         if (entry.badge) {
           const badge = document.createElement('small');
           badge.className = 'home-library__badge';
           badge.textContent = entry.badge;
-          copy.append(badge);
+          headline.append(badge);
         }
-        copy.append(title, summary);
+        headline.append(title);
+        if (headline !== copy) copy.append(headline);
+        copy.append(summary);
         const arrow = document.createElement('span');
         arrow.className = 'home-library__arrow';
         arrow.setAttribute('aria-hidden', 'true');
@@ -588,17 +593,21 @@
 
     const copy = document.createElement('span');
     copy.className = 'home-library__copy';
+    const headline = categoryId === 'projects' ? document.createElement('span') : copy;
+    if (categoryId === 'projects') headline.className = 'home-library__headline';
     const title = document.createElement('strong');
     title.textContent = String(item.title || 'Explore');
-    copy.append(title);
     if (item.badge) {
       const badge = document.createElement('small');
       badge.className = 'home-library__badge';
       badge.textContent = item.badge;
-      copy.prepend(badge);
+      headline.append(badge);
     }
+    headline.append(title);
+    if (headline !== copy) copy.append(headline);
     if (item.summary) {
       const summary = document.createElement('span');
+      if (categoryId === 'projects') summary.className = 'home-library__summary';
       summary.textContent = String(item.summary);
       copy.append(summary);
     }

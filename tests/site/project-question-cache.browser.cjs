@@ -78,6 +78,8 @@ async function assertQuestionLayout(page, label) {
       viewport: rect(document.querySelector('.site-frame__viewport')),
       compact: document.querySelector('.site-frame').dataset.frameCompact === 'true',
       separateDock: dock.parentElement.classList.contains('site-frame__slot-content'),
+      inProjectFlow: dock.parentElement.matches('.project-main') && dock.previousElementSibling?.matches('.project-body'),
+      mobileQuestion: matchMedia('(max-width: 768px), (max-width: 959px) and (max-height: 619px)').matches,
       overflow: document.documentElement.scrollWidth - innerWidth
     };
   });
@@ -85,9 +87,11 @@ async function assertQuestionLayout(page, label) {
   assert.equal(geometry.icon.width, 22, `${label}: icon stays 22px wide`);
   assert.equal(geometry.icon.height, 22, `${label}: icon stays 22px high`);
   assert(['flex', 'inline-flex'].includes(geometry.display), `${label}: the styled button is active`);
-  assert(geometry.separateDock, `${label}: the action lives in a reserved footer outside the scrolling content`);
-  assert.equal(geometry.position, geometry.compact ? 'sticky' : 'relative', `${label}: the action uses the appropriate footer layout`);
-  if (!geometry.compact) {
+  assert.equal(geometry.inProjectFlow, geometry.mobileQuestion, `${label}: the mobile action follows project content`);
+  assert.equal(geometry.separateDock, !geometry.mobileQuestion, `${label}: only desktop uses the reserved footer`);
+  assert.equal(geometry.position, geometry.mobileQuestion ? 'static' : geometry.compact ? 'sticky' : 'relative',
+    `${label}: the action uses the appropriate layout`);
+  if (!geometry.compact && !geometry.mobileQuestion) {
     assert(geometry.viewport.bottom <= geometry.dock.top + 1, `${label}: the footer cannot cover project content`);
   }
   assert(geometry.radius >= 8, `${label}: the button has its rounded theme`);
@@ -174,6 +178,15 @@ async function checkCachedStyles({ browser, base, artifactDir }, viewport) {
     evidence.assetReferences = assetReferences;
     evidence.initial = await assertQuestionLayout(page, `${label} initial`);
     await page.screenshot({ path: path.join(artifactDir, `question-cache-${label}.png`) });
+    if (viewport.width === 390) {
+      stage = 'responsive question placement';
+      await page.setViewportSize({ width: 980, height: 1000 });
+      await settle(page);
+      evidence.resizedDesktop = await assertQuestionLayout(page, `${label} resized desktop`);
+      await page.setViewportSize(viewport);
+      await settle(page);
+      evidence.resizedMobile = await assertQuestionLayout(page, `${label} resized mobile`);
+    }
 
     stage = 'open and close contact dialog';
     await page.locator('.project-question-link').click();

@@ -683,7 +683,7 @@ window.PROJECTS = [
       "image": "img/projects/handwritingRating-workspace-preview.webp?v=2757424b916b",
       "width": 1280,
       "height": 976,
-      "alt": "Current Handwriting Rating workspace with an unscored six on the black drawing canvas, Rate digit button, and all ten sample buttons."
+      "alt": "Close-up preview of a handwritten six on the black drawing canvas with the Rate digit button below."
     },
     "relatedProjectId": "shapeClassifier"
   },
@@ -1497,7 +1497,7 @@ window.PROJECTS = [
     "problem": "I needed a fast site to show my work, especially on mobile.",
     "task": "Build a fast, mobile-friendly portfolio that makes projects easy to find, explore, and share.",
     "actions": [
-      "Built a static site and rendered portfolio projects from a single data file.",
+      "Built a static site and generated portfolio pages from structured project content.",
       "Added Google Analytics 4, structured data, and lazy loading for heavy assets."
     ],
     "results": [
@@ -1507,7 +1507,7 @@ window.PROJECTS = [
     "personalStory": {
       "why": "I wanted one fast, mobile-friendly place where projects, tools, games, and professional work were easy to understand and share.",
       "surprise": "Keeping content, generated pages, clean routes, and deployment output synchronized became as important as the visual design.",
-      "next": "I’d add automated accessibility, broken-link, and Core Web Vitals regression checks to catch quality drift before deployment."
+      "next": "I’d keep improving mobile loading and test the custom navigation with screen-reader users."
     },
     "order": 17,
     "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site.",

@@ -83,6 +83,7 @@ async function assertLayout(page) {
       frames: document.querySelectorAll('.site-frame').length,
       category: frame?.dataset.frameCategory,
       audience: frame?.dataset.frameAudience,
+      home: frame?.dataset.frameHome === 'true',
       overview: frame?.dataset.frameHome === 'true' && frame?.dataset.frameView === 'overview',
       closed: frame?.dataset.frameHome === 'true' && frame?.dataset.frameView === 'closed',
       compact: frame?.dataset.frameCompact === 'true',
@@ -99,8 +100,10 @@ async function assertLayout(page) {
   assert.equal(layout.frames, 1, 'Exactly one shared frame is mounted.');
   assert(layout.pageWidth <= layout.width + 1, `Document overflows horizontally: ${JSON.stringify(layout)}`);
   const visibleTabs = layout.tabs.filter(tab => !tab.hidden);
+  const railFree = layout.audience === 'personal' && !layout.home && layout.mobileNavigation;
   assert.deepEqual(visibleTabs.map(tab => tab.category), layout.audience !== 'personal'
     ? ['about', 'projects', 'resume', 'contact']
+    : railFree ? []
     : !layout.compact && !layout.overview && !layout.closed
       ? [layout.category] : ['about', 'projects', 'tools', 'games', 'contact'],
   'Navigation exposes the correct categories for the audience and route.');
@@ -109,7 +112,7 @@ async function assertLayout(page) {
       'The mobile bottom navigation retains every category alongside the visible overview rails.');
   }
   assert.equal(layout.tabs.filter(tab => tab.active).length, layout.closed ? 0 : 1,
-    layout.closed ? 'The closed homepage has no active category.' : 'Exactly one category is active.');
+    layout.closed ? 'The closed homepage has no active category.' : 'Exactly one category state is active.');
   for (const tab of layout.tabs.filter(tab => tab.hidden)) {
     assert(tab.inert && tab.tabIndex === -1 && tab.box?.width === 0 && tab.box?.height === 0,
       `${tab.category} inactive rail is removed from layout and keyboard navigation.`);
@@ -126,7 +129,7 @@ async function assertLayout(page) {
       'Desktop rails align along the top of the frame.');
     assert(visibleTabs.every((tab, index) => index === 0 || tab.box.left > visibleTabs[index - 1].box.left),
       'Desktop rails keep the original category order around the expanded panel.');
-  } else {
+  } else if (!railFree) {
     if (layout.audience === 'personal' && (layout.overview || layout.closed)) {
       assert(visibleTabs.every(tab => tab.box.height <= 100 && tab.box.width >= layout.width - 12),
         'Personal mobile tabs remain full-width compact rows in open and closed views.');
