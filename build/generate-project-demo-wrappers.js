@@ -165,7 +165,7 @@ ${header}
   <header class="project-demo-wrapper-header" data-project-demo-masthead="${escapeHtml(definition.demoId)}" data-page-masthead>
     <div class="wrapper">
       <a href="${escapeHtml(definition.backHref)}" aria-label="${escapeHtml(definition.backLabel)}" data-page-masthead-parent>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"></path></svg>
+        <img src="/img/ui/site-icons/action-back.png" alt="" aria-hidden="true" width="20" height="20" decoding="async">
         <span>${escapeHtml(definition.backCompactLabel)}</span>
       </a>
       <div data-page-masthead-intro>

@@ -14,9 +14,10 @@ const block = (start, end) => {
 };
 const context = vm.createContext({});
 vm.runInContext(`${block('  const formatBytes =', '  const describeSelectionLimits =')}
+${block('  const isWebpBlob =', '  const buildOutputName =')}
 ${block('  const describeSizeChange =', '  const renderOutputs =')}
-globalThis.api = { describeSizeChange, chooseOutput };`, context);
-const { describeSizeChange, chooseOutput } = context.api;
+globalThis.api = { describeSizeChange, getSizeFeedback, chooseOutput, isWebpBlob };`, context);
+const { describeSizeChange, getSizeFeedback, chooseOutput, isWebpBlob } = context.api;
 
 const original = { size: 100, type: 'image/png' };
 const encoded = { size: 250, type: 'image/png' };
@@ -44,4 +45,42 @@ assert.equal(describeSizeChange(100, 100), 'Same file size as original');
 assert.match(describeSizeChange(100000, 100001), /larger \(<0\.1%\)/, 'Small increases must not be rounded to zero.');
 assert.match(describeSizeChange(100, 300, 'the originals'), /larger \(200%\) than the originals/);
 
-console.log('Image optimizer output tests passed: metadata opt-in, dimensions, format, background, and honest size changes.');
+const items = [{ id: 1, file: { size: 100 } }];
+const outputs = [{ inputId: 1, blob: { size: 100 }, mime: 'image/png', originalKept: false }];
+const feedbackArgs = {
+  items,
+  outputs,
+  responsiveEnabled: false,
+  supportsWebp: true,
+  requestedMime: 'keep'
+};
+assert.equal(getSizeFeedback(feedbackArgs).canTryWebp, true);
+assert.equal(getSizeFeedback(feedbackArgs).metadataKept, 0);
+assert.equal(getSizeFeedback({ ...feedbackArgs, outputs: [{ ...outputs[0], blob: { size: 150 } }] }).outputBytes, 150);
+assert.equal(getSizeFeedback({ ...feedbackArgs, outputs: [{ ...outputs[0], blob: { size: 75 } }] }), null);
+assert.equal(getSizeFeedback({ ...feedbackArgs, supportsWebp: false }).canTryWebp, false);
+assert.equal(getSizeFeedback({ ...feedbackArgs, requestedMime: 'image/webp' }).canTryWebp, false);
+assert.equal(getSizeFeedback({ ...feedbackArgs, outputs: [{ ...outputs[0], mime: 'image/webp' }] }).canTryWebp, false);
+assert.equal(getSizeFeedback({ ...feedbackArgs, outputs: [{ ...outputs[0], originalKept: true }] }).metadataKept, 1);
+assert.equal(getSizeFeedback({ ...feedbackArgs, responsiveEnabled: true }), null);
+assert.equal(getSizeFeedback({ ...feedbackArgs, outputs: [{ ...outputs[0], inputId: 2 }] }), null);
+const batch = {
+  ...feedbackArgs,
+  items: [{ id: 1, file: { size: 100 } }, { id: 2, file: { size: 200 } }],
+  outputs: [outputs[0], { inputId: 2, blob: { size: 200 }, mime: 'image/png', originalKept: true }]
+};
+assert.equal(getSizeFeedback(batch).batch, true);
+assert.equal(getSizeFeedback(batch).inputBytes, 300);
+assert.equal(getSizeFeedback(batch).metadataKept, 1);
+assert.equal(getSizeFeedback({ ...batch, outputs: [outputs[0], { ...outputs[0] }] }), null);
+
+(async () => {
+  const riffWebp = Uint8Array.from([82, 73, 70, 70, 0, 0, 0, 0, 87, 69, 66, 80]);
+  assert.equal(await isWebpBlob(new Blob([riffWebp], { type: 'image/webp' })), true);
+  assert.equal(await isWebpBlob(new Blob([riffWebp], { type: 'image/png' })), false);
+  assert.equal(await isWebpBlob(new Blob(['not WebP'], { type: 'image/webp' })), false);
+  console.log('Image optimizer output tests passed: metadata opt-in, size feedback, batch eligibility, and actual WebP encoding.');
+})().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

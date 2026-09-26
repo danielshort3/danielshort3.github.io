@@ -37,7 +37,11 @@ async function assertDashboard(page, dashboard, device, label) {
   assert.equal(await page.locator('iframe.project-embed-frame').count(), 1, `${label}: exactly one dashboard iframe.`);
   const frame = page.locator('iframe.project-embed-frame');
   const shell = page.locator('.project-demo-shell');
-  assert.equal(await shell.locator('.project-demo-title').innerText(), dashboard.title);
+  assert.equal(await shell.locator('.project-demo-header').count(), 0, `${label}: the masthead already titles the dashboard.`);
+  assert.equal(await page.locator('.project-hero h1').innerText(), dashboard.title);
+  const instructions = page.locator('.project-intro-actions .project-demo-help-trigger');
+  assert(await instructions.isVisible(), `${label}: dashboard instructions remain available beside the launch action.`);
+  assert.equal(await instructions.getAttribute('aria-label'), 'Dashboard instructions');
   assertDashboardUrl(await frame.getAttribute('data-dashboard-default-src'), dashboard, 'desktop');
   const launch = page.locator('.project-intro-action--demo');
   assertDashboardUrl(await launch.getAttribute('href'), dashboard);
@@ -118,6 +122,23 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
     assert.equal(requests.length, 1, `${label}: initial view loads once.`);
     assertDashboardUrl(requests[0], dashboard, device);
     await page.screenshot({ path: path.join(artifactDir, `${label}.png`) });
+
+    if (!audience && [1440, 390].includes(width)) {
+      await page.locator('.project-hero').scrollIntoViewIfNeeded();
+      const instructions = page.locator('.project-intro-actions .project-demo-help-trigger');
+      await instructions.focus();
+      const tooltip = page.locator('.project-intro-actions .project-demo-tooltip');
+      const tooltipGeometry = await tooltip.evaluate(node => {
+        const bounds = node.getBoundingClientRect();
+        return { left: bounds.left, right: bounds.right, opacity: getComputedStyle(node).opacity, viewportWidth: innerWidth };
+      });
+      assert.equal(tooltipGeometry.opacity, '1', `${label}: keyboard focus reveals dashboard instructions.`);
+      assert(tooltipGeometry.left >= -1 && tooltipGeometry.right <= tooltipGeometry.viewportWidth + 1,
+        `${label}: dashboard instructions fit within the viewport.`);
+      await page.screenshot({ path: path.join(artifactDir, `${label}-instructions.png`) });
+      await instructions.evaluate(node => node.blur());
+      await page.screenshot({ path: path.join(artifactDir, `${label}-top.png`) });
+    }
 
     if (!audience && width === 1440) {
       await page.evaluate(() => { window.__tableauRouteIdentity = 'preserved'; });

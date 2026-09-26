@@ -29,7 +29,7 @@
 
   const STYLE_ID = 'pcz-consent-styles';
   const CRITICAL_STYLE_ID = 'pcz-consent-critical-styles';
-  const CSS_VERSION = 'v13';
+  const CSS_VERSION = 'v14';
 
   function loadStyles() {
     if (!document.getElementById(CRITICAL_STYLE_ID)) {
@@ -575,7 +575,19 @@
     const saved = loadConsent();
     const initialState = saved ? saved.categories : getDefaultState();
     const banner = createBanner(localeStrings);
-    document.body.appendChild(banner);
+    // Keep the banner ahead of the page content so it takes up real space
+    // beneath the fixed mobile masthead. The desktop presentation remains
+    // fixed to the viewport through privacy.css.
+    const shellHeader = document.querySelector('[data-site-shell-header]');
+    if (shellHeader && shellHeader.parentElement === document.body) {
+      shellHeader.after(banner);
+    } else {
+      const main = document.querySelector('main');
+      let content = main;
+      while (content && content.parentElement !== document.body) content = content.parentElement;
+      if (content) content.before(banner);
+      else document.body.appendChild(banner);
+    }
     setBannerUiState(true);
     if (window.SiteMotion) window.SiteMotion.presence(banner, true, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false });
     else banner.classList.add('pcz-visible');

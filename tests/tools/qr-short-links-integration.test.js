@@ -16,7 +16,7 @@ const sourceBlock = (start, end) => {
 function createHarness() {
   const elements = new Map();
   const element = (key) => {
-    if (!elements.has(key)) elements.set(key, { hidden: false, textContent: '', value: '', disabled: false, readOnly: false });
+    if (!elements.has(key)) elements.set(key, { hidden: false, textContent: '', value: '', disabled: false, readOnly: false, dataset: {} });
     return elements.get(key);
   };
   const calls = { downloads: 0, renders: [], configs: [], tab: '' };
@@ -47,6 +47,9 @@ function createHarness() {
     exampleBtn: element('example'),
     clearBtn: element('clear'),
     emptyOverlay: element('empty'),
+    stage: element('stage'),
+    emptyTitle: element('empty-title'),
+    emptyDescription: element('empty-description'),
     linkStatus: element('status'),
     linkAccess: element('access'),
     designStatus: element('design-status'),
@@ -76,6 +79,7 @@ function createHarness() {
     let linkedRequestId = 0;
     let linkedDesignSaved = '';
     ${sourceBlock('  const getPayloadFromControls =', '  const applyDataValue =')}
+    ${sourceBlock('  const updateEmptyPreviewCopy =', '  const setPreviewState =')}
     ${sourceBlock('  const QR_DESIGN_KEYS =', '  const loadStoredPresets =')}
     globalThis.api = {
       getPayload: getPayloadFromControls,
@@ -108,6 +112,8 @@ function createHarness() {
   const loading = qr.api.load('campaign', { download: true });
   assert.equal(qr.api.getPayload(), '', 'Pending managed links must not render the previous direct destination.');
   assert.equal(qr.api.inspect().linkedLoading, true);
+  assert.equal(qr.context.emptyTitle.textContent, 'Loading your saved QR…');
+  assert.equal(qr.context.emptyDescription.textContent, 'Your preview will be ready shortly.');
   resolveLoad({ link: {
     slug: 'campaign', destination: 'https://example.com/summer',
     qrDesign: { fg: '#123456', centerMode: 'none', data: 'https://wrong.example/', wifiPassword: 'private' },
@@ -132,6 +138,8 @@ function createHarness() {
   assert.equal(qr.api.getPayload(), '');
   assert.equal(qr.context.linkAccess.hidden, false);
   assert.equal(qr.context.linkStatus.textContent, 'Sign in required');
+  assert.equal(qr.context.emptyTitle.textContent, 'Your QR code will appear here');
+  assert.equal(qr.context.emptyDescription.textContent, 'Create or select a link to preview its QR code.');
   assert.equal(qr.elements.get('[data-qrtool-retry-link]').hidden, false);
   assert.equal(qr.calls.downloads, 1, 'Failed loads must not download any previous QR.');
 

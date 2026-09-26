@@ -89,12 +89,7 @@ function renderSvgMarkup(iconType) {
         '</svg>'
       ].join('\n');
     case 'search':
-      return [
-        '<svg viewBox="0 0 24 24" aria-hidden="true">',
-        '  <circle cx="11" cy="11" r="7"></circle>',
-        '  <path d="M20 20l-3.5-3.5"></path>',
-        '</svg>'
-      ].join('\n');
+      return '<img src="/img/ui/site-icons/action-search.png" alt="" aria-hidden="true" width="24" height="24" decoding="async">';
     default:
       return '';
   }

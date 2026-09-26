@@ -25,6 +25,23 @@
     --home-panel-border-width: 6px;
   }
 
+  .home-accordion:not(.site-frame)[data-home-view="closed"] {
+    display: grid;
+    grid-template-columns: minmax(0, 580px) minmax(280px, 360px);
+    align-items: center;
+    justify-content: center;
+    gap: clamp(40px, 6vw, 104px);
+    padding-inline: clamp(32px, 7vw, 140px);
+  }
+
+  .home-accordion:not(.site-frame)[data-home-view="closed"] > :is(.home-accordion__shell) {
+    width: 100%;
+    max-width: 360px;
+    height: clamp(320px, 58svh, 470px);
+    min-height: 0;
+    margin: 0;
+  }
+
   .home-accordion__shell {
     --home-overview-panel-inline-size: calc(100cqi - var(--home-collapsed-rails-width) - var(--home-active-rail-width));
     box-sizing: border-box;
@@ -156,6 +173,26 @@
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  .home-accordion__rail-icon img {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 2px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, .96);
+    object-fit: contain;
+  }
+
+  .home-accordion__title-icon img,
+  .home-accordion__card-arrow img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
   }
 
   .home-accordion__rail-label {
@@ -442,6 +479,14 @@
     object-position: center;
   }
 
+  .home-accordion__card-media--glyph img {
+    width: 58%;
+    height: 58%;
+    background: transparent;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
   .home-accordion__card-media--glyph,
   .home-accordion__card-media--icon,
   .home-accordion__item--tools .home-accordion__card-media {
@@ -570,6 +615,13 @@
     width: 18px;
     height: 18px;
   }
+  .home-accordion__panel-cta img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
 
   .home-accordion__noscript {
     display: flex;
@@ -630,6 +682,15 @@
       background: #ffffff;
     }
 
+    .home-accordion:not(.site-frame)[data-home-view="closed"] {
+      display: block;
+      padding-inline: 0;
+    }
+
+    .home-accordion__welcome {
+      padding: clamp(36px, 7svh, 60px) 24px 32px;
+    }
+
     .home-accordion__shell {
       display: block;
       width: 100%;
@@ -639,6 +700,12 @@
       border: 0;
       border-radius: 0;
       box-shadow: none;
+    }
+
+    .home-accordion:not(.site-frame)[data-home-view="closed"] > :is(.home-accordion__shell) {
+      width: 100%;
+      max-width: none;
+      height: auto;
     }
 
     .home-accordion__item,
@@ -873,6 +940,52 @@
     }
   }
 
+  @media (max-width: 360px) {
+    .home-accordion__cards {
+      padding-inline: 12px;
+    }
+
+    .home-accordion__card {
+      position: relative;
+      grid-template-columns: 58px minmax(0, 1fr);
+      align-items: start;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .home-accordion__card-media {
+      width: 58px;
+      height: 58px;
+    }
+
+    .home-accordion__card-copy {
+      display: contents;
+    }
+
+    .home-accordion__card-copy strong {
+      grid-column: 2;
+      align-self: center;
+      padding-right: 20px;
+      font-size: .93rem;
+    }
+
+    .home-accordion__card-copy > span:not(.home-accordion__card-badge) {
+      grid-column: 1 / -1;
+      font-size: .81rem;
+      line-height: 1.4;
+    }
+
+    .home-accordion__card-badge {
+      grid-column: 1 / -1;
+    }
+
+    .home-accordion__card-arrow {
+      position: absolute;
+      top: 24px;
+      right: 9px;
+    }
+  }
+
   @media (min-width: 1101px) and (min-height: 620px) {
     :is(.home-accordion__item--has-library, .home-accordion__item--contact) .home-accordion__card {
       min-height: clamp(142px, 17vh, 180px);
@@ -971,6 +1084,10 @@
   body[data-page="home"].home-pattern-page #main:not(.site-frame__welcome) > section {
     border: 0;
     background: var(--home-canvas);
+  }
+
+  body[data-page="home"].home-pattern-page #main:not(.site-frame__welcome) > .home-accordion[data-home-view="closed"] {
+    background: #ffffff;
   }
 
   body[data-page="home"].home-pattern-page .speed-dial,
@@ -1101,6 +1218,12 @@
 }
 
 @layer overrides {
+  @media (max-width: 360px) {
+    .site-frame[data-frame-audience="personal"] .home-accordion__item--projects .home-accordion__cards {
+      padding-inline: 12px;
+    }
+  }
+
   .site-frame[data-frame-audience="personal"] .home-contact-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);

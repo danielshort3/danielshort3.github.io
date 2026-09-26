@@ -29,7 +29,7 @@
     const initialQuery = (() => {
       try {
         const url = new URL(routeUrl.href);
-        const query = url.searchParams.has('q') ? url.searchParams.get('q') : querySnapshots.get(stateKey) || '';
+        const query = url.searchParams.has('q') ? url.searchParams.get('q') : querySnapshots.get(stateKey)?.query || '';
         if (url.searchParams.has('q')) {
           url.searchParams.delete('q');
           window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
@@ -46,6 +46,10 @@
     const pageInput = $('#search-page-q');
     const results = $('#search-results');
     const status = $('#search-status');
+    const filters = $('#search-filters');
+    const filterButtons = Array.from(filters?.querySelectorAll('[data-search-category]') || []);
+    let selectedCategory = routeUrl.searchParams.has('q') ? 'All' : querySnapshots.get(stateKey)?.category || 'All';
+    let currentSearch = { entries: [], query: '', tokens: [] };
     const activeForm = pageForm || headerForm;
     const activeInput = pageInput || headerInput;
 
@@ -79,13 +83,9 @@
     const highlight = (text, tokens) => {
       const raw = String(text ?? '');
       if (!raw || !tokens.length) return escapeHtml(raw);
-      let out = escapeHtml(raw);
-      tokens.forEach((token) => {
-        if (!token) return;
-        const re = new RegExp(`(${escapeRegExp(token)})`, 'ig');
-        out = out.replace(re, '<mark class="search-highlight">$1</mark>');
-      });
-      return out;
+      const pattern = [...new Set(tokens)].sort((a, b) => b.length - a.length).map(escapeRegExp).join('|');
+      return raw.split(new RegExp(`(${pattern})`, 'ig')).map((part, index) => index % 2
+        ? `<mark class="search-highlight">${escapeHtml(part)}</mark>` : escapeHtml(part)).join('');
     };
 
     const buildSnippet = (text, tokens) => {
@@ -127,8 +127,9 @@
     };
 
     const categoryLabel = (value) => {
-      const raw = String(value || '').trim();
-      return raw || 'Pages';
+      const raw = String(value || '').trim().toLowerCase();
+      if (raw === 'portfolio' || raw === 'projects') return 'Projects';
+      return raw === 'tools' ? 'Tools' : 'Pages';
     };
 
     const toAbsoluteUrl = (relativeOrAbsolute) => {
@@ -171,9 +172,8 @@
             });
         })
         .catch((err) => {
-          if (disposed) return [];
-          status.textContent = `Search is unavailable right now. (${String(err && err.message ? err.message : err)})`;
-          return [];
+          indexPromise = null;
+          throw err;
         });
       return indexPromise;
     };
@@ -199,7 +199,11 @@
         else if (inDesc) score += 3;
         else if (inContent) score += 2;
         else if (inUrl) score += 1;
+        if (title.split(' ').includes(token)) score += 2;
       }
+      const phrase = tokens.join(' ');
+      if (title === phrase) score += 12;
+      else if (title.startsWith(`${phrase} `)) score += 4;
       return score;
     };
 
@@ -211,13 +215,6 @@
       const badge = categoryLabel(entry.category);
       const snippet = desc ? '' : buildSnippet(content, tokens);
 
-      const keywordHtml = (entry.keywords || []).length
-        ? `<div class="search-keywords" aria-label="Keywords">${(entry.keywords || [])
-            .slice(0, 10)
-            .map((k) => `<span class="search-keyword">${highlight(k, tokens)}</span>`)
-            .join('')}</div>`
-        : '';
-
       return `
         <a class="search-result" href="${escapeHtml(url)}">
           <div class="search-result-head">
@@ -226,27 +223,41 @@
           </div>
           <div class="search-result-url">${escapeHtml(toDisplayUrl(url))}</div>
           ${desc ? `<p class="search-result-desc">${highlight(desc, tokens)}</p>` : (snippet ? `<p class="search-result-desc">${highlight(snippet, tokens)}</p>` : '')}
-          ${keywordHtml}
         </a>
       `;
     };
 
-    const renderResults = (entries, query, tokens, totalMatches) => {
+    const renderResults = () => {
+      const { entries: allEntries, query, tokens } = currentSearch;
+      if (filters) filters.hidden = !query || !allEntries.length;
+      filterButtons.forEach((button) => {
+        const category = button.dataset.searchCategory;
+        const count = category === 'All' ? allEntries.length : allEntries.filter((entry) => categoryLabel(entry.category) === category).length;
+        button.setAttribute('aria-pressed', String(category === selectedCategory));
+        button.setAttribute('aria-label', `${category}, ${count} result${count === 1 ? '' : 's'}`);
+        button.innerHTML = `${escapeHtml(category)} <span class="search-filter-count" aria-hidden="true">${count}</span>`;
+      });
       if (!query) {
-        status.textContent = 'Search using the bar in the header.';
+        status.textContent = 'Try a tool name, project title, or a topic like SQL, OCR, or Tableau.';
         results.innerHTML = '';
         return;
       }
 
+      const matches = selectedCategory === 'All' ? allEntries : allEntries.filter((entry) => categoryLabel(entry.category) === selectedCategory);
+      const entries = matches.slice(0, MAX_RESULTS);
+      const totalMatches = matches.length;
+      const scope = selectedCategory === 'All' ? '' : ` in ${selectedCategory}`;
+
       if (!entries.length) {
-        status.textContent = `No results found for “${query}”.`;
+        status.textContent = `No results${scope} for “${query}”.`;
         results.innerHTML = `
           <div class="search-result" role="note">
             <div class="search-result-head">
               <span class="search-result-title">No matches</span>
             </div>
-            <p class="search-result-desc">Try fewer words, or search for a tool/project name (like “UTM”, “Nonogram”, or “Oxford comma”).</p>
-            <p class="search-result-desc">You can also browse the full <a class="search-result-title" href="sitemap">sitemap</a>.</p>
+            ${allEntries.length
+              ? '<p class="search-result-desc">There are matches in other categories.</p><button class="btn-secondary" type="button" data-search-reset-category>Show all results</button>'
+              : '<p class="search-result-desc">Try fewer words, or search for a tool or project name.</p><p class="search-result-desc">You can also browse the full <a class="search-result-title" href="sitemap">sitemap</a>.</p>'}
           </div>
         `;
         return;
@@ -256,8 +267,8 @@
       const isTruncated = Number.isFinite(totalMatches) && totalMatches > shown;
 
       status.textContent = isTruncated
-        ? `Showing ${shown} of ${totalMatches} results for “${query}”.`
-        : `${shown} result${shown === 1 ? '' : 's'} for “${query}”.`;
+        ? `Showing ${shown} of ${totalMatches} results${scope} for “${query}”.`
+        : `${shown} result${shown === 1 ? '' : 's'}${scope} for “${query}”.`;
 
       results.innerHTML = entries.map((entry) => renderEntry(entry, tokens)).join('');
     };
@@ -307,12 +318,25 @@
 
       const tokens = tokenize(trimmed);
       if (!tokens.length) {
-        renderResults([], '', tokens, 0);
+        currentSearch = { entries: [], query: '', tokens: [] };
+        results.setAttribute('aria-busy', 'false');
+        renderResults();
         return { query: trimmed, tokenCount: 0, totalMatches: 0 };
       }
 
       status.textContent = 'Searching…';
-      const pages = await loadIndex();
+      results.setAttribute('aria-busy', 'true');
+      if (filters) filters.hidden = true;
+      let pages;
+      try {
+        pages = await loadIndex();
+      } catch (_) {
+        if (disposed || revision !== searchRevision) return null;
+        results.setAttribute('aria-busy', 'false');
+        status.textContent = 'Search is unavailable right now. Please try again.';
+        results.innerHTML = '<div class="search-result" role="note"><button class="btn-secondary" type="button" data-search-retry>Try again</button></div>';
+        return null;
+      }
       if (disposed || revision !== searchRevision) return null;
 
       const scored = pages
@@ -321,9 +345,9 @@
         .sort((a, b) => b.score - a.score || String(a.entry.title).localeCompare(String(b.entry.title)));
 
       const totalMatches = scored.length;
-      const matches = scored.slice(0, MAX_RESULTS).map((m) => m.entry);
-
-      renderResults(matches, trimmed, tokens, totalMatches);
+      currentSearch = { entries: scored.map((match) => match.entry), query: trimmed, tokens };
+      results.setAttribute('aria-busy', 'false');
+      renderResults();
       return { query: trimmed, tokenCount: tokens.length, totalMatches };
     };
 
@@ -374,7 +398,22 @@
     bindInput(headerInput);
     bindInput(pageInput);
 
+    filterButtons.forEach((button) => listen(button, 'click', () => {
+      selectedCategory = button.dataset.searchCategory;
+      renderResults();
+    }));
+
     listen(results, 'click', (event) => {
+      if (event.target.closest('[data-search-retry]')) {
+        void runSearch(activeInput.value);
+        return;
+      }
+      if (event.target.closest('[data-search-reset-category]')) {
+        selectedCategory = 'All';
+        renderResults();
+        filterButtons[0]?.focus();
+        return;
+      }
       const result = event.target.closest('a.search-result[href]');
       if (!result || !results.contains(result)) return;
       const resultLinks = Array.from(results.querySelectorAll('a.search-result[href]'));
@@ -406,7 +445,7 @@
       ready,
       dispose() {
         if (disposed) return;
-        querySnapshots.set(stateKey, activeInput.value);
+        querySnapshots.set(stateKey, { query: activeInput.value, category: selectedCategory });
         while (querySnapshots.size > 4) querySnapshots.delete(querySnapshots.keys().next().value);
         disposed = true;
         searchRevision += 1;

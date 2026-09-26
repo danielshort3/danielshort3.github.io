@@ -724,7 +724,91 @@
 
   window.requestContactModal = requestContactModal;
 
+  const PROJECT_LIBRARY_SELECTOR = '.personal-library--projects, .home-library[data-home-library-view="projects"]';
+  let projectRailUpdateFrame = 0;
+  const centerProjectRailLink = (rail, link) => {
+    if (!window.matchMedia('(max-width: 480px)').matches) return;
+    const railBounds = rail.getBoundingClientRect();
+    const linkBounds = link.getBoundingClientRect();
+    rail.scrollLeft += linkBounds.left + linkBounds.width / 2 - railBounds.left - railBounds.width / 2;
+  };
+  const setCurrentProjectGroup = (rail, currentLink) => {
+    if (!currentLink) return;
+    const prior = rail.querySelector('a[aria-current="location"]');
+    if (prior === currentLink) return;
+    rail.querySelectorAll('a[data-home-library-jump]').forEach((link) => {
+      if (link === currentLink) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+    centerProjectRailLink(rail, currentLink);
+  };
+  const updateProjectRailLocation = () => {
+    projectRailUpdateFrame = 0;
+    document.querySelectorAll('.home-library__jump-links').forEach((rail) => {
+      if (!rail.closest(PROJECT_LIBRARY_SELECTOR) || rail.closest('[hidden], [inert]') || !rail.getClientRects().length) return;
+      const library = rail.closest('.home-library');
+      const groups = [...rail.querySelectorAll('a[data-home-library-jump]')].map((link) => {
+        const id = String(link.getAttribute('href') || '').slice(1);
+        return { link, heading: library?.querySelector(`[id="${id}"]`) };
+      }).filter((group) => group.heading);
+      if (!groups.length) return;
+
+      const frame = rail.closest('.site-frame__viewport');
+      const frameScrolls = frame && /^(auto|scroll)$/.test(getComputedStyle(frame).overflowY) &&
+        frame.scrollHeight > frame.clientHeight + 1;
+      const scroller = frameScrolls ? frame : document.scrollingElement;
+      const atEnd = scroller && (frameScrolls
+        ? scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4
+        : window.scrollY + window.innerHeight >= scroller.scrollHeight - 4);
+      const selectionLine = rail.getBoundingClientRect().bottom + 64;
+      let current = groups[0];
+      groups.forEach((group) => {
+        if (group.heading.getBoundingClientRect().top <= selectionLine) current = group;
+      });
+      if (atEnd) {
+        const last = groups[groups.length - 1];
+        const currentHeadingTop = current.heading.getBoundingClientRect().top;
+        if (document.activeElement === last.heading || currentHeadingTop < rail.getBoundingClientRect().bottom - 8) {
+          current = last;
+        }
+      }
+      setCurrentProjectGroup(rail, current.link);
+    });
+  };
+  const scheduleProjectRailUpdate = () => {
+    if (!projectRailUpdateFrame) projectRailUpdateFrame = window.requestAnimationFrame(updateProjectRailLocation);
+  };
+  document.addEventListener('scroll', (event) => {
+    if (event.target?.closest?.('.home-library__jump-links')) return;
+    scheduleProjectRailUpdate();
+  }, { capture: true, passive: true });
+  ['site:route-mounted', 'site:route-change', 'home:category-change', 'home:library-change', 'navheightchange']
+    .forEach((name) => document.addEventListener(name, scheduleProjectRailUpdate));
+  document.addEventListener('site:route-unmounted', () => {
+    if (projectRailUpdateFrame) window.cancelAnimationFrame(projectRailUpdateFrame);
+    projectRailUpdateFrame = 0;
+  });
+  window.addEventListener('resize', scheduleProjectRailUpdate);
+  window.addEventListener('pageshow', scheduleProjectRailUpdate);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleProjectRailUpdate, { once: true });
+  else scheduleProjectRailUpdate();
+
   // Category jumps stay within the active catalog without replacing its route hash.
+  document.addEventListener('focusin', (event) => {
+    const link = event.target.closest?.('a[data-home-library-jump]');
+    const rail = link?.closest('.home-library__jump-links');
+    if (!rail || !rail.closest('.personal-library--projects, .home-library[data-home-library-view="projects"]') ||
+      !window.matchMedia('(max-width: 480px)').matches) return;
+    const railBounds = rail.getBoundingClientRect();
+    const linkBounds = link.getBoundingClientRect();
+    const inset = 6;
+    if (linkBounds.left < railBounds.left + inset) {
+      rail.scrollLeft -= railBounds.left + inset - linkBounds.left;
+    } else if (linkBounds.right > railBounds.right - inset) {
+      rail.scrollLeft += linkBounds.right - railBounds.right + inset;
+    }
+  });
+
   document.addEventListener('click', (event) => {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
     if (typeof event.button === 'number' && event.button !== 0) return;
@@ -735,9 +819,12 @@
     const heading = document.getElementById(headingId);
     if (!heading || !library.contains(heading)) return;
     event.preventDefault();
+    const rail = link.closest('.home-library__jump-links');
+    if (rail?.closest(PROJECT_LIBRARY_SELECTOR)) setCurrentProjectGroup(rail, link);
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     heading.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'instant' : 'smooth' });
     heading.focus({ preventScroll: true });
+    scheduleProjectRailUpdate();
   });
 
   document.addEventListener('click', (event) => {

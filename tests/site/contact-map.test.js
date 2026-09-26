@@ -166,7 +166,8 @@ function createHarness() {
   const replacement = frameSource.match(/  function replaceRouteBody\(nextBody\) \{[\s\S]*?\n  \}/);
   if (!replacement) throw new Error('Missing persistent route-body replacement');
   const replaceRouteBody = vm.runInNewContext(`(${replacement[0].trim()})`, {
-    window, viewport, canvas: root, questionDock: null, questionDockOwner: null
+    window, viewport, canvas: root, questionDock: null, questionDockOwner: null,
+    syncQuestionDockPlacement: () => {}
   });
   const flush = () => {
     for (let iteration = 0; tasks.size && iteration < 10; iteration += 1) {

@@ -126,15 +126,35 @@ async function checkUtm(page) {
 }
 
 async function checkQr(page, artifactDir, width) {
+  const stage = page.locator('#qrtool-stage');
+  const meta = page.locator('#qrtool-meta');
+  const emptyDescription = page.locator('[data-qrtool-empty-description]');
+  await page.waitForFunction(() => document.querySelector('#qrtool-stage')?.dataset.previewState === 'empty');
+  assert(await meta.isHidden(), 'The empty preview has one set of instructions');
+  assert.equal(await page.locator('#qrtool-canvas').getAttribute('aria-hidden'), 'true', 'An empty canvas is not announced as a QR code');
+  assert.match(await emptyDescription.innerText(), /destination URL/);
+  const emptyBox = await stage.boundingBox();
+  await page.locator('.qrtool-preview-card').screenshot({ path: path.join(artifactDir, `qr-empty-${width}.png`) });
+  await page.locator('#qrtool-payload-mode').selectOption('text');
+  await page.waitForFunction(() => document.querySelector('[data-qrtool-empty-description]')?.textContent === 'Enter text to see a preview.');
+  await page.locator('#qrtool-payload-mode').selectOption('url');
+  await page.locator('#qrtool-link-mode').selectOption('managed');
+  await page.waitForFunction(() => document.querySelector('[data-qrtool-empty-description]')?.textContent.includes('Create or select a link'));
+  await page.locator('#qrtool-link-mode').selectOption('direct');
   await page.locator('#qrtool-data').fill('https://example.com/professional');
   const download = page.getByRole('button', { name: 'Download PNG', exact: true });
   await download.waitFor();
   await page.waitForFunction(() => !document.querySelector('#qrtool-download-png')?.disabled);
+  assert.equal(await stage.getAttribute('data-preview-state'), 'ready');
+  assert(await meta.isVisible(), 'Generated QR details stay visible');
+  assert.equal(await page.locator('#qrtool-canvas').getAttribute('aria-hidden'), 'false');
+  const readyBox = await stage.boundingBox();
+  assert(Math.abs(readyBox.width - emptyBox.width) < 1 && Math.abs(readyBox.height - emptyBox.height) < 1, 'Empty and generated QR previews reserve the same area');
   assert.equal(await page.locator('#qrtool-export-preset').count(), 0, 'One size selector');
   assert.equal(await page.getByText('Saved presets', { exact: true }).count(), 1, 'One saved presets entry');
   const tabs = await page.locator('[data-qrtool-tab]').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().top));
   assert(Math.max(...tabs) - Math.min(...tabs) <= 1, 'QR settings tabs remain in one row');
-  await page.getByRole('tab', { name: 'Download options', exact: true }).click();
+  await page.getByRole('tab', { name: 'Download', exact: true }).click();
   await page.locator('#qrtool-image-size').selectOption('512');
   const done = page.waitForEvent('download');
   await download.click();
@@ -148,6 +168,35 @@ async function checkQr(page, artifactDir, width) {
   assert(await download.isVisible(), 'Download remains available in Content');
   await page.getByRole('tab', { name: 'Style', exact: true }).click();
   assert(await download.isVisible(), 'Download remains available in Style');
+  await page.getByRole('tab', { name: 'Content', exact: true }).click();
+  await page.locator('#qrtool-data').fill('x'.repeat(5000));
+  await page.waitForFunction(() => document.querySelector('#qrtool-stage')?.dataset.previewState === 'error');
+  assert(await meta.isVisible(), 'An encoder error is never hidden with the empty-state instructions');
+  assert.match(await meta.innerText(), /too long/i);
+  assert.equal(await page.locator('[data-qrtool-empty-title]').innerText(), 'Preview unavailable');
+  assert(await download.isDisabled());
+  await page.locator('#qrtool-data').fill('https://example.com/recovered');
+  await page.waitForFunction(() => document.querySelector('#qrtool-stage')?.dataset.previewState === 'ready');
+  assert(await download.isEnabled(), 'A valid payload recovers from the error');
+  await page.locator('#qrtool-clear').click();
+  await page.waitForFunction(() => document.querySelector('#qrtool-stage')?.dataset.previewState === 'empty');
+  assert(await meta.isHidden());
+  assert.match(await emptyDescription.innerText(), /destination URL/);
+  if (width === 1440) {
+    for (const viewport of [{ width: 1440, height: 350 }, { width: 1024, height: 320 }]) {
+      await page.setViewportSize(viewport);
+      const fits = await page.locator('#qrtool-empty').evaluate((overlay) => {
+        const box = overlay.getBoundingClientRect();
+        const textNodes = [...overlay.querySelectorAll('[data-qrtool-empty-title], [data-qrtool-empty-description]')];
+        return overlay.scrollHeight <= overlay.clientHeight + 1 && textNodes.every((node) => {
+          const textBox = node.getBoundingClientRect();
+          return textBox.top >= box.top && textBox.bottom <= box.bottom + 1;
+        });
+      });
+      assert(fits, `QR empty-state instructions fit a ${viewport.width}×${viewport.height} desktop window`);
+    }
+    await page.setViewportSize({ width, height: 1000 });
+  }
 }
 
 async function runCampaignToolsSimpleChecks(options) {

@@ -34,9 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -64,6 +67,7 @@ private val Slate = Color(0xFF334155)
 private val Muted = Color(0xFF586B82)
 private val Line = Color(0xFFDCE4ED)
 private val Paper = Color(0xFFF5F8FB)
+private val WEB_FIRST_GAME_IDS = setOf("project-starfall", "stellar-dogfight", "roulette", "stormbreak", "ocean-wave-simulation")
 internal enum class Section(val label: String, val color: Color, val icon: ImageVector) {
   ABOUT("About", Navy, Icons.Outlined.Person),
   PROJECTS("Projects", Blue, Icons.Outlined.FolderOpen),
@@ -85,8 +89,18 @@ fun DanielShortApp(
   val reduceMotion = effectiveReduceMotion(settings.reduceMotion, rememberSystemReduceMotion())
   var selectedName by rememberSaveable { mutableStateOf(Section.ABOUT.name) }
   var projectId by rememberSaveable { mutableStateOf<String?>(null) }
+  var projectHistory by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
+  var projectWebsite by rememberSaveable { mutableStateOf(true) }
   var nativeFeature by rememberSaveable { mutableStateOf<String?>(null) }
   val section = Section.valueOf(selectedName)
+  fun closeProject() {
+    if (projectHistory.isEmpty()) projectId = null
+    else {
+      projectId = projectHistory.last()
+      projectHistory = ArrayList(projectHistory.dropLast(1))
+      projectWebsite = true
+    }
+  }
   val scope = rememberCoroutineScope()
   val snackbar = remember { SnackbarHostState() }
   val context = LocalContext.current
@@ -113,7 +127,7 @@ fun DanielShortApp(
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White, contentColor = Navy) {
     AdaptiveSiteLayout(
       selected = section,
-      onSection = { selectedName = it.name; projectId = null; nativeFeature = null }
+      onSection = { selectedName = it.name; projectId = null; projectHistory = arrayListOf(); nativeFeature = null }
     ) { wide ->
     if (nativeFeature != null) {
       BackHandler { nativeFeature = null }
@@ -121,6 +135,7 @@ fun DanielShortApp(
       val feature = nativeFeature!!
       val featureWidth = when {
         feature == "settings" || feature == "settings:updates" -> 760.dp
+        feature.startsWith("web:") -> 1600.dp
         feature.startsWith("game:") || feature == "roulette" -> 1200.dp
         else -> 1000.dp
       }
@@ -128,20 +143,61 @@ fun DanielShortApp(
       Box(Modifier.widthIn(max = featureWidth).fillMaxSize().testTag("native-feature-panel")) {
       screenState.SaveableStateProvider("native:$feature") {
       when {
+        feature.startsWith("web:game:") && feature.substringAfterLast(':') in WEB_FIRST_GAME_IDS -> WebExperienceScreen(
+          requireNotNull(WebExperience.game(feature.substringAfterLast(':'),
+            content?.games?.firstOrNull { it.id == feature.substringAfterLast(':') }?.title.orEmpty())),
+          content?.games?.firstOrNull { it.id == feature.substringAfterLast(':') }?.url.orEmpty(),
+          back,
+          onOpenNative = { nativeFeature = "game:${feature.substringAfterLast(':')}" },
+          nativeLabel = if (feature.endsWith(":project-starfall")) "Play options" else "Offline mode"
+        )
+        feature.startsWith("web:demo:") && feature.substringAfterLast(':') in WEB_DEMO_EXPERIENCES -> WebExperienceScreen(
+          WEB_DEMO_EXPERIENCES.getValue(feature.substringAfterLast(':')),
+          content?.projects?.firstOrNull { it.id == feature.substringAfterLast(':') }?.demoUrl.orEmpty(),
+          back,
+          onOpenNative = { nativeFeature = "demo:${feature.substringAfterLast(':')}" }
+        )
         feature == "settings" || feature == "settings:updates" -> SettingsScreen(repository, back,
           initialPage = if (feature == "settings:updates") SettingsPage.UPDATES else SettingsPage.OVERVIEW)
         nativeFeature == "tool:text-compare" || nativeFeature == "text-compare" -> NativeTextCompareScreen(back)
         nativeFeature == "tool:screen-recorder" -> NativeScreenRecorder(back)
         nativeFeature == "game:roulette" || nativeFeature == "roulette" -> NativeGameScreen(back)
         nativeFeature!!.startsWith("tool:") -> NativeToolsScreen(nativeFeature!!.substringAfter(":"), back)
-        nativeFeature!!.startsWith("game:") -> NativeGamesScreen(nativeFeature!!.substringAfter(":"), back, reduceMotion)
+        nativeFeature!!.startsWith("game:") -> NativeGamesScreen(nativeFeature!!.substringAfter(":"), back, reduceMotion,
+          onOpenWebsite = if (feature == "game:project-starfall") {
+            { nativeFeature = "web:game:project-starfall" }
+          } else null)
         nativeFeature!!.startsWith("demo:") -> NativeProjectDemoScreen(nativeFeature!!.substringAfter(":"), back)
       }
       }
       }
       }
+    } else if (project != null && projectWebsite) {
+      BackHandler { closeProject() }
+      WebExperienceScreen(
+        requireNotNull(WebExperience.project(project.id, project.title)),
+        project.url,
+        onBack = { closeProject() },
+        onOpenNative = { projectWebsite = false },
+        nativeLabel = "Offline summary",
+        isSaved = project.id in saved,
+        onToggleSaved = { repository.toggleSaved(project.id) },
+        onShare = { share(context, project.title, project.url) },
+        linkedDemo = WEB_DEMO_EXPERIENCES[project.id],
+        onOpenLinkedDemo = if (project.id in WEB_DEMO_EXPERIENCES) {
+          { nativeFeature = "web:demo:${project.id}" }
+        } else null,
+        linkedProjectIds = content?.projects?.map { it.id }?.toSet().orEmpty(),
+        onOpenLinkedProject = { linkedId ->
+          if (linkedId != project.id) {
+            projectHistory = ArrayList(projectHistory).apply { add(project.id) }
+            projectId = linkedId
+            projectWebsite = true
+          }
+        }
+      )
     } else {
-    BackHandler(projectId != null) { projectId = null }
+    BackHandler(projectId != null) { closeProject() }
     ScrollChromeLayout(
       screenKey = "${section.name}:${project?.id.orEmpty()}",
       snackbar = { SnackbarHost(snackbar) },
@@ -154,7 +210,7 @@ fun DanielShortApp(
               Text("Daniel Short", fontWeight = FontWeight.Bold, fontSize = 20.sp)
             }
           }, navigationIcon = {
-            if (project != null) IconButton(onClick = { projectId = null }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to projects") }
+            if (project != null) IconButton(onClick = { closeProject() }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back") }
           }, actions = {
             IconButton(onClick = { openSettings(false) }) { Icon(Icons.Outlined.Settings, "Settings") }
             if (project != null) {
@@ -174,7 +230,7 @@ fun DanielShortApp(
         HorizontalDivider(color = Line)
         NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
           Section.entries.forEach { tab ->
-            NavigationBarItem(selected = section == tab, onClick = { selectedName = tab.name; projectId = null }, icon = { Icon(tab.icon, contentDescription = null) }, label = { Text(tab.label, fontSize = 11.sp, fontWeight = if (section == tab) FontWeight.Bold else FontWeight.Medium) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = tab.color, selectedTextColor = tab.color, indicatorColor = Color.Transparent, unselectedIconColor = Muted, unselectedTextColor = Muted))
+            NavigationBarItem(selected = section == tab, onClick = { selectedName = tab.name; projectId = null; projectHistory = arrayListOf() }, icon = { Icon(tab.icon, contentDescription = null) }, label = { Text(tab.label, fontSize = 11.sp, fontWeight = if (section == tab) FontWeight.Bold else FontWeight.Medium) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = tab.color, selectedTextColor = tab.color, indicatorColor = Color.Transparent, unselectedIconColor = Muted, unselectedTextColor = Muted))
           }
         }
         }
@@ -190,17 +246,28 @@ fun DanielShortApp(
         Box(body, contentAlignment = Alignment.Center) { if (state.refreshing) CircularProgressIndicator() else Text("Preparing your content…", color = Muted) }
       } else if (project != null) {
         screenState.SaveableStateProvider("project:${project.id}") {
-        ProjectDetail(project, content.site, body, contentPadding, onDemo = { nativeFeature = "demo:${project.id}" })
+        ProjectDetail(project, content.site, body, contentPadding, onWebsite = {
+          projectWebsite = true
+        }, onDemo = {
+          nativeFeature = if (project.id in WEB_DEMO_EXPERIENCES) "web:demo:${project.id}" else "demo:${project.id}"
+        })
         }
       } else screenState.SaveableStateProvider(section.name) { when (section) {
         Section.ABOUT -> AboutScreen(content, body, contentPadding, onProjects = { selectedName = Section.PROJECTS.name })
         Section.PROJECTS -> ProjectsScreen(content.projects, saved, body, contentPadding,
-          onProject = { projectId = it }, onRemoveSaved = {
+          onProject = { projectId = it; projectHistory = arrayListOf(); projectWebsite = true }, onRemoveSaved = {
             repository.clearSavedProjects()
             scope.launch { snackbar.showSnackbar("Saved projects removed") }
           })
-        Section.TOOLS -> CatalogScreen("Useful little utilities", "Practical tools for everyday tasks.", content.tools, Teal, body, contentPadding, NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"), "Open tool", onNative = { nativeFeature = "tool:$it" })
-        Section.GAMES -> CatalogScreen("Play and explore", "Games, simulations, and small experiments.", content.games, Orange, body, contentPadding, NATIVE_GAME_IDS + "roulette", "Play in app", onNative = { nativeFeature = "game:$it" })
+        Section.TOOLS -> CatalogScreen("Useful little utilities", "Practical tools for everyday tasks.", content.tools, Teal, body, contentPadding,
+          nativeIds = NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"), nativeLabel = "Open Android recorder",
+          nativeAlternatives = (NATIVE_TOOL_IDS + "text-compare") - "screen-recorder",
+          onNative = { nativeFeature = "tool:$it" })
+        Section.GAMES -> CatalogScreen("Play and explore", "Games, simulations, and small experiments.", content.games, Orange, body, contentPadding,
+          nativeIds = NATIVE_GAME_IDS + "roulette", nativeLabel = "Play website game in app",
+          nativeAlternatives = setOf("probability-engine"), onNative = {
+          nativeFeature = if (it in WEB_FIRST_GAME_IDS) "web:game:$it" else "game:$it"
+        })
         Section.CONTACT -> ContactScreen(content.site, content.about.location, body, contentPadding)
       } }
       }
@@ -306,7 +373,10 @@ private fun ProjectsScreen(projects: List<Project>, saved: Set<String>, modifier
           Column(Modifier.weight(1f)) {
             Text(project.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(5.dp)); Text(project.summary, color = Muted, style = MaterialTheme.typography.bodyMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(10.dp)); Text(if (project.id in saved) "Saved project" else "View project  →", color = Blue, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+            FlowRow(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+              if (project.id in saved) Text("✓ Saved", Modifier.clip(RoundedCornerShape(6.dp)).background(Blue.copy(alpha = .10f)).padding(horizontal = 7.dp, vertical = 4.dp), color = Blue, style = MaterialTheme.typography.labelMedium)
+              Text("View project  →", color = Blue, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+            }
           }
         }
       }
@@ -323,7 +393,7 @@ private fun NativeThumbnail(url: String, title: String, color: Color) {
 }
 
 @Composable
-private fun CatalogScreen(title: String, subtitle: String, entries: List<CatalogItem>, accent: Color, modifier: Modifier, contentPadding: PaddingValues, nativeIds: Set<String>, nativeLabel: String, onNative: (String) -> Unit) {
+private fun CatalogScreen(title: String, subtitle: String, entries: List<CatalogItem>, accent: Color, modifier: Modifier, contentPadding: PaddingValues, nativeIds: Set<String>, nativeLabel: String, nativeAlternatives: Set<String> = emptySet(), onNative: (String) -> Unit) {
   val context = LocalContext.current
   var query by rememberSaveable(title) { mutableStateOf("") }
   val inputFocus = LocalChromeInputFocus.current
@@ -334,37 +404,84 @@ private fun CatalogScreen(title: String, subtitle: String, entries: List<Catalog
     item(key = "search", span = { GridItemSpan(maxLineSpan) }) { OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth().testTag("catalog-search").onFocusChanged { inputFocus(it.isFocused) }, label = { Text("Search") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, singleLine = true, shape = RoundedCornerShape(12.dp)) }
     if (filtered.isEmpty()) item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { EmptyResult("No matches", "Try another name or topic.") }
     items(filtered, key = { it.id }) { entry ->
-      val isNative = entry.id in nativeIds
-      OutlinedCard(onClick = { if (isNative) onNative(entry.id) else openWeb(context, entry.url) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, Line), colors = CardDefaults.outlinedCardColors(containerColor = Color.White)) {
-          Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            NativeThumbnail(entry.iconUrl, entry.title, accent)
-            Column(Modifier.weight(1f)) {
-              Text(entry.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-              Spacer(Modifier.height(5.dp))
-              val summary = when (entry.id) {
-                "screen-recorder" -> "Record a screen or app to MP4 with an optional microphone."
-                "ocean-wave-simulation" -> "Adjust waves, wind, and daylight in a native ocean simulation."
-                else -> entry.summary
-              }
-              Text(summary, color = Muted, style = MaterialTheme.typography.bodyMedium)
-              Text(if (isNative) nativeLabel else "Open in browser", color = accent, style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 9.dp))
+      val hasNativeAlternative = entry.id in nativeAlternatives
+      val isNative = entry.id in nativeIds && !hasNativeAlternative
+      val cardModifier = Modifier.fillMaxWidth().testTag("catalog-card-${entry.id}")
+      val cardShape = RoundedCornerShape(12.dp)
+      val cardBorder = BorderStroke(1.dp, Line)
+      val cardColors = CardDefaults.outlinedCardColors(containerColor = Color.White)
+      if (hasNativeAlternative) {
+        OutlinedCard(modifier = cardModifier, shape = cardShape, border = cardBorder, colors = cardColors) {
+          CatalogCardDetails(entry, accent)
+          HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = Line)
+          BoxWithConstraints(Modifier.fillMaxWidth().padding(12.dp)) {
+            if (maxWidth < 280.dp * LocalDensity.current.fontScale) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              CatalogWebsiteButton(entry, accent, Modifier.fillMaxWidth()) { openWeb(context, entry.url) }
+              CatalogAndroidButton(entry, accent, Modifier.fillMaxWidth()) { onNative(entry.id) }
+            } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+              CatalogWebsiteButton(entry, accent, Modifier.weight(1f)) { openWeb(context, entry.url) }
+              CatalogAndroidButton(entry, accent, Modifier.weight(1.3f)) { onNative(entry.id) }
             }
-            Icon(if (isNative) Icons.AutoMirrored.Outlined.ArrowForward else Icons.AutoMirrored.Outlined.OpenInNew,
-              contentDescription = null, modifier = Modifier.size(18.dp), tint = accent)
           }
+        }
+      } else {
+        OutlinedCard(onClick = { if (isNative) onNative(entry.id) else openWeb(context, entry.url) }, modifier = cardModifier, shape = cardShape, border = cardBorder, colors = cardColors) {
+          CatalogCardDetails(entry, accent, if (isNative) nativeLabel else "Open in browser", isNative)
+        }
       }
     }
   }
 }
 
 @Composable
-private fun ProjectDetail(project: Project, site: SiteInfo, modifier: Modifier, contentPadding: PaddingValues, onDemo: () -> Unit) {
+private fun CatalogCardDetails(entry: CatalogItem, accent: Color, actionLabel: String? = null, isNative: Boolean = false) {
+  Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+    NativeThumbnail(entry.iconUrl, entry.title, accent)
+    Column(Modifier.weight(1f)) {
+      Text(entry.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+      Spacer(Modifier.height(5.dp))
+      Text(if (entry.id == "screen-recorder") "Record a screen or app to MP4 with an optional microphone." else entry.summary,
+        color = Muted, style = MaterialTheme.typography.bodyMedium)
+      if (actionLabel != null) Text(actionLabel, color = accent, style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 9.dp))
+    }
+    if (actionLabel != null) Icon(if (isNative) Icons.AutoMirrored.Outlined.ArrowForward else Icons.AutoMirrored.Outlined.OpenInNew,
+      contentDescription = null, modifier = Modifier.size(18.dp), tint = accent)
+  }
+}
+
+@Composable
+private fun CatalogWebsiteButton(entry: CatalogItem, accent: Color, modifier: Modifier, onClick: () -> Unit) {
+  Button(onClick = onClick, modifier = modifier.heightIn(min = 48.dp).semantics { contentDescription = "Open ${entry.title} website in browser" },
+    shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 8.dp),
+    colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+    Text("Website", maxLines = 1)
+    Spacer(Modifier.width(4.dp))
+    Icon(Icons.AutoMirrored.Outlined.OpenInNew, null, Modifier.size(16.dp))
+  }
+}
+
+@Composable
+private fun CatalogAndroidButton(entry: CatalogItem, accent: Color, modifier: Modifier, onClick: () -> Unit) {
+  OutlinedButton(onClick = onClick, modifier = modifier.heightIn(min = 48.dp).semantics { contentDescription = "Open ${entry.title} Android version" },
+    shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 8.dp),
+    border = BorderStroke(1.dp, accent.copy(alpha = .45f)), colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)) {
+    Text("Android version", maxLines = 1)
+  }
+}
+
+@Composable
+private fun ProjectDetail(project: Project, site: SiteInfo, modifier: Modifier, contentPadding: PaddingValues, onWebsite: () -> Unit, onDemo: () -> Unit) {
   val context = LocalContext.current
   LazyColumn(modifier, contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(22.dp)) {
     item { Heading(project.title, project.summary) }
+    item { OutlinedButton(onClick = onWebsite, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+      Text("View full website project")
+    } }
     if (project.id in NATIVE_DEMO_IDS) item {
-      Button(onClick = onDemo, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Text("Open demo") }
+      Button(onClick = onDemo, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+        Text(if (project.id in WEB_DEMO_EXPERIENCES) "Open website demo in app" else "Open demo")
+      }
     }
     if (project.imageUrl.isNotBlank()) item {
       Box(Modifier.fillMaxWidth().aspectRatio(1.6f).clip(RoundedCornerShape(14.dp)).background(Paper), contentAlignment = Alignment.Center) {

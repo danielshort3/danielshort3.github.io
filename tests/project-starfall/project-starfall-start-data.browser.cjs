@@ -19,7 +19,7 @@ const { createLocalServer } = require('../../build/dev');
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     const base = `http://127.0.0.1:${server.address().port}`;
     browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage({ reducedMotion: 'reduce', serviceWorkers: 'block', viewport: { width: 1280, height: 900 } });
+    const page = await browser.newPage({ reducedMotion: 'reduce', serviceWorkers: 'block', viewport: { width: 360, height: 640 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     let downloads = 0;
@@ -36,9 +36,29 @@ const { createLocalServer } = require('../../build/dev');
       return route.continue();
     });
     await page.goto(`${base}/games/project-starfall`, { waitUntil: 'domcontentloaded' });
-    if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
+    if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').evaluate(button => button.click());
     const start = page.locator('[data-starfall-start-screen] [data-starfall-action="load"]');
     await expect(start).toBeVisible({ timeout: 60000 });
+    const assertStartReachable = async (width, height, scroll = true) => {
+      await page.setViewportSize({ width, height });
+      if (scroll) await start.scrollIntoViewIfNeeded();
+      const geometry = await page.evaluate(() => {
+        const button = document.querySelector('[data-starfall-start-screen] [data-starfall-action="load"]');
+        const bounds = button.getBoundingClientRect();
+        const stage = document.querySelector('.project-starfall-canvas-wrap').getBoundingClientRect();
+        return {
+          insideStage: bounds.top >= stage.top && bounds.bottom <= stage.bottom,
+          hit: document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2) === button
+        };
+      });
+      assert(geometry.insideStage && geometry.hit, `Start must fit in the stage and receive input at ${width}×${height}`);
+    };
+    await assertStartReachable(360, 640, false);
+    await page.screenshot({ path: path.join(artifactDir, 'starfall-start-360.png') });
+    await assertStartReachable(360, 800);
+    await assertStartReachable(320, 800);
+    await assertStartReachable(360, 460);
+    await page.setViewportSize({ width: 360, height: 640 });
     assert.equal(downloads, 0, 'loading the start screen must not request collision data');
     assert.equal(await page.evaluate(() => window.ProjectStarfallEnemyHurtboxesData != null), false);
     assert.equal(await page.evaluate(() => document.querySelector('[data-starfall-root]').ProjectStarfall.engine.start()), false,
@@ -67,9 +87,27 @@ const { createLocalServer } = require('../../build/dev');
     await page.locator('[data-starfall-character-create-confirm]').click();
     await expect.poll(() => page.evaluate(() => document.querySelector('[data-starfall-root]').ProjectStarfall.engine.running)).toBe(true);
     assert.equal(downloads, 2);
-    assert.deepEqual(errors, []);
     await page.screenshot({ path: path.join(artifactDir, 'starfall-started.png') });
-    console.log('Starfall browser Start gate passed: no eager table, retry, single flight, exact data and new-character gameplay.');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const moveRight = page.locator('[data-starfall-touch-controls] [data-starfall-touch-action="moveRight"]');
+    await expect(moveRight).toBeVisible();
+    await moveRight.scrollIntoViewIfNeeded();
+    const bounds = await moveRight.boundingBox();
+    assert(bounds, 'the phone-width movement control must have a hit target');
+    const touch = await page.context().newCDPSession(page);
+    await touch.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{
+      x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2, id: 1
+    }] });
+    await expect(moveRight).toHaveAttribute('aria-pressed', 'true');
+    assert.equal(await page.evaluate(() => document.querySelector('[data-starfall-root]').ProjectStarfall.engine.input.right), true);
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect(moveRight).toHaveAttribute('aria-pressed', 'false');
+    assert.equal(await page.evaluate(() => document.querySelector('[data-starfall-root]').ProjectStarfall.engine.input.right), false);
+    await page.screenshot({ path: path.join(artifactDir, 'starfall-started-mobile.png') });
+    assert.deepEqual(errors, []);
+    console.log('Starfall browser Start gate and phone-width controls passed: exact data, new-character gameplay, and held movement input.');
   } finally {
     releaseDownload();
     await browser?.close();

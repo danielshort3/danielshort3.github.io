@@ -38,6 +38,10 @@
   const suffixInput = $('#imgopt-suffix');
   const clearBtn = $('#imgopt-clear');
   const statusEl = $('#imgopt-status');
+  const sizeAdviceEl = $('#imgopt-size-advice');
+  const sizeAdviceTitle = $('#imgopt-size-advice-title');
+  const sizeAdviceDetail = $('#imgopt-size-advice-detail');
+  const tryWebpBtn = $('#imgopt-try-webp');
   const resultsEl = $('#imgopt-results');
   const downloadAllBtn = $('#imgopt-download-all');
   const processBtn = $('#imgopt-process');
@@ -306,9 +310,29 @@
   };
 
   const setStatus = (msg, tone = 'info') => {
+    if (sizeAdviceEl) sizeAdviceEl.hidden = true;
     if (!statusEl) return;
+    statusEl.hidden = false;
     statusEl.textContent = msg || '';
     statusEl.dataset.tone = tone;
+  };
+
+  const showSizeAdvice = (feedback) => {
+    if (!feedback || !sizeAdviceEl || !sizeAdviceTitle || !sizeAdviceDetail || !statusEl) return false;
+    const metadataNote = feedback.metadataKept === 0
+      ? 'metadata removed'
+      : feedback.metadataKept === feedback.outputCount
+        ? 'original files kept'
+        : 'some originals kept';
+    sizeAdviceTitle.textContent = feedback.outputBytes > feedback.inputBytes
+      ? (feedback.batch ? 'Batch output is larger' : 'Output is larger')
+      : (feedback.batch ? 'No batch size reduction' : 'No size reduction');
+    sizeAdviceDetail.textContent = `${formatBytes(feedback.inputBytes)} → ${formatBytes(feedback.outputBytes)} · ${metadataNote}`;
+    sizeAdviceEl.dataset.tone = feedback.outputBytes > feedback.inputBytes ? 'warning' : 'info';
+    if (tryWebpBtn) tryWebpBtn.hidden = !feedback.canTryWebp;
+    statusEl.hidden = true;
+    sizeAdviceEl.hidden = false;
+    return true;
   };
 
   const setWorking = (working) => {
@@ -320,6 +344,7 @@
       clearBtn.setAttribute('aria-label', state.working ? 'Cancel optimization' : 'Clear selected images');
     }
     if (downloadAllBtn) downloadAllBtn.disabled = state.working || state.outputs.length === 0;
+    if (tryWebpBtn) tryWebpBtn.disabled = state.working;
     if (fileInput) fileInput.disabled = state.working;
     if (sampleBtn) sampleBtn.disabled = state.working;
     if (formatSelect) formatSelect.disabled = state.working;
@@ -934,6 +959,14 @@
     }
   });
 
+  const isWebpBlob = async (blob) => {
+    if (String(blob?.type || '').toLowerCase() !== 'image/webp') return false;
+    const header = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
+    return header.length === 12
+      && header[0] === 82 && header[1] === 73 && header[2] === 70 && header[3] === 70
+      && header[8] === 87 && header[9] === 69 && header[10] === 66 && header[11] === 80;
+  };
+
   const buildOutputName = ({ inputName, suffix, mime, variantWidth }) => {
     const { stem } = splitName(inputName);
     const base = sanitizeStem(stem);
@@ -961,6 +994,31 @@
     const percent = Math.abs(difference / inputBytes * 100);
     const percentText = percent < 0.1 ? '<0.1' : percent.toFixed(1).replace(/\.0$/, '');
     return `${formatBytes(Math.abs(difference))} ${difference > 0 ? 'larger' : 'smaller'} (${percentText}%) than ${reference}`;
+  };
+
+  const getSizeFeedback = ({ items, outputs, responsiveEnabled, supportsWebp, requestedMime }) => {
+    if (responsiveEnabled || !items.length || outputs.length !== items.length) return null;
+    const inputById = new Map(items.map((item) => [String(item.id), item.file?.size]));
+    if (inputById.size !== items.length) return null;
+    const seen = new Set();
+    for (const out of outputs) {
+      const id = String(out.inputId);
+      if (!inputById.has(id) || seen.has(id) || !Number.isFinite(out.blob?.size)) return null;
+      seen.add(id);
+    }
+    const inputBytes = items.reduce((sum, item) => sum + item.file.size, 0);
+    const outputBytes = outputs.reduce((sum, out) => sum + out.blob.size, 0);
+    if (inputBytes <= 0 || outputBytes < inputBytes) return null;
+    return {
+      inputBytes,
+      outputBytes,
+      outputCount: outputs.length,
+      batch: items.length > 1,
+      metadataKept: outputs.filter((out) => out.originalKept).length,
+      canTryWebp: Boolean(supportsWebp)
+        && requestedMime !== 'image/webp'
+        && outputs.every((out) => out.mime !== 'image/webp')
+    };
   };
 
   const chooseOutput = ({ original, encoded, mime, sourceWidth, sourceHeight, width, height, keepSmaller, changesBackground }) => {
@@ -1127,7 +1185,7 @@
     markSessionDirty();
   };
 
-  const processAll = async () => {
+  const processAll = async ({ webpAlternative = false } = {}) => {
     if (state.working) return;
     if (!state.items.length) {
       setStatus('Add at least one image first.', 'warning');
@@ -1136,7 +1194,21 @@
       return;
     }
 
-    revokeOutputs();
+    if (webpAlternative && !getSizeFeedback({
+      items: state.items,
+      outputs: state.outputs,
+      responsiveEnabled: Boolean(responsiveInput?.checked),
+      supportsWebp: state.supports['image/webp'],
+      requestedMime: formatSelect.value
+    })?.canTryWebp) return;
+
+    const previousOutputs = webpAlternative ? state.outputs.slice() : [];
+    const previousResultsHtml = webpAlternative ? resultsEl.innerHTML : '';
+    const existingOutputBytes = webpAlternative
+      ? state.outputs.reduce((sum, out) => sum + out.blob.size, 0)
+      : 0;
+    if (!webpAlternative) revokeOutputs();
+    const generatedOutputs = [];
     state.cancelRequested = false;
     const operationId = state.operationId + 1;
     state.operationId = operationId;
@@ -1153,7 +1225,7 @@
       }
 
       const suffix = normalizeSuffix(suffixInput?.value ?? '-optimized');
-      const requestedMime = formatSelect.value;
+      const requestedMime = webpAlternative ? 'image/webp' : formatSelect.value;
       const keepAspect = Boolean(keepAspectInput?.checked);
       const noUpscale = Boolean(noUpscaleInput?.checked);
       const mode = resizeMode?.value || 'none';
@@ -1229,6 +1301,11 @@
 
               ctx.drawImage(decoded, 0, 0, canvas.width, canvas.height);
               const encoded = await canvasToBlob(canvas, outputMime, quality);
+              if (outputMime === 'image/webp' && !(await isWebpBlob(encoded))) {
+                const error = new Error('WebP encoding is unavailable in this browser.');
+                error.errorType = 'unsupported_webp';
+                throw error;
+              }
               const { blob: outBlob, originalKept } = chooseOutput({
                 original: item.file,
                 encoded,
@@ -1241,7 +1318,7 @@
                 changesBackground: outputMime === 'image/jpeg' && Boolean(flattenInput?.checked)
               });
               throwIfCancelled(operationId);
-              if (actualOutputBytes + outBlob.size > IMAGE_LIMITS.maxActualOutputBytes) {
+              if (existingOutputBytes + actualOutputBytes + outBlob.size > IMAGE_LIMITS.maxActualOutputBytes) {
                 throw new Error(`Encoded files would exceed the ${formatBytes(IMAGE_LIMITS.maxActualOutputBytes)} output limit. Reduce dimensions, quality, or responsive widths.`);
               }
               actualOutputBytes += outBlob.size;
@@ -1254,7 +1331,7 @@
               });
               const outName = makeUnique(rawName);
 
-              state.outputs.push({
+              generatedOutputs.push({
                 inputId: item.id,
                 blob: outBlob,
                 originalKept,
@@ -1277,16 +1354,46 @@
         await new Promise((r) => window.requestAnimationFrame(r));
       }
 
+      state.outputs = webpAlternative
+        ? previousOutputs.concat(generatedOutputs)
+        : generatedOutputs;
       renderOutputs({ responsiveEnabled });
       const originalBytes = state.items.reduce((sum, item) => sum + item.file.size, 0);
-      const largerCount = state.outputs.filter((out) => out.blob.size > getItemById(out.inputId).file.size).length;
-      setStatus(`Done. ${state.outputs.length} ${state.outputs.length === 1 ? 'file' : 'files'} ready (${formatBytes(actualOutputBytes)} total). Combined output: ${describeSizeChange(originalBytes, actualOutputBytes, 'the originals')}.${largerCount ? ` ${largerCount} ${largerCount === 1 ? 'output is' : 'outputs are'} larger; try a lower quality or another format if file size is your priority.` : ''}`, largerCount ? 'warning' : 'success');
+      const largerCount = generatedOutputs.filter((out) => out.blob.size > getItemById(out.inputId).file.size).length;
+      if (webpAlternative) {
+        setStatus(`WebP alternatives ready (${formatBytes(actualOutputBytes)} total): ${describeSizeChange(originalBytes, actualOutputBytes, 'the originals')}. Original downloads remain available.`, largerCount ? 'warning' : 'success');
+      } else if (responsiveEnabled) {
+        setStatus(`Done. ${generatedOutputs.length} output ${generatedOutputs.length === 1 ? 'file' : 'files'} from ${state.items.length} ${state.items.length === 1 ? 'image' : 'images'} ready (${formatBytes(actualOutputBytes)} total). Review each responsive size below.`, 'success');
+      } else {
+        const feedback = getSizeFeedback({
+          items: state.items,
+          outputs: generatedOutputs,
+          responsiveEnabled,
+          supportsWebp: state.supports['image/webp'],
+          requestedMime
+        });
+        if (!showSizeAdvice(feedback)) {
+          setStatus(`Done. ${generatedOutputs.length} ${generatedOutputs.length === 1 ? 'file' : 'files'} ready (${formatBytes(actualOutputBytes)} total). Combined output: ${describeSizeChange(originalBytes, actualOutputBytes, 'the originals')}.${largerCount ? ` ${largerCount} ${largerCount === 1 ? 'output is' : 'outputs are'} larger; try a lower quality or another format if file size is your priority.` : ''}`, largerCount ? 'warning' : 'success');
+        }
+      }
       dispatchToolRunEvent('tools:run-complete', {
         resultBucket: state.outputs.length === 1 ? 'single_output' : 'multiple_outputs'
       });
     } catch (err) {
-      revokeOutputs();
-      setStatus(err?.message || 'Unable to optimize images. Please try different files or settings.', err?.name === 'AbortError' ? 'info' : 'error');
+      state.outputs = previousOutputs;
+      resultsEl.innerHTML = previousResultsHtml;
+      generatedOutputs.forEach((out) => {
+        if (out.url) URL.revokeObjectURL(out.url);
+      });
+      if (err?.errorType === 'unsupported_webp') {
+        state.supports['image/webp'] = false;
+        const option = formatSelect.querySelector('option[value="image/webp"]');
+        if (option) {
+          option.disabled = true;
+          option.textContent = 'WebP (unsupported)';
+        }
+      }
+      setStatus(`${err?.message || 'Unable to optimize images. Please try different files or settings.'}${webpAlternative ? ' Original downloads remain available.' : ''}`, err?.name === 'AbortError' ? 'info' : 'error');
       dispatchToolRunEvent('tools:run-error', {
         errorType: err?.errorType || (err?.name === 'AbortError' ? 'cancelled' : 'processing')
       });
@@ -1379,6 +1486,7 @@
   });
   downloadAllBtn?.addEventListener('click', downloadAll);
   sampleBtn?.addEventListener('click', addSample);
+  tryWebpBtn?.addEventListener('click', () => processAll({ webpAlternative: true }));
 
   formatSelect.addEventListener('change', updateControlsVisibility);
   resizeMode?.addEventListener('change', updateControlsVisibility);

@@ -63,6 +63,17 @@ async function assertClosed(page, label, expectedHash = '') {
   assert(await page.locator('.site-frame__welcome').isVisible(), `${label} displays the welcome message.`);
   assert((await page.locator('.site-frame__welcome').innerText()).trim().length >= 20,
     `${label} presents an intentional resting state with meaningful copy.`);
+  assert.equal(await page.locator('.site-frame__welcome').count(), 1,
+    `${label} reuses one visible welcome after the frame mounts.`);
+  const browseLink = page.locator('.site-frame__welcome-browse:visible');
+  assert.equal(await browseLink.count(), 1,
+    `${label} exposes one project-library link beside the category bars.`);
+  assert.equal(await browseLink.getAttribute('href'), '/portfolio',
+    `${label} points that link to the canonical project library.`);
+  assert.equal((await browseLink.innerText()).replace(/\s+/g, ' ').trim(), 'Browse all projects →',
+    `${label} labels the single link clearly.`);
+  assert.equal(await page.locator('[data-site-home-welcome]').count(), 0,
+    `${label} removes the raw source after mounting its authored welcome copy.`);
   assert.equal(await page.locator('[data-home-accordion-item]:visible').count(), 0,
     `${label} exposes no category content.`);
   const metrics = await geometry(page);
@@ -168,6 +179,25 @@ async function runViewport({ browser, base, artifactDir }, settings) {
   });
 
   try {
+    const staticContext = await browser.newContext({ viewport: settings.viewport, javaScriptEnabled: false, serviceWorkers: 'block' });
+    try {
+      const staticPage = await staticContext.newPage();
+      const staticResponse = await staticPage.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
+      assert.equal(staticResponse.status(), 200, `${settings.name} raw homepage responds successfully.`);
+      assert(await staticPage.locator('.home-accordion__welcome h1').isVisible(),
+        `${settings.name} raw HTML displays the authored introduction without JavaScript.`);
+      assert.equal(await staticPage.locator('.home-accordion__welcome .site-frame__welcome-browse:visible').count(), 1,
+        `${settings.name} raw HTML exposes the project-library link without JavaScript.`);
+      assert.equal(await staticPage.locator('.home-accordion__noscript a:visible').count(), 3,
+        `${settings.name} raw HTML keeps the remaining library destinations available without JavaScript.`);
+      assert.equal(await staticPage.locator('[data-home-accordion-panel]:visible').count(), 0,
+        `${settings.name} raw HTML keeps collapsed panel content hidden.`);
+      assert(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        `${settings.name} raw HTML has no horizontal overflow.`);
+      await staticPage.screenshot({ path: path.join(artifactDir, `${settings.name}-static.png`), fullPage: true });
+    } finally {
+      await staticContext.close();
+    }
     const response = await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
     assert.equal(response.status(), 200);
     await assertClosed(page, 'Bare homepage', '');

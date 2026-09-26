@@ -25,7 +25,7 @@ const CATEGORY_CONFIG = Object.freeze({
     color: '#091f3b',
     colorEnd: '#032b57',
     href: '/#about',
-    icon: '<circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path>'
+    icon: 'nav-about'
   }),
   projects: Object.freeze({
     label: 'Projects',
@@ -33,7 +33,7 @@ const CATEGORY_CONFIG = Object.freeze({
     colorEnd: '#0145c8',
     href: '/#projects',
     libraryHref: '/portfolio',
-    icon: '<path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path>'
+    icon: 'nav-projects'
   }),
   tools: Object.freeze({
     label: 'Tools',
@@ -41,7 +41,7 @@ const CATEGORY_CONFIG = Object.freeze({
     colorEnd: '#006973',
     href: '/#tools',
     libraryHref: '/tools',
-    icon: '<path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path>'
+    icon: 'nav-tools'
   }),
   games: Object.freeze({
     label: 'Games',
@@ -49,7 +49,7 @@ const CATEGORY_CONFIG = Object.freeze({
     colorEnd: '#e35d00',
     href: '/#games',
     libraryHref: '/games',
-    icon: '<path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path>'
+    icon: 'nav-games'
   }),
   resume: Object.freeze({
     label: 'Resume',
@@ -64,7 +64,7 @@ const CATEGORY_CONFIG = Object.freeze({
     colorEnd: '#263648',
     href: '/#contact',
     libraryHref: '/contact',
-    icon: '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path>'
+    icon: 'nav-contact'
   })
 });
 
@@ -101,8 +101,6 @@ const LIBRARY_PRESENTATION = Object.freeze({
     summary: 'All of my browser games and simulations, from action RPG systems to probability experiments.'
   })
 });
-const ARROW_LEFT = '<path d="m15 18-6-6 6-6"></path>';
-const ARROW_RIGHT = '<path d="m9 5 7 7-7 7"></path>';
 const ACCESS_KEY = '<path d="M15.5 3a5.5 5.5 0 0 0-4.9 8L3 18.6V21h3v-3h3v-3l3.5-3.5A5.5 5.5 0 1 0 15.5 3z"></path><circle cx="16" cy="7.5" r="1"></circle>';
 
 function getTagAttribute(tag, name) {
@@ -410,7 +408,7 @@ function renderPersonalLibraryHeader(options = {}) {
   ].filter(Boolean).join(' ');
   const headingClass = ['home-library__heading', options.wrapper ? 'wrapper' : ''].filter(Boolean).join(' ');
   const parentLabel = `${CATEGORY_CONFIG[presentation.categoryId].label} overview`;
-  const parentContent = `<span aria-hidden="true">${renderIcon('<path d="M19 12H5m7 7-7-7 7-7"></path>')}</span>${escapeHtml(parentLabel)}`;
+  const parentContent = `<span aria-hidden="true">${renderSiteIcon('action-back')}</span>${escapeHtml(parentLabel)}`;
   const back = options.includeBack
     ? `  <button class="home-library__back" type="button" data-home-library-close="${escapeHtml(presentation.categoryId)}" data-page-masthead-parent>${parentContent}</button>`
     : `  <a class="home-library__back" href="${escapeHtml(presentation.backHref)}" aria-label="Back to ${escapeHtml(parentLabel)}" data-page-masthead-parent>${parentContent}</a>`;
@@ -433,7 +431,12 @@ function renderPersonalLibraryHeader(options = {}) {
 }
 
 function renderIcon(paths, className = '') {
+  if (/^nav-(about|projects|tools|games|contact)$/.test(paths)) return renderSiteIcon(paths, className);
   return `<svg${className ? ` class="${escapeHtml(className)}"` : ''} viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+}
+
+function renderSiteIcon(name, className = '') {
+  return `<img${className ? ` class="${escapeHtml(className)}"` : ''} src="/img/ui/site-icons/${name}.png" alt="" width="256" height="256" decoding="async">`;
 }
 
 function renderToolsAccountBar() {
@@ -521,7 +524,7 @@ function renderPersonalToolHeader(options = {}) {
     PERSONAL_TOOL_HEADER_START,
     `<header class="${headerClasses}" data-personal-tool-header="${escapeHtml(itemId)}" data-page-masthead>`,
     '  <div class="wrapper personal-tool-header__inner">',
-    `    <a class="personal-tool-header__parent" href="/tools" aria-label="Back to tool library" data-page-masthead-parent>${renderIcon('<path d="M19 12H5m7 7-7-7 7-7"></path>')}<span>Tool library</span></a>`,
+    `    <a class="personal-tool-header__parent" href="/tools" aria-label="Back to tool library" data-page-masthead-parent>${renderSiteIcon('action-back')}<span>Tool library</span></a>`,
     '    <div class="personal-tool-header__intro" data-page-masthead-intro>',
     '      <div class="personal-tool-header__copy" data-page-masthead-copy>',
     `        <h1 id="personal-tool-title-${escapeHtml(itemId)}">${escapeHtml(title)}</h1>`,
@@ -815,7 +818,7 @@ function renderPersonalAccordionShell(fragment, options = {}) {
   const toolbar = hasMasthead ? '' : [
     '<div class="personal-accordion__toolbar" data-site-route-toolbar>',
     `  <a class="personal-accordion__back" href="${escapeHtml(backHref)}" aria-label="${escapeHtml(backAriaLabel)}">`,
-    `    <span class="personal-accordion__back-icon" aria-hidden="true">${renderIcon(ARROW_LEFT)}</span>`,
+    `    <span class="personal-accordion__back-icon" aria-hidden="true">${renderSiteIcon('action-back')}</span>`,
     `    <span class="personal-accordion__back-label personal-accordion__back-label--desktop" aria-hidden="true">${escapeHtml(backLabel)}</span>`,
     `    <span class="personal-accordion__back-label personal-accordion__back-label--mobile" aria-hidden="true">${escapeHtml(backCompactLabel)}</span>`,
     '  </a>',
@@ -910,6 +913,7 @@ function replaceMainHtml(html, mainHtml) {
 }
 
 function renderLibraryCard(item, categoryId) {
+  const isProject = categoryId === 'projects';
   const href = String(item && item.href || '').trim();
   const title = String(item && item.title || 'Explore').trim();
   const summary = String(item && item.summary || '').trim();
@@ -934,12 +938,14 @@ function renderLibraryCard(item, categoryId) {
     `        <a class="home-library__card${iconImage ? ' home-library__card--icon' : ''}" href="${escapeHtml(href)}" data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="personal_library_page">`,
     `          <span class="home-library__media home-library__media--${mediaType}" aria-hidden="${imageAlt ? 'false' : 'true'}">${media}</span>`,
     '          <span class="home-library__copy">',
+    isProject ? '            <span class="home-library__headline">' : '',
     item.badge ? `            <small class="home-library__badge">${escapeHtml(item.badge)}</small>` : '',
     `            <strong>${escapeHtml(title)}</strong>`,
+    isProject ? '            </span>' : '',
     visibility === 'admin' ? `            <span class="home-library__access">${renderIcon(ACCESS_KEY)}Admin access</span>` : '',
-    summary ? `            <span>${escapeHtml(summary)}</span>` : '',
+    summary ? `            <span${isProject ? ' class="home-library__summary"' : ''}>${escapeHtml(summary)}</span>` : '',
     '          </span>',
-    `          <span class="home-library__arrow" aria-hidden="true">${renderIcon(ARROW_RIGHT)}</span>`,
+    `          <span class="home-library__arrow" aria-hidden="true">${renderSiteIcon('action-arrow')}</span>`,
     '        </a>',
     '      </li>'
   ].filter(Boolean).join('\n');

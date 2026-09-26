@@ -718,10 +718,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(!timelineCss.includes('.home-timeline__head') &&
     !aboutHtml.includes('A timeline of real milestones in learning and work.'),
   'timeline should remove its heading, subtext, and reserved heading styles at every viewport');
-  assert(/data-home-timeline-item="purdue-bs-data-analytics"[\s\S]*?class="home-background__icon" aria-hidden="true"><svg/.test(aboutHtml) &&
-    !aboutHtml.includes('class="home-timeline__media"'),
-  'the resume should use consistent decorative category icons rather than the legacy logo plaques');
   const milestoneHtml = (markup, id) => markup.match(new RegExp(`<li[^>]+data-home-timeline-item="${id}"[^>]*>[\\s\\S]*?<\\/li>`))?.[0] || '';
+  const milestoneIconHtml = (id) => milestoneHtml(aboutHtml, id)
+    .match(/<span class="home-background__icon" aria-hidden="true">([\s\S]*?)<\/span>/)?.[1] || '';
+  assert(/<img src="\/img\/ui\/site-icons\/about-job\.png" alt="" width="256" height="256" decoding="async">/.test(milestoneIconHtml('visit-grand-junction')) &&
+    /<img src="\/img\/ui\/site-icons\/about-degree\.png" alt="" width="256" height="256" decoding="async">/.test(milestoneIconHtml('purdue-bs-data-analytics')) &&
+    !aboutHtml.includes('class="home-timeline__media"'),
+  'the resume should use accessible decorative AI category icons rather than the legacy logo plaques');
   const backgroundSectionHtml = (markup, id) => {
     const start = markup.indexOf(`data-home-background-section="${id}"`);
     const next = start >= 0 ? markup.indexOf('data-home-background-section="', start + 1) : -1;
@@ -905,7 +908,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const contactIconImages = {
     'contact-form': 'img/icons/contact-message-v2.png',
     email: 'img/icons/contact-email-v2.png',
-    github: 'img/icons/contact-github-v2.png'
+    github: 'img/icons/github-icon.png'
   };
   Object.entries(contactIconImages).forEach(([id, image]) => {
     const item = contact.items.find((entry) => entry.id === id);
@@ -914,10 +917,25 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       count(html, new RegExp(`data-home-icon="${item.icon}"`, 'g')) === 0,
     `${id} should render its selected image once, with its SVG glyph reserved as a fallback`);
   });
-  assert(count(getItemHtml('contact'), /data-home-icon="external-arrow"/g) === 1,
+  assert(count(getItemHtml('contact'), /<span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><img src="\/img\/ui\/site-icons\/action-external\.png" alt="" width="256" height="256" decoding="async"><\/span>/g) === 1,
     'the external GitHub card should use one dedicated external-link arrow');
   assert(count(html, /<h1\b/g) === 1 && html.includes('id="home-accordion-title"'),
     'homepage should expose one accessible H1');
+  const welcomeHtml = html.match(/<div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>([\s\S]*?)<\/div>/)?.[1] || '';
+  const browseLink = personal.page.sections[0].props.welcome.browseLink;
+  assert(welcomeHtml.includes(`<h1 class="site-frame__welcome-title">${personal.page.sections[0].props.welcome.title}</h1>`) &&
+    welcomeHtml.includes(personal.brandTagline) &&
+    welcomeHtml.includes(personal.page.sections[0].props.welcome.detail) &&
+    html.indexOf('data-site-home-welcome') < html.indexOf('hidden inert') &&
+    !/\s(?:hidden|inert)(?=[\s>])/.test(welcomeHtml) &&
+    /<h2 class="visually-hidden" id="home-accordion-title">/.test(html),
+  'closed homepage should contain a visible authored introduction before hidden panels');
+  assert(personal.page.sections[0].props.welcome.summary === personal.brandTagline &&
+    browseLink.href === '/portfolio' && browseLink.label === 'Browse all projects' &&
+    welcomeHtml.includes(`<a class="site-frame__welcome-browse" href="${browseLink.href}">${browseLink.label} <span aria-hidden="true">→</span></a>`) &&
+    !welcomeHtml.includes('site-frame__welcome-links') && !welcomeHtml.includes('Start exploring') &&
+    html.includes('<noscript><nav class="home-accordion__noscript" aria-label="Explore the site">'),
+  'closed homepage should use the canonical tagline, one project link, and no-script library navigation');
   [
     ['projects', '/portfolio', 'View all projects'],
     ['tools', '/tools', 'View all tools'],
@@ -954,6 +972,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       `<h2[^>]+home-accordion__heading[^>]*>\\s*<button[^>]+id="home-accordion-trigger-${id}"[^>]+type="button"[^>]+aria-controls="home-accordion-panel-${id}"[\\s\\S]*?<\\/button>\\s*<\\/h2>\\s*<section[^>]+id="home-accordion-panel-${id}"[^>]+role="region"[^>]+aria-labelledby="home-accordion-trigger-${id}"`
     );
     assert(pairPattern.test(html), `${id} rail should be a heading-wrapped native button followed by its labeled region`);
+  });
+
+  ['projects', 'tools', 'games', 'contact'].forEach((id) => {
+    assert(/<div class="home-accordion__title-row">[\s\S]*?<h2>[^<]+<\/h2>/.test(getItemHtml(id)),
+      `${id} visible panel title should be a level-two heading when its rail is collapsed`);
   });
 
   const requiredRoutes = [

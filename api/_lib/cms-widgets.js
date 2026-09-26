@@ -390,12 +390,14 @@ function renderLegacyHtml(section) {
   );
 }
 
+const siteIconImage = (name) => `<img src="/img/ui/site-icons/${name}.png" alt="" width="256" height="256" decoding="async">`;
+
 const HOME_ACCORDION_ICONS = {
-  about: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg>',
-  projects: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg>',
-  tools: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg>',
-  games: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg>',
-  contact: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg>',
+  about: siteIconImage('nav-about'),
+  projects: siteIconImage('nav-projects'),
+  tools: siteIconImage('nav-tools'),
+  games: siteIconImage('nav-games'),
+  contact: siteIconImage('nav-contact'),
   playground: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><path d="M17.5 14v7M14 17.5h7"></path></svg>',
   stormbreak: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 5 13h6l-1 9 9-13h-6z"></path><path d="M4 5h5M15 19h5"></path></svg>',
   'stellar-dogfight': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3z"></path><circle cx="12" cy="12" r="2.2"></circle><path d="M3 5h3M18 19h3"></path></svg>',
@@ -404,11 +406,11 @@ const HOME_ACCORDION_ICONS = {
   wave: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5 0 2.5-3 5-3s2.5 3 5 3 2.5-3 5-3 2.5 3 5 3M2 16c2.5 0 2.5-3 5-3s2.5 3 5 3 2.5-3 5-3 2.5 3 5 3"></path></svg>',
   message: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4z"></path><path d="M22 2 11 13"></path></svg>',
   email: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg>',
-  github: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="5" r="2"></circle><circle cx="18" cy="5" r="2"></circle><circle cx="12" cy="19" r="2"></circle><path d="M6 7v3c0 2 1.6 3 3.5 3H12M18 7v3c0 2-1.6 3-3.5 3H12M12 13v4"></path></svg>',
+  github: '<img src="/img/icons/github-icon.png" alt="" width="256" height="256" decoding="async">',
   spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2zM5 15v4M3 17h4M19 14v3M17.5 15.5h3"></path></svg>',
   timeline: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M5 7h7M5 12h11M5 17h8"></path><circle cx="5" cy="7" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle><circle cx="5" cy="17" r="1.5"></circle></svg>',
-  arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>',
-  'external-arrow': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg>'
+  arrow: siteIconImage('action-arrow'),
+  'external-arrow': siteIconImage('action-external')
 };
 
 function resolveHomeAccordionIconId(id) {
@@ -573,8 +575,8 @@ function renderHomeTimelineItem(item, categoryId, options = {}) {
 }
 
 const HOME_BACKGROUND_ICONS = Object.freeze({
-  job: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a22 22 0 0 0 18 0M12 11v4"></path></svg>',
-  degree: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5-10-5ZM6 11v6c3 3 9 3 12 0v-6M22 9v8"></path></svg>',
+  job: siteIconImage('about-job'),
+  degree: siteIconImage('about-degree'),
   certification: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M7 7h10M7 11h5"></path><circle cx="17" cy="15" r="3"></circle><path d="m15 17-1 5 3-2 3 2-1-5"></path></svg>',
   personal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="m8 12 3 3 5-6"></path></svg>'
 });
@@ -719,8 +721,8 @@ function renderHomeTimeline(timeline, categoryId) {
 const HOME_ABOUT_ICONS = Object.freeze({
   ai: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 10v6M7 23v-7h18v7"></path><circle cx="16" cy="6" r="4"></circle><circle cx="7" cy="27" r="4"></circle><circle cx="25" cy="27" r="4"></circle></svg>',
   family: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m3 14 13-11 13 11M6 12v17h20V12"></path><path d="M16 24s-6-3.6-6-7a3.4 3.4 0 0 1 6-2.1A3.4 3.4 0 0 1 22 17c0 3.4-6 7-6 7Z"></path></svg>',
-  arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"></path></svg>',
-  code: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 6-6 6 6 6m10-12 6 6-6 6M14 3l-4 18"></path></svg>'
+  arrow: siteIconImage('action-arrow'),
+  code: siteIconImage('about-code')
 });
 
 function renderHomeAboutConnection(connection) {
@@ -816,6 +818,9 @@ function renderHomeLibraryView(category, categoryId) {
 function renderHomeAccordion(section) {
   const props = section.props || {};
   const categories = Array.isArray(props.categories) ? props.categories : [];
+  const welcome = props.welcome || {};
+  const browseLink = welcome.browseLink && welcome.browseLink.href && welcome.browseLink.label
+    ? welcome.browseLink : null;
   const initialView = props.initialView === 'closed' ? 'closed' : 'overview';
   const allowedIds = new Set(categories.map((category) => String(category && category.id || '').trim()).filter(Boolean));
   const defaultPanel = allowedIds.has(String(props.defaultPanel || '').trim())
@@ -870,7 +875,7 @@ function renderHomeAccordion(section) {
           `              <p class="home-accordion__eyebrow">${escapeHtml(label)}</p>`,
           '              <div class="home-accordion__title-row">',
           `                <span class="home-accordion__title-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
-          `                <h3>${escapeHtml(category && category.title || label)}</h3>`,
+          `                <h2>${escapeHtml(category && category.title || label)}</h2>`,
           '              </div>',
           category && category.lead ? `              <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
           context ? `              <p class="home-accordion__context home-accordion__context--profile">${escapeHtml(context)}</p>` : '',
@@ -888,7 +893,7 @@ function renderHomeAccordion(section) {
           `            <p class="home-accordion__eyebrow">${escapeHtml(label)}</p>`,
           '            <div class="home-accordion__title-row">',
           `              <span class="home-accordion__title-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
-          `              <h3>${escapeHtml(category && category.title || label)}</h3>`,
+          `              <h2>${escapeHtml(category && category.title || label)}</h2>`,
           '            </div>',
           category && category.lead ? `            <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
           hasMasthead ? '            </div></div>' : '',
@@ -943,7 +948,14 @@ function renderHomeAccordion(section) {
 
   return [
     `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${initialView === 'closed' ? '' : escapeHtml(defaultPanel)}" data-home-view="${initialView}" aria-labelledby="home-accordion-title">`,
-    `  <h1 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h1>`,
+    '  <div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>',
+    `    <p class="site-frame__welcome-eyebrow">${escapeHtml(welcome.eyebrow || 'WELCOME')}</p>`,
+    `    <h1 class="site-frame__welcome-title">${escapeHtml(welcome.title || 'Daniel Short.')}</h1>`,
+    `    <p class="site-frame__welcome-summary">${escapeHtml(welcome.summary || 'Solving everyday problems with data and thoughtful tools.')}</p>`,
+    welcome.detail ? `    <p class="site-frame__welcome-detail">${escapeHtml(welcome.detail)}</p>` : '',
+    browseLink ? `    <a class="site-frame__welcome-browse" href="${escapeHtml(normalizeHref(browseLink.href))}">${escapeHtml(browseLink.label)} <span aria-hidden="true">→</span></a>` : '',
+    '  </div>',
+    `  <h2 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h2>`,
     `  <div class="home-accordion__shell" data-site-tab-rail data-site-tab-rail-mode="${initialView}">`,
     panels,
     '  </div>',

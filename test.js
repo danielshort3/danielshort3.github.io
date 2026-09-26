@@ -38863,6 +38863,10 @@ try {
       cwd: __dirname,
       stdio: 'pipe'
     });
+    childProcess.execFileSync(process.execPath, ['tests/site/ai-digest-output.test.js'], {
+      cwd: __dirname,
+      stdio: 'pipe'
+    });
     const robots = readFile('robots.txt');
     const vercelConfig = JSON.parse(readFile('vercel.json'));
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
@@ -38940,8 +38944,9 @@ try {
     assert(llms.includes('\n> Supplemental, AI-readable summaries') && llms.includes('\n## Start Here\n') && llms.includes('\n## Projects\n') && llms.includes('\n## Tools\n') && llms.includes('\n## Games\n'),
       'llms.txt should use the expected Markdown summary and sections');
     assert(llms.includes('](https://www.danielshort.me/)') && llms.includes('](https://www.danielshort.me/portfolio)') &&
-      !llms.includes('](https://www.danielshort.me/ai/'),
-      'llms.txt should link to the same canonical pages that people visit');
+      llms.includes('](https://www.danielshort.me/ai/index)') &&
+      llms.includes('](https://www.danielshort.me/ai/portfolio)'),
+      'llms.txt should identify public canonical pages and their optional AI summaries');
     assert(!llms.includes('/dist/ai-pages/') && !llms.includes('/pages/') && !llms.includes('/api/'),
       'llms.txt should not expose implementation, source, or API paths');
     const manifest = JSON.parse(readFile('dist/ai-digest-manifest.json'));
@@ -40216,9 +40221,11 @@ try {
         `${file} should omit legacy navigation, metadata, notes, evaluation, and related-project sections`);
       if (project && project.embed) {
         const drawingProject = ['handwritingRating', 'shapeClassifier'].includes(project.id);
-        assert(drawingProject ? html.includes('project-main--drawing') && !html.includes('class="project-demo-header"') : html.includes('class="project-demo-header"'), `${file} should show the demo first without repeating drawing project headings`);
+        const mastheadDemo = drawingProject || project.embed.type === 'tableau';
+        assert(mastheadDemo ? !html.includes('class="project-demo-header"') : html.includes('class="project-demo-header"'), `${file} should show the demo first without repeating masthead headings`);
+        if (drawingProject) assert(html.includes('project-main--drawing'), `${file} should retain its drawing layout`);
         const expectedDemoHeading = project.embed.heading || project.title;
-        assert(drawingProject ? html.includes(`<h1>${project.title}</h1>`) : html.includes(`<h2 class="section-title project-demo-title">${expectedDemoHeading}</h2>`), `${file} should render its demo heading once in the appropriate shared header`);
+        assert(mastheadDemo ? html.includes(`<h1>${project.title}</h1>`) : html.includes(`<h2 class="section-title project-demo-title">${expectedDemoHeading}</h2>`), `${file} should render its demo heading once in the appropriate shared header`);
         assert(html.includes('class="project-demo-help-trigger"') && html.includes('role="tooltip"'), `${file} should move demo instructions into a tooltip`);
         assert(html.includes('class="project-demo-panel is-active" data-demo-panel="demo"'), `${file} should render the demo panel as the default visible content`);
         assert(!html.includes('How to Use Demo'), `${file} should not render the old instructions tab label`);
@@ -41372,14 +41379,14 @@ try {
       'Cookie Settings should keep a 44px close target without stacking the first-run consent backdrop',
     );
     assert(
-      consentManagerJs.includes("const CSS_VERSION = 'v13';") &&
+      consentManagerJs.includes("const CSS_VERSION = 'v14';") &&
         consentManagerJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
         consentManagerJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
         consentManagerJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,12px);position:relative;background:var(--modal-surface,#fff)') &&
         consentManagerJs.includes('border-radius:var(--pcz-panel-radius);') &&
         consentManagerJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
         consentManagerJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
-      'consent critical CSS v13 should mirror the shared shell before privacy.css finishes loading',
+      'consent critical CSS v14 should mirror the shared shell before privacy.css finishes loading',
     );
     assert(toolThemeCss.includes('body[data-page="text-compare"]') && toolThemeCss.includes('padding:var(--mobile-card-pad);'), 'tool pages should compact mobile cards');
     assert(contactCardCss.includes('.contact-card') && contactCardCss.includes('padding:22px 16px;'), 'contact cards should use compact mobile padding');

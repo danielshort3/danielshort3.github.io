@@ -5,6 +5,7 @@
   if (window.SiteFrame?.adopt) return;
   const framePolicy = window.SiteFramePolicy;
   const compactQuery = window.matchMedia('(max-width: 959px), (max-height: 619px)');
+  const mobileDockQuery = window.matchMedia('(max-width: 768px), (max-width: 959px) and (max-height: 619px)');
   const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const colors = { about: '#091f3b', projects: '#005fed', tools: '#087f8c', games: '#c94b0a', resume: '#087f8c', contact: '#334155' };
   const personalOrder = ['about', 'projects', 'tools', 'games', 'contact'];
@@ -64,6 +65,7 @@
       title: scope.title,
       canonical: scope.querySelector('link[rel="canonical"]')?.href || '',
       tabSources: [...source.querySelectorAll('[data-site-tab], [data-home-accordion-trigger]')],
+      homeWelcome: home?.querySelector('[data-site-home-welcome]') || null,
       toolbar: shell?.querySelector('[data-site-route-toolbar]'),
       content: home || shell.querySelector('[data-personal-detail-content]')
     };
@@ -89,13 +91,15 @@
       tabs.set(category, link);
     }
     if (source) {
-      const icon = source.querySelector('svg');
+      const icon = source.querySelector('.home-accordion__rail-icon img, .home-accordion__rail-icon svg, .personal-accordion__rail-icon img, .personal-accordion__rail-icon svg') || source.querySelector('svg');
       if (icon) {
         const copy = document.importNode(icon, true);
         // Keep icons legible while their route stylesheet is being prepared.
-        [['width', '24'], ['height', '24'], ['fill', 'none'], ['stroke', 'currentColor'], ['stroke-width', '1.9']].forEach(([name, value]) => {
-          if (!copy.hasAttribute(name)) copy.setAttribute(name, value);
-        });
+        if (copy.localName !== 'img') {
+          [['width', '24'], ['height', '24'], ['fill', 'none'], ['stroke', 'currentColor'], ['stroke-width', '1.9']].forEach(([name, value]) => {
+            if (!copy.hasAttribute(name)) copy.setAttribute(name, value);
+          });
+        }
         link.firstElementChild.replaceChildren(copy);
       }
       const label = source.querySelector('[class$="rail-label"]');
@@ -135,8 +139,13 @@
       });
       result.items = items;
       result.libraryBackButtons = libraryBackButtons;
-      result.heading = source.querySelector('h1');
-      if (result.heading) nextBody.append(result.heading);
+      const sourceHeading = source.querySelector('#home-accordion-title');
+      if (sourceHeading) {
+        result.heading = make('h1', sourceHeading.className);
+        result.heading.id = sourceHeading.id;
+        result.heading.textContent = sourceHeading.textContent;
+        nextBody.append(result.heading);
+      }
       nextBody.append(items.get(result.category) || items.values().next().value);
     } else {
       const content = source.querySelector('[data-personal-detail-content]');
@@ -149,9 +158,10 @@
 
   function configure(description) {
     const closed = description.home && description.view === 'closed';
+    const railFree = !description.home && description.audience === 'personal' && mobileDockQuery.matches;
     description.fit = framePolicy.resolveFit(description.fit);
     frame.dataset.frameAudience = description.audience;
-    frame.dataset.frameNavigation = 'rails';
+    frame.dataset.frameNavigation = railFree ? 'dock' : 'rails';
     frame.dataset.frameView = description.view;
     frame.dataset.frameHome = String(description.home);
     frame.dataset.frameFit = description.fit;
@@ -179,7 +189,7 @@
     const order = description.audience === 'personal' ? personalOrder : professionalOrder;
     const overview = description.home && description.view === 'overview';
     const compact = compactQuery.matches;
-    const visible = closed || overview || description.audience !== 'personal' || compact ? order : [description.category];
+    const visible = railFree ? [] : (closed || overview || description.audience !== 'personal' || compact ? order : [description.category]);
     visible.forEach((id) => ensureTab(id));
     tabs.forEach((link, id) => {
       const active = id === description.category;
@@ -227,6 +237,10 @@
       stage.style.gridTemplateRows = compact ? `repeat(${visible.length}, minmax(58px, auto))` : 'minmax(0, 1fr)';
       visible.forEach((id, index) => { tabs.get(id).style.gridArea = compact ? `${index + 1} / 1` : `1 / ${index + 1}`; });
       slot.style.gridArea = 'auto';
+    } else if (railFree) {
+      stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
+      stage.style.gridTemplateRows = 'auto';
+      slot.style.gridArea = '1 / 1';
     } else if (compact && overview) {
       stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
       stage.style.gridTemplateRows = visible.flatMap((id) => id === description.category ? ['minmax(54px, auto)', 'auto'] : ['minmax(48px, auto)']).join(' ');
@@ -562,7 +576,8 @@
       ] : [point(first, before), point(last, after)];
       animations.push(node.animate(keyframes, { duration: milliseconds, easing: middle ? 'linear' : easing, fill: 'both' }));
     };
-    const active = after.tabs.get(description.category) || after.slot;
+    const activeTab = after.tabs.get(description.category);
+    const active = activeTab?.width > 0 && activeTab?.height > 0 ? activeTab : after.slot;
     const previousTab = before.tabs.get(before.category);
     const previousActive = previousTab?.width > 0 && previousTab?.height > 0 ? previousTab : before.slot;
     const retractingRightTabs = [];
@@ -661,21 +676,23 @@
       let top = area.y;
       let right = area.x + area.width;
       let bottom = area.y + area.height;
-      const boxes = visible.map((id) => rect(tabs.get(id)));
-      const selected = visible.indexOf(description.category);
-      const overview = description.home && description.view === 'overview';
-      if (compactQuery.matches) {
-        top = overview ? boxes[selected].y + boxes[selected].height : Math.max(...boxes.map((box) => box.y + box.height));
-        if (overview && boxes[selected + 1]) bottom = boxes[selected + 1].y;
-      } else {
-        left = overview ? boxes[selected].x + boxes[selected].width : Math.max(...boxes.map((box) => box.x + box.width));
-        if (overview && boxes[selected + 1]) right = boxes[selected + 1].x;
-        // Let the content expand into the space the right-hand rails actually
-        // release, while their left-hand counterparts retract behind the selection.
-        retractingRightTabs.forEach((node) => {
-          const bounds = rect(node);
-          if (bounds.width > 0) right = Math.min(right, bounds.x);
-        });
+      if (visible.length) {
+        const boxes = visible.map((id) => rect(tabs.get(id)));
+        const selected = visible.indexOf(description.category);
+        const overview = description.home && description.view === 'overview';
+        if (compactQuery.matches) {
+          top = overview ? boxes[selected].y + boxes[selected].height : Math.max(...boxes.map((box) => box.y + box.height));
+          if (overview && boxes[selected + 1]) bottom = boxes[selected + 1].y;
+        } else {
+          left = overview ? boxes[selected].x + boxes[selected].width : Math.max(...boxes.map((box) => box.x + box.width));
+          if (overview && boxes[selected + 1]) right = boxes[selected + 1].x;
+          // Let the content expand into the space the right-hand rails actually
+          // release, while their left-hand counterparts retract behind the selection.
+          retractingRightTabs.forEach((node) => {
+            const bounds = rect(node);
+            if (bounds.width > 0) right = Math.min(right, bounds.x);
+          });
+        }
       }
       left = Math.max(area.x, Math.min(left, area.x + area.width));
       top = Math.max(area.y, Math.min(top, area.y + area.height));
@@ -872,11 +889,20 @@
     toolbar.hidden = !toolbarBack;
   }
 
+  function syncQuestionDockPlacement() {
+    if (!questionDock || !questionDockOwner) return;
+    const destination = mobileDockQuery.matches ? questionDockOwner : canvas;
+    if (questionDock.parentElement === destination) return;
+    const focused = questionDock.contains(document.activeElement) ? document.activeElement : null;
+    destination.append(questionDock);
+    focused?.focus({ preventScroll: true });
+  }
+
   function replaceRouteBody(nextBody) {
     window.ContactMap?.hide();
-    // Keep the project action outside the scrolling viewport. Return it to its
-    // route before detaching so cached route snapshots retain their own action.
-    if (questionDock && questionDockOwner) questionDockOwner.append(questionDock);
+    // Return the desktop footer to its route before detaching so cached route
+    // snapshots retain their own action.
+    if (questionDock && questionDockOwner && questionDock.parentElement !== questionDockOwner) questionDockOwner.append(questionDock);
     questionDock = nextBody.querySelector('.project-question-dock');
     questionDockOwner = questionDock?.parentElement || null;
     // The loaded map stays connected while route bodies are replaced.
@@ -884,7 +910,7 @@
       if (node !== nextBody && !node.hasAttribute?.('data-persistent-contact-map')) node.remove();
     });
     if (viewport.firstChild !== nextBody) viewport.insertBefore(nextBody, viewport.firstChild);
-    if (questionDock) canvas.append(questionDock);
+    syncQuestionDockPlacement();
     window.ContactMap?.refresh();
   }
 
@@ -894,6 +920,8 @@
     current = next;
     desiredTarget = next;
     body = next.body;
+    if (description.homeWelcome) welcome.replaceChildren(...[...description.homeWelcome.childNodes]
+      .map((node) => document.importNode(node, true)));
     replaceRouteBody(body);
     toolbar.replaceChildren(...(description.toolbar ? [...document.importNode(description.toolbar, true).childNodes] : []));
     toolbar.hidden = !description.toolbar;
@@ -935,6 +963,8 @@
     current = saved.description;
     desiredTarget = current;
     body = saved.body;
+    if (current.homeWelcome) welcome.replaceChildren(...[...current.homeWelcome.childNodes]
+      .map((node) => document.importNode(node, true)));
     replaceRouteBody(body);
     toolbar.replaceChildren(...saved.toolbar);
     toolbar.hidden = !saved.toolbar.length;
@@ -1067,6 +1097,7 @@
   }
 
   function refresh() {
+    syncQuestionDockPlacement();
     updateBoundary();
     updateLoadingPosition();
     if (!frame || !current || resizeFrame) return;
@@ -1101,6 +1132,7 @@
   window.visualViewport?.addEventListener('resize', refresh, { passive: true });
   window.visualViewport?.addEventListener('scroll', updateLoadingPosition, { passive: true });
   compactQuery.addEventListener?.('change', refresh);
+  mobileDockQuery.addEventListener?.('change', refresh);
   reducedQuery.addEventListener?.('change', () => {
     geometry?.finish(true);
     wipeMotion?.finish(true);

@@ -181,6 +181,27 @@
     stroke-linejoin: round;
   }
 
+  .personal-accordion__rail-icon img,
+  .personal-accordion__context-icon img {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 1px;
+    border-radius: 5px;
+    background: #ffffff;
+    object-fit: contain;
+  }
+
+  .personal-accordion__back img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    background: #ffffff;
+    object-fit: contain;
+  }
+
   .personal-accordion__rail-label {
     display: block;
     min-width: 0;

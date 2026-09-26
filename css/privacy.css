@@ -730,37 +730,43 @@ body[data-consent-banner="open"] .speed-dial {
 }
 
 @media (max-width: 768px) {
-  body.has-mobile-site-dock #pcz-banner {
-    top: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + 6px);
+  body.has-mobile-site-masthead #pcz-banner {
+    box-sizing: border-box;
+    position: static;
+    top: auto;
     bottom: auto;
+    inset-inline: auto;
+    width: auto;
+    z-index: auto;
     padding:
-      6px
+      8px
       max(8px, env(safe-area-inset-right))
       0
       max(8px, env(safe-area-inset-left));
-    transform: translateY(-140%);
+    transform: none;
+    transition: opacity var(--motion-duration, var(--motion-base, 220ms)) var(--easing-standard, ease);
   }
 
-  body.has-mobile-site-dock #pcz-banner.pcz-visible {
-    transform: translateY(0);
+  body.has-mobile-site-masthead #pcz-banner.pcz-visible {
+    transform: none;
   }
 
-  body.has-mobile-site-dock #pcz-banner.pcz-exit {
-    transform: translateY(-140%);
+  body.has-mobile-site-masthead #pcz-banner.pcz-exit {
+    transform: none;
   }
 
-  body.has-mobile-site-dock #pcz-banner .pcz-card {
+  body.has-mobile-site-masthead #pcz-banner .pcz-card {
     width: min(100%, 430px);
     margin-inline: auto;
     box-shadow: 0 12px 24px rgba(9, 31, 59, 0.16);
   }
 
-  body.has-mobile-site-dock #pcz-banner .pcz-body {
+  body.has-mobile-site-masthead #pcz-banner .pcz-body {
     font-size: 0.78rem;
     line-height: 1.28;
   }
 
-  body.has-mobile-site-dock #pcz-banner .pcz-btn {
+  body.has-mobile-site-masthead #pcz-banner .pcz-btn {
     min-height: 30px;
     padding: 5px 8px;
     font-size: 0.76rem;

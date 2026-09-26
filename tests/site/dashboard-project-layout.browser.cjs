@@ -23,13 +23,21 @@ async function assertRepeatedResizePaint(page, frame, artifactDir, requests) {
     assert.equal(await frame.locator('[data-sales-metric="online"]').getAttribute('aria-pressed'), 'true', 'Breakpoint changes preserve the selected chart metric.');
     assert.equal(dataRequests(), initialRequests, 'Breakpoint changes do not reload the iframe or its datasets.');
     if (width !== 390) continue;
-    const rail = await page.locator('.site-frame__tab.is-active').boundingBox();
+    const upperRail = page.locator('.site-frame__tab.is-active:visible');
+    const rail = await (await upperRail.count() ? upperRail
+      : page.locator('[data-mobile-section-nav] [data-mobile-section="projects"][aria-current="page"]')).boundingBox();
     const heading = await page.locator('h1').filter({ visible: true }).boundingBox();
+    assert(rail && heading, 'The active Projects navigation and page title remain visible after resize.');
     const buffer = await page.screenshot({ path: path.join(artifactDir, `dashboard-retail-resize-${index}-390.png`) });
     const { data, info } = await sharp(buffer).raw().toBuffer({ resolveWithObject: true });
-    const offset = (Math.floor(rail.y + 8) * info.width + Math.floor(rail.x + 10)) * info.channels;
-    const [red, green, blue] = data.subarray(offset, offset + 3);
-    assert(blue > 180 && red < 80 && green < 150, 'The full-width mobile Projects rail is painted after repeated resizes.');
+    let navigationPixels = 0;
+    for (let y = Math.max(0, Math.floor(rail.y)); y < Math.min(info.height, rail.y + rail.height); y += 1) {
+      for (let x = Math.max(0, Math.floor(rail.x)); x < Math.min(info.width, rail.x + rail.width); x += 1) {
+        const position = (y * info.width + x) * info.channels;
+        if (data[position] < 80 && data[position + 1] < 160 && data[position + 2] > 170) navigationPixels += 1;
+      }
+    }
+    assert(navigationPixels > 20, 'The active mobile Projects navigation is painted after repeated resizes.');
     let headingPixels = 0;
     for (let y = Math.max(0, Math.ceil(heading.y)); y < Math.min(info.height, heading.y + heading.height); y += 1) {
       for (let x = Math.max(0, Math.ceil(heading.x)); x < Math.min(info.width, heading.x + heading.width); x += 1) {

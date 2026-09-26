@@ -203,4 +203,6 @@ try {
 }
 
 require('./project-starfall-recovery-layering.test');
+require('./project-starfall-pixi-viewport-clip.test');
+require('./project-starfall-pixi-retention.test');
 console.log('Project Starfall visual viewport tests passed.');

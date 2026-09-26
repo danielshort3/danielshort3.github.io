@@ -27487,6 +27487,13 @@
         cache.sessionQuestGuide === session.questGuide;
     }
 
+    runtimeStateFieldCacheMatches(key) {
+      const cache = this.runtimeStateShapeCache;
+      // Replacing one domain must not rebuild every unrelated saved collection.
+      // Player and party runtime fields still receive their temporal cleanup.
+      return !!(cache && cache.state === this.state && cache[key] === this.state[key]);
+    }
+
     rememberRuntimeStateShape() {
       const state = this.state || {};
       const session = state.session || {};
@@ -27614,41 +27621,41 @@
         this.resetWaveReplacementQueues({ silent: true });
         this.state.migrations.adminTemporarySpawnWaveReset = true;
       }
-      this.state.progress = createProgressState(this.state.progress);
+      if (!this.runtimeStateFieldCacheMatches('progress')) this.state.progress = createProgressState(this.state.progress);
       const normalizedActiveQuestId = normalizeUnderLevelActiveQuest(this.state.progress, player);
       if (normalizedActiveQuestId) {
         this.state.migrations.questRequiredLevelGate = true;
       }
-      this.state.routeProgress = createRouteProgressState(this.state.routeProgress);
-      this.state.mapKillQuests = createMapKillQuestState(this.state.mapKillQuests);
-      this.state.mapAnalytics = createMapAnalyticsState(this.state.mapAnalytics);
-      this.state.monsterGuide = createMonsterGuideState(this.state.monsterGuide);
-      this.state.mapModifiers = createMapModifierState(this.state.mapModifiers);
+      if (!this.runtimeStateFieldCacheMatches('routeProgress')) this.state.routeProgress = createRouteProgressState(this.state.routeProgress);
+      if (!this.runtimeStateFieldCacheMatches('mapKillQuests')) this.state.mapKillQuests = createMapKillQuestState(this.state.mapKillQuests);
+      if (!this.runtimeStateFieldCacheMatches('mapAnalytics')) this.state.mapAnalytics = createMapAnalyticsState(this.state.mapAnalytics);
+      if (!this.runtimeStateFieldCacheMatches('monsterGuide')) this.state.monsterGuide = createMonsterGuideState(this.state.monsterGuide);
+      if (!this.runtimeStateFieldCacheMatches('mapModifiers')) this.state.mapModifiers = createMapModifierState(this.state.mapModifiers);
       this.state.rift = createRiftState(this.state.rift);
-      this.state.skillModifiers = createSkillModifierState(this.state.skillModifiers);
-      this.state.classMastery = createClassMasteryState(this.state.classMastery);
-      this.state.targetFarm = createTargetFarmState(this.state.targetFarm);
-      this.state.dungeons = createDungeonState(this.state.dungeons);
-      this.state.roster = createRosterState(this.state.roster);
-      this.state.specializations = createSpecializationState(this.state.specializations);
-      this.state.market = createMarketState(this.state.market);
-      this.state.cosmetics = createCosmeticState(this.state.cosmetics);
+      if (!this.runtimeStateFieldCacheMatches('skillModifiers')) this.state.skillModifiers = createSkillModifierState(this.state.skillModifiers);
+      if (!this.runtimeStateFieldCacheMatches('classMastery')) this.state.classMastery = createClassMasteryState(this.state.classMastery);
+      if (!this.runtimeStateFieldCacheMatches('targetFarm')) this.state.targetFarm = createTargetFarmState(this.state.targetFarm);
+      if (!this.runtimeStateFieldCacheMatches('dungeons')) this.state.dungeons = createDungeonState(this.state.dungeons);
+      if (!this.runtimeStateFieldCacheMatches('roster')) this.state.roster = createRosterState(this.state.roster);
+      if (!this.runtimeStateFieldCacheMatches('specializations')) this.state.specializations = createSpecializationState(this.state.specializations);
+      if (!this.runtimeStateFieldCacheMatches('market')) this.state.market = createMarketState(this.state.market);
+      if (!this.runtimeStateFieldCacheMatches('cosmetics')) this.state.cosmetics = createCosmeticState(this.state.cosmetics);
       this.state.cashShop = createCashShopState(this.state.cashShop);
       this.state.season = createSeasonState(this.state.season);
-      this.state.dailyLogin = createDailyLoginState(this.state.dailyLogin);
+      if (!this.runtimeStateFieldCacheMatches('dailyLogin')) this.state.dailyLogin = createDailyLoginState(this.state.dailyLogin);
       this.state.party = createPartyState(this.state.party);
-      this.state.onboarding = createOnboardingState(this.state.onboarding);
-      this.state.audio = createAudioState(this.state.audio);
-      this.state.accomplishments = createAccomplishmentState(this.state.accomplishments);
-      this.state.permanentStats = createPermanentStatsState(this.state.permanentStats);
+      if (!this.runtimeStateFieldCacheMatches('onboarding')) this.state.onboarding = createOnboardingState(this.state.onboarding);
+      if (!this.runtimeStateFieldCacheMatches('audio')) this.state.audio = createAudioState(this.state.audio);
+      if (!this.runtimeStateFieldCacheMatches('accomplishments')) this.state.accomplishments = createAccomplishmentState(this.state.accomplishments);
+      if (!this.runtimeStateFieldCacheMatches('permanentStats')) this.state.permanentStats = createPermanentStatsState(this.state.permanentStats);
       const hadStatUpgrades = this.state.statUpgrades && typeof this.state.statUpgrades === 'object';
-      this.state.statUpgrades = createStatUpgradeState(this.state.statUpgrades);
+      if (!this.runtimeStateFieldCacheMatches('statUpgrades')) this.state.statUpgrades = createStatUpgradeState(this.state.statUpgrades);
       this.syncRosterUnlocks({ silent: true });
-      this.state.adminSettings = createAdminSettings(this.state.adminSettings);
-      this.state.inventorySlots = createInventorySlots(this.state.inventorySlots);
+      if (!this.runtimeStateFieldCacheMatches('adminSettings')) this.state.adminSettings = createAdminSettings(this.state.adminSettings);
+      if (!this.runtimeStateFieldCacheMatches('inventorySlots')) this.state.inventorySlots = createInventorySlots(this.state.inventorySlots);
       this.state.inventorySections = createInventorySections(this.state.inventorySections, this.state.inventorySlots);
       this.state.inventorySlots.equipment = this.getInventoryCapacity('equipment');
-      this.state.inventorySellRules = createInventorySellRules(this.state.inventorySellRules);
+      if (!this.runtimeStateFieldCacheMatches('inventorySellRules')) this.state.inventorySellRules = createInventorySellRules(this.state.inventorySellRules);
       const legacyLineCatalystCount = Math.max(0, Math.floor(Number(this.state.materials && this.state.materials[LEGACY_LINE_CATALYST_MATERIAL_ID] || 0) || 0));
       const hadConsumables = this.state.consumables && typeof this.state.consumables === 'object';
       this.state.consumables = createConsumableState(this.state.consumables, !hadConsumables);
@@ -27660,11 +27667,11 @@
         this.state.consumables[STAT_RESET_SCROLL_ID] = Math.max(1, Math.floor(Number(this.state.consumables[STAT_RESET_SCROLL_ID] || 0) || 0));
       }
       const hadPet = this.state.pet && typeof this.state.pet === 'object';
-      this.state.pet = createPetState(this.state.pet);
+      if (!this.runtimeStateFieldCacheMatches('pet')) this.state.pet = createPetState(this.state.pet);
       const hadMaterials = this.state.materials && typeof this.state.materials === 'object';
       this.state.materials = createMaterialState(this.state.materials, !hadMaterials);
       delete this.state.materials[LEGACY_LINE_CATALYST_MATERIAL_ID];
-      this.state.inventorySlotOrder = createInventorySlotOrder(this.state.inventorySlotOrder);
+      if (!this.runtimeStateFieldCacheMatches('inventorySlotOrder')) this.state.inventorySlotOrder = createInventorySlotOrder(this.state.inventorySlotOrder);
       this.reconcileInventorySlotOrders();
       const pendingChoice = this.state.pendingPotentialChoice && typeof this.state.pendingPotentialChoice === 'object'
         ? this.state.pendingPotentialChoice
@@ -38785,6 +38792,23 @@
       const source = this.state.inventorySlotOrder && Array.isArray(this.state.inventorySlotOrder[tab])
         ? this.state.inventorySlotOrder[tab]
         : [];
+      if (valid.size <= capacity && source.length === capacity) {
+        let unchanged = true;
+        for (let index = 0; index < source.length; index += 1) {
+          const id = source[index];
+          if (id === '') continue;
+          if (id !== normalizeId(id) || !valid.has(id) || seen.has(id)) {
+            unchanged = false;
+            break;
+          }
+          seen.add(id);
+        }
+        if (unchanged && seen.size === valid.size) {
+          this.invalidateOrderedInventoryEntriesCache(tab);
+          return source;
+        }
+        seen.clear();
+      }
       const emptyIndexes = [];
       const order = Array.from({ length: capacity }, (_, index) => {
         const id = normalizeId(source[index]);

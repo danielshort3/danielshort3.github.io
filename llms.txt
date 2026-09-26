@@ -3,46 +3,58 @@
 > Supplemental, AI-readable summaries of Daniel Short's projects, tools, experiments, and contact information.
 
 Canonical site: https://www.danielshort.me/
-The public canonical HTML is authoritative. Optional /ai/ summaries contain the same source-backed information and canonicalize back to the public pages.
+Each main link opens the authoritative public page. Its adjacent AI summary link opens a shorter, optional /ai/ page that canonicalizes back to that public page. AI platforms may use either version; this file does not change what the main URL serves.
 
 ## Start Here
 
-- [Daniel Short | Data Analytics, ML Projects & Web Tools](https://www.danielshort.me/): Solving everyday problems with data and thoughtful tools. Explore Daniel Short’s analytics, machine learning projects, and browser games.
-- [Portfolio](https://www.danielshort.me/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
-- [Browser Tools for Writing, Images & Campaigns](https://www.danielshort.me/tools): Use free, privacy-conscious browser tools for text comparison, writing cleanup, UTM links, QR codes, image optimization, and screen recording.
-- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Six playable experiments in probability, progression, and interactive systems.
-- [Contact](https://www.danielshort.me/contact): Send Daniel Short a note about projects, tools, ideas, or questions.
+- [Daniel Short | Data Analytics, ML Projects & Web Tools](https://www.danielshort.me/): Solving everyday problems with data and thoughtful tools. Explore Daniel Short’s analytics, machine learning projects, and browser games. ([AI summary](https://www.danielshort.me/ai/index))
+- [Portfolio](https://www.danielshort.me/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short. ([AI summary](https://www.danielshort.me/ai/portfolio))
+- [Browser Tools for Writing, Images & Campaigns](https://www.danielshort.me/tools): Use free, privacy-conscious browser tools for text comparison, writing cleanup, UTM links, QR codes, image optimization, and screen recording. ([AI summary](https://www.danielshort.me/ai/tools))
+- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Six playable experiments in probability, progression, and interactive systems. ([AI summary](https://www.danielshort.me/ai/games))
+- [Contact](https://www.danielshort.me/contact): Send Daniel Short a note about projects, tools, ideas, or questions. ([AI summary](https://www.danielshort.me/ai/contact))
 
 ## Projects
 
-- [Portfolio](https://www.danielshort.me/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
-- [Store-Level Loss & Sales ETL](https://www.danielshort.me/portfolio/retailStore): Bring store data together to spot unusual loss and sales patterns.: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.
-- [Empty-Package Shrink Dashboard](https://www.danielshort.me/portfolio/targetEmptyPackage): Locate retail shrink hotspots and compare trends over time.: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.
-- [Pizza Delivery Dashboard](https://www.danielshort.me/portfolio/pizzaDashboard): Explore recorded tips, city comparisons, and monthly delivery history.: My delivery history contained useful tip information, but comparing cities and patterns across individual records was difficult.
-- [Delivery Tip](https://www.danielshort.me/portfolio/deliveryTip): Compare delivery shifts and neighborhoods to plan where and when to work.: I wanted to know which shifts and neighborhoods lead to better tips.
-- [UFO Sightings Dashboard](https://www.danielshort.me/portfolio/ufoDashboard): Explore where and when historical UFO reports were recorded.: I wanted to explore geographic and time patterns in a historical archive of UFO reports while keeping the limits of report counts clear.
-- [Chatbot (LoRA + RAG)](https://www.danielshort.me/portfolio/chatbotLora): Explore Grand Junction with answers grounded in local sources.: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model.
-- [Smart Sentence Retriever](https://www.danielshort.me/portfolio/smartSentence): Find relevant sentences by meaning, even when the wording differs.: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.
+- [Baby Name Predictor](https://www.danielshort.me/portfolio/babynames): Explore a baby-name recommendation model built from family preferences and historical naming trends, with an interactive demo and project notes. ([AI summary](https://www.danielshort.me/ai/portfolio/babynames))
+- [Chatbot (LoRA + RAG)](https://www.danielshort.me/portfolio/chatbotLora): Explore a Grand Junction chatbot combining retrieval and LoRA tuning, with source-linked answers, an interactive demo, and evaluation limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/chatbotLora))
+- [COVID-19 Outbreak Drivers](https://www.danielshort.me/portfolio/covidAnalysis): Explore historical ICU strain signals in HHS data with an interactive state-level risk demo, XGBoost methods, and documented evaluation limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/covidAnalysis))
+- [Delivery Tip](https://www.danielshort.me/portfolio/deliveryTip): Explore an Excel analysis of delivery shifts and neighborhoods built from personal delivery records to inform where and when to work. ([AI summary](https://www.danielshort.me/ai/portfolio/deliveryTip))
+- [Synthetic Digit Generator](https://www.danielshort.me/portfolio/digitGenerator): Generate MNIST-style handwritten digits with a variational autoencoder. Explore the live demo, training approach, and model limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/digitGenerator))
+- [Handwriting Legibility Scoring](https://www.danielshort.me/portfolio/handwritingRating): Try a handwritten-digit recognition demo and compare MNIST results with a small personal handwriting sample. Review the methods and limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/handwritingRating))
+- [Nonogram Solver](https://www.danielshort.me/portfolio/nonogram): Watch a trained agent solve five-by-five Nonogram puzzles and explore the reinforcement-learning approach, demo, and evaluation limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/nonogram))
+- [Pizza Tips Regression Modeling](https://www.danielshort.me/portfolio/pizza): Explore regression models of delivery tips using delivery records and weather data, with methods, findings, and limits on interpretation. ([AI summary](https://www.danielshort.me/ai/portfolio/pizza))
+- [Pizza Delivery Dashboard](https://www.danielshort.me/portfolio/pizzaDashboard): Explore 1,251 historical pizza delivery records in Tableau, with tip summaries, city comparisons, a tip distribution, and monthly delivery counts. ([AI summary](https://www.danielshort.me/ai/portfolio/pizzaDashboard))
+- [Store-Level Loss & Sales ETL](https://www.danielshort.me/portfolio/retailStore): Explore a retail loss and sales data pipeline with an interactive dashboard for comparing stores, spotting unusual patterns, and planning investigations. ([AI summary](https://www.danielshort.me/ai/portfolio/retailStore))
+- [Shape Classifier Demo](https://www.danielshort.me/portfolio/shapeClassifier): Draw one of five shapes and try a serverless classifier trained on Quick, Draw! sketches. Explore the model, deployment, and limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/shapeClassifier))
+- [Sheet Music Watermark Removal & Upscale](https://www.danielshort.me/portfolio/sheetMusicUpscale): Compare original, restored, and upscaled sheet-music scans. Explore the U-Net and VDSR workflow, project code, and evaluation limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/sheetMusicUpscale))
+- [Smart Sentence Retriever](https://www.danielshort.me/portfolio/smartSentence): Find relevant sentences by meaning in an interactive semantic-search demo. Explore the NLP workflow, deployment, and evaluation limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/smartSentence))
+- [Empty-Package Shrink Dashboard](https://www.danielshort.me/portfolio/targetEmptyPackage): Explore an anonymized retail shrink dashboard that compares empty-package incident counts, retail value, locations, and trends over time. ([AI summary](https://www.danielshort.me/ai/portfolio/targetEmptyPackage))
+- [UFO Sightings Dashboard](https://www.danielshort.me/portfolio/ufoDashboard): Explore historical UFO report records in Tableau, with geographic, seasonal, time-of-day, and reported-shape comparisons for the contiguous U.S. ([AI summary](https://www.danielshort.me/ai/portfolio/ufoDashboard))
+- [danielshort.me](https://www.danielshort.me/portfolio/website): Explore how Daniel Short built this portfolio with practical browser tools, a searchable project library, shared navigation, and generated pages. ([AI summary](https://www.danielshort.me/ai/portfolio/website))
 
 ## Tools
 
-- [Browser Tools for Writing, Images & Campaigns](https://www.danielshort.me/tools): Use free, privacy-conscious browser tools for text comparison, writing cleanup, UTM links, QR codes, image optimization, and screen recording.
-- [Text Compare](https://www.danielshort.me/tools/text-compare): Compare two drafts and review the changes.
-- [UTM Batch Builder](https://www.danielshort.me/tools/utm-batch-builder): Build campaign links in batches and export a clean CSV.
-- [Word Frequency Analyzer](https://www.danielshort.me/tools/word-frequency): Find frequent words and phrases, then review them in context.
-- [QR Code Generator](https://www.danielshort.me/tools/qr-code-generator): Create QR codes for links, text, Wi-Fi, and contacts.
-- [Image Optimizer](https://www.danielshort.me/tools/image-optimizer): Resize, compress, and convert images on your device.
+- [Background Remover](https://www.danielshort.me/tools/background-remover): Remove backgrounds from your photos. ([AI summary](https://www.danielshort.me/ai/tools/background-remover))
+- [Image Optimizer](https://www.danielshort.me/tools/image-optimizer): Resize, compress, and convert images on your device. ([AI summary](https://www.danielshort.me/ai/tools/image-optimizer))
+- [Non-breaking Space Cleaner](https://www.danielshort.me/tools/nbsp-cleaner): Find hard spaces and copy clean text. ([AI summary](https://www.danielshort.me/ai/tools/nbsp-cleaner))
+- [Oxford Comma Checker](https://www.danielshort.me/tools/oxford-comma-checker): Find candidate lists and review comma usage in context. ([AI summary](https://www.danielshort.me/ai/tools/oxford-comma-checker))
+- [Point of View Checker](https://www.danielshort.me/tools/point-of-view-checker): Find mixed point of view and review it in context. ([AI summary](https://www.danielshort.me/ai/tools/point-of-view-checker))
+- [QR Code Generator](https://www.danielshort.me/tools/qr-code-generator): Create QR codes for links, text, Wi-Fi, and contacts. ([AI summary](https://www.danielshort.me/ai/tools/qr-code-generator))
+- [Screen Recorder](https://www.danielshort.me/tools/screen-recorder): Record your screen and download the clip in browser-supported formats with optional system audio. ([AI summary](https://www.danielshort.me/ai/tools/screen-recorder))
+- [Text Compare](https://www.danielshort.me/tools/text-compare): Compare two drafts and review the changes. ([AI summary](https://www.danielshort.me/ai/tools/text-compare))
+- [UTM Batch Builder](https://www.danielshort.me/tools/utm-batch-builder): Build campaign links in batches and export a clean CSV. ([AI summary](https://www.danielshort.me/ai/tools/utm-batch-builder))
+- [Word Frequency Analyzer](https://www.danielshort.me/tools/word-frequency): Find frequent words and phrases, then review them in context. ([AI summary](https://www.danielshort.me/ai/tools/word-frequency))
 
 ## Games
 
-- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Six playable experiments in probability, progression, and interactive systems.
-- [Stellar Dogfight](https://www.danielshort.me/games/stellar-dogfight): Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.
-- [Double-Zero Roulette](https://www.danielshort.me/games/roulette): Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.
-- [Probability Engine](https://www.danielshort.me/games/probability-engine): Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.
-- [Stormbreak: Idle Olympus](https://www.danielshort.me/games/stormbreak): Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.
-- [Ocean Wave Simulator](https://www.danielshort.me/games/ocean-wave-simulation): Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound.
+- [Ocean Wave Simulator](https://www.danielshort.me/games/ocean-wave-simulation): Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound. ([AI summary](https://www.danielshort.me/ai/games/ocean-wave-simulation))
+- [Probability Engine](https://www.danielshort.me/games/probability-engine): Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems. ([AI summary](https://www.danielshort.me/ai/games/probability-engine))
+- [Double-Zero Roulette](https://www.danielshort.me/games/roulette): Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time. ([AI summary](https://www.danielshort.me/ai/games/roulette))
+- [Stellar Dogfight](https://www.danielshort.me/games/stellar-dogfight): Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops. ([AI summary](https://www.danielshort.me/ai/games/stellar-dogfight))
+- [Stormbreak: Idle Olympus](https://www.danielshort.me/games/stormbreak): Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop. ([AI summary](https://www.danielshort.me/ai/games/stormbreak))
 
-## Optional
+## Other Pages
 
-- [Privacy & Your Data](https://www.danielshort.me/privacy): How Daniel Short's website handles analytics, local tools, saved sessions, contact messages, and your data choices.
-- [Sitemap](https://www.danielshort.me/sitemap): Browse tools, portfolio projects, and key pages across Daniel Short’s site.
+- [Privacy & Your Data](https://www.danielshort.me/privacy): How Daniel Short's website handles analytics, local tools, saved sessions, contact messages, and your data choices. ([AI summary](https://www.danielshort.me/ai/privacy))
+- [Sitemap](https://www.danielshort.me/sitemap): Browse indexable public pages across Daniel Short’s projects, tools, games, and site information. ([AI summary](https://www.danielshort.me/ai/sitemap))
+- [Solutions](https://www.danielshort.me/solutions): Ways to combine my tools, dashboards, and automation into a working analytics solution — from campaign UTM tracking to end-to-end job pipelines. ([AI summary](https://www.danielshort.me/ai/solutions))

@@ -36,9 +36,24 @@ async function assertCenteredFields(page, label) {
   assert(geometry.overflow <= 1 && geometry.pageOverflow <= 1, `${label}: no horizontal overflow.`);
 }
 
-async function runCase({ browser, base, artifactDir, width, height, route = '/portfolio/digitGenerator' }) {
-  const label = `${route === '/contact' ? 'contact' : 'project'}-${width}x${height}`;
+async function assertMobileActionVisible(page, label) {
+  const geometry = await page.locator('#contact-modal').evaluate(modal => {
+    const body = modal.querySelector('.modal-body').getBoundingClientRect();
+    const action = modal.querySelector('#contact-form [type="submit"]').getBoundingClientRect();
+    return { bodyTop: body.top, bodyBottom: body.bottom, actionTop: action.top, actionBottom: action.bottom, viewportHeight: window.innerHeight };
+  });
+  assert(geometry.actionTop >= geometry.bodyTop - 1, `${label}: Send Message is below the form header.`);
+  assert(geometry.actionBottom <= Math.min(geometry.bodyBottom, geometry.viewportHeight) + 1, `${label}: Send Message stays visible without scrolling.`);
+}
+
+async function runCase({ browser, base, artifactDir, width, height, route = '/portfolio/digitGenerator', withDraft = false }) {
+  const label = `${route === '/contact' ? 'contact' : 'project'}-${width}x${height}${withDraft ? '-restored' : ''}`;
   const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce', serviceWorkers: 'block', isMobile: width < 600, hasTouch: width < 600 });
+  if (withDraft) await context.addInitScript(() => {
+    sessionStorage.setItem('ds:session-draft:v1:contact:personal', JSON.stringify({
+      updated: Date.now(), data: { name: '', email: '', message: 'Hi Daniel, I have a question about this project.' }
+    }));
+  });
   const page = await context.newPage();
   page.setDefaultTimeout(12000);
   const errors = [];
@@ -66,6 +81,11 @@ async function runCase({ browser, base, artifactDir, width, height, route = '/po
     await page.waitForFunction(() => document.querySelector('#contact-modal').classList.contains('active') && document.querySelector('#contact-modal .modal-content').contains(document.activeElement));
     await page.evaluate(() => document.fonts.ready);
     await assertCenteredFields(page, label);
+    if (withDraft) {
+      assert(await dialog.getByText('Draft restored').isVisible(), `${label}: draft recovery notice is shown.`);
+      assert.match(await page.locator('#contact-message').inputValue(), /question about this project/, `${label}: draft text is restored.`);
+    }
+    if (width < 600) await assertMobileActionVisible(page, label);
     for (const [selector, text] of [['#contact-name', 'Layout Review'], ['#contact-email', 'layout@example.com'], ['#contact-message', 'Hi Daniel, I have a question about Synthetic Digit Generator.']]) {
       const field = page.locator(selector);
       await field.fill(text);
@@ -97,6 +117,7 @@ async function runCase({ browser, base, artifactDir, width, height, route = '/po
     const submit = page.locator('#contact-form [type="submit"]');
     await submit.scrollIntoViewIfNeeded();
     assert(await submit.isVisible(), `${label}: actions remain reachable after resizing the message.`);
+    if (width < 600) await assertMobileActionVisible(page, `${label} resized message`);
     await submit.focus();
     await page.screenshot({ path: path.join(artifactDir, `contact-form-${label}-scrolled.png`) });
     await assertCenteredFields(page, `${label} resized message`);
@@ -122,6 +143,8 @@ async function runContactFormLayoutChecks({ browser, base, artifactDir }) {
     await runCase({ browser, base, artifactDir, width, height });
   }
   await runCase({ browser, base, artifactDir, width: 390, height: 844, route: '/contact' });
+  await runCase({ browser, base, artifactDir, width: 320, height: 640, route: '/contact', withDraft: true });
+  await runCase({ browser, base, artifactDir, width: 320, height: 640, withDraft: true });
 }
 
 async function main() {

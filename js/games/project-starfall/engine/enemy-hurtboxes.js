@@ -10,6 +10,7 @@
   const Visuals = (typeof require === 'function' ? require('./visuals.js') : null) || global.ProjectStarfallEngineModules && global.ProjectStarfallEngineModules.visuals;
   const decodedFrames = new Map();
   let decodedData = null;
+  const ROW_BAND_HEIGHT = 8;
 
   function decodeFrame(encoded) {
     const bytes = typeof Buffer === 'function'
@@ -78,7 +79,15 @@
         aim = { x, y };
       }
     });
-    return { rectangles, bounds: { x: minX, y: startY, w: maxX - minX, h: endY - startY }, aim, pixelCount };
+    // Index references to the original merged rectangles once per source frame.
+    // Queries keep their exact narrow-phase math, but skip unrelated sprite rows.
+    const rowBands = Array.from({ length: Math.ceil(endY / ROW_BAND_HEIGHT) }, () => []);
+    for (const rect of rectangles) {
+      const first = Math.floor(rect.y / ROW_BAND_HEIGHT);
+      const last = Math.ceil((rect.y + rect.h) / ROW_BAND_HEIGHT) - 1;
+      for (let band = first; band <= last; band += 1) rowBands[band].push(rect);
+    }
+    return { rectangles, rowBands, bounds: { x: minX, y: startY, w: maxX - minX, h: endY - startY }, aim, pixelCount };
   }
 
   function createEnemyHurtbox(animation, frame, renderBox, facing) {
@@ -146,8 +155,22 @@
     const x2 = (rect.x + rect.w - hurtbox.originX) / hurtbox.scaleX;
     const y1 = (rect.y - hurtbox.originY) / hurtbox.scaleY;
     const y2 = (rect.y + rect.h - hurtbox.originY) / hurtbox.scaleY;
-    const source = { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1) };
-    return hurtbox.mask.rectangles.some(candidate => overlaps(candidate, source));
+    const sourceX = Math.min(x1, x2);
+    const sourceY = Math.min(y1, y2);
+    const sourceRight = sourceX + Math.abs(x2 - x1);
+    const sourceBottom = sourceY + Math.abs(y2 - y1);
+    const bands = hurtbox.mask.rowBands;
+    const first = Math.max(0, Math.floor(sourceY / ROW_BAND_HEIGHT));
+    const last = Math.min(bands.length - 1, Math.floor(sourceBottom / ROW_BAND_HEIGHT));
+    for (let band = first; band <= last; band += 1) {
+      const candidates = bands[band];
+      for (let index = 0; index < candidates.length; index += 1) {
+        const candidate = candidates[index];
+        if (candidate.x < sourceRight && candidate.x + candidate.w > sourceX
+          && candidate.y < sourceBottom && candidate.y + candidate.h > sourceY) return true;
+      }
+    }
+    return false;
   }
 
   function intersectsCircle(hurtbox, x, y, radius) {
@@ -157,15 +180,36 @@
     const nearestY = Math.max(bounds.y, Math.min(y, bounds.y + bounds.h));
     const radiusSquared = radius * radius;
     if ((nearestX - x) ** 2 + (nearestY - y) ** 2 > radiusSquared) return false;
-    return hurtbox.mask.rectangles.some(rect => {
-      const x1 = hurtbox.originX + rect.x * hurtbox.scaleX;
-      const x2 = hurtbox.originX + (rect.x + rect.w) * hurtbox.scaleX;
-      const y1 = hurtbox.originY + rect.y * hurtbox.scaleY;
-      const y2 = hurtbox.originY + (rect.y + rect.h) * hurtbox.scaleY;
-      const closestX = Math.max(Math.min(x1, x2), Math.min(x, Math.max(x1, x2)));
-      const closestY = Math.max(Math.min(y1, y2), Math.min(y, Math.max(y1, y2)));
-      return (closestX - x) ** 2 + (closestY - y) ** 2 <= radiusSquared;
-    });
+    const numericRadius = Number(radius);
+    const sourceY1 = hurtbox.scaleY ? (y - numericRadius - hurtbox.originY) / hurtbox.scaleY : -Infinity;
+    const sourceY2 = hurtbox.scaleY ? (y + numericRadius - hurtbox.originY) / hurtbox.scaleY : Infinity;
+    const bands = hurtbox.mask.rowBands;
+    // Include neighboring source rows so exact tangencies remain candidates,
+    // including inverse-transform rounding at a band boundary.
+    const first = Math.max(0, Math.floor((Math.min(sourceY1, sourceY2) - 1) / ROW_BAND_HEIGHT));
+    const last = Math.min(bands.length - 1, Math.floor((Math.max(sourceY1, sourceY2) + 1) / ROW_BAND_HEIGHT));
+    // Start nearest the center: wide area attacks commonly reach solid anatomy
+    // here, avoiding a walk through every row at the edge of their radius.
+    if (first > last) return false;
+    const center = hurtbox.scaleY ? Math.max(first, Math.min(last, Math.floor((y - hurtbox.originY) / hurtbox.scaleY / ROW_BAND_HEIGHT))) : first;
+    for (let step = first - 1; step <= last; step += 1) {
+      if (step === center) continue;
+      const band = step < first ? center : step;
+      const candidates = bands[band];
+      for (let index = 0; index < candidates.length; index += 1) {
+        const rect = candidates[index];
+        const y1 = hurtbox.originY + rect.y * hurtbox.scaleY;
+        const y2 = hurtbox.originY + (rect.y + rect.h) * hurtbox.scaleY;
+        const closestY = Math.max(Math.min(y1, y2), Math.min(y, Math.max(y1, y2)));
+        const distanceY = (closestY - y) ** 2;
+        if (distanceY > radiusSquared) continue;
+        const x1 = hurtbox.originX + rect.x * hurtbox.scaleX;
+        const x2 = hurtbox.originX + (rect.x + rect.w) * hurtbox.scaleX;
+        const closestX = Math.max(Math.min(x1, x2), Math.min(x, Math.max(x1, x2)));
+        if ((closestX - x) ** 2 + distanceY <= radiusSquared) return true;
+      }
+    }
+    return false;
   }
 
   const api = { createEnemyHurtbox, intersectsRect, intersectsCircle, getBounds, getAimPoint, forEachRect, isReady: () => Boolean(getData()) };

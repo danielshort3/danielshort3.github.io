@@ -104,6 +104,13 @@
           "accessibleTitle": "Explore Daniel Short",
           "defaultPanel": "about",
           "initialView": "closed",
+          "welcome": {
+            "eyebrow": "WELCOME",
+            "title": "Daniel Short.",
+            "summary": "Solving everyday problems with data and thoughtful tools.",
+            "detail": "I use data, AI, and machine learning to build practical projects and browser tools.",
+            "browseLink": { "label": "Browse all projects", "href": "/portfolio" }
+          },
           "categories": [
             {
               "id": "about",
@@ -526,7 +533,7 @@
                   "title": "GitHub",
                   "summary": "github.com/danielshort3",
                   "href": "https://github.com/danielshort3",
-                  "iconImage": "img/icons/contact-github-v2.png",
+                  "iconImage": "img/icons/github-icon.png",
                   "icon": "github",
                   "external": true
                 }

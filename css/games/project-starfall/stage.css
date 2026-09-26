@@ -159,6 +159,13 @@
     display: none !important;
   }
 
+  @media (max-width: 768px) {
+    body.project-starfall-page.has-mobile-scroll-chrome #pcz-banner {
+      padding: 8px max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)) !important;
+      background: transparent !important;
+    }
+  }
+
   @media (max-width: 700px) {
     .project-starfall-layout {
       --starfall-stage-viewport-fit-width: calc(100vw - 16px);
