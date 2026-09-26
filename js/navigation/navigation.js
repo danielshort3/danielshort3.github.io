@@ -288,7 +288,7 @@
     document.body.append(nav);
 
     const media = window.matchMedia(MOBILE_CHROME_QUERY);
-    const chromeSurfaces = () => [masthead, nav, ...document.querySelectorAll('.project-question-dock')];
+    const chromeSurfaces = () => [masthead, nav, ...document.querySelectorAll('.site-frame__slot-content > .project-question-dock')];
     const scrollPositions = new WeakMap();
     const preservedAccessibility = new Map();
     let enabled = false;

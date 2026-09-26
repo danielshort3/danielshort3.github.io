@@ -905,6 +905,52 @@
     }
   }
 
+  @media (max-width: 360px) {
+    .home-accordion__cards {
+      padding-inline: 12px;
+    }
+
+    .home-accordion__card {
+      position: relative;
+      grid-template-columns: 58px minmax(0, 1fr);
+      align-items: start;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .home-accordion__card-media {
+      width: 58px;
+      height: 58px;
+    }
+
+    .home-accordion__card-copy {
+      display: contents;
+    }
+
+    .home-accordion__card-copy strong {
+      grid-column: 2;
+      align-self: center;
+      padding-right: 20px;
+      font-size: .93rem;
+    }
+
+    .home-accordion__card-copy > span:not(.home-accordion__card-badge) {
+      grid-column: 1 / -1;
+      font-size: .81rem;
+      line-height: 1.4;
+    }
+
+    .home-accordion__card-badge {
+      grid-column: 1 / -1;
+    }
+
+    .home-accordion__card-arrow {
+      position: absolute;
+      top: 24px;
+      right: 9px;
+    }
+  }
+
   @media (min-width: 1101px) and (min-height: 620px) {
     :is(.home-accordion__item--has-library, .home-accordion__item--contact) .home-accordion__card {
       min-height: clamp(142px, 17vh, 180px);
@@ -1137,6 +1183,12 @@
 }
 
 @layer overrides {
+  @media (max-width: 360px) {
+    .site-frame[data-frame-audience="personal"] .home-accordion__item--projects .home-accordion__cards {
+      padding-inline: 12px;
+    }
+  }
+
   .site-frame[data-frame-audience="personal"] .home-contact-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);

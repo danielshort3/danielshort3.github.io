@@ -127,6 +127,47 @@
   .image-optimizer-page .imgopt-status[data-tone="success"] { color: var(--success); }
   .image-optimizer-page .imgopt-status[data-tone="warning"] { color: var(--warning-text); }
   .image-optimizer-page .imgopt-status[data-tone="error"] { color: var(--danger); }
+  .image-optimizer-page :is(.imgopt-status, .imgopt-size-advice)[hidden] { display: none !important; }
+  .image-optimizer-page .imgopt-size-advice {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border: 1px solid #b8cbd4;
+    border-left: 3px solid #087f8c;
+    border-radius: 7px;
+    background: #f5fbfb;
+    color: #091f3b;
+  }
+  .image-optimizer-page .imgopt-size-advice[data-tone="warning"] {
+    border-left-color: #a45506;
+    background: #fffaf3;
+  }
+  .image-optimizer-page .imgopt-size-advice-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .image-optimizer-page .imgopt-size-advice strong { font-size: 13px; }
+  .image-optimizer-page .imgopt-size-advice p {
+    margin: 0;
+    color: #475569;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .image-optimizer-page .imgopt-size-advice .btn-secondary {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 7px 10px;
+    border-color: #087f8c;
+    border-radius: 7px;
+    color: #087f8c;
+    background: #fff;
+    box-shadow: none;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .image-optimizer-page .imgopt-size-advice .btn-secondary[hidden] { display: none !important; }
   .image-optimizer-page :is(.imgopt-select, .imgopt-text, .imgopt-srcset-text) {
     width: 100%;
     min-width: 0;

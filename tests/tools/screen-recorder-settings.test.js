@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-function createHarness({ microphoneSupported = true } = {}) {
+function createHarness({ microphoneSupported = true, captureSupported = true, recorderSupported = true } = {}) {
   let activeElement = null;
   let captureRequests = 0;
 
@@ -103,6 +103,11 @@ function createHarness({ microphoneSupported = true } = {}) {
   };
   make('start-capture', 'button');
   make('start-record', 'button');
+  make('support-notice');
+  make('support-reason');
+  make('grid');
+  make('controls-panel');
+  make('preview-panel');
   make('video', 'video');
   make('settings-summary');
   make('output-summary');
@@ -130,7 +135,8 @@ function createHarness({ microphoneSupported = true } = {}) {
     return element;
   };
   const window = new Element('window');
-  const MediaRecorder = { isTypeSupported: () => true };
+  const MediaRecorder = recorderSupported ? function MediaRecorder() {} : undefined;
+  if (MediaRecorder) MediaRecorder.isTypeSupported = () => true;
   window.MediaRecorder = MediaRecorder;
   const navigator = {
     mediaDevices: {
@@ -145,6 +151,7 @@ function createHarness({ microphoneSupported = true } = {}) {
     }
   };
   if (!microphoneSupported) delete navigator.mediaDevices.getUserMedia;
+  if (!captureSupported) delete navigator.mediaDevices.getDisplayMedia;
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../js/tools/screen-recorder.js'), 'utf8'), {
     document, window, navigator, MediaRecorder, TextEncoder, Blob, URL, setTimeout, clearTimeout
   }, { filename: 'screen-recorder.js' });
@@ -165,6 +172,9 @@ function createHarness({ microphoneSupported = true } = {}) {
 
 function run() {
   const h = createHarness();
+  assert.strictEqual(h.get('support-notice').hidden, true);
+  assert.strictEqual(h.get('controls-panel').hidden, false);
+  assert.strictEqual(h.get('preview-panel').hidden, false);
   assert.strictEqual(h.get('settings-summary').textContent, '15 fps · Small quality · 75% scale');
   assert.strictEqual(h.get('output-summary').textContent, 'Output: Auto');
   assert.strictEqual(h.get('system-audio-details').hidden, true);
@@ -221,6 +231,27 @@ function run() {
   assert.strictEqual(unsupported.get('audio-status').hidden, false);
   assert.strictEqual(unsupported.get('audio-status').textContent, 'Microphone capture is not supported in this browser.');
   assert.strictEqual(unsupported.get('audio-meter').hidden, true);
+
+  for (const missingApi of ['capture', 'recorder']) {
+    const unavailable = createHarness({ [`${missingApi}Supported`]: false });
+    assert.strictEqual(unavailable.get('support-notice').hidden, false);
+    assert.strictEqual(unavailable.get('support-reason').textContent, missingApi === 'capture'
+      ? 'This browser does not provide screen sharing.'
+      : 'This browser does not provide video recording.');
+    assert.strictEqual(unavailable.get('grid').hidden, true);
+    assert.strictEqual(unavailable.get('controls-panel').hidden, true);
+    assert.strictEqual(unavailable.get('preview-panel').hidden, true);
+    assert.strictEqual(unavailable.get('start-capture').disabled, true);
+    unavailable.get('fps-select').value = '60';
+    unavailable.fire(unavailable.document, 'tools:session-applied', { detail: { toolId: 'screen-recorder' } });
+    assert.match(unavailable.get('settings-summary').textContent, /^60 fps/);
+    assert.strictEqual(unavailable.get('grid').hidden, true, 'Restoring settings does not expose unsupported capture controls.');
+    const payload = {};
+    unavailable.fire(unavailable.document, 'tools:session-capture', { detail: { toolId: 'screen-recorder', payload } });
+    assert.strictEqual(payload.inputs.FPS, '60 fps');
+    assert.strictEqual(payload.outputSummary, 'No clip yet');
+    assert.strictEqual(unavailable.captureRequests(), 0);
+  }
 }
 
 module.exports = run;
