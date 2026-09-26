@@ -34,6 +34,7 @@ const runCompactProjectLayoutChecks = require('./compact-project-layout.browser.
 const runDashboardProjectLayoutChecks = require('./dashboard-project-layout.browser.cjs');
 const runProjectDemoConsistencyChecks = require('./project-demo-consistency.browser.cjs');
 const runTableauProjectIntegrationChecks = require('./tableau-project-integration.browser.cjs');
+const runAndroidWebViewLayoutChecks = require('./android-webview-layout.browser.cjs');
 
 const root = path.resolve(__dirname, '../..');
 const personalContent = require('../../content/audiences/personal.json');
@@ -855,6 +856,7 @@ async function main() {
     await runDashboardProjectLayoutChecks({ browser, base, artifactDir });
     await runProjectDemoConsistencyChecks({ browser, base, artifactDir });
     await runTableauProjectIntegrationChecks({ browser, base, artifactDir });
+    await runAndroidWebViewLayoutChecks({ browser, base, artifactDir });
     await runAccountSaveChecks({ browser, base, artifactDir });
     console.log(`Browser artifacts: ${artifactDir}`);
   } finally {
