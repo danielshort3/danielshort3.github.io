@@ -101,7 +101,7 @@
     }
   }
 
-  const MOBILE_MASTHEAD_SEARCH_ICON = '<img src="/img/ui/site-icons/action-search.png" alt="" width="256" height="256" decoding="async">';
+  const MOBILE_MASTHEAD_SEARCH_ICON = '<img src="/img/ui/site-icons/action-search.webp" alt="" width="128" height="128" decoding="async">';
 
   function setupMobileSiteMasthead(config) {
     if (!document.body || document.querySelector('[data-mobile-site-masthead]')) return;
@@ -271,7 +271,7 @@
     nav.setAttribute('aria-label', 'Site sections');
     nav.innerHTML = sections.map((category) => `
       <a class="mobile-section-nav__link" href="/#${category}" data-mobile-section="${category}">
-        <img src="/img/ui/site-icons/nav-${category}.png" alt="" width="256" height="256" decoding="async">
+        <img src="/img/ui/site-icons/nav-${category}.webp" alt="" width="128" height="128" decoding="async">
         <span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>
       </a>`).join('');
     document.body.append(nav);

@@ -18,7 +18,7 @@ function renderGameHeader({ itemId, copy, actions = '', classes = '', tag = 'hea
   return [
     `<${tag} class="personal-game-header${classes ? ` ${classes}` : ''}" data-page-masthead data-personal-game-header="${escapeHtml(itemId)}">`,
     '  <a href="/games" data-page-masthead-parent aria-label="Back to game library">',
-    '    <img src="/img/ui/site-icons/action-back.png" alt="" aria-hidden="true" width="20" height="20" decoding="async">',
+    '    <img src="/img/ui/site-icons/action-back.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">',
     '    <span>Game library</span>',
     '  </a>',
     '  <div data-page-masthead-intro>',

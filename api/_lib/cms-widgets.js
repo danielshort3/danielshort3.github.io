@@ -390,7 +390,7 @@ function renderLegacyHtml(section) {
   );
 }
 
-const siteIconImage = (name) => `<img src="/img/ui/site-icons/${name}.png" alt="" width="256" height="256" decoding="async">`;
+const siteIconImage = (name) => `<img src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async"${/^nav-/.test(name) ? '' : ' loading="lazy"'}>`;
 
 const HOME_ACCORDION_ICONS = {
   about: siteIconImage('nav-about'),

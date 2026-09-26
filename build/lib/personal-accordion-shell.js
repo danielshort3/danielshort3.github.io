@@ -436,7 +436,7 @@ function renderIcon(paths, className = '') {
 }
 
 function renderSiteIcon(name, className = '') {
-  return `<img${className ? ` class="${escapeHtml(className)}"` : ''} src="/img/ui/site-icons/${name}.png" alt="" width="256" height="256" decoding="async">`;
+  return `<img${className ? ` class="${escapeHtml(className)}"` : ''} src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async"${/^nav-/.test(name) ? '' : ' loading="lazy"'}>`;
 }
 
 function renderToolsAccountBar() {

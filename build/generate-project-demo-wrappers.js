@@ -165,7 +165,7 @@ ${header}
   <header class="project-demo-wrapper-header" data-project-demo-masthead="${escapeHtml(definition.demoId)}" data-page-masthead>
     <div class="wrapper">
       <a href="${escapeHtml(definition.backHref)}" aria-label="${escapeHtml(definition.backLabel)}" data-page-masthead-parent>
-        <img src="/img/ui/site-icons/action-back.png" alt="" aria-hidden="true" width="20" height="20" decoding="async">
+        <img src="/img/ui/site-icons/action-back.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">
         <span>${escapeHtml(definition.backCompactLabel)}</span>
       </a>
       <div data-page-masthead-intro>

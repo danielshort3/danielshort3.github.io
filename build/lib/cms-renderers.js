@@ -89,7 +89,7 @@ function renderSvgMarkup(iconType) {
         '</svg>'
       ].join('\n');
     case 'search':
-      return '<img src="/img/ui/site-icons/action-search.png" alt="" aria-hidden="true" width="24" height="24" decoding="async">';
+      return '<img src="/img/ui/site-icons/action-search.webp" alt="" aria-hidden="true" width="24" height="24" decoding="async">';
     default:
       return '';
   }

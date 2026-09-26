@@ -1,4 +1,11 @@
 Asset: about-french-horn-sheet-music-v1.webp
+
+Current artwork: user-selected French horn option 2, installed 2026-09-26.
+AI-generated review source: work/unified-icon-concepts-2026-09-26/ai-project-style-review/redo-content/options/french-horn-v2.png
+The 192px and 384px WebP variants are derived by build/optimize-site-images.js.
+
+The H3 generation notes below document the prior artwork and are retained as asset history; they do not describe the current image.
+
 Selected concept: H3 from the project/tool-style About sprite sheet.
 Created: 2026-09-06
 Generation: OpenAI built-in image_gen tool, edited from the selected concept sheet.

@@ -721,8 +721,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const milestoneHtml = (markup, id) => markup.match(new RegExp(`<li[^>]+data-home-timeline-item="${id}"[^>]*>[\\s\\S]*?<\\/li>`))?.[0] || '';
   const milestoneIconHtml = (id) => milestoneHtml(aboutHtml, id)
     .match(/<span class="home-background__icon" aria-hidden="true">([\s\S]*?)<\/span>/)?.[1] || '';
-  assert(/<img src="\/img\/ui\/site-icons\/about-job\.png" alt="" width="256" height="256" decoding="async">/.test(milestoneIconHtml('visit-grand-junction')) &&
-    /<img src="\/img\/ui\/site-icons\/about-degree\.png" alt="" width="256" height="256" decoding="async">/.test(milestoneIconHtml('purdue-bs-data-analytics')) &&
+  assert(/<img src="\/img\/ui\/site-icons\/about-job\.webp" alt="" width="128" height="128" decoding="async" loading="lazy">/.test(milestoneIconHtml('visit-grand-junction')) &&
+    /<img src="\/img\/ui\/site-icons\/about-degree\.webp" alt="" width="128" height="128" decoding="async" loading="lazy">/.test(milestoneIconHtml('purdue-bs-data-analytics')) &&
     !aboutHtml.includes('class="home-timeline__media"'),
   'the resume should use accessible decorative AI category icons rather than the legacy logo plaques');
   const backgroundSectionHtml = (markup, id) => {
@@ -917,7 +917,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       count(html, new RegExp(`data-home-icon="${item.icon}"`, 'g')) === 0,
     `${id} should render its selected image once, with its SVG glyph reserved as a fallback`);
   });
-  assert(count(getItemHtml('contact'), /<span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><img src="\/img\/ui\/site-icons\/action-external\.png" alt="" width="256" height="256" decoding="async"><\/span>/g) === 1,
+  assert(count(getItemHtml('contact'), /<span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><img src="\/img\/ui\/site-icons\/action-external\.webp" alt="" width="128" height="128" decoding="async" loading="lazy"><\/span>/g) === 1,
     'the external GitHub card should use one dedicated external-link arrow');
   assert(count(html, /<h1\b/g) === 1 && html.includes('id="home-accordion-title"'),
     'homepage should expose one accessible H1');
