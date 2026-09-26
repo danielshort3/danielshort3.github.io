@@ -264,14 +264,20 @@
   }
 
   function setupMobileSectionNavigation(masthead, initialContext) {
-    const sections = ['about', 'projects', 'tools', 'games', 'contact'];
+    const icons = {
+      about: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/>',
+      projects: '<path d="M3 7h7l2-3h9v16H3z"/><path d="M3 9h18"/>',
+      tools: '<path d="M14.5 6.5a5 5 0 0 0-6.1 6.1L3 18l3 3 5.4-5.4a5 5 0 0 0 6.1-6.1L14 13l-3-3z"/>',
+      games: '<path d="M7 7h10c3 0 5 10 3 11-2 1-4-3-5-3H9c-1 0-3 4-5 3C2 17 4 7 7 7Z"/><path d="M8 9v5m-2.5-2.5h5M16 10h.01M18 12h.01"/>',
+      contact: '<path d="M4 4h16v12H9l-5 4z"/><path d="M8 8h8M8 12h5"/>'
+    };
     const nav = document.createElement('nav');
     nav.className = 'mobile-section-nav';
     nav.dataset.mobileSectionNav = '';
     nav.setAttribute('aria-label', 'Site sections');
-    nav.innerHTML = sections.map((category) => `
+    nav.innerHTML = Object.entries(icons).map(([category, icon]) => `
       <a class="mobile-section-nav__link" href="/#${category}" data-mobile-section="${category}">
-        <img src="/img/ui/site-icons/nav-${category}.webp" alt="" width="128" height="128" decoding="async">
+        <svg viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>
         <span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>
       </a>`).join('');
     document.body.append(nav);
