@@ -139,6 +139,16 @@
     stroke-linecap:round;
     stroke-linejoin:round;
   }
+  .nav-search-button img{
+    box-sizing:border-box;
+    display:block;
+    width:25px;
+    height:25px;
+    padding:2px;
+    border-radius:50%;
+    background:#ffffff;
+    object-fit:contain;
+  }
   .nav-link{
     position:relative;
     display:flex;

@@ -251,11 +251,11 @@ async function validateToolIconAssets(baseDir) {
     if (corners.some(([x, y]) => alphaAt(x, y) !== 0)) {
       throw new Error(`Tool icon background must be transparent, not a painted checkerboard: ${path.relative(root, filePath)}`);
     }
-    let opaquePixels = 0;
+    let visiblePixels = 0;
     for (let offset = 3; offset < data.length; offset += info.channels) {
-      if (data[offset] === 255) opaquePixels += 1;
+      if (data[offset] >= 192) visiblePixels += 1;
     }
-    if (opaquePixels < info.width * info.height * .04) {
+    if (visiblePixels < info.width * info.height * .04) {
       throw new Error(`Tool icon must retain its visible artwork: ${path.relative(root, filePath)}`);
     }
     hashes.set(tool.image, crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex'));

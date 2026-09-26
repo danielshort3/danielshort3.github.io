@@ -20,7 +20,7 @@
  * The tabs group covers every directed pair, including reverse/nonadjacent moves.
  * Stress/held groups deliberately delay responses or mounting, rotate, and
  * change reduced-motion preference while the next route is still mounting.
- * Typography checks actual SVG/label bounds at normal and 200% root font size.
+ * Typography checks actual icon/label bounds at normal and 200% root font size.
  * Each animation frame records geometry, all four exposed border edges,
  * clipping, footer containment, loader visibility, and persistent node identity.
  * Settled routes must restore the original inline document min-height exactly.
@@ -299,20 +299,28 @@ async function inspectTypography(page, prefix, fontSize) {
     document.documentElement.style.fontSize = fontSize2;
   }, fontSize);
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await page.locator("[data-site-tab]:visible .site-frame__tab-icon img").evaluateAll(async (images) => {
+    await Promise.all(images.map((image) => image.decode().catch(() => {})));
+  });
   const tabs = await page.locator("[data-site-tab]:visible").evaluateAll((nodes) => nodes.map((node) => {
     const bounds = (element) => {
       const r = element.getBoundingClientRect();
       return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
     };
-    const svg = node.querySelector(".site-frame__tab-icon svg");
+    const icon = node.querySelector(".site-frame__tab-icon > img, .site-frame__tab-icon > svg");
     const label = node.querySelector(".site-frame__tab-label");
-    return { id: node.dataset.siteTab, tab: bounds(node), svg: svg ? bounds(svg) : null, label: label ? bounds(label) : null };
+    return {
+      id: node.dataset.siteTab,
+      tab: bounds(node),
+      icon: icon ? { kind: icon.localName, ...bounds(icon), loaded: icon.localName === "img" ? icon.complete && icon.naturalWidth > 0 && icon.naturalHeight > 0 : true } : null,
+      label: label ? bounds(label) : null
+    };
   }));
   const result = {
     prefix,
     fontSize,
     tabs,
-    pass: tabs.length === 4 && tabs.every(({ tab, svg, label }) => svg && label && svg.bottom + 1 <= label.y && svg.x >= tab.x - 1 && svg.right <= tab.right + 1 && svg.y >= tab.y - 1 && label.bottom <= tab.bottom + 1)
+    pass: tabs.length === 4 && tabs.every(({ tab, icon, label }) => icon && icon.loaded && label && icon.bottom + 1 <= label.y && icon.x >= tab.x - 1 && icon.right <= tab.right + 1 && icon.y >= tab.y - 1 && label.bottom <= tab.bottom + 1)
   };
   typography.push(result);
   save(true);

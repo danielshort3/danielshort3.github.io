@@ -146,6 +146,13 @@
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+  .home-about__connector img {
+    display: block;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
   .site-frame[data-frame-audience="personal"] .home-about__project {
     display: grid;
     align-content: center;
@@ -181,6 +188,14 @@
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+  .home-about__current-icon img {
+    display: block;
+    width: 30px;
+    height: 26px;
+    margin-top: 2px;
+    object-fit: contain;
+    mix-blend-mode: multiply;
   }
   .site-frame[data-frame-audience="personal"] .home-about__current a { color: #233d5f; text-decoration: none; }
   .home-about__current strong { color: #091f3b; font-weight: 700; }
@@ -329,7 +344,7 @@
     .home-about__interest-icon svg { width: 44px; height: 44px; }
     .home-about__interest { grid-area: 1 / 2; }
     .home-about__connector { grid-area: 2 / 1; justify-self: end; align-self: start; margin-top: 4px; }
-    .home-about__connector svg { width: 20px; height: 20px; }
+    .home-about__connector :is(svg, img) { width: 20px; height: 20px; }
     .site-frame[data-frame-audience="personal"] .home-about__project { grid-area: 2 / 2; }
     .home-about__current { margin-top: 24px; padding-top: 20px; font-size: .875rem; }
     .site-frame[data-frame-audience="personal"] .home-about .home-timeline { grid-area: timeline; }
@@ -377,6 +392,13 @@
       stroke-width: 1.8;
       stroke-linecap: round;
       stroke-linejoin: round;
+    }
+    .home-about__project-arrow img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      mix-blend-mode: multiply;
     }
     .site-frame[data-frame-audience="personal"] .home-about__project { grid-area: 2 / 2; }
     .home-about__current { margin-top: 26px; padding-top: 22px; gap: 12px; font-size: .875rem; }

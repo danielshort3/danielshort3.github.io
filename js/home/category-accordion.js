@@ -131,7 +131,10 @@
         } else {
           media.setAttribute('aria-hidden', 'true');
           if (entry.iconHtml) media.innerHTML = entry.iconHtml;
-          else if (tabs.get(id)?.querySelector('svg')) media.append(tabs.get(id).querySelector('svg').cloneNode(true));
+          else {
+            const categoryIcon = tabs.get(id)?.querySelector('.home-accordion__rail-icon img, .home-accordion__rail-icon svg');
+            if (categoryIcon) media.append(categoryIcon.cloneNode(true));
+          }
         }
         const copy = document.createElement('span');
         copy.className = 'home-library__copy';
@@ -564,7 +567,7 @@
     } else {
       media.setAttribute('aria-hidden', 'true');
       media.classList.add('home-library__media--glyph');
-      const categoryIcon = triggerById.get(categoryId)?.querySelector('svg');
+      const categoryIcon = triggerById.get(categoryId)?.querySelector('.home-accordion__rail-icon img, .home-accordion__rail-icon svg');
       if (categoryIcon) media.append(categoryIcon.cloneNode(true));
     }
     return media;
