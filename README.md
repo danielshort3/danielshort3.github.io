@@ -1,58 +1,80 @@
-# Daniel Short's Portfolio Website
+# Daniel Short's Website
 
-## Overview
+**Solving everyday problems with data and thoughtful tools.**
 
-Welcome to the GitHub repository for my personal portfolio website. This site showcases my data analysis and machine learning projects, credentials, areas of interest, and provides ways to contact me for collaboration or hiring.
+My personal website brings together data and machine learning projects, useful browser tools, and playable experiments. It also shares the interests behind my work: practical uses for AI, family, and 20 years of playing French horn.
 
-Making a change? Start with the [Repository map](docs/REPOSITORY_MAP.md) for feature-specific source files, generated-output boundaries, Android entry points, and relevant checks.
+[Visit the website](https://www.danielshort.me/) · [Projects](https://www.danielshort.me/portfolio) · [Tools](https://www.danielshort.me/tools) · [Games](https://www.danielshort.me/games) · [Contact](https://www.danielshort.me/contact)
 
-## Table of Contents
+Making a change? Start with the [Repository map](docs/REPOSITORY_MAP.md) for authoritative source files, generated-output boundaries, Android entry points, and focused checks.
 
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Setup and Installation](#setup-and-installation)
-- [Local Development](#local-development)
-- [Usage](#usage)
-- [File Structure](#file-structure)
+## Explore the website
 
-## Features
+| Area | What you will find |
+| --- | --- |
+| About | Personal interests, experience, education, and linked credentials in a resume-style layout |
+| Projects | Case studies with STAR Summary narratives, interactive demos, historical dashboards, code, and supporting resources |
+| Tools | Utilities for comparing and reviewing text, creating campaign links and QR codes, processing images, and recording the screen |
+| Games | Browser games and simulations exploring probability, progression, feedback loops, and real-time interaction |
+| Contact | A message form, direct email and GitHub links, and a location map loaded when the Contact section is opened |
 
-- **Responsive Design**: Ensures the website looks good on all devices.
-- **Portfolio Showcase**: Highlights my key projects with detailed descriptions and download links.
-- **Modal Pop-ups**: Provides detailed information about each project.
-- **Filterable Projects**: Allows users to filter projects by the tools used.
-- **Credentials Carousel**: Displays my certifications and credentials with a scrolling feature.
-- **Interactive Navigation**: Includes smooth scrolling and dynamic content loading.
-- **Social Media Integration**: Links to my email, LinkedIn, and GitHub profiles.
+The homepage opens with all five sections condensed. Colored vertical tabs define the desktop layout, with responsive navigation on smaller screens. Shared headers, breadcrumbs, search, and page transitions connect the homepage, libraries, and individual experiences.
 
-## Technologies Used
+### Selected projects
 
-- HTML5
-- CSS3
-- JavaScript (ES6)
-- FontAwesome for icons
-- Google Fonts (Poppins)
+- [Sheet Music Watermark Removal & Upscale](https://www.danielshort.me/portfolio/sheetMusicUpscale): compare original, restored, and upscaled sheet-music scans.
+- [Handwriting Legibility Scoring](https://www.danielshort.me/portfolio/handwritingRating): draw a digit and explore how confidently a model recognizes it.
+- [Baby Name Predictor](https://www.danielshort.me/portfolio/babynames): explore recommendations informed by family preferences and historical naming trends.
+- [Synthetic Digit Generator](https://www.danielshort.me/portfolio/digitGenerator) and [Shape Classifier](https://www.danielshort.me/portfolio/shapeClassifier): interact with generative and classification models.
+- [Pizza Delivery Dashboard](https://www.danielshort.me/portfolio/pizzaDashboard) and [UFO Sightings Dashboard](https://www.danielshort.me/portfolio/ufoDashboard): explore historical records through embedded Tableau dashboards.
 
-## Setup and Installation
+The [project library](https://www.danielshort.me/portfolio) also includes semantic search, a travel chatbot, retail analytics, regression modeling, and a reinforcement-learning puzzle solver. Availability of cloud demos depends on their backing services; historical dashboards are not live operational data.
 
-1. **Clone the Repository**:
-    ```bash
-    git clone https://github.com/danielshort3/danielshort3.github.io.git
-    ```
-2. **Navigate to the Directory**:
-    ```bash
-    cd danielshort3.github.io
-    ```
-3. **Open the Project**:
-    - Open `index.html` in your preferred web browser to view the homepage.
+### Tools and games
 
-## Local Development
+Start with [Text Compare](https://www.danielshort.me/tools/text-compare), [QR Code Generator](https://www.danielshort.me/tools/qr-code-generator), [Image Optimizer](https://www.danielshort.me/tools/image-optimizer), or [Screen Recorder](https://www.danielshort.me/tools/screen-recorder). The tool library also includes writing checks, word-frequency analysis, background removal, and UTM batch creation. Job Application Tracker and File Transcriber require an account; campaign administration tools require admin access.
 
-Run one command to build, serve, and continuously rebuild the full site locally:
+The games collection includes **Project Starfall** (a work-in-progress action RPG), **Stellar Dogfight**, **Ocean Wave Simulator**, **Double-Zero Roulette**, **Probability Engine**, and **Stormbreak: Idle Olympus**.
+
+Supported tools can recover eligible signed-out drafts within the browser session. Signed-in accounts provide saved sessions and history. Processing and storage vary by tool; see the [privacy page](https://www.danielshort.me/privacy) for the current explanation.
+
+## How it is built
+
+| Layer | Implementation |
+| --- | --- |
+| Website | HTML, CSS, and JavaScript with shared navigation and feature modules; React is used for UTM Batch Builder |
+| Content and build | Managed JSON under `content/`, Node.js generators, esbuild bundles, and Sharp image optimization |
+| Visual system | DS branding, a light navy-and-white shell, section accent colors, local Inter fonts, SVG interface icons, and illustrated catalog artwork |
+| APIs and accounts | Vercel API handlers, Amazon Cognito, DynamoDB, and AWS services for cloud-backed tools and model inference |
+| Dashboards | Tableau embeds and browser-based visualizations over published historical datasets |
+| Verification | Node checks, Playwright browser tests, axe accessibility checks, reviewed screenshots, and Lighthouse measurements |
+
+See the [visual style guide](docs/visual-style.md) for shared design rules and the [release-quality guide](docs/RELEASE_QUALITY.md) for verification procedures.
+
+The build also generates [AI-readable summaries](https://www.danielshort.me/llms.txt) under `/ai/` from public content. These optional summaries link back to canonical pages; the main URLs serve the same website to people and agents. Account and admin workspaces are excluded from the summary catalog.
+
+### Android companion
+
+The [Android app](mobile/android/README.md) uses Kotlin and Jetpack Compose for navigation, settings, bookmarks, screen recording, and native adaptations. It combines those features with website case studies, demos, and games in an in-app WebView, while selected tools open in the Android browser. Native alternatives remain available for supported experiences.
+
+The website build generates a [versioned content feed](https://www.danielshort.me/app-content/v1/catalog.json). Content and website experiences can refresh after deployment; changes to native code require a new app release. See the [Android update guide](mobile/android/UPDATES.md) for verified APK and patch delivery.
+
+## Setup and installation
+
+Use **Node.js 22.x** and npm. From a fresh clone:
 
 ```bash
+git clone https://github.com/danielshort3/danielshort3.github.io.git
+cd danielshort3.github.io
+npm ci
+npm --prefix aws/job-application-tracker ci
+npm --prefix browser-extension/job-application-copilot ci
 npm run dev
 ```
+
+The two subproject installs are needed by the full repository test suite. On Windows PowerShell, use `npm.cmd` if script-execution policy prevents `npm` from running.
+
+## Local development
 
 What `npm run dev` does:
 
@@ -70,7 +92,11 @@ The local server loads `.env.local`, then `.env`, from the repository root. Exis
 
 Tools sign-in also requires an exact Cognito callback for the local hostname and port. See [Tools sign-in on localhost](docs/tools-local-sign-in.md) for the callback setup helper and local backend configuration.
 
-Empty-Package Shrink, Store-Level Loss & Sales, COVID Outbreak Drivers, Pizza Tips, and Baby Names run in the browser using bundled data or calculations. Sheet Music's image comparison and Delivery Tip's project presentation also use site assets. Their twelve project downloads are tracked under an explicit `documents/` allowlist and copied into `public/`; no AWS credentials are needed for these seven project experiences. The underlying Sheet Music desktop workflow and Excel analysis remain local authoring workflows.
+Use this server for clean URLs and API routes rather than opening HTML files directly. Public static pages and local browser tools can be previewed without configuring cloud services.
+
+Empty-Package Shrink, Store-Level Loss & Sales, COVID Outbreak Drivers, Pizza Tips, and Baby Names run in the browser using bundled data or calculations. Sheet Music's image comparison and Delivery Tip's project presentation also use site assets. Their supporting downloads are tracked under an explicit `documents/` allowlist and copied into `public/`; no AWS credentials are needed for these project experiences. The underlying Sheet Music desktop workflow and Excel analysis remain local authoring workflows.
+
+### Optional cloud services
 
 The remaining AWS-backed model demos need their `DEMO_*_FUNCTION_ARN` configured locally. For example, add the following to the ignored `.env.local`, replacing the ARN with the demo's qualified Lambda alias:
 
@@ -89,27 +115,45 @@ The travel chatbot uses `/api/chatbot-demo/bedrock/status` and the corresponding
 
 The contact page location map is upgraded during `npm run build` with the Google Maps Embed API. For local builds, put the key in `google_maps_api_key.txt` at the repo root or set `GOOGLE_MAPS_API_KEY`; for Vercel, set `GOOGLE_MAPS_API_KEY` as an environment variable. Do not commit the key file.
 
-## Usage
+## Editing the website
 
-- **Navigating the Website**:
-    - Click on the navigation links to move between sections.
-    - Click on project cards to view detailed information in modal pop-ups.
-    - Use the filter buttons to sort projects by the tools used.
-    - Navigate through credentials using the carousel buttons.
+- **Content:** edit the matching JSON under `content/`. Project pages, libraries, homepage content, and catalog scripts are generated from these sources.
+- **Tool and demo interfaces:** edit the authoritative body in `pages/` or `demos/` and its feature module. Preserve generated shell regions.
+- **Styles:** use shared tokens in `css/variables.css` and the relevant component stylesheet. Follow the route-specific stylesheet entry points in the repository map.
+- **New routes:** use the [scaffold templates](build/templates/) and add clean-URL rewrites in [vercel.json](vercel.json).
+- **Generated output:** rebuild instead of editing `dist/`, `public/`, or generated page regions directly. A tracked generated file is still generated output.
 
-- **Modifying the Website**:
-    - **Content and HTML**: Edit managed content under `content/` or the appropriate authored tool/demo body. Use the [Repository map](docs/REPOSITORY_MAP.md) to identify generated pages before editing.
-    - **CSS**: Edit the relevant file under `css/components/` or shared tokens in `css/variables.css`; use the appropriate stylesheet entry.
-    - **JavaScript**: Start in the relevant feature directory under `js/`. Shared runtime helpers live in `js/common/common.js`.
-    - **Validation**: Rebuild generated output, run the applicable checks, and inspect the changed page through the local development server.
+## Checks and publishing
 
-## Short links (private dashboard)
+Build before testing changes to the website:
 
-This repo includes a small, Bitly-style redirect service intended for a single trusted admin (you).
+```bash
+npm run build
+npm test
+git diff --check
+```
+
+`npm test` includes site contracts, account and recovery checks, subproject suites, SEO, performance budgets, and source-to-public parity. For rendered changes, also run the applicable browser checks:
+
+```bash
+npx playwright install chromium firefox webkit
+npm run test:browser
+npm run test:release
+```
+
+Use `npx playwright install --with-deps chromium firefox webkit` when Linux browser dependencies are missing. Reviewed screenshot comparisons run on Linux/WSL. The [release-quality guide](docs/RELEASE_QUALITY.md) covers recovery checks, mobile Lighthouse measurements, explicit screenshot-baseline review, and the separate manual screen-reader pass. Automated checks do not establish complete accessibility.
+
+Vercel is configured to run `npm run build` and serve `public/`, with API handlers under `api/`. [vercel.json](vercel.json) owns clean URLs, response headers, and external-service policy. Verify the deployment and live routes after publishing; a local build alone does not publish the site. Website builds do not deploy AWS services or distribute an Android APK.
+
+For documentation-only edits, verify referenced paths and run `git diff --check`; an application rebuild is unnecessary.
+
+## Admin link management
+
+The restricted **Links & QR codes** workspace manages short links, saved QR designs, and link activity.
 
 - **Redirects:** `https://<your-domain>/go/<slug>` returns a `301` or `302` to the stored destination.
-- **Dashboard:** `pages/short-links.html` (enter your admin token to list/create/update/delete links).
-- **Admin auth:** set `SHORTLINKS_ADMIN_TOKEN` in your Vercel environment (do not commit it).
+- **Dashboard:** `/tools/short-links`, authored in `pages/short-links.html`.
+- **Admin auth:** use a recognized tools-admin account or a workspace access key. The key is configured with `SHORTLINKS_ADMIN_TOKEN` in the server environment; do not commit it.
 - **Storage:** AWS DynamoDB. In Vercel, set `SHORTLINKS_DDB_TABLE`, `AWS_REGION`, `SHORTLINKS_AWS_ROLE_ARN`, `AWS_AUTH_MODE=oidc`, and `AWS_OIDC_AUDIENCE=sts.amazonaws.com`. Static keys are supported only as a temporary/local fallback.
 
 Generate an admin token locally:
@@ -121,7 +165,7 @@ Generate an admin token locally:
 
 This repo includes an optional account layer for tools under `/tools`:
 
-- **Dashboard:** `/tools/dashboard` (shows signed-in tool usage, recent sessions, and activity).
+- **Account entry:** `/tools/dashboard` handles sign-in and the authentication callback. Supported tools expose account and saved-session controls in their own interfaces.
 - **Auth:** Amazon Cognito Hosted UI (PKCE) configured in `js/accounts/tools-config.js`; sign-in requests `select_account` by default so Google prompts for the intended account. In the default `dual` migration mode, a verified ID token is also exchanged for an AES-256-GCM authenticated, Secure, HttpOnly, `SameSite=Lax`, same-origin `__Host-` session cookie.
 - **Storage:** AWS DynamoDB (see `.env.example`).
 
@@ -162,7 +206,7 @@ The custom `/admin` editor is a local-only content editor for managed JSON files
 - **Safety:** write APIs only accept localhost requests; `/admin` is not copied into `public/`.
 - **Publishing:** after saving content, run `npm run build && npm test`, review `git diff`, then deploy manually.
 
-## File Structure
+## File structure
 
 | Directory | Purpose |
 | --- | --- |
@@ -172,13 +216,9 @@ The custom `/admin` editor is a local-only content editor for managed JSON files
 | `api/`, `aws/` | Site API handlers and backend service subprojects |
 | `img/`, `documents/` | Visual assets and downloadable resources |
 | `build/` | Renderers, generators, bundlers, route-aware development server |
-| `mobile/android/` | Native Android app, Gradle build, and native tests |
+| `mobile/android/` | Android companion, website integration, native features, Gradle build, and tests |
 | `browser-extension/` | Browser extension subproject |
 | `tests/`, `docs/` | Verification suites and development documentation |
 | `dist/`, `public/` | Generated bundles and deployment output |
 
 See the [Repository map](docs/REPOSITORY_MAP.md) for task-to-file lookup and build dependencies.
-
-## Shape Classifier Demo
-
-The interactive demo reaches AWS inference through the site's [demo proxy](api/_lib/demo-proxy.js). See [Local Development](#local-development) for the Lambda alias configuration and the [Repository map](docs/REPOSITORY_MAP.md) for client and demo entry points.
