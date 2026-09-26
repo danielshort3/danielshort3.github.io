@@ -54,7 +54,7 @@ for (const node of layoutStage.children) {
   Object.defineProperty(node, 'nextSibling', { get() { return layoutStage.children[layoutStage.children.indexOf(this) + 1] || null; } });
 }
 const configurationContext = vm.createContext({ framePolicy, tabs: layoutTabs, colors: {}, personalOrder: order,
-  professionalOrder: ['about', 'projects', 'resume', 'contact'], compactQuery: { matches: false },
+  professionalOrder: ['about', 'projects', 'resume', 'contact'], compactQuery: { matches: false }, mobileDockQuery: { matches: false },
   document: layoutDocument, ensureTab: id => layoutTabs.get(id), stage: layoutStage, slot: { style: {} },
   welcome: {}, panel: layoutPanel, body: {},
   frame: { dataset: {}, classList: { toggle() {} }, toggleAttribute() {}, style: { setProperty() {} } } });
@@ -96,15 +96,23 @@ check(JSON.stringify(layoutStage.children.filter(node => !node.hidden).map(node 
   JSON.stringify(['about', 'projects', 'content', 'tools', 'games', 'contact']),
 'Changing compact categories updates the DOM reading order around the connected panel.');
 layoutDocument.body.classList.contains = name => name === 'has-mobile-scroll-chrome';
+configurationContext.mobileDockQuery.matches = true;
 configurationContext.configure({ audience: 'personal', category: 'tools', view: 'overview', home: true });
 check(order.every(id => !layoutTabs.get(id).hidden),
   'The personal mobile section bar keeps every overview rail available around the expanded panel.');
 check(layoutPanel === layoutStage.children.find(node => node.id === 'content'),
   'Enabling mobile section navigation preserves the connected content panel and map.');
 configurationContext.configure({ audience: 'personal', category: 'tools', view: 'detail', home: false });
+check(order.every(id => layoutTabs.get(id).hidden && layoutTabs.get(id).inert && layoutTabs.get(id).tabIndex === -1) &&
+  configurationContext.stage.style.gridTemplateColumns === 'minmax(0, 1fr)' &&
+  configurationContext.slot.style.gridArea === '1 / 1' &&
+  configurationContext.frame.dataset.frameNavigation === 'dock',
+  'Mobile detail pages use the bottom dock without a duplicate upper row or focusable hidden rails.');
+configurationContext.mobileDockQuery.matches = false;
+configurationContext.configure({ audience: 'personal', category: 'tools', view: 'detail', home: false });
 check(order.every(id => !layoutTabs.get(id).hidden) &&
   configurationContext.stage.style.gridTemplateColumns === 'repeat(5, minmax(0, 1fr))',
-  'Personal detail pages keep all five directly navigable mobile tabs.');
+  'Portrait tablets retain upper rails when the bottom dock is absent.');
 configurationContext.configure({ audience: 'personal', category: '', view: 'closed', home: true });
 check(order.every(id => !layoutTabs.get(id).hidden), 'The closed mobile homepage keeps all five flush category rows.');
 configurationContext.configure({ audience: 'analytics', category: 'projects', view: 'overview', home: true });

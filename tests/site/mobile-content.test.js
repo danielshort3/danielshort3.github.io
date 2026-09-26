@@ -26,6 +26,11 @@ assert(catalog.about.credentials.every((entry) => entry.url.startsWith('https://
 assert.strictEqual(catalog.projects.length, content.projects.filter((project) => project.published !== false).length);
 assert(!catalog.projects.some((project) => project.id === 'minesweeper'), 'Unpublished projects stay out of the app');
 assert(catalog.projects.every((project) => project.url === `${catalog.site.url}portfolio/${project.id}`), 'Only personal project routes are exported');
+assert.strictEqual(catalog.projects.find((project) => project.id === 'smartSentence')?.demoUrl,
+  'https://www.danielshort.me/sentence-demo.html', 'Smart Sentence opens the website demo through its supported route in Android');
+assert(JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8')).rewrites.some((rewrite) =>
+  rewrite.source === '/sentence-demo.html' && rewrite.destination === '/pages/demos/sentence-demo'),
+  'The Android Smart Sentence demo URL resolves to the maintained website wrapper');
 assert.strictEqual(catalog.tools.length, content.tools.filter((tool) => tool.visibility === 'public' && !tool.hidden && !tool.noindex).length);
 assert(!catalog.tools.some((tool) => ['transcribe', 'job-application-tracker', 'short-links'].includes(tool.id)), 'Admin and account tools are not published');
 assert.strictEqual(catalog.games.length, content.pagesById.games.games.length);

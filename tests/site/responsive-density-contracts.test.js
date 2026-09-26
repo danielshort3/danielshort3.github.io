@@ -420,13 +420,13 @@ function runResponsiveDensityContractTests({ assert }) {
   );
   assert(
     /body\.consent-blocked:has\(#pcz-modal\.pcz-visible\)::before\s*\{[^}]*opacity\s*:\s*0\s*!important\s*;[^}]*pointer-events\s*:\s*none\s*!important\s*;[^}]*backdrop-filter\s*:\s*none\s*;/s.test(privacyCss) &&
-      consentJs.includes("const CSS_VERSION = 'v13';") &&
+      consentJs.includes("const CSS_VERSION = 'v14';") &&
       consentJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
       consentJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
       consentJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,12px);') &&
       consentJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
       consentJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
-    'Cookie Settings critical CSS v13 should match the shared shell without stacking the first-run backdrop',
+    'Cookie Settings critical CSS v14 should match the shared shell without stacking the first-run backdrop',
   );
   assert(
     !privacyCss.includes('@media (prefers-color-scheme: dark)') &&

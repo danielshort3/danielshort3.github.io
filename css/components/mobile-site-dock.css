@@ -914,34 +914,34 @@
     body.has-mobile-scroll-chrome.is-mobile-chrome-hidden .mobile-section-nav {
       transform: translateY(calc(100% + 16px));
     }
-    body.has-mobile-scroll-chrome.is-mobile-chrome-hidden :is(.mobile-site-masthead, .mobile-section-nav, .project-question-dock) {
+    body.has-mobile-scroll-chrome.is-mobile-chrome-hidden :is(.mobile-site-masthead, .mobile-section-nav, .site-frame__slot-content > .project-question-dock) {
       visibility: hidden;
       pointer-events: none;
       transition-delay: 0s, var(--motion-base, 220ms);
     }
-    body.has-mobile-scroll-chrome .project-question-dock {
+    body.has-mobile-scroll-chrome .site-frame__slot-content > .project-question-dock {
       bottom: var(--mobile-section-nav-height, 72px);
       transform: translateY(0);
       visibility: visible;
       transition: transform var(--motion-base, 220ms) var(--easing-standard, ease), opacity var(--motion-base, 220ms) var(--easing-standard, ease), visibility 0s;
     }
-    body.has-mobile-scroll-chrome.is-mobile-chrome-hidden .project-question-dock {
+    body.has-mobile-scroll-chrome.is-mobile-chrome-hidden .site-frame__slot-content > .project-question-dock {
       transform: translateY(calc(100% + var(--mobile-section-nav-height, 72px) + 16px));
       transition-delay: 0s, 0s, var(--motion-base, 220ms);
-    }
-    body.has-mobile-scroll-chrome #pcz-banner {
-      bottom: calc(var(--mobile-section-nav-height, 72px) + 8px) !important;
-      max-height: calc(100dvh - var(--mobile-site-masthead-height, 62px) - var(--mobile-section-nav-height, 72px) - 16px);
-      overflow-y: auto;
     }
     body.has-mobile-scroll-chrome.is-playing .mobile-section-nav { display: none; }
     body.has-mobile-scroll-chrome.is-playing { padding: 0 !important; }
   }
   @media (prefers-reduced-motion: reduce) {
-    body.has-mobile-scroll-chrome :is(.mobile-site-masthead, .mobile-section-nav, .project-question-dock) { transition: none; }
+    body.has-mobile-scroll-chrome :is(.mobile-site-masthead, .mobile-section-nav, .site-frame__slot-content > .project-question-dock) { transition: none; }
   }
   @media (min-width: 769px) and (max-width: 959px) and (max-height: 619px) {
     body:not(.has-mobile-scroll-chrome) .mobile-site-masthead { display: none; }
+    body.has-mobile-scroll-chrome #pcz-banner {
+      bottom: calc(var(--mobile-section-nav-height, 72px) + 8px) !important;
+      max-height: calc(100dvh - var(--mobile-site-masthead-height, 62px) - var(--mobile-section-nav-height, 72px) - 16px);
+      overflow-y: auto;
+    }
   }
   @media print {
     .mobile-section-nav { display: none !important; }

@@ -14,7 +14,7 @@ const sourceBlock = (start, end) => {
   return source.slice(from, to);
 };
 const tabMarkup = [...markup.matchAll(/<button\b[^>]*data-qrtool-tab="([^"]+)"[^>]*>([^<]+)<\/button>/g)];
-assert.deepEqual(tabMarkup.map((match) => match[2].trim()), ['Content', 'Style', 'Download options']);
+assert.deepEqual(tabMarkup.map((match) => match[2].trim()), ['Content', 'Style', 'Download']);
 
 const defaults = vm.runInNewContext(`${sourceBlock('  const DEFAULTS =', '  const TEMPLATES =')}\nDEFAULTS;`);
 assert(defaults.marginModules >= 4, 'New QR codes need at least four blank modules on each side.');

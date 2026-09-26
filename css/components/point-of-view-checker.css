@@ -798,11 +798,13 @@
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure > summary:focus-visible { outline: 2px solid var(--workspace-accent); outline-offset: 3px; }
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .tool-workspace-share { border-color: transparent; padding-inline: 0; font-size: 12px; }
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-summary:empty { display: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-summary:not(:empty) { margin: 0 0 4px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--workspace-accent) 28%, #fff); border-left: 3px solid var(--workspace-accent); border-radius: 7px; background: color-mix(in srgb, var(--workspace-accent) 4%, #fff); font-size: 14px; overflow-wrap: anywhere; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-summary-verdict { display: block; margin-bottom: 4px; color: var(--workspace-ink); font-size: 16px; line-height: 1.4; }
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-input-card > .tool-workspace-actions { margin-top: 14px; }
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-highlight-content { display: grid; gap: 14px; }
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure .povcheck-mode-switch { margin: 8px 0 16px; }
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure .povcheck-preset-grid { padding-top: 12px; }
-  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-results-card > .tool-workspace-summary:has(.povcheck-summary:empty):has(.povcheck-results-status:empty) { display: none; }
+  body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-results-card > .tool-workspace-summary:has(.povcheck-results-status:empty) { display: none; }
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure .povcheck-drift-header h3 { display: none; }
   body[data-page="point-of-view-checker"][data-tools-layout] .tool-workspace .povcheck-disclosure .povcheck-drift-list { max-height: 380px; overflow-y: auto; }
   @media (max-width: 520px) {
