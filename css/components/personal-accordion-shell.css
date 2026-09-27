@@ -343,6 +343,10 @@
     outline-offset: 2px;
   }
 
+  .personal-accordion__back:is(:hover, :focus-visible) img {
+    filter: brightness(0) invert(1);
+  }
+
   .personal-accordion__content {
     width: 100%;
     min-width: 0;

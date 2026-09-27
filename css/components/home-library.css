@@ -80,6 +80,11 @@
     object-fit: contain;
   }
 
+  .home-library__back:is(:hover, :focus-visible) img {
+    background: transparent;
+    filter: brightness(0) invert(1);
+  }
+
   .home-library__back svg,
   .home-library__page-link svg,
   .home-library__media svg,
