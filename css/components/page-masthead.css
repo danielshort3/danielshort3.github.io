@@ -168,6 +168,10 @@
     object-fit: contain;
   }
 
+  [data-page-masthead-parent].home-library__back:is(:hover, :focus-visible) img {
+    filter: none;
+  }
+
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent]:hover {
     text-decoration: underline;
     text-underline-offset: 4px;
