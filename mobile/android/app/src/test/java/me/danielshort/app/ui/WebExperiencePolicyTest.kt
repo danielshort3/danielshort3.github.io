@@ -84,4 +84,15 @@ class WebExperiencePolicyTest {
     assertFalse(isPrimaryDemoFrameUrl(WebExperience.STARFALL,
       "https://www.danielshort.me/demos/nonogram-demo.html"))
   }
+
+  @Test fun inlinePreviewUsesOnlyItsPairedPublishedDemo() {
+    val shape = requireNotNull(WebExperience.project("shapeClassifier", "Shape Classifier Demo"))
+    val handwriting = requireNotNull(WebExperience.project("handwritingRating", "Handwriting Rating"))
+    assertEquals("/demos/shape-demo.html", inlineProjectDemoFramePath(shape, WebExperience.SHAPE))
+    assertEquals("/demos/handwriting-rating-demo.html",
+      inlineProjectDemoFramePath(handwriting, WebExperience.HANDWRITING))
+    assertNull(inlineProjectDemoFramePath(shape, WebExperience.HANDWRITING))
+    assertNull(inlineProjectDemoFramePath(WebExperience.STARFALL, WebExperience.SHAPE))
+    assertNull(inlineProjectDemoFramePath(shape, null))
+  }
 }

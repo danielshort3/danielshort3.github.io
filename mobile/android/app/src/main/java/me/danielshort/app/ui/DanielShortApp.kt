@@ -10,6 +10,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -39,6 +40,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -204,7 +206,7 @@ fun DanielShortApp(
       topBar = {
         Column(Modifier.background(Color.White)) {
           TopAppBar(title = {
-            if (project != null) Text("Project", style = MaterialTheme.typography.titleLarge)
+            if (project != null) Text("Projects", style = MaterialTheme.typography.titleLarge)
             else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
               Image(painterResource(R.drawable.brand_mark), contentDescription = null, modifier = Modifier.size(34.dp))
               Text("Daniel Short", fontWeight = FontWeight.Bold, fontSize = 20.sp)
@@ -228,9 +230,31 @@ fun DanielShortApp(
         {
         Column(Modifier.background(Color.White)) {
         HorizontalDivider(color = Line)
-        NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-          Section.entries.forEach { tab ->
-            NavigationBarItem(selected = section == tab, onClick = { selectedName = tab.name; projectId = null; projectHistory = arrayListOf() }, icon = { Icon(tab.icon, contentDescription = null) }, label = { Text(tab.label, fontSize = 11.sp, fontWeight = if (section == tab) FontWeight.Bold else FontWeight.Medium) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = tab.color, selectedTextColor = tab.color, indicatorColor = Color.Transparent, unselectedIconColor = Muted, unselectedTextColor = Muted))
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+          val onTab: (Section) -> Unit = { tab ->
+            selectedName = tab.name
+            projectId = null
+            projectHistory = arrayListOf()
+          }
+          if (useExpandedBottomNavigation(maxWidth, LocalDensity.current.fontScale)) {
+            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(vertical = 4.dp)) {
+              listOf(Section.entries.take(3), Section.entries.drop(3)).forEach { row ->
+                Row(Modifier.fillMaxWidth()) {
+                  row.forEach { tab -> ExpandedNavigationItem(tab, section == tab, Modifier.weight(1f)) { onTab(tab) } }
+                }
+              }
+            }
+          } else NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
+            Section.entries.forEach { tab ->
+              NavigationBarItem(selected = section == tab, onClick = { onTab(tab) },
+                modifier = Modifier.testTag("site-bottom-${tab.name.lowercase()}"),
+                icon = { Icon(tab.icon, contentDescription = null) },
+                label = { Text(tab.label, fontSize = 11.sp, maxLines = 1, softWrap = false,
+                  fontWeight = if (section == tab) FontWeight.Bold else FontWeight.Medium) },
+                colors = NavigationBarItemDefaults.colors(selectedIconColor = tab.color,
+                  selectedTextColor = tab.color, indicatorColor = Color.Transparent,
+                  unselectedIconColor = Muted, unselectedTextColor = Muted))
+            }
           }
         }
         }
@@ -253,7 +277,9 @@ fun DanielShortApp(
         })
         }
       } else screenState.SaveableStateProvider(section.name) { when (section) {
-        Section.ABOUT -> AboutScreen(content, body, contentPadding, onProjects = { selectedName = Section.PROJECTS.name })
+        Section.ABOUT -> AboutScreen(content, body, contentPadding,
+          onProjects = { selectedName = Section.PROJECTS.name },
+          onProject = { projectId = it; projectHistory = arrayListOf(); projectWebsite = true })
         Section.PROJECTS -> ProjectsScreen(content.projects, saved, body, contentPadding,
           onProject = { projectId = it; projectHistory = arrayListOf(); projectWebsite = true }, onRemoveSaved = {
             repository.clearSavedProjects()
@@ -261,7 +287,7 @@ fun DanielShortApp(
           })
         Section.TOOLS -> CatalogScreen("Useful little utilities", "Practical tools for everyday tasks.", content.tools, Teal, body, contentPadding,
           nativeIds = NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"), nativeLabel = "Open Android recorder",
-          nativeAlternatives = (NATIVE_TOOL_IDS + "text-compare") - "screen-recorder",
+          nativeAlternatives = (NATIVE_TOOL_IDS + "text-compare") - "screen-recorder", compactToolActions = true,
           onNative = { nativeFeature = "tool:$it" })
         Section.GAMES -> CatalogScreen("Play and explore", "Games, simulations, and small experiments.", content.games, Orange, body, contentPadding,
           nativeIds = NATIVE_GAME_IDS + "roulette", nativeLabel = "Play website game in app",
@@ -279,6 +305,29 @@ fun DanielShortApp(
   }
 }
 
+internal fun useExpandedBottomNavigation(availableWidth: androidx.compose.ui.unit.Dp, fontScale: Float): Boolean =
+  fontScale >= 1.25f && availableWidth < 350.dp * fontScale
+
+internal fun useSpaciousCardText(availableWidth: androidx.compose.ui.unit.Dp, fontScale: Float): Boolean =
+  fontScale >= 1.25f && availableWidth < 360.dp * fontScale
+
+@Composable
+private fun ExpandedNavigationItem(tab: Section, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+  val color = if (selected) tab.color else Muted
+  Column(modifier.heightIn(min = 66.dp)
+    .selectable(selected = selected, role = Role.Tab, onClick = onClick)
+    .semantics { contentDescription = tab.label }
+    .testTag("site-bottom-${tab.name.lowercase()}")
+    .padding(horizontal = 4.dp, vertical = 6.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center) {
+    Icon(tab.icon, contentDescription = null, modifier = Modifier.size(24.dp), tint = color)
+    Spacer(Modifier.height(3.dp))
+    Text(tab.label, fontSize = 11.sp, color = color, maxLines = 1, softWrap = false,
+      fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
+  }
+}
+
 @Composable
 private fun Heading(title: String, subtitle: String = "") {
   Column {
@@ -289,7 +338,8 @@ private fun Heading(title: String, subtitle: String = "") {
 }
 
 @Composable
-private fun AboutScreen(content: SiteContent, modifier: Modifier, contentPadding: PaddingValues, onProjects: () -> Unit) {
+private fun AboutScreen(content: SiteContent, modifier: Modifier, contentPadding: PaddingValues,
+  onProjects: () -> Unit, onProject: (String) -> Unit) {
   val about = content.about
   val context = LocalContext.current
   LazyColumn(modifier, contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -311,7 +361,20 @@ private fun AboutScreen(content: SiteContent, modifier: Modifier, contentPadding
       about.interests.forEach { interest ->
         Row(Modifier.padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
           NativeThumbnail(interest.imageUrl, interest.title, Teal)
-          Column(Modifier.weight(1f)) { Text(interest.title, fontWeight = FontWeight.SemiBold); if (interest.body.isNotBlank()) Text(interest.body, color = Muted, modifier = Modifier.padding(top = 4.dp)) }
+          Column(Modifier.weight(1f)) {
+            Text(interest.title, fontWeight = FontWeight.SemiBold)
+            if (interest.body.isNotBlank()) Text(interest.body, color = Muted, modifier = Modifier.padding(top = 4.dp))
+            if (interest.projectId.isNotBlank()) {
+              Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                .clickable { onProject(interest.projectId) }.padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(interest.projectLabel.ifBlank { "View project" }, Modifier.weight(1f), color = Blue,
+                  fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.width(4.dp))
+                Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, Modifier.size(16.dp), tint = Blue)
+              }
+            }
+          }
         }
       }
     }
@@ -368,19 +431,42 @@ private fun ProjectsScreen(projects: List<Project>, saved: Set<String>, modifier
     if (filtered.isEmpty()) item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { EmptyResult(if (savedOnly) "No saved projects yet" else "No projects found", if (savedOnly) "Open a project and use the bookmark to keep it here." else "Try a different title, topic, or tool.") }
     items(filtered, key = { it.id }) { project ->
       OutlinedCard(onClick = { onProject(project.id) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, Line), colors = CardDefaults.outlinedCardColors(containerColor = Color.White)) {
-        Row(Modifier.padding(17.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-          NativeThumbnail(project.iconUrl, project.title, Blue)
-          Column(Modifier.weight(1f)) {
-            Text(project.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(5.dp)); Text(project.summary, color = Muted, style = MaterialTheme.typography.bodyMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            FlowRow(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-              if (project.id in saved) Text("✓ Saved", Modifier.clip(RoundedCornerShape(6.dp)).background(Blue.copy(alpha = .10f)).padding(horizontal = 7.dp, vertical = 4.dp), color = Blue, style = MaterialTheme.typography.labelMedium)
-              Text("View project  →", color = Blue, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+          if (useSpaciousCardText(maxWidth, LocalDensity.current.fontScale)) {
+            Column(Modifier.fillMaxWidth().padding(17.dp)) {
+              Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                NativeThumbnail(project.iconUrl, project.title, Blue)
+                Text(project.title, Modifier.weight(1f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+              }
+              Text(project.summary, Modifier.padding(top = 12.dp), color = Muted, style = MaterialTheme.typography.bodyMedium)
+              ProjectCardAction(project.id in saved)
+            }
+          } else Row(Modifier.padding(17.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            NativeThumbnail(project.iconUrl, project.title, Blue)
+            Column(Modifier.weight(1f)) {
+              Text(project.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+              Spacer(Modifier.height(5.dp))
+              Text(project.summary, color = Muted, style = MaterialTheme.typography.bodyMedium,
+                maxLines = 3, overflow = TextOverflow.Ellipsis)
+              ProjectCardAction(project.id in saved)
             }
           }
         }
       }
     }
+  }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ProjectCardAction(isSaved: Boolean) {
+  FlowRow(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    if (isSaved) Text("✓ Saved", Modifier.clip(RoundedCornerShape(6.dp))
+      .background(Blue.copy(alpha = .10f)).padding(horizontal = 7.dp, vertical = 4.dp),
+      color = Blue, style = MaterialTheme.typography.labelMedium)
+    Text("View project  →", color = Blue, fontWeight = FontWeight.SemiBold,
+      style = MaterialTheme.typography.labelLarge)
   }
 }
 
@@ -393,7 +479,7 @@ private fun NativeThumbnail(url: String, title: String, color: Color) {
 }
 
 @Composable
-private fun CatalogScreen(title: String, subtitle: String, entries: List<CatalogItem>, accent: Color, modifier: Modifier, contentPadding: PaddingValues, nativeIds: Set<String>, nativeLabel: String, nativeAlternatives: Set<String> = emptySet(), onNative: (String) -> Unit) {
+private fun CatalogScreen(title: String, subtitle: String, entries: List<CatalogItem>, accent: Color, modifier: Modifier, contentPadding: PaddingValues, nativeIds: Set<String>, nativeLabel: String, nativeAlternatives: Set<String> = emptySet(), compactToolActions: Boolean = false, onNative: (String) -> Unit) {
   val context = LocalContext.current
   var query by rememberSaveable(title) { mutableStateOf("") }
   val inputFocus = LocalChromeInputFocus.current
@@ -413,14 +499,15 @@ private fun CatalogScreen(title: String, subtitle: String, entries: List<Catalog
       if (hasNativeAlternative) {
         OutlinedCard(modifier = cardModifier, shape = cardShape, border = cardBorder, colors = cardColors) {
           CatalogCardDetails(entry, accent)
-          HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = Line)
-          BoxWithConstraints(Modifier.fillMaxWidth().padding(12.dp)) {
-            if (maxWidth < 280.dp * LocalDensity.current.fontScale) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              CatalogWebsiteButton(entry, accent, Modifier.fillMaxWidth()) { openWeb(context, entry.url) }
-              CatalogAndroidButton(entry, accent, Modifier.fillMaxWidth()) { onNative(entry.id) }
+          if (!compactToolActions) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = Line)
+          BoxWithConstraints(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 12.dp, top = if (compactToolActions) 0.dp else 12.dp)) {
+            val minimumActionWidth = if (compactToolActions) 320.dp else 280.dp
+            if (maxWidth < minimumActionWidth * LocalDensity.current.fontScale) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              CatalogWebsiteButton(entry, accent, Modifier.fillMaxWidth(), compactToolActions) { openWeb(context, entry.url) }
+              CatalogAndroidButton(entry, accent, Modifier.fillMaxWidth(), compactToolActions) { onNative(entry.id) }
             } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-              CatalogWebsiteButton(entry, accent, Modifier.weight(1f)) { openWeb(context, entry.url) }
-              CatalogAndroidButton(entry, accent, Modifier.weight(1.3f)) { onNative(entry.id) }
+              CatalogWebsiteButton(entry, accent, Modifier.weight(if (compactToolActions) 1.2f else 1f), compactToolActions) { openWeb(context, entry.url) }
+              CatalogAndroidButton(entry, accent, Modifier.weight(if (compactToolActions) 1f else 1.3f), compactToolActions) { onNative(entry.id) }
             }
           }
         }
@@ -435,35 +522,63 @@ private fun CatalogScreen(title: String, subtitle: String, entries: List<Catalog
 
 @Composable
 private fun CatalogCardDetails(entry: CatalogItem, accent: Color, actionLabel: String? = null, isNative: Boolean = false) {
-  Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-    NativeThumbnail(entry.iconUrl, entry.title, accent)
-    Column(Modifier.weight(1f)) {
-      Text(entry.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-      Spacer(Modifier.height(5.dp))
-      Text(if (entry.id == "screen-recorder") "Record a screen or app to MP4 with an optional microphone." else entry.summary,
-        color = Muted, style = MaterialTheme.typography.bodyMedium)
-      if (actionLabel != null) Text(actionLabel, color = accent, style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 9.dp))
+  val summary = if (entry.id == "screen-recorder")
+    "Record a screen or app to MP4 with an optional microphone." else entry.summary
+  BoxWithConstraints(Modifier.fillMaxWidth()) {
+    if (useSpaciousCardText(maxWidth, LocalDensity.current.fontScale)) {
+      Column(Modifier.fillMaxWidth().padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+          NativeThumbnail(entry.iconUrl, entry.title, accent)
+          Text(entry.title, Modifier.weight(1f), fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium)
+          if (actionLabel != null) CatalogCardArrow(isNative, accent)
+        }
+        Text(summary, Modifier.padding(top = 12.dp), color = Muted,
+          style = MaterialTheme.typography.bodyMedium)
+        if (actionLabel != null) Text(actionLabel, Modifier.padding(top = 9.dp), color = accent,
+          style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+      }
+    } else Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp),
+      verticalAlignment = Alignment.CenterVertically) {
+      NativeThumbnail(entry.iconUrl, entry.title, accent)
+      Column(Modifier.weight(1f)) {
+        Text(entry.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(5.dp))
+        Text(summary, color = Muted, style = MaterialTheme.typography.bodyMedium)
+        if (actionLabel != null) Text(actionLabel, color = accent, style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 9.dp))
+      }
+      if (actionLabel != null) CatalogCardArrow(isNative, accent)
     }
-    if (actionLabel != null) Icon(if (isNative) Icons.AutoMirrored.Outlined.ArrowForward else Icons.AutoMirrored.Outlined.OpenInNew,
-      contentDescription = null, modifier = Modifier.size(18.dp), tint = accent)
   }
 }
 
 @Composable
-private fun CatalogWebsiteButton(entry: CatalogItem, accent: Color, modifier: Modifier, onClick: () -> Unit) {
+private fun CatalogCardArrow(isNative: Boolean, accent: Color) {
+  Icon(if (isNative) Icons.AutoMirrored.Outlined.ArrowForward else Icons.AutoMirrored.Outlined.OpenInNew,
+    contentDescription = null, modifier = Modifier.size(18.dp), tint = accent)
+}
+
+@Composable
+private fun CatalogWebsiteButton(entry: CatalogItem, accent: Color, modifier: Modifier, explicitBrowserLabel: Boolean = false, onClick: () -> Unit) {
   Button(onClick = onClick, modifier = modifier.heightIn(min = 48.dp).semantics { contentDescription = "Open ${entry.title} website in browser" },
     shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 8.dp),
     colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-    Text("Website", maxLines = 1)
+    Text(if (explicitBrowserLabel) "Open in browser" else "Website", maxLines = if (explicitBrowserLabel) 2 else 1,
+      modifier = if (explicitBrowserLabel) Modifier.weight(1f, fill = false) else Modifier)
     Spacer(Modifier.width(4.dp))
     Icon(Icons.AutoMirrored.Outlined.OpenInNew, null, Modifier.size(16.dp))
   }
 }
 
 @Composable
-private fun CatalogAndroidButton(entry: CatalogItem, accent: Color, modifier: Modifier, onClick: () -> Unit) {
-  OutlinedButton(onClick = onClick, modifier = modifier.heightIn(min = 48.dp).semantics { contentDescription = "Open ${entry.title} Android version" },
+private fun CatalogAndroidButton(entry: CatalogItem, accent: Color, modifier: Modifier, quiet: Boolean = false, onClick: () -> Unit) {
+  val actionModifier = modifier.heightIn(min = 48.dp).semantics { contentDescription = "Open ${entry.title} Android version" }
+  if (quiet) TextButton(onClick = onClick, modifier = actionModifier,
+    shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 8.dp),
+    colors = ButtonDefaults.textButtonColors(contentColor = accent)) {
+    Text("Android version", maxLines = 2)
+  } else OutlinedButton(onClick = onClick, modifier = actionModifier,
     shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 8.dp),
     border = BorderStroke(1.dp, accent.copy(alpha = .45f)), colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)) {
     Text("Android version", maxLines = 1)
@@ -473,20 +588,33 @@ private fun CatalogAndroidButton(entry: CatalogItem, accent: Color, modifier: Mo
 @Composable
 private fun ProjectDetail(project: Project, site: SiteInfo, modifier: Modifier, contentPadding: PaddingValues, onWebsite: () -> Unit, onDemo: () -> Unit) {
   val context = LocalContext.current
+  val hasInAppDemo = project.id in WEB_DEMO_EXPERIENCES || project.id in NATIVE_DEMO_IDS
   LazyColumn(modifier, contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(22.dp)) {
     item { Heading(project.title, project.summary) }
     item { OutlinedButton(onClick = onWebsite, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
       Text("View full website project")
     } }
-    if (project.id in NATIVE_DEMO_IDS) item {
+    if (hasInAppDemo && project.imageUrl.isBlank()) item {
       Button(onClick = onDemo, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
         Text(if (project.id in WEB_DEMO_EXPERIENCES) "Open website demo in app" else "Open demo")
       }
     }
     if (project.imageUrl.isNotBlank()) item {
-      Box(Modifier.fillMaxWidth().aspectRatio(1.6f).clip(RoundedCornerShape(14.dp)).background(Paper), contentAlignment = Alignment.Center) {
+      val previewModifier = Modifier.fillMaxWidth().aspectRatio(1.6f)
+        .clip(RoundedCornerShape(14.dp)).background(Paper)
+        .then(if (hasInAppDemo) Modifier.clickable(role = Role.Button,
+          onClickLabel = "Open ${project.title} interactive demo in app", onClick = onDemo) else Modifier)
+        .testTag("project-preview-${project.id}")
+      Box(previewModifier, contentAlignment = Alignment.Center) {
         Icon(Icons.Outlined.Photo, null, Modifier.size(42.dp), tint = Line)
-        AsyncImage(project.imageUrl, "Preview of ${project.title}", Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+        AsyncImage(project.imageUrl, if (hasInAppDemo) null else "Preview of ${project.title}",
+          Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+        if (hasInAppDemo) Surface(Modifier.align(Alignment.BottomEnd).padding(10.dp),
+          shape = RoundedCornerShape(8.dp), color = Color.White,
+          border = BorderStroke(1.dp, Blue.copy(alpha = .35f))) {
+          Text("Try interactive demo", Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+            color = Blue, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+        }
       }
     }
     if (project.situation.isNotBlank()) item { TextSection("The idea", project.situation) }

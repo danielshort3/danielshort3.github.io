@@ -43634,14 +43634,14 @@ try {
            !/https:\/\/[a-z0-9]+\.lambda-url\.[a-z0-9-]+\.on\.aws/i.test(chatbotHtml),
       'chatbot-demo should use only the same-origin private Bedrock stream proxy');
     assert(chatbotHtml.includes("const DEFAULT_BACKEND_ID = 'bedrock';"), 'chatbot-demo should default to Bedrock');
-    assert(chatbotHtml.includes("const BACKEND_DEFAULT_VERSION = 'bedrock-default-2026-05-06';"), 'chatbot-demo should version the Bedrock default migration');
+    assert(chatbotHtml.includes("const BACKEND_DEFAULT_VERSION = 'bedrock-default-2026-09-27';"), 'chatbot-demo should version the Bedrock default migration');
     assert(chatbotHtml.includes('let selectedBackendId = storedDefaultVersion === BACKEND_DEFAULT_VERSION'), 'chatbot-demo should use Bedrock until the default migration has run');
     assert(chatbotHtml.includes('localStorage.setItem(BACKEND_DEFAULT_VERSION_KEY, BACKEND_DEFAULT_VERSION);'), 'chatbot-demo should record the Bedrock default migration');
     assert(chatbotHtml.includes('if (!BACKENDS[selectedBackendId]) selectedBackendId = DEFAULT_BACKEND_ID;'), 'chatbot-demo should fall back to Bedrock for invalid stored backend');
     assert(!chatbotHtml.includes('ovodkr9oad'), 'chatbot-demo still references old API');
     assert(chatbotHtml.includes("postJson(backendUrl('/warmup'), {})"), 'chatbot-demo missing warm-up API call');
     assert(chatbotHtml.includes('id="backend-select"'), 'chatbot-demo missing backend selector');
-    assert(chatbotHtml.includes('<option value="bedrock">Bedrock</option>'), 'chatbot-demo missing Bedrock backend option');
+    assert(chatbotHtml.includes('<option value="bedrock" selected>Bedrock</option>'), 'chatbot-demo should show Bedrock as the default backend');
     assert(/<body\b[^>]*data-chatbot-template="portfolio"[^>]*data-mobile-layout="single-surface"/.test(chatbotHtml), 'chatbot-demo should identify the portfolio-aligned single-surface template');
     assert(chatbotHtml.includes('data-project-demo-theme="brand"'), 'chatbot-demo should opt into the shared project demo brand theme');
     assert(chatbotHtml.includes('color-scheme: light;'), 'chatbot-demo should use the brand-light project demo color scheme');
@@ -43661,9 +43661,13 @@ try {
     assert(/html\[data-embedded="true"\] \.chat-stage\s*\{[^}]*height:\s*100%/.test(chatbotHtml),
       'embedded chatbot should size the chat stage to the iframe content area');
     assert((chatbotHtml.match(/<h1\b/g) || []).length === 1 && chatbotHtml.includes('Inputs and responses are saved on AWS.') &&
-           chatbotHtml.includes('.chat-shell--regular { grid-template-rows: minmax(0, 1fr) auto; }') &&
-           /<article class="chat-shell chat-shell--regular"[^>]*>\s*<section class="chat-messages"[^>]*><\/section>\s*<section class="chat-composer">/.test(chatbotHtml),
-      'chatbot-demo should retain one main title, a visible storage notice, and a composer beside the scrollable conversation');
+           chatbotHtml.includes('.chat-shell--regular { grid-template-rows: auto minmax(0, 1fr) auto; }') &&
+           chatbotHtml.includes("node.className = 'empty-state chat-greeting';") &&
+           !chatbotHtml.includes('<aside class="guided-start"') &&
+           chatbotHtml.includes('<header class="conversation-header">') &&
+           chatbotHtml.includes('<section class="chat-messages" id="regular-messages" aria-live="polite"></section>') &&
+           chatbotHtml.includes('<section class="chat-composer">'),
+      'chatbot-demo should retain one main title, a visible storage notice, an inline greeting, and a composer below the conversation');
     assert(chatbotHtml.includes("chatSettings.addEventListener('keydown'") && chatbotHtml.includes("event.key !== 'Escape'") &&
            chatbotHtml.includes("chatSettings.querySelector('summary').focus();"),
       'chatbot Settings should dismiss with Escape and return focus to its disclosure');
@@ -43857,13 +43861,13 @@ try {
     assert(chatbotHtml.includes("source: 'recommended_followup'"), 'chatbot-demo follow-up context should identify recommended follow-ups');
     assert(chatbotHtml.includes('body.followup_context = followupContext'), 'chatbot-demo should submit follow-up context to the API');
     assert(/submitSuggestedPrompt\(\s*ctx,\s*button\.dataset\.followupPrompt[^;]+decodeFollowupContext\(button\)/.test(chatbotHtml), 'chatbot-demo follow-up chips should submit through the guarded prompt flow');
-    assert(chatbotHtml.includes('button.dataset.suggestionPrompt = text;') &&
+    assert(chatbotHtml.includes('button.dataset.suggestionPrompt = prompt;') &&
            chatbotHtml.includes('button.dataset.followupPrompt = text;') &&
            chatbotHtml.includes('button.dataset.followupContext = JSON.stringify') &&
            chatbotHtml.includes('bindSyncedMessageControls(ctx)'),
       'chatbot demo should rehydrate synced shortcut and follow-up buttons after view switches');
     assert(chatbotHtml.includes('Plan my first day in Grand Junction'), 'chatbot-demo should offer a short Grand Junction itinerary starter');
-    assert(chatbotHtml.includes('Suggest a food and riverfront weekend'), 'chatbot-demo should offer a short food and riverfront starter');
+    assert(chatbotHtml.includes('Find food and trails near Grand Junction for a weekend'), 'chatbot-demo should offer a food and trails starter');
     assert(chatbotHtml.includes('Plan a day trip to Grand Mesa'), 'chatbot-demo should offer a short Grand Mesa starter');
     assert(!chatbotHtml.includes('Plan a red-rock first day in Grand Junction'), 'chatbot-demo should not use older broad default prompts');
     assert(!chatbotHtml.includes('Plan a scenic first day'), 'chatbot-demo should not use generic default prompts');
@@ -43884,17 +43888,17 @@ try {
     const warmSec = startConst ? parseInt(startConst[1], 10) : 0;
     assert(warmSec >= 600, 'chatbot-demo should allow at least 600 seconds for a cold start');
 
-    const passiveStart = chatbotHtml.indexOf('async function syncPassiveStatus()');
+    const passiveStart = chatbotHtml.indexOf('async function syncPassiveStatus(');
     const passiveEnd = chatbotHtml.indexOf('function stageMessage', passiveStart);
     const passiveSection = chatbotHtml.slice(passiveStart, passiveEnd);
-    assert(passiveSection.includes('fetchStatusInfo()'), 'passive status should only fetch status');
+    assert(passiveSection.includes('fetchStatusInfo(backendId)'), 'passive status should check the selected backend without starting it');
     assert(passiveSection.includes("beginSharedStartup(status, 'passive-status')"), 'passive status should resume a warmup started elsewhere');
     assert(!passiveSection.includes('userStartedWarmup'), 'passive shared warmup pickup should not depend on this instance starting it');
     assert(!passiveSection.includes("postJson(backendUrl('/warmup')"), 'passive status must not initiate warmup');
     assert(!passiveSection.includes('startWarmupTimer('), 'passive status must not start countdown timer');
 
     const sharedStart = chatbotHtml.indexOf('async function pollSharedStartupStatus()');
-    const sharedEnd = chatbotHtml.indexOf('async function syncPassiveStatus()', sharedStart);
+    const sharedEnd = chatbotHtml.indexOf('async function syncPassiveStatus(', sharedStart);
     const sharedSection = chatbotHtml.slice(sharedStart, sharedEnd);
     assert(sharedSection.includes('fetchStatusInfo()'), 'shared startup polling should use status endpoint');
     assert(!sharedSection.includes("postJson(backendUrl('/warmup')"), 'shared startup polling must not submit a warmup job');

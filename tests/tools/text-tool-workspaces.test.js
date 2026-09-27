@@ -128,7 +128,7 @@ function harness(slug) {
     matchMedia: () => ({ matches: false }),
     TextCompareCore: require('../../js/tools/text-compare-core.js')
   });
-  const context = vm.createContext({ window, document, Element, Event: TestEvent, CustomEvent: TestEvent, URL, URLSearchParams, Blob, navigator: {}, requestAnimationFrame: (callback) => callback(), setTimeout: () => 1, clearTimeout() {}, console });
+  const context = vm.createContext({ window, document, Element, Event: TestEvent, CustomEvent: TestEvent, URL, URLSearchParams, Blob, navigator: {}, getComputedStyle: () => ({ getPropertyValue: () => '' }), cancelAnimationFrame() {}, requestAnimationFrame: (callback) => callback(), setTimeout: () => 1, clearTimeout() {}, console });
   vm.runInContext(fs.readFileSync(path.join(root, 'js/tools/tool-workspace.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(root, 'js/tools', `${slug}.js`), 'utf8'), context);
   const get = (id) => document.getElementById(id);

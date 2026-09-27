@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-function createHarness({ fit = 'content', maxHeight, compact = false, inaccessible = false } = {}) {
+function createHarness({ fit = 'content', maxHeight, compact = false, inaccessible = false, inlineGreeting = false } = {}) {
   let bottom = 1400;
   let screenHeight = 844;
   let hidden = false;
@@ -37,6 +37,7 @@ function createHarness({ fit = 'content', maxHeight, compact = false, inaccessib
     documentElement: { scrollHeight: 2400 },
     querySelector: (selector) => {
       if (selector === '.chat-shell--regular .empty-state') return emptyHeight ? { parentElement: chatMessages, getBoundingClientRect: () => ({ height: emptyHeight }) } : null;
+      if (selector === '.chat-greeting') return inlineGreeting ? block(260) : null;
       if (selector === '.demo-toolbar') return block(60);
       if (selector === '.chat-shell--regular .chat-composer') return block(73);
       return { getBoundingClientRect: () => ({ bottom }) };
@@ -71,7 +72,7 @@ function createHarness({ fit = 'content', maxHeight, compact = false, inaccessib
   const end = source.indexOf('  const resetPersonalProjectDetailScroll', start);
   assert(start >= 0 && end > start, 'Shared embed sizing must remain independently testable');
   const sandbox = {
-    window, document: { querySelector: () => block(62) }, console,
+    window, document: { querySelector: (selector) => selector === '.mobile-site-dock' ? null : block(62) }, console,
     requestAnimationFrame: schedule, cancelAnimationFrame: (id) => tasks.delete(id),
     setTimeout: schedule, clearTimeout: (id) => tasks.delete(id),
     ResizeObserver: class {
@@ -118,20 +119,24 @@ function runProjectEmbedSizingTests() {
   assert.strictEqual(limited.frame.style.height, '720px', 'An explicit per-project height limit remains supported');
   assert.strictEqual(limited.attributes.get('scrolling'), 'auto');
 
-  const chat = createHarness({ fit: 'viewport' });
+  const chat = createHarness({ fit: 'viewport', inlineGreeting: true });
   chat.bind(); chat.flush();
   assert.strictEqual(chat.frame.style.height, '710px', 'Chat should subtract its demo toolbar from the persistent viewport');
   chat.setBottom(5000); chat.resize();
   assert.strictEqual(chat.frame.style.height, '710px', 'Messages must never grow a bounded chat viewport');
   chat.setEmptyHeight(140); chat.resize();
-  assert.strictEqual(chat.frame.style.height, '313px', 'An empty chat should fit its starter prompts and composer without a tall blank panel');
+  assert.strictEqual(chat.frame.style.height, '710px', 'Inline greeting choices should keep the full conversation viewport');
   chat.setEmptyHeight(0); chat.resize();
   assert.strictEqual(chat.frame.style.height, '710px', 'Starting a conversation should restore its bounded message viewport');
   chat.viewport.clientHeight = 580; chat.resize();
   assert.strictEqual(chat.frame.style.height, '500px', 'Chat should follow persistent viewport resizing');
   chat.cleanup();
 
-  const phone = createHarness({ fit: 'viewport', compact: true });
+  const legacyChat = createHarness({ fit: 'viewport' });
+  legacyChat.setEmptyHeight(140); legacyChat.resize();
+  assert.strictEqual(legacyChat.frame.style.height, '313px', 'An unguided empty chat still shrinks to its contents');
+
+  const phone = createHarness({ fit: 'viewport', compact: true, inlineGreeting: true });
   phone.resize();
   assert.strictEqual(phone.frame.style.height, '560px', 'Compact chat should account for the masthead, horizontal tab, toolbar and demo header');
   phone.setScreenHeight(520); phone.resize();
