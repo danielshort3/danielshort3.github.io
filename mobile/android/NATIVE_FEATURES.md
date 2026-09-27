@@ -6,6 +6,8 @@ The app uses the website for the published case studies and most interactive exp
 
 Opening a published project card shows its canonical website case study in the app. The app retains its own saved-project bookmark and Android share action on that screen. The **Offline summary** action opens the native text, preview, resources, and demo entry where available. The native summary comes from the cached public catalog; the website case study needs connectivity for a reliable first load. Their content can differ until both the website page and app feed are deployed and refreshed.
 
+When a case study has a paired first-party demo, its compact in-app preview loads the real interactive demo as it approaches the viewport. Drawing on the Handwriting Rating and Shape Classifier canvases and submitting to their models work directly there. The native offline summary's preview opens that same in-app demo when tapped; the summary itself remains available without a connection.
+
 ## Games
 
 Project Starfall, Stellar Dogfight, Double-Zero Roulette, Stormbreak, and Ocean Wave Simulation use their deployed website games in-app by default. The table describes their retained native alternatives. Probability Engine opens its website game in the Android browser by default and offers its native adaptation.

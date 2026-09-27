@@ -35,15 +35,15 @@ async function geometry(page) {
   });
 }
 
-async function runCase(base, browser, width) {
+async function runCase(base, browser, width, route = '/tools/qr-code-generator') {
   const context = await browser.newContext({ viewport: { width, height: 844 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await context.route('**/api/tools/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"authenticated":false}' }));
   try {
-    await page.goto(`${base}/tools/qr-code-generator`, { waitUntil: 'domcontentloaded' });
-    assert.match(await page.title(), /QR Code Generator/);
+    await page.goto(`${base}${route}`, { waitUntil: 'domcontentloaded' });
+    assert.match(await page.title(), route === '/tools' ? /Tools/ : /QR Code Generator/);
     await page.locator('[data-tools-action="sign-in"]').waitFor({ state: 'visible' });
     await page.evaluate(() => document.fonts.ready);
     const signedOut = await geometry(page);
@@ -53,8 +53,20 @@ async function runCase(base, browser, width) {
     assert(signedOut.copy.top >= signedOut.back.bottom, `${width}px: title follows the Back/Sign in row.`);
     assert(signedOut.back.height >= 44 && signedOut.signIn.height >= 44, `${width}px: header controls retain 44px targets.`);
     assert(signedOut.tabs.every((tab) => sameRow(tab, signedOut.tabs[0])), `${width}px: QR tabs stay on one row.`);
-    await page.getByRole('tab', { name: 'Download', exact: true }).click();
-    assert(await page.locator('#qrtool-panel-export').isVisible(), `${width}px: Download tab opens its panel.`);
+    if (route !== '/tools') {
+      await page.getByRole('tab', { name: 'Download', exact: true }).click();
+      assert(await page.locator('#qrtool-panel-export').isVisible(), `${width}px: Download tab opens its panel.`);
+    } else {
+      const category = page.getByRole('link', { name: 'Text', exact: true });
+      const target = await category.getAttribute('href');
+      await category.click();
+      await page.waitForFunction((selector) => {
+        const box = document.querySelector(selector).getBoundingClientRect();
+        return box.top >= 0 && box.top < innerHeight - 80;
+      }, target);
+      assert(await page.locator(target).isVisible(), 'Library category navigation still works.');
+      await page.locator('[data-page-masthead-parent]').scrollIntoViewIfNeeded();
+    }
 
     // Exercise the populated account layout without a real login or account write.
     await page.evaluate(() => {
@@ -73,7 +85,7 @@ async function runCase(base, browser, width) {
     assert(enlarged.scrollWidth <= width + 1, `${width}px: enlarged text does not cause page overflow.`);
     assert(within(enlarged.masthead, enlarged.account) && within(enlarged.masthead, enlarged.signOut), `${width}px: enlarged account controls wrap inside the masthead.`);
     assert.deepEqual(errors, [], `${width}px: no application errors.`);
-    console.log(`Compact tool masthead passed at ${width}px, signed out and signed in mock.`);
+    console.log(`Compact masthead ${route} passed at ${width}px, signed out and signed in mock.`);
   } finally {
     await context.close();
   }
@@ -87,7 +99,9 @@ async function run() {
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
     browser = await chromium.launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE_PATH ? { executablePath: process.env.BROWSER_EXECUTABLE_PATH } : {}) });
     const base = `http://127.0.0.1:${server.address().port}`;
-    for (const width of [320, 390]) await runCase(base, browser, width);
+    for (const width of [320, 390]) {
+      for (const route of ['/tools/qr-code-generator', '/tools']) await runCase(base, browser, width, route);
+    }
   } finally {
     await browser?.close();
     server.closeAllConnections();

@@ -19,6 +19,12 @@ assert.strictEqual(catalog.site.url, 'https://www.danielshort.me/');
 assert.strictEqual(catalog.about.greeting, 'Hi, I’m Daniel.');
 assert.strictEqual(catalog.about.interests.length, 3);
 assert(catalog.about.interests.find((interest) => interest.title === 'French horn').body.includes('20 years'));
+assert.deepStrictEqual(catalog.about.interests.find((interest) => interest.title === 'AI & machine learning')?.projectId,
+  'chatbotLora', 'The native About interest links to the published chatbot project');
+assert.strictEqual(catalog.about.interests.find((interest) => interest.title === 'AI & machine learning')?.projectLabel,
+  'Travel Assistant chatbot');
+assert(catalog.about.interests.every((interest) => catalog.projects.some((project) => project.id === interest.projectId)),
+  'Every native interest link resolves to a published in-app project');
 assert.strictEqual(catalog.about.experience[0].organization, 'Visit Grand Junction');
 assert.strictEqual(catalog.about.experience[0].date, 'Feb 2024–present');
 assert(catalog.about.education.find((entry) => entry.title === 'B.S. Data Analytics').url.startsWith('https://www.credential.net/'));
@@ -63,6 +69,17 @@ for (const unsafe of [
 assert.strictEqual(publicHttpsUrl('/tools/text-compare'), 'https://www.danielshort.me/tools/text-compare');
 assert.strictEqual(publicHttpsUrl('/analytics-demo'), 'https://www.danielshort.me/analytics-demo');
 assert.strictEqual(publicHttpsUrl('https://github.com/danielshort3'), 'https://github.com/danielshort3');
+
+const mismatchedInterest = JSON.parse(JSON.stringify(content));
+const personalCategories = mismatchedInterest.audiences.find((audience) => audience.key === 'personal').page.sections
+  .flatMap((section) => section.props?.categories || []);
+const aiConnection = personalCategories.find((category) => category.id === 'about').aboutStory.connections[0];
+aiConnection.project.href = '/portfolio/babynames';
+assert(!createMobileContent(mismatchedInterest).about.interests[0].projectId,
+  'A mismatched project route never becomes an in-app link');
+aiConnection.project.href = 'javascript:alert(1)';
+assert(!createMobileContent(mismatchedInterest).about.interests[0].projectId,
+  'An unsafe project route never becomes an in-app link');
 
 const modified = JSON.parse(JSON.stringify(content));
 modified.site.settings.secret = 'DO_NOT_EXPORT';

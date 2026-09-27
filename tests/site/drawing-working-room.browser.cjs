@@ -37,6 +37,8 @@ async function runDrawingWorkingRoomChecks({ browser, base, artifactDir }) {
         if (url.origin !== base) return route.abort();
         if (url.pathname.startsWith('/api/demos/')) {
           operations.push(url.pathname);
+          if (url.pathname.endsWith('/score')) return route.fulfill({ json: { scores: [.01, .01, .01, .01, .91, .01, .01, .01, .01, .01] } });
+          if (url.pathname.endsWith('/predict')) return route.fulfill({ json: { shape: 'circle', confidence: .91, shape_scores: { circle: .91, triangle: .03, square: .03, hexagon: .02, octagon: .01 } } });
           return route.fulfill({ json: { status: 'ok', model_loaded: true } });
         }
         return route.continue();
@@ -62,6 +64,8 @@ async function runDrawingWorkingRoomChecks({ browser, base, artifactDir }) {
         await page.waitForTimeout(200);
         const canvas = await frame.locator('#pad').boundingBox();
         const action = await frame.locator(demo.action).boundingBox();
+        assert.equal(await frame.locator('.drawing-workspace > .drawing-status, .drawing-workspace > .drawing-input').count(), 2, `${label}: both drawing demos use the same status and input structure.`);
+        assert.equal(await frame.locator('.drawing-input-header, .drawing-primary-action, .drawing-canvas-frame').count(), 3, `${label}: both drawing demos share the heading, canvas, and action pattern.`);
         assert(Math.abs(canvas.width - canvas.height) <= 1, `${label}: canvas is square.`);
         assert(Math.abs((canvas.x + canvas.width / 2) - (action.x + action.width / 2)) <= 2, `${label}: the primary action is centered on the drawing canvas.`);
         const input = await frame.locator('.shape-input, .handwriting-input').first().boundingBox();
@@ -77,6 +81,13 @@ async function runDrawingWorkingRoomChecks({ browser, base, artifactDir }) {
           const status = await frame.locator('.drawing-status').boundingBox();
           const inputHeader = await frame.locator('.drawing-input-header, .handwriting-input-header').boundingBox();
           assert(Math.abs(status.y - inputHeader.y) <= 1, `${label}: status and input heading align.`);
+          if (demo.id === 'handwritingRating') {
+            const samples = await frame.locator('.handwriting-sample-buttons').boundingBox();
+            assert(samples.y + samples.height <= viewport.y + viewport.height - 8, `${label}: all ten sample choices fit above the question dock at initial scroll.`);
+          }
+        } else if (width === 320) {
+          const dock = await page.locator('.mobile-section-nav:not([hidden])').boundingBox();
+          assert(action.y + action.height <= dock.y - 8, `${label}: the primary action clears the bottom dock at initial scroll.`);
         }
         for (const surface of [page, frame]) assert(await surface.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), `${label}: no horizontal overflow.`);
         if (demo.id === 'handwritingRating') assert.equal(await frame.locator('[data-sample-digit]:visible').count(), 10, `${label}: all digit options stay visible.`);
@@ -96,6 +107,35 @@ async function runDrawingWorkingRoomChecks({ browser, base, artifactDir }) {
         assert(await frame.locator('#drawing-prompt').isHidden(), `${label}: resizing does not reset drawing state.`);
         assert(await frame.locator(demo.action).isEnabled(), `${label}: resizing keeps the primary action enabled.`);
         assert(operations.every(operation => /\/(health|warmup)$/.test(operation)), `${label}: layout and drawing do not submit inference.`);
+        if (demo.id === 'handwritingRating') {
+          await frame.locator('#rate').click();
+          await frame.locator('#prediction-output:visible').waitFor();
+          const meter = await frame.locator('.drawing-confidence-meter').boundingBox();
+          const fill = await frame.locator('.drawing-confidence-meter > span').boundingBox();
+          assert(meter.width >= 100 && fill.width >= meter.width * .75, `${label}: primary confidence meter reflects the result.`);
+          await page.waitForFunction(selector => {
+            const embed = document.querySelector(selector);
+            return embed?.contentDocument?.querySelector('#main')?.scrollHeight <= embed?.clientHeight + 1;
+          }, width < 769 ? '.project-demo-wrapper-iframe' : '.project-embed-frame');
+          assert.equal(await frame.locator('#confidence-list > li').count(), 10, `${label}: inference retains all ten score rows.`);
+          const scores = await frame.locator('.handwriting-score-details').boundingBox();
+          const samples = await frame.locator('.handwriting-samples').boundingBox();
+          assert(samples.y >= scores.y + scores.height, `${label}: expanded results do not overlap the sample controls.`);
+          await page.screenshot({ path: path.join(artifactDir, `${label}-result.png`) });
+          await frame.locator('[data-sample-digit="9"]').click();
+          await frame.locator('[data-sample-digit="9"][aria-pressed="true"]').waitFor();
+          assert(await frame.locator('#prediction-output').isHidden(), `${label}: a sample starts a new prediction without stale results.`);
+          await page.screenshot({ path: path.join(artifactDir, `${label}-sample-after-result.png`) });
+        } else {
+          await frame.locator('#classify').click();
+          await frame.locator('#prediction-output:visible').waitFor();
+          const meter = await frame.locator('.drawing-confidence-meter').boundingBox();
+          const fill = await frame.locator('.drawing-confidence-meter > span').boundingBox();
+          assert(meter.width >= 100 && fill.width >= meter.width * .75, `${label}: primary confidence meter reflects the result.`);
+          assert.equal(await frame.locator('#result-shape').innerText(), 'Circle', `${label}: shape inference still renders the selected class.`);
+          assert.equal(await frame.locator('#shape-score-list > li').count(), 5, `${label}: all five shape scores remain visible.`);
+          await page.screenshot({ path: path.join(artifactDir, `${label}-result.png`) });
+        }
         assert.deepEqual(errors, [], `${label}: no uncaught browser errors.`);
         console.log(`Drawing working room passed: ${label}`);
       } catch (error) {

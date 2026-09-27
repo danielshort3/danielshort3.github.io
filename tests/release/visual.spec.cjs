@@ -22,6 +22,13 @@ for (const width of [1440, 390]) {
         await frame.locator('body').evaluate(() => document.fonts.ready);
       }
       await settle(page);
+      if (state === 'comparison') {
+        await page.locator('#textcompare-form').evaluate((form) => {
+          for (let node = form; node; node = node.parentElement) node.scrollTop = 0;
+          window.scrollTo(0, 0);
+        });
+        await settle(page);
+      }
       await page.locator('img:visible').evaluateAll((images) => Promise.all(images.filter((image) => {
         const box = image.getBoundingClientRect();
         return box.bottom > 0 && box.top < innerHeight;

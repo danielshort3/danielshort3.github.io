@@ -49,6 +49,14 @@ internal val WEB_DEMO_EXPERIENCES = mapOf(
   "targetEmptyPackage" to WebExperience.EMPTY_PACKAGE
 )
 
+/** Only a project paired with its published first-party demo may host a live inline preview. */
+internal fun inlineProjectDemoFramePath(project: WebExperience, demo: WebExperience?): String? {
+  if (project.kind != WebExperienceKind.PROJECT || demo?.kind != WebExperienceKind.DEMO) return null
+  val id = project.canonicalPath.removePrefix("/portfolio/")
+  if (WEB_DEMO_EXPERIENCES[id] != demo) return null
+  return "/demos${demo.canonicalPath}"
+}
+
 /** Keep top-level WebView navigation on the selected first-party catalog route. */
 internal fun trustedWebExperienceUrl(experience: WebExperience, candidate: String): String? {
   val uri = runCatching { URI(candidate) }.getOrNull() ?: return null

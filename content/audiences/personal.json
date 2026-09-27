@@ -130,7 +130,7 @@
                   {
                     "id": "ai",
                     "title": "AI & machine learning",
-                    "description": "Turning repetitive tasks into useful tools.",
+                    "description": "Building useful answers with models and trustworthy sources.",
                     "icon": "ai",
                     "image": "img/hero/about-ai-network-v1.webp",
                     "imageSrcSet": "img/hero/about-ai-network-v1-192.webp 192w, img/hero/about-ai-network-v1-384.webp 384w",
@@ -138,12 +138,12 @@
                     "imageWidth": 512,
                     "imageHeight": 512,
                     "project": {
-                      "title": "Practical browser tools",
-                      "summary": "Compare text, create QR codes, and record your screen.",
-                      "href": "/tools",
-                      "contentType": "directory",
-                      "contentId": "tools",
-                      "resourceType": "library"
+                      "title": "Travel Assistant chatbot",
+                      "summary": "Answers Grand Junction questions with source-grounded AI.",
+                      "href": "/portfolio/chatbotLora",
+                      "contentType": "project",
+                      "contentId": "chatbotLora",
+                      "resourceType": "case_study"
                     }
                   },
                   {
