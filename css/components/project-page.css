@@ -2183,10 +2183,35 @@
     box-sizing: border-box;
   }
 
-  .project-main--compact .project-intro-action--demo {
+  .project-main--compact .project-intro-action--demo,
+  .project-main--compact .project-intro-action--download {
     border-color: var(--category-projects, #005fed);
     color: #ffffff;
     background: var(--category-projects, #005fed);
+  }
+
+  .project-main--compact .project-download-meta {
+    flex-basis: 100%;
+    color: #475569;
+    font-size: .78rem;
+    line-height: 1.45;
+  }
+
+  .project-main--compact .project-download-retry:not([hidden]) {
+    border: 0;
+    padding: 0;
+    color: #0a3a88;
+    background: transparent;
+    font: inherit;
+    font-size: .78rem;
+    font-weight: 650;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .project-main--compact .project-download-retry:focus-visible {
+    outline: 3px solid var(--category-projects, #005fed);
+    outline-offset: 3px;
   }
 
   .project-main--compact .project-intro-action:hover {

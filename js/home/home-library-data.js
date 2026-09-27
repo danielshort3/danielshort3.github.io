@@ -270,6 +270,22 @@
           "resourceType": "case_study",
           "group": "Practical applications",
           "badge": "Case study"
+        },
+        {
+          "id": "androidApp",
+          "title": "Daniel Short for Android",
+          "summary": "A mobile companion for my projects, tools, and games.",
+          "href": "/portfolio/androidApp",
+          "image": "/img/projects/androidApp-640.webp",
+          "imageAlt": "",
+          "iconImage": "/img/projects/icons/androidApp.png?v=162c534d07c5",
+          "iconHtml": "",
+          "external": false,
+          "contentType": "project",
+          "contentId": "androidApp",
+          "resourceType": "case_study",
+          "group": "Practical applications",
+          "badge": "Case study"
         }
       ]
     },
