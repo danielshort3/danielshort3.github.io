@@ -18,6 +18,7 @@ class Element {
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
   removeAttribute(name) { this.attributes.delete(name); }
   toggleAttribute(name, force) { if (force) this.setAttribute(name, ''); else this.removeAttribute(name); }
+  appendChild(child) { child.parentNode = this; return child; }
   closest() { return null; }
   querySelector() { return null; }
   querySelectorAll() { return []; }
@@ -44,6 +45,7 @@ function createHarness() {
   document.querySelector = selector => selector.startsWith('#') ? elements.get(selector.slice(1)) || null
     : selector === '[data-textcompare-ready]' ? elements.get('ready')
       : selector === '[data-textcompare-mode-summary]' ? elements.get('mode-summary') : null;
+  document.createElement = () => new Element();
   document.body = create('body');
   document.activeElement = document.body;
   document.readyState = 'complete';
@@ -63,7 +65,7 @@ function createHarness() {
   const clearTimer = id => timers.delete(id);
   const window = { TextCompareCore: core, setTimeout: setTimer, clearTimeout: clearTimer };
   const context = vm.createContext({
-    document, window, Worker: CompareWorker, requestAnimationFrame: callback => callback(),
+    document, window, Worker: CompareWorker, getComputedStyle: () => ({ getPropertyValue: () => '' }), cancelAnimationFrame() {}, requestAnimationFrame: callback => callback(),
     setTimeout: setTimer, clearTimeout: clearTimer, console,
     Event: class { constructor(type, options = {}) { this.type = type; Object.assign(this, options); } preventDefault() {} },
     CustomEvent: class { constructor(type, options = {}) { this.type = type; Object.assign(this, options); } },

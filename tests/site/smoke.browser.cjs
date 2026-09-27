@@ -433,7 +433,7 @@ async function runViewport(browser, base, settings) {
     const stories = page.locator('[data-home-about-connection]');
     assert.equal(await stories.count(), 3, 'About shows three real personal-interest connections.');
     const expectedStories = [
-      { id: 'ai', href: '/tools', text: /AI & machine learning/ },
+      { id: 'ai', href: '/portfolio/chatbotLora', text: /AI & machine learning/ },
       { id: 'family', href: '/portfolio/babynames', text: /Family/ },
       { id: 'french-horn', href: '/portfolio/sheetMusicUpscale', text: /French horn[\s\S]*20 years/ }
     ];

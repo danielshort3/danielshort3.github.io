@@ -243,7 +243,8 @@
   /* Put a compact account action beside Back only when both can fit. The
      expanded account/history panel retains its normal row below the copy. */
   @container site-content (max-width: 759px) {
-    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) > .wrapper {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) > .wrapper,
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] .home-library__header[data-page-masthead]:has(.personal-library__account):not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -251,26 +252,26 @@
       gap: 10px 12px;
     }
 
-    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) [data-page-masthead-intro] {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] :is(.personal-tool-header, .home-library__header:has(.personal-library__account))[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) [data-page-masthead-intro] {
       display: contents;
     }
 
-    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) [data-page-masthead-copy] {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] :is(.personal-tool-header, .home-library__header:has(.personal-library__account))[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) [data-page-masthead-copy] {
       flex: 1 0 100%;
       order: 2;
     }
 
-    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) .personal-tool-header__account {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] :is(.personal-tool-header, .home-library__header:has(.personal-library__account))[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) :is(.personal-tool-header__account, .personal-library__account) {
       order: 1;
       margin-inline-start: auto;
       align-self: center;
     }
 
-    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) .tools-account-actions {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] :is(.personal-tool-header, .home-library__header:has(.personal-library__account))[data-page-masthead]:not(:has(:is(.tools-account-extensions, .tools-account-signed-in-actions):not([hidden]))) .tools-account-actions {
       justify-content: flex-end;
     }
 
-    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] .personal-tool-header[data-page-masthead] .tools-account-signed-in-actions {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] :is(.personal-tool-header, .home-library__header:has(.personal-library__account))[data-page-masthead] .tools-account-signed-in-actions {
       flex-wrap: wrap;
       max-width: 100%;
     }

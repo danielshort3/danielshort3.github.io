@@ -39,8 +39,8 @@ android {
     applicationId = "me.danielshort.app"
     minSdk = 26
     targetSdk = 36
-    versionCode = 10
-    versionName = "0.5.3"
+    versionCode = 11
+    versionName = "0.5.4"
     buildConfigField("String", "CONTENT_URL", "\"$productionCatalogUrl\"")
     buildConfigField("String", "APP_UPDATE_URL", "\"$stableAppUpdateUrl\"")
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

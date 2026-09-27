@@ -61,6 +61,9 @@ class SiteContentParserTest {
     assertEquals(original.getString("context"), about.location)
     assertEquals("Playing for 20 years.", about.interests.first { it.title == "French horn" }.body)
     assertEquals("A central part of my life.", about.interests.first { it.title == "Family" }.body)
+    val ai = about.interests.first { it.title == "AI & machine learning" }
+    assertEquals("chatbotLora", ai.projectId)
+    assertEquals("Travel Assistant chatbot", ai.projectLabel)
     assertEquals("Visit Grand Junction", about.experience.first().organization)
     assertEquals("Feb 2024–present", about.experience.first().date)
     assertTrue(about.education.first { it.title == "B.S. Data Analytics" }.url.startsWith("https://www.credential.net/"))
@@ -118,6 +121,14 @@ class SiteContentParserTest {
     assertEquals("", parsed.projects.first().iconUrl)
     assertTrue(parsed.projects.first().resources.isEmpty())
     assertEquals(project.getString("title"), parsed.projects.first().title)
+  }
+
+  @Test fun aboutInterestOnlyNavigatesToAProjectInTheCatalog() {
+    val source = fixture()
+    val ai = source.getJSONObject("about").getJSONArray("interests").getJSONObject(0)
+    ai.put("projectId", "notPublished").put("projectLabel", "Unsafe")
+    assertEquals("", parse(source).about.interests.first().projectId)
+    assertEquals("", parse(source).about.interests.first().projectLabel)
   }
 
   @Test fun imagesCanOnlyLoadFromTheSitesPublicImageDirectory() {
