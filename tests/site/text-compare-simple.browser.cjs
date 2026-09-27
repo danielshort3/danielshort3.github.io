@@ -93,6 +93,16 @@ async function runCase({ browser, base, artifactDir }, width) {
     await compare.click();
     await waitResult();
     assert((await output.innerText()).includes('FIRSTREVISION'), 'Compare generates the first real result.');
+    const comparedLayout = await page.evaluate(() => {
+      const heading = document.querySelector('#textcompare-result-title').getBoundingClientRect();
+      const copyButton = document.querySelector('#textcompare-copy').getBoundingClientRect();
+      const outputBox = document.querySelector('#textcompare-output').getBoundingClientRect();
+      const dock = document.querySelector('.mobile-section-nav:not([hidden]), .mobile-site-dock:not([hidden])')?.getBoundingClientRect();
+      return { headingY: heading.y, copyY: copyButton.y, outputTop: outputBox.top, dockTop: dock?.top || innerHeight };
+    });
+    assert(Math.abs(comparedLayout.headingY - comparedLayout.copyY) <= 14, `${stage}: Copy formatted sits beside the result title.`);
+    if (width < 500) assert(comparedLayout.outputTop < comparedLayout.dockTop - 44, `${stage}: explicit Compare brings output above the mobile dock.`);
+    if (width < 500) await page.screenshot({ path: path.join(artifactDir, `text-compare-simple-${width}-results-viewport.png`) });
     await revised.fill('Publish the CURRENTREVISION draft on Friday.');
     const afterEdit = await page.evaluate(() => ({
       disabled: document.querySelector('#textcompare-copy').disabled,
@@ -179,6 +189,50 @@ async function runCase({ browser, base, artifactDir }, width) {
       assert.equal(await page.evaluate(() => document.activeElement.id), 'textcompare-revised', 'Restoring an old view does not steal editor focus.');
       await copyAndCheck(`Restored ${view} revised draft.`);
       await assertLayout(page, width, `legacy ${view}`);
+    }
+    if (width < 500) {
+      stage = 'content-sized-mobile-editors';
+      const editorState = locator => locator.evaluate(node => ({
+        height: node.getBoundingClientRect().height,
+        scrollHeight: node.scrollHeight,
+        clientHeight: node.clientHeight,
+        focused: node === document.activeElement,
+        selection: node.selectionStart
+      }));
+      await original.fill('A short draft.');
+      await revised.fill('An updated short draft.');
+      const compact = await editorState(original);
+      assert(compact.height >= 90 && compact.height <= 120, 'Short mobile drafts use about three readable lines, not a tall fixed editor.');
+      const longDraft = Array.from({ length: 80 }, (_, index) => `Line ${index}: keep this long draft editable.`).join('\n');
+      await original.fill(longDraft);
+      const expanded = await editorState(original);
+      assert(expanded.height > compact.height + 80 && expanded.height <= 361, 'Long drafts expand within a bounded mobile editor.');
+      assert(expanded.scrollHeight > expanded.clientHeight, 'Long drafts remain scrollable rather than stretching the whole page.');
+      await original.fill('A short replacement.');
+      const activeShort = await editorState(original);
+      assert.equal(activeShort.height, expanded.height, 'Deleting content does not collapse the editor under an active caret.');
+      assert(activeShort.focused && activeShort.selection === 'A short replacement.'.length, 'Resizing preserves focus and the caret.');
+      await revised.focus();
+      assert((await editorState(original)).height <= compact.height + 1, 'Leaving a shortened draft reclaims its unused editor space.');
+      await page.evaluate(value => {
+        document.querySelector('#textcompare-original').value = value;
+        document.dispatchEvent(new CustomEvent('tools:session-applied', { detail: { toolId: 'text-compare', snapshot: {} } }));
+      }, longDraft);
+      assert((await editorState(original)).height > compact.height + 80, 'Restored account, shared, and guest inputs are sized without requiring typing.');
+      await options.locator('summary').first().click();
+      await page.locator('#textcompare-swap').click();
+      assert((await editorState(original)).height <= compact.height + 1 && (await editorState(revised)).height > compact.height + 80, 'Swapping drafts also swaps the space each editor needs.');
+      await page.locator('#textcompare-clear').click();
+      assert((await editorState(original)).height < expanded.height && (await editorState(revised)).height < expanded.height, 'Clear restores compact example previews on both sides.');
+      assert.equal(await original.inputValue(), '');
+      assert.equal(await revised.inputValue(), '');
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await page.waitForFunction(() => ['original', 'revised'].every(id => !document.querySelector(`#textcompare-${id}`).style.height));
+      await assertLayout(page, 1440, 'mobile-to-desktop resize');
+      assert((await editorState(original)).height >= 140, 'Desktop keeps its existing spacious editor layout.');
+      await page.setViewportSize({ width, height: 844 });
+      await page.waitForFunction(() => document.querySelector('#textcompare-original').style.height);
+      await assertLayout(page, width, 'desktop-to-mobile resize');
     }
     assert.deepEqual(accountRequests, [], 'No real account or save request is required for these workflows.');
     assert.deepEqual(errors, [], 'The simplified workspace produces no runtime exceptions.');

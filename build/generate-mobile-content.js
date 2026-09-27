@@ -108,6 +108,14 @@ function createMobileContent(content, options = {}) {
     .flatMap((section) => section.props?.categories || []).find((category) => category.id === 'about') || {};
   const timeline = (about.timeline?.items || []).filter(isPublic).slice()
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''), 'en'));
+  const publishedProjectIds = new Set(ordered(content.projects).map((project) => identifier(project.id)).filter(Boolean));
+  const interestProject = (interest) => {
+    const projectId = identifier(interest.project?.contentId);
+    const href = publicHttpsUrl(interest.project?.href, origin);
+    if (!projectId || !publishedProjectIds.has(projectId) || interest.project?.contentType !== 'project' ||
+      href !== `${origin}/portfolio/${projectId}`) return {};
+    return { projectId, projectLabel: plainText(interest.project.title) };
+  };
   const entries = (type, withUrl) => timeline.filter((entry) => entry.type === type).map((entry) => ({
     title: plainText(entry.title),
     organization: plainText(entry.subtitle || entry.issuer),
@@ -142,7 +150,8 @@ function createMobileContent(content, options = {}) {
       intro: plainText(about.lead),
       portraitUrl: imageUrl(about.profile?.image || settings.profileImage, root, origin),
       interests: (about.aboutStory?.connections || []).filter(isPublic).map((interest) => ({
-        title: plainText(interest.title), body: plainText(interest.description), imageUrl: imageUrl(interest.image, root, origin)
+        title: plainText(interest.title), body: plainText(interest.description), imageUrl: imageUrl(interest.image, root, origin),
+        ...interestProject(interest)
       })),
       experience: entries('job', false),
       education: entries('degree', true),

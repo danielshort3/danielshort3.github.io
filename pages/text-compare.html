@@ -34,9 +34,9 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.5e027745.css">
+  <link rel="stylesheet" href="dist/styles.8e030617.css">
   <link rel="stylesheet" href="dist/styles-tools.52782b5f.css">
-  <link rel="stylesheet" href="css/components/text-compare.css?v=038120f3bd06">
+  <link rel="stylesheet" href="css/components/text-compare.css?v=d58cac9e83a9">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png?v=b85b9f96ebf9">
@@ -50,7 +50,7 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.c57ddd04.js"></script>
+  <script defer src="dist/site-shell.3100aa37.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.8e158010.css">
   <script type="application/ld+json" id="tool-jsonld">
@@ -59,7 +59,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/tools/text-compare#webpage","url":"https://www.danielshort.me/tools/text-compare","name":"Text Compare | Daniel Short","description":"Compare two versions of text and see insertions, deletions, and replacements inline. Runs locally in your browser.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/tool-text-compare.png?v=58328d1f5cba"},"mainEntity":{"@id":"https://www.danielshort.me/tools/text-compare#app"},"breadcrumb":{"@id":"https://www.danielshort.me/tools/text-compare#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/tools/text-compare#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://www.danielshort.me/tools"},{"@type":"ListItem","position":3,"name":"Text Compare","item":"https://www.danielshort.me/tools/text-compare"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:text-compare","path":"/tools/text-compare","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.5e027745.css","/dist/styles-tools.52782b5f.css","/css/components/text-compare.css?v=038120f3bd06","/dist/styles-personal-accordion.8e158010.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.c57ddd04.js","/js/tools/tool-share-link.js","/js/tools/text-compare-core.js","/js/tools/text-compare.js","/dist/site-tools-account.2e6c9ae7.js","/dist/site-consent.772887f4.js"],"module":"tools:text-compare"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:text-compare","path":"/tools/text-compare","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.8e030617.css","/dist/styles-tools.52782b5f.css","/css/components/text-compare.css?v=d58cac9e83a9","/dist/styles-personal-accordion.8e158010.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.3100aa37.js","/js/tools/tool-share-link.js","/js/tools/text-compare-core.js","/js/tools/text-compare.js","/dist/site-tools-account.2e6c9ae7.js","/dist/site-consent.772887f4.js"],"module":"tools:text-compare"}</script>
 </head>
 <body data-page="text-compare" class="text-compare-page tools-tool-page site-page personal-accordion-page" data-tools-layout="text" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="text-compare" data-personal-fit="viewport" data-site-route-id="tools:text-compare" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:text-compare">
   <a href="/tools/text-compare#main" class="skip-link">Skip to main content</a>
@@ -165,15 +165,13 @@
         <button type="submit" class="btn-primary">Compare</button>
       </div>
       <section id="textcompare-view-comparison" class="textcompare-results-card" aria-labelledby="textcompare-result-title">
-        <div class="tool-workspace-header">
-          <div>
+        <div class="tool-workspace-header textcompare-results-header">
+          <div class="textcompare-results-heading">
             <h2 id="textcompare-result-title">Comparison</h2>
-            <p id="textcompare-summary" class="textcompare-summary" role="status" aria-live="polite">Changes appear here.</p>
-          </div>
-          <div class="textcompare-results-actions">
             <button type="button" id="textcompare-copy" class="btn-secondary" disabled>Copy formatted</button>
-            <span id="textcompare-copy-status" class="textcompare-copy-status" aria-live="polite"></span>
           </div>
+          <p id="textcompare-summary" class="textcompare-summary" role="status" aria-live="polite">Changes appear here.</p>
+          <span id="textcompare-copy-status" class="textcompare-copy-status" aria-live="polite"></span>
         </div>
         <div class="textcompare-legend" aria-label="Change legend" hidden>
           <span class="diff-pill diff-pill-ins">Inserted</span>

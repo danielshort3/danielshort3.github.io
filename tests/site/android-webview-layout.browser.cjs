@@ -12,6 +12,8 @@ const { createLocalServer } = require('../../build/dev');
 const nativeSource = fs.readFileSync(path.resolve(__dirname, '../../mobile/android/app/src/main/java/me/danielshort/app/ui/WebExperienceScreen.kt'), 'utf8');
 const nativeTemplate = nativeSource.match(/view\.evaluateJavascript\("""\s*([\s\S]*?)"""\.trimIndent\(\)\)/)?.[1];
 assert(nativeTemplate, 'Android feature injection is available for the browser regression.');
+const nativeCssTemplate = nativeSource.match(/val featureCss = JSONObject\.quote\("""([\s\S]*?)"""\.trimIndent\(\)\)/)?.[1];
+assert(nativeCssTemplate, 'Android feature CSS is available for the browser regression.');
 const nativeCss = name => {
   const value = nativeSource.match(new RegExp(`val ${name} =[^\\n]*\\n\\s*"([^"\\n]*)"`))?.[1];
   assert(value, `Native ${name} CSS is available.`);
@@ -83,7 +85,8 @@ async function runAndroidWebViewLayoutChecks({ browser, base, artifactDir }) {
         // The same build must still provide normal browser content/navigation.
         await assertPaintedContent(page, experience.contentSelector || experience.selector, `${label} website`);
         assert(await page.locator('[data-site-shell-header], .mobile-site-masthead').evaluateAll(nodes => nodes.some(node => node.checkVisibility())), `${label}: website navigation remains visible.`);
-        const injection = nativeTemplate.replace(/\$(startCss|projectCss|gameCss|featureLayout|selector)\b/g, (_, key) => experience[key] || '');
+        const featureCss = nativeCssTemplate.replace(/\$(startCss|projectCss|inlineDemoCss|gameCss)\b/g, (_, key) => experience[key] || '');
+        const injection = nativeTemplate.replace(/\$(featureCss|featureLayout|selector)\b/g, (_, key) => key === 'featureCss' ? JSON.stringify(featureCss) : experience[key] || '');
         assert.equal(await page.evaluate(injection), true, `${label}: native injection finds its target.`);
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         const geometry = await assertPaintedContent(page, experience.contentSelector || experience.selector, `${label} Android`);

@@ -664,7 +664,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const startHereProjectIds = ['sheetMusicUpscale', 'handwritingRating', 'babynames'];
   const connections = about.aboutStory?.connections || [];
   const expectedConnections = [
-    { id: 'ai', href: '/tools', title: /AI & machine learning/i, contentType: 'directory', contentId: 'tools' },
+    { id: 'ai', href: '/portfolio/chatbotLora', title: /AI & machine learning/i, contentType: 'project', contentId: 'chatbotLora' },
     { id: 'family', href: '/portfolio/babynames', title: /Family/i, contentType: 'project', contentId: 'babynames' },
     { id: 'french-horn', href: '/portfolio/sheetMusicUpscale', title: /French horn/i, contentType: 'project', contentId: 'sheetMusicUpscale' }
   ];

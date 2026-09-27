@@ -2324,7 +2324,8 @@
       available = screenHeight
         - heightOf(document.querySelector('.mobile-site-masthead'))
         - heightOf(frame?.querySelector('[data-site-tab][aria-current="page"]'))
-        - heightOf(frame?.querySelector('.site-frame__toolbar'));
+        - heightOf(frame?.querySelector('.site-frame__toolbar'))
+        - heightOf(document.querySelector('.mobile-site-dock'));
     }
     available = Math.min(available || screenHeight, screenHeight);
     available -= heightOf(shell?.querySelector('.project-demo-header'));
@@ -2337,7 +2338,9 @@
     try {
       const doc = ifr.contentDocument;
       const empty = doc?.querySelector('.chat-shell--regular .empty-state');
-      if (empty?.getBoundingClientRect().height > 0) {
+      // The inline greeting belongs to a full-height conversation. Keep the
+      // viewport height so its choices and composer remain usable together.
+      if (!doc?.querySelector('.chat-greeting') && empty?.getBoundingClientRect().height > 0) {
         let preferred = heightOf(empty)
           + heightOf(doc.querySelector('.demo-toolbar'))
           + heightOf(doc.querySelector('.chat-shell--regular .chat-composer'));
@@ -2532,6 +2535,7 @@
       if (!doc?.querySelector('.drawing-demo')) return;
       const compactDesktop = window.innerWidth > 768 && window.innerHeight <= 800;
       doc.documentElement.style.setProperty('--drawing-canvas-size', compactDesktop ? '260px' : '300px');
+      doc.documentElement.dataset.drawingDensity = compactDesktop ? 'compact' : 'comfortable';
     } catch {}
   };
 

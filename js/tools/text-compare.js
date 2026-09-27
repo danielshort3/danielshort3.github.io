@@ -6,6 +6,7 @@
   const originalEl = $('#textcompare-original');
   const revisedEl = $('#textcompare-revised');
   const outputEl = $('#textcompare-output');
+  const comparisonEl = $('#textcompare-view-comparison');
   const summaryEl = $('#textcompare-summary');
   const clearBtn = $('#textcompare-clear');
   const swapBtn = $('#textcompare-swap');
@@ -39,11 +40,67 @@
   let refreshTimer = 0;
   let comparisonStarted = false;
   const legendEl = $('.textcompare-legend');
+  const editors = [originalEl, revisedEl];
+  const editorMeasure = document.createElement('textarea');
+  editorMeasure.setAttribute('aria-hidden', 'true');
+  editorMeasure.tabIndex = -1;
+  editorMeasure.style.cssText = 'position:fixed;left:-10000px;top:0;visibility:hidden;pointer-events:none;box-sizing:border-box;height:0;min-height:0;max-height:none;overflow:hidden;resize:none;';
+  document.body.appendChild(editorMeasure);
+  let editorSizingFrame = 0;
+  let editorSizingDisposed = false;
+  const resizeEditors = ({ allowShrink = false } = {}) => {
+    if (editorSizingDisposed) return;
+    editors.forEach((field) => {
+      const style = getComputedStyle(field);
+      if (style.getPropertyValue('--textcompare-auto-size').trim() !== '1') {
+        if (field.dataset.autoSized) {
+          field.style.removeProperty('height');
+          delete field.dataset.autoSized;
+        }
+        return;
+      }
+      const bounds = field.getBoundingClientRect();
+      if (!bounds.width) return;
+      // Measure off-screen so deleting text never briefly collapses the active editor.
+      ['font', 'lineHeight', 'letterSpacing', 'padding', 'border', 'wordBreak', 'overflowWrap', 'tabSize'].forEach((property) => {
+        editorMeasure.style[property] = style[property];
+      });
+      editorMeasure.style.width = `${bounds.width}px`;
+      editorMeasure.value = field.value || field.placeholder;
+      const borderHeight = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+      const contentHeight = Math.max(parseFloat(style.minHeight), editorMeasure.scrollHeight + borderHeight);
+      const keepActiveHeight = !allowShrink && document.activeElement === field;
+      field.style.height = `${Math.ceil(keepActiveHeight ? Math.max(bounds.height, contentHeight) : contentHeight)}px`;
+      field.dataset.autoSized = 'true';
+    });
+  };
+  const queueEditorSizing = () => {
+    cancelAnimationFrame(editorSizingFrame);
+    editorSizingFrame = requestAnimationFrame(() => resizeEditors());
+  };
+  const editorGrid = originalEl.closest('.textcompare-grid');
+  let editorGridWidth = 0;
+  const editorResizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(([entry]) => {
+    // Editor height changes must not feed back into their own sizing observer.
+    if (entry.contentRect.width === editorGridWidth) return;
+    editorGridWidth = entry.contentRect.width;
+    queueEditorSizing();
+  }) : null;
+  if (editorGrid) editorResizeObserver?.observe(editorGrid);
+  editors.forEach((field) => field.addEventListener('blur', () => resizeEditors()));
+  document.fonts?.ready.then(queueEditorSizing);
+  window.SiteRoutes?.addCleanup?.(() => {
+    editorSizingDisposed = true;
+    cancelAnimationFrame(editorSizingFrame);
+    editorResizeObserver?.disconnect();
+    editorMeasure.remove();
+  });
   const hasUserText = () => originalEl.value.length > 0 || revisedEl.value.length > 0;
-  const updateExamplePreview = () => {
+  const updateExamplePreview = (sizingOptions) => {
     const showingExample = !hasUserText();
     originalEl.placeholder = showingExample ? ORIGINAL_EXAMPLE : 'Paste the text before changes';
     revisedEl.placeholder = showingExample ? REVISED_EXAMPLE : 'Paste the text after changes';
+    resizeEditors(sizingOptions);
   };
   updateExamplePreview();
 
@@ -482,6 +539,18 @@
     markSessionDirty();
   };
 
+  const revealExplicitComparison = () => {
+    if (typeof comparisonEl?.scrollIntoView !== 'function' || typeof outputEl.getBoundingClientRect !== 'function') return;
+    const viewport = comparisonEl.closest('[data-site-frame-viewport]');
+    const visibleBottom = viewport?.getBoundingClientRect().bottom || window.innerHeight;
+    const dock = document.querySelector('.mobile-section-nav:not([hidden]), .mobile-site-dock:not([hidden])');
+    const dockTop = dock?.getBoundingClientRect().top;
+    const limit = Number.isFinite(dockTop) && dockTop > 0 ? Math.min(visibleBottom, dockTop) : visibleBottom;
+    if (outputEl.getBoundingClientRect().top < limit - 120) return;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    comparisonEl.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'instant' : 'smooth' });
+  };
+
   const runCompare = ({ reportOutcome = false } = {}) => {
     window.clearTimeout(refreshTimer);
     comparisonStarted = true;
@@ -560,6 +629,7 @@
           if (requestId !== latestCompareRequestId) return;
           renderCompareResult(result, revised, payload.modeOverride, fallbackWarning);
           if (reportOutcome) {
+            revealExplicitComparison();
             reportRunComplete(result?.counts?.hasChanges ? 'with_changes' : 'no_changes');
           }
         } catch {
@@ -598,7 +668,7 @@
     latestCompareRequestId += 1;
     originalEl.value = '';
     revisedEl.value = '';
-    updateExamplePreview();
+    updateExamplePreview({ allowShrink: true });
     summaryEl.textContent = 'Changes appear here.';
     setEmpty('Compare the example, or enter your own text.');
     lastRuns = null;
