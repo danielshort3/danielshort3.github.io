@@ -408,7 +408,7 @@ function renderPersonalLibraryHeader(options = {}) {
   ].filter(Boolean).join(' ');
   const headingClass = ['home-library__heading', options.wrapper ? 'wrapper' : ''].filter(Boolean).join(' ');
   const parentLabel = `${CATEGORY_CONFIG[presentation.categoryId].label} overview`;
-  const parentContent = `<span aria-hidden="true">${renderSiteIcon('action-back')}</span>${escapeHtml(parentLabel)}`;
+  const parentContent = `<span aria-hidden="true">${renderSectionArrow(presentation.categoryId, 'left')}</span>${escapeHtml(parentLabel)}`;
   const back = options.includeBack
     ? `  <button class="home-library__back" type="button" data-home-library-close="${escapeHtml(presentation.categoryId)}" data-page-masthead-parent>${parentContent}</button>`
     : `  <a class="home-library__back" href="${escapeHtml(presentation.backHref)}" aria-label="Back to ${escapeHtml(parentLabel)}" data-page-masthead-parent>${parentContent}</a>`;
@@ -436,6 +436,12 @@ function renderIcon(paths, className = '') {
 
 function renderSiteIcon(name, className = '') {
   return `<img${className ? ` class="${escapeHtml(className)}"` : ''} src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async" loading="lazy">`;
+}
+
+function renderSectionArrow(categoryId, direction) {
+  const section = categoryId === 'resume' ? 'tools' : categoryId;
+  const safeSection = CATEGORY_ORDER.includes(section) ? section : 'about';
+  return renderSiteIcon(`section-arrow-${safeSection}-${direction}`);
 }
 
 function renderToolsAccountBar() {
@@ -523,7 +529,7 @@ function renderPersonalToolHeader(options = {}) {
     PERSONAL_TOOL_HEADER_START,
     `<header class="${headerClasses}" data-personal-tool-header="${escapeHtml(itemId)}" data-page-masthead>`,
     '  <div class="wrapper personal-tool-header__inner">',
-    `    <a class="personal-tool-header__parent" href="/tools" aria-label="Back to tool library" data-page-masthead-parent>${renderSiteIcon('action-back')}<span>Tool library</span></a>`,
+    `    <a class="personal-tool-header__parent" href="/tools" aria-label="Back to tool library" data-page-masthead-parent>${renderSectionArrow('tools', 'left')}<span>Tool library</span></a>`,
     '    <div class="personal-tool-header__intro" data-page-masthead-intro>',
     '      <div class="personal-tool-header__copy" data-page-masthead-copy>',
     `        <h1 id="personal-tool-title-${escapeHtml(itemId)}">${escapeHtml(title)}</h1>`,
@@ -817,7 +823,7 @@ function renderPersonalAccordionShell(fragment, options = {}) {
   const toolbar = hasMasthead ? '' : [
     '<div class="personal-accordion__toolbar" data-site-route-toolbar>',
     `  <a class="personal-accordion__back" href="${escapeHtml(backHref)}" aria-label="${escapeHtml(backAriaLabel)}">`,
-    `    <span class="personal-accordion__back-icon" aria-hidden="true">${renderSiteIcon('action-back')}</span>`,
+    `    <span class="personal-accordion__back-icon" aria-hidden="true">${renderSectionArrow(categoryId, 'left')}</span>`,
     `    <span class="personal-accordion__back-label personal-accordion__back-label--desktop" aria-hidden="true">${escapeHtml(backLabel)}</span>`,
     `    <span class="personal-accordion__back-label personal-accordion__back-label--mobile" aria-hidden="true">${escapeHtml(backCompactLabel)}</span>`,
     '  </a>',
@@ -944,7 +950,7 @@ function renderLibraryCard(item, categoryId) {
     visibility === 'admin' ? `            <span class="home-library__access">${renderIcon(ACCESS_KEY)}Admin access</span>` : '',
     summary ? `            <span${isProject ? ' class="home-library__summary"' : ''}>${escapeHtml(summary)}</span>` : '',
     '          </span>',
-    `          <span class="home-library__arrow" aria-hidden="true">${renderSiteIcon('action-arrow')}</span>`,
+    `          <span class="home-library__arrow" aria-hidden="true">${renderSectionArrow(categoryId, 'right')}</span>`,
     '        </a>',
     '      </li>'
   ].filter(Boolean).join('\n');

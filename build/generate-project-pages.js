@@ -1093,7 +1093,7 @@ function preparePersonalProjectDetailHtml(html) {
       return `<header class="project-hero project-hero--compact" data-page-masthead>
       <div class="wrapper">
         <a class="project-parent-link" href="/portfolio" data-page-masthead-parent aria-label="Back to project library">
-          <img src="/img/ui/site-icons/action-back.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">
+          <img src="/img/ui/site-icons/section-arrow-projects-left.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">
           <span>Project library</span>
         </a>
         <div data-page-masthead-intro>
