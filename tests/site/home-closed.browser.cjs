@@ -318,9 +318,9 @@ async function runViewport({ browser, base, artifactDir }, settings) {
     await page.mouse.move(0, 0);
     await page.locator('[data-home-library-open="projects"]').click();
     await settle(page, 'library', 'projects');
-    await page.locator('[data-site-tab="projects"]').click();
-    await settle(page, 'overview', 'projects');
-    assert(await page.locator('[data-home-accordion-item="projects"]').isVisible(), 'The library rail still returns to its category overview.');
+    await openCategory(page, 'projects');
+    assert(await page.locator('[data-home-accordion-item="projects"]').isVisible(),
+      'The library navigation returns to its category overview.');
     await page.locator('[data-site-tab="projects"]').click();
     await assertClosed(page, 'Close the returned overview');
     assert.equal(mapRequests, 1, 'Library navigation retains the map without reloading it.');

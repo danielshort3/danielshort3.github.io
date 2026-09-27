@@ -84,9 +84,11 @@ async function assertLayout(page) {
       frames: document.querySelectorAll('.site-frame').length,
       category: frame?.dataset.frameCategory,
       audience: frame?.dataset.frameAudience,
+      navigation: frame?.dataset.frameNavigation,
       home: frame?.dataset.frameHome === 'true',
       overview: frame?.dataset.frameHome === 'true' && frame?.dataset.frameView === 'overview',
       closed: frame?.dataset.frameHome === 'true' && frame?.dataset.frameView === 'closed',
+      library: frame?.dataset.frameView === 'library',
       compact: frame?.dataset.frameCompact === 'true',
       mobileNavigation: document.body.classList.contains('has-mobile-scroll-chrome'),
       mobileCategories: [...document.querySelectorAll('[data-mobile-section-nav] [data-mobile-section]')].map(node => node.dataset.mobileSection),
@@ -101,7 +103,9 @@ async function assertLayout(page) {
   assert.equal(layout.frames, 1, 'Exactly one shared frame is mounted.');
   assert(layout.pageWidth <= layout.width + 1, `Document overflows horizontally: ${JSON.stringify(layout)}`);
   const visibleTabs = layout.tabs.filter(tab => !tab.hidden);
-  const railFree = layout.audience === 'personal' && !layout.home && layout.mobileNavigation;
+  const railFree = layout.audience === 'personal' && layout.mobileNavigation && (!layout.home || layout.library);
+  assert.equal(layout.navigation, railFree ? 'dock' : 'rails',
+    'The frame uses the navigation mode for the current route and viewport.');
   assert.deepEqual(visibleTabs.map(tab => tab.category), layout.audience !== 'personal'
     ? ['about', 'projects', 'resume', 'contact']
     : railFree ? []
@@ -110,7 +114,7 @@ async function assertLayout(page) {
   'Navigation exposes the correct categories for the audience and route.');
   if (layout.compact && layout.mobileNavigation) {
     assert.deepEqual(layout.mobileCategories, ['about', 'projects', 'tools', 'games', 'contact'],
-      'The mobile bottom navigation retains every category alongside the visible overview rails.');
+      'The mobile bottom navigation retains every category on overview and detail routes.');
   }
   assert.equal(layout.tabs.filter(tab => tab.active).length, layout.closed ? 0 : 1,
     layout.closed ? 'The closed homepage has no active category.' : 'Exactly one category state is active.');
@@ -706,7 +710,7 @@ async function runViewport(browser, base, settings) {
     await settle(page);
     await assertLayout(page);
     assert.equal(await page.evaluate(() => SiteFrame.root()?.dataset.frameView), 'library',
-      'Back restores the active-only library navigation.');
+      'Back restores the library view and its route navigation.');
     await page.goForward();
     await page.waitForURL(url => url.pathname === '/' && url.hash === '#tools');
     await settle(page);
