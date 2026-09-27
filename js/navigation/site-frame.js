@@ -158,7 +158,8 @@
 
   function configure(description) {
     const closed = description.home && description.view === 'closed';
-    const railFree = !description.home && description.audience === 'personal' && mobileDockQuery.matches;
+    const railFree = description.audience === 'personal' && mobileDockQuery.matches &&
+      (!description.home || description.view === 'library');
     description.fit = framePolicy.resolveFit(description.fit);
     frame.dataset.frameAudience = description.audience;
     frame.dataset.frameNavigation = railFree ? 'dock' : 'rails';
