@@ -36,6 +36,7 @@ function shouldHandle(request) {
     // their cache keys, even when the returned HTML is a public static shell.
     && ![...url.searchParams.keys()].some(key => /^(?:code|state|token|access_token|id_token|refresh_token)$/i.test(key))
     && path !== '/api' && !path.startsWith('/api/') && !path.startsWith('/admin')
+    && path !== '/app-updates' && !path.startsWith('/app-updates/')
     && !HARD_DOCUMENT_PATHS.has(path)
     && !HARD_DOCUMENT_PATHS.has(path.replace(/^\/pages\//, '/tools/'));
 }

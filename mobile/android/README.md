@@ -1,6 +1,6 @@
 # Daniel Short for Android
 
-A Kotlin and Jetpack Compose app that shares the website's public content. Its 16 published project cards open first-party website case studies in an in-app WebView, with native offline summaries. Eleven first-party demos and five games also use the website in-app by default, with native alternatives. Nine public tools and Probability Engine open their canonical website routes in the Android browser, with native alternatives; Screen Recorder stays native. Navigation, settings, bookmarks, recording, and the retained adaptations use Android UI and Kotlin code.
+A Kotlin and Jetpack Compose app that shares the website's public content. Its 17 published project cards open first-party website case studies in an in-app WebView, with native offline summaries. Eleven first-party demos and five games also use the website in-app by default, with native alternatives. Nine public tools and Probability Engine open their canonical website routes in the Android browser, with native alternatives; Screen Recorder stays native. Navigation, settings, bookmarks, recording, and the retained adaptations use Android UI and Kotlin code.
 
 ## How each area opens
 
