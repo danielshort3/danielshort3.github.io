@@ -2,6 +2,18 @@
   'use strict';
 
   let lastCompletedUrl = window.location.href;
+  function createSectionArrowImage(categoryId) {
+    const section = ['about', 'projects', 'tools', 'games', 'contact'].includes(categoryId) ? categoryId : 'about';
+    const image = document.createElement('img');
+    image.src = `/img/ui/site-icons/section-arrow-${section}-right.webp`;
+    image.alt = '';
+    image.width = 128;
+    image.height = 128;
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    return image;
+  }
+
   function activateContactMap(item) {
     if (window.ContactMap) {
       window.ContactMap.refresh();
@@ -157,7 +169,7 @@
         const arrow = document.createElement('span');
         arrow.className = 'home-library__arrow';
         arrow.setAttribute('aria-hidden', 'true');
-        arrow.innerHTML = '<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"></path></svg>';
+        arrow.append(createSectionArrowImage(id));
         link.append(media, copy, arrow);
         item.append(link);
         return item;
@@ -536,11 +548,11 @@
     return `/${href.replace(/^\/+/, '')}`;
   }
 
-  function createLibraryArrow() {
+  function createLibraryArrow(categoryId) {
     const wrapper = document.createElement('span');
     wrapper.className = 'home-library__arrow';
     wrapper.setAttribute('aria-hidden', 'true');
-    wrapper.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>';
+    wrapper.append(createSectionArrowImage(categoryId));
     return wrapper;
   }
 
@@ -615,7 +627,7 @@
       copy.append(summary);
     }
 
-    link.append(createLibraryMedia(item, categoryId), copy, createLibraryArrow());
+    link.append(createLibraryMedia(item, categoryId), copy, createLibraryArrow(categoryId));
     listItem.append(link);
     return listItem;
   }

@@ -1,6 +1,7 @@
 'use strict';
 
 const { unwrapPersonalAccordionHtml } = require('./personal-accordion-shell');
+const GAME_BACK_ICON = '<img src="/img/ui/site-icons/section-arrow-games-left.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">';
 
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({
@@ -18,7 +19,7 @@ function renderGameHeader({ itemId, copy, actions = '', classes = '', tag = 'hea
   return [
     `<${tag} class="personal-game-header${classes ? ` ${classes}` : ''}" data-page-masthead data-personal-game-header="${escapeHtml(itemId)}">`,
     '  <a href="/games" data-page-masthead-parent aria-label="Back to game library">',
-    '    <img src="/img/ui/site-icons/action-back.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">',
+    `    ${GAME_BACK_ICON}`,
     '    <span>Game library</span>',
     '  </a>',
     '  <div data-page-masthead-intro>',
@@ -120,7 +121,11 @@ function preparePersonalGameDetailHtml(html, metadata = {}) {
   const itemId = String(metadata.itemId || '').trim();
   const prepare = PREPARERS[itemId];
   if (!prepare) throw new Error(`Unknown personal game header: ${itemId || '(missing id)'}.`);
-  if (source.includes(`data-personal-game-header="${itemId}"`)) return source;
+  if (source.includes(`data-personal-game-header="${itemId}"`)) {
+    const backIconPattern = /(<a\b[^>]*\bdata-page-masthead-parent\b[^>]*>\s*)(?:<svg\b[\s\S]*?<\/svg>|<img\b[^>]*>)(?=\s*<span>Game library<\/span>)/i;
+    requireMatch(source, backIconPattern, 'existing game header back arrow');
+    return source.replace(backIconPattern, (_, anchorStart) => `${anchorStart}${GAME_BACK_ICON}`);
+  }
   return prepare(source, { ...metadata, itemId });
 }
 

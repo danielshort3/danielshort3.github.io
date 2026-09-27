@@ -391,6 +391,13 @@ function renderLegacyHtml(section) {
 }
 
 const siteIconImage = (name) => `<img src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async" loading="lazy">`;
+const SECTION_ARROW_CATEGORIES = new Set(['about', 'projects', 'tools', 'games', 'contact']);
+const sectionArrowImage = (categoryId, direction = 'right') => siteIconImage(
+  `section-arrow-${SECTION_ARROW_CATEGORIES.has(categoryId) ? categoryId : 'about'}-${direction}`
+);
+const homeLinkArrowImage = (external, categoryId) => external
+  ? siteIconImage('action-external')
+  : sectionArrowImage(categoryId);
 
 const HOME_ACCORDION_ICONS = {
   about: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg>',
@@ -409,7 +416,6 @@ const HOME_ACCORDION_ICONS = {
   github: '<img src="/img/icons/github-icon.png" alt="" width="256" height="256" decoding="async">',
   spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2zM5 15v4M3 17h4M19 14v3M17.5 15.5h3"></path></svg>',
   timeline: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M5 7h7M5 12h11M5 17h8"></path><circle cx="5" cy="7" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle><circle cx="5" cy="17" r="1.5"></circle></svg>',
-  arrow: siteIconImage('action-arrow'),
   'external-arrow': siteIconImage('action-external')
 };
 
@@ -465,7 +471,7 @@ function renderHomeAccordionCard(item, categoryId) {
     `                  <strong>${escapeHtml(item && item.title || 'Explore')}</strong>`,
     item && item.summary ? `                  <span>${escapeHtml(item.summary)}</span>` : '',
     '                </span>',
-    href ? `                <span class="home-accordion__card-arrow" data-home-icon="${external ? 'external-arrow' : 'arrow'}" aria-hidden="true">${HOME_ACCORDION_ICONS[external ? 'external-arrow' : 'arrow']}</span>` : '',
+    href ? `                <span class="home-accordion__card-arrow" data-home-icon="${external ? 'external-arrow' : 'arrow'}" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : '',
     `              </${tag}>`,
     '            </li>'
   ].filter(Boolean).join('\n');
@@ -568,7 +574,7 @@ function renderHomeTimelineItem(item, categoryId, options = {}) {
     item && item.subtitle ? `                <span class="home-timeline__subtitle">${escapeHtml(item.subtitle)}</span>` : '',
     item && item.summary ? `                <span class="home-timeline__summary">${escapeHtml(item.summary)}</span>` : '',
     '              </span>',
-    href ? `              <span class="home-timeline__arrow" data-home-icon="${external ? 'external-arrow' : 'arrow'}" aria-hidden="true">${HOME_ACCORDION_ICONS[external ? 'external-arrow' : 'arrow']}</span>` : '',
+    href ? `              <span class="home-timeline__arrow" data-home-icon="${external ? 'external-arrow' : 'arrow'}" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : '',
     `            </${tag}>`,
     '          </li>'
   ].filter(Boolean).join('\n');
@@ -613,7 +619,7 @@ function renderHomeBackgroundItem(item, categoryId, options = {}) {
       `                    <li class="home-background__credential" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
       `                      <${tag} class="home-background__credential-link" aria-describedby="${escapeHtml(dateId)}"${parsedDate ? ` title="Earned ${escapeHtml(parsedDate.label)}"` : ''}${linkAttrs}>`,
       `                        <span class="home-background__credential-label">${titleHtml}</span>`,
-      href ? `                        <span class="home-background__arrow" aria-hidden="true">${HOME_ACCORDION_ICONS[external ? 'external-arrow' : 'arrow']}</span>` : '',
+      href ? `                        <span class="home-background__arrow" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : '',
       `                      </${tag}>`,
       `                      <span class="home-background__credential-date visually-hidden" id="${escapeHtml(dateId)}">${parsedDate ? 'Earned ' : ''}${dateHtml}</span>`,
       '                    </li>'
@@ -624,7 +630,7 @@ function renderHomeBackgroundItem(item, categoryId, options = {}) {
     `                  <li class="home-background__item" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
     `                    <span class="home-background__icon" aria-hidden="true">${icon}</span>`,
     `                    <${tag} class="home-background__entry" aria-describedby="${escapeHtml(dateId)}"${linkAttrs}>`,
-    `                      <strong class="home-background__title">${href ? `<span>${titleHtml}</span><span class="home-background__arrow" aria-hidden="true">${HOME_ACCORDION_ICONS[external ? 'external-arrow' : 'arrow']}</span>` : titleHtml}</strong>`,
+    `                      <strong class="home-background__title">${href ? `<span>${titleHtml}</span><span class="home-background__arrow" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : titleHtml}</strong>`,
     item && item.subtitle ? `                      <span class="home-background__subtitle">${escapeHtml(item.subtitle)}</span>` : '',
     `                    </${tag}>`,
     `                    <div class="home-background__date" id="${escapeHtml(dateId)}">${dateHtml}</div>`,
@@ -721,7 +727,7 @@ function renderHomeTimeline(timeline, categoryId) {
 const HOME_ABOUT_ICONS = Object.freeze({
   ai: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 10v6M7 23v-7h18v7"></path><circle cx="16" cy="6" r="4"></circle><circle cx="7" cy="27" r="4"></circle><circle cx="25" cy="27" r="4"></circle></svg>',
   family: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m3 14 13-11 13 11M6 12v17h20V12"></path><path d="M16 24s-6-3.6-6-7a3.4 3.4 0 0 1 6-2.1A3.4 3.4 0 0 1 22 17c0 3.4-6 7-6 7Z"></path></svg>',
-  arrow: siteIconImage('action-arrow'),
+  arrow: sectionArrowImage('about'),
   code: siteIconImage('about-code')
 });
 
@@ -849,7 +855,7 @@ function renderHomeAccordion(section) {
       '            <ul class="home-accordion__cards home-featured__list">',
       featuredItems.map((item) => renderHomeAccordionCard(item, 'projects')).join('\n'),
       '            </ul>',
-      '            <a class="home-featured__all" href="/portfolio">Explore all projects <span aria-hidden="true">' + HOME_ACCORDION_ICONS.arrow + '</span></a>',
+      '            <a class="home-featured__all" href="/portfolio">Explore all projects <span aria-hidden="true">' + sectionArrowImage('projects') + '</span></a>',
       '          </section>'
     ].join('\n') : '';
     const libraryHtml = renderHomeLibraryView(category, id);
@@ -864,8 +870,8 @@ function renderHomeAccordion(section) {
       : '';
     const cta = category && category.cta && category.cta.href && category.cta.label
       ? (hasInlineLibrary
-          ? `          <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="${escapeHtml(normalizeHref(category.cta.href))}" aria-controls="home-library-view-${escapeHtml(id)}" aria-expanded="false" data-home-library-open="${escapeHtml(id)}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`
-          : `          <a class="home-accordion__panel-cta" href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`)
+          ? `          <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="${escapeHtml(normalizeHref(category.cta.href))}" aria-controls="home-library-view-${escapeHtml(id)}" aria-expanded="false" data-home-library-open="${escapeHtml(id)}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${sectionArrowImage(id)}</span></a>`
+          : `          <a class="home-accordion__panel-cta" href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${sectionArrowImage(id)}</span></a>`)
       : '';
     const hasMasthead = ['projects', 'tools', 'games', 'contact'].includes(id);
     const panelHeader = profile
@@ -879,7 +885,7 @@ function renderHomeAccordion(section) {
           '              </div>',
           category && category.lead ? `              <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
           context ? `              <p class="home-accordion__context home-accordion__context--profile">${escapeHtml(context)}</p>` : '',
-          category.primaryAction?.href ? `              <a class="home-accordion__panel-cta home-intro__action" href="${escapeHtml(normalizeHref(category.primaryAction.href))}">${escapeHtml(category.primaryAction.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>` : '',
+          category.primaryAction?.href ? `              <a class="home-accordion__panel-cta home-intro__action" href="${escapeHtml(normalizeHref(category.primaryAction.href))}">${escapeHtml(category.primaryAction.label)} <span aria-hidden="true">${sectionArrowImage(id)}</span></a>` : '',
           category.currentWork?.text ? `              <p class="home-intro__current"><a href="${escapeHtml(normalizeHref(category.currentWork.href))}">${escapeHtml(category.currentWork.text)}</a></p>` : '',
           '            </div>',
           '            <figure class="home-accordion__profile-portrait">',

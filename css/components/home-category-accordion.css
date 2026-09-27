@@ -606,6 +606,11 @@
     outline-offset: 3px;
   }
 
+  .home-accordion__panel-cta:is(:hover, :focus-visible) img {
+    filter: brightness(0) invert(1);
+    mix-blend-mode: normal;
+  }
+
   .home-accordion__panel-cta--primary {
     margin-bottom: 12px;
   }
