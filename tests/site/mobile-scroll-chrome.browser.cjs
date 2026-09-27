@@ -210,6 +210,60 @@ async function runMobileScrollChromeChecks({ browser, base, artifactDir, prepare
   }
 
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 740 }]) {
+    const context = await browser.newContext({ viewport, reducedMotion: 'reduce', serviceWorkers: 'block' });
+    await isolateRequests(context, base);
+    const page = await context.newPage();
+    page.setDefaultTimeout(12000);
+    try {
+      for (const [category, route, heading] of [
+        ['projects', '/portfolio', 'Project library'],
+        ['tools', '/tools', 'Tool library'],
+        ['games', '/games', 'Game library']
+      ]) {
+        await page.goto(`${base}/#${category}`, { waitUntil: 'domcontentloaded' });
+        await settle(page);
+        if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
+        await page.locator(`[data-home-library-open="${category}"]`).click();
+        await page.waitForFunction(({ route, category }) => location.pathname === route &&
+          window.SiteFrame?.current()?.view === 'library' && window.SiteFrame?.current()?.category === category,
+        { route, category });
+        await settle(page);
+        await chromeState(page, false);
+        assert.equal(await page.locator('[data-site-tab]:visible').count(), 0,
+          `${viewport.width}px ${category} library reached from the homepage has no duplicate upper section tabs.`);
+        assert(await page.getByRole('heading', { name: heading, exact: true }).isVisible(),
+          `${viewport.width}px ${category} library content remains visible.`);
+        const geometry = await page.evaluate(() => ({
+          headerBottom: document.querySelector('[data-mobile-site-masthead]').getBoundingClientRect().bottom,
+          contentTop: document.querySelector('[data-site-frame-slot]').getBoundingClientRect().top + scrollY,
+          documentWidth: document.documentElement.scrollWidth,
+          viewportWidth: innerWidth
+        }));
+        assert(geometry.contentTop >= geometry.headerBottom - 1 && geometry.contentTop <= geometry.headerBottom + 8,
+          `${viewport.width}px ${category} library content follows the masthead without an empty tab row: ${JSON.stringify(geometry)}.`);
+        assert(geometry.documentWidth <= geometry.viewportWidth + 1,
+          `${viewport.width}px ${category} library has no horizontal overflow.`);
+        await page.screenshot({ path: path.join(artifactDir, `mobile-${viewport.width}-${category}-library-single-nav.png`) });
+        await page.locator(`[data-home-library-close="${category}"]`).click();
+        await page.waitForFunction(category => window.SiteFrame?.current()?.view === 'overview' &&
+          window.SiteFrame?.current()?.category === category, category);
+        await settle(page);
+        assert.equal(await page.locator('[data-site-tab]:visible').count(), 5,
+          `${viewport.width}px ${category} overview restores its five colored section tabs.`);
+      }
+
+      await page.goto(`${base}/tools`, { waitUntil: 'domcontentloaded' });
+      await settle(page);
+      await chromeState(page, false);
+      assert.equal(await page.locator('[data-site-tab]:visible').count(), 0,
+        `${viewport.width}px direct Tools library load also has no upper section tabs.`);
+      assert(await page.getByRole('heading', { name: 'Tool library', exact: true }).isVisible(),
+        `${viewport.width}px direct Tools library content remains visible.`);
+      console.log(`Mobile library navigation passed: ${viewport.width}px, homepage transitions and direct Tools load.`);
+    } finally { await context.close(); }
+  }
+
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 740 }]) {
     const context = await browser.newContext({ viewport, serviceWorkers: 'block' });
     await isolateRequests(context, base);
     const page = await context.newPage();
