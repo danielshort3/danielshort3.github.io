@@ -76,7 +76,7 @@ const library = buildHomeLibraryData(content);
 assert(library.tools.items.every(item => /\/img\/tools\/icons\/[^?]+\.png\?v=[a-f0-9]{12}$/.test(item.image)), 'every tool library image is versioned');
 assert(/\?v=[a-f0-9]{12}$/.test(library.projects.items.find(item => item.id === 'sheetMusicUpscale').image));
 const iconProjects = canonical.projects.filter(item => item.published !== false && item.iconImage);
-assert.strictEqual(iconProjects.length, 16, 'all sixteen published projects receive library icons');
+assert.strictEqual(iconProjects.length, 17, 'all seventeen published projects receive library icons');
 const homeProjects = content.audiencesByKey.personal.page.sections
   .find(section => section.type === 'home-accordion').props.categories
   .find(category => category.id === 'projects').items;

@@ -16,6 +16,7 @@ const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo
 const { unwrapPersonalAccordionHtml } = require('./lib/personal-accordion-shell');
 const { toRawProjectDemoUrl, toCanonicalProjectDemoUrl } = require('./lib/project-demo-routes');
 const { versionedImageUrl, versionImageContent } = require('./lib/versioned-image-url');
+const { validateManifest } = require('../mobile/android/scripts/prepare-app-update.cjs');
 
 const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
@@ -27,6 +28,24 @@ const sitemapCachePath = path.join(root, 'build', 'cache', 'sitemap-cache.json')
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const toolsContentDir = path.join(root, 'content', 'tools');
 const gamesContentFile = path.join(root, 'content', 'pages', 'games.json');
+
+function readAndroidReviewRelease(project) {
+  if (project.androidReleaseChannel !== 'review') return null;
+  const source = path.join(root, 'mobile', 'android', 'releases', 'review', 'latest.json');
+  const manifest = JSON.parse(fs.readFileSync(source, 'utf8'));
+  validateManifest(manifest);
+  if (manifest.channel !== 'review' || manifest.packageName !== 'me.danielshort.app.debug') {
+    throw new Error('Android project download must use the approved review feed');
+  }
+  return manifest.latest;
+}
+
+function androidReleaseDescription(release) {
+  const version = String(release.versionName).replace(/-debug$/i, '');
+  const size = (release.apk.size / (1024 * 1024)).toFixed(1);
+  const minimum = release.minSdk === 26 ? 'Android 8+' : `Android API ${release.minSdk}+`;
+  return `Review build ${version} · ${size} MiB · ${minimum}`;
+}
 
 const noindexMetaCache = new Map();
 
@@ -440,6 +459,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
   const actions = Array.isArray(project.actions) ? project.actions : [];
   const results = Array.isArray(project.results) ? project.results : [];
   const resources = Array.isArray(project.resources) ? project.resources : [];
+  const androidRelease = readAndroidReviewRelease(project);
   const comparisonSource = project.previewComparison && typeof project.previewComparison === 'object' && !Array.isArray(project.previewComparison)
     ? project.previewComparison
     : null;
@@ -563,6 +583,9 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
   const imageViewerScript = id === 'deliveryTip'
     ? '  <script defer src="js/portfolio/project-image-viewer.js"></script>\n'
     : '';
+  const androidDownloadScript = androidRelease
+    ? '  <script defer src="js/portfolio/android-app-download.js"></script>\n'
+    : '';
   const dashboard = String(embed?.type || '').trim() === 'tableau';
   const dashboardBase = dashboard ? String(embed.base || '').trim() : '';
   const demoLaunchHref = dashboardBase
@@ -583,15 +606,21 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
       || (extension === '.zip' && /\b(?:pdfs?|reports?)\b/i.test(String(resource.label || '')));
   });
   const introActions = [
+    ...(androidRelease ? [{ href: androidRelease.apk.url, label: 'Download Android review APK', type: 'download' }] : []),
     ...(demoLaunchHref ? [{ href: demoLaunchHref, label: dashboard ? 'Open dashboard' : 'Open demo', type: 'demo' }] : []),
     ...(reportResource ? [{ href: String(reportResource.url || '').trim(), label: formatResourceLabel(reportResource).replace(/^Project reports?\b/, (label) => label.endsWith('s') ? 'Reports' : 'Report'), type: 'report' }] : [])
   ];
   const introActionsHtml = introActions.length
     ? `<nav class="project-intro-actions" aria-label="Project actions">
         ${introActions.map((action) => {
-          const externalAttrs = /^https?:\/\//i.test(action.href) ? ' target="_blank" rel="noopener noreferrer"' : '';
-          return `<a class="project-intro-action project-intro-action--${action.type}" href="${escapeHtml(action.href)}"${externalAttrs} data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project_resource" data-resource-type="${action.type}" data-source-surface="project_intro">${escapeHtml(action.label)}</a>`;
+          const externalAttrs = /^https?:\/\//i.test(action.href) && action.type !== 'download'
+            ? ' target="_blank" rel="noopener noreferrer"' : '';
+          const downloadAttrs = action.type === 'download'
+            ? ` data-android-review-download data-release-version-code="${androidRelease.versionCode}"`
+            : '';
+          return `<a class="project-intro-action project-intro-action--${action.type}" href="${escapeHtml(action.href)}"${externalAttrs}${downloadAttrs} data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project_resource" data-resource-type="${action.type}" data-source-surface="project_intro">${escapeHtml(action.label)}</a>`;
         }).join('\n        ')}
+        ${androidRelease ? `<span class="project-download-meta" data-android-release-status role="status">${escapeHtml(androidReleaseDescription(androidRelease))}</span><button class="project-download-retry" type="button" data-android-release-retry hidden>Retry check</button>` : ''}
         ${drawingDemo || dashboard ? renderDemoInstructions() : ''}
       </nav>`
     : '';
@@ -1073,7 +1102,7 @@ ${tableauPreconnect}
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
-${comparisonScript}${imageViewerScript}  <script src="js/privacy/config.js"></script>
+${comparisonScript}${imageViewerScript}${androidDownloadScript}  <script src="js/privacy/config.js"></script>
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>

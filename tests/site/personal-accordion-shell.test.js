@@ -412,8 +412,8 @@ function runPersonalAccordionShellTests({ assert }) {
     config.relPath.replace(/\\/g, '/'),
     config
   ]));
-  assert(uniqueManagedPages.length === 51,
-    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 16 projects, 18 tools, and six games');
+  assert(uniqueManagedPages.length === 52,
+    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 17 projects, 18 tools, and six games');
   assert(INTERNAL_TOOL_PAGE_IDS.length === 8 &&
     INTERNAL_TOOL_PAGE_IDS.every((itemId) => !TOOL_PAGE_IDS.includes(itemId)),
   'Account-reachable tools should remain a distinct internal shell list instead of joining the public catalog');

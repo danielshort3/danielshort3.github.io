@@ -43971,7 +43971,7 @@ try {
     assert(portfolioHtml.includes('data-personal-accordion-shell') &&
       portfolioHtml.includes('data-personal-category="projects"') &&
       portfolioHtml.includes('<h1 id="personal-library-title-projects">Project library</h1>') &&
-      (portfolioHtml.match(/class="home-library__card(?: home-library__card--icon)?"/g) || []).length === 16,
+      (portfolioHtml.match(/class="home-library__card(?: home-library__card--icon)?"/g) || []).length === 17,
       'personal portfolio should expose the isolated-category project library with all public projects');
     ['id="portfolio-carousel"', 'id="projects"', 'id="modals"', 'id="filters"',
       'portfolio-library-section', 'portfolio-ml-hero', 'portfolio-lab-panel', 'Project signals'].forEach((marker) => {
@@ -45126,8 +45126,13 @@ try {
     assert(rouletteHtml.includes('data-wager-mode="add"') &&
            rouletteHtml.includes('data-wager-mode="remove"') &&
            rouletteHtml.includes('id="roulette-mobile-spin"') &&
-           rouletteHtml.includes('id="roulette-new-session"'),
-      'roulette should expose touch wager modes, mobile spin controls, and a new-session path');
+           rouletteHtml.includes('id="roulette-new-session"') &&
+           rouletteHtml.includes('id="roulette-double"'),
+      'roulette should expose touch wager modes, mobile spin controls, Double, and a new-session path');
+    assert(rouletteHtml.includes('id="roulette-round-phase"') &&
+           rouletteHtml.includes('class="roulette00-wheel-stator"') &&
+           rouletteHtml.includes('class="roulette00-pocket-dividers"'),
+      'roulette should expose round phases and separate fixed bowl from moving pocket dividers');
     assert(rouletteHtml.includes('virtual credits with no cash value') &&
            rouletteHtml.includes('Each spin is independent'),
       'roulette should identify virtual currency and explain independent outcomes');
@@ -45138,13 +45143,14 @@ try {
     assert(rouletteJs.includes('window.localStorage.setItem(STORAGE_KEY'), 'roulette demo should save session to local storage');
     assert(rouletteJs.includes('window.localStorage.getItem(STORAGE_KEY)'), 'roulette demo should load session from local storage');
     assert(rouletteJs.includes('const CHIP_VALUES = [1, 5, 25, 100];'), 'roulette demo should expose chip values');
-    assert(rouletteJs.includes('function computeSpinTargets(winningPocket) {'), 'roulette demo missing spin target resolver');
-    assert(rouletteJs.includes('finalBallMod = normalizeDeg(pocketLocalAngle + finalWheelMod);'),
-      'roulette demo ball should land based on wheel + pocket angle');
+    assert(rouletteJs.includes('function createSpinPlan(') &&
+           rouletteJs.includes('function sampleSpinMotion(') &&
+           rouletteJs.includes('pendingSpin: activeSpin ?'),
+      'roulette should animate separate wheel and ball motion and preserve interrupted outcomes');
     assert(rouletteJs.includes('id: "basket-first-five"'), 'roulette demo missing first five basket bet');
     assert(rouletteJs.includes('availableAfterReturningCurrentBets') &&
            rouletteJs.includes('type: "snapshot"') &&
-           rouletteJs.includes('Rebet undone.'),
+           rouletteJs.includes('reason: "Rebet"'),
       'roulette rebet should preflight affordability and remain undoable');
     assert(rouletteJs.includes('function setWagerMode(nextMode') &&
            rouletteJs.includes('button.setAttribute("aria-pressed", String(selected))'),
@@ -45160,8 +45166,11 @@ try {
       'roulette CSS should provide sticky mobile controls and reduced-motion payout feedback');
     assert(rouletteCss.includes('body.roulette00-page.has-mobile-site-masthead') &&
            rouletteCss.includes('body.has-mobile-site-dock .roulette00-mobile-bar') &&
-           rouletteCss.includes('bottom: var(--mobile-site-dock-clearance'),
+           rouletteCss.includes('bottom: calc(var(--mobile-section-nav-height, 72px) + 8px)'),
       'roulette mobile header and primary control bar should clear the shared site chrome');
+    assert(rouletteHtml.includes('id="roulette-payout-breakdown"'),
+      'roulette should show an itemized payout below the spin result');
+    require('./tests/games/roulette-rules.test.js');
   });
 
   section('Probability Engine game', () => {
