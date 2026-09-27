@@ -1005,13 +1005,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       `homepage should not expose hidden tool ${toolId}`);
   });
   const expectedLibraryCounts = {
-    projects: 16,
+    projects: 17,
     tools: 10,
     games: 6
   };
   assert(JSON.stringify(Object.fromEntries(Object.entries(homeLibraryData)
     .map(([id, library]) => [id, library.items?.length || 0]))) === JSON.stringify(expectedLibraryCounts),
-  'generated HOME_LIBRARY_DATA should expose all 16 projects, 10 public tools, and 6 games');
+  'generated HOME_LIBRARY_DATA should expose all 17 projects, 10 public tools, and 6 games');
   const projectGroupNames = [...new Set(homeLibraryData.projects.items.map((item) => item.group))];
   assert(JSON.stringify(projectGroupNames) === JSON.stringify(['Start here', 'Machine learning', 'Data stories', 'Practical applications']) &&
     JSON.stringify(homeLibraryData.projects.items.filter((item) => item.group === 'Start here').map((item) => item.id)) === JSON.stringify(startHereProjectIds),
@@ -1090,7 +1090,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       item.image === versionedImageUrl(`/img/projects/${item.id}-640.webp`) &&
       item.imageAlt === '';
   }),
-  'all 16 project library records should retain their original optimized screenshot independently from optional icons');
+  'all 17 project library records should retain their original optimized screenshot independently from optional icons');
   assert(homeLibraryData.projects.items.filter((item) => item.iconImage).length === expectedLibraryCounts.projects &&
     homeLibraryData.projects.items.every((item) => {
       const project = publishedProjectsById.get(item.id);
@@ -1175,8 +1175,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(projectPreviewPaths.length === expectedLibraryCounts.projects &&
     toolIconPaths.length === expectedLibraryCounts.tools &&
     generatedPreviewPaths.length === expectedLibraryCounts.games &&
-    new Set([...projectPreviewPaths, ...toolIconPaths, ...generatedPreviewPaths]).size === 32,
-  'all 32 public library preview paths should remain unique');
+    new Set([...projectPreviewPaths, ...toolIconPaths, ...generatedPreviewPaths]).size ===
+      Object.values(expectedLibraryCounts).reduce((total, count) => total + count, 0),
+  'all public library preview paths should remain unique');
   assert(projectPreviewPaths.every((previewPath) => {
     const dimensions = readWebpDimensions(previewPath);
     return dimensions.width === 640 && dimensions.height > 0;

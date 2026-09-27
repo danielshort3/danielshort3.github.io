@@ -86,6 +86,7 @@ async function classification() {
     media: { entries: 96, bytes: 50331648, entryBytes: 8388608, age: 1209600000 }
   });
   for (const req of [request('/api/private.json'), request('/admin/config.json'), request('/api'),
+    request('/app-updates/review/latest.json'),
     request('/tools/job-application-tracker'), request('/pages/transcribe.html'),
     request('/tools/dashboard?code=fixture&state=fixture', { document: true }),
     request('/tools/dashboard.html', { document: true }), request('/pages/tools-dashboard.html', { document: true }),
