@@ -729,7 +729,7 @@
 
   @media (max-width:820px) {
     body[data-page="tools"] .portfolio-workbench[data-directory-workbench="tools"] {
-      padding:.7rem var(--mobile-page-gutter) calc(var(--mobile-site-dock-clearance,120px) + 1rem);
+      padding:.7rem var(--mobile-page-gutter) calc(env(safe-area-inset-bottom, 0px) + 1rem);
     }
 
     body[data-page="tools"] .portfolio-workbench[data-directory-workbench="tools"] .portfolio-workbench__layout {

@@ -449,7 +449,7 @@
 
   @media (max-width: 620px) {
     .games-directory {
-      padding: 1.2rem var(--mobile-page-gutter, 1rem) calc(var(--mobile-site-dock-clearance, 7.5rem) + 1rem);
+      padding: 1.2rem var(--mobile-page-gutter, 1rem) calc(1rem + env(safe-area-inset-bottom, 0px));
     }
 
     .games-directory__header {

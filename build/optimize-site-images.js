@@ -31,29 +31,6 @@ const jobs = [
     ]
   },
   {
-    source: 'img/brand/25-hero-data-science-light.png',
-    outputs: [
-      { extension: '.avif', format: 'avif', options: { quality: 56, effort: 6, chromaSubsampling: '4:4:4' } },
-      { extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }
-    ]
-  },
-  {
-    source: 'img/brand/26-hero-tourism-light.png',
-    outputs: [
-      { extension: '.avif', format: 'avif', options: { quality: 56, effort: 6, chromaSubsampling: '4:4:4' } },
-      { extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }
-    ]
-  },
-  {
-    source: 'img/brand/24-hero-analytics-light.png',
-    outputs: [
-      { extension: '.avif', format: 'avif', options: { quality: 56, effort: 6, chromaSubsampling: '4:4:4' } },
-      { extension: '.webp', format: 'webp', options: { quality: 88, effort: 6, smartSubsample: true } },
-      { suffix: '-960', extension: '.avif', format: 'avif', width: 960, options: { quality: 56, effort: 6, chromaSubsampling: '4:4:4' } },
-      { suffix: '-960', extension: '.webp', format: 'webp', width: 960, options: { quality: 86, effort: 6, smartSubsample: true } }
-    ]
-  },
-  {
     source: 'img/project-starfall/ui/start-screen.png',
     outputs: [
       { extension: '.avif', format: 'avif', options: { quality: 66, effort: 6, chromaSubsampling: '4:4:4' } },

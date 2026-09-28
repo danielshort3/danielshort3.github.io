@@ -43,7 +43,7 @@
         },
         {
           "title": "Choose the right variant",
-          "body": "Use the personal wordmark without a role descriptor for general materials. Analytics has its own labeled variant. The all-white mark serves dark backgrounds. The favicon uses the complete DS mark on a flat white tile, including the three chart bars inside the D."
+          "body": "Use the personal wordmark without a role descriptor for general materials. The all-white mark serves dark backgrounds. The favicon uses the complete DS mark on a flat white tile, including the three chart bars inside the D."
         },
         {
           "title": "Preserve the drawing",
@@ -52,7 +52,7 @@
       ],
       "sourceNotes": [
         "img/brand/00-ds-logo-master-full-color.svg; 03-ds-logo-monochrome-midnight.svg; 04c-ds-logo-all-white.svg",
-        "img/brand/05-ds-favicon-small-icon.svg; 06-wordmark-horizontal-assembly.svg; 06b-wordmark-analytics.svg",
+        "img/brand/05-ds-favicon-small-icon.svg; 06-wordmark-horizontal-assembly.svg",
         "content/site/navigation.json; css/layout/nav.css; css/components/mobile-site-dock.css",
         "build/resize_logo.js: current favicon export source and output sizes"
       ]
@@ -257,7 +257,7 @@
       "sourceNotes": [
         "AGENTS.md: light-only shared shell and isolated game exceptions",
         "img/brand/personal-social-card.png: default 1200x630 personal-site preview",
-        "img/brand/06-wordmark-horizontal-assembly.svg; 06b-wordmark-analytics.svg; 09-linkedin-banner-1584x396.svg; 10-github-readme-portfolio-banner.svg",
+        "img/brand/06-wordmark-horizontal-assembly.svg; 09-linkedin-banner-1584x396.svg; 10-github-readme-portfolio-banner.svg",
         "build/generate-brand-assets.py: outlined production type and refreshed visual exports",
         "mobile/android/README.md: feed updates versus native app updates"
       ]
@@ -275,7 +275,7 @@
         },
         {
           "title": "Implemented: a dependable variant kit",
-          "body": "The kit now includes a plain personal wordmark, a separately named analytics wordmark, an all-white mark, and refreshed social assets. Outlined production type prevents font substitutions. Editable sources support future copy changes. Choose by background and audience; test size and clear space in the intended placement."
+          "body": "The kit includes a plain personal wordmark, an all-white mark, and refreshed social assets. Outlined production type prevents font substitutions. Editable sources support future copy changes. Choose by background; test size and clear space in the intended placement."
         },
         {
           "title": "Proposed: explore, then compare",

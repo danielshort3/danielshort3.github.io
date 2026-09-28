@@ -9,31 +9,60 @@ const { createLocalServer } = require('../../build/dev');
 const { isolateRequests, settle } = require('../release/fixtures.cjs');
 
 const categories = ['about', 'projects', 'tools', 'games', 'contact'];
-const navSelector = '[data-mobile-section-nav]';
-const headerSelector = '[data-mobile-site-masthead]';
-
-async function chromeState(page, hidden) {
-  await page.waitForFunction(hidden => document.body.classList.contains('is-mobile-chrome-hidden') === hidden, hidden);
-  await page.waitForFunction(({ hidden, navSelector, headerSelector }) => [navSelector, headerSelector].every(selector => {
-    const node = document.querySelector(selector);
-    const rect = node.getBoundingClientRect();
-    return hidden
-      ? node.inert && (selector === headerSelector ? rect.bottom <= 0 : rect.top >= innerHeight)
-      : !node.inert && rect.top >= -1 && rect.bottom <= innerHeight + 1;
-  }), { hidden, navSelector, headerSelector });
-}
+const mastheadSelector = '[data-mobile-site-masthead]';
+const sectionSelector = '.site-frame[data-frame-navigation="section"] .site-frame__tab.is-active';
 
 async function scrollPage(page, y) {
-  const current = await page.evaluate(() => window.scrollY);
+  const current = await page.evaluate(() => scrollY);
   await page.mouse.move(2, Math.floor(page.viewportSize().height / 2));
   await page.mouse.wheel(0, y - current);
   await page.waitForFunction(y => Math.abs(scrollY - Math.min(y, Math.max(0, document.documentElement.scrollHeight - innerHeight))) <= 2, y);
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
 
+async function checkChrome(page, hidden) {
+  await page.waitForFunction(hidden => document.body.classList.contains('is-mobile-chrome-hidden') === hidden, hidden);
+  await page.waitForFunction(({ selector, hidden }) => {
+    const header = document.querySelector(selector);
+    const rect = header.getBoundingClientRect();
+    return hidden ? header.inert && rect.bottom <= 0 : !header.inert && rect.top >= -1 && rect.bottom <= innerHeight + 1;
+  }, { selector: mastheadSelector, hidden });
+}
+
+async function checkSectionPosition(page, category) {
+  const section = page.locator(`${sectionSelector}[data-site-tab="${category}"]`);
+  await section.waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.site-frame [data-site-tab]:visible').count(), 1,
+    'Library and detail pages show one active horizontal section rail.');
+  const geometry = await page.evaluate(() => {
+    const header = document.querySelector('[data-mobile-site-masthead]').getBoundingClientRect();
+    const section = document.querySelector('.site-frame[data-frame-navigation="section"] .site-frame__tab.is-active').getBoundingClientRect();
+    const slot = document.querySelector('[data-site-frame-slot]').getBoundingClientRect();
+    return {
+      headerBottom: header.bottom,
+      sectionTop: section.top,
+      sectionBottom: section.bottom,
+      contentTop: slot.top,
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: innerWidth
+    };
+  });
+  assert(geometry.sectionTop >= geometry.headerBottom - 1 && geometry.sectionTop <= geometry.headerBottom + 8,
+    `The active section begins below the measured masthead: ${JSON.stringify(geometry)}.`);
+  assert(geometry.contentTop >= geometry.sectionBottom - 1 && geometry.contentTop <= geometry.sectionBottom + 8,
+    `Content follows the active section without overlap: ${JSON.stringify(geometry)}.`);
+  assert(geometry.documentWidth <= geometry.viewportWidth + 1, 'The route has no horizontal overflow.');
+}
+
 async function runMobileScrollChromeChecks({ browser, base, artifactDir, prepareContext }) {
   fs.mkdirSync(artifactDir, { recursive: true });
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 740 }, { width: 844, height: 390 }, { width: 834, height: 1112 }, { width: 1440, height: 900 }]) {
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 320, height: 740 },
+    { width: 844, height: 390 },
+    { width: 834, height: 1112 },
+    { width: 1440, height: 900 }
+  ]) {
     const context = await browser.newContext({ viewport, reducedMotion: viewport.width === 320 ? 'reduce' : 'no-preference', serviceWorkers: 'block' });
     await isolateRequests(context, base);
     await prepareContext?.(context);
@@ -42,247 +71,93 @@ async function runMobileScrollChromeChecks({ browser, base, artifactDir, prepare
     page.on('pageerror', error => errors.push(error.message));
     page.setDefaultTimeout(12000);
     try {
-      await page.goto(`${base}${viewport.width === 834 ? '/games/project-starfall' : '/#about'}`);
+      await page.goto(`${base}/#about`);
       await settle(page);
-      if (viewport.width >= 960) {
-        assert(await page.locator(navSelector).isHidden(), 'Desktop does not show a second category navigation.');
-        assert.equal(await page.locator('[data-site-tab]:visible').count(), 5, 'Desktop retains all five vertical tabs.');
-        await page.screenshot({ path: path.join(artifactDir, 'desktop-unchanged.png') });
-        continue;
-      }
-      if (viewport.width === 834) {
-        assert(await page.locator(navSelector).isHidden(), 'Portrait tablet does not show the bottom section navigation.');
+      assert.equal(await page.locator('[data-mobile-section-nav], .mobile-site-dock').count(), 0,
+        'The old five-button bottom navigation is absent from the DOM.');
+      if (viewport.width === 834 || viewport.width >= 960) {
         assert.equal(await page.locator('[data-site-tab]:visible').count(), 5,
-          'Portrait tablet keeps its upper section tabs while the bottom navigation is absent.');
-        await page.locator('.project-starfall-canvas-wrap.is-loaded').waitFor();
-        await page.locator('[data-starfall-loader]').waitFor({ state: 'hidden' });
-        await page.screenshot({ path: path.join(artifactDir, 'tablet-834-upper-tabs.png') });
+          'Tablet and desktop retain the five-tab site frame.');
+        assert(await page.locator(mastheadSelector).isHidden(), 'The mobile masthead is not duplicated on wider screens.');
         continue;
       }
-      const cookie = page.locator('#pcz-banner');
-      const cookieBounds = await cookie.boundingBox();
-      const navBounds = await page.locator(navSelector).boundingBox();
-      if (await cookie.isVisible()) {
-        assert(cookieBounds.y + cookieBounds.height <= navBounds.y + 1, 'First-visit consent does not cover the category panel.');
+
+      if (await page.locator('#pcz-reject').isVisible()) {
         await page.locator('#pcz-reject').click();
-        await cookie.waitFor({ state: 'hidden' });
+        await page.locator('#pcz-banner').waitFor({ state: 'hidden' });
       }
-      await chromeState(page, false);
-      assert.deepEqual(await page.locator(`${navSelector} a`).evaluateAll(nodes => nodes.map(node => node.dataset.mobileSection)), categories);
-      assert.equal(await page.locator('[data-site-tab]:visible').count(), 5, 'Open mobile home keeps every colored tab row available around the active content.');
-      for (const link of await page.locator(`${navSelector} a`).all()) {
-        const box = await link.boundingBox();
-        assert(box.width >= 44 && box.height >= 44, 'Each category has a usable touch target.');
-      }
-      await page.screenshot({ path: path.join(artifactDir, `mobile-${viewport.width}-shown.png`) });
+      await checkChrome(page, false);
+      assert.deepEqual(await page.locator('[data-mobile-explore-category]').evaluateAll(nodes => nodes.map(node => node.dataset.mobileExploreCategory)), categories,
+        'The top Explore menu retains all five sections.');
+      assert.equal(await page.locator('[data-site-tab]:visible').count(), 5,
+        'The expanded mobile homepage keeps its colored section rows.');
+      await page.screenshot({ path: path.join(artifactDir, `mobile-${viewport.width}-header.png`) });
+      if (viewport.width === 844) continue;
+
       await scrollPage(page, 240);
-      await chromeState(page, true);
-      assert.equal(await page.locator(`${navSelector}[aria-hidden="true"]`).count(), 1);
-      await page.locator(`${navSelector} a`).first().evaluate(node => node.focus());
-      assert(!await page.locator(navSelector).evaluate(node => node.contains(document.activeElement)), 'Hidden links cannot steal focus.');
-      await page.screenshot({ path: path.join(artifactDir, `mobile-${viewport.width}-hidden.png`) });
-      await scrollPage(page, 215);
-      await chromeState(page, false);
-      await scrollPage(page, 300);
-      await chromeState(page, true);
+      await checkChrome(page, true);
+      assert(!(await page.locator(mastheadSelector).evaluate(node => {
+        node.querySelector('a')?.focus();
+        return node.contains(document.activeElement);
+      })), 'Hidden masthead controls cannot steal focus.');
+      await scrollPage(page, 190);
+      await checkChrome(page, false);
       await page.keyboard.press('Tab');
-      await chromeState(page, false);
-      await page.locator('[data-site-tab="about"]').focus();
-      await scrollPage(page, 0);
-      await chromeState(page, false);
-      await scrollPage(page, 6);
-      await scrollPage(page, 0);
-      await chromeState(page, false);
+      await checkChrome(page, false);
 
-      await page.locator(`${navSelector} [data-mobile-section="tools"]`).click();
-      await page.waitForFunction(() => SiteFrame.current()?.category === 'tools' && SiteFrame.current()?.view === 'overview');
+      await page.locator('.mobile-site-masthead__explore-button').click();
+      await page.locator('[data-mobile-explore-category="tools"]').click();
+      await page.waitForFunction(() => SiteFrame.current()?.view === 'overview' && SiteFrame.current()?.category === 'tools');
       await settle(page);
-      await page.locator(`${navSelector} [data-mobile-section="tools"][aria-current="page"]`).waitFor();
-      assert.equal(await page.locator(`${navSelector} [aria-current="page"]`).getAttribute('data-mobile-section'), 'tools');
-      await page.locator('[data-site-tab="tools"]').click();
-      await page.waitForFunction(() => SiteFrame.current()?.view === 'closed');
-      await settle(page);
-      await page.waitForFunction(() => !document.querySelector('[data-mobile-section-nav] [aria-current]'));
-      assert.equal(await page.locator('[data-site-tab]:visible').count(), 5, 'The closed homepage retains its flush colored rows.');
-      assert.equal(await page.locator(`${navSelector} [aria-current]`).count(), 0, 'Closed homepage has no active bottom category.');
+      assert.equal(await page.locator('[data-site-tab]:visible').count(), 5);
 
-      if (viewport.width <= 390) {
-        await page.goto(`${base}/games/project-starfall`);
+      for (const [category, route] of [
+        ['projects', '/portfolio'],
+        ['tools', '/tools'],
+        ['games', '/games']
+      ]) {
+        await page.goto(`${base}${route}`);
         await settle(page);
-        await page.waitForFunction(() => SiteFrame.current()?.view === 'detail' && SiteFrame.current()?.category === 'games');
-        await chromeState(page, false);
-        assert.equal(await page.locator('[data-site-tab]:visible').count(), 0,
-          'Mobile game detail does not repeat section tabs above its content.');
-        const detailGeometry = await page.evaluate(() => {
-          const masthead = document.querySelector('[data-mobile-site-masthead]').getBoundingClientRect();
-          const slot = document.querySelector('[data-site-frame-slot]').getBoundingClientRect();
-          return { headerBottom: masthead.bottom, contentTop: slot.top, documentWidth: document.documentElement.scrollWidth, viewportWidth: innerWidth };
-        });
-        assert(detailGeometry.contentTop >= detailGeometry.headerBottom - 1 &&
-          detailGeometry.contentTop <= detailGeometry.headerBottom + 8,
-        `Mobile game content follows the masthead without an empty tab row: ${JSON.stringify(detailGeometry)}.`);
-        assert(detailGeometry.documentWidth <= detailGeometry.viewportWidth + 1, 'Mobile game detail has no horizontal overflow.');
-        assert.deepEqual(await page.locator(`${navSelector} a`).evaluateAll(nodes => nodes.map(node => node.dataset.mobileSection)), categories);
-        assert.equal(await page.locator(`${navSelector} [aria-current="page"]`).getAttribute('data-mobile-section'), 'games');
-        for (const link of await page.locator(`${navSelector} a`).all()) {
-          const box = await link.boundingBox();
-          assert(box.width >= 44 && box.height >= 44, 'Game detail retains usable bottom section targets.');
-        }
-        const upperTabTakesFocus = await page.locator('[data-site-tab]').evaluateAll(nodes => nodes.some(node => {
-          node.focus();
-          return document.activeElement === node;
-        }));
-        assert(!upperTabTakesFocus, 'Hidden upper tabs cannot receive keyboard focus on mobile detail pages.');
-        await page.locator('.project-starfall-canvas-wrap.is-loaded').waitFor();
-        await page.locator('[data-starfall-loader]').waitFor({ state: 'hidden' });
-        await page.screenshot({ path: path.join(artifactDir, `game-detail-${viewport.width}-single-nav.png`) });
-        await page.locator(`${navSelector} [data-mobile-section="tools"]`).click();
-        await page.waitForFunction(() => SiteFrame.current()?.view === 'overview' && SiteFrame.current()?.category === 'tools');
-        await settle(page);
-        assert.equal(await page.locator(`${navSelector} [aria-current="page"]`).getAttribute('data-mobile-section'), 'tools',
-          'The bottom section navigation still opens another section from game detail.');
+        await checkChrome(page, false);
+        await checkSectionPosition(page, category);
+        await page.screenshot({ path: path.join(artifactDir, `mobile-${viewport.width}-${category}-library.png`) });
       }
 
-      await page.goto(`${base}/tools/text-compare`);
-      await settle(page);
-      await chromeState(page, false);
-      assert.equal(await page.locator('[data-site-tab]:visible').count(), 0,
-        'Mobile tool detail uses only the bottom section navigation.');
-      const before = page.locator('#textcompare-original');
-      await before.fill(Array(70).fill('A longer local draft for internal scrolling.').join('\n'));
-      await before.evaluate(node => { node.scrollTop = node.scrollHeight; });
-      await scrollPage(page, 180);
-      await chromeState(page, false);
-      await page.evaluate(() => document.activeElement.blur());
-      await scrollPage(page, 280);
-      await chromeState(page, true);
-      await page.keyboard.press('Tab');
-      await chromeState(page, false);
-      await page.locator('.mobile-site-masthead__explore-button').click();
-      await scrollPage(page, 380);
-      await chromeState(page, false);
-      await page.keyboard.press('Escape');
+      for (const [category, route] of [
+        ['projects', '/portfolio/handwritingRating'],
+        ['tools', '/tools/text-compare'],
+        ['games', '/games/project-starfall'],
+        ['contact', '/contact']
+      ]) {
+        await page.goto(`${base}${route}`);
+        await settle(page);
+        await checkChrome(page, false);
+        await checkSectionPosition(page, category);
+      }
 
-      await page.goto(`${base}/contact`);
-      await settle(page);
-      assert.equal(await page.locator('[data-site-tab]:visible').count(), 0,
-        'Mobile contact detail uses only the bottom section navigation.');
       await page.locator('#contact-form-toggle').click();
       await page.locator('#contact-name').fill('Local reviewer');
-      assert(!await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden')), 'Modal interactions retain visible chrome.');
-      assert(await page.locator(navSelector).evaluate(node => node.inert), 'Visible navigation respects the modal focus boundary.');
+      assert(!await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden')),
+        'A contact dialog retains the top masthead.');
+      assert(await page.locator(mastheadSelector).evaluate(node => node.inert),
+        'The visible masthead respects the dialog focus boundary.');
       await page.locator('#contact-modal .modal-close').click();
       await page.locator('#contact-modal.active').waitFor({ state: 'hidden' });
-      await chromeState(page, false);
-      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'No horizontal overflow.');
-      await page.goto(`${base}/portfolio/handwritingRating`);
+
+      await page.goto(`${base}/tools`);
       await settle(page);
-      assert.equal(await page.locator('[data-site-tab]:visible').count(), 0,
-        'Mobile project detail uses only the bottom section navigation.');
-      await scrollPage(page, 240);
-      await chromeState(page, true);
-      const questionDock = page.locator('.project-question-dock');
-      const question = page.locator('.project-question-link');
-      await page.waitForFunction(() => {
-        const dock = document.querySelector('.project-question-dock');
-        return dock.parentElement.matches('.project-main') && !dock.inert
-          && getComputedStyle(dock).position === 'static' && getComputedStyle(dock).visibility === 'visible';
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      const footer = await page.locator('[data-site-shell-footer]').evaluate(node => {
+        const rect = node.getBoundingClientRect();
+        return { bottom: rect.bottom, viewportHeight: innerHeight, height: rect.height };
       });
-      await question.evaluate(node => node.focus());
-      assert(await questionDock.evaluate(node => node.contains(document.activeElement)), 'The in-flow project question remains keyboard reachable.');
-      await chromeState(page, false);
-      await page.screenshot({ path: path.join(artifactDir, `project-${viewport.width}-in-flow.png`) });
-      await question.click();
-      await page.locator('#contact-modal.active').waitFor();
-      await page.locator('#contact-message').fill('A local project question that is not sent.');
-      assert(!await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden')), 'The project question dialog preserves visible chrome.');
-      await page.locator('#contact-modal .modal-close').click();
-      await page.locator('#contact-modal.active').waitFor({ state: 'hidden' });
-      await chromeState(page, false);
-      await question.waitFor({ state: 'visible' });
-      await page.screenshot({ path: path.join(artifactDir, `project-${viewport.width}-shown.png`) });
+      assert(Math.abs(footer.bottom - footer.viewportHeight) <= 2 && footer.height < 140,
+        `The compact footer reaches the viewport bottom without a dock-sized gap: ${JSON.stringify(footer)}.`);
       assert.deepEqual(errors, [], 'Mobile navigation has no runtime exceptions.');
-      console.log(`Mobile scroll chrome passed: ${viewport.width}x${viewport.height}, full hide/reveal, focus, nested inputs, navigation, consent and dialogs.`);
+      console.log(`Mobile chrome passed: ${viewport.width}x${viewport.height}, masthead hide/reveal, Explore, section labels, dialogs, footer.`);
     } catch (error) {
       await page.screenshot({ path: path.join(artifactDir, `failure-${viewport.width}.png`) }).catch(() => {});
       throw error;
-    } finally { await context.close(); }
-  }
-
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 740 }]) {
-    const context = await browser.newContext({ viewport, reducedMotion: 'reduce', serviceWorkers: 'block' });
-    await isolateRequests(context, base);
-    const page = await context.newPage();
-    page.setDefaultTimeout(12000);
-    try {
-      for (const [category, route, heading] of [
-        ['projects', '/portfolio', 'Project library'],
-        ['tools', '/tools', 'Tool library'],
-        ['games', '/games', 'Game library']
-      ]) {
-        await page.goto(`${base}/#${category}`, { waitUntil: 'domcontentloaded' });
-        await settle(page);
-        if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
-        await page.locator(`[data-home-library-open="${category}"]`).click();
-        await page.waitForFunction(({ route, category }) => location.pathname === route &&
-          window.SiteFrame?.current()?.view === 'library' && window.SiteFrame?.current()?.category === category,
-        { route, category });
-        await settle(page);
-        await chromeState(page, false);
-        assert.equal(await page.locator('[data-site-tab]:visible').count(), 0,
-          `${viewport.width}px ${category} library reached from the homepage has no duplicate upper section tabs.`);
-        assert(await page.getByRole('heading', { name: heading, exact: true }).isVisible(),
-          `${viewport.width}px ${category} library content remains visible.`);
-        const geometry = await page.evaluate(() => ({
-          headerBottom: document.querySelector('[data-mobile-site-masthead]').getBoundingClientRect().bottom,
-          contentTop: document.querySelector('[data-site-frame-slot]').getBoundingClientRect().top + scrollY,
-          documentWidth: document.documentElement.scrollWidth,
-          viewportWidth: innerWidth
-        }));
-        assert(geometry.contentTop >= geometry.headerBottom - 1 && geometry.contentTop <= geometry.headerBottom + 8,
-          `${viewport.width}px ${category} library content follows the masthead without an empty tab row: ${JSON.stringify(geometry)}.`);
-        assert(geometry.documentWidth <= geometry.viewportWidth + 1,
-          `${viewport.width}px ${category} library has no horizontal overflow.`);
-        await page.screenshot({ path: path.join(artifactDir, `mobile-${viewport.width}-${category}-library-single-nav.png`) });
-        await page.locator(`[data-home-library-close="${category}"]`).click();
-        await page.waitForFunction(category => window.SiteFrame?.current()?.view === 'overview' &&
-          window.SiteFrame?.current()?.category === category, category);
-        await settle(page);
-        assert.equal(await page.locator('[data-site-tab]:visible').count(), 5,
-          `${viewport.width}px ${category} overview restores its five colored section tabs.`);
-      }
-
-      await page.goto(`${base}/tools`, { waitUntil: 'domcontentloaded' });
-      await settle(page);
-      await chromeState(page, false);
-      assert.equal(await page.locator('[data-site-tab]:visible').count(), 0,
-        `${viewport.width}px direct Tools library load also has no upper section tabs.`);
-      assert(await page.getByRole('heading', { name: 'Tool library', exact: true }).isVisible(),
-        `${viewport.width}px direct Tools library content remains visible.`);
-      console.log(`Mobile library navigation passed: ${viewport.width}px, homepage transitions and direct Tools load.`);
-    } finally { await context.close(); }
-  }
-
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 740 }]) {
-    const context = await browser.newContext({ viewport, serviceWorkers: 'block' });
-    await isolateRequests(context, base);
-    const page = await context.newPage();
-    try {
-      await page.goto(`${base}/games/project-starfall`);
-      await settle(page);
-      await page.waitForFunction(() => document.body.classList.contains('has-mobile-scroll-chrome'));
-      await page.locator('#pcz-banner.pcz-visible').waitFor();
-      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-      const clearance = await page.evaluate(() => {
-        const button = document.querySelector('#pcz-reject').getBoundingClientRect();
-        const dock = document.querySelector('[data-mobile-section-nav]').getBoundingClientRect();
-        return { buttonTop: button.top, buttonBottom: button.bottom, dockTop: dock.top };
-      });
-      assert(clearance.buttonBottom <= clearance.dockTop - 1,
-        `First-visit Starfall consent remains above the mobile navigation: ${JSON.stringify(clearance)}.`);
-      await page.locator('#pcz-reject').click();
-      await page.locator('#pcz-banner').waitFor({ state: 'hidden' });
-      console.log(`Mobile Starfall consent passed: ${viewport.width}x${viewport.height}.`);
     } finally { await context.close(); }
   }
 }

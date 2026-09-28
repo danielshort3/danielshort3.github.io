@@ -97,11 +97,15 @@ async function runCase({ browser, base, artifactDir }, width) {
       const heading = document.querySelector('#textcompare-result-title').getBoundingClientRect();
       const copyButton = document.querySelector('#textcompare-copy').getBoundingClientRect();
       const outputBox = document.querySelector('#textcompare-output').getBoundingClientRect();
-      const dock = document.querySelector('.mobile-section-nav:not([hidden]), .mobile-site-dock:not([hidden])')?.getBoundingClientRect();
-      return { headingY: heading.y, copyY: copyButton.y, outputTop: outputBox.top, dockTop: dock?.top || innerHeight };
+      return { headingY: heading.y, copyY: copyButton.y, outputTop: outputBox.top,
+        viewportBottom: innerHeight, mobileDockCount: document.querySelectorAll('[data-mobile-section-nav]').length };
     });
     assert(Math.abs(comparedLayout.headingY - comparedLayout.copyY) <= 14, `${stage}: Copy formatted sits beside the result title.`);
-    if (width < 500) assert(comparedLayout.outputTop < comparedLayout.dockTop - 44, `${stage}: explicit Compare brings output above the mobile dock.`);
+    if (width < 500) {
+      assert.equal(comparedLayout.mobileDockCount, 0, `${stage}: the editor has no bottom section dock.`);
+      assert(comparedLayout.outputTop < comparedLayout.viewportBottom - 44,
+        `${stage}: explicit Compare brings the result into the mobile viewport: ${JSON.stringify(comparedLayout)}`);
+    }
     if (width < 500) await page.screenshot({ path: path.join(artifactDir, `text-compare-simple-${width}-results-viewport.png`) });
     await revised.fill('Publish the CURRENTREVISION draft on Friday.');
     const afterEdit = await page.evaluate(() => ({

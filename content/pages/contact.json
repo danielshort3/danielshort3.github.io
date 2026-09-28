@@ -15,7 +15,6 @@
   },
   "stylesheets": [
     "dist/styles.css",
-    "css/components/destination-analytics.css",
     "css/components/contact-card.css"
   ],
   "headScripts": [

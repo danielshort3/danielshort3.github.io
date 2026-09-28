@@ -299,39 +299,6 @@ function buildNavigation(featuredProjectIds) {
         }
       ]
     },
-    resume: {
-      label: 'Resume',
-      href: 'resume',
-      ariaLabel: 'Resume download',
-      header: 'Resume shortcuts',
-      links: [
-        {
-          title: 'View Digital Resume',
-          subtitle: 'Open the digital resume page',
-          href: 'resume',
-          dataAttributes: {
-            'data-resume-home-link': 'true'
-          }
-        },
-        {
-          title: 'Preview PDF',
-          subtitle: 'Open the PDF resume page',
-          href: 'resume-pdf',
-          dataAttributes: {
-            'data-resume-preview-link': 'true'
-          }
-        },
-        {
-          title: 'Download Resume',
-          subtitle: 'Save the latest PDF copy',
-          href: 'documents/Resume.pdf',
-          download: true,
-          dataAttributes: {
-            'data-resume-download-link': 'true'
-          }
-        }
-      ]
-    },
     contact: {
       label: 'Contact',
       href: 'contact',
@@ -480,14 +447,6 @@ function main() {
   writeJson(path.join('content', 'pages', 'contact.json'), {
     id: 'contact',
     ...extractPageDefinition(path.join('pages', 'contact.html'))
-  });
-  writeJson(path.join('content', 'pages', 'resume-directory.json'), {
-    id: 'resume-directory',
-    ...extractPageDefinition(path.join('pages', 'resume.html'))
-  });
-  writeJson(path.join('content', 'pages', 'resume-pdf-directory.json'), {
-    id: 'resume-pdf-directory',
-    ...extractPageDefinition(path.join('pages', 'resume-pdf.html'))
   });
 
   projects.forEach((project, index) => {

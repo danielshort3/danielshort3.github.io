@@ -165,7 +165,7 @@ ${header}
   <header class="project-demo-wrapper-header" data-project-demo-masthead="${escapeHtml(definition.demoId)}" data-page-masthead>
     <div class="wrapper">
       <a href="${escapeHtml(definition.backHref)}" aria-label="${escapeHtml(definition.backLabel)}" data-page-masthead-parent>
-        <img src="/img/ui/site-icons/section-arrow-projects-left.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">
+        <svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>
         <span>${escapeHtml(definition.backCompactLabel)}</span>
       </a>
       <div data-page-masthead-intro>

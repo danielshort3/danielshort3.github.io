@@ -106,7 +106,8 @@ function createMobileContent(content, options = {}) {
   const home = personal.page || {};
   const about = (home.sections || []).filter((section) => section.enabled !== false)
     .flatMap((section) => section.props?.categories || []).find((category) => category.id === 'about') || {};
-  const timeline = (about.timeline?.items || []).filter(isPublic).slice()
+  const backgroundVisible = about.timeline?.enabled !== false && Array.isArray(about.timeline?.items) && about.timeline.items.length > 0;
+  const timeline = (backgroundVisible ? about.timeline.items : []).filter(isPublic).slice()
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''), 'en'));
   const publishedProjectIds = new Set(ordered(content.projects).map((project) => identifier(project.id)).filter(Boolean));
   const interestProject = (interest) => {
@@ -145,6 +146,7 @@ function createMobileContent(content, options = {}) {
       privacyUrl: `${origin}/privacy`
     },
     about: {
+      backgroundVisible,
       greeting: plainText(about.title),
       location: plainText(about.context),
       intro: plainText(about.lead),

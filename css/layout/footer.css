@@ -39,10 +39,6 @@
     border-left:2px solid color-mix(in srgb, var(--brand-action-copper) 84%, #ffffff 16%);
   }
 
-  html.site-realm-professional .footer.footer-classic .footer-identity-panel{
-    border-left-color:color-mix(in srgb, var(--brand-signal-blue) 82%, #ffffff 18%);
-  }
-
   .footer.footer-classic .footer-identity-eyebrow{
     margin:0;
     color:color-mix(in srgb, var(--text-muted) 78%, #ffffff 22%);
@@ -132,34 +128,6 @@
     appearance:none;
     text-align:left;
     min-width:0;
-  }
-
-  .footer.footer-classic .footer-identity-panel[data-footer-realm="professional"],
-  .footer.footer-classic .footer-nav-panel[data-footer-realm="professional"],
-  .footer.footer-classic .footer-link[data-footer-realm="professional"],
-  html.site-realm-professional .footer.footer-classic .footer-identity-panel[data-footer-realm="personal"],
-  html.site-realm-professional .footer.footer-classic .footer-nav-panel[data-footer-realm="personal"],
-  html.site-realm-professional .footer.footer-classic .footer-link[data-footer-realm="personal"]{
-    display:none;
-  }
-
-  html.site-realm-professional .footer.footer-classic .footer-identity-panel[data-footer-realm="professional"],
-  html.site-realm-professional .footer.footer-classic .footer-nav-panel[data-footer-realm="professional"]{
-    display:grid;
-  }
-
-  html.site-realm-professional .footer.footer-classic .footer-link[data-footer-realm="professional"]{
-    display:inline-flex;
-  }
-
-  body[data-audience]:not([data-audience="personal"]) .footer.footer-classic .footer-identity-panel[data-footer-realm="professional"],
-  body[data-audience]:not([data-audience="personal"]) .footer.footer-classic .footer-nav-panel[data-footer-realm="professional"]{
-    display:grid;
-  }
-
-  body[data-audience]:not([data-audience="personal"]) .footer.footer-classic .footer-identity-panel[data-footer-realm="personal"],
-  body[data-audience]:not([data-audience="personal"]) .footer.footer-classic .footer-nav-panel[data-footer-realm="personal"]{
-    display:none;
   }
 
   .footer.footer-classic .footer-bottom{

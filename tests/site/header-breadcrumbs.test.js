@@ -3,7 +3,6 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const audiences = require('../../js/common/audience-config');
 const source = fs.readFileSync(path.join(__dirname, '../../js/navigation/header-breadcrumbs.js'), 'utf8');
 
 module.exports = function runHeaderBreadcrumbsTests({ assert }) {
@@ -72,7 +71,6 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
   };
   const window = {
     location: { href: 'https://www.danielshort.me/' },
-    getSiteAudienceConfig: audiences.getAudience,
     matchMedia: () => reducedMotion,
     SiteMotion: { duration: () => reducedMotion.matches ? 0 : 160 },
     SiteFrame: {
@@ -99,7 +97,7 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
   const expect = (labels, hrefs = []) => {
     const actual = crumbs();
     assert(JSON.stringify(actual.map((crumb) => crumb.label)) === JSON.stringify(labels), `breadcrumb labels should be ${labels.join(' > ')}`);
-    assert(JSON.stringify(actual.slice(0, -1).map((crumb) => crumb.href)) === JSON.stringify(hrefs), 'ancestors should preserve their intended audience and hierarchy URLs');
+    assert(JSON.stringify(actual.slice(0, -1).map((crumb) => crumb.href)) === JSON.stringify(hrefs), 'ancestors should preserve canonical hierarchy URLs');
     assert(actual.at(-1).tag === 'SPAN' && actual.at(-1).current === 'page' && !actual.at(-1).href, 'the current location should be a nonlink with aria-current=page');
     assert(actual.slice(0, -1).every((crumb) => crumb.tag === 'A' && !crumb.current), 'only ancestors should be native links');
     assert(list.children.slice(1).every((item) => item.children[0].attributes['aria-hidden'] === 'true'), 'decorative separators should be hidden from assistive technology');
@@ -149,22 +147,16 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
 
   setPage({ path: '/portfolio', audience: 'analytics', category: 'projects', heading: 'Project Library' });
   emit('site:route-change');
-  expect(['Home', 'Projects'], ['/analytics']);
+  expect(['Home', 'Projects'], ['/']);
   setPage({ path: '/portfolio/retailStore', audience: 'analytics', category: 'projects', heading: 'Store-Level Loss & Sales ETL' });
   emit('site:route-change');
-  expect(['Home', 'Projects', 'Store-Level Loss & Sales ETL'], ['/analytics', '/portfolio?audience=analytics']);
-  setPage({ path: '/resume-data-science', audience: 'data-science', category: 'resume', heading: 'Daniel Short' });
-  emit('site:route-change');
-  expect(['Home', 'Resume'], ['/data-science']);
-  setPage({ path: '/resume-tourism-pdf', audience: 'tourism', category: 'resume', heading: 'PDF Preview' });
-  emit('site:route-change');
-  expect(['Home', 'Resume', 'PDF Preview'], ['/tourism', '/resume-tourism']);
+  expect(['Home', 'Projects', 'Store-Level Loss & Sales ETL'], ['/', '/portfolio']);
   setPage({ path: '/contact', audience: 'analytics', category: 'contact', heading: "Let's Connect" });
   emit('site:route-change');
-  expect(['Home', 'Contact'], ['/analytics']);
+  expect(['Home', 'Contact'], ['/']);
   setPage({ path: '/search', audience: 'analytics', query: '?audience=analytics&q=private-query', heading: 'Search' });
   emit('site:route-change');
-  expect(['Home', 'Search'], ['/analytics']);
+  expect(['Home', 'Search'], ['/']);
   assert(!JSON.stringify(crumbs()).includes('private-query'), 'search text must not enter the header or ancestor URLs');
   setPage({ path: '/privacy', heading: 'Privacy & Analytics' });
   emit('site:route-change');
@@ -218,9 +210,9 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
   assert(list.children.at(-1).children.at(-1).children.length === 0, 'page headings should be inserted as text, never interpreted as markup');
   vm.runInContext(source, context);
   assert(listeners.get('site:route-change').length === 1 && listeners.get('home:category-change').length === 1, 'duplicate shell evaluation must not attach duplicate breadcrumb listeners');
-  setPage({ path: '/analytics', audience: 'analytics', heading: 'Daniel Short' });
+  setPage({ id: 'home', path: '/', view: 'overview', heading: 'Daniel Short' });
   emit('site:route-change');
-  assert(nav.hidden && list.children.length === 0, 'professional landing pages should also hide the breadcrumb');
+  assert(nav.hidden && list.children.length === 0, 'canonical homepage should hide the breadcrumb');
   setPage({ id: 'home', view: 'overview', category: 'contact', path: '/', query: '#contact' });
   emit('home:category-change');
   assert(nav.hidden && list.children.length === 0, 'returning to any inline overview tab should clear the trail');
@@ -251,7 +243,7 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
 
   setPage({ path: '/portfolio/babynames', audience: 'analytics', category: 'projects', heading: 'Baby Name Predictor', integratedHeader: true });
   emit('site:route-change');
-  expect(['Home', 'Projects', 'Baby Name Predictor'], ['/analytics', '/portfolio?audience=analytics']);
+  expect(['Home', 'Projects', 'Baby Name Predictor'], ['/', '/portfolio']);
   setPage({ path: '/privacy', heading: 'Privacy & Analytics', unrelatedHeader: true });
   emit('site:route-change');
   expect(['Home', 'Privacy & Analytics'], ['/']);

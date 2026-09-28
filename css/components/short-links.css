@@ -2996,7 +2996,7 @@
 
   @media (max-width: 768px){
     body[data-page="short-links"]{
-      --shortlinks-popover-bottom-clearance:var(--mobile-site-dock-clearance, 0px);
+      --shortlinks-popover-bottom-clearance:env(safe-area-inset-bottom, 0px);
     }
 
     body[data-page="short-links"] .shortlinks-command-popover{

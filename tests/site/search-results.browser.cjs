@@ -64,21 +64,20 @@ async function runSearchChecks({ browser, base, artifactDir }) {
     } finally { await context.close(); }
   }
 
-  const professional = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
-  const professionalPage = await professional.newPage();
+  const directSearch = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  const directSearchPage = await directSearch.newPage();
   try {
-    await professionalPage.goto(`${base}/search?audience=analytics&q=synthetic+digit+generator`, { waitUntil: 'networkidle' });
-    if (await professionalPage.locator('#pcz-reject').isVisible()) await professionalPage.locator('#pcz-reject').click();
-    await professionalPage.locator('[data-search-category="Projects"]').click();
-    const project = professionalPage.locator('#search-results a').first();
-    await professionalPage.waitForFunction(() => document.querySelector('#search-results a')?.href.includes('audience=analytics'));
+    await directSearchPage.goto(`${base}/search?q=synthetic+digit+generator`, { waitUntil: 'networkidle' });
+    if (await directSearchPage.locator('#pcz-reject').isVisible()) await directSearchPage.locator('#pcz-reject').click();
+    await directSearchPage.locator('[data-search-category="Projects"]').click();
+    const project = directSearchPage.locator('#search-results a').first();
+    await directSearchPage.waitForFunction(() => document.querySelector('#search-results a')?.href.includes('/portfolio/digitGenerator'));
     const destination = new URL(await project.getAttribute('href'), base);
     assert.equal(destination.pathname, '/portfolio/digitGenerator');
-    assert.equal(destination.searchParams.get('audience'), 'analytics');
-    assert.equal(new URL(professionalPage.url()).searchParams.get('audience'), 'analytics');
-    assert(!new URL(professionalPage.url()).searchParams.has('q'));
-    console.log('Professional search preserves audience context.');
-  } finally { await professional.close(); }
+    assert.equal(destination.search, '', 'Search results lead to the canonical project page.');
+    assert(!new URL(directSearchPage.url()).searchParams.has('q'));
+    console.log('Direct search returns a canonical project link.');
+  } finally { await directSearch.close(); }
 
   // Categories are counted/filtered before the display cap, including matches
   // ranked after the first 50; malformed result text is always escaped.

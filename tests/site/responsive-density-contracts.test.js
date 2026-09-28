@@ -279,7 +279,6 @@ function runResponsiveDensityContractTests({ assert }) {
   const baseCss = read('css/base/base.css');
   const mobileDockCss = read('css/components/mobile-site-dock.css');
   const designSystemCss = read('css/utilities/design-system-overrides.css');
-  const recruiterStoryCss = read('css/components/recruiter-story.css');
   const contactCardCss = read('css/components/contact-card.css');
   const shortLinksCss = read('css/components/short-links.css');
   const stormbreakCss = read('css/games/stormbreak.css');
@@ -361,13 +360,8 @@ function runResponsiveDensityContractTests({ assert }) {
     'mobile personal tool pages should normalize native controls, generated share actions, and file pickers to 44px targets',
   );
   assert(
-    /body \.hero\.hero--default > \.wrapper,[\s\S]*?body \.tools-hero > \.wrapper \{[^}]*width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);[^}]*max-width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);/s.test(designSystemCss) &&
-      /body\[data-page="analytics"\]\.home-pattern-page \.hero\.hero--default > \.wrapper \{[^}]*width:\s*calc\(100% - 28px\);[^}]*max-width:\s*calc\(100% - 28px\) !important;/s.test(recruiterStoryCss),
+    /body \.hero\.hero--default > \.wrapper,[\s\S]*?body \.tools-hero > \.wrapper \{[^}]*width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);[^}]*max-width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);/s.test(designSystemCss),
     'mobile hero wrappers should calculate their gutters from the containing block instead of the scrollbar-inclusive viewport',
-  );
-  assert(
-    /#certifications \.cert-band-inner \{[^}]*box-sizing:\s*border-box;[^}]*max-width:\s*100% !important;/s.test(recruiterStoryCss),
-    'the analytics certification frame should stay contained while its inner track owns horizontal scrolling',
   );
   assert(
     /\.contact-professional-links a\{[^}]*box-sizing:\s*border-box;[^}]*display:\s*inline-flex;[^}]*min-height:\s*44px;[^}]*padding-inline:\s*10px;/s.test(contactCardCss) &&

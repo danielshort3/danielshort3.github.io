@@ -18,8 +18,8 @@
     inline-size: max(104px, 6em);
     min-inline-size: max(104px, 6em);
     white-space: nowrap;
-    border-color: #c5d1df;
-    color: #405b7b;
+    border-color: var(--panel-color, #087f8c);
+    color: var(--panel-color, #087f8c);
     background: #ffffff;
     box-shadow: none;
     transform: none;
@@ -27,8 +27,13 @@
 
   .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="open-account"]):hover {
     border-color: var(--panel-color, #087f8c);
-    color: #091f3b;
-    background: #f5f8fa;
+    color: #ffffff;
+    background: var(--panel-color, #087f8c);
+  }
+
+  .tools-account-bar[data-personal-tool-account-bar] :is([data-tools-action="sign-in"], [data-tools-action="open-account"]):focus-visible {
+    outline: 3px solid var(--panel-color, #087f8c);
+    outline-offset: 3px;
   }
 
   .tools-account-bar .tools-account-signout {

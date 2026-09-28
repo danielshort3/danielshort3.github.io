@@ -17,7 +17,6 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const footerTemplatePath = path.join(root, 'build', 'templates', 'footer.partial.html');
-const FOOTER_AUDIENCES = ['personal', 'analytics', 'data-science', 'tourism'];
 const TRANSIENT_WRITE_ERROR_CODES = new Set(['EACCES', 'EBUSY', 'EPERM', 'UNKNOWN']);
 const WRITE_RETRY_DELAYS_MS = Object.freeze([25, 50, 100, 200, 400, 800]);
 const writeRetrySignal = new Int32Array(new SharedArrayBuffer(4));
@@ -47,25 +46,11 @@ function exists(relPath) {
 
 function loadFooterTemplates() {
   const year = new Date().getFullYear();
-  const templates = new Map();
-  FOOTER_AUDIENCES.forEach((audience) => {
-    const templatePath = audience === 'personal'
-      ? footerTemplatePath
-      : path.join(root, 'build', 'templates', `footer.${audience}.partial.html`);
-    if (!fs.existsSync(templatePath)) return;
-    const raw = fs.readFileSync(templatePath, 'utf8');
-    templates.set(audience, raw.replace(/__YEAR__/g, String(year)).trim());
-  });
-  if (!templates.has('personal')) {
+  if (!fs.existsSync(footerTemplatePath)) {
     throw new Error('Personal footer template is missing');
   }
-  return templates;
-}
-
-function detectAudience(html) {
-  const bodyMatch = String(html || '').match(/<body\b[^>]*\bdata-audience\s*=\s*["']([^"']+)["']/i);
-  const audience = String(bodyMatch && bodyMatch[1] || 'personal').trim().toLowerCase();
-  return FOOTER_AUDIENCES.includes(audience) ? audience : 'personal';
+  const raw = fs.readFileSync(footerTemplatePath, 'utf8');
+  return raw.replace(/__YEAR__/g, String(year)).trim();
 }
 
 function walkHtmlFiles(dirRelPath) {
@@ -163,7 +148,7 @@ function insertMissingPersonalAccordionFooter(html, footerHtml) {
 }
 
 function main() {
-  const footerTemplates = loadFooterTemplates();
+  const footerHtml = loadFooterTemplates();
 
   const rootHtmlFiles = listRootHtmlFiles();
   const pagesHtmlFiles = walkHtmlFiles('pages');
@@ -181,8 +166,6 @@ function main() {
 
     if (!exists(relPath)) return;
     const html = read(relPath);
-    const audience = detectAudience(html);
-    const footerHtml = footerTemplates.get(audience) || footerTemplates.get('personal');
     const replaced = replaceFooter(html, footerHtml);
     const rendered = replaced.changed
       ? replaced
