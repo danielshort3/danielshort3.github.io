@@ -55,6 +55,12 @@
     min-inline-size: 104px;
   }
 
+  @media (max-width: 360px) {
+    body[data-audience="personal"] .site-frame [data-page-masthead] [data-personal-tool-account-bar] {
+      min-inline-size: 88px;
+    }
+  }
+
   body.project-demo-wrapper-page[data-audience="personal"] .site-frame #main.project-demo-wrapper-main {
     width: auto;
     margin-inline: var(--frame-content-gutter);
