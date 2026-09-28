@@ -10,6 +10,12 @@
     min-inline-size: 104px;
   }
 
+  @media (max-width: 360px) {
+    .tools-account-bar[data-personal-tool-account-bar] .tools-account-actions {
+      min-inline-size: 88px;
+    }
+  }
+
   .tools-account-bar .tools-account-actions {
     flex-wrap: nowrap;
   }
