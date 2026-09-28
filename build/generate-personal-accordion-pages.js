@@ -10,10 +10,8 @@ const { preparePersonalProjectDetailHtml } = require('./generate-project-pages')
 const { preparePersonalGameDetailHtml } = require('./lib/personal-game-header');
 const {
   HARD_NAVIGATION_PATHS,
-  extractMainHtml,
   getPersonalLibraryPresentation,
   getPersonalToolGroup,
-  markProfessionalInternalHtml,
   preparePersonalToolDetailHtml,
   renderPersonalLibraryMain,
   replaceMainHtml,
@@ -23,11 +21,9 @@ const {
 
 const root = path.resolve(__dirname, '..');
 const pagesDir = path.join(root, 'pages');
-const professionalDir = path.join(pagesDir, 'professional');
 const portfolioDir = path.join(pagesDir, 'portfolio');
 const toolsContentDir = path.join(root, 'content', 'tools');
 const homeLibraryDataPath = path.join(root, 'js', 'home', 'home-library-data.js');
-const PROFESSIONAL_AUDIENCES = Object.freeze(['analytics', 'data-science', 'tourism']);
 const HARD_TOOL_PAGE_IDS = Object.freeze(HARD_NAVIGATION_PATHS.map((routePath) => (
   String(routePath || '').split('/').filter(Boolean).pop()
 )));
@@ -250,27 +246,6 @@ function writeWrapped(relPath, options) {
   return wrapped;
 }
 
-function writeProfessionalCopy(relPath, html, audience) {
-  const marked = markProfessionalInternalHtml(html, audience);
-  const itemId = path.basename(relPath, '.html');
-  const category = itemId === 'contact' ? 'contact' : itemId === 'search' ? 'about' : 'projects';
-  const backHref = category === 'projects' && itemId !== 'portfolio'
-    ? `/portfolio?audience=${audience}`
-    : `/${audience}`;
-  const wrapped = wrapPersonalAccordionHtml(marked, {
-    audience,
-    category,
-    itemId,
-    navigation: 'soft',
-    chrome: 'compact',
-    backHref,
-    backLabel: category === 'projects' && itemId !== 'portfolio' ? 'Back to projects' : 'Back to about',
-    backCompactLabel: category === 'projects' && itemId !== 'portfolio' ? 'Projects' : 'About'
-  });
-  validateWrappedPage(wrapped, relPath, category);
-  write(relPath, wrapped);
-}
-
 function buildLibraryPage(sourceHtml, category, libraryData) {
   const items = Array.isArray(libraryData && libraryData[category] && libraryData[category].items)
     ? libraryData[category].items
@@ -295,30 +270,8 @@ function buildLibraryPage(sourceHtml, category, libraryData) {
 
 function buildPortfolioIndex(libraryData) {
   const personalRelPath = path.join('pages', 'portfolio.html');
-  const canonicalProfessionalRelPath = path.join('pages', 'professional', 'analytics', 'portfolio.html');
   const personalHtml = read(personalRelPath);
   const source = unwrapPersonalAccordionHtml(personalHtml);
-  const sourceIsLibrary = /\bpersonal-library-main\b/i.test(source);
-  let professionalMain = '';
-  if (sourceIsLibrary) {
-    if (!exists(canonicalProfessionalRelPath)) {
-      throw new Error('Cannot restore the professional portfolio workbench from an already wrapped library without its generated snapshot. Run CMS content generation first.');
-    }
-    const snapshot = unwrapPersonalAccordionHtml(read(canonicalProfessionalRelPath));
-    if (/\bpersonal-library-main\b/i.test(snapshot)) {
-      throw new Error('The generated professional portfolio snapshot contains the personal library instead of the workbench. Run CMS content generation first.');
-    }
-    professionalMain = extractMainHtml(snapshot);
-  }
-  PROFESSIONAL_AUDIENCES.forEach((audience) => {
-    const professionalRelPath = path.join('pages', 'professional', audience, 'portfolio.html');
-    let professionalSource = source;
-    if (sourceIsLibrary && exists(professionalRelPath)) {
-      professionalSource = unwrapPersonalAccordionHtml(read(professionalRelPath));
-    }
-    if (professionalMain) professionalSource = replaceMainHtml(professionalSource, professionalMain);
-    writeProfessionalCopy(professionalRelPath, professionalSource, audience);
-  });
   const personal = buildLibraryPage(source, 'projects', libraryData);
   validateWrappedPage(personal, personalRelPath, 'projects');
   write(personalRelPath, personal);
@@ -335,14 +288,6 @@ function buildContactPage() {
   const personalRelPath = path.join('pages', 'contact.html');
   const personalHtml = read(personalRelPath);
   const source = unwrapPersonalAccordionHtml(personalHtml);
-  const wasWrapped = personalHtml.includes('data-personal-accordion-shell');
-  PROFESSIONAL_AUDIENCES.forEach((audience) => {
-    const professionalRelPath = path.join('pages', 'professional', audience, 'contact.html');
-    const professionalSource = wasWrapped && exists(professionalRelPath)
-      ? unwrapPersonalAccordionHtml(read(professionalRelPath))
-      : source;
-    writeProfessionalCopy(professionalRelPath, professionalSource, audience);
-  });
   const personal = wrapPersonalAccordionHtml(source, {
     category: 'contact',
     itemId: 'contact',
@@ -368,14 +313,6 @@ function buildProjectPages() {
     const itemId = path.basename(fileName, '.html');
     const personalHtml = read(personalRelPath);
     const source = unwrapPersonalAccordionHtml(personalHtml);
-    const wasWrapped = personalHtml.includes('data-personal-accordion-shell');
-    PROFESSIONAL_AUDIENCES.forEach((audience) => {
-      const professionalRelPath = path.join('pages', 'professional', audience, 'portfolio', fileName);
-      const professionalSource = wasWrapped && exists(professionalRelPath)
-        ? unwrapPersonalAccordionHtml(read(professionalRelPath))
-        : source;
-      writeProfessionalCopy(professionalRelPath, professionalSource, audience);
-    });
     const personal = wrapPersonalAccordionHtml(preparePersonalProjectDetailHtml(source), {
       category: 'projects',
       itemId,
@@ -460,37 +397,11 @@ function buildGamePages() {
   return Object.keys(GAME_PAGE_PATHS).length;
 }
 
-function buildProfessionalPages() {
-  PROFESSIONAL_AUDIENCES.forEach((audience) => {
-    const pages = [
-      { itemId: audience, category: 'about' },
-      { itemId: `resume-${audience}`, category: 'resume' },
-      { itemId: `resume-${audience}-pdf`, category: 'resume' }
-    ];
-    if (audience === 'analytics') {
-      pages.push({ itemId: 'resume', category: 'resume' }, { itemId: 'resume-pdf', category: 'resume' });
-    }
-    pages.forEach(({ itemId, category }) => writeWrapped(path.join('pages', `${itemId}.html`), {
-      audience,
-      category,
-      itemId,
-      navigation: 'soft',
-      chrome: 'compact',
-      backHref: itemId.endsWith('-pdf') ? `/resume-${audience}` : `/${audience}`,
-      backLabel: itemId.endsWith('-pdf') ? 'Back to resume' : 'Back to about',
-      backCompactLabel: itemId.endsWith('-pdf') ? 'Resume' : 'About'
-    }));
-    writeProfessionalCopy(path.join('pages', 'professional', audience, 'search.html'), read(path.join('pages', 'search.html')), audience);
-  });
-}
-
 function main() {
   const libraryData = loadHomeLibraryData();
   // The homepage remains a public showcase. The Tools page also includes
   // account-only entries, hidden until the account UI confirms their access.
   const toolsLibraryData = { tools: { items: buildToolsLibraryItems(loadSiteContent(root)) } };
-  fs.mkdirSync(professionalDir, { recursive: true });
-
   buildPortfolioIndex(libraryData);
   buildDirectoryIndex(path.join('pages', 'tools.html'), 'tools', toolsLibraryData);
   buildDirectoryIndex(path.join('pages', 'games.html'), 'games', libraryData);
@@ -499,10 +410,8 @@ function main() {
   const projectCount = buildProjectPages();
   const toolCount = buildToolPages();
   const gameCount = buildGamePages();
-  buildProfessionalPages();
-
   process.stdout.write(
-    `[personal-accordion] Wrapped 4 personal category roots, ${utilityCount} utility/fallback pages, ${projectCount} projects, ${toolCount} tools, ${gameCount} games, and all professional landing, project, contact, search, and resume pages.\n`
+    `[personal-accordion] Wrapped 4 personal category roots, ${utilityCount} utility/fallback pages, ${projectCount} projects, ${toolCount} tools, and ${gameCount} games.\n`
   );
 }
 
@@ -513,7 +422,6 @@ module.exports = {
   GAME_PAGE_PATHS,
   HARD_TOOL_PAGE_IDS,
   INTERNAL_TOOL_PAGE_IDS,
-  PROFESSIONAL_AUDIENCES,
   TOOL_DETAIL_METADATA,
   TOOL_PAGE_IDS,
   UTILITY_PAGE_CONFIGS,
@@ -521,7 +429,6 @@ module.exports = {
   buildToolsLibraryItems,
   buildPortfolioIndex,
   buildProjectPages,
-  buildProfessionalPages,
   buildToolPages,
   buildUtilityPages,
   buildGamePages,

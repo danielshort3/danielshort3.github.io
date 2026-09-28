@@ -158,11 +158,13 @@
 
   function configure(description) {
     const closed = description.home && description.view === 'closed';
-    const railFree = description.audience === 'personal' && mobileDockQuery.matches &&
+    const singleSectionRail = description.audience === 'personal' && mobileDockQuery.matches &&
       (!description.home || description.view === 'library');
+    // The Android WebView supplies its own native navigation after loading.
+    const railFree = singleSectionRail && Boolean(document.getElementById?.('android-feature-chrome'));
     description.fit = framePolicy.resolveFit(description.fit);
     frame.dataset.frameAudience = description.audience;
-    frame.dataset.frameNavigation = railFree ? 'dock' : 'rails';
+    frame.dataset.frameNavigation = railFree ? 'dock' : (singleSectionRail ? 'section' : 'rails');
     frame.dataset.frameView = description.view;
     frame.dataset.frameHome = String(description.home);
     frame.dataset.frameFit = description.fit;
@@ -190,7 +192,8 @@
     const order = description.audience === 'personal' ? personalOrder : professionalOrder;
     const overview = description.home && description.view === 'overview';
     const compact = compactQuery.matches;
-    const visible = railFree ? [] : (closed || overview || description.audience !== 'personal' || compact ? order : [description.category]);
+    const visible = railFree ? [] : (singleSectionRail ? [description.category] :
+      (closed || overview || description.audience !== 'personal' || compact ? order : [description.category]));
     visible.forEach((id) => ensureTab(id));
     tabs.forEach((link, id) => {
       const active = id === description.category;
@@ -242,6 +245,11 @@
       stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
       stage.style.gridTemplateRows = 'auto';
       slot.style.gridArea = '1 / 1';
+    } else if (singleSectionRail) {
+      stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
+      stage.style.gridTemplateRows = 'minmax(48px, auto) auto';
+      tabs.get(description.category).style.gridArea = '1 / 1';
+      slot.style.gridArea = '2 / 1';
     } else if (compact && overview) {
       stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
       stage.style.gridTemplateRows = visible.flatMap((id) => id === description.category ? ['minmax(54px, auto)', 'auto'] : ['minmax(48px, auto)']).join(' ');

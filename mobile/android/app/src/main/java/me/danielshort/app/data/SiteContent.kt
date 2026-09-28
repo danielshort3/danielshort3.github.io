@@ -7,7 +7,7 @@ import java.net.URI
 data class SiteInfo(val name: String, val description: String, val url: String, val email: String, val githubUrl: String, val privacyUrl: String)
 data class Interest(val title: String, val body: String, val imageUrl: String, val projectId: String, val projectLabel: String)
 data class Milestone(val title: String, val organization: String, val date: String, val url: String)
-data class AboutInfo(val greeting: String, val location: String, val intro: String, val portraitUrl: String, val interests: List<Interest>, val experience: List<Milestone>, val education: List<Milestone>, val credentials: List<Milestone>)
+data class AboutInfo(val greeting: String, val location: String, val intro: String, val portraitUrl: String, val interests: List<Interest>, val backgroundVisible: Boolean, val experience: List<Milestone>, val education: List<Milestone>, val credentials: List<Milestone>)
 data class ResourceLink(val label: String, val url: String)
 data class Project(val id: String, val title: String, val summary: String, val imageUrl: String, val iconUrl: String, val url: String, val tags: List<String>, val situation: String, val task: String, val actions: List<String>, val results: List<String>, val resources: List<ResourceLink>, val demoUrl: String)
 data class CatalogItem(val id: String, val title: String, val summary: String, val iconUrl: String, val url: String, val category: String)
@@ -39,6 +39,7 @@ object SiteContentParser {
           Interest(interest.text("title"), interest.text("body"), interest.image("imageUrl"), linkedId,
             if (linkedId.isNotEmpty()) interest.text("projectLabel") else "")
         },
+        about.opt("backgroundVisible") == true,
         milestones(about.optJSONArray("experience")), milestones(about.optJSONArray("education")), milestones(about.optJSONArray("credentials"))),
       projects, catalog(root.optJSONArray("tools")), catalog(root.optJSONArray("games")))
   }

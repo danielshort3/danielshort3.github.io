@@ -542,13 +542,13 @@
   const revealExplicitComparison = () => {
     if (typeof comparisonEl?.scrollIntoView !== 'function' || typeof outputEl.getBoundingClientRect !== 'function') return;
     const viewport = comparisonEl.closest('[data-site-frame-viewport]');
-    const visibleBottom = viewport?.getBoundingClientRect().bottom || window.innerHeight;
+    const visibleBottom = Math.min(viewport?.getBoundingClientRect().bottom || window.innerHeight, window.innerHeight);
     const dock = document.querySelector('.mobile-section-nav:not([hidden]), .mobile-site-dock:not([hidden])');
-    const dockTop = dock?.getBoundingClientRect().top;
+    const dockTop = dock?.getClientRects().length ? dock.getBoundingClientRect().top : null;
     const limit = Number.isFinite(dockTop) && dockTop > 0 ? Math.min(visibleBottom, dockTop) : visibleBottom;
     if (outputEl.getBoundingClientRect().top < limit - 120) return;
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    comparisonEl.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'instant' : 'smooth' });
+    comparisonEl.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'instant' : 'smooth' });
   };
 
   const runCompare = ({ reportOutcome = false } = {}) => {

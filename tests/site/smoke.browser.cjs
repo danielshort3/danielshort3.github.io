@@ -60,7 +60,7 @@ async function settle(page) {
 
 async function assertLayout(page) {
   const layout = await page.evaluate(() => {
-    const tabs = ['about', 'projects', 'tools', 'games', 'resume', 'contact'].map(category => {
+    const tabs = ['about', 'projects', 'tools', 'games', 'contact'].map(category => {
       const node = document.querySelector(`[data-site-tab="${category}"]`);
       if (!node) return null;
       const box = node?.getBoundingClientRect();
@@ -91,7 +91,8 @@ async function assertLayout(page) {
       library: frame?.dataset.frameView === 'library',
       compact: frame?.dataset.frameCompact === 'true',
       mobileNavigation: document.body.classList.contains('has-mobile-scroll-chrome'),
-      mobileCategories: [...document.querySelectorAll('[data-mobile-section-nav] [data-mobile-section]')].map(node => node.dataset.mobileSection),
+      mobileDockCount: document.querySelectorAll('[data-mobile-section-nav]').length,
+      exploreCategories: [...document.querySelectorAll('[data-mobile-explore-category]')].map(node => node.dataset.mobileExploreCategory),
       viewportBox: viewportBox ? { top: viewportBox.top, bottom: viewportBox.bottom, left: viewportBox.left, right: viewportBox.right } : null,
       tabs
     };
@@ -103,18 +104,17 @@ async function assertLayout(page) {
   assert.equal(layout.frames, 1, 'Exactly one shared frame is mounted.');
   assert(layout.pageWidth <= layout.width + 1, `Document overflows horizontally: ${JSON.stringify(layout)}`);
   const visibleTabs = layout.tabs.filter(tab => !tab.hidden);
-  const railFree = layout.audience === 'personal' && layout.mobileNavigation && (!layout.home || layout.library);
-  assert.equal(layout.navigation, railFree ? 'dock' : 'rails',
+  const singleSection = layout.mobileNavigation && (!layout.home || layout.library);
+  assert.equal(layout.navigation, singleSection ? 'section' : 'rails',
     'The frame uses the navigation mode for the current route and viewport.');
-  assert.deepEqual(visibleTabs.map(tab => tab.category), layout.audience !== 'personal'
-    ? ['about', 'projects', 'resume', 'contact']
-    : railFree ? []
+  assert.deepEqual(visibleTabs.map(tab => tab.category), singleSection ? [layout.category]
     : !layout.compact && !layout.overview && !layout.closed
       ? [layout.category] : ['about', 'projects', 'tools', 'games', 'contact'],
-  'Navigation exposes the correct categories for the audience and route.');
+  'Navigation exposes the canonical site categories for the route.');
   if (layout.compact && layout.mobileNavigation) {
-    assert.deepEqual(layout.mobileCategories, ['about', 'projects', 'tools', 'games', 'contact'],
-      'The mobile bottom navigation retains every category on overview and detail routes.');
+    assert.equal(layout.mobileDockCount, 0, 'The mobile site has no bottom section dock.');
+    assert.deepEqual(layout.exploreCategories, ['about', 'projects', 'tools', 'games', 'contact'],
+      'The top Explore menu retains every section on overview and detail routes.');
   }
   assert.equal(layout.tabs.filter(tab => tab.active).length, layout.closed ? 0 : 1,
     layout.closed ? 'The closed homepage has no active category.' : 'Exactly one category state is active.');
@@ -134,15 +134,15 @@ async function assertLayout(page) {
       'Desktop rails align along the top of the frame.');
     assert(visibleTabs.every((tab, index) => index === 0 || tab.box.left > visibleTabs[index - 1].box.left),
       'Desktop rails keep the original category order around the expanded panel.');
-  } else if (!railFree) {
-    if (layout.audience === 'personal' && (layout.overview || layout.closed)) {
+  } else if (!singleSection) {
+    if (layout.overview || layout.closed) {
       assert(visibleTabs.every(tab => tab.box.height <= 100 && tab.box.width >= layout.width - 12),
         'Personal mobile tabs remain full-width compact rows in open and closed views.');
     } else {
       assert(visibleTabs.every(tab => tab.box.height <= 100 && tab.box.width >= layout.width / visibleTabs.length - 12),
-        'Mobile detail and professional tabs retain usable compact columns.');
+        'Mobile detail tabs retain usable compact columns.');
       assert(Math.max(...visibleTabs.map(tab => tab.box.top)) - Math.min(...visibleTabs.map(tab => tab.box.top)) <= 2,
-        'Mobile detail and professional categories align in their navigation row.');
+        'Mobile detail categories align in their navigation row.');
     }
     if (layout.overview) {
       assert(visibleTabs.every((tab, index) => index === 0 || tab.box.top >= visibleTabs[index - 1].box.bottom - 2),
@@ -164,11 +164,12 @@ async function assertLayout(page) {
 async function categoryControl(page, category) {
   const rail = page.locator(`[data-site-tab="${category}"]`);
   if (await rail.isVisible()) return rail;
-  // Keyboard interaction reveals the scroll-hidden mobile navigation before use.
+  // Keyboard interaction reveals the scroll-hidden top masthead before use.
   if (await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden'))) {
     await page.keyboard.press('Tab');
   }
-  const link = page.locator(`[data-mobile-section-nav] [data-mobile-section="${category}"]`);
+  await page.locator('[data-mobile-explore] > button').click();
+  const link = page.locator(`[data-mobile-explore-category="${category}"]`);
   await link.waitFor({ state: 'visible' });
   return link;
 }
@@ -446,106 +447,37 @@ async function runViewport(browser, base, settings) {
         `${id} presents a readable project title and explanation.`);
     }
     const aboutColumns = await page.locator('.home-about').evaluate(node => {
+      const bounds = node.getBoundingClientRect();
       const personal = node.querySelector('.home-about__personal').getBoundingClientRect();
-      const timeline = node.querySelector('.home-timeline').getBoundingClientRect();
-      return { personal: { right: personal.right, bottom: personal.bottom }, timeline: { left: timeline.left, top: timeline.top } };
+      const profile = node.querySelector('.home-about__profile').getBoundingClientRect();
+      const story = node.querySelector('.home-about__story').getBoundingClientRect();
+      return {
+        width: bounds.width,
+        columns: getComputedStyle(node).gridTemplateColumns.split(' ').length,
+        personal: { left: personal.left, right: personal.right },
+        bounds: { left: bounds.left, right: bounds.right },
+        profileBottom: profile.bottom,
+        storyTop: story.top
+      };
     });
-    assert(homeLayout.compact ? aboutColumns.timeline.top >= aboutColumns.personal.bottom - 1
-      : aboutColumns.timeline.left >= aboutColumns.personal.right - 1,
-    'Personal stories and the timeline use two desktop columns and a natural mobile stack.');
+    assert(aboutColumns.columns === 1 && aboutColumns.width <= 961 &&
+      aboutColumns.personal.left >= aboutColumns.bounds.left - 1 &&
+      aboutColumns.personal.right <= aboutColumns.bounds.right + 1 &&
+      aboutColumns.storyTop >= aboutColumns.profileBottom - 1,
+    'The story-only About layout stays centered in one readable column without overlapping its profile.');
     await page.screenshot({ path: path.join(artifactDir, `${settings.name}-home.png`), fullPage: false });
 
-    stage = 'timeline-content';
-    const timeline = page.locator('.home-about .home-timeline');
-    assert(await timeline.isVisible(), 'Experience and learning stays mounted beside the personal stories.');
-    assert.equal(await timeline.locator(':scope > h3').innerText(), 'Experience & learning');
-    assert.equal(await timeline.getAttribute('data-home-timeline-layout'), 'resume');
-    assert.equal(await timeline.locator('details, summary, [data-home-timeline-scroller], [data-home-timeline-year]').count(), 0,
-      'The resume has no disclosure, nested scroll region, or prominent year chapters.');
-    assert.equal(await timeline.locator('[data-home-timeline-item]:visible').count(), 10,
-      'All ten milestones stay rendered without opening a dropdown.');
-    const visibleTimelineImages = timeline.locator('img:visible');
-    assert.equal(await timeline.locator('.home-background__icon img:visible').count(), 5,
-      'Experience and education use the five decorative category icons.');
-    assert.equal(await visibleTimelineImages.count(),
-      await timeline.locator('.home-background__icon img:visible, .home-background__arrow img:visible').count(),
-      'Only category and action icons appear; organization logos do not crowd the resume.');
-    assert(await visibleTimelineImages.evaluateAll(images => images.every(image =>
-      image.alt === '' && image.closest('[aria-hidden="true"]'))),
-    'Resume icons stay decorative for screen readers.');
-    assert.deepEqual(await timeline.locator('[data-home-background-section] > h4').allTextContents(),
-      ['Experience', 'Education', 'Credentials'], 'The resume exposes all three labelled sections.');
-    const expectedSectionItems = {
-      experience: ['visit-grand-junction', 'randall-reilly', 'target'],
-      education: ['eastern-ms-data-science', 'purdue-bs-data-analytics'],
-      credentials: ['google-advanced-data-analytics', 'google-data-analytics', 'google-analytics', 'ibm-machine-learning', 'ibm-data-analyst']
-    };
-    for (const [section, ids] of Object.entries(expectedSectionItems)) {
-      assert.deepEqual(await timeline.locator(`[data-home-background-section="${section}"] [data-home-timeline-item]`)
-        .evaluateAll(nodes => nodes.map(node => node.dataset.homeTimelineItem)), ids,
-      `${section} retains its complete milestones in the approved order.`);
-    }
-    assert.deepEqual(await timeline.locator('[data-home-credential-issuer] > h5').allTextContents(), ['Google', 'IBM'],
-      'Credentials are grouped visibly by issuer.');
-    const roleStyles = await timeline.locator('[data-home-background-section="experience"] [data-home-timeline-item]')
-      .evaluateAll(nodes => nodes.map(node => {
-        const style = getComputedStyle(node);
-        const titleStyle = getComputedStyle(node.querySelector('.home-background__title'));
-        const icon = node.querySelector('.home-background__icon').getBoundingClientRect();
-        return { className: node.className, columns: style.gridTemplateColumns.split(' ').length,
-          background: style.backgroundColor, paddingTop: style.paddingTop,
-          titleFontSize: titleStyle.fontSize, titleFontWeight: titleStyle.fontWeight,
-          iconWidth: icon.width, iconHeight: icon.height };
-      }));
-    assert(roleStyles.length === 3 && roleStyles.every(style => JSON.stringify(style) === JSON.stringify(roleStyles[0])),
-      'Current and past roles share the same row treatment.');
-    assert.match(await timeline.locator('[data-home-timeline-item="visit-grand-junction"] .home-background__date').innerText(), /Present/,
-      'Current work retains its ongoing date in the same secondary date field as past work.');
-    const linkedMilestones = aboutTimeline.items.filter(item => item.href);
-    assert.equal(await timeline.locator('a[href]').count(), linkedMilestones.length,
-      'Every authored degree and certificate link remains available.');
-    for (const item of aboutTimeline.items) {
-      const milestone = timeline.locator(`[data-home-timeline-item="${item.id}"]`);
-      assert.equal(await milestone.count(), 1, `${item.id} appears exactly once.`);
-      assert.deepEqual(await milestone.locator('time').evaluateAll(nodes => nodes.map(node => node.dateTime)),
-        [item.date, ...(item.endDate ? [item.endDate] : [])], `${item.id} preserves exact semantic dates.`);
-      const entry = milestone.locator('.home-background__entry, .home-background__credential-link');
-      const descriptionId = await entry.getAttribute('aria-describedby');
-      assert(descriptionId && await milestone.locator(`[id="${descriptionId}"]`).count() === 1,
-        `${item.id} retains its accessible date description.`);
-      if (item.href) {
-        assert.equal(await entry.getAttribute('href'), item.href, `${item.id} retains its destination.`);
-        assert.equal(await entry.getAttribute('target'), '_blank', `${item.id} opens externally.`);
-        assert.match(await entry.getAttribute('rel'), /\bnoopener\b/);
-        assert.match(await entry.getAttribute('rel'), /\bnoreferrer\b/);
-      }
-      if (item.type === 'certification') {
-        assert(await milestone.getByRole('link', { name: item.title, exact: true }).isVisible(),
-          `${item.id} retains its full accessible credential name.`);
-        assert.equal((await milestone.locator('.home-background__title-compact').innerText()).trim(), item.credentialLabel);
-        assert.equal(await milestone.locator('.home-background__credential-date.visually-hidden').count(), 1,
-          `${item.id} keeps the earned date accessible without emphasizing it visually.`);
-        assert.match(await entry.getAttribute('title'), /^Earned /, `${item.id} exposes its earned date on hover.`);
-      }
-    }
-    await assertSharedStage(page, homeStage, 'About with the resume mounted');
-    const timelineEntries = await timeline.locator('[data-home-timeline-item]').evaluateAll(nodes => nodes.map(node => {
-      const box = node.getBoundingClientRect();
-      const title = node.querySelector('.home-background__title, .home-background__credential-label');
-      return { top: box.top, left: box.left, right: box.right, bottom: box.bottom, width: box.width, height: box.height,
-        credential: node.classList.contains('home-background__credential'),
-        titleHeight: title.getBoundingClientRect().height, fontSize: parseFloat(getComputedStyle(title).fontSize) };
-    }));
-    // Credential groups may share one row; full-width career and education rows
-    // retain the original 160px readability minimum.
-    assert(timelineEntries.length === 10 && timelineEntries.every((entry, index) => entry.width >= (entry.credential ? 100 : 160) && entry.fontSize >= 12
-      && entry.height >= entry.titleHeight - 1
-      && timelineEntries.slice(0, index).every(previous => entry.top >= previous.bottom - 1
-        || entry.bottom <= previous.top + 1 || entry.left >= previous.right - 1 || entry.right <= previous.left + 1)),
-    'All ten resume milestones stay readable without overlap, including side-by-side credential groups.');
-    const timelineScroll = await checkSharedScroll(page, homeStage, 'Mounted resume', `${settings.name}-timeline-bottom.png`, { requireScroll: false });
+    stage = 'about-without-background';
+    assert.equal(aboutTimeline.enabled, false, 'The authored background is retained but disabled for later restoration.');
+    assert.equal(await page.locator('.home-about .home-timeline, .home-about .home-background, .home-about [data-home-timeline-item]').count(), 0,
+      'Work, education, and credential content is absent from the mounted About panel.');
+    assert.equal(await page.locator('.home-about [data-home-background-section]').count(), 0,
+      'No empty background sections remain in the About panel.');
+    assert.equal(await page.locator('.home-about [data-home-about-connection]:visible').count(), 3,
+      'All three personal interests remain available without the resume.');
+    await assertSharedStage(page, homeStage, 'About with personal interests');
+    const timelineScroll = await checkSharedScroll(page, homeStage, 'Personal About', `${settings.name}-about-bottom.png`, { requireScroll: false });
     await assertLayout(page);
-
     stage = 'personal-story-links';
     for (const { id, href } of expectedStories) {
       await page.locator(`[data-home-about-connection="${id}"] .home-about__project`).click();
@@ -557,8 +489,10 @@ async function runViewport(browser, base, settings) {
       await page.waitForURL(url => url.pathname === '/');
       await settle(page);
       await resetScroll(page);
-      assert.equal(await page.locator('.home-about .home-timeline [data-home-timeline-item]:visible').count(), 10,
-        'Back to About retains all ten mounted resume milestones.');
+      assert.equal(await page.locator('.home-about .home-timeline, .home-about [data-home-timeline-item]').count(), 0,
+        'Back to About keeps the disabled background out of the mounted panel.');
+      assert.equal(await page.locator('.home-about [data-home-about-connection]:visible').count(), 3,
+        'Back to About retains the three personal-interest connections.');
       assert(await page.evaluate(() => smokeFrame === SiteFrame.root() && smokeTimeOrigin === performance.timeOrigin),
         `${id} story navigation preserves the frame and document.`);
     }
@@ -759,12 +693,7 @@ async function runViewport(browser, base, settings) {
       { route: '/404', heading: /404.*Page Not Found/ },
       { route: '/tools/background-remover', heading: /Background Remover/, navigation: 'hard' },
       { route: '/tools/transcribe', heading: /File Transcriber/, navigation: 'hard' },
-      { route: '/baby-names-demo', demo: true },
-      { route: '/analytics', heading: /Data Analyst/, audience: 'analytics', requireScroll: true },
-      { route: '/portfolio?audience=analytics', heading: /Analytics Portfolio/, audience: 'analytics' },
-      { route: '/portfolio/babynames?audience=analytics', heading: /Baby Name Predictor/, audience: 'analytics', requireScroll: true },
-      { route: '/contact?audience=analytics', heading: /Let's Talk Analytics Roles/, audience: 'analytics' },
-      { route: '/resume-analytics', heading: /Daniel Short/, audience: 'analytics', requireScroll: true }
+      { route: '/baby-names-demo', demo: true }
     ]) {
       stage = `direct-route:${route}`;
       const directResponse = await page.goto(base + route, { waitUntil: 'domcontentloaded' });

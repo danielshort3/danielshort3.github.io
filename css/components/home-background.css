@@ -32,12 +32,32 @@
   }
 
   .home-background__section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin: 0 0 4px;
-    color: #087f8c;
+    color: var(--brand-midnight, #091f3b);
     font-size: .875rem;
     font-weight: 700;
     letter-spacing: 0;
     line-height: 1.5;
+  }
+
+  .home-background__section-icon {
+    display: inline-flex;
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+  }
+
+  .home-background__section-icon :is(svg, img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .home-background__list,
@@ -51,8 +71,8 @@
 
   .home-background__item {
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr);
-    gap: 5px 14px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
     align-items: start;
     min-width: 0;
     margin: 0;
@@ -63,26 +83,9 @@
   .home-background__item + .home-background__item { border-top: 1px solid #dce3ec; }
   .home-background__item:last-child { padding-bottom: 0; }
 
-  .home-background__icon {
-    display: block;
-    grid-area: 1 / 1;
-    width: 24px;
-    height: 24px;
-    color: #233d5f;
-  }
-
-  .home-background__icon svg { display: block; width: 100%; height: 100%; }
-  .home-background__icon img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    mix-blend-mode: multiply;
-  }
-
   .home-background .home-background__entry {
     display: block;
-    grid-area: 1 / 2;
+    grid-area: 1 / 1;
     min-width: 0;
     margin: 0;
     color: #091f3b;
@@ -123,7 +126,7 @@
 
   .home-background__date {
     display: flex;
-    grid-area: 2 / 2;
+    grid-area: 2 / 1;
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0 4px;
@@ -172,17 +175,15 @@
     overflow-wrap: anywhere;
   }
 
+  .home-background__arrow { color: var(--panel-color, #091f3b); }
   .home-background__arrow svg {
     position: relative;
     top: 1px;
     flex: 0 0 13px;
     width: 13px;
     height: 13px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    fill: currentColor;
+    stroke: none;
   }
   .home-background__arrow img {
     display: block;
@@ -206,8 +207,8 @@
   }
 
   @container home-background (min-width: 420px) {
-    .home-background__item { grid-template-columns: 24px minmax(0, 1fr) max-content; }
-    .home-background__date { grid-area: 1 / 3; align-self: center; justify-content: end; }
+    .home-background__item { grid-template-columns: minmax(0, 1fr) max-content; }
+    .home-background__date { grid-area: 1 / 2; align-self: center; justify-content: end; }
   }
 
   @container home-background (min-width: 400px) {

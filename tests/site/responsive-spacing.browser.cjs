@@ -37,15 +37,11 @@ async function measure(page) {
       about: box('.home-about'),
       profile: box('.home-about__profile'),
       story: box('.home-about__story'),
-      timeline: box('.home-about .home-timeline'),
-      timelineMounted: Boolean(document.querySelector('.home-about .home-timeline > h3')) &&
-        !document.querySelector('.home-about .home-timeline details, .home-about .home-timeline summary') &&
-        document.querySelectorAll('.home-about .home-background__entry, .home-about .home-background__credential-link').length === 10 &&
-        [...document.querySelectorAll('.home-about .home-background__entry, .home-about .home-background__credential-link')].every((entry) => {
-          const rect = entry.getBoundingClientRect();
-          return rect.width > 0 && rect.height > 0 && getComputedStyle(entry).visibility === 'visible';
-        }),
-      timelineItems: document.querySelectorAll('.home-about [data-home-timeline-item]').length
+      aboutColumns: document.querySelector('.home-about')
+        ? getComputedStyle(document.querySelector('.home-about')).gridTemplateColumns.split(' ').length : 0,
+      storyOnly: Boolean(document.querySelector('.home-about--story-only')),
+      interestCount: document.querySelectorAll('.home-about [data-home-about-connection]').length,
+      backgroundNodes: document.querySelectorAll('.home-about .home-timeline, .home-about .home-background, .home-about [data-home-timeline-item]').length
     };
   });
 }
@@ -230,24 +226,22 @@ async function runResponsiveSpacingChecks({ browser, base, settle, assertLayout,
       await open('/#about');
       await page.locator('.home-about__portrait').evaluate((image) => image.decode());
       const metrics = await measure(page);
-      assert(metrics.about && metrics.profile && metrics.story && metrics.timeline,
-        `About has its complete profile, personal connections, and timeline at ${viewport.width}px.`);
+      assert(metrics.about && metrics.profile && metrics.story,
+        `About has its profile and personal connections at ${viewport.width}px.`);
       assert(metrics.document.width <= viewport.width + 1, `About fits ${viewport.width}px without horizontal scrolling.`);
-      assert(metrics.timelineMounted && metrics.timelineItems === 10, 'The complete journey stays mounted without a dropdown.');
-      for (const [name, rect] of [['profile', metrics.profile], ['story', metrics.story], ['timeline', metrics.timeline]]) {
+      assert(metrics.storyOnly && metrics.aboutColumns === 1 && metrics.about.width <= 961,
+        'About keeps its centered, readable story-only column at every tested width.');
+      assert(metrics.backgroundNodes === 0 && metrics.interestCount === 3,
+        'The hidden background leaves no markup while all three interests remain.');
+      for (const [name, rect] of [['profile', metrics.profile], ['story', metrics.story]]) {
         assert(rect.x >= -1 && rect.right <= viewport.width + 1, `${name} stays within ${viewport.width}px.`);
       }
-      if (viewport.width === 768) {
-        assert(metrics.profile.bottom <= Math.min(metrics.story.y, metrics.timeline.y) + 1,
-          'The medium layout places the profile above both content columns.');
-        assert(metrics.story.right <= metrics.timeline.x - 12 && metrics.story.width >= 240 && metrics.timeline.width >= 240,
-          'The medium layout retains readable, separate story and journey columns.');
-      }
+      assert(metrics.profile.bottom <= metrics.story.y + 1 && metrics.story.width >= 240,
+        'The profile and connections stack in reading order with adequate width.');
       if (viewport.width === 320) {
-        assert(metrics.profile.bottom <= metrics.story.y + 1 && metrics.story.bottom <= metrics.timeline.y + 1,
-          'The narrow layout stacks profile, connections, and journey in reading order.');
         assert.equal(await page.locator('.home-about__connection').count(), 3, 'All three personal connections remain present.');
-        assert.equal(await page.locator('.home-about [data-home-timeline-item]:visible').count(), 10, 'All ten resume entries remain available.');
+        assert.equal(await page.locator('.home-about [data-home-timeline-item]').count(), 0,
+          'No hidden resume entries are included at the narrowest width.');
       }
       results.aboutSizes.push(metrics);
       await page.screenshot({ path: path.join(artifactDir, `spacing-${activeCase}.png`), fullPage: viewport.width <= 768 });

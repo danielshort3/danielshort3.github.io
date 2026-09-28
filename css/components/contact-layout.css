@@ -311,6 +311,17 @@
     font-size: .875rem;
   }
 
+  body.contact-page[data-audience="personal"] .site-frame #grand-junction-location .btn-secondary:hover:not(:disabled) {
+    border-color: var(--panel-color);
+    color: #ffffff;
+    background: var(--panel-color);
+  }
+
+  body.contact-page[data-audience="personal"] .site-frame #grand-junction-location .btn-secondary:focus-visible {
+    outline: 3px solid var(--panel-color);
+    outline-offset: 3px;
+  }
+
   @container site-content (min-width: 760px) {
     body.contact-page[data-audience="personal"] .site-frame #main {
       grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);

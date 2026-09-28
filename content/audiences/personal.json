@@ -192,6 +192,7 @@
                 "imageHeight": 384
               },
               "timeline": {
+                "enabled": false,
                 "title": "Experience & learning",
                 "layout": "resume",
                 "newestFirst": true,

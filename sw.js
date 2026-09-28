@@ -1,7 +1,7 @@
 /* Public offline cache. Account/API traffic and private responses never enter it. */
 'use strict';
 
-const VERSION = 'ds-site-v3';
+const VERSION = 'ds-site-v4';
 const DAY = 24 * 60 * 60 * 1000;
 const MIB = 1024 * 1024;
 const POLICIES = {

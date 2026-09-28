@@ -86,8 +86,8 @@ async function runDrawingWorkingRoomChecks({ browser, base, artifactDir }) {
             assert(samples.y + samples.height <= viewport.y + viewport.height - 8, `${label}: all ten sample choices fit above the question dock at initial scroll.`);
           }
         } else if (width === 320) {
-          const dock = await page.locator('.mobile-section-nav:not([hidden])').boundingBox();
-          assert(action.y + action.height <= dock.y - 8, `${label}: the primary action clears the bottom dock at initial scroll.`);
+          assert.equal(await page.locator('[data-mobile-section-nav]').count(), 0, `${label}: the isolated demo has no bottom section dock.`);
+          assert(action.y + action.height <= height - 8, `${label}: the primary action remains visible at initial scroll.`);
         }
         for (const surface of [page, frame]) assert(await surface.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), `${label}: no horizontal overflow.`);
         if (demo.id === 'handwritingRating') assert.equal(await frame.locator('[data-sample-digit]:visible').count(), 10, `${label}: all digit options stay visible.`);

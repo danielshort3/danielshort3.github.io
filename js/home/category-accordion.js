@@ -2,16 +2,17 @@
   'use strict';
 
   let lastCompletedUrl = window.location.href;
-  function createSectionArrowImage(categoryId) {
-    const section = ['about', 'projects', 'tools', 'games', 'contact'].includes(categoryId) ? categoryId : 'about';
-    const image = document.createElement('img');
-    image.src = `/img/ui/site-icons/section-arrow-${section}-right.webp`;
-    image.alt = '';
-    image.width = 128;
-    image.height = 128;
-    image.loading = 'lazy';
-    image.decoding = 'async';
-    return image;
+  function createSectionArrow() {
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    arrow.setAttribute('class', 'site-direction-arrow');
+    arrow.setAttribute('viewBox', '0 0 24 24');
+    arrow.setAttribute('fill', 'currentColor');
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.setAttribute('focusable', 'false');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M2.5 9h10V4l9 8-9 8v-5h-10z');
+    arrow.append(path);
+    return arrow;
   }
 
   function activateContactMap(item) {
@@ -169,7 +170,7 @@
         const arrow = document.createElement('span');
         arrow.className = 'home-library__arrow';
         arrow.setAttribute('aria-hidden', 'true');
-        arrow.append(createSectionArrowImage(id));
+        arrow.append(createSectionArrow());
         link.append(media, copy, arrow);
         item.append(link);
         return item;
@@ -552,7 +553,7 @@
     const wrapper = document.createElement('span');
     wrapper.className = 'home-library__arrow';
     wrapper.setAttribute('aria-hidden', 'true');
-    wrapper.append(createSectionArrowImage(categoryId));
+    wrapper.append(createSectionArrow());
     return wrapper;
   }
 

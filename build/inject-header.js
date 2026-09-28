@@ -16,17 +16,6 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const headerTemplatePath = path.join(root, 'build', 'templates', 'header.partial.html');
-const HEADER_AUDIENCES = ['personal', 'analytics', 'data-science', 'tourism'];
-const audienceApi = require(path.join(root, 'js', 'common', 'audience-config.js'));
-const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience === 'function'
-  ? audienceApi.normalizeAudience
-  : ((value) => String(value || '').trim().toLowerCase() || 'personal');
-const getAudience = audienceApi && typeof audienceApi.getAudience === 'function'
-  ? audienceApi.getAudience
-  : (() => ({ brandNavPrimary: 'Projects, Tools, and Games' }));
-const detectAudienceFromPath = audienceApi && typeof audienceApi.detectAudienceFromPath === 'function'
-  ? audienceApi.detectAudienceFromPath
-  : (() => null);
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -41,18 +30,10 @@ function exists(relPath) {
 }
 
 function loadHeaderTemplates() {
-  const templates = new Map();
-  HEADER_AUDIENCES.forEach((audience) => {
-    const templatePath = audience === 'personal'
-      ? headerTemplatePath
-      : path.join(root, 'build', 'templates', `header.${audience}.partial.html`);
-    if (!fs.existsSync(templatePath)) return;
-    templates.set(audience, fs.readFileSync(templatePath, 'utf8').trim());
-  });
-  if (!templates.has('personal')) {
+  if (!fs.existsSync(headerTemplatePath)) {
     throw new Error('Personal header template is missing');
   }
-  return templates;
+  return fs.readFileSync(headerTemplatePath, 'utf8').trim();
 }
 
 function walkHtmlFiles(dirRelPath) {
@@ -144,25 +125,8 @@ function insertHeaderAfterSkipLink(html, headerHtml) {
   return { html: next, changed: next !== html };
 }
 
-function relPathToRoute(relPath) {
-  const normalized = String(relPath || '').replace(/\\/g, '/');
-  if (!normalized || normalized === 'index.html') return '/';
-  if (normalized.startsWith('pages/')) {
-    return `/${normalized.slice('pages/'.length).replace(/\.html$/i, '')}`;
-  }
-  return `/${normalized.replace(/\.html$/i, '')}`;
-}
-
-function detectAudienceForFile(html, relPath) {
-  const bodyAudienceMatch = html.match(/\bdata-audience=(["'])([^"']+)\1/i);
-  if (bodyAudienceMatch && bodyAudienceMatch[2]) {
-    return normalizeAudience(bodyAudienceMatch[2]);
-  }
-  return detectAudienceFromPath(relPathToRoute(relPath));
-}
-
 function main() {
-  const headerTemplates = loadHeaderTemplates();
+  const headerHtml = loadHeaderTemplates();
 
   const rootHtmlFiles = listRootHtmlFiles();
   const pagesHtmlFiles = walkHtmlFiles('pages');
@@ -180,10 +144,8 @@ function main() {
 
     if (!exists(relPath)) return;
     const html = read(relPath);
-    const audienceKey = detectAudienceForFile(html, relPath);
-    const pageHeaderHtml = headerTemplates.get(audienceKey) || headerTemplates.get('personal');
-    const replaced = replaceHeader(html, pageHeaderHtml);
-    const result = replaced.changed ? replaced : insertHeaderAfterSkipLink(html, pageHeaderHtml);
+    const replaced = replaceHeader(html, headerHtml);
+    const result = replaced.changed ? replaced : insertHeaderAfterSkipLink(html, headerHtml);
     if (!result.changed) {
       skipped += 1;
       return;
