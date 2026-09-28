@@ -14,15 +14,8 @@ const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo
 
 const root = path.resolve(__dirname, '..');
 const outputPath = path.join(root, 'dist', 'shortlinks-destinations.json');
-const LEGACY_DESTINATION_ALIASES = new Set(['/resume', '/resume-pdf']);
-const DESTINATION_LABELS = new Map([
-  ['/resume-analytics', 'Data Analytics Resume'],
-  ['/resume-analytics-pdf', 'Data Analytics Resume PDF'],
-  ['/resume-data-science', 'Data Science Resume'],
-  ['/resume-data-science-pdf', 'Data Science Resume PDF'],
-  ['/resume-tourism', 'Tourism Resume'],
-  ['/resume-tourism-pdf', 'Tourism Resume PDF']
-]);
+const LEGACY_DESTINATION_ALIASES = new Set();
+const DESTINATION_LABELS = new Map();
 
 function readFileSafe(filePath){
   try {

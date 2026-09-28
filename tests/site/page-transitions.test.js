@@ -16,14 +16,12 @@ module.exports = function runPageTransitionTests({ assert }) {
     URL,
     window: { location: { origin: 'https://example.test' } },
     HARD_BOUNDARY_PATHS: new Set(['/tools/background-remover', '/tools/transcribe', '/tools/job-application-tracker']),
-    PROFESSIONAL_AUDIENCES: new Set(['analytics', 'data-science', 'tourism']),
-    ROUTE_CATEGORIES: new Set(['about', 'projects', 'tools', 'games', 'resume', 'contact'])
+    ROUTE_CATEGORIES: new Set(['about', 'projects', 'tools', 'games', 'contact'])
   };
   vm.createContext(sandbox);
   vm.runInContext([
     section('normalizePathname', 'normalizeRouteUrl'),
-    section('isHardBoundary', 'isProfessionalAudienceUrl'),
-    section('isProfessionalAudienceUrl', 'getPersonalRouteIntent'),
+    section('isHardBoundary', 'getPersonalRouteIntent'),
     section('getPersonalRouteIntent', 'getHomepageHistoryIntent'),
     section('isDocumentLikeUrl', 'hasBlockingInteractionLayer')
   ].join('\n'), sandbox);
@@ -32,9 +30,11 @@ module.exports = function runPageTransitionTests({ assert }) {
     assert(intent('/tools/' + name) === null && intent('/tools/' + name + '.html') === null,
       name + ' must preserve its document security boundary');
   }
-  for (const url of ['/analytics', '/data-science', '/tourism', '/professional/analytics/contact', '/contact?audience=analytics', '/resume-analytics']) {
-    assert(intent(url) !== null, url + ' should be eligible for validated shared-frame navigation');
+  for (const url of ['/analytics', '/data-science', '/tourism', '/professional/analytics/contact', '/resume-analytics']) {
+    assert(intent(url) === null, url + ' should not be a shared-frame variant route');
   }
+  assert(intent('/contact?audience=analytics').category === 'contact',
+    'legacy query parameters must not change the canonical route intent');
   assert(intent('/').view === 'closed' && intent('/').category === '' &&
     intent('/#closed').view === 'closed' && intent('/#about').category === 'about' &&
     intent('/#games').category === 'games' && intent('/#unknown') === null,

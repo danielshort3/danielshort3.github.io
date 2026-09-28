@@ -135,8 +135,8 @@
     max-width: 100%;
     min-height: var(--control-height, 44px);
     margin: 0;
-    padding: 2px 0;
-    border: 0;
+    padding: 2px 12px;
+    border: 1px solid var(--panel-color);
     border-radius: var(--radius-control, 8px);
     color: var(--panel-color);
     background: transparent;
@@ -148,6 +148,7 @@
     text-decoration: none;
     text-align: left;
     cursor: pointer;
+    transition: background-color var(--motion-fast, 160ms) ease, color var(--motion-fast, 160ms) ease;
   }
 
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent] svg {
@@ -155,9 +156,8 @@
     flex: 0 0 18px;
     width: 18px;
     height: 18px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
+    fill: currentColor;
+    stroke: none;
   }
 
   [data-page-masthead-parent] > img {
@@ -173,13 +173,15 @@
   }
 
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent]:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
+    border-color: var(--panel-color);
+    color: #ffffff;
+    background: var(--panel-color);
+    text-decoration: none;
   }
 
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-parent]:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 4px;
+    outline: 3px solid var(--panel-color);
+    outline-offset: 3px;
   }
 
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-page-masthead-actions]:not([hidden]) {
@@ -319,6 +321,14 @@ body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data
   background: #ffffff;
   box-shadow: none;
   backdrop-filter: none;
+}
+
+@media (max-width: 959px) and (max-height: 480px) {
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-personal-game-header] {
+    --masthead-padding-start: 16px;
+    --masthead-padding-end: 10px;
+    gap: 6px;
+  }
 }
 
 body[data-audience="personal"] .site-frame [data-personal-game-header] [data-page-masthead-copy] h1 {

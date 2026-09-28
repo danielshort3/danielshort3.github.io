@@ -63,6 +63,8 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     const essential = page.getByRole('button', { name: 'Essential only', exact: true });
     if (await essential.isVisible()) await essential.click();
     await settle(page);
+    assert.equal(await page.locator('body').getAttribute('data-audience'), 'personal',
+      'Project case studies use the canonical personal site.');
 
     stage = 'disabled evidence';
     await checkEvidenceAbsent(page);
@@ -99,29 +101,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert.equal(await page.locator('h1:visible').innerText(), 'Synthetic Digit Generator');
     await checkEvidenceAbsent(page);
 
-    for (const audience of ['analytics', 'data-science', 'tourism']) {
-      stage = `${audience} project content`;
-      await page.goto(`${base}/portfolio/handwritingRating?audience=${audience}`);
-      await page.locator('.project-star').waitFor();
-      await settle(page);
-      assert.equal(await page.locator('body').getAttribute('data-audience'), audience);
-      await checkEvidenceAbsent(page);
-    }
-
     if (name === 'desktop') {
-      stage = 'audience-scoped next links';
-      await page.goto(`${base}/portfolio/handwritingRating?audience=data-science`);
-      await page.locator('.project-next-link').waitFor();
-      await settle(page);
-      assert.equal(await page.locator('.project-next-link').getAttribute('href'), '/portfolio/digitGenerator?audience=data-science');
-      assert.equal(await page.locator('.project-question-link').getAttribute('href'), '/contact?audience=data-science');
-      await page.locator('.project-next-link').click();
-      await page.waitForURL(`${base}/portfolio/digitGenerator?audience=data-science`);
-      await settle(page);
-      assert.equal(await page.locator('body').getAttribute('data-audience'), 'data-science');
-      assert.equal(await page.locator('h1:visible').innerText(), 'Synthetic Digit Generator');
-      await checkEvidenceAbsent(page);
-
       stage = 'complete published project cycle';
       const projects = loadProjects().filter(isPublishedProject);
       await page.goto(`${base}/portfolio/${projects[0].id}`);
@@ -141,7 +121,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     }
     assert.equal(submissions, 0, 'No contact request may be sent during verification');
     assert.deepEqual(errors, [], 'Project content interactions must not produce page errors');
-    console.log(`Project content passed: ${name}, evidence absent across all audiences, contact prefill/draft preservation, related navigation${name === 'desktop' ? ', audience scope' : ''}.`);
+    console.log(`Project content passed: ${name}, evidence absent, contact prefill/draft preservation, related navigation${name === 'desktop' ? ', complete project cycle' : ''}.`);
   } catch (error) {
     const screenshot = path.join(artifactDir, `project-content-${name}-failure.png`);
     await page.screenshot({ path: screenshot }).catch(() => {});

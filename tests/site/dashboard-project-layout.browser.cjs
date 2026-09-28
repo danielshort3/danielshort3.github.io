@@ -23,9 +23,10 @@ async function assertRepeatedResizePaint(page, frame, artifactDir, requests) {
     assert.equal(await frame.locator('[data-sales-metric="online"]').getAttribute('aria-pressed'), 'true', 'Breakpoint changes preserve the selected chart metric.');
     assert.equal(dataRequests(), initialRequests, 'Breakpoint changes do not reload the iframe or its datasets.');
     if (width !== 390) continue;
+    await page.evaluate(() => window.scrollTo(0, 0));
     const upperRail = page.locator('.site-frame__tab.is-active:visible');
-    const rail = await (await upperRail.count() ? upperRail
-      : page.locator('[data-mobile-section-nav] [data-mobile-section="projects"][aria-current="page"]')).boundingBox();
+    await upperRail.waitFor();
+    const rail = await upperRail.boundingBox();
     const heading = await page.locator('h1').filter({ visible: true }).boundingBox();
     assert(rail && heading, 'The active Projects navigation and page title remain visible after resize.');
     const buffer = await page.screenshot({ path: path.join(artifactDir, `dashboard-retail-resize-${index}-390.png`) });

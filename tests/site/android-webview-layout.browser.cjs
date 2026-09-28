@@ -54,8 +54,7 @@ async function assertPaintedContent(page, selector, label) {
     }
     visible.width = Math.max(0, visible.right - visible.left);
     visible.height = Math.max(0, visible.bottom - visible.top);
-    // A normal mobile browser retains a fixed bottom dock, which can cover the
-    // middle sample in a short landscape window. Sample the exposed region.
+    // Sample the content actually exposed within the short landscape viewport.
     const hits = [.15, .5, .85].map(fraction => document.elementFromPoint(
       (visible.left + visible.right) / 2, visible.top + visible.height * fraction));
     return { target, visible, clips, receivesInput: hits.some(hit => hit && node.contains(hit)), hits: hits.map(hit => hit?.className || hit?.tagName), stage: box(document.querySelector('.site-frame__stage')), overflow: document.documentElement.scrollWidth - innerWidth };

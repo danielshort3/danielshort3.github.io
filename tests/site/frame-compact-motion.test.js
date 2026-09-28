@@ -103,11 +103,23 @@ check(order.every(id => !layoutTabs.get(id).hidden),
 check(layoutPanel === layoutStage.children.find(node => node.id === 'content'),
   'Enabling mobile section navigation preserves the connected content panel and map.');
 configurationContext.configure({ audience: 'personal', category: 'tools', view: 'detail', home: false });
-check(order.every(id => layoutTabs.get(id).hidden && layoutTabs.get(id).inert && layoutTabs.get(id).tabIndex === -1) &&
+check(order.every(id => id === 'tools' ? !layoutTabs.get(id).hidden && !layoutTabs.get(id).inert :
+  layoutTabs.get(id).hidden && layoutTabs.get(id).inert && layoutTabs.get(id).tabIndex === -1) &&
   configurationContext.stage.style.gridTemplateColumns === 'minmax(0, 1fr)' &&
-  configurationContext.slot.style.gridArea === '1 / 1' &&
-  configurationContext.frame.dataset.frameNavigation === 'dock',
-  'Mobile detail pages use the bottom dock without a duplicate upper row or focusable hidden rails.');
+  configurationContext.stage.style.gridTemplateRows === 'minmax(48px, auto) auto' &&
+  configurationContext.slot.style.gridArea === '2 / 1' &&
+  configurationContext.frame.dataset.frameNavigation === 'section',
+  'Mobile detail pages show one active horizontal section rail above content.');
+configurationContext.configure({ audience: 'personal', category: 'projects', view: 'library', home: true });
+check(!layoutTabs.get('projects').hidden && order.filter(id => id !== 'projects').every(id => layoutTabs.get(id).hidden) &&
+  configurationContext.frame.dataset.frameNavigation === 'section',
+  'Mobile libraries use the same single section rail as detail pages.');
+layoutDocument.getElementById = id => id === 'android-feature-chrome' ? {} : null;
+configurationContext.configure({ audience: 'personal', category: 'tools', view: 'detail', home: false });
+check(order.every(id => layoutTabs.get(id).hidden) && configurationContext.frame.dataset.frameNavigation === 'dock' &&
+  configurationContext.slot.style.gridArea === '1 / 1',
+  'The Android WebView keeps its native navigation without an extra site rail.');
+delete layoutDocument.getElementById;
 configurationContext.mobileDockQuery.matches = false;
 configurationContext.configure({ audience: 'personal', category: 'tools', view: 'detail', home: false });
 check(order.every(id => !layoutTabs.get(id).hidden) &&

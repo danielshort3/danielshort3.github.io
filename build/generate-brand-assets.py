@@ -164,14 +164,10 @@ def tabs(x, y, width, height, label_size=13):
   return "\n".join(parts)
 
 
-def wordmark(analytics=False):
-  height = 200 if analytics else 160
-  parts = [logo(24, 28 if analytics else 20, 120)]
-  parts.append(text(NAME, 174, 96 if analytics else 100, 58, 750, tracking=-.8))
-  if analytics:
-    parts.append(text("Data Analytics & BI", 176, 142, 26, 400, SLATE))
-  label = "analytics wordmark" if analytics else "personal wordmark"
-  return svg(540, height, f"{NAME} {label}", f"Full-color DS mark beside {NAME}" + (", with the professional descriptor Data Analytics & BI." if analytics else ". The personal version has no audience-specific descriptor."), "\n".join(parts))
+def wordmark():
+  parts = [logo(24, 20, 120)]
+  parts.append(text(NAME, 174, 100, 58, 750, tracking=-.8))
+  return svg(540, 160, f"{NAME} personal wordmark", f"Full-color DS mark beside {NAME}. The personal version has no audience-specific descriptor.", "\n".join(parts))
 
 
 def social_card():
@@ -213,7 +209,6 @@ def main():
   artwork = {
     "04c-ds-logo-all-white.svg": svg(397, 408, f"{NAME} all-white DS mark", "Single-color white DS artwork on a transparent canvas, for dark surfaces.", logo(0, 0, 408, white=True)),
     "06-wordmark-horizontal-assembly.svg": wordmark(),
-    "06b-wordmark-analytics.svg": wordmark(analytics=True),
     "09-linkedin-banner-1584x396.svg": linkedin_banner(),
     "10-github-readme-portfolio-banner.svg": github_banner(),
     "personal-social-card.svg": social_card(),

@@ -75,7 +75,7 @@ async function assertDashboard(page, dashboard, device, label) {
       nativeWidth: node.clientWidth, nativeHeight: node.clientHeight, parentHeight: parent.height
     };
   });
-  assert.equal(device, geometry.viewportWidth > 768 ? 'desktop' : 'phone', `${label}: laptop and desktop viewports retain the desktop layout even inside narrower audience panels.`);
+  assert.equal(device, geometry.viewportWidth > 768 ? 'desktop' : 'phone', `${label}: laptop and desktop viewports retain the desktop layout inside the project panel.`);
   assert(Math.abs(geometry.left - geometry.right) <= 1, `${label}: equal side gutters.`);
   if (device === 'desktop') {
     const scale = Math.min(1, geometry.available / 1200);
@@ -94,9 +94,9 @@ async function assertDashboard(page, dashboard, device, label) {
   }
 }
 
-async function runCase({ browser, base, artifactDir, dashboard, audience, width }) {
+async function runCase({ browser, base, artifactDir, dashboard, width }) {
   const device = width > 768 ? 'desktop' : 'phone';
-  const label = `${dashboard.id}-${audience || 'personal'}-${width}`;
+  const label = `${dashboard.id}-${width}`;
   const context = await browser.newContext({ viewport: { width, height: width < 600 ? 844 : 1100 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
   const page = await context.newPage();
   page.setDefaultTimeout(15000);
@@ -113,7 +113,7 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
     const phone = new URL(route.request().url()).searchParams.get(':device') === 'phone';
     await route.fulfill({ contentType: 'text/html', body: `<!doctype html><html lang="en"><head><title>Controlled Tableau view</title><style>html,body{margin:0;padding:0}main{box-sizing:border-box;width:${phone ? '100%' : '1200px'};height:${phone ? 2100 : dashboard.height - 30}px;padding:24px;background:#fff;color:#091f3b}footer{height:27px;background:#f4f7fc}</style></head><body><main><h1>${dashboard.title}</h1><p>Controlled native dashboard fixture</p></main><footer>Tableau toolbar</footer></body></html>` });
   });
-  const routePath = `/portfolio/${dashboard.id}${audience ? `?audience=${audience}` : ''}`;
+  const routePath = `/portfolio/${dashboard.id}`;
   try {
     const response = await page.goto(`${base}${routePath}`, { waitUntil: 'domcontentloaded' });
     assert.equal(response.status(), 200, `${label}: route resolves.`);
@@ -123,7 +123,7 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
     assertDashboardUrl(requests[0], dashboard, device);
     await page.screenshot({ path: path.join(artifactDir, `${label}.png`) });
 
-    if (!audience && [1440, 390].includes(width)) {
+    if ([1440, 390].includes(width)) {
       await page.locator('.project-hero').scrollIntoViewIfNeeded();
       const instructions = page.locator('.project-intro-actions .project-demo-help-trigger');
       await instructions.focus();
@@ -140,7 +140,7 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
       await page.screenshot({ path: path.join(artifactDir, `${label}-top.png`) });
     }
 
-    if (!audience && width === 1440) {
+    if (width === 1440) {
       await page.evaluate(() => { window.__tableauRouteIdentity = 'preserved'; });
       await page.locator('.project-parent-link').click();
       await page.waitForURL(`${base}/portfolio`);
@@ -176,7 +176,7 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
       await assertDashboard(page, dashboard, 'desktop', `${label} expand`);
       assert.equal(requests.length, narrowCount + 3, `${label}: resizing back loads one visible dashboard.`);
     }
-    if (!audience && width === 1024) {
+    if (width === 1024) {
       const cappedCount = requests.length;
       const cappedSource = await page.locator('iframe.project-embed-frame').getAttribute('src');
       await page.setViewportSize({ width: 1100, height: 1100 });
@@ -185,7 +185,7 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
       assert.equal(requests.length, cappedCount, `${label}: resizing the displayed desktop canvas preserves its interactive state.`);
       assert.equal(await page.locator('iframe.project-embed-frame').getAttribute('src'), cappedSource);
     }
-    if (!audience && width === 390) {
+    if (width === 390) {
       const beforeDeparture = requests.length;
       const outgoingFrame = await page.locator('iframe.project-embed-frame').elementHandle();
       await page.setViewportSize({ width: 400, height: 844 });
@@ -206,14 +206,14 @@ async function runCase({ browser, base, artifactDir, dashboard, audience, width 
   } finally { await context.close(); }
 }
 
-async function runNoScriptCase({ browser, base, dashboard, audience }) {
-  const label = `${dashboard.id}-${audience || 'personal'}-no-js`;
-  const context = await browser.newContext({ viewport: { width: audience ? 1920 : 1440, height: 1100 }, javaScriptEnabled: false, serviceWorkers: 'block' });
+async function runNoScriptCase({ browser, base, dashboard }) {
+  const label = `${dashboard.id}-no-js`;
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1100 }, javaScriptEnabled: false, serviceWorkers: 'block' });
   const page = await context.newPage();
   const requests = [];
   await context.route('https://public.tableau.com/**', async route => { requests.push(route.request().url()); await route.abort(); });
   try {
-    const response = await page.goto(`${base}/portfolio/${dashboard.id}${audience ? `?audience=${audience}` : ''}`, { waitUntil: 'load' });
+    const response = await page.goto(`${base}/portfolio/${dashboard.id}`, { waitUntil: 'load' });
     assert.equal(response.status(), 200, `${label}: route resolves without script.`);
     const frame = page.locator('iframe.project-embed-frame');
     assert.equal(await frame.isVisible(), false, `${label}: hide the unloaded dashboard.`);
@@ -230,11 +230,11 @@ async function runNoScriptCase({ browser, base, dashboard, audience }) {
 async function runTableauProjectIntegrationChecks({ browser, base, artifactDir }) {
   fs.mkdirSync(artifactDir, { recursive: true });
   for (const dashboard of DASHBOARDS) {
-    for (const [audience, width] of [[null, 1440], [null, 1366], [null, 320], [null, 390], [null, 768], [null, 1024], ['analytics', 1920], ['data-science', 1920], ['tourism', 1920], ['analytics', 1440], ['analytics', 1024], ['analytics', 390]]) {
-      await runCase({ browser, base, artifactDir, dashboard, audience, width });
+    for (const width of [1440, 1366, 320, 390, 768, 1024, 1920]) {
+      await runCase({ browser, base, artifactDir, dashboard, width });
     }
   }
-  for (const dashboard of DASHBOARDS) for (const audience of [null, 'analytics']) await runNoScriptCase({ browser, base, dashboard, audience });
+  for (const dashboard of DASHBOARDS) await runNoScriptCase({ browser, base, dashboard });
 }
 
 async function main() {

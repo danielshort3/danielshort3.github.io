@@ -737,7 +737,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
   const nextProject = nextProjectCandidate && nextProjectCandidate.id !== id && nextProjectCandidate.published !== false ? nextProjectCandidate : null;
   const contactMessage = `Hi Daniel, I have a question about ${title}:\n\n`;
   const nextSteps = `<nav class="project-next-steps" aria-label="Continue exploring">
-      ${nextProject ? `<a class="project-next-link" href="/portfolio/${escapeHtml(encodeURIComponent(nextProject.id))}" data-content-open="true" data-content-id="${escapeHtml(nextProject.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>${escapeHtml(nextProject.title)} <span aria-hidden="true">→</span></strong></a>` : ''}
+      ${nextProject ? `<a class="project-next-link" href="/portfolio/${escapeHtml(encodeURIComponent(nextProject.id))}" data-content-open="true" data-content-id="${escapeHtml(nextProject.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>${escapeHtml(nextProject.title)} <svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></strong></a>` : ''}
       <a class="project-all-link" href="/portfolio">All projects</a>
     </nav>`;
   const projectQuestion = `<div class="project-question-dock">
@@ -1122,7 +1122,7 @@ function preparePersonalProjectDetailHtml(html) {
       return `<header class="project-hero project-hero--compact" data-page-masthead>
       <div class="wrapper">
         <a class="project-parent-link" href="/portfolio" data-page-masthead-parent aria-label="Back to project library">
-          <img src="/img/ui/site-icons/section-arrow-projects-left.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">
+          <svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>
           <span>Project library</span>
         </a>
         <div data-page-masthead-intro>
