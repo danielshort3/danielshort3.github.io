@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { preparePersonalProjectDetailHtml, renderProjectPage } = require('../../build/generate-project-pages');
-const { markProfessionalInternalHtml, wrapPersonalAccordionHtml } = require('../../build/lib/personal-accordion-shell');
+const { wrapPersonalAccordionHtml } = require('../../build/lib/personal-accordion-shell');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
@@ -39,8 +39,6 @@ function runProjectPrivacyLayoutTests({ assert }) {
   assert(babyNames.includes('<nav class="project-next-steps" aria-label="Continue exploring">')
     && babyNames.includes('<a class="project-all-link" href="/portfolio">All projects</a>'),
   'Every project keeps a library return at the end, even without a next-project suggestion.');
-  assert(markProfessionalInternalHtml(babyNames, 'analytics').includes('<a class="project-all-link" href="/portfolio?audience=analytics">All projects</a>'),
-  'Professional project copies keep their audience when returning to the library.');
   for (const id of ['handwritingRating', 'shapeClassifier']) {
     const drawing = renderProjectPage(project(id));
     assert(drawing.includes('project-main--drawing') && !drawing.includes('class="project-demo-header"'),

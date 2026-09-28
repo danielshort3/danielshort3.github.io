@@ -378,9 +378,9 @@ private fun AboutScreen(content: SiteContent, modifier: Modifier, contentPadding
         }
       }
     }
-    if (about.experience.isNotEmpty()) item { Milestones("Experience", about.experience, context) }
-    if (about.education.isNotEmpty()) item { Milestones("Education", about.education, context) }
-    if (about.credentials.isNotEmpty()) item { Milestones("Credentials", about.credentials, context) }
+    if (about.backgroundVisible && about.experience.isNotEmpty()) item { Milestones("Experience", about.experience, context) }
+    if (about.backgroundVisible && about.education.isNotEmpty()) item { Milestones("Education", about.education, context) }
+    if (about.backgroundVisible && about.credentials.isNotEmpty()) item { Milestones("Credentials", about.credentials, context) }
     item { Text("Content is saved on your device and refreshed from the website.", color = Muted, style = MaterialTheme.typography.bodySmall) }
   }
 }

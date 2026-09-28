@@ -61,9 +61,11 @@ async function run() {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
     const page = await context.newPage();
     const future = structuredClone(staged);
+    const [major, minor, patch] = staged.latest.versionName.replace(/-debug$/i, '').split('.').map(Number);
+    const nextVersion = `${major}.${minor}.${patch + 1}`;
     future.latest.versionCode += 1;
-    future.latest.versionName = '0.5.5-debug';
-    future.latest.apk.url = 'https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.5-review/Daniel-Short-review-v12-fixture.apk';
+    future.latest.versionName = `${nextVersion}-debug`;
+    future.latest.apk.url = `https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v${nextVersion}-review/Daniel-Short-review-v${future.latest.versionCode}-fixture.apk`;
     future.latest.apk.sha256 = 'b'.repeat(64);
     future.releases.push({ versionCode: future.latest.versionCode, sha256: future.latest.apk.sha256,
       size: future.latest.apk.size, signerSha256: future.latest.signerSha256 });
@@ -75,7 +77,7 @@ async function run() {
         future.latest.apk.url);
       assert.equal(await link.getAttribute('href'), future.latest.apk.url,
         'newer approved release replaces the generated fallback without another site build');
-      assert.match(await page.locator('[data-android-release-status]').innerText(), /0\.5\.5/);
+      assert((await page.locator('[data-android-release-status]').innerText()).includes(nextVersion));
 
       const hostile = structuredClone(future);
       hostile.latest.apk.url = 'https://example.test/not-an-apk';

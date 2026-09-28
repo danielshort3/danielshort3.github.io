@@ -116,15 +116,6 @@ function renderDropdownLink(link, extraClasses = '') {
   if (!inferredDataAttributes['data-contact-modal-link'] && href.includes('#contact-modal')) {
     inferredDataAttributes['data-contact-modal-link'] = 'true';
   }
-  if (!inferredDataAttributes['data-resume-home-link'] && /^resume(?:$|[#?])/i.test(href)) {
-    inferredDataAttributes['data-resume-home-link'] = 'true';
-  }
-  if (!inferredDataAttributes['data-resume-preview-link'] && /^resume-pdf(?:$|[#?])/i.test(href)) {
-    inferredDataAttributes['data-resume-preview-link'] = 'true';
-  }
-  if (!inferredDataAttributes['data-resume-download-link'] && /documents\/resume/i.test(href)) {
-    inferredDataAttributes['data-resume-download-link'] = 'true';
-  }
   const attrs = {
     href: trimLeadingSlash(link.href || ''),
     class: classes || 'nav-dropdown-link',
@@ -398,10 +389,9 @@ function renderGameIconMarkup(iconType) {
 }
 
 function renderHeader({ settings = {}, navigation = {}, audience = null }) {
-  const audienceKey = String(audience && audience.key || 'personal').trim() || 'personal';
   const brand = navigation.brand || {};
   const search = navigation.search || {};
-  const homePath = audienceKey === 'personal' ? (brand.homePath || '/') : (audience.homePath || '/');
+  const homePath = brand.homePath || '/';
   return [
     '<header id="combined-header-nav" data-site-shell-header>',
     '  <nav class="nav" aria-label="Site header">',
@@ -424,7 +414,6 @@ function renderHeader({ settings = {}, navigation = {}, audience = null }) {
     indentBlock(renderSvgMarkup('search'), '            '),
     '          </button>',
     '        </div>',
-    ...(audienceKey === 'personal' ? [] : [`        <input type="hidden" name="audience" value="${escapeHtml(audienceKey)}" data-search-audience>`]),
     '      </form>',
     '    </div>',
     '  </nav>',
@@ -1234,17 +1223,10 @@ function renderAudienceConfigJs(settings, audiences) {
       portfolioPath: audience.portfolioPath,
       portfolioAllPath: audience.portfolioAllPath,
       contactPath: audience.contactPath,
-      resumePath: audience.resumePath,
-      resumePreviewPath: audience.resumePreviewPath,
-      resumeDownloadPath: audience.resumeDownloadPath,
       startHere: Array.isArray(audience.startHere) ? audience.startHere : [],
       featuredProjectIds: audience.featuredProjectIds,
       portfolioTitle: audience.portfolioTitle,
       portfolioDescription: audience.portfolioDescription,
-      resumeNavTitle: audience.resumeNavTitle,
-      resumeNavSubtitle: audience.resumeNavSubtitle,
-      resumePreviewSubtitle: audience.resumePreviewSubtitle,
-      resumeDownloadSubtitle: audience.resumeDownloadSubtitle,
       brandNavPrimary: audience.brandNavPrimary,
       ...(audience.brandTagline ? { brandTagline: audience.brandTagline } : {})
     };
@@ -1279,8 +1261,6 @@ function renderAudienceConfigJs(settings, audiences) {
     '  function normalizeAudience(value) {',
     "    const raw = String(value || '').trim().toLowerCase();",
     '    if (!raw) return defaultAudience;',
-    "    if (raw === 'datascience' || raw === 'data_science') return 'data-science';",
-    "    if (raw === 'tourism-analytics') return 'tourism';",
     '    return audiences[raw] ? raw : defaultAudience;',
     '  }',
     '',
@@ -1293,9 +1273,7 @@ function renderAudienceConfigJs(settings, audiences) {
     '    return order.find((key) => {',
     '      const audience = audiences[key];',
     '      if (!audience) return false;',
-    '      return path === audience.homePath',
-    '        || path === audience.resumePath',
-    '        || path === audience.resumePreviewPath;',
+    '      return path === audience.homePath;',
     '    }) || null;',
     '  }',
     '',

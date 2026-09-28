@@ -3,13 +3,13 @@
   "channel": "review",
   "packageName": "me.danielshort.app.debug",
   "latest": {
-    "versionCode": 11,
-    "versionName": "0.5.4-debug",
+    "versionCode": 12,
+    "versionName": "0.5.5-debug",
     "minSdk": 26,
     "apk": {
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.4-review/Daniel-Short-review-v11-15a7cfe89ffc6636.apk",
-      "sha256": "15a7cfe89ffc66361aa112de2afffddd7e995c4bb023cca8e82973f81885959f",
-      "size": 24881213
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.5-review/Daniel-Short-review-v12-288958ea3f01e5a9.apk",
+      "sha256": "288958ea3f01e5a9ea5e88d06e73743bfe2636b58952177af9bd1822e3b61a7f",
+      "size": 24881205
     },
     "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
   },
@@ -79,15 +79,21 @@
       "sha256": "15a7cfe89ffc66361aa112de2afffddd7e995c4bb023cca8e82973f81885959f",
       "size": 24881213,
       "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
+    },
+    {
+      "versionCode": 12,
+      "sha256": "288958ea3f01e5a9ea5e88d06e73743bfe2636b58952177af9bd1822e3b61a7f",
+      "size": 24881205,
+      "signerSha256": "88cb3cf9ae50dfd77b6d896742d0ec30a30a09a60b3fc99ee8f38bd96751a44e"
     }
   ],
   "patches": [
     {
-      "fromSha256": "ef5ef1369bad12cb6b5a125334d52ac57a71eb8b7efb2cfbdd13011479c30c3e",
-      "toSha256": "15a7cfe89ffc66361aa112de2afffddd7e995c4bb023cca8e82973f81885959f",
-      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.4-review/patch-ef5ef1369bad12cb-15a7cfe89ffc6636-47d3175efc7eaee1.dsupd.gz",
-      "sha256": "47d3175efc7eaee1534f76fa4a8412ac225bd7a69e8ed449c95ab393c4a97a16",
-      "size": 632533,
+      "fromSha256": "15a7cfe89ffc66361aa112de2afffddd7e995c4bb023cca8e82973f81885959f",
+      "toSha256": "288958ea3f01e5a9ea5e88d06e73743bfe2636b58952177af9bd1822e3b61a7f",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.5-review/patch-15a7cfe89ffc6636-288958ea3f01e5a9-ae000044d49a6e78.dsupd.gz",
+      "sha256": "ae000044d49a6e78e84e82b714173876f35a3035dba3dbf76f767ce9e47f21b7",
+      "size": 648075,
       "format": "dsupd1-gzip"
     }
   ]

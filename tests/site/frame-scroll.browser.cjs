@@ -140,23 +140,31 @@ async function runEngine(engine) {
     errors.push({ engine, message: error.message, url: page.url() });
   });
   try {
-    for (const route of ["/tools/text-compare", "/tools/qr-code-generator", "/tools", "/portfolio", "/portfolio/digitGenerator", "/contact", "/privacy"]) {
+    for (const route of ["/tools/text-compare", "/tools/qr-code-generator", "/tools", "/portfolio", "/portfolio/digitGenerator", "/privacy"]) {
       await runCase(page, engine, "desktop-content-" + route, async () => {
         await ready(page, route);
         const state = await read(page);
         assert.equal(state.fit, "viewport");
         assert.equal(state.compact, "false");
+        assert.equal(state.audience, "personal");
         return expectScroll(page, await pointOn(page, ".site-frame__body h1"), "viewport");
       });
     }
-    await runCase(page, engine, "homepage-timeline", async () => {
-      await ready(page, "/");
-      return expectScroll(page, await pointOn(page, "[data-home-timeline-scroller]"), "viewport");
+    await runCase(page, engine, "homepage-about", async () => {
+      await page.setViewportSize({ width: 1440, height: 620 });
+      await ready(page, "/#about");
+      const state = await read(page);
+      assert.equal(state.audience, "personal");
+      assert.equal(state.fit, "viewport");
+      assert.equal(await page.locator(".home-about--story-only .home-about__profile").count(), 1);
+      const result = await expectScroll(page, await pointOn(page, ".home-about__profile"), "viewport");
+      await page.setViewportSize({ width: 1440, height: 900 });
+      return result;
     });
-    for (const surface of ["gutter", "header", "rail", "toolbar"]) {
+    for (const surface of ["gutter", "header", "rail"]) {
       await runCase(page, engine, "desktop-shell-" + surface, async () => {
         await ready(page, "/tools/text-compare");
-        const selector = { header: "[data-site-shell-header] .nav", rail: '[data-site-tab="tools"]', toolbar: "[data-site-route-toolbar]" }[surface];
+        const selector = { header: "[data-site-shell-header] .nav", rail: '[data-site-tab="tools"]' }[surface];
         const point = selector ? await pointOn(page, selector) : { x: 2, y: 450 };
         return expectScroll(page, point, "viewport");
       });
@@ -225,24 +233,16 @@ async function runEngine(engine) {
     });
     for (const size of [{ width: 390, height: 844 }, { width: 1440, height: 580 }]) {
       await page.setViewportSize(size);
-      for (const route of ["/tools/text-compare", "/privacy", "/"]) {
+      for (const route of ["/tools/text-compare", "/privacy", "/#about"]) {
         await runCase(page, engine, "document-" + size.width + "x" + size.height + "-" + route, async () => {
           await ready(page, route);
-          assert.equal((await read(page)).compact, "true");
-          const selector = route === "/" ? "[data-home-timeline-scroller]" : ".site-frame__body h1";
+          const state = await read(page);
+          assert.equal(state.compact, "true");
+          assert.equal(state.audience, "personal");
+          const selector = route === "/#about" ? ".home-about__profile" : ".site-frame__body h1";
           return expectScroll(page, await pointOn(page, selector), "document");
         });
       }
-    }
-    await page.setViewportSize({ width: 1440, height: 900 });
-    for (const route of ["/contact?audience=analytics", "/portfolio?audience=analytics", "/portfolio/digitGenerator?audience=analytics"]) {
-      await runCase(page, engine, "professional-document-" + route, async () => {
-        await ready(page, route);
-        const state = await read(page);
-        assert.equal(state.audience, "analytics");
-        assert.equal(state.fit, "document");
-        return expectScroll(page, await pointOn(page, ".site-frame__body h1"), "document");
-      });
     }
   } finally {
     await context.close();

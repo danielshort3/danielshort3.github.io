@@ -17,8 +17,7 @@
   const NAVIGATION_EVENT = 'site:navigation-start';
   const REQUEST_HEADER = 'X-Site-Route';
   const ROUTE_VIEWS = new Set(['closed', 'overview', 'library', 'detail']);
-  const ROUTE_CATEGORIES = new Set(['about', 'projects', 'tools', 'games', 'resume', 'contact']);
-  const PROFESSIONAL_AUDIENCES = new Set(['analytics', 'data-science', 'tourism']);
+  const ROUTE_CATEGORIES = new Set(['about', 'projects', 'tools', 'games', 'contact']);
   const HARD_BOUNDARY_PATHS = new Set([
     '/tools/background-remover',
     '/tools/transcribe',
@@ -195,16 +194,6 @@
     return Boolean(url && HARD_BOUNDARY_PATHS.has(normalizePathname(url.pathname)));
   }
 
-  function isProfessionalAudienceUrl(url) {
-    if (!url) return false;
-    const path = normalizePathname(url.pathname);
-    if (/^\/(?:professional|analytics|data-science|tourism)(?:\/|$)/i.test(path)) return true;
-    const audience = String(url.searchParams.get('audience') || '').trim().toLowerCase();
-    const mode = String(url.searchParams.get('mode') || '').trim().toLowerCase();
-    return PROFESSIONAL_AUDIENCES.has(audience) ||
-      ['professional', 'work', 'career', 'analytics'].includes(mode);
-  }
-
   function getPersonalRouteIntent(url) {
     if (!url || isHardBoundary(url)) return null;
     const path = normalizePathname(url.pathname);
@@ -245,11 +234,6 @@
     }
     if (path === '/search') return { category: 'tools', view: 'detail' };
     if (path === '/solutions') return { category: 'projects', view: 'detail' };
-    if (/^\/resume(?:-|\/|$)/i.test(path)) return { category: 'resume', view: 'detail' };
-    if (isProfessionalAudienceUrl(url)) {
-      const category = /(?:portfolio|projects)/i.test(path) ? 'projects' : /resume/i.test(path) ? 'resume' : /contact/i.test(path) ? 'contact' : 'about';
-      return { category, view: 'detail' };
-    }
     if (['/dshort', '/404', '/accessibility'].includes(path)) return { category: 'about', view: 'detail' };
     return null;
   }

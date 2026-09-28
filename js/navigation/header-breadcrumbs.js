@@ -1,8 +1,8 @@
 (() => {
   'use strict';
 
-  const labels = { about: 'About', projects: 'Projects', tools: 'Tools', games: 'Games', resume: 'Resume', contact: 'Contact' };
-  const colors = { about: '#091f3b', projects: '#005fed', tools: '#087f8c', games: '#c94b0a', resume: '#087f8c', contact: '#334155' };
+  const labels = { about: 'About', projects: 'Projects', tools: 'Tools', games: 'Games', contact: 'Contact' };
+  const colors = { about: '#091f3b', projects: '#005fed', tools: '#087f8c', games: '#c94b0a', contact: '#334155' };
   const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
   const cleanPath = (value) => String(value || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
 
@@ -12,8 +12,6 @@
     const data = document.body.dataset;
     const state = window.SiteFrame?.current?.();
     const shell = window.SiteFrame?.root?.() || document.querySelector('[data-personal-accordion-shell], [data-home-accordion]');
-    const audience = data.audience || 'personal';
-    const config = window.getSiteAudienceConfig?.(audience) || {};
     const url = new URL(window.location.href);
     // Inline libraries retain the home document and its canonical manifest path.
     const path = cleanPath(manifest.id === 'home' ? url.pathname : (manifest.path || url.pathname));
@@ -34,7 +32,7 @@
       }
     }
     return {
-      path, category, view, audience, config, parent,
+      path, category, view, parent,
       home: manifest.id === 'home' || data.page === 'home',
       demo: data.page === 'project-demo',
       title: heading || title || cleanText(data.page).replace(/[-_]/g, ' ') || 'Page',
@@ -44,20 +42,13 @@
   }
 
   function buildTrail(page) {
-    const homePath = page.config.homePath || '/';
+    const homePath = '/';
     if (page.view === 'overview' || (page.home && page.view !== 'library') ||
       (page.path === cleanPath(homePath) && page.view !== 'library')) return [];
     const trail = [{ label: 'Home', href: homePath }];
     if (page.path === '/search') return [...trail, { label: 'Search' }];
     if (page.path === '/contact') return [...trail, { label: 'Contact' }];
-    if (page.category === 'resume' || /^\/resume(?:-|$)/.test(page.path)) {
-      if (/-pdf$/.test(page.path)) {
-        trail.push({ label: 'Resume', href: page.config.resumePath || page.path.replace(/-pdf$/, '') });
-        trail.push({ label: 'PDF Preview' });
-      } else trail.push({ label: 'Resume' });
-      return trail;
-    }
-    const libraryHref = { projects: page.config.portfolioPath || '/portfolio', tools: '/tools', games: '/games' }[page.category];
+    const libraryHref = { projects: '/portfolio', tools: '/tools', games: '/games' }[page.category];
     if (libraryHref) {
       const label = labels[page.category];
       const libraryPath = cleanPath(new URL(libraryHref, window.location.href).pathname);

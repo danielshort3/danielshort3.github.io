@@ -25,10 +25,21 @@ assert.strictEqual(catalog.about.interests.find((interest) => interest.title ===
   'Travel Assistant chatbot');
 assert(catalog.about.interests.every((interest) => catalog.projects.some((project) => project.id === interest.projectId)),
   'Every native interest link resolves to a published in-app project');
-assert.strictEqual(catalog.about.experience[0].organization, 'Visit Grand Junction');
-assert.strictEqual(catalog.about.experience[0].date, 'Feb 2024–present');
-assert(catalog.about.education.find((entry) => entry.title === 'B.S. Data Analytics').url.startsWith('https://www.credential.net/'));
-assert(catalog.about.credentials.every((entry) => entry.url.startsWith('https://')));
+assert.strictEqual(catalog.about.backgroundVisible, false);
+assert.deepStrictEqual(catalog.about.experience, []);
+assert.deepStrictEqual(catalog.about.education, []);
+assert.deepStrictEqual(catalog.about.credentials, []);
+const restoredBackground = JSON.parse(JSON.stringify(content));
+const restoredAbout = restoredBackground.audiences.find((audience) => audience.key === 'personal').page.sections
+  .flatMap((section) => section.props?.categories || []).find((category) => category.id === 'about');
+restoredAbout.timeline.enabled = true;
+const restoredCatalog = createMobileContent(restoredBackground);
+assert.strictEqual(restoredCatalog.about.backgroundVisible, true);
+assert.strictEqual(restoredCatalog.about.experience[0].organization, 'Visit Grand Junction');
+assert.strictEqual(restoredCatalog.about.experience[0].date, 'Feb 2024–present');
+assert(restoredCatalog.about.education.find((entry) => entry.title === 'B.S. Data Analytics').url.startsWith('https://www.credential.net/'));
+assert(restoredCatalog.about.credentials.every((entry) => entry.url.startsWith('https://')));
+assert.notStrictEqual(restoredCatalog.revision, catalog.revision, 'Re-enabling the background should publish a new feed revision');
 assert.strictEqual(catalog.projects.length, content.projects.filter((project) => project.published !== false).length);
 assert(!catalog.projects.some((project) => project.id === 'minesweeper'), 'Unpublished projects stay out of the app');
 assert(catalog.projects.every((project) => project.url === `${catalog.site.url}portfolio/${project.id}`), 'Only personal project routes are exported');
@@ -86,7 +97,6 @@ modified.site.settings.secret = 'DO_NOT_EXPORT';
 modified.site.settings.siteOrigin = 'https://unapproved.example.com';
 modified.site.settings.profileImage = 'https://unapproved.example.com/avatar.png';
 modified.resumes = [{ text: 'DO_NOT_EXPORT' }];
-modified.audiences.find((entry) => entry.key !== 'personal').page.description = 'DO_NOT_EXPORT';
 modified.projects.push(...[
   { published: false }, { enabled: false }, { hidden: true }, { noindex: true }, { private: true }, { internal: true },
   { visibility: 'admin' }, { visibility: 'authed' }, { status: 'draft' }, { audience: 'professional' }

@@ -1,8 +1,7 @@
 {
   "/": [],
   "/contact": [
-    "css/components/contact-card.css",
-    "css/components/destination-analytics.css"
+    "css/components/contact-card.css"
   ],
   "/solutions": [
     "css/components/solutions.css"

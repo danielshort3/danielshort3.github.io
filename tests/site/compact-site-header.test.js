@@ -59,7 +59,7 @@ module.exports = function runCompactSiteHeaderTests({ assert }) {
   const settings = JSON.parse(read('content/site/settings.json'));
   const navigation = JSON.parse(read('content/site/navigation.json'));
   const footer = JSON.parse(read('content/site/footer.json'));
-  ['personal', 'analytics', 'data-science', 'tourism'].forEach((key) => {
+  ['personal'].forEach((key) => {
     const audience = audienceApi.getAudience(key);
     const html = renderer.renderHeader({ settings, navigation, audience });
     assert(html.includes('data-site-shell-header') && html.includes('class="brand"') && html.includes('role="search"'),
@@ -70,10 +70,8 @@ module.exports = function runCompactSiteHeaderTests({ assert }) {
       `${key} header should initially expose its brand and search before a deeper route fills the breadcrumb`);
     assert(html.includes('aria-label="Breadcrumb" data-header-breadcrumbs hidden') && html.includes('data-header-breadcrumb-list'),
       `${key} header should reserve a hidden breadcrumb landmark for deeper pages`);
-    assert(html.includes(`href="${key === 'personal' ? '/' : audience.homePath.replace(/^\//, '')}"`),
-      `${key} brand should return to its own home`);
-    assert(key === 'personal' ? !html.includes('name="audience"') : html.includes(`name="audience" value="${key}"`),
-      `${key} search should preserve its audience without advertising other audiences`);
+    assert(html.includes('href="/"'), `${key} brand should return to the canonical home`);
+    assert(!html.includes('name="audience"'), `${key} search should not select an audience variant`);
     const footerHtml = renderer.renderFooter({ footer, year: 2026, audience });
     assert(footerHtml.includes('footer--personal-compact') && footerHtml.includes('aria-label="Footer utility"') && footerHtml.includes('© 2026 Daniel Short'),
       `${key} should use the same compact utility footer and copyright`);
@@ -129,8 +127,8 @@ module.exports = function runCompactSiteHeaderTests({ assert }) {
   assert(!form.classList.contains('is-expanded') && input.tabIndex === -1,
     'outside pointer input should dismiss search and remove the field from the tab order');
   vm.runInContext("syncSearchAudience(form, { key: 'analytics' }); syncSearchAudience(form, { key: 'tourism' });", context);
-  assert(form.children.filter((child) => child.name === 'audience').length === 1 && form.querySelector('[data-search-audience]').value === 'tourism',
-    'route changes should update one hidden search audience without duplicating it');
+  assert(!form.querySelector('[data-search-audience]'),
+    'legacy audience values must not add hidden search filters');
   vm.runInContext("syncSearchAudience(form, { key: 'personal' });", context);
   assert(!form.querySelector('[data-search-audience]'), 'returning to personal pages should remove the professional search parameter');
 
@@ -141,11 +139,12 @@ module.exports = function runCompactSiteHeaderTests({ assert }) {
     window: { location, SITE_AUDIENCE_CONFIG: audienceApi, sessionStorage: { getItem: () => 'tourism', setItem() {} } }
   });
   vm.runInContext(extractFunction(source, 'getNavigationContext'), audienceContext);
-  assert(vm.runInContext('getNavigationContext().activeAudience.key', audienceContext) === 'analytics',
-    'an explicit professional route should control header context over generated personal markup and prior session state');
+  assert(vm.runInContext('getNavigationContext().activeAudience.key', audienceContext) === 'personal' &&
+    vm.runInContext('getNavigationContext().entryHome', audienceContext) === '/',
+    'legacy query parameters and stored values must not change canonical header context');
   location.pathname = '/'; location.search = ''; location.href = 'https://www.danielshort.me/';
   assert(vm.runInContext('getNavigationContext().entryHome', audienceContext) === '/' && vm.runInContext('getNavigationContext().activeAudience.key', audienceContext) === 'personal',
-    'the public homepage should retain personal identity after visiting professional pages');
+    'the homepage should retain its personal identity');
 
   assert(!/setupDropdown|setupMobileSiteDock|buildResumeNavHtml/.test(source + read('js/common/site-realm.js')),
     'runtime audience changes should never recreate header dropdowns or a bottom navigation dock');

@@ -6,7 +6,7 @@ A Kotlin and Jetpack Compose app that shares the website's public content. Its 1
 
 | Area | Current behavior |
 | --- | --- |
-| About | Native profile, interests, experience, education, and credentials |
+| About | Native profile and interests; experience, education, and credentials stay available in the content source and can be restored with `timeline.enabled` |
 | Projects | Native searchable catalog, local bookmarks, and Android share sheet; all published cards open the website case study in-app, with an offline native summary available |
 | Tools | Nine website tools open in the Android browser, each with an optional native adaptation. Screen Recorder uses Android screen capture |
 | Games | Project Starfall, Stellar Dogfight, Roulette, Stormbreak, and Ocean Wave Simulation open their website games in-app, with native alternatives. Probability Engine opens in the browser, with a native alternative |

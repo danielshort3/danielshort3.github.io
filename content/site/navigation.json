@@ -57,14 +57,6 @@
       "href": "solutions"
     }
   ],
-  "resume": {
-    "enabled": false,
-    "label": "",
-    "href": "",
-    "ariaLabel": "",
-    "header": "",
-    "links": []
-  },
   "contact": {
     "label": "Contact",
     "href": "contact",

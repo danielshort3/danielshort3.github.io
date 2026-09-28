@@ -230,7 +230,11 @@ function analyze(record) {
     max[k] = Math.max(a.stage[k], b.stage[k]);
   }
   const fixedDrift = fixed ? Math.max(...samples.flatMap((s) => ["x", "y", "right", "bottom"].map((k) => Math.abs(s.stage[k] - a.stage[k])))) : null;
-  const envelope = sameViewport ? Math.max(0, ...samples.flatMap((s) => ["x", "y", "right", "bottom"].map((k) => Math.max(min[k] - s.stage[k], s.stage[k] - max[k])))) : null;
+  // A reduced-motion cross-route hold repositions the compact loading panel
+  // before its new content is mounted. Its temporary bottom edge can be above
+  // both settled endpoints without overshooting either rendered page.
+  const envelopeSamples = options.reduced && a.view !== b.view ? samples.filter((s) => !s.held) : samples;
+  const envelope = sameViewport ? Math.max(0, ...envelopeSamples.flatMap((s) => ["x", "y", "right", "bottom"].map((k) => Math.max(min[k] - s.stage[k], s.stage[k] - max[k])))) : null;
   const overflow = Math.max(0, ...samples.flatMap((s) => [s.host.x - s.painted.x, s.painted.right - s.host.right, s.host.y - s.painted.y, s.painted.bottom - s.host.bottom, s.footer ? s.painted.bottom - s.footer.y : 0]));
   const over = (inner, outer) => inner.right <= inner.x || inner.bottom <= inner.y ? 0 : Math.max(0, outer.x - inner.x, inner.right - outer.right, outer.y - inner.y, inner.bottom - outer.bottom);
   const slotOverflow = Math.max(0, ...samples.filter((s) => s.newSlot).flatMap((s) => [over(s.moving || s.held ? s.slotPaint : s.slot, s.panel), over(s.moving || s.held ? s.viewportPaint : s.viewport, s.slot)]));
@@ -248,7 +252,7 @@ function analyze(record) {
   const continuity = samples.every((s) => Object.values(s.identity).every(Boolean) && s.styles.frame.opacity === 1 && s.styles.panel.opacity === 1 && s.stage.w > 0 && s.stage.h > 0);
   const gapPeak = borderedSamples.reduce((p, s) => s.maxGap > p.maxGap ? s : p, borderedSamples[0] || samples[0]);
   const preference = record.heldPreference;
-  const heldPreferenceApplied = !options.reduced || Boolean(preference?.held && preference.reduced && !preference.moving && preference.audience === "analytics" && [...preference.tabs].sort().join(",") === "about,contact,projects,resume" && preference.runningAnimations === 0);
+  const heldPreferenceApplied = !options.reduced || Boolean(preference?.held && preference.reduced && !preference.moving && preference.audience === "personal" && preference.tabs.length === 1 && preference.tabs[0] === "projects" && preference.runningAnimations === 0);
   const rootFlowRestored = record.rootMinHeight.original.value === record.rootMinHeight.final.value && record.rootMinHeight.original.priority === record.rootMinHeight.final.priority;
   return { fixed, checks: { continuity, stableViewportEdges: !fixed || fixedDrift <= 1, endpointEnvelope: !sameViewport || envelope <= 1, containedPaint: overflow <= 1, borderCoverage: maxGap <= 1, contentSlot: slotOverflow <= 1, heldLoaderVisible: loaderVisible, heldPreferenceApplied, rootFlowRestored }, slotOverflow, fixedDrift, envelope, overflow, maxGap, peakGapAt: borderedSamples.length ? gapPeak.t - a.t : 0, stageWidths: [a.stage.w, Math.max(...samples.map((s) => s.stage.w)), b.stage.w], stageHeights: [a.stage.h, Math.max(...samples.map((s) => s.stage.h)), b.stage.h], samples: samples.length };
 }
@@ -272,12 +276,13 @@ async function targetClick(page, selector, touch) {
   let n = page.locator(selector).first();
   const category = /^\[data-site-tab="([a-z]+)"\]$/.exec(selector)?.[1];
   if (category && !await n.isVisible()) {
-    // Compact windows expose inactive categories through the bottom navigation.
+    // Compact detail pages expose inactive categories through the masthead menu.
     if (await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden'))) {
       await page.keyboard.press('Tab');
       await page.waitForFunction(() => !document.body.classList.contains('is-mobile-chrome-hidden'));
     }
-    n = page.locator(`[data-mobile-section-nav] [data-mobile-section="${category}"]`);
+    await page.locator('[data-mobile-explore] > button').click();
+    n = page.locator(`[data-mobile-explore-category="${category}"]`);
     await n.waitFor({ state: 'visible' });
   }
   await n.scrollIntoViewIfNeeded();
@@ -320,7 +325,13 @@ async function inspectTypography(page, prefix, fontSize) {
     prefix,
     fontSize,
     tabs,
-    pass: tabs.length === 4 && tabs.every(({ tab, icon, label }) => icon && icon.loaded && label && icon.bottom + 1 <= label.y && icon.x >= tab.x - 1 && icon.right <= tab.right + 1 && icon.y >= tab.y - 1 && label.bottom <= tab.bottom + 1)
+    pass: tabs.length === 5 && tabs.every(({ tab, icon, label }) => {
+      if (!icon || !icon.loaded || !label) return false;
+      const contained = icon.x >= tab.x - 1 && icon.right <= tab.right + 1 && icon.y >= tab.y - 1 && icon.bottom <= tab.bottom + 1 &&
+        label.x >= tab.x - 1 && label.right <= tab.right + 1 && label.y >= tab.y - 1 && label.bottom <= tab.bottom + 1;
+      const separated = tab.width > tab.height * 3 ? icon.right + 1 <= label.x : icon.bottom + 1 <= label.y;
+      return contained && separated;
+    })
   };
   typography.push(result);
   save(true);
@@ -401,7 +412,7 @@ async function runViewport(browser, engine, size) {
         });
         await action(page, prefix, "held-mount-" + variant, async () => {
           await page.evaluate(() => {
-            window.frameQaNavigation = SiteNavigation.navigate(new URL("/analytics?qa=frame-seam-mount-delay", location.href));
+            window.frameQaNavigation = SiteNavigation.navigate(new URL("/portfolio/babynames?qa=frame-seam-mount-delay", location.href));
           });
           await page.waitForFunction(() => window.frameQaMountStarted);
           if (variant === "rotation") {
@@ -435,7 +446,7 @@ async function runViewport(browser, engine, size) {
     }
     if (groups.has("typography") && size.width === 844 && size.height === 390) {
       await page.setViewportSize(size);
-      await ready(page, "/analytics");
+      await ready(page, "/portfolio");
       await install(page);
       await targetClick(page, '[data-site-tab="contact"]', touch);
       await settle(page);

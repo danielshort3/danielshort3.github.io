@@ -158,9 +158,7 @@ function main() {
       ['home', manifest && manifest.homeFile],
       ['workbench', manifest && manifest.workbenchFile],
       ['tools', manifest && manifest.toolsFile],
-      ['personal-accordion', manifest && manifest.personalAccordionFile],
-      ['professional', manifest && manifest.professionalFile],
-      ['analytics', manifest && manifest.analyticsFile]
+      ['personal-accordion', manifest && manifest.personalAccordionFile]
     ].filter(([, fileName]) => typeof fileName === 'string');
     const cssDetail = cssOutputs.length
       ? cssOutputs.map(([label, fileName]) => {
@@ -196,8 +194,7 @@ function main() {
       : 0;
     logStep('projects', projectsStep.durationMs, `pages/portfolio (${projectPages} pages), sitemap.xml`);
 
-    // Personal library/detail routes share one isolated-category accordion shell while
-    // audience-specific professional copies retain the original workbench.
+    // Personal library/detail routes share one isolated-category accordion shell.
     const personalAccordionStep = runNodeScript(path.join('build', 'generate-personal-accordion-pages.js'), { verbose });
     logStep('personal-accordion', personalAccordionStep.durationMs, 'personal libraries + detail routes');
 
