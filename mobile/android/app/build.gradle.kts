@@ -1,3 +1,5 @@
+import java.util.zip.ZipFile
+
 plugins {
   id("com.android.application")
   id("org.jetbrains.kotlin.android")
@@ -6,10 +8,22 @@ plugins {
 
 val productionCatalogUrl = "https://www.danielshort.me/app-content/v1/catalog.json"
 val previewCatalogUrl = providers.gradleProperty("catalogUrl").orElse(productionCatalogUrl)
-val stableAppUpdateUrl = "https://www.danielshort.me/app-updates/stable/latest.json"
 val reviewAppUpdateUrl = "https://www.danielshort.me/app-updates/review/latest.json"
 val websiteRoot = rootProject.projectDir.resolve("../..").canonicalFile
 val generatedCatalogAssets = layout.buildDirectory.dir("generated/catalogAssets")
+
+// Upload-key material is supplied outside Git. A missing configuration leaves a
+// locally built release bundle unsigned for inspection, never signed with a debug key.
+val playSigningValues = mapOf(
+  "storeFile" to providers.environmentVariable("ANDROID_PLAY_UPLOAD_STORE_FILE").orNull,
+  "storePassword" to providers.environmentVariable("ANDROID_PLAY_UPLOAD_STORE_PASSWORD").orNull,
+  "keyAlias" to providers.environmentVariable("ANDROID_PLAY_UPLOAD_KEY_ALIAS").orNull,
+  "keyPassword" to providers.environmentVariable("ANDROID_PLAY_UPLOAD_KEY_PASSWORD").orNull
+)
+val playSigningConfigured = playSigningValues.values.all { !it.isNullOrBlank() }
+require(playSigningValues.values.none { !it.isNullOrBlank() } || playSigningConfigured) {
+  "Set all four ANDROID_PLAY_UPLOAD_* signing variables, or leave all unset for an unsigned release bundle."
+}
 
 val generateCatalog by tasks.registering(Exec::class) {
   group = "content"
@@ -42,7 +56,7 @@ android {
     versionCode = 12
     versionName = "0.5.5"
     buildConfigField("String", "CONTENT_URL", "\"$productionCatalogUrl\"")
-    buildConfigField("String", "APP_UPDATE_URL", "\"$stableAppUpdateUrl\"")
+    buildConfigField("String", "APP_UPDATE_URL", "\"\"")
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
@@ -50,14 +64,26 @@ android {
     debug {
       applicationIdSuffix = ".debug"
       versionNameSuffix = "-debug"
+      buildConfigField("boolean", "ENABLE_SIDELOAD_UPDATES", "true")
       buildConfigField("String", "APP_UPDATE_URL", "\"$reviewAppUpdateUrl\"")
       buildConfigField("String", "CONTENT_URL", "\"${previewCatalogUrl.get().replace("\\", "\\\\").replace("\"", "\\\"")}\"")
     }
     release {
+      buildConfigField("boolean", "ENABLE_SIDELOAD_UPDATES", "false")
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
     }
+  }
+
+  if (playSigningConfigured) {
+    signingConfigs.create("playUpload") {
+      storeFile = file(playSigningValues.getValue("storeFile")!!)
+      storePassword = playSigningValues.getValue("storePassword")!!
+      keyAlias = playSigningValues.getValue("keyAlias")!!
+      keyPassword = playSigningValues.getValue("keyPassword")!!
+    }
+    buildTypes.getByName("release").signingConfig = signingConfigs.getByName("playUpload")
   }
 
   buildFeatures {
@@ -78,6 +104,40 @@ kotlin {
 }
 
 tasks.named("preBuild") { dependsOn(bundleCatalog) }
+
+tasks.register("verifyPlayRelease") {
+  group = "verification"
+  description = "Check that the Play bundle excludes sideload permissions, entry points, and update transport."
+  dependsOn("bundleRelease", "processDebugMainManifest")
+  doLast {
+    val releaseManifest = layout.buildDirectory.file("intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml").get().asFile.readText()
+    val debugManifest = layout.buildDirectory.file("intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml").get().asFile.readText()
+    val sideloadEntries = listOf("REQUEST_INSTALL_PACKAGES", "UPDATE_PACKAGES_WITHOUT_USER_ACTION", "AutomaticInstallReceiver")
+    sideloadEntries.forEach { entry ->
+      check(!releaseManifest.contains(entry)) { "Play release manifest still contains $entry" }
+      check(debugManifest.contains(entry)) { "Review manifest lost $entry" }
+    }
+    val releaseConfig = layout.buildDirectory.file("generated/source/buildConfig/release/me/danielshort/app/BuildConfig.java").get().asFile.readText()
+    val debugConfig = layout.buildDirectory.file("generated/source/buildConfig/debug/me/danielshort/app/BuildConfig.java").get().asFile.readText()
+    check(releaseConfig.contains("ENABLE_SIDELOAD_UPDATES = false")) { "Play release enabled sideload updates" }
+    check(releaseConfig.contains("APP_UPDATE_URL = \"\"")) { "Play release has an app-update feed" }
+    check(debugConfig.contains("ENABLE_SIDELOAD_UPDATES = true")) { "Review updater is disabled" }
+    val bundle = layout.buildDirectory.file("outputs/bundle/release/app-release.aab").get().asFile
+    ZipFile(bundle).use { archive ->
+      val dexEntries = archive.entries().asSequence().filter { it.name.matches(Regex("base/dex/classes.*\\.dex")) }.toList()
+      check(dexEntries.isNotEmpty()) { "Play bundle has no DEX to inspect" }
+      val prohibited = listOf("DanielShort-Android-Updater/1", "app-updates/review/latest.json",
+        "app-updates/stable/latest.json", "REQUEST_INSTALL_PACKAGES", "UPDATE_PACKAGES_WITHOUT_USER_ACTION",
+        "MANAGE_UNKNOWN_APP_SOURCES", "AutomaticInstallReceiver", "Allow app installation", "Install update")
+      dexEntries.forEach { entry ->
+        val text = archive.getInputStream(entry).use { it.readBytes() }.toString(Charsets.ISO_8859_1)
+        prohibited.forEach { marker ->
+          check(!text.contains(marker)) { "Play bundle still contains sideload marker $marker" }
+        }
+      }
+    }
+  }
+}
 
 dependencies {
   val composeBom = platform("androidx.compose:compose-bom:2025.08.01")

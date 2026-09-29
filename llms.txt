@@ -56,6 +56,6 @@ Each main link opens the authoritative public page. Its adjacent AI summary link
 
 ## Other Pages
 
-- [Privacy & Your Data](https://www.danielshort.me/privacy): How Daniel Short's website handles analytics, local tools, saved sessions, contact messages, and your data choices. ([AI summary](https://www.danielshort.me/ai/privacy))
+- [Privacy & Your Data](https://www.danielshort.me/privacy): How Daniel Short's website and Android app handle local data, analytics, saved work, recordings, and your choices. ([AI summary](https://www.danielshort.me/ai/privacy))
 - [Sitemap](https://www.danielshort.me/sitemap): Browse indexable public pages across Daniel Short’s projects, tools, games, and site information. ([AI summary](https://www.danielshort.me/ai/sitemap))
 - [Solutions](https://www.danielshort.me/solutions): Ways to combine my tools, dashboards, and automation into a working analytics solution — from campaign UTM tracking to end-to-end job pipelines. ([AI summary](https://www.danielshort.me/ai/solutions))

@@ -160,6 +160,8 @@ class SettingsFlowTest {
       }
     }
     compose.onNodeWithTag("settings-information").performScrollTo().assertIsDisplayed().performClick()
+    compose.onNodeWithTag("privacy-policy").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithTag("account-deletion-help").performScrollTo().assertIsDisplayed()
     compose.onNodeWithText("Content and app updates").performScrollTo().assertIsDisplayed()
     compose.onNodeWithTag("settings-back").assertIsDisplayed().performClick()
     compose.onNodeWithTag("settings-updates").performScrollTo().performClick()
