@@ -7,9 +7,9 @@ const path = require('path');
 const vm = require('vm');
 const { versionedImageUrl, versionImageContent } = require('../../build/lib/versioned-image-url');
 const { loadSiteContent } = require('../../build/lib/content-loader');
-const { buildHomeLibraryData } = require('../../build/generate-cms-artifacts');
-const { renderToolsDirectoryBody, renderGamesDirectoryBody, renderProjectsDataJs } = require('../../build/lib/cms-renderers');
-const { renderVisualPageBody } = require('../../api/_lib/cms-widgets');
+const { buildHomeLibraryData } = require('../../build/generate-content-artifacts');
+const { renderToolsDirectoryBody, renderGamesDirectoryBody, renderProjectsDataJs } = require('../../build/lib/site-renderers');
+const { renderVisualPageBody } = require('../../build/lib/section-renderers');
 const { renderProjectPage, renderPortfolioStaticResults } = require('../../build/generate-project-pages');
 const { renderPersonalLibraryMain } = require('../../build/lib/personal-accordion-shell');
 const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
@@ -125,7 +125,7 @@ for (const featured of homeGames) {
 }
 const gamesHtml = renderGamesDirectoryBody(content.pagesById.games);
 for (const game of content.pagesById.games.games) {
-  assert(gamesHtml.includes(`src="${game.iconImage}"`), 'the direct CMS game directory renders the library icon');
+  assert(gamesHtml.includes(`src="${game.iconImage}"`), 'the generated game directory renders the library icon');
   if (game.image) assert(!gamesHtml.includes(`src="${game.image}"`), 'game directory icons do not load in-game artwork');
 }
 const fallbackGames = { ...content.pagesById.games, games: content.pagesById.games.games.map(game => ({ ...game, iconImage: '' })) };

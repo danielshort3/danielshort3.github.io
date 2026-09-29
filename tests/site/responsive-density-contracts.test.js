@@ -8,7 +8,7 @@ const readJson = (relativePath) => JSON.parse(read(relativePath));
 const countMatches = (value, pattern) => (String(value || '').match(pattern) || []).length;
 
 function runResponsiveDensityContractTests({ assert }) {
-  const cmsRenderers = require('../../build/lib/cms-renderers.js');
+  const siteRenderers = require('../../build/lib/site-renderers.js');
   const projectGenerator = require('../../build/generate-project-pages.js');
   const personalPageGenerator = require('../../build/generate-personal-accordion-pages.js');
   const personalShell = require('../../build/lib/personal-accordion-shell.js');
@@ -18,8 +18,8 @@ function runResponsiveDensityContractTests({ assert }) {
   const tools = fs.readdirSync(path.join(ROOT, 'content', 'tools'))
     .filter((fileName) => fileName.endsWith('.json'))
     .map((fileName) => readJson(path.join('content', 'tools', fileName)));
-  const toolsData = cmsRenderers.buildToolsDirectoryWorkbenchData(toolsPage, tools);
-  const toolsBody = cmsRenderers.renderToolsDirectoryBody(toolsPage, tools);
+  const toolsData = siteRenderers.buildToolsDirectoryWorkbenchData(toolsPage, tools);
+  const toolsBody = siteRenderers.renderToolsDirectoryBody(toolsPage, tools);
   const publicToolCount = toolsData.items.filter((tool) => tool.visibility === 'public').length;
 
   assert(
@@ -46,8 +46,8 @@ function runResponsiveDensityContractTests({ assert }) {
   );
 
   const gamesPage = readJson('content/pages/games.json');
-  const gamesData = cmsRenderers.buildGamesDirectoryWorkbenchData(gamesPage);
-  const gamesBody = cmsRenderers.renderGamesDirectoryBody(gamesPage);
+  const gamesData = siteRenderers.buildGamesDirectoryWorkbenchData(gamesPage);
+  const gamesBody = siteRenderers.renderGamesDirectoryBody(gamesPage);
   assert(
     gamesData.items.length === 6 &&
       JSON.stringify(gamesData.items.slice(0, 3).map((game) => game.id)) ===
@@ -196,7 +196,7 @@ function runResponsiveDensityContractTests({ assert }) {
     'mobile Back and context must share wrapping layout space so enlarged labels cannot overlap an absolutely centered title',
   );
 
-  const directContactHeader = cmsRenderers.renderHeader({
+  const directContactHeader = siteRenderers.renderHeader({
     settings: {},
     navigation: {
       brand: {},

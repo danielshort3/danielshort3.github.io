@@ -493,7 +493,7 @@ function main() {
     });
   });
 
-  process.stdout.write('[cms] Migrated current site content into ./content.\n');
+  process.stdout.write('[content] Migrated current site content into ./content.\n');
 }
 
 main();

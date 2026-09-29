@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 const { loadSiteContent } = require('../../build/lib/content-loader');
 const { buildToolsLibraryItems } = require('../../build/generate-personal-accordion-pages');
-const { buildHomeLibraryData } = require('../../build/generate-cms-artifacts');
+const { buildHomeLibraryData } = require('../../build/generate-content-artifacts');
 const { renderPersonalLibraryMain } = require('../../build/lib/personal-accordion-shell');
 
 const root = path.resolve(__dirname, '../..');

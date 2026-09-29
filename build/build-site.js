@@ -131,9 +131,9 @@ function main() {
   log('Starting site build');
 
   try {
-    // 1) Managed CMS content (content/ -> authored site sources)
-    const cmsStep = runNodeScript(path.join('build', 'generate-cms-artifacts.js'), { verbose });
-    logStep('cms-content', cmsStep.durationMs, 'content/ -> pages/, js/, build/templates/');
+    // 1) Managed content (content/ -> authored site sources)
+    const contentStep = runNodeScript(path.join('build', 'generate-content-artifacts.js'), { verbose });
+    logStep('content', contentStep.durationMs, 'content/ -> pages/, js/, build/templates/');
 
     // 2) High-impact image variants (PNG sources -> AVIF/WebP)
     const imagesStep = runNodeScript(path.join('build', 'optimize-site-images.js'), { verbose });

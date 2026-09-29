@@ -5,10 +5,9 @@ const vm = require('vm');
 const { versionedImageUrl } = require('../../build/lib/versioned-image-url');
 const {
   getHomeAccordionIconDefinitions,
-  getWidgetDefinitions,
   renderVisualPageBody,
   resolveHomeAccordionIconId
-} = require('../../api/_lib/cms-widgets');
+} = require('../../build/lib/section-renderers');
 const {
   GENERATED_HOME_LIBRARY_VISUALS,
   RETAINED_GAME_PREVIEW_IDS,
@@ -446,7 +445,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const homeEntry = read('build/entries/site-home.entry.js');
   const homeStyles = read('css/styles-home.css');
   const sharedStyles = read('css/styles.css');
-  const generator = read('build/generate-cms-artifacts.js');
+  const generator = read('build/generate-content-artifacts.js');
   const visualValidator = read('build/validate-home-library-visuals.js');
   const buildSite = read('build/build-site.js');
   const copyToPublic = read('build/copy-to-public.js');
@@ -461,8 +460,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const toolsDirectoryContext = { window: {} };
   vm.runInNewContext(read('js/portfolio/tools-directory-data.js'), toolsDirectoryContext);
   const toolsDirectoryItems = toolsDirectoryContext.window.DIRECTORY_WORKBENCH?.items || [];
-  const homeAccordionWidget = getWidgetDefinitions()
-    .find((widget) => widget.type === 'home-accordion');
   const iconDefinitions = getHomeAccordionIconDefinitions();
 
   assert(section && section.variant === 'shallow-wedge',
@@ -473,10 +470,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'About should remain the fallback panel for invalid category selections');
   assert(section.props.initialView === 'closed',
     'the public homepage should initially show the fully condensed view');
-  assert(homeAccordionWidget?.defaultProps?.defaultPanel === 'about',
-    'new CMS homepage accordion widgets should also default to About');
-  assert(homeAccordionWidget?.defaultProps?.initialView === 'closed',
-    'new CMS homepage accordion widgets should initially start closed');
   assert(count(html, /data-site-tab="(?:about|projects|tools|games|contact)"/g) === 5 &&
     count(html, /data-site-tab-active="true"/g) === 0 &&
     html.includes('data-site-tab-rail data-site-tab-rail-mode="closed"') &&
@@ -599,7 +592,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const contactMapFrame = contactPanel.match(/<iframe\b[^>]*>/)?.[0] || '';
   assert(contactPanel.includes('class="home-contact-layout"') &&
     contactPanel.includes('id="home-contact-location"') &&
-    contactPanel.includes('class="cms-map-shell" data-contact-map-slot') &&
+    contactPanel.includes('class="location-map-shell" data-contact-map-slot') &&
     /<iframe\b[^>]*title="Map of Delta, CO"[^>]*loading="lazy"/.test(contactPanel) &&
     contactMapFrame.includes('data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed"') &&
     !/\ssrc\s*=|\ssrcdoc\s*=/.test(contactMapFrame) &&
@@ -613,17 +606,17 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   }] });
   assert(/<iframe\b[^>]*\ssrc="https:\/\/www.google.com\/maps\?/.test(ordinaryMap) &&
     !ordinaryMap.includes('data-home-contact-map-src') && !ordinaryMap.includes('data-contact-map-slot') &&
-    ordinaryMap.includes('surface-band reveal cms-location'),
+    ordinaryMap.includes('surface-band reveal location-section'),
   'ordinary location maps should retain their existing lazy iframe loading');
   const contactMapSection = readJson('content/pages/contact.json').sections.find((entry) => entry.type === 'map');
   const persistentContactMap = renderVisualPageBody({ sections: [contactMapSection] });
   const persistentContactFrame = persistentContactMap.match(/<iframe\b[^>]*>/)?.[0] || '';
   assert(contactMapSection.props.persist === true &&
-    persistentContactMap.includes('class="cms-map-shell" data-contact-map-slot') &&
+    persistentContactMap.includes('class="location-map-shell" data-contact-map-slot') &&
     persistentContactFrame.includes('data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed"') &&
     !/\ssrc\s*=|\ssrcdoc\s*=/.test(persistentContactFrame) &&
     !persistentContactMap.includes('data-google-maps-iframe') &&
-    persistentContactMap.includes('surface-band cms-location') && !persistentContactMap.includes('reveal'),
+    persistentContactMap.includes('surface-band location-section') && !persistentContactMap.includes('reveal'),
   'standalone Contact and its inherited professional views should defer to the same persistent map without loading another iframe');
 
   assert(count(html, /data-home-accordion-item=/g) === 5 &&
@@ -1127,7 +1120,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(new Set(previewHashes).size === generatedPreviewPaths.length,
   'all six public game preview files should have unique visual content');
 
-  const cmsPreviewMappings = [
+  const contentPreviewMappings = [
     'image: projectLibraryPreviewAsset(project.image)',
     'image: tool.iconImage',
     "image: homeLibraryPreviewAsset('games', game.id)"
@@ -1139,7 +1132,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const publicVisualBuildIndex = buildSite.indexOf("{ verbose, args: ['--public'] }");
   assert(generator.includes('function homeLibraryPreviewAsset(category, id)') &&
     generator.includes('function projectLibraryPreviewAsset(image)') &&
-    cmsPreviewMappings.every((mapping) => generator.includes(mapping)) &&
+    contentPreviewMappings.every((mapping) => generator.includes(mapping)) &&
     count(generator, /imageAlt: '',/g) >= 3 &&
     visualValidator.includes("const sharp = require('sharp');") &&
     visualValidator.includes('const GENERATED_HOME_LIBRARY_VISUALS = {') &&
@@ -1162,7 +1155,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     buildSite.includes('const scriptArgs = Array.isArray(options.args) ? options.args : [];') &&
     visualBuildIndex >= 0 && publicCopyIndex > visualBuildIndex && publicVisualBuildIndex > publicCopyIndex &&
     /const dirs = \[[^\]]*'img'/.test(copyToPublic),
-  'CMS generation, project-original validation, generated-preview validation, main build, and hash-identical public copy should stay integrated');
+  'content generation, project-original validation, generated-preview validation, main build, and hash-identical public copy should stay integrated');
 
   assert(js.includes('HOME_LIBRARY_DATA') &&
     js.includes('createLibraryMedia') &&

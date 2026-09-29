@@ -198,12 +198,12 @@ function main() {
         if (fileChanged) {
           writeJson(absPath, doc);
           changed += 1;
-          process.stdout.write(`[cms] Updated ${path.relative(root, absPath).replace(/\\/g, '/')}\n`);
+          process.stdout.write(`[content] Updated ${path.relative(root, absPath).replace(/\\/g, '/')}\n`);
         }
       });
   });
 
-  process.stdout.write(`[cms] Visual page migration complete. Changed ${changed} file(s).\n`);
+  process.stdout.write(`[content] Visual page migration complete. Changed ${changed} file(s).\n`);
 }
 
 main();

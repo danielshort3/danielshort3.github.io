@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { renderProjectPage, loadProjects, isPublishedProject } = require('../../build/generate-project-pages');
-const { buildHomeLibraryData } = require('../../build/generate-cms-artifacts');
+const { buildHomeLibraryData } = require('../../build/generate-content-artifacts');
 
 const ROOT = path.resolve(__dirname, '../..');
 const readJson = (file) => JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
