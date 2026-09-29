@@ -48,7 +48,7 @@
     "build:stellar-dogfight-assets": "node build/build-stellar-dogfight-assets.js",
     "build:models": "npm run build:pizza-tips-model",
     "build:projects": "node build/generate-project-pages.js",
-    "build:cms-content": "node build/generate-cms-artifacts.js",
+    "build:content": "node build/generate-content-artifacts.js",
     "build:shortlinks-destinations": "node build/generate-shortlinks-destinations.js",
     "build:project-starfall-assets": "node build/process-project-starfall-non-enemy-ai-assets.js",
     "build:project-starfall-card-icons": "node build/process-project-starfall-card-icons.js",

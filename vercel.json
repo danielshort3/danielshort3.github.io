@@ -218,10 +218,10 @@
     { "source": "/destination-analytics.html", "destination": "/", "permanent": true },
     { "source": "/pages/destination-analytics", "destination": "/", "permanent": true },
     { "source": "/pages/destination-analytics.html", "destination": "/", "permanent": true },
-    { "source": "/contributions", "destination": "/", "permanent": true },
-    { "source": "/contributions.html", "destination": "/", "permanent": true },
-    { "source": "/pages/contributions", "destination": "/", "permanent": true },
-    { "source": "/pages/contributions.html", "destination": "/", "permanent": true }
+    { "source": "/contributions", "destination": "/tourism", "permanent": true },
+    { "source": "/contributions.html", "destination": "/tourism", "permanent": true },
+    { "source": "/pages/contributions", "destination": "/tourism", "permanent": true },
+    { "source": "/pages/contributions.html", "destination": "/tourism", "permanent": true }
   ],
   "headers": [
     {
@@ -297,18 +297,6 @@
       "source": "/dist/ai-pages/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex" }
-      ]
-    },
-    {
-      "source": "/admin",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/admin/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {

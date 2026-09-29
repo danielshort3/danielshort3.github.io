@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const renderer = require('../../build/lib/cms-renderers.js');
+const renderer = require('../../build/lib/site-renderers.js');
 const audienceApi = require('../../js/common/audience-config.js');
 const root = path.resolve(__dirname, '..', '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');

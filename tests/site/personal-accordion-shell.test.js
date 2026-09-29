@@ -555,9 +555,9 @@ function runPersonalAccordionShellTests({ assert }) {
   'Homepage should expose its five collapsed tabs, persistent chrome, and closed route manifest');
   assert(read('build/templates/header.partial.html').includes('data-site-shell-header') &&
     read('build/templates/footer.partial.html').includes('data-site-shell-footer') &&
-    read('build/lib/cms-renderers.js').includes("'<header id=\"combined-header-nav\" data-site-shell-header>'") &&
-    read('build/lib/cms-renderers.js').includes("'<footer class=\"footer footer-classic footer--personal-compact\" data-site-shell-footer>'"),
-  'CMS rendering and generated personal templates should preserve both persistent chrome hooks');
+    read('build/lib/site-renderers.js').includes("'<header id=\"combined-header-nav\" data-site-shell-header>'") &&
+    read('build/lib/site-renderers.js').includes("'<footer class=\"footer footer-classic footer--personal-compact\" data-site-shell-footer>'"),
+  'content rendering and generated personal templates should preserve both persistent chrome hooks');
 
   const finalizedHome = finalizePersonalRouteDocument(homeHtml, { home: true });
   assert(count(finalizedHome, /id="site-route-manifest"/g) === 1 &&

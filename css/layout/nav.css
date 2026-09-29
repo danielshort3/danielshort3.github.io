@@ -714,7 +714,6 @@
       max-width:400px;
       --nav-dropdown-max:620px;
     }
-    #nav-dropdown-contributions{ width:min(640px, 78vw); }
     #nav-dropdown-resume{ width:min(340px, 64vw); }
     #nav-dropdown-contact{ width:min(340px, 64vw); }
     .nav-item:not([data-dropdown-enhanced]):is(:hover, :focus-within) .nav-dropdown,
@@ -731,7 +730,6 @@
     .nav-item-portfolio::after,
     .nav-item-tools::after,
     .nav-item-games::after,
-    .nav-item-contributions::after,
     .nav-item-resume::after,
     .nav-item-contact::after{
       content:"";

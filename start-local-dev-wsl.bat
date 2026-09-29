@@ -72,7 +72,7 @@ if "%LOCAL_DEV_PORT%"=="" (
 if not "%LOCAL_DEV_PORT%"=="%PORT%" echo [launcher-wsl] Port %PORT% is already in use; using %LOCAL_DEV_PORT% instead.
 set "PORT=%LOCAL_DEV_PORT%"
 
-set "WSL_SCRIPT=cd '%WSL_PATH%' && if [ ! -d node_modules ] || [ ! -d node_modules/@esbuild/linux-x64 ]; then echo '[launcher-wsl] Installing Linux deps...' && npm install; fi && CMS_ALLOW_PRIVATE_HOSTS=1 npm run dev -- --host 0.0.0.0 --port %PORT%; STATUS=$?; if [ $STATUS -ne 0 ]; then echo '[launcher-wsl] Dev command exited with code' $STATUS; echo '[launcher-wsl] Press Enter to close...'; read _; fi"
+set "WSL_SCRIPT=cd '%WSL_PATH%' && if [ ! -d node_modules ] || [ ! -d node_modules/@esbuild/linux-x64 ]; then echo '[launcher-wsl] Installing Linux deps...' && npm install; fi && npm run dev -- --host 0.0.0.0 --port %PORT%; STATUS=$?; if [ $STATUS -ne 0 ]; then echo '[launcher-wsl] Dev command exited with code' $STATUS; echo '[launcher-wsl] Press Enter to close...'; read _; fi"
 
 echo [launcher-wsl] Starting WSL dev server on http://localhost:%PORT% ...
 if "%DISTRO%"=="" (

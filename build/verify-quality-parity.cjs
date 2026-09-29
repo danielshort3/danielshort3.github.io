@@ -22,22 +22,11 @@ for (const directory of ['pages/portfolio', 'pages/demos']) {
 const styles = JSON.parse(fs.readFileSync(path.join(root, 'dist/styles-manifest.json')));
 for (const manifest of ['styles-manifest.json', 'scripts-manifest.json']) {
   const data = JSON.parse(fs.readFileSync(path.join(root, 'dist', manifest)));
-  // copy-to-public intentionally removes the retired Contributions feature.
-  if (manifest === 'scripts-manifest.json' && data.contributions) {
-    assert(!fs.existsSync(path.join(root, 'public/dist', data.contributions)), 'Retired Contributions bundle must not be published');
-    delete data.contributions;
-  }
   files.push(`dist/${manifest}`);
   for (const value of Object.values(data)) if (typeof value === 'string' && /\.(css|js)$/.test(value)) files.push(`dist/${value}`);
 }
 for (const file of files) {
   let expected = fs.readFileSync(path.join(root, file));
-  if (file === 'dist/scripts-manifest.json') {
-    const manifest = JSON.parse(expected.toString('utf8'));
-    delete manifest.contributions;
-    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, 'public', file), 'utf8')), manifest, `${file}: public manifest differs from the publishing policy`);
-    continue;
-  }
   if (file.endsWith('.html')) {
     // copy-to-public resolves authored legacy CSS names to the current bundle.
     let html = expected.toString('utf8');

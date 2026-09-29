@@ -2,7 +2,7 @@
   'use strict';
 
   // Catalog artwork keeps its original PNG as a native <picture> fallback.
-  // Variants share the source fingerprint so CMS generation can precede encoding.
+  // Variants share the source fingerprint so content generation can precede encoding.
   const ICON_PATH = /^(\/?img\/(?:projects|tools|games)\/icons\/[a-z0-9_-]+)\.png([?#].*)?$/i;
 
   function webpSource(source) {
