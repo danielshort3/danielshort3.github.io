@@ -1220,7 +1220,7 @@ try {
       'contact page should omit the disabled LinkedIn profile');
     const contactMapIframe = contactPageHtml.match(/<iframe\b[^>]*title="Map of Delta, CO"[^>]*>/)?.[0] || '';
     assert(contactPageHtml.includes('id="grand-junction-location"') &&
-           contactPageHtml.includes('class="cms-map-shell" data-contact-map-slot') &&
+           contactPageHtml.includes('class="location-map-shell" data-contact-map-slot') &&
            /data-home-contact-map-src="https:\/\/www\.google\.com\/maps\?q=Delta%2C%20CO&amp;output=embed"[^>]*loading="lazy"/.test(contactMapIframe) &&
            !/\ssrc\s*=|\ssrcdoc\s*=/.test(contactMapIframe) &&
            !contactPageHtml.includes('data-google-maps-iframe') &&
@@ -1260,7 +1260,6 @@ try {
       '404.html',
       'dshort.html',
       'pages/portfolio.html',
-      'pages/contributions.html',
       'pages/privacy.html'
     ];
     titleConventionPages.forEach((file) => {
@@ -1317,7 +1316,6 @@ try {
       'index.html',
       'pages/contact.html',
       'pages/portfolio.html',
-      'pages/contributions.html',
       'pages/sitemap.html',
       'pages/games.html',
       'pages/games/project-starfall.html',
@@ -1335,7 +1333,7 @@ try {
       assertHeroVariantClasses(file, html);
     });
 
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/sitemap.html'].forEach((f) => {
       checkFileContainsOneOf(f, ['js/common/common.js', 'dist/site-shell.'], `${f} missing shared shell script reference`);
     });
     ['pages/games.html','pages/games/project-starfall.html','pages/games/stormbreak.html','pages/ocean-wave-simulation.html', ...toolPages].forEach((f) => {
@@ -1365,7 +1363,7 @@ try {
     assert(!readFile('pages/tools-dashboard.html').includes('id="tool-jsonld"'),
       'tools dashboard should not include WebApplication JSON-LD');
 
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/games/project-starfall.html','pages/games/stormbreak.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/tools.html','pages/games.html','pages/games/project-starfall.html','pages/games/stormbreak.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
       checkFileContains(f, 'og:image');
     });
 
@@ -1529,7 +1527,7 @@ try {
     assert(!commonCode.includes('--jump-link-progress') && !commonCode.includes('updateLinkProgress'),
       'common.js should not add scroll-progress styling to the homepage jump rail');
 
-    const htmlFiles = ['index.html','contact.html','privacy.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
+    const htmlFiles = ['index.html','contact.html','privacy.html','pages/portfolio.html','pages/contact.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
     htmlFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf8');
       assert(!content.includes('js/analytics/ga4-events.js'), `${file} should not load analytics helpers outside the consent bundle`);
@@ -38992,183 +38990,71 @@ try {
       'project AI digests should mirror the simplified STAR, demo, and flat Links structure');
   });
 
-  section('Local CMS contracts', () => {
+  section('File-backed site content contracts', () => {
     const pkg = JSON.parse(readFile('package.json'));
-    assert(!pkg.devDependencies || !pkg.devDependencies.vercel, 'vercel should not be a devDependency');
+    assert(pkg.scripts['build:content'] === 'node build/generate-content-artifacts.js',
+      'content script should generate site pages and catalogs');
+    assert(!pkg.scripts['build:cms-content'], 'retired CMS script should be removed');
     assert(!pkg.dependencies || !pkg.dependencies.vercel, 'vercel should not be a dependency');
-    assert(!pkg.scripts['cms:seed'] && !pkg.scripts['cms:export'] && !pkg.scripts['cms:diff'],
-      'database CMS migration scripts should not be exposed');
 
-    const cmsModel = require('./api/_lib/cms-content-model');
-    assert(Array.isArray(cmsModel.CMS_COLLECTIONS) && cmsModel.CMS_COLLECTIONS.length === 6, 'CMS collections should define all managed content groups');
-    ['site', 'pages', 'audiences', 'resumes', 'projects', 'tools'].forEach((collection) => {
-      assert(cmsModel.CMS_COLLECTION_NAMES.includes(collection), `CMS collection missing ${collection}`);
-    });
-
-    const records = cmsModel.listFileContentRecords(process.cwd());
-    assert(records.length >= 30, 'CMS file record catalog unexpectedly small');
-    assert(records.some((record) => record.collection === 'site' && record.id === 'settings'), 'CMS records missing site/settings');
-    assert(records.some((record) => record.collection === 'tools' && record.id === 'word-frequency'), 'CMS records missing word-frequency tool');
-
-    const fileContent = cmsModel.loadFileSiteContent(process.cwd());
-    assert(fileContent.site.settings && fileContent.site.settings.siteName, 'file-backed CMS content missing site settings');
-    assert(fileContent.audiencesByKey.personal, 'file-backed CMS content missing personal audience');
-    assert(fileContent.resumes.length === 0, 'retired audience resumes should not remain in the CMS content');
-    assert(Object.keys(fileContent.audiencesByKey).join(',') === 'personal', 'only the personal homepage should remain');
-    assert(fileContent.projectsById.website, 'file-backed CMS content missing website project');
+    const contentModel = require('./build/lib/content-model');
+    const records = contentModel.listFileContentRecords(process.cwd());
+    assert(records.length >= 30, 'file-backed content catalog unexpectedly small');
+    assert(records.some((record) => record.collection === 'site' && record.id === 'settings'),
+      'content catalog missing site settings');
+    assert(records.some((record) => record.collection === 'tools' && record.id === 'word-frequency'),
+      'content catalog missing word-frequency tool');
+    const fileContent = contentModel.loadFileSiteContent(process.cwd());
+    assert(fileContent.site.settings && fileContent.site.settings.siteName,
+      'file-backed content missing site settings');
+    assert(fileContent.audiencesByKey.personal, 'file-backed content missing personal audience');
+    assert(fileContent.resumes.length === 0, 'retired audience resumes should remain absent');
+    assert(Object.keys(fileContent.audiencesByKey).join(',') === 'personal', 'only personal audience content should remain');
+    assert(fileContent.projectsById.website, 'file-backed content missing website project');
 
     const loader = require('./build/lib/content-loader');
-    assert(loader.normalizeContentSource('files') === 'files', 'content loader should default to files source');
-    assert(loader.normalizeContentSource('db') === 'files', 'content loader should not support DB source');
+    const siteRenderers = require('./build/lib/site-renderers');
+    const sectionRenderers = require('./build/lib/section-renderers');
+    assert(typeof loader.loadSiteContent === 'function' &&
+           typeof siteRenderers.renderHeader === 'function' &&
+           typeof siteRenderers.renderFooter === 'function' &&
+           typeof sectionRenderers.renderVisualPageBody === 'function',
+      'content loading and rendering should remain build-owned');
+    assert(sectionRenderers.renderVisualPageBody(fileContent.audiencesByKey.personal.page).includes('<main'),
+      'personal homepage content should still render');
 
-    const adminHtml = readFile('admin/index.html');
-    const adminJs = readFile('admin/cms-admin.js');
-    const cmsApi = readFile('api/cms/[...slug].js');
-    const cmsStore = readFile('api/_lib/cms-file-store.js');
-    const cmsLibraryStore = readFile('api/_lib/cms-library-store.js');
-    const cmsSnapshotStore = readFile('api/_lib/cms-snapshot-store.js');
-    const cmsWidgets = readFile('api/_lib/cms-widgets.js');
+    ['admin', 'api/cms', 'content/cms-library', 'start-local-cms-wsl.bat',
+      'api/_lib/cms-file-store.js', 'api/_lib/cms-library-store.js',
+      'api/_lib/cms-snapshot-store.js', 'api/short-domain.js'].forEach((file) => {
+      assert(!fs.existsSync(file), file + ' should be removed');
+    });
+    assert(fs.existsSync('js/admin/short-links.js'), 'Short Links admin tool should remain');
+
     const devJs = readFile('build/dev.js');
     const localDevWsl = readFile('start-local-dev-wsl.bat');
     const copyJs = readFile('build/copy-to-public.js');
-    const envExample = readFile('.env.example');
-
-    assert(adminHtml.includes('/admin/cms-admin.js'), 'admin should load custom CMS admin script');
-    assert(adminHtml.includes('cms-builder-layout') && adminHtml.includes('data-cms="preview"'),
-      'admin should default to the visual builder with live preview');
-    assert(adminHtml.includes('data-cms-view-target="dashboard"') && adminHtml.includes('data-cms-view="library"') && adminHtml.includes('data-cms="global-header"'),
-      'admin should expose dashboard, library, and globals CMS views');
-    assert(adminHtml.includes('<select data-cms="ollama-model"') && adminHtml.includes('data-cms="ollama-refresh"') && adminHtml.includes('Preview AI Edit'),
-      'admin should expose installed Ollama models and before/after AI review controls');
-    assert(adminHtml.includes('data-cms-preview-device="desktop"') && adminHtml.includes('data-cms="preview-open"'),
-      'admin should expose responsive live preview controls');
-    assert(adminHtml.includes('data-cms="dashboard-health"') &&
-           adminHtml.includes('data-cms="dashboard-snapshots"') &&
-           adminHtml.includes('data-cms-ai-action="metadata"'),
-      'admin should expose CMS health, local snapshots, and field-aware AI shortcuts');
-    assert(!adminHtml.includes('/js/accounts/tools-auth.js'), 'local CMS admin should not load Cognito tools auth');
-    assert(!adminHtml.toLowerCase().includes('decap'), 'admin should not load Decap');
-    assert(!adminHtml.includes('unpkg.com'), 'admin should not depend on a CMS CDN');
-    assert(!adminHtml.includes('data-cms="deploy"'), 'admin should not expose deploy hook controls');
-    assert(!fs.existsSync('admin/config.yml'), 'Decap config should not be published under admin/');
-    assert(!fs.existsSync('api/decap/auth.js') && !fs.existsSync('api/decap/callback.js'), 'Decap OAuth endpoints should be removed');
-    assert(!fs.existsSync('api/_lib/cms-auth.js'), 'CMS Cognito auth helper should not exist');
-    assert(!fs.existsSync('api/_lib/cms-store-ddb.js'), 'CMS DynamoDB store should not exist');
-    assert(!fs.existsSync('build/cms-seed.js') && !fs.existsSync('build/cms-export.js') && !fs.existsSync('build/cms-diff.js'),
-      'CMS database scripts should be removed');
-
-    assert(adminJs.includes("API_BASE = '/api/cms'") && adminJs.includes("apiFetch('/content'"), 'admin script missing content API path');
-    assert(adminJs.includes("apiFetch('/widgets'") && adminJs.includes("apiFetch('/preview'") && adminJs.includes("apiFetch('/media'"),
-      'admin script should load widgets, media, and render live previews');
-    assert(adminJs.includes("'/preview-tool'") &&
-           adminJs.includes("'/preview-project'") &&
-           adminJs.includes('normalizePreviewHtml'),
-      'admin script should render project/tool previews and normalize iframe preview assets');
-    assert(adminJs.includes("apiFetch('/library'") && adminJs.includes('local-cms-autosave-v2'),
-      'admin script should use local library files and autosave recovery');
-    assert(adminJs.includes("apiFetch('/health'") &&
-           adminJs.includes("apiFetch('/snapshots") &&
-           adminJs.includes('renderDashboardHealth') &&
-           adminJs.includes('loadSnapshot'),
-      'admin script should use local health checks and save-history snapshots');
-    assert(adminJs.includes('projectResourceField') &&
-           adminJs.includes('projectCaseField') &&
-           adminJs.includes('previewAudience') &&
-           adminJs.includes('sectionLockSummary'),
-      'admin script should expose structured project editing and library section lock metadata');
-    assert(adminJs.includes("apiFetch('/ollama-models'") &&
-           adminJs.includes('pendingOllamaEdit') &&
-           adminJs.includes('applyOllamaEditsToSnapshot') &&
-           adminJs.includes('cms-assistant-review-frame') &&
-           adminJs.includes('data-ollama-preview-device="desktop"') &&
-           adminJs.includes('card.remove()') &&
-           adminJs.includes('Accept Changes'),
-      'admin script should load Ollama models and show pending visual AI edit reviews');
-    assert(adminJs.includes('contenteditable') && adminJs.includes('data-cms-inline-editing'),
-      'admin preview should support inline element editing');
-    assert(adminJs.includes('data-section-setting') && adminJs.includes('renderProjectInspector') && adminJs.includes('renderToolInspector'),
-      'admin should expose structured section, project, and tool inspectors');
-    assert(adminJs.includes('Advanced JSON'), 'admin should keep JSON as an advanced fallback');
-    assert(adminJs.includes('Saved to content/'), 'admin should explain local file saves');
-    assert(!adminJs.includes('/deploy') && !adminJs.includes('/rollback') && !adminJs.includes('/revisions'),
-      'admin script should not call deploy, rollback, or revisions endpoints');
-    assert(!adminJs.includes('ToolsAuth'), 'local CMS admin should not use Cognito tools auth');
-
-    assert(cmsApi.includes('isLocalRequest'), 'CMS API should enforce localhost access');
-    assert(cmsApi.includes('saveCurrentDocument'), 'CMS API should save current documents');
-    assert(cmsApi.includes('handlePreview') && cmsApi.includes('handleWidgets'),
-      'CMS API should expose local preview and widget schema endpoints');
-    assert(cmsApi.includes('handleProjectPreview') && cmsApi.includes('renderProjectPage'),
-      'CMS API should render generated portfolio project previews');
-    assert(cmsApi.includes('handleToolPreview') && cmsApi.includes('renderToolsDirectoryBody') && cmsApi.includes('handleMedia'),
-      'CMS API should render tool previews and expose local media assets');
-    assert(cmsApi.includes('handleLibrary') && cmsApi.includes('saveLibraryItem'),
-      'CMS API should expose local CMS library endpoints');
-    assert(cmsApi.includes('handleOllamaModels') && cmsApi.includes('/api/tags'),
-      'CMS API should expose installed Ollama model discovery');
-    assert(cmsApi.includes('handleHealth') &&
-           cmsApi.includes('buildCmsHealthReport') &&
-           cmsApi.includes('handleSnapshots') &&
-           cmsApi.includes('usageCount') &&
-           cmsApi.includes('readImageDimensions'),
-      'CMS API should expose health checks, local snapshots, and enriched media metadata');
-    assert(!cmsApi.includes('requireCmsAdmin'), 'CMS API should not require Cognito admin auth');
-    assert(!cmsApi.includes('CMS_VERCEL_DEPLOY_HOOK_URL'), 'CMS API should not trigger deploy hooks');
-    assert(!cmsApi.includes('rollbackDocument'), 'CMS API should not expose rollback support');
-    assert(cmsStore.includes('writeFileSync'), 'CMS file store should write local JSON files');
-    assert(cmsStore.includes('createDocumentSnapshot'), 'CMS file store should create local save snapshots before overwriting documents');
-    assert(cmsStore.includes('content'), 'CMS file store should constrain writes to content/');
-    assert(cmsLibraryStore.includes('content/cms-library') && cmsLibraryStore.includes('templates') && cmsLibraryStore.includes('drafts'),
-      'CMS library store should constrain reusable CMS data to content/cms-library/');
-    assert(cmsSnapshotStore.includes('content/cms-library') &&
-           cmsSnapshotStore.includes('snapshots') &&
-           cmsSnapshotStore.includes('createJsonDiffSummary'),
-      'CMS snapshot store should keep local save history under content/cms-library/snapshots/');
-    assert(cmsWidgets.includes("type: 'kpi-band'") &&
-           cmsWidgets.includes("type: 'proof-block'") &&
-           cmsWidgets.includes("type: 'media-showcase'"),
-      'CMS widgets should include portfolio-focused reusable components');
-    assert(fs.existsSync('content/cms-library/templates/basic-page.json'), 'CMS starter basic page template missing');
-    assert(fs.existsSync('content/cms-library/sections/contact-cta.json'), 'CMS starter reusable section missing');
-
-    assert(!envExample.includes('CMS_DDB_TABLE') &&
-           !envExample.includes('CMS_VERCEL_DEPLOY_HOOK_URL') &&
-           !envExample.includes('CMS_ADMIN_GROUPS'),
-           '.env.example should not include CMS database/deploy env vars');
-
-    assert(devJs.includes("const http = require('http')"), 'dev server should use Node http');
-    assert(devJs.includes("loadCmsApi()(req, res)") && devJs.includes('delete require.cache[modulePath]'),
-      'dev server should route local CMS API and reload CMS modules');
-    assert(devJs.includes('generate-project-pages.js'), 'dev server should reload project preview renderer changes');
-    assert(devJs.includes('Local CMS available'), 'dev server should advertise local CMS URL');
+    const vercelIgnore = readFile('.vercelignore');
+    assert(!devJs.includes("pathname.startsWith('/api/cms/')") &&
+           !devJs.includes("pathname === '/admin'") &&
+           !devJs.includes('Local CMS available'),
+      'local dev server should not expose retired CMS routes');
     assert(devJs.includes('MAX_PORT_SEARCH_ATTEMPTS') &&
-           devJs.includes("err.code === 'EADDRINUSE'") &&
-           devJs.includes('Port ${previousPort} is in use; trying ${candidatePort}...'),
-      'dev server should automatically try the next port when the requested port is in use');
-    assert(localDevWsl.includes('No available local port found') &&
-           localDevWsl.includes('Port %PORT% is already in use; using %LOCAL_DEV_PORT% instead.') &&
-           localDevWsl.includes('LOCAL_DEV_ENDPOINT') &&
-           localDevWsl.includes("Write-Output ($hostName + '|' + $p)") &&
-           localDevWsl.includes('npm run dev -- --host 0.0.0.0 --port %PORT%'),
-      'WSL local dev launcher should choose and open an available port for npm run dev');
-    assert(!devJs.includes('vercel dev') && !devJs.includes('npx --yes vercel'), 'dev server should not launch Vercel CLI');
-    assert(copyJs.includes("path.join(outDir, 'admin')") && !/const dirs = \[[^\]]*'admin'/s.test(copyJs),
-      'copy-to-public.js should keep admin local-only');
-    assert(copyJs.includes('No referenced documents detected; skipped documents/ to avoid publishing unreferenced files.') &&
-           !copyJs.includes("copyDir(path.join(root, 'documents'), path.join(outDir, 'documents'))"),
-      'copy-to-public.js should fail closed instead of copying all documents when no references are found');
-    assert(copyJs.includes('delete publicScriptsManifest.contributions') &&
-           copyJs.includes('JSON.stringify(publicScriptsManifest, null, 2)'),
-      'copy-to-public.js should remove the retired contributions entry from the public scripts manifest');
-    assert(!/retiredTargets\.forEach\(\(target\) => \{\s*try\s*\{/s.test(copyJs),
-      'copy-to-public.js should surface failures while pruning retired public artifacts');
-    ['analytics', 'data-science', 'tourism', 'resume', 'resume-pdf', 'resume-analytics', 'resume-data-science', 'resume-tourism', 'resume-analytics-pdf', 'resume-data-science-pdf', 'resume-tourism-pdf'].forEach((slug) => {
-      assert(!copyJs.includes(`path.join(outDir, 'pages', '${slug}.html')`),
-        `copy-to-public.js should publish professional route page ${slug}`);
-    });
+           devJs.includes("err.code === 'EADDRINUSE'"),
+      'dev server should retain automatic port fallback');
+    assert(localDevWsl.includes('LOCAL_DEV_ENDPOINT') &&
+           localDevWsl.includes('npm run dev -- --host 0.0.0.0 --port %PORT%') &&
+           !localDevWsl.includes('CMS_ALLOW_PRIVATE_HOSTS'),
+      'WSL launcher should retain local dev startup without CMS settings');
+    assert(copyJs.includes('resolveApprovedDocuments') &&
+           copyJs.includes('copyApprovedDocuments') &&
+           !copyJs.includes('collectReferencedDocumentFiles') &&
+           !copyJs.includes("path.join(outDir, 'admin')"),
+      'public copy should use the explicit document allowlist without CMS cleanup');
+    assert(!vercelIgnore.includes('/api/cms') &&
+           !vercelIgnore.includes('/api/short-domain.js'),
+      'Vercel ignores should omit deleted API entrypoints');
     assert(!fs.existsSync('public/admin'), 'public/admin should not be generated');
   });
-
   section('Short links dashboard hooks', () => {
     const html = readFile('pages/short-links.html');
     [
@@ -39552,9 +39438,9 @@ try {
   section('Portfolio, games, and tools responsive workbench contracts', () => {
     const portfolioJs = fs.readFileSync('js/portfolio/portfolio.js', 'utf8');
     const workbenchCss = fs.readFileSync('css/components/portfolio-workbench.css', 'utf8');
-    const cmsRenderers = require('./build/lib/cms-renderers.js');
+    const siteRenderers = require('./build/lib/site-renderers.js');
     const gamesPage = JSON.parse(fs.readFileSync('content/pages/games.json', 'utf8'));
-    const gamesHtml = cmsRenderers.renderGamesDirectoryBody(gamesPage);
+    const gamesHtml = siteRenderers.renderGamesDirectoryBody(gamesPage);
 
     assert(gamesHtml.includes('data-games-directory') &&
       gamesHtml.includes('class="games-directory__grid" role="list"') &&
@@ -40020,10 +39906,6 @@ try {
     assert(Array.isArray(env.window.PROJECTS) && env.window.PROJECTS.length > 0,
            'projects-data.js failed to define PROJECTS');
 
-    env = evalScript('js/contributions/contributions-data.js');
-    assert(Array.isArray(env.window.contributions) && env.window.contributions.length > 0,
-           'contributions-data.js failed to define contributions');
-
     const pdata = evalScript('js/portfolio/projects-data.js');
     const ids = new Set();
     pdata.window.PROJECTS.forEach(p => {
@@ -40033,12 +39915,6 @@ try {
       assert(p.title && p.title.length > 0, 'project missing title: ' + p.id);
     });
 
-    const cdata = evalScript('js/contributions/contributions-data.js');
-    assert(Array.isArray(cdata.window.contributions), 'contributions not an array');
-    cdata.window.contributions.forEach(section => {
-      assert(section.heading && section.items && Array.isArray(section.items), 'bad contributions section');
-      section.items.forEach(it => assert(it.title && it.link, 'bad contribution item'));
-    });
   });
 
   section('QR generator utility tests', () => {
@@ -41205,7 +41081,7 @@ try {
       'pages/solutions.html',
       'pages/tools.html',
       'build/build-site.js',
-      'build/lib/cms-renderers.js',
+      'build/lib/site-renderers.js',
       'content/audiences/personal.json',
       'content/pages/contact.json',
       'content/pages/tools.json',
@@ -41252,9 +41128,7 @@ try {
       'js/animations/animations.js',
       'js/accounts/tools-page-loader.js',
       'js/forms/contact.js',
-      'js/portfolio/modal-helpers.js',
-      'js/contributions/contributions.js',
-      'js/contributions/carousel.js'
+      'js/portfolio/modal-helpers.js'
     ].forEach(file => evalScript(file));
 
     const lateLoadEnv = createEnv();
@@ -41286,7 +41160,7 @@ try {
     assert(cssManifest.workbenchFile && /^styles-workbench\.[0-9a-f]{8}\.css$/.test(cssManifest.workbenchFile), 'Workbench CSS manifest entry invalid');
     assert(cssManifest.toolsFile && /^styles-tools\.[0-9a-f]{8}\.css$/.test(cssManifest.toolsFile), 'Tools CSS manifest entry invalid');
     assert(!cssManifest.professionalFile && !cssManifest.analyticsFile, 'retired audience bundles should not appear in the CSS manifest');
-    ['shell','home','consent','contact','search','contributions','sitemap','privacy','toolsAccount','toolsLanding'].forEach((key) => {
+    ['shell','home','consent','contact','search','sitemap','privacy','toolsAccount','toolsLanding'].forEach((key) => {
       assert(typeof scriptsManifest[key] === 'string' && /^site-[a-z-]+\.[0-9a-f]{8}\.js$/.test(scriptsManifest[key]), `Scripts manifest entry invalid for ${key}`);
       assert(fs.existsSync(`dist/${scriptsManifest[key]}`), `dist/${scriptsManifest[key]} missing`);
     });
@@ -41317,7 +41191,7 @@ try {
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
     const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/transcribe.html','pages/ga4-utm-performance.html'];
     toolPages.push('pages/campaign-creative-tracker.html');
-    ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
+    ['index.html','pages/portfolio.html','pages/contact.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav"');
       checkFileContains(f, '<main id="main"');
       checkFileContains(f, 'class="skip-link"');
@@ -41372,7 +41246,6 @@ try {
 
     assert(htmlHasManagedBundle(readFile('pages/contact.html'), 'site-contact'), 'pages/contact.html missing contact bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/search.html'), 'site-search'), 'pages/search.html missing search bundle reference');
-    assert(htmlHasManagedBundle(readFile('pages/contributions.html'), 'site-contributions'), 'pages/contributions.html missing contributions bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/sitemap-pretty.html'), 'site-sitemap'), 'pages/sitemap-pretty.html missing sitemap bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/privacy.html'), 'site-privacy'), 'pages/privacy.html missing privacy bundle reference');
 
@@ -41665,90 +41538,20 @@ try {
     });
   });
 
-  section('Contributions interactions emit analytics', () => {
-    const root = {
-      _handlers: {},
-      dataset: {},
-      classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
-      addEventListener(type, fn) {
-        this._handlers[type] = this._handlers[type] || [];
-        this._handlers[type].push(fn);
-      },
-      removeEventListener() {},
-      appendChild() {},
-      innerHTML: '',
-    };
-    const contribEnv = createEnv();
-    contribEnv.__events = [];
-    contribEnv.window.gaEvent = (name, params) => contribEnv.__events.push({ name, params });
-    evalScript('js/contributions/contributions-data.js', contribEnv);
-    contribEnv.document.getElementById = (id) => id === 'contrib-root' ? root : null;
-    contribEnv.document.createElement = (tag) => ({
-      tagName: String(tag || '').toUpperCase(),
-      children: [],
-      dataset: {},
-      className: '',
-      classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
-      setAttribute() {},
-      appendChild(child) { this.children.push(child); child.parent = this; },
-      insertAdjacentHTML() {},
-      querySelector() { return null; },
-      querySelectorAll() { return []; },
-      addEventListener() {},
-      removeEventListener() {},
-      focus() {}
-    });
-    contribEnv.document.querySelector = () => null;
-    contribEnv.document.body.classList = { add() {}, remove() {} };
-    const ctx = evalScript('js/contributions/contributions.js', contribEnv);
-    if (typeof ctx.initContributions === 'function') {
-      ctx.initContributions();
-    }
-    assert(root._handlers.click && root._handlers.click.length, 'contributions click handler not bound');
-    assert(root._handlers.toggle && root._handlers.toggle.length, 'contributions toggle handler not bound');
-    const sectionNode = { dataset: { heading: 'Public Reports' }, classList: { contains() { return false; } }, closest: () => sectionNode };
-    const link = {
-      dataset: { section: 'Public Reports', title: 'Budget', kind: 'pdf' },
-      getAttribute() { return ''; },
-      closest(sel) {
-        if (sel === '.doc-links a') return this;
-        if (sel === '.contrib-section') return sectionNode;
-        return null;
-      }
-    };
-    root._handlers.click[0]({ target: link });
-    const docEvt = contribEnv.__events.find(e => e.name === 'contrib_doc_click');
-    assert(docEvt, 'contrib_doc_click not emitted');
-    assert(docEvt.params.section === 'Public Reports' && docEvt.params.title === 'Budget', 'contrib_doc_click params incorrect');
-    const details = {
-      tagName: 'DETAILS',
-      dataset: { year: '2024' },
-      open: true,
-      classList: { contains(cls) { return cls === 'timeline-year'; } },
-      closest() { return sectionNode; }
-    };
-    root._handlers.toggle[0]({ target: details });
-    const toggleEvt = contribEnv.__events.find(e => e.name === 'contrib_timeline_toggle');
-    assert(toggleEvt && toggleEvt.params.year === '2024' && toggleEvt.params.expanded === true,
-      'contrib_timeline_toggle params incorrect');
-  });
-
   section('Build and deployment configuration', () => {
     assert(fs.existsSync('build/build-css.js'), 'build-css.js missing');
     assert(fs.existsSync('build/generate-project-pages.js'), 'generate-project-pages.js missing');
     const copyJs = fs.readFileSync('build/copy-to-public.js','utf8');
     assert(copyJs.includes('const dirs') &&
            copyJs.includes("'img'") && copyJs.includes("'js'") && copyJs.includes("'css'") &&
-           copyJs.includes("'documents'") && copyJs.includes("'dist'") &&
+           copyJs.includes("'dist'") &&
            copyJs.includes("'pages'") && copyJs.includes("'demos'"),
            'copy-to-public.js not copying all asset dirs');
-    assert(copyJs.includes('scanSkipDirs') &&
-           copyJs.includes("'archive'"),
-           'copy-to-public.js should keep archived local-only experiments out of deploy scans');
-    assert(copyJs.includes('isTestSourceFileName') &&
-           copyJs.includes("'tests'") &&
-           copyJs.includes("'__tests__'"),
-           'copy-to-public.js should not treat test-only document strings as deploy references');
+    assert(copyJs.includes('BROWSER_PROJECT_DOCUMENTS') &&
+           copyJs.includes('resolveApprovedDocuments') &&
+           copyJs.includes('copyApprovedDocuments') &&
+           !copyJs.includes('collectReferencedDocumentFiles'),
+           'copy-to-public.js should publish only the explicit project document allowlist');
     assert(copyJs.includes("rel === 'img/project-starfall/review'") &&
            copyJs.includes('img/project-starfall') &&
            copyJs.includes('source(?:\\/|$)'),
@@ -41761,9 +41564,6 @@ try {
            copyJs.includes('data-google-maps-iframe') &&
            copyJs.includes('maps/embed/v1/place'),
            'copy-to-public.js should inject Google Maps Embed API URLs into public output from env or local key file');
-     assert(copyJs.includes('collectReferencedDocumentFiles') &&
-            copyJs.includes('copyReferencedDocuments'),
-            'copy-to-public.js should publish only referenced documents and nothing else');
      const starfallAssetEngine = fs.readFileSync('js/games/project-starfall/engine/assets.js', 'utf8');
     assert(starfallAssetEngine.includes('source.PRELOAD_ASSET_BACKUPS') &&
            starfallAssetEngine.includes('addAssetPathBackup'),
@@ -41826,7 +41626,7 @@ try {
     assert(vercel.includes('"source": "/img/(.*)"') || vercel.includes('"source": "/img/(.*)"'.replace(/\//g,'/')), 'vercel.json missing /img cache rule');
     const vercelIgnore = fs.readFileSync('.vercelignore', 'utf8');
     const vercelIgnoreEntries = new Set(vercelIgnore.split(/\r?\n/).map(line => line.trim()));
-    ['/api/cms', '/api/chatbot', '/api/short-domain.js', '/api/short-links/test'].forEach((entry) => {
+    ['/api/chatbot', '/api/short-links/test'].forEach((entry) => {
       assert(vercelIgnoreEntries.has(entry),
         `.vercelignore should exclude ${entry} without a trailing slash so archive deployments omit the directory itself`);
     });
@@ -41865,11 +41665,15 @@ try {
     assert(hasDshortRootRedirect, 'dshort.me root redirect to personal homepage missing');
     ['/analytics', '/data-science', '/tourism', '/resume', '/resume-pdf',
       '/resume-analytics', '/resume-analytics-pdf', '/resume-data-science', '/resume-data-science-pdf',
-      '/resume-tourism', '/resume-tourism-pdf', '/destination-analytics', '/contributions'
+      '/resume-tourism', '/resume-tourism-pdf', '/destination-analytics'
     ].forEach((source) => {
       assert(!rewrites.some((rule) => rule.source === source), `${source} should not rewrite to a retired variant`);
       assert(redirects.some((rule) => rule.source === source && rule.destination === '/' && rule.permanent === true),
         `${source} should redirect to the canonical homepage`);
+    });
+    ['/contributions', '/contributions.html', '/pages/contributions', '/pages/contributions.html'].forEach((source) => {
+      assert(redirects.some((rule) => rule.source === source && rule.destination === '/tourism' && rule.permanent === true),
+        source + ' should permanently redirect to /tourism');
     });
     ['/analytics/:path*', '/data-science/:path*', '/tourism/:path*',
       '/professional/:audience/:path*', '/pages/professional/:audience/:path*'
@@ -43645,13 +43449,13 @@ try {
       commonScript.includes("document.addEventListener('site:content-updated'") &&
       commonScript.includes("history.pushState(null, '', currentHashUrl(hash))"),
       'same-page navigation should retain history and content-update behavior');
-    ['index.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html',
+    ['index.html','pages/portfolio.html','pages/contact.html','pages/privacy.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
      'pages/campaign-creative-tracker.html',
      'pages/games/probability-engine.html','pages/games/stellar-dogfight.html','pages/games/roulette.html','pages/games/stormbreak.html','demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
-    ['index.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html']
+    ['index.html','pages/portfolio.html','pages/contact.html','pages/privacy.html']
       .forEach(f => {
         const html = fs.readFileSync(f,'utf8');
         if (/http-equiv\s*=\s*"refresh"/i.test(html)) throw new Error(f+': should not use meta refresh');
@@ -43715,7 +43519,6 @@ try {
     const pcfg = evalScript('js/privacy/config.js');
     const consentCode = readFile('js/privacy/consent_manager.js');
     const analyticsCode = readFile('js/analytics/ga4-events.js');
-    const contributionsCode = readFile('js/contributions/contributions.js');
     const bundleInjectorCode = readFile('build/inject-script-bundles.js');
     const privacyHtml = readFile('pages/privacy.html');
     const privacyCss = readFile('css/privacy.css');
@@ -43795,9 +43598,6 @@ try {
       !analyticsCode.includes('googletagmanager.com/gtag/js') &&
       !analyticsCode.includes("window.gtag('config'"),
     'source analytics paths should not directly load or configure GA4');
-    assert(!contributionsCode.includes("window.gtag('event'") &&
-      contributionsCode.includes("typeof window.gaEvent === 'function'"),
-    'contribution events should use only the shared consent-aware analytics helper');
     assert(bundleInjectorCode.includes("walkHtmlFiles('demos')") &&
       bundleInjectorCode.includes("!relPath.includes('/')") &&
       bundleInjectorCode.includes("relPath.startsWith('pages/')") &&

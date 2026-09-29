@@ -14,43 +14,6 @@ const outDir = path.join(root, 'public');
 const cssManifestPath = path.join(root, 'dist', 'styles-manifest.json');
 const jsManifestPath = path.join(root, 'dist', 'scripts-manifest.json');
 const includeStarfallBackups = /^(1|true|yes)$/i.test(String(process.env.PUBLIC_INCLUDE_STARFALL_BACKUPS || '').trim());
-const textExtensions = new Set([
-  '.css',
-  '.html',
-  '.js',
-  '.json',
-  '.md',
-  '.mjs',
-  '.txt',
-  '.ts',
-  '.tsx',
-  '.xml',
-  '.xsl',
-  '.yaml',
-  '.yml'
-]);
-const scanSkipDirs = new Set([
-  '__tests__',
-  '.git',
-  '.vercel',
-  '_local',
-  'archive',
-  'Project Submission',
-  'Slot-Machine-v4',
-  'aws',
-  'dist',
-  'documents',
-  'img',
-  'node_modules',
-  'mobile',
-  'public',
-  'test',
-  'tests'
-]);
-
-function isTestSourceFileName(fileName) {
-  return /^test\.[^.]+$/i.test(fileName) || /\.(?:spec|test)\.[^.]+$/i.test(fileName);
-}
 
 function log(msg){
   process.stdout.write(msg + '\n');
@@ -178,7 +141,6 @@ function collectDistArtifacts(cssManifest, jsManifest) {
     'site-consent.js',
     'site-contact.js',
     'site-search.js',
-    'site-contributions.js',
     'site-sitemap.js',
     'site-privacy.js',
     'site-tools-account.js',
@@ -258,89 +220,26 @@ function listHtmlFilesRecursive(dirPath) {
   return results;
 }
 
-function listTextFilesRecursive(dirPath) {
-  const files = [];
-  const stack = [dirPath];
-  while (stack.length) {
-    const current = stack.pop();
-    let entries;
+function resolveApprovedDocuments(sourceRoot) {
+  return BROWSER_PROJECT_DOCUMENTS.map((relPath) => {
+    const src = path.join(sourceRoot, relPath);
+    let stat;
     try {
-      entries = fs.readdirSync(current, { withFileTypes: true });
+      stat = fs.statSync(src);
     } catch {
-      continue;
+      throw new Error(`Missing browser-project asset: ${relPath}`);
     }
-    entries.forEach((entry) => {
-      const full = path.join(current, entry.name);
-      if (entry.isDirectory()) {
-        if (scanSkipDirs.has(entry.name)) return;
-        stack.push(full);
-        return;
-      }
-      if (!entry.isFile()) return;
-      if (isTestSourceFileName(entry.name)) return;
-      const ext = path.extname(entry.name).toLowerCase();
-      if (!textExtensions.has(ext)) return;
-      files.push(full);
-    });
-  }
-  return files;
+    if (!stat.isFile()) throw new Error(`Missing browser-project asset: ${relPath}`);
+    return { relPath, src, size: stat.size };
+  });
 }
 
-function collectReferencedDocumentFiles() {
-  const matches = new Set();
-  const sources = listTextFilesRecursive(root);
-  const matcher = /(?:^|["'(=\s])\/?(documents\/[A-Za-z0-9._\-/%]+)(?=$|["')#?\s<])/g;
-
-  sources.forEach((filePath) => {
-    let body = '';
-    try {
-      body = fs.readFileSync(filePath, 'utf8');
-    } catch {
-      return;
-    }
-    let match;
-    while ((match = matcher.exec(body))) {
-      const raw = String(match[1] || '').trim();
-      if (!raw) continue;
-      let decoded = raw;
-      try {
-        decoded = decodeURIComponent(raw);
-      } catch {}
-      decoded = decoded.replace(/\\/g, '/');
-      if (!decoded.startsWith('documents/')) continue;
-      if (decoded.includes('..')) continue;
-      const abs = path.join(root, decoded);
-      let stat;
-      try {
-        stat = fs.statSync(abs);
-      } catch {
-        continue;
-      }
-      if (!stat.isFile()) continue;
-      matches.add(decoded);
-    }
+function copyApprovedDocuments(documents, destinationRoot) {
+  documents.forEach(({ relPath, src }) => {
+    copyFile(src, path.join(destinationRoot, relPath));
   });
-
-  return [...matches].sort();
-}
-
-function copyReferencedDocuments() {
-  const relPaths = [...new Set([...collectReferencedDocumentFiles(), ...BROWSER_PROJECT_DOCUMENTS])].sort();
-  if (!relPaths.length) {
-    log('No referenced documents detected; skipped documents/ to avoid publishing unreferenced files.');
-    return;
-  }
-
-  let totalBytes = 0;
-  relPaths.forEach((relPath) => {
-    const src = path.join(root, relPath);
-    const dest = path.join(outDir, relPath);
-    copyFile(src, dest);
-    try {
-      totalBytes += fs.statSync(src).size;
-    } catch {}
-  });
-  log(`Copied ${relPaths.length} referenced documents (${Math.round(totalBytes / 1024)} KB).`);
+  const totalBytes = documents.reduce((sum, document) => sum + document.size, 0);
+  log(`Copied ${documents.length} approved documents (${Math.round(totalBytes / 1024)} KB).`);
 }
 
 function rewriteCssLinksInHtml(html, cssHrefs) {
@@ -474,56 +373,10 @@ function rewriteGoogleMapsEmbedsInPublic() {
   log(`Rewrote ${iframeCount} Google Maps iframe(s) with Maps Embed API URLs in ${fileCount} public HTML file(s).`);
 }
 
-function pruneRetiredPublicArtifacts() {
-  const retiredTargets = [
-    path.join(outDir, 'js', 'common', 'audience-config.js'),
-    path.join(outDir, 'pages', 'contributions.html'),
-    path.join(outDir, 'pages', 'destination-analytics.html'),
-    path.join(outDir, 'admin'),
-    path.join(outDir, 'js', 'contributions'),
-    path.join(outDir, 'dist', 'site-contributions.js'),
-    path.join(outDir, 'documents', 'Resume-Analytics-Custom.pdf'),
-    path.join(outDir, 'documents', 'Resume-Analytics-Custom.docx'),
-    path.join(outDir, 'documents', 'Resume-Data-Science-Custom.pdf'),
-    path.join(outDir, 'documents', 'Resume-Data-Science-Custom.docx'),
-    path.join(outDir, 'documents', 'Resume-Tourism-Custom.pdf'),
-    path.join(outDir, 'documents', 'Resume-Tourism-Custom.docx'),
-    path.join(outDir, 'documents', 'GJ_2025_Budget.pdf'),
-    path.join(outDir, 'documents', 'Leeds_2025_Colorado_Business_Economic_Outlook.pdf'),
-    path.join(outDir, 'documents', 'VGJ_2024_Accomplishments.pdf'),
-    path.join(outDir, 'documents', 'Project_6.pdf'),
-    path.join(outDir, 'documents', 'Project_6.ipynb')
-  ];
-
-  retiredTargets.forEach((target) => {
-    removeWithRetries(target);
-  });
-
-  const publicDistDir = path.join(outDir, 'dist');
-  fs.readdirSync(publicDistDir)
-    .filter((fileName) => /^site-contributions\.[0-9a-f]{8}\.js$/i.test(fileName))
-    .forEach((fileName) => removeWithRetries(path.join(publicDistDir, fileName)));
-
-  const publicScriptsManifestPath = path.join(publicDistDir, 'scripts-manifest.json');
-  const publicScriptsManifest = readJson(publicScriptsManifestPath);
-  if (publicScriptsManifest && Object.prototype.hasOwnProperty.call(publicScriptsManifest, 'contributions')) {
-    delete publicScriptsManifest.contributions;
-    fs.writeFileSync(
-      publicScriptsManifestPath,
-      `${JSON.stringify(publicScriptsManifest, null, 2)}\n`,
-      'utf8'
-    );
-  }
-}
-
 function copyStatic(){
   // Fail before clearing public/ if a clean checkout is missing a required
   // self-hosted project download; never silently fall back to an AWS URL.
-  BROWSER_PROJECT_DOCUMENTS.forEach((relPath) => {
-    if (!fs.existsSync(path.join(root, relPath)) || !fs.statSync(path.join(root, relPath)).isFile()) {
-      throw new Error(`Missing browser-project asset: ${relPath}`);
-    }
-  });
+  const approvedDocuments = resolveApprovedDocuments(root);
   ensureCleanDir(outDir);
   const cssManifest = readJson(cssManifestPath);
   const jsManifest = readJson(jsManifestPath);
@@ -551,13 +404,15 @@ function copyStatic(){
   // Recorded ocean soundscapes are loaded on demand from audio/ocean.
   const dirs = ['img', 'js', 'css', 'pages', 'demos', 'audio'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
-  copyReferencedDocuments();
+  copyApprovedDocuments(approvedDocuments, outDir);
   copyDistArtifacts(cssManifest, jsManifest);
-  // Publish only the explicit native catalog, never other build or CMS files.
+  // Publish only the explicit native catalog, never other build files.
   copyFile(path.join(root, 'dist', 'app-content', 'v1', 'catalog.json'), path.join(outDir, 'app-content', 'v1', 'catalog.json'));
   log(`Copied ${copyAppUpdateFeeds(root, outDir)} approved Android update feed(s).`);
   copyDir(path.join(root, 'dist', 'ai-pages'), path.join(outDir, 'dist', 'ai-pages'));
-  pruneRetiredPublicArtifacts();
+  // Keep generated legacy files behind their permanent redirects.
+  removeWithRetries(path.join(outDir, 'js', 'common', 'audience-config.js'));
+  removeWithRetries(path.join(outDir, 'pages', 'destination-analytics.html'));
 
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
   const cssHrefs = {
@@ -595,5 +450,9 @@ function copyStatic(){
   rewriteGoogleMapsEmbedsInPublic();
 }
 
-copyStatic();
-log('Prepared public/ output for Vercel');
+if (require.main === module) {
+  copyStatic();
+  log('Prepared public/ output for Vercel');
+}
+
+module.exports = { resolveApprovedDocuments, copyApprovedDocuments };

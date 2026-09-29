@@ -64,11 +64,16 @@ assert(!parameter(googleTags[0], 'configSettingsTable').list.some((entry) =>
 for (const event of ['gtm.js', 'gtm.historyChange', 'page_view', 'virtual_page_view_extra', 'contact_form_success_extra']) {
   assert.deepStrictEqual(dispatch({ event }), [], `${event} must not create duplicate or partial-match event hits`);
 }
-for (const event of ['directory_depth_reached', 'tool_run_error', 'game_session_start', 'game_milestone']) {
+for (const event of ['directory_depth_reached', 'tool_run_error', 'game_session_start', 'game_milestone', 'see_more_toggle', 'scroll_depth']) {
   const hits = dispatch({ event });
   assert.strictEqual(hits.length, 1, `${event} must reach exactly one GA4 tag`);
   assert.strictEqual(hits[0].name, event);
 }
+for (const event of ['contrib_doc_click', 'contrib_timeline_toggle']) {
+  assert.deepStrictEqual(dispatch({ event }), [], `${event} belongs to the retired Contributions page`);
+}
+assert.strictEqual(container.tag.find((tag) => tag.tagId === '41')?.name, 'GA4 - Event - Content');
+assert.strictEqual(container.trigger.find((trigger) => trigger.triggerId === '27')?.name, 'CE - Content');
 assert.strictEqual(dispatch({ event: 'contact_form_success' })[0].name, 'generate_lead');
 
 const page = {

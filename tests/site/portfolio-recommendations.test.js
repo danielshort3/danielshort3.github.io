@@ -187,11 +187,11 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     'personal portfolio search and inspector should expose authored story fields',
   );
 
-  const contentModel = read('api/_lib/cms-content-model.js');
+  const { loadSiteContent } = require('../../build/lib/content-loader');
+  const loadedProject = loadSiteContent(ROOT).projectsById.chatbotLora;
   assert(
-    contentModel.includes('validateProjectPersonalStory') &&
-      contentModel.includes('validateProjectEvaluation') &&
-      contentModel.includes("'measured', 'partial', 'not-benchmarked'"),
-    'CMS validation should enforce the optional story and evaluation contracts',
+    loadedProject.personalStory?.why === readJson('content/projects/chatbotLora.json').personalStory?.why &&
+      loadedProject.evaluation?.status === readJson('content/projects/chatbotLora.json').evaluation?.status,
+    'content loading should preserve authored project story and evaluation fields',
   );
 };

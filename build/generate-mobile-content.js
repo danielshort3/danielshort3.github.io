@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
-// The native app consumes public data, never rendered pages or executable CMS
-// content. Keep this projection explicit: adding a CMS field does not publish it.
+// The native app consumes public data, never rendered pages or executable
+// content. Keep this projection explicit: adding a source field does not publish it.
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');

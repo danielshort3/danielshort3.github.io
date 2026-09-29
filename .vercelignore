@@ -46,9 +46,7 @@ google_maps_api_key.txt
 /.playwright-mcp
 /.codex-remote-attachments
 /.agents
-/api/cms
 /api/chatbot
-/api/short-domain.js
 /api/short-links/test
 /go
 /.short-links-generated
