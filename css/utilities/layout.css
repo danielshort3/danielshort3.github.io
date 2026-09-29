@@ -101,8 +101,6 @@
   .carousel-card{flex:0 0 80%}
 }
 
-/* contributions/doc styles moved to components/doc-card.css */
-
 /* === THEMED SCROLLBAR FOR .contact-page ================================ */
 .contact-page {
   /* Firefox */
@@ -170,8 +168,6 @@
 .burger{
   display:none;        /* 🔒 invisible + non-interactive everywhere … */
 }
-
-/* moved to components/doc-card.css */
 
 /* modal styles consolidated into components/modal.css */
 
@@ -358,7 +354,6 @@
   .nav-item-portfolio .nav-link-has-menu,
   .nav-item-tools .nav-link-has-menu,
   .nav-item-games .nav-link-has-menu,
-  .nav-item-contributions .nav-link-has-menu,
   .nav-item-resume .nav-link-has-menu,
   .nav-item-contact .nav-link-has-menu{
     gap:0;
@@ -366,7 +361,6 @@
   .nav-item-portfolio .nav-link-caret,
   .nav-item-tools .nav-link-caret,
   .nav-item-games .nav-link-caret,
-  .nav-item-contributions .nav-link-caret,
   .nav-item-resume .nav-link-caret,
   .nav-item-contact .nav-link-caret{
     display:none;
@@ -374,7 +368,6 @@
   .nav-item-portfolio .nav-dropdown,
   .nav-item-tools .nav-dropdown,
   .nav-item-games .nav-dropdown,
-  .nav-item-contributions .nav-dropdown,
   .nav-item-resume .nav-dropdown,
   .nav-item-contact .nav-dropdown{
     display:none !important;
@@ -469,7 +462,7 @@
   }
 }
 
-/* === MODAL SCROLLBAR STYLING – MATCHES CONTRIBUTIONS CAROUSEL === */
+/* === MODAL SCROLLBAR STYLING === */
 
 /* Firefox */
 .modal-content {
@@ -745,8 +738,6 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 /* modal responsive block moved to components/modal.css */
-
-/* prevent two-column layout for contribution cards moved to components/doc-card.css */
 
 /* ───────────────────────────────────────────────────────────
    16.  HOME PAGE SECTION BANDS

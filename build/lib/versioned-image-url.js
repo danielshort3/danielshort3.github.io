@@ -17,7 +17,7 @@ function versionedImageUrl(value, { root = repositoryRoot } = {}) {
   const pathname = value.replace(/[?#].*$/, '');
   const relative = pathname.replace(/^\//, '');
   if (!toolIcon.test(relative) && !projectIcon.test(relative) && !gameIcon.test(relative) && !sheetPoster.test(relative) && !sheetStage.test(relative) && !projectPreview.test(relative) && !websitePoster.test(relative)) return value;
-  // Responsive encoders run after CMS generation. Their source PNG is the
+  // Responsive encoders run after content generation. Their source PNG is the
   // stable generation key, so build order cannot fingerprint stale variants.
   const source = sheetPoster.test(relative) ? 'img/projects/sheetMusicUpscale.png'
     : websitePoster.test(relative) ? 'img/projects/website.png' : relative;

@@ -1267,7 +1267,7 @@
     background: transparent;
   }
 
-  .home-contact-layout .cms-location-inner {
+  .home-contact-layout .location-section-inner {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
@@ -1277,11 +1277,11 @@
     padding: 0;
   }
 
-  .home-contact-layout .cms-location-copy {
+  .home-contact-layout .location-section-copy {
     max-width: none;
   }
 
-  .home-contact-layout .cms-location-copy .section-title {
+  .home-contact-layout .location-section-copy .section-title {
     margin: 0 0 8px;
     padding: 0;
     color: #091f3b;
@@ -1294,13 +1294,13 @@
     display: none;
   }
 
-  .home-contact-layout .cms-location-copy .section-subtitle {
+  .home-contact-layout .location-section-copy .section-subtitle {
     margin: 0 0 12px;
     font-size: .875rem;
     line-height: 1.5;
   }
 
-  .home-contact-layout .cms-location-copy > p:last-child {
+  .home-contact-layout .location-section-copy > p:last-child {
     margin: 0;
   }
 
@@ -1315,13 +1315,11 @@
     color: #ffffff;
     background: var(--panel-color);
   }
-
   .site-frame[data-frame-audience="personal"] .home-contact-layout .btn-secondary:focus-visible {
     outline: 3px solid var(--panel-color);
     outline-offset: 3px;
   }
-
-  .home-contact-layout .cms-map-shell {
+  .home-contact-layout .location-map-shell {
     min-width: 0;
     min-height: 280px;
     height: clamp(280px, 30vh, 360px);

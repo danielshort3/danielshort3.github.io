@@ -4,7 +4,7 @@ const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
 
 const {
   renderPersonalLibraryHeader
-} = require('../../build/lib/personal-accordion-shell');
+} = require('./personal-accordion-shell');
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -51,14 +51,8 @@ function googleMapsFallbackEmbedUrl(address) {
   return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 }
 
-function sectionAttrs(section, className) {
-  const attrs = {
-    class: className,
-    'data-cms-section-id': section.id || '',
-    'data-cms-section-type': section.type || ''
-  };
-  const rendered = attrsToString(attrs);
-  return rendered ? ` ${rendered}` : '';
+function classAttr(className) {
+  return ` class="${escapeHtml(className)}"`;
 }
 
 function paragraphLines(value) {
@@ -80,7 +74,7 @@ function renderHero(section) {
   ].filter(Boolean).join('\n        ');
 
   return [
-    `<section${sectionAttrs(section, `hero hero--default${props.altBand ? ' alt-band' : ''}`)}>`,
+    `<section${classAttr(`hero hero--default${props.altBand ? ' alt-band' : ''}`)}>`,
     '  <div class="wrapper">',
     props.eyebrow ? `    <p class="hero-eyebrow">${escapeHtml(props.eyebrow)}</p>` : '',
     `    <h1>${escapeHtml(props.title || 'New Page')}</h1>`,
@@ -95,11 +89,11 @@ function renderRichText(section) {
   const props = section.props || {};
   const body = paragraphLines(props.body || 'Add body copy.');
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
     props.title ? `    <h2 class="section-title">${escapeHtml(props.title)}</h2>` : '',
-    `    <div class="cms-rich-text">\n${body.split('\n').map((line) => `      ${line}`).join('\n')}\n    </div>`,
+    `    <div class="content-rich-text">\n${body.split('\n').map((line) => `      ${line}`).join('\n')}\n    </div>`,
     '  </div>',
     '</section>'
   ].filter(Boolean).join('\n');
@@ -108,7 +102,7 @@ function renderRichText(section) {
 function renderCta(section) {
   const props = section.props || {};
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     '    <div id="cta-link" role="group" aria-label="Contact call to action">',
     `      <h2 class="section-title">${escapeHtml(props.title || 'Call to Action')}</h2>`,
@@ -133,7 +127,7 @@ function renderImageGallery(section) {
   ].filter(Boolean).join('\n')).join('\n');
 
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     props.title ? `    <h2 class="section-title">${escapeHtml(props.title)}</h2>` : '',
     '    <div class="project-examples-grid" role="list">',
@@ -153,10 +147,10 @@ function renderDocumentList(section) {
     return `      <li><a href="${escapeHtml(normalizeHref(doc.href))}">${escapeHtml(doc.label || doc.href || 'Document')}</a></li>`;
   }).join('\n');
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     `    <h2 class="section-title">${escapeHtml(props.title || 'Documents')}</h2>`,
-    '    <ul class="cms-document-links">',
+    '    <ul class="content-document-links">',
     links,
     '    </ul>',
     '  </div>',
@@ -174,7 +168,7 @@ function renderMap(section, options = {}) {
   const iframeTitle = String(props.iframeTitle || `Map of ${address}`).trim();
   const anchorId = String(props.anchorId || section.id || '').trim();
   const frameAttrs = {
-    class: 'cms-map-iframe',
+    class: 'location-map-iframe',
     title: iframeTitle,
     [persistentMap ? 'data-home-contact-map-src' : 'src']: googleMapsFallbackEmbedUrl(address),
     loading: 'lazy',
@@ -187,14 +181,14 @@ function renderMap(section, options = {}) {
     } : {})
   };
   return [
-    `<section${anchorId ? ` id="${escapeHtml(anchorId)}"` : ''}${sectionAttrs(section, persistentMap ? 'surface-band cms-location' : 'surface-band reveal cms-location')}>`,
-    '  <div class="wrapper cms-location-inner">',
-    '    <div class="cms-location-copy">',
+    `<section${anchorId ? ` id="${escapeHtml(anchorId)}"` : ''}${classAttr(persistentMap ? 'surface-band location-section' : 'surface-band reveal location-section')}>`,
+    '  <div class="wrapper location-section-inner">',
+    '    <div class="location-section-copy">',
     `      <h2 class="section-title">${escapeHtml(props.title || 'Location')}</h2>`,
     props.body ? `      <p class="section-subtitle">${escapeHtml(props.body)}</p>` : '',
     props.showLink !== false ? `      <p><a class="btn-secondary" href="${escapeHtml(mapHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(props.buttonLabel || 'Open map')}</a></p>` : '',
     '    </div>',
-    `    <div class="cms-map-shell"${persistentMap ? ' data-contact-map-slot' : ''}>`,
+    `    <div class="location-map-shell"${persistentMap ? ' data-contact-map-slot' : ''}>`,
     `      <iframe${attrsToString(frameAttrs) ? ` ${attrsToString(frameAttrs)}` : ''}></iframe>`,
     '    </div>',
     '  </div>',
@@ -205,7 +199,7 @@ function renderMap(section, options = {}) {
 function renderEmbed(section) {
   const props = section.props || {};
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     props.title ? `    <h2 class="section-title">${escapeHtml(props.title)}</h2>` : '',
     '    <div class="video-shell">',
@@ -228,7 +222,7 @@ function renderKpiBand(section) {
     '      </div>'
   ].join('\n')).join('\n');
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
     props.title ? `    <h2 class="section-title">${escapeHtml(props.title)}</h2>` : '',
@@ -247,12 +241,12 @@ function renderProofBlock(section) {
     : ['Describe the evidence, result, or decision this supports.'];
   const items = bullets.map((item) => `      <li>${escapeHtml(item)}</li>`).join('\n');
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
     `    <h2 class="section-title">${escapeHtml(props.title || 'Proof point')}</h2>`,
     props.lead ? `    <p class="section-lead">${escapeHtml(props.lead)}</p>` : '',
-    '    <ul class="cms-proof-list">',
+    '    <ul class="content-proof-list">',
     items,
     '    </ul>',
     '  </div>',
@@ -274,7 +268,7 @@ function renderProjectGrid(section) {
     '      </a>'
   ].filter(Boolean).join('\n')).join('\n');
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
     `    <h2 class="section-title">${escapeHtml(props.title || 'Selected projects')}</h2>`,
@@ -301,7 +295,7 @@ function renderCertificationStrip(section) {
     '      </li>'
   ].filter(Boolean).join('\n')).join('\n');
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     `    <h2 class="section-title">${escapeHtml(props.title || 'Certifications')}</h2>`,
     '    <ul class="resume-cert-grid">',
@@ -319,7 +313,7 @@ function renderResumeHighlight(section) {
     : ['Add an accomplishment with a metric, audience, and business result.'];
   const items = bullets.map((item) => `      <li>${escapeHtml(item)}</li>`).join('\n');
   return [
-    `<section${sectionAttrs(section, 'surface-band resume-section')}>`,
+    `<section${classAttr('surface-band resume-section')}>`,
     '  <div class="wrapper">',
     '    <article class="resume-block">',
     `      <h2 class="resume-block-title">${escapeHtml(props.title || 'Resume highlight')}</h2>`,
@@ -336,7 +330,7 @@ function renderResumeHighlight(section) {
 function renderMediaShowcase(section) {
   const props = section.props || {};
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
+    `<section${classAttr('surface-band reveal')}>`,
     '  <div class="wrapper">',
     props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
     `    <h2 class="section-title">${escapeHtml(props.title || 'Media showcase')}</h2>`,
@@ -952,7 +946,7 @@ function renderHomeAccordion(section) {
     .join('');
 
   return [
-    `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${initialView === 'closed' ? '' : escapeHtml(defaultPanel)}" data-home-view="${initialView}" aria-labelledby="home-accordion-title">`,
+    `<section${classAttr('home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${initialView === 'closed' ? '' : escapeHtml(defaultPanel)}" data-home-view="${initialView}" aria-labelledby="home-accordion-title">`,
     '  <div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>',
     `    <p class="site-frame__welcome-eyebrow">${escapeHtml(welcome.eyebrow || 'WELCOME')}</p>`,
     `    <h1 class="site-frame__welcome-title">${escapeHtml(welcome.title || 'Daniel Short.')}</h1>`,
@@ -969,261 +963,28 @@ function renderHomeAccordion(section) {
   ].filter(Boolean).join('\n');
 }
 
-const WIDGETS = [
-  {
-    type: 'hero',
-    label: 'Hero',
-    category: 'Core',
-    description: 'Top page banner with headline, lead, and action links.',
-    defaultProps: {
-      eyebrow: 'Page',
-      title: 'New page section',
-      lead: 'Add a concise supporting message.',
-      primaryLabel: 'Primary action',
-      primaryHref: '#main',
-      secondaryLabel: '',
-      secondaryHref: ''
-    },
-    fields: [
-      { name: 'eyebrow', label: 'Eyebrow', type: 'text' },
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'lead', label: 'Lead', type: 'textarea' },
-      { name: 'primaryLabel', label: 'Primary label', type: 'text' },
-      { name: 'primaryHref', label: 'Primary link', type: 'text' },
-      { name: 'secondaryLabel', label: 'Secondary label', type: 'text' },
-      { name: 'secondaryHref', label: 'Secondary link', type: 'text' }
-    ],
-    render: renderHero
-  },
-  {
-    type: 'rich-text',
-    label: 'Rich Text',
-    category: 'Content',
-    description: 'Heading and formatted copy block.',
-    defaultProps: { kicker: '', title: 'Section title', body: 'Add body copy.' },
-    fields: [
-      { name: 'kicker', label: 'Kicker', type: 'text' },
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'body', label: 'Body', type: 'textarea' }
-    ],
-    render: renderRichText
-  },
-  {
-    type: 'cta',
-    label: 'Call To Action',
-    category: 'Core',
-    description: 'Conversion block with a button.',
-    defaultProps: { title: 'Ready to connect?', body: 'Add a short call to action.', label: 'Contact', href: 'contact' },
-    fields: [
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'body', label: 'Body', type: 'textarea' },
-      { name: 'label', label: 'Button label', type: 'text' },
-      { name: 'href', label: 'Button link', type: 'text' }
-    ],
-    render: renderCta
-  },
-  {
-    type: 'image-gallery',
-    label: 'Image Gallery',
-    category: 'Media',
-    description: 'Small image gallery section.',
-    defaultProps: { title: 'Image gallery', images: [{ src: 'img/hero/head.png', alt: 'Gallery image', caption: 'Gallery image' }] },
-    fields: [
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'images', label: 'Images', type: 'json' }
-    ],
-    render: renderImageGallery
-  },
-  {
-    type: 'document-list',
-    label: 'Document List',
-    category: 'Assets',
-    description: 'List of local documents or downloadable files.',
-    defaultProps: { title: 'Documents', documents: [{ label: 'Resume', href: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume.pdf' }] },
-    fields: [
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'documents', label: 'Documents', type: 'json' }
-    ],
-    render: renderDocumentList
-  },
-  {
-    type: 'map',
-    label: 'Location Map',
-    category: 'Utility',
-    description: 'Location block with an optional Google Maps embed and map link.',
-    defaultProps: { title: 'Location', body: 'Add location context.', address: 'Grand Junction, CO', buttonLabel: 'Open map', embed: false, useEmbedApi: true, zoom: 10 },
-    fields: [
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'body', label: 'Body', type: 'textarea' },
-      { name: 'address', label: 'Address', type: 'text' },
-      { name: 'buttonLabel', label: 'Button label', type: 'text' },
-      { name: 'embed', label: 'Embed map', type: 'checkbox' },
-      { name: 'useEmbedApi', label: 'Use configured Maps Embed API key', type: 'checkbox' },
-      { name: 'zoom', label: 'Zoom', type: 'number' }
-    ],
-    render: renderMap
-  },
-  {
-    type: 'embed',
-    label: 'Embed',
-    category: 'Utility',
-    description: 'Iframe embed for demos, maps, or dashboards.',
-    defaultProps: { title: 'Embedded content', src: 'about:blank' },
-    fields: [
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'src', label: 'Embed URL', type: 'text' }
-    ],
-    render: renderEmbed
-  },
-  {
-    type: 'kpi-band',
-    label: 'KPI Band',
-    category: 'Portfolio',
-    description: 'Metric strip for impact numbers and measurable outcomes.',
-    defaultProps: { kicker: 'Impact', title: 'Measured outcomes', items: [{ value: '99%', label: 'Faster reporting' }, { value: '200+', label: 'Hours saved' }, { value: '$13.1M', label: 'Measured impact' }] },
-    fields: [
-      { name: 'kicker', label: 'Kicker', type: 'text' },
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'items', label: 'Metrics', type: 'json' }
-    ],
-    render: renderKpiBand
-  },
-  {
-    type: 'proof-block',
-    label: 'Proof Block',
-    category: 'Portfolio',
-    description: 'Evidence block for decisions, outcomes, or case-study proof.',
-    defaultProps: { kicker: 'Proof', title: 'What changed', lead: 'Add the main evidence or result.', bullets: ['Add supporting evidence.'] },
-    fields: [
-      { name: 'kicker', label: 'Kicker', type: 'text' },
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'lead', label: 'Lead', type: 'textarea' },
-      { name: 'bullets', label: 'Bullets', type: 'json' }
-    ],
-    render: renderProofBlock
-  },
-  {
-    type: 'project-grid',
-    label: 'Project Grid',
-    category: 'Portfolio',
-    description: 'Curated project links for audience-specific pages.',
-    defaultProps: { kicker: 'Work', title: 'Selected projects', projects: [{ title: 'Project title', href: 'portfolio', summary: 'Add the project outcome or audience fit.' }] },
-    fields: [
-      { name: 'kicker', label: 'Kicker', type: 'text' },
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'projects', label: 'Projects', type: 'json' }
-    ],
-    render: renderProjectGrid
-  },
-  {
-    type: 'certification-strip',
-    label: 'Certification Strip',
-    category: 'Portfolio',
-    description: 'Compact certification list for resume and proof sections.',
-    defaultProps: { title: 'Certifications', certifications: [{ title: 'Certification', issuer: 'Issuer', icon: 'img/cert_logos/google-48.png', href: '#' }] },
-    fields: [
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'certifications', label: 'Certifications', type: 'json' }
-    ],
-    render: renderCertificationStrip
-  },
-  {
-    type: 'resume-highlight',
-    label: 'Resume Highlight',
-    category: 'Portfolio',
-    description: 'Resume-style accomplishment block with bullets.',
-    defaultProps: { title: 'Resume highlight', meta: 'Role or context', bullets: ['Add an accomplishment with a metric, audience, and business result.'] },
-    fields: [
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'meta', label: 'Meta', type: 'text' },
-      { name: 'bullets', label: 'Bullets', type: 'json' }
-    ],
-    render: renderResumeHighlight
-  },
-  {
-    type: 'media-showcase',
-    label: 'Media Showcase',
-    category: 'Media',
-    description: 'Single visual proof image with caption.',
-    defaultProps: { kicker: 'Preview', title: 'Media showcase', lead: '', src: 'img/hero/head.png', alt: 'Showcase image', caption: 'Add a caption.' },
-    fields: [
-      { name: 'kicker', label: 'Kicker', type: 'text' },
-      { name: 'title', label: 'Title', type: 'text' },
-      { name: 'lead', label: 'Lead', type: 'textarea' },
-      { name: 'src', label: 'Image', type: 'media' },
-      { name: 'alt', label: 'Alt text', type: 'text' },
-      { name: 'caption', label: 'Caption', type: 'text' }
-    ],
-    render: renderMediaShowcase
-  },
-  {
-    type: 'home-accordion',
-    label: 'Home Category Accordion',
-    category: 'Portfolio',
-    description: 'Personal homepage with five attached expanding category panels.',
-    defaultProps: {
-      accessibleTitle: 'Explore Daniel Short',
-      defaultPanel: 'about',
-      initialView: 'closed',
-      categories: []
-    },
-    fields: [
-      { name: 'accessibleTitle', label: 'Accessible title', type: 'text' },
-      { name: 'defaultPanel', label: 'Default panel', type: 'text' },
-      { name: 'initialView', label: 'Initial view', type: 'text' },
-      { name: 'categories', label: 'Categories', type: 'json' }
-    ],
-    render: renderHomeAccordion
-  },
-  {
-    type: 'legacy-html',
-    label: 'Existing Section',
-    category: 'Advanced',
-    description: 'Preserved existing markup, editable visually where possible.',
-    defaultProps: { html: '<section class="surface-band reveal"><div class="wrapper"><h2 class="section-title">Existing section</h2><p>Edit this section visually or use Advanced HTML.</p></div></section>' },
-    fields: [
-      { name: 'html', label: 'HTML', type: 'textarea' }
-    ],
-    render: renderLegacyHtml
-  }
-];
-
-const WIDGET_MAP = new Map(WIDGETS.map((widget) => [widget.type, widget]));
-
-function getWidgetDefinitions() {
-  return WIDGETS.map((widget) => {
-    const section = createDefaultSection(widget.type);
-    return {
-      type: widget.type,
-      label: widget.label,
-      category: widget.category,
-      description: widget.description,
-      fields: widget.fields,
-      defaultProps: widget.defaultProps,
-      defaultSection: {
-        ...section,
-        html: renderSection(section)
-      }
-    };
-  });
-}
-
-function createDefaultSection(type) {
-  const widget = WIDGET_MAP.get(type) || WIDGET_MAP.get('rich-text');
-  return {
-    id: `${widget.type}-${Date.now().toString(36)}`,
-    type: widget.type,
-    label: widget.label,
-    enabled: true,
-    variant: 'default',
-    props: JSON.parse(JSON.stringify(widget.defaultProps || {}))
-  };
-}
+const SECTION_RENDERERS = new Map([
+  ['hero', renderHero],
+  ['rich-text', renderRichText],
+  ['cta', renderCta],
+  ['image-gallery', renderImageGallery],
+  ['document-list', renderDocumentList],
+  ['map', renderMap],
+  ['embed', renderEmbed],
+  ['kpi-band', renderKpiBand],
+  ['proof-block', renderProofBlock],
+  ['project-grid', renderProjectGrid],
+  ['certification-strip', renderCertificationStrip],
+  ['resume-highlight', renderResumeHighlight],
+  ['media-showcase', renderMediaShowcase],
+  ['home-accordion', renderHomeAccordion],
+  ['legacy-html', renderLegacyHtml]
+]);
 
 function renderSection(section) {
   if (!section || section.enabled === false) return '';
-  const widget = WIDGET_MAP.get(section.type) || WIDGET_MAP.get('legacy-html');
-  return widget.render(section);
+  const render = SECTION_RENDERERS.get(section.type) || renderLegacyHtml;
+  return render(section);
 }
 
 function renderVisualPageBody(page) {
@@ -1251,9 +1012,7 @@ function renderVisualPageBody(page) {
 }
 
 module.exports = {
-  createDefaultSection,
   getHomeAccordionIconDefinitions,
-  getWidgetDefinitions,
   renderSection,
   renderVisualPageBody,
   resolveHomeAccordionIconId

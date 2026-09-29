@@ -26,7 +26,6 @@ const managedHrefs = {
   consent: resolveHref('site-consent.js', manifest.consent),
   contact: resolveHref('site-contact.js', manifest.contact),
   search: resolveHref('site-search.js', manifest.search),
-  contributions: resolveHref('site-contributions.js', manifest.contributions),
   sitemap: resolveHref('site-sitemap.js', manifest.sitemap),
   privacy: resolveHref('site-privacy.js', manifest.privacy),
   toolsAccount: resolveHref('site-tools-account.js', manifest.toolsAccount),
@@ -219,7 +218,6 @@ function processHtml(html, relPath) {
   let shellInserted = false;
   let homeInserted = false;
   let consentInserted = false;
-  let contributionsInserted = false;
   let toolsInserted = false;
   let projectStarfallInserted = false;
 
@@ -291,19 +289,6 @@ function processHtml(html, relPath) {
     }
 
     if (
-      /^<script\s+defer\s+src="js\/contributions\/contributions-data\.js"><\/script>$/i.test(trimmed)
-      || /^<script\s+defer\s+src="js\/contributions\/contributions\.js"><\/script>$/i.test(trimmed)
-      || /^<script\s+defer\s+src="js\/contributions\/carousel\.js"><\/script>$/i.test(trimmed)
-      || isManagedLine(trimmed, 'site-contributions')
-    ) {
-      if (!contributionsInserted) {
-        out.push(`${indent}<script defer src="${managedHrefs.contributions}"></script>`);
-        contributionsInserted = true;
-      }
-      return;
-    }
-
-    if (
       /^<script\s+defer\s+src="js\/accounts\/tools-config\.js"><\/script>$/i.test(trimmed)
       || /^<script\s+defer\s+src="js\/accounts\/tools-auth\.js"><\/script>$/i.test(trimmed)
       || /^<script\s+defer\s+src="js\/accounts\/tools-state\.js"><\/script>$/i.test(trimmed)
@@ -369,7 +354,6 @@ function processHtml(html, relPath) {
   const requiredPageBundles = [];
   if (relPath === 'pages/contact.html') requiredPageBundles.push(['site-contact', managedHrefs.contact]);
   if (relPath === 'pages/search.html') requiredPageBundles.push(['site-search', managedHrefs.search]);
-  if (relPath === 'pages/contributions.html') requiredPageBundles.push(['site-contributions', managedHrefs.contributions]);
   if (relPath === 'pages/sitemap-pretty.html' || relPath === 'pages/sitemap.html') {
     requiredPageBundles.push(['site-sitemap', managedHrefs.sitemap]);
   }

@@ -80,7 +80,7 @@ What `npm run dev` does:
 
 - Runs a full `build/build-site.js` pass first.
 - Watches key source folders/files and reruns that build whenever you change code/content.
-- Starts a repo-native Node server at `http://localhost:3000` for clean URLs, static output, and the local CMS file API. If the starting port is busy, it automatically tries the next open port and prints the final URL.
+- Starts a repo-native Node server at `http://localhost:3000` for clean URLs, static output, and local API development. If the starting port is busy, it automatically tries the next open port and prints the final URL.
 
 Use a different port:
 
@@ -195,22 +195,15 @@ Activation checklist (must be verified after deployment):
 
 The CSP keeps `object-src 'none'`. `frame-ancestors 'self'` is intentional so the portfolio can embed its own demo pages while external sites remain unable to frame them. Inline script/style allowances remain temporarily for compatibility and should be removed only through a separately tested nonce/hash migration.
 
-## Local CMS
+## Site content
 
-The custom `/admin` editor is a local-only content editor for managed JSON files under `content/`.
-
-- **Admin:** `http://localhost:3000/admin` while `npm run dev` is running.
-- **Windows launcher:** run `start-local-cms-wsl.bat` from Windows to start the WSL dev server and open `/admin`.
-- **WSL access:** the Windows launcher binds the WSL server to `0.0.0.0`; it opens `localhost` when Windows can reach it, otherwise it falls back to the current WSL IP.
-- **Storage:** local files in `content/site`, `content/pages`, `content/audiences/personal.json`, `content/projects`, and `content/tools`.
-- **Safety:** write APIs only accept localhost requests; `/admin` is not copied into `public/`.
-- **Publishing:** after saving content, run `npm run build && npm test`, review `git diff`, then deploy manually.
+Edit the JSON files under `content/site`, `content/pages`, `content/audiences/personal.json`, `content/projects`, and `content/tools`. `npm run build:content` regenerates managed site pages and catalogs. The full `npm run build` also prepares `public/`. Review the generated diff and run `npm test` before publishing.
 
 ## File structure
 
 | Directory | Purpose |
 | --- | --- |
-| `content/` | Managed site, personal homepage, project, and tool content |
+| `content/` | Authoritative site, personal homepage, project, and tool JSON |
 | `pages/`, `demos/` | Authored tool/demo pages alongside generated pages and wrappers; check ownership before editing |
 | `css/`, `js/`, `src/` | Website styles, feature modules, and bundled application sources |
 | `api/`, `aws/` | Site API handlers and backend service subprojects |

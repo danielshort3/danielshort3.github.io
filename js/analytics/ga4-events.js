@@ -33,8 +33,6 @@
     contact_form_validation_error: ['page_path', 'field_id'],
     contact_form_success: ['page_path'],
     contact_form_error: ['page_path'],
-    contrib_doc_click: ['section', 'title', 'kind'],
-    contrib_timeline_toggle: ['section', 'year', 'expanded'],
     client_error: ['kind', 'page_path'],
     web_vital: ['metric_name', 'metric_value', 'metric_rating', 'page_path'],
     chatbot_launcher_opened: ['source'],
@@ -115,8 +113,6 @@
     site_search_result_click: 'site_search',
     see_more_toggle: 'content',
     scroll_depth: 'content',
-    contrib_doc_click: 'content',
-    contrib_timeline_toggle: 'content',
     client_error: 'reliability',
     web_vital: 'performance'
   });
@@ -125,7 +121,7 @@
   const ACTIVITY_LABEL_KEYS = [
     'tool_id', 'game_id', 'project_id', 'content_id', 'item_id', 'filter_value',
     'resume_variant', 'contact_method', 'method', 'link_type', 'field_id',
-    'cta_label', 'card_type', 'section', 'result_category', 'directory_type'
+    'cta_label', 'card_type', 'result_category', 'directory_type'
   ];
   const ACTIVITY_DETAIL_KEYS = [
     'source_surface', 'cta_surface', 'search_surface', 'filter_group', 'content_type',
@@ -217,11 +213,6 @@
     const number = Number(value);
     if (!Number.isFinite(number) || number < 0 || number > 100) return undefined;
     return Math.round(number);
-  }
-
-  function safeYear(value) {
-    const year = String(value == null ? '' : value).trim();
-    return /^(?:19|20)\d{2}$/.test(year) ? year : '';
   }
 
   function stripQueryAndHash(value) {
@@ -402,7 +393,6 @@
     save_source: safeToken,
     score_bucket: safeBucket,
     search_surface: safeToken,
-    section: safeLabel,
     selected: safeBoolean,
     selected_audience: safeToken,
     selection_type: safeToken,
@@ -410,12 +400,10 @@
     source_count: safeCount,
     source_count_bucket: safeBucket,
     source_surface: safeToken,
-    title: safeLabel,
     token_count_bucket: safeBucket,
     tool_id: safeToken,
     transcript_size_bucket: safeBucket,
-    view_count: safeCount,
-    year: safeYear
+    view_count: safeCount
   });
 
   function getCommonContext(params) {

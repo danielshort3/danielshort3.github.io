@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { loadSiteContent } = require('./lib/content-loader');
-const { buildToolsDirectoryWorkbenchData } = require('./lib/cms-renderers');
+const { buildToolsDirectoryWorkbenchData } = require('./lib/site-renderers');
 const { versionedImageUrl } = require('./lib/versioned-image-url');
 const { preparePersonalProjectDetailHtml } = require('./generate-project-pages');
 const { preparePersonalGameDetailHtml } = require('./lib/personal-game-header');
@@ -189,7 +189,7 @@ function getToolDetailMetadata(itemId, sourceHtml) {
 
 function loadHomeLibraryData() {
   if (!fs.existsSync(homeLibraryDataPath)) {
-    throw new Error('Missing js/home/home-library-data.js. Run CMS content generation first.');
+    throw new Error('Missing js/home/home-library-data.js. Run content generation first.');
   }
   delete require.cache[require.resolve(homeLibraryDataPath)];
   const data = require(homeLibraryDataPath);

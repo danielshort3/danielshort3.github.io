@@ -107,7 +107,7 @@ modified.projects[0].internalNotes = 'DO_NOT_EXPORT';
 modified.projects[0].resources.push({ label: 'DO_NOT_EXPORT', url: '/api/private' });
 modified.projects[0].resources.push({ label: 'DO_NOT_EXPORT', url: 'https://example.com/?token=private' });
 const clean = createMobileContent(modified);
-assert(!JSON.stringify(clean).includes('DO_NOT_EXPORT'), 'Whitelist prevents private, unpublished, professional or arbitrary CMS fields from leaking');
+assert(!JSON.stringify(clean).includes('DO_NOT_EXPORT'), 'Whitelist prevents private, unpublished, professional or arbitrary content fields from leaking');
 assert.strictEqual(clean.site.url, catalog.site.url, 'Only approved brand origin is exported');
 assert.strictEqual(clean.projects.length, catalog.projects.length);
 assert.strictEqual(clean.tools.length, catalog.tools.length);
