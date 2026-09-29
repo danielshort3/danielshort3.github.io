@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import me.danielshort.app.ui.DanielShortApp
-import me.danielshort.app.ui.AppUpdateNotice
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,20 +16,19 @@ class MainActivity : ComponentActivity() {
     setContent {
       DanielShortApp(
         repository = app.contentRepository,
-        onSafeToInstall = app.appUpdateCoordinator::setSafeToInstall,
-        globalNotice = { onOpenSettings -> AppUpdateNotice(app.appUpdates, onOpenSettings) }
+        onSafeToInstall = AppUpdateRuntime::setSafeToInstall,
+        globalNotice = AppUpdateRuntime::notice
       )
     }
   }
   override fun onStart() {
     super.onStart()
-    (application as SiteApplication).appUpdateCoordinator.onForeground()
-    lifecycleScope.launch { (application as SiteApplication).automaticAppInstaller.recover() }
+    AppUpdateRuntime.onForeground()
     lifecycleScope.launch { (application as SiteApplication).contentRepository.refresh() }
   }
 
   override fun onStop() {
-    if (!isChangingConfigurations) (application as SiteApplication).appUpdateCoordinator.onBackground()
+    if (!isChangingConfigurations) AppUpdateRuntime.onBackground()
     super.onStop()
   }
 }

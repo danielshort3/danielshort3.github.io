@@ -24,7 +24,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import me.danielshort.app.SiteApplication
+import me.danielshort.app.AppUpdateRuntime
 import me.danielshort.app.updates.AppUpdateManager
 import me.danielshort.app.updates.AutomaticAppInstaller
 import me.danielshort.app.updates.AutomaticInstallStatus
@@ -90,7 +90,7 @@ fun AppUpdateSection(
             installerNotice = "Android is already preparing an update. Please wait."
             return@launch
           }
-          (context.applicationContext as? SiteApplication)?.appUpdateCoordinator?.suppressAutomaticInstall()
+          AppUpdateRuntime.suppressAutomaticInstall()
           if (!context.packageManager.canRequestPackageInstalls()) {
             permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}")))
           } else {

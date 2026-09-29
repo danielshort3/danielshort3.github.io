@@ -110,7 +110,12 @@ function runProjectPrivacyLayoutTests({ assert }) {
   for (const match of privacyMain.matchAll(/\bid="([^"]+)"/g)) idCounts.set(match[1], (idCounts.get(match[1]) || 0) + 1);
   assert([...idCounts.values()].every((count) => count === 1), 'Moving preferences creates no duplicate IDs.');
   const shortcuts = [...privacyMain.matchAll(/href="(\/privacy#[^"]+)"/g)].map((match) => match[1]);
-  assert(shortcuts.length === 7, 'Privacy has an early preferences jump and six section shortcuts.');
+  assert(shortcuts.length === 11, 'Privacy has two early actions, eight section shortcuts, and an inline account deletion link.');
+  assert(privacyMain.includes('id="android-app"') && shortcuts.includes('/privacy#android-app'),
+    'The Android policy has a direct section shortcut.');
+  assert(privacyMain.includes('id="account-deletion"') && shortcuts.filter((href) => href === '/privacy#account-deletion').length === 3
+    && privacyMain.includes('mailto:daniel@danielshort.me?subject=Delete%20my%20Daniel%20Short%20Tools%20account'),
+  'Account deletion has a public anchor, visible navigation, and a direct email request.');
   for (const href of shortcuts) {
     const url = new URL(href, 'https://www.danielshort.me/');
     assert(url.pathname === '/privacy' && idCounts.get(url.hash.slice(1)) === 1,

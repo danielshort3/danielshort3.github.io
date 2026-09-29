@@ -12,7 +12,7 @@ A Kotlin and Jetpack Compose app that shares the website's public content. Its 1
 | Games | Project Starfall, Stellar Dogfight, Roulette, Stormbreak, and Ocean Wave Simulation open their website games in-app, with native alternatives. Probability Engine opens in the browser, with a native alternative |
 | Project demos | Eleven first-party website demos open in-app with native alternatives. The Pizza Delivery and UFO Tableau dashboard adaptations remain native |
 | Settings | Header gear; automatic content updates, unmetered updates, reduced motion, refresh, image cache, and bookmark controls |
-| App updates | Checks for published releases on launch by default; optional automatic verified downloads and installation while the app is out of use, subject to Android's permissions |
+| App updates | Google Play delivers release-app updates. The separate review/debug APK retains verified sideload updates for testing |
 | Contact | Native contact cards; project questions open an email app with the project in the subject |
 | External resources | PDFs, source repositories, credentials, and unsupported future catalog entries are explicitly opened in another app |
 
@@ -46,13 +46,13 @@ The repository validates schema version 1, identifiers, HTTPS links, and payload
 
 Native layouts, Kotlin behavior, dependencies, permissions, and new native features require a rebuilt and installed app update. Website CSS or JavaScript changes affect the in-app website case studies, demos, and games, plus the browser tools and Probability Engine, after deployment. They do not alter native features. The WebView runs deployed website code; the app does not download code to change its native implementation.
 
-### Updating native features from Settings
+### Updating native features
 
-The app checks for native updates on a cold launch by default, without blocking the current screen. Rotation and returns from permissions or the installer do not repeat the launch check. **Settings → App updates** also provides a manual check and an optional automatic-update setting, independent of website-content refresh. Automatic downloads are restricted to unmetered connections by default; manual actions remain available.
+The Play release (`me.danielshort.app`) receives native updates through Google Play. It does not request package-install permissions, fetch the sideload update feed, download APKs, or show in-app APK installation controls. **Settings → Website content** controls the public catalog refresh separately. **Settings → App information** links to the Android privacy policy and website tools account-deletion help.
 
-The updater recognizes exact published APK bytes, checks signing identity, and verifies the finished update before handing it to Android. A smaller patch is preferred; a verified complete APK can recover from an unavailable patch. Unknown local builds, modified APKs, split installations, different signing keys, and mismatched downloads cannot bypass verification.
+The review/debug package (`me.danielshort.app.debug`) retains the existing sideload updater. It checks for native updates on a cold launch by default, without blocking the current screen. Rotation and returns from permissions or the installer do not repeat the launch check. **Settings → Updates** provides its manual check and optional automatic-update setting, independent of website-content refresh.
 
-The first updater-enabled APK must be installed manually once. In-app updates then require a published channel manifest and matching APK/patch assets; a local build alone does not publish them. Android controls installation permission and may require confirmation. Automatic installation is opt-in and deferred while a native workspace, game, recording, or project detail is active. See [UPDATES.md](UPDATES.md) for platform requirements, artifact preparation, signing, and the release order.
+The review updater recognizes exact published APK bytes and signing identity before handing a verified update to Android. It needs a published review manifest and matching APK/patch assets; a local build alone does not publish them. Android controls installation permission and may require confirmation. Automatic installation is opt-in and deferred while a native workspace, game, recording, or project detail is active. See [UPDATES.md](UPDATES.md) for review-channel requirements and release order.
 
 ## Phones, tablets, and resizable windows
 
@@ -160,8 +160,12 @@ The DS header and launcher mark use native vector paths from the website's curre
 
 The Android GitHub Actions workflow runs unit tests, lint, and a debug APK build for relevant pull requests and main-branch changes. It uploads a review APK and reports; it does not publish to an app store. Website CI also checks the public content feed.
 
-The debug APK is for installation and review. Published review APKs and their update manifest use the preserved workstation development signing identity. CI's separately generated debug key cannot replace that identity. No Play Store listing or stable-channel production signing identity is configured.
+The debug APK is for installation and review. Published review APKs and their update manifest use the preserved workstation development signing identity. CI's separately generated debug key cannot replace that identity.
 
-For stable distribution, create and securely retain a release signing/upload key, configure signing outside committed source, increment `versionCode` for app updates, build a signed release APK or App Bundle, and complete the selected distribution channel's setup. Do not commit keystores or passwords. Review-channel publication follows [UPDATES.md](UPDATES.md).
+For Google Play, supply `ANDROID_PLAY_UPLOAD_STORE_FILE`, `ANDROID_PLAY_UPLOAD_STORE_PASSWORD`, `ANDROID_PLAY_UPLOAD_KEY_ALIAS`, and `ANDROID_PLAY_UPLOAD_KEY_PASSWORD` through the local process environment. All four are required together. Without them, `bundleRelease` produces an **unsigned inspection bundle**, which cannot be uploaded or installed. Keep the upload key and passwords outside Git, increment `versionCode` for each Play update, and retain the same upload identity. Never substitute the debug/review key. Run `:app:verifyPlayRelease` after building; it checks the merged release/debug manifests, build configuration, and release DEX for sideload updater markers. Review-channel publication follows [UPDATES.md](UPDATES.md).
+
+```powershell
+.\mobile\android\gradlew.bat -p mobile/android :app:verifyPlayRelease testDebugUnitTest testReleaseUnitTest lintDebug lintRelease
+```
 
 The website feed deployment and Android app publication are separate release steps. Once the feed is public, supported content updates can reach installed apps without a new APK. After an app version with the current web routing is installed, deployed website changes to the case studies, demos, games, and browser tools can reach the app without another APK. Changes to native app code or route selection continue to require a normal signed app update.
