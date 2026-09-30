@@ -48,6 +48,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
+import me.danielshort.app.BuildConfig
 
 /** The website is the source of behavior for browser-ready games, demos, and project pages. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -591,6 +592,10 @@ internal fun WebExperienceScreen(
 
 private fun openExternalExperience(context: Context, uri: Uri) {
   if (uri.scheme !in setOf("https", "http", "mailto", "tel")) return
+  if (!websiteAccountLinkAllowed(uri.toString(), BuildConfig.ENABLE_WEBSITE_TOOL_ACCOUNTS)) {
+    Toast.makeText(context, "Website account tools are not included in this app.", Toast.LENGTH_SHORT).show()
+    return
+  }
   val intent = Intent(Intent.ACTION_VIEW, uri).addCategory(Intent.CATEGORY_BROWSABLE)
   try {
     context.startActivity(intent)

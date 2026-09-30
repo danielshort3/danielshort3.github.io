@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import me.danielshort.app.BuildConfig
 import me.danielshort.app.R
 import me.danielshort.app.data.*
 import me.danielshort.app.nativefeatures.NativeGameScreen
@@ -285,10 +286,12 @@ fun DanielShortApp(
             repository.clearSavedProjects()
             scope.launch { snackbar.showSnackbar("Saved projects removed") }
           })
-        Section.TOOLS -> CatalogScreen("Useful little utilities", "Practical tools for everyday tasks.", content.tools, Teal, body, contentPadding,
-          nativeIds = NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"), nativeLabel = "Open Android recorder",
-          nativeAlternatives = (NATIVE_TOOL_IDS + "text-compare") - "screen-recorder", compactToolActions = true,
-          onNative = { nativeFeature = "tool:$it" })
+        Section.TOOLS -> CatalogScreen("Useful little utilities", "Practical tools for everyday tasks.",
+          visibleToolEntries(content.tools, NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"), BuildConfig.ENABLE_WEBSITE_TOOL_ACCOUNTS),
+          Teal, body, contentPadding, nativeIds = NATIVE_TOOL_IDS + setOf("text-compare", "screen-recorder"),
+          nativeLabel = if (BuildConfig.ENABLE_WEBSITE_TOOL_ACCOUNTS) "Open Android recorder" else "Open tool",
+          nativeAlternatives = if (BuildConfig.ENABLE_WEBSITE_TOOL_ACCOUNTS) (NATIVE_TOOL_IDS + "text-compare") - "screen-recorder" else emptySet(),
+          compactToolActions = true, onNative = { nativeFeature = "tool:$it" })
         Section.GAMES -> CatalogScreen("Play and explore", "Games, simulations, and small experiments.", content.games, Orange, body, contentPadding,
           nativeIds = NATIVE_GAME_IDS + "roulette", nativeLabel = "Play website game in app",
           nativeAlternatives = setOf("probability-engine"), onNative = {
@@ -661,6 +664,7 @@ private fun ContactCard(title: String, body: String, icon: ImageVector, onClick:
 }
 
 private fun openWeb(context: Context, value: String) {
+  if (!websiteAccountLinkAllowed(value, BuildConfig.ENABLE_WEBSITE_TOOL_ACCOUNTS)) return
   val safe = SiteContentParser.safeUrl(value)
   if (safe.isBlank()) return
   launch(context, Intent(Intent.ACTION_VIEW, Uri.parse(safe)))

@@ -183,7 +183,7 @@ private fun AppInformation() {
   SettingsNavigationRow("Privacy policy", "How the Android app handles data", Modifier.testTag("privacy-policy")) {
     openInformationPage(context, "android-app")
   }
-  SettingsNavigationRow("Account deletion and help", "For website tools accounts", Modifier.testTag("account-deletion-help")) {
+  if (BuildConfig.ENABLE_WEBSITE_TOOL_ACCOUNTS) SettingsNavigationRow("Account deletion and help", "For website tools accounts", Modifier.testTag("account-deletion-help")) {
     openInformationPage(context, "account-deletion")
   }
   HorizontalDivider()
