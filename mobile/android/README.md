@@ -162,6 +162,8 @@ The Android GitHub Actions workflow runs unit tests, lint, and a debug APK build
 
 The debug APK is for installation and review. Published review APKs and their update manifest use the preserved workstation development signing identity. CI's separately generated debug key cannot replace that identity.
 
+The Play release is guest-only: its Tools library opens native utilities, excludes browser-only catalog entries, and blocks website Tools/account links from native and WebView navigation. The debug review version retains website tool links and optional website accounts. `ui/WebsiteToolPolicy.kt` owns filtering and outbound-link checks; `ENABLE_WEBSITE_TOOL_ACCOUNTS` is disabled in release and enabled in debug.
+
 For Google Play, supply `ANDROID_PLAY_UPLOAD_STORE_FILE`, `ANDROID_PLAY_UPLOAD_STORE_PASSWORD`, `ANDROID_PLAY_UPLOAD_KEY_ALIAS`, and `ANDROID_PLAY_UPLOAD_KEY_PASSWORD` through the local process environment. All four are required together. Without them, `bundleRelease` produces an **unsigned inspection bundle**, which cannot be uploaded or installed. Keep the upload key and passwords outside Git, increment `versionCode` for each Play update, and retain the same upload identity. Never substitute the debug/review key. Run `:app:verifyPlayRelease` after building; it checks the merged release/debug manifests, build configuration, and release DEX for sideload updater markers. Review-channel publication follows [UPDATES.md](UPDATES.md).
 
 ```powershell

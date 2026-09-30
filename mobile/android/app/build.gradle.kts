@@ -53,8 +53,8 @@ android {
     applicationId = "me.danielshort.app"
     minSdk = 26
     targetSdk = 36
-    versionCode = 12
-    versionName = "0.5.5"
+    versionCode = 13
+    versionName = "0.5.6"
     buildConfigField("String", "CONTENT_URL", "\"$productionCatalogUrl\"")
     buildConfigField("String", "APP_UPDATE_URL", "\"\"")
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -65,11 +65,13 @@ android {
       applicationIdSuffix = ".debug"
       versionNameSuffix = "-debug"
       buildConfigField("boolean", "ENABLE_SIDELOAD_UPDATES", "true")
+      buildConfigField("boolean", "ENABLE_WEBSITE_TOOL_ACCOUNTS", "true")
       buildConfigField("String", "APP_UPDATE_URL", "\"$reviewAppUpdateUrl\"")
       buildConfigField("String", "CONTENT_URL", "\"${previewCatalogUrl.get().replace("\\", "\\\\").replace("\"", "\\\"")}\"")
     }
     release {
       buildConfigField("boolean", "ENABLE_SIDELOAD_UPDATES", "false")
+      buildConfigField("boolean", "ENABLE_WEBSITE_TOOL_ACCOUNTS", "false")
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
@@ -122,6 +124,8 @@ tasks.register("verifyPlayRelease") {
     check(releaseConfig.contains("ENABLE_SIDELOAD_UPDATES = false")) { "Play release enabled sideload updates" }
     check(releaseConfig.contains("APP_UPDATE_URL = \"\"")) { "Play release has an app-update feed" }
     check(debugConfig.contains("ENABLE_SIDELOAD_UPDATES = true")) { "Review updater is disabled" }
+    check(releaseConfig.contains("ENABLE_WEBSITE_TOOL_ACCOUNTS = false")) { "Play release enabled website tool accounts" }
+    check(debugConfig.contains("ENABLE_WEBSITE_TOOL_ACCOUNTS = true")) { "Review website tool access is disabled" }
     val bundle = layout.buildDirectory.file("outputs/bundle/release/app-release.aab").get().asFile
     ZipFile(bundle).use { archive ->
       val dexEntries = archive.entries().asSequence().filter { it.name.matches(Regex("base/dex/classes.*\\.dex")) }.toList()
