@@ -156,6 +156,7 @@ private fun CovidView(meta: JSONObject) {
       catch (_: Exception) { error = "State history could not load." }
     }
   }
+  Text("This historical COVID-19 dashboard is an educational portfolio demonstration. This app is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Consult a healthcare professional for medical advice, diagnosis, or treatment.", style = MaterialTheme.typography.bodySmall)
   DemoSelect("Date", dates.reversed(), date, { date = it })
   OutlinedTextField(query, { query = it.take(60) }, label = { Text("Find a state") }, singleLine = true, modifier = Modifier.fillMaxWidth().protectChromeWhileEditing())
   if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
