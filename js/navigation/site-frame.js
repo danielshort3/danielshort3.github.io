@@ -120,6 +120,15 @@
       nextBody.classList.add('personal-accordion__content');
       nextBody.setAttribute('data-personal-detail-content', '');
     }
+    // Keep existing embedded documents connected during the initial shell
+    // adoption. Ordinary DOM reparenting reloads an iframe and its assets.
+    const preserveInitialState = original && source.isConnected && viewport.isConnected &&
+      typeof nextBody.moveBefore === 'function';
+    if (preserveInitialState) viewport.append(nextBody);
+    const appendOriginal = (nodes) => {
+      if (preserveInitialState) nodes.forEach((node) => nextBody.moveBefore(node, null));
+      else nextBody.append(...nodes);
+    };
     if (description.home) {
       nextBody.id = 'main';
       const items = new Map();
@@ -146,11 +155,11 @@
         result.heading.textContent = sourceHeading.textContent;
         nextBody.append(result.heading);
       }
-      nextBody.append(items.get(result.category) || items.values().next().value);
+      appendOriginal([items.get(result.category) || items.values().next().value]);
     } else {
       const content = source.querySelector('[data-personal-detail-content]');
       if (!content) throw new Error('The destination content is unavailable.');
-      nextBody.append(...content.childNodes);
+      appendOriginal([...content.childNodes]);
     }
     result.body = nextBody;
     return result;
@@ -1105,8 +1114,9 @@
     stage.append(panel);
     frame.append(welcome, stage);
     description.tabSources.forEach((source) => ensureTab(source.dataset.siteTab || source.dataset.homeAccordionTrigger, source));
-    outlet.replaceWith(frame);
+    outlet.before(frame);
     commit(description, { original: true, animate: false });
+    outlet.remove();
     lastWidth = frame.clientWidth;
     return frame;
   }

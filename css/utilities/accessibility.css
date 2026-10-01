@@ -20,7 +20,7 @@
     overflow: hidden;
   }
   .skip-link:focus {
-    position: absolute;
+    position: fixed;
     left: 10px;
     top: 10px;
     width: auto;
@@ -28,7 +28,8 @@
     padding: 8px 12px;
     background: #fff;
     color: #000;
-    z-index: 1000;
+    /* Above both navigation bars, below modal dialogs. */
+    z-index: 2500;
   }
 
   /* Global, consistent focus outline */

@@ -6,6 +6,28 @@ on:
   pull_request:
 
 jobs:
+  dependency-security:
+    name: Dependency audit (${{ matrix.directory }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: [".", "aws/contact-function", "aws/job-application-tracker", "browser-extension/job-application-copilot"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
+      - name: Install the locked dependency tree without lifecycle scripts
+        run: npm ci --ignore-scripts
+        working-directory: ${{ matrix.directory }}
+      - name: Reject known dependency vulnerabilities
+        run: npm audit --audit-level=low
+        working-directory: ${{ matrix.directory }}
+
   build-and-test:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -21,6 +43,10 @@ jobs:
 
       - name: npm ci (root)
         run: npm ci
+
+      - name: npm ci (contact Lambda)
+        run: npm ci
+        working-directory: aws/contact-function
 
       - name: npm ci (job tracker)
         run: npm ci
@@ -47,8 +73,8 @@ jobs:
           path: tmp/performance/
           if-no-files-found: ignore
 
-      - name: Install Chromium for rendered smoke tests
-        run: npx playwright install --with-deps chromium
+      - name: Install pinned browsers for rendered smoke tests
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Test rendered desktop and mobile flows
         run: npm run test:browser

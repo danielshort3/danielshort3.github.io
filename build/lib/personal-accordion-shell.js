@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
 
 const framePolicy = require('../../js/navigation/site-frame-policy');
@@ -272,6 +275,11 @@ function validatePersonalRouteDocument(html) {
     if (!executable) return;
     const content = tag.replace(/^<script\b[^>]*>|<\/script>$/gi, '').trim();
     if (!content) return;
+    if (getTagAttribute(tag, 'data-site-bootstrap') === 'early') {
+      const expected = fs.readFileSync(path.join(__dirname, '../../js/common/no-js.js'), 'utf8').trim().replace(/<\/script/gi, '<\\/script');
+      if (content.replace(/\r\n/g, '\n') === expected.replace(/\r\n/g, '\n')) return;
+      throw new Error(`Soft route ${manifest.path || manifest.id} has a modified early bootstrap.`);
+    }
     throw new Error(`Soft route ${manifest.path || manifest.id} has an unclassified inline executable script.`);
   });
   return manifest;

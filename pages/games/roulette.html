@@ -8,7 +8,93 @@
   <title>Double-Zero Roulette | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/games/roulette">
   <meta name="theme-color" content="#072113" />
-  <link rel="stylesheet" href="dist/styles.9569e04f.css" />
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.e630c3ed.css" />
   <link rel="stylesheet" href="css/games/roulette.css?v=d3087d87e3c7">
   <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
@@ -41,14 +127,14 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script src="js/common/no-js.js"></script>
-  <script defer src="dist/site-shell.3dcfa6d2.js"></script>
+
+  <script defer src="dist/site-shell.1069c15c.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.4d150ecd.css">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/games/roulette#webpage","url":"https://www.danielshort.me/games/roulette","name":"Double-Zero Roulette | Daniel Short","description":"Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/game-roulette.png?v=d2e3a0774c05"},"mainEntity":{"@id":"https://www.danielshort.me/games/roulette#game"},"breadcrumb":{"@id":"https://www.danielshort.me/games/roulette#breadcrumb"}},{"@type":["VideoGame","WebApplication"],"@id":"https://www.danielshort.me/games/roulette#game","name":"Double-Zero Roulette","description":"Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.","url":"https://www.danielshort.me/games/roulette","image":"https://www.danielshort.me/img/social/game-roulette.png?v=d2e3a0774c05","creator":{"@id":"https://www.danielshort.me/#person"},"applicationCategory":"GameApplication","operatingSystem":"Any","gamePlatform":"Web browser","playMode":"SinglePlayer","isAccessibleForFree":true,"genre":["Probability","Distribution tracking","Table state"]},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/games/roulette#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Games","item":"https://www.danielshort.me/games"},{"@type":"ListItem","position":3,"name":"Double-Zero Roulette","item":"https://www.danielshort.me/games/roulette"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"games:roulette","path":"/games/roulette","category":"games","view":"detail","navigation":"soft","styles":["/dist/styles.9569e04f.css","/css/games/roulette.css?v=d3087d87e3c7","https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700\u0026family=Cormorant+Garamond:wght@500;600;700\u0026display=swap","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.3dcfa6d2.js","/dist/site-consent.a85f951d.js","/js/games/roulette/app.js"],"module":"games:roulette"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"games:roulette","path":"/games/roulette","category":"games","view":"detail","navigation":"soft","styles":["/dist/styles.e630c3ed.css","/css/games/roulette.css?v=d3087d87e3c7","https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700\u0026family=Cormorant+Garamond:wght@500;600;700\u0026display=swap","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.1069c15c.js","/dist/site-consent.0247f290.js","/js/games/roulette/app.js"],"module":"games:roulette"}</script>
 </head>
 <body class="roulette00-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="games" data-personal-item="roulette" data-personal-fit="viewport" data-site-route-id="games:roulette" data-site-route-category="games" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="games:roulette">
   <a class="skip-link" href="/games/roulette#main">Skip to roulette table</a>
@@ -284,7 +370,7 @@
     </nav>
   </div>
 </footer>
-  <script defer src="dist/site-consent.a85f951d.js"></script>
+  <script defer src="dist/site-consent.0247f290.js"></script>
   <script defer src="/js/games/roulette/app.js"></script>
 </body>
 </html>

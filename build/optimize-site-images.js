@@ -8,66 +8,15 @@
 
 const fs = require('fs');
 const path = require('path');
-const sharp = require('sharp');
 
 const root = path.resolve(__dirname, '..');
-const jobs = [
-  ...['about-ai-network-v1', 'about-family-frame-v1', 'about-french-horn-sheet-music-v1'].map(name => ({
-    source: `img/hero/${name}.webp`,
-    outputs: [192, 384].map(width => ({ suffix: `-${width}`, extension: '.webp', format: 'webp', width, options: { quality: 88, effort: 6, smartSubsample: true } }))
-  })),
-  {
-    source: 'img/brand/27-hero-mobile-light.png',
-    outputs: [
-      { extension: '.avif', format: 'avif', options: { quality: 56, effort: 6, chromaSubsampling: '4:4:4' } },
-      { extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }
-    ]
-  },
-  {
-    source: 'img/brand/23-hero-general-light.png',
-    outputs: [
-      { extension: '.avif', format: 'avif', options: { quality: 56, effort: 6, chromaSubsampling: '4:4:4' } },
-      { extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }
-    ]
-  },
-  {
-    source: 'img/project-starfall/ui/start-screen.png',
-    outputs: [
-      { extension: '.avif', format: 'avif', options: { quality: 66, effort: 6, chromaSubsampling: '4:4:4' } },
-      { extension: '.webp', format: 'webp', options: { quality: 90, effort: 6, smartSubsample: true } }
-    ]
-  },
-  {
-    source: 'img/projects/website.png',
-    outputs: [
-      ...[null, 640, 960].flatMap((width) => [
-        { suffix: width ? `-${width}` : '', extension: '.avif', format: 'avif', width, options: { quality: 68, effort: 6, chromaSubsampling: '4:4:4' } },
-        { suffix: width ? `-${width}` : '', extension: '.webp', format: 'webp', width, options: { quality: 92, effort: 6, smartSubsample: true } }
-      ]),
-      { suffix: '-preview', extension: '.webp', format: 'webp', width: 1280, options: { quality: 94, effort: 6, smartSubsample: true } }
-    ]
-  }
-];
-
-const catalogDirectories = ['img/projects/icons', 'img/tools/icons', 'img/games/icons', 'img/ui/site-icons'];
-const catalogJobs = catalogDirectories.flatMap((directory) => fs.readdirSync(path.join(root, directory))
-  .filter((file) => /\.png$/i.test(file))
-  .sort()
-  .map((file) => ({
-    source: `${directory}/${file}`,
-    outputs: [{ extension: '.webp', format: 'webp', width: directory === 'img/ui/site-icons' ? 128 : null,
-      options: { quality: directory === 'img/games/icons' || directory === 'img/ui/site-icons' ? 80 : 90, effort: 6, smartSubsample: true } }]
-  })));
+const { staticJobs: jobs, getCatalogJobs, outputPathFor, renderVariant } = require('./lib/image-variant-recipes');
+const catalogJobs = getCatalogJobs(root);
 
 function formatBytes(bytes) {
   const value = Number(bytes) || 0;
   if (value < 1024) return `${value}B`;
   return `${(value / 1024).toFixed(value < 10 * 1024 ? 1 : 0)}KB`;
-}
-
-function outputPathFor(sourcePath, output) {
-  const suffix = String(output.suffix || '');
-  return sourcePath.replace(/\.[^.]+$/, `${suffix}${output.extension}`);
 }
 
 function writeIfChanged(filePath, contents) {
@@ -81,22 +30,13 @@ function writeIfChanged(filePath, contents) {
   return true;
 }
 
-async function renderVariant(sourcePath, output) {
-  let pipeline = sharp(sourcePath, { failOn: 'error', sequentialRead: true }).rotate();
-  if (Number.isFinite(Number(output.width)) && Number(output.width) > 0) {
-    pipeline = pipeline.resize({ width: Number(output.width), withoutEnlargement: true });
-  }
-  const encoded = output.format === 'avif'
-    ? pipeline.avif(output.options)
-    : pipeline.webp(output.options);
-  return encoded.toBuffer();
-}
-
 async function main() {
   let generated = 0;
   let unchanged = 0;
 
-  const selectedJobs = process.argv.includes('--catalog-only') ? catalogJobs : [...jobs, ...catalogJobs];
+  const selectedJobs = process.argv.includes('--catalog-only') ? catalogJobs
+    : process.argv.includes('--link-icons-only') ? jobs.filter(job => job.source.startsWith('img/icons/'))
+      : [...jobs, ...catalogJobs];
   for (const job of selectedJobs) {
     const sourcePath = path.join(root, job.source);
     if (!fs.existsSync(sourcePath)) {
@@ -117,7 +57,9 @@ async function main() {
   process.stdout.write(`[images] Generated ${generated} variant(s); ${unchanged} unchanged.\n`);
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
   process.exitCode = 1;
 });
+
+module.exports = { main };

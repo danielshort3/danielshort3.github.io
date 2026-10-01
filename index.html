@@ -28,17 +28,93 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/personal-social-card.png">
   <meta name="twitter:image:alt" content="Daniel Short — Solving everyday problems with data and thoughtful tools. Navy and blue DS logo beside five colored website tabs.">
   <meta name="theme-color" content="#091F3B">
-  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9569e04f.css">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.e630c3ed.css">
   <link rel="stylesheet" href="dist/styles-home.028b4a7a.css">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
@@ -47,13 +123,13 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png?v=ecc0b34a9649">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png?v=49674505c1c5">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png?v=02cddde9a923">
-  <script defer src="dist/site-shell.3dcfa6d2.js"></script>
-  <script src="js/common/no-js.js"></script>
+  <script defer src="dist/site-shell.1069c15c.js"></script>
+
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"ProfilePage","@id":"https://www.danielshort.me/#webpage","url":"https://www.danielshort.me/","name":"Daniel Short | Data Analytics, ML Projects & Web Tools","description":"Solving everyday problems with data and thoughtful tools. Explore Daniel Short’s analytics, machine learning projects, and browser games.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/personal-social-card.png"},"mainEntity":{"@id":"https://www.danielshort.me/#person"}}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"home","path":"/","category":"","view":"closed","navigation":"soft","styles":["/dist/styles.9569e04f.css","/dist/styles-home.028b4a7a.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.3dcfa6d2.js","/js/common/no-js.js","/dist/site-home.0b3f9104.js","/dist/site-consent.a85f951d.js"],"module":"home"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"home","path":"/","category":"","view":"closed","navigation":"soft","styles":["/dist/styles.e630c3ed.css","/dist/styles-home.028b4a7a.css"],"scripts":["/dist/site-shell.1069c15c.js","/dist/site-home.9a330589.js","/dist/site-consent.0247f290.js"],"module":"home"}</script>
 </head>
 <body data-page="home" data-audience="personal" class="site-page audience-page home-pattern-page" data-site-route-id="home" data-site-route-category="" data-site-route-view="closed" data-site-route-navigation="soft" data-site-route-module="home">
   <a href="#main" class="skip-link">Skip to main content</a>
@@ -120,7 +196,7 @@
                   <h3 id="home-about-connections-title">Life shapes what I build.</h3>
                   <ul class="home-about__connections">
                   <li class="home-about__connection" data-home-about-connection="ai">
-                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-ai-network-v1.webp" srcset="img/hero/about-ai-network-v1-192.webp 192w, img/hero/about-ai-network-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
+                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-ai-network-v1.webp?v=f1744577e681" srcset="img/hero/about-ai-network-v1-192.webp 192w, img/hero/about-ai-network-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
                     <div class="home-about__interest">
                       <h4>AI &amp; machine learning</h4>
                       <p>Building useful answers with models and trustworthy sources.</p>
@@ -132,7 +208,7 @@
                     </a>
                   </li>
                   <li class="home-about__connection" data-home-about-connection="family">
-                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-family-frame-v1.webp" srcset="img/hero/about-family-frame-v1-192.webp 192w, img/hero/about-family-frame-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
+                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-family-frame-v1.webp?v=ffe7875d3fca" srcset="img/hero/about-family-frame-v1-192.webp 192w, img/hero/about-family-frame-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
                     <div class="home-about__interest">
                       <h4>Family</h4>
                       <p>A central part of my life.</p>
@@ -144,7 +220,7 @@
                     </a>
                   </li>
                   <li class="home-about__connection" data-home-about-connection="french-horn">
-                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-french-horn-sheet-music-v1.webp" srcset="img/hero/about-french-horn-sheet-music-v1-192.webp 192w, img/hero/about-french-horn-sheet-music-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
+                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-french-horn-sheet-music-v1.webp?v=2ae9038dbffa" srcset="img/hero/about-french-horn-sheet-music-v1-192.webp 192w, img/hero/about-french-horn-sheet-music-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
                     <div class="home-about__interest">
                       <h4>French horn</h4>
                       <p>Playing for 20 years.</p>
@@ -187,7 +263,7 @@
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/portfolio/sheetMusicUpscale" data-content-open="true" data-content-id="sheetMusicUpscale" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/sheetMusicUpscale.webp?v=50658c2612ad"><img src="img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/sheetMusicUpscale.webp?v=72c57065af22"><img src="img/projects/icons/sheetMusicUpscale.png?v=72c57065af22" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Sheet Music Watermark Removal &amp; Upscale</strong>
                     <span>I wanted cleaner, more readable sheet music, so I built a pipeline to remove watermarks and upscale low-resolution scans.</span>
@@ -197,7 +273,7 @@
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/portfolio/handwritingRating" data-content-open="true" data-content-id="handwritingRating" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/handwritingRating.webp?v=582853161647"><img src="img/projects/icons/handwritingRating.png?v=582853161647" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/handwritingRating.webp?v=25918dc175e2"><img src="img/projects/icons/handwritingRating.png?v=25918dc175e2" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Handwriting Legibility Scoring</strong>
                     <span>My wife said my handwriting was hard to read, so I explored whether a model could recognize my handwritten digits.</span>
@@ -207,7 +283,7 @@
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/portfolio/babynames" data-content-open="true" data-content-id="babynames" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/babynames.webp?v=7fc79e6e3331"><img src="img/projects/icons/babynames.png?v=7fc79e6e3331" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/babynames.webp?v=a1972b54dcd2"><img src="img/projects/icons/babynames.png?v=a1972b54dcd2" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Baby Name Predictor</strong>
                     <span>I built a recommendation model to learn my wife’s taste and help us narrow the list when naming our child.</span>
@@ -255,7 +331,7 @@
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/text-compare" data-content-open="true" data-content-id="text-compare" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/text-compare.webp?v=2845cf7f4c69"><img src="img/tools/icons/text-compare.png?v=2845cf7f4c69" alt="Text Compare icon" loading="lazy" decoding="async"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/text-compare.webp?v=0c256936f045"><img src="img/tools/icons/text-compare.png?v=0c256936f045" alt="Text Compare icon" loading="lazy" decoding="async"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Text Compare</strong>
                     <span>Compare two passages and spot changes.</span>
@@ -265,7 +341,7 @@
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/qr-code-generator" data-content-open="true" data-content-id="qr-code-generator" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/qr-code-generator.webp?v=17c29eb950a5"><img src="img/tools/icons/qr-code-generator.png?v=17c29eb950a5" alt="QR Code Generator icon" loading="lazy" decoding="async"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/qr-code-generator.webp?v=bd5286d7353f"><img src="img/tools/icons/qr-code-generator.png?v=bd5286d7353f" alt="QR Code Generator icon" loading="lazy" decoding="async"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>QR Code Generator</strong>
                     <span>Turn a link or note into a scannable code.</span>
@@ -275,7 +351,7 @@
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/screen-recorder" data-content-open="true" data-content-id="screen-recorder" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/screen-recorder.webp?v=f6e8232709d4"><img src="img/tools/icons/screen-recorder.png?v=f6e8232709d4" alt="Screen Recorder icon" loading="lazy" decoding="async"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/screen-recorder.webp?v=0fece3f75406"><img src="img/tools/icons/screen-recorder.png?v=0fece3f75406" alt="Screen Recorder icon" loading="lazy" decoding="async"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Screen Recorder</strong>
                     <span>Record your screen and download the clip in browser-supported formats with optional system audio.</span>
@@ -328,7 +404,7 @@
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/project-starfall" data-content-open="true" data-content-id="project-starfall" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/project-starfall.webp?v=7b82f09e6c46"><img src="img/games/icons/project-starfall.png?v=7b82f09e6c46" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/project-starfall.webp?v=3881ad6276cd"><img src="img/games/icons/project-starfall.png?v=3881ad6276cd" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <span class="home-accordion__card-badge">Work in progress</span>
                     <strong>Project Starfall</strong>
@@ -339,7 +415,7 @@
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/stellar-dogfight" data-content-open="true" data-content-id="stellar-dogfight" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/stellar-dogfight.webp?v=cffca10aeccc"><img src="img/games/icons/stellar-dogfight.png?v=cffca10aeccc" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/stellar-dogfight.webp?v=1ed6460df253"><img src="img/games/icons/stellar-dogfight.png?v=1ed6460df253" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Stellar Dogfight</strong>
                     <span>Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.</span>
@@ -349,7 +425,7 @@
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/ocean-wave-simulation" data-content-open="true" data-content-id="ocean-wave-simulation" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/ocean-wave-simulation.webp?v=3615bece01d3"><img src="img/games/icons/ocean-wave-simulation.png?v=3615bece01d3" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/ocean-wave-simulation.webp?v=d661fa6fbc20"><img src="img/games/icons/ocean-wave-simulation.png?v=d661fa6fbc20" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Ocean Wave Simulator</strong>
                     <span>Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound.</span>
@@ -418,7 +494,7 @@
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><img src="img/icons/github-icon.png" alt="" loading="lazy" decoding="async" width="256" height="256"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><img src="img/icons/github-icon.png?v=16ea8b5855c8" alt="" loading="lazy" decoding="async" width="256" height="256"></span>
                   <span class="home-accordion__card-copy">
                     <strong>GitHub</strong>
                     <span>github.com/danielshort3</span>
@@ -458,7 +534,7 @@
       </nav>
     </div>
   </footer>
-  <script defer src="dist/site-home.0b3f9104.js" data-tools-account-src="dist/site-tools-account.2e6c9ae7.js"></script>
-  <script defer src="dist/site-consent.a85f951d.js"></script>
+  <script defer src="dist/site-home.9a330589.js" data-tools-account-src="dist/site-tools-account.2e6c9ae7.js"></script>
+  <script defer src="dist/site-consent.0247f290.js"></script>
 </body>
 </html>

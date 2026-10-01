@@ -110,6 +110,7 @@
   };
 
   const isRetryableError = (err) => {
+    if (['DEMO_REQUEST_CANCELLED', 'DEMO_REQUEST_TIMEOUT', 'DEMO_FUNCTION_ERROR', 'DEMO_TIMEOUT'].includes(err?.code)) return false;
     if (isConfigurationError(err)) return false;
     if (!err) return false;
     if (typeof err.status === 'number') return RETRYABLE_STATUSES.has(err.status);
@@ -124,7 +125,37 @@
     );
   };
 
-  const retryRequest = async (operation, options = {}) => {
+  const boundedRequest = async (operation, options = {}) => {
+    const timeoutMs = Number.isFinite(options.timeoutMs) && options.timeoutMs > 0 ? options.timeoutMs : 0;
+    if (!timeoutMs && !options.signal) return operation(undefined);
+    const controller = new AbortController();
+    let timer = null;
+    let expired = false;
+    let rejectAbort;
+    const abort = () => {
+      controller.abort();
+      const err = new Error(expired ? 'The request timed out. Please try again.' : 'The request was cancelled.');
+      err.name = expired ? 'TimeoutError' : 'AbortError';
+      err.code = expired ? 'DEMO_REQUEST_TIMEOUT' : 'DEMO_REQUEST_CANCELLED';
+      rejectAbort(err);
+    };
+    const interrupted = new Promise((resolve, reject) => { rejectAbort = reject; });
+    if (options.signal?.aborted) abort();
+    else options.signal?.addEventListener('abort', abort, { once: true });
+    if (timeoutMs) timer = setTimeout(() => { expired = true; abort(); }, timeoutMs);
+    try {
+      // The race also bounds response-body reads and implementations that ignore abort.
+      return await Promise.race([interrupted, Promise.resolve().then(() => {
+        if (controller.signal.aborted) throw new Error('Request aborted before sending.');
+        return operation(controller.signal);
+      })]);
+    } finally {
+      if (timer !== null) clearTimeout(timer);
+      options.signal?.removeEventListener('abort', abort);
+    }
+  };
+
+  const retryRequest = (operation, options = {}) => boundedRequest(async (signal) => {
     const retries = Number.isFinite(options.retries) ? Math.max(0, options.retries) : 2;
     const baseDelayMs = Number.isFinite(options.baseDelayMs) ? Math.max(0, options.baseDelayMs) : 600;
     const factor = Number.isFinite(options.factor) && options.factor > 1 ? options.factor : 2;
@@ -140,8 +171,9 @@
     let lastErr = null;
 
     while (attempt <= retries) {
+      if (signal?.aborted) return;
       try {
-        return await operation(attempt);
+        return await operation(attempt, { signal });
       } catch (err) {
         lastErr = err;
         if (attempt >= retries || !shouldRetry(err, attempt)) {
@@ -156,9 +188,9 @@
     }
 
     throw lastErr || new Error('Request failed');
-  };
+  }, options);
 
-  const requestJson = async (url, options = {}) => {
+  const readJsonResponse = async (url, options = {}) => {
     const res = await fetch(url, options);
     const text = await res.text();
     let data = null;
@@ -172,7 +204,7 @@
       }
     }
     if (!res.ok) {
-      const message = data?.error || data?.message || text || `${res.status} ${res.statusText}`;
+      const message = data?.error || data?.message || (typeof data?.detail === 'string' ? data.detail : null) || text || `${res.status} ${res.statusText}`;
       const err = new Error(message);
       err.status = res.status;
       err.code = typeof data?.code === 'string' ? data.code : '';
@@ -192,6 +224,11 @@
     }
     return data;
   };
+
+  const requestJson = (url, options = {}) => boundedRequest((signal) => {
+    const { timeoutMs, ...requestOptions } = options;
+    return readJsonResponse(url, { ...requestOptions, ...(signal ? { signal } : {}) });
+  }, options);
 
   const getJson = (url, options = {}) => {
     return requestJson(url, { ...options, method: 'GET' });

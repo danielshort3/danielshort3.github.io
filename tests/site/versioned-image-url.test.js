@@ -174,4 +174,27 @@ for (const [file, startMarker, endMarker] of [
   }
   assert(context.picture('img/projects/babynames.png', 'Other', { width: 1600 }).includes('img/projects/babynames-640.webp 640w'), `${file} preserves unrelated source URLs`);
 }
+const websiteProject = canonical.projects.find(item => item.id === 'website');
+function renderedResourceIcons(project) {
+  return [...renderProjectPage(project).matchAll(/<img\b[^>]*class="project-link-icon"[^>]*src="([^"]+)"/g)]
+    .map(match => new URL(match[1].replace(/&amp;/g, '&'), 'https://www.danielshort.me'));
+}
+for (const query of ['', '?v=stale&label=Compact%20icon&tag=one&tag=two#resource-preview']) {
+  const resourceIcons = renderedResourceIcons({ ...websiteProject, resources: websiteProject.resources.map(resource => ({
+    ...resource, icon: resource.icon.replace(/[?#].*$/, '') + query
+  })) });
+  assert.strictEqual(resourceIcons.length, 2, 'Website retains both resource icons');
+  for (const [index, name] of ['github', 'website'].entries()) {
+    const icon = resourceIcons[index];
+    const expectedPath = `/img/icons/${name}-icon-64.webp`;
+    assert.strictEqual(icon.pathname, expectedPath, 'Versioned PNG inputs must still select the compact optimized resource icon');
+    assert.strictEqual(icon.searchParams.get('v'), new URL(versionedImageUrl(expectedPath), icon.origin).searchParams.get('v'),
+      'The optimized resource URL must retain the source family generation key');
+    if (query) {
+      assert.strictEqual(icon.searchParams.get('label'), 'Compact icon');
+      assert.deepStrictEqual(icon.searchParams.getAll('tag'), ['one', 'two']);
+      assert.strictEqual(icon.hash, '#resource-preview', 'Selecting optimized icons preserves other query inputs and fragments');
+    }
+  }
+}
 process.stdout.write('Image cache versions: content freshness, responsive generation, and rendered references passed.\n');

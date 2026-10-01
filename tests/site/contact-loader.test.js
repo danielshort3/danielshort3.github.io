@@ -69,12 +69,21 @@ async function runContactLoaderTests() {
   working.fields['contact-message'].value = '  ';
   working.window.requestContactModal({ message: 'A different project question', preserveDraft: true });
   assert.equal(working.fields['contact-message'].value, 'A different project question', 'a project link should prefill an empty message');
+
+  const deepLink = createHarness();
+  let initialized = 0;
+  deepLink.window.initializeContactModal = () => { initialized += 1; };
+  const deferred = deepLink.window.requestContactModal(undefined, { fromHash: true });
+  deepLink.scripts[0].onload();
+  await deferred;
+  assert(initialized > 0, 'a document hash request prepares the contact controller');
+  assert.equal(deepLink.opened(), 0, 'a document hash request leaves automatic opening to the consent-aware controller');
 }
 
 module.exports = runContactLoaderTests;
 
 if (require.main === module) {
   runContactLoaderTests()
-    .then(() => console.log('Contact loader tests passed (14 assertions).'))
+    .then(() => console.log('Contact loader tests passed (16 assertions).'))
     .catch((error) => { console.error(error); process.exitCode = 1; });
 }

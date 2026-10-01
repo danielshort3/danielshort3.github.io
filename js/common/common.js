@@ -212,7 +212,7 @@
     if (sharedContentModules.has(document.body?.dataset.siteRouteModule) && window.SiteRoutes) return;
     initializeRouteContent();
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
-      requestContactModal();
+      requestContactModal(undefined, { fromHash: true });
     }
     if (isPage('portfolio') || isPage('games') || (document.body && document.body.matches('.portfolio-workbench-page') && document.querySelector('[data-portfolio-workbench]'))) {
       ensurePortfolioScripts(document.body.dataset.page || 'portfolio').then(() => {
@@ -286,7 +286,7 @@
     }
   };
 
-  const requestContactModal = (payload) => {
+  const requestContactModal = (payload, { fromHash = false } = {}) => {
     storeContactOrigin();
     const ensured = document.getElementById(CONTACT_MODAL_ID) || ensureContactModal();
     if (!ensured) return;
@@ -294,6 +294,9 @@
       if (typeof window.initializeContactModal === 'function') {
         window.initializeContactModal(ensured.closest('[data-site-route-content], [data-personal-detail-content]') || document);
       }
+      // Document-entry deep links use the controller's consent-aware hash
+      // opener. Explicit visitor requests still open immediately.
+      if (fromHash) return;
       if (typeof window.openContactModal === 'function') {
         window.openContactModal();
         applyContactPrefill(payload);

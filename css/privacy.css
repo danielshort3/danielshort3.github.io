@@ -798,6 +798,7 @@ body[data-consent-banner="open"] .speed-dial {
   }
 
   #pcz-banner .pcz-btn,
+  body.has-mobile-site-masthead #pcz-banner .pcz-btn,
   body.has-mobile-site-dock #pcz-banner .pcz-btn,
   #pcz-banner .pcz-inline-link {
     min-height: 44px;

@@ -141,6 +141,7 @@
     let dismissDraftNotice = null;
     let releaseDraftNotice = null;
     let hashOpenTimer = 0;
+    let pendingHashOpen = false;
     let disposed = false;
     const modalAccessibility = typeof window.createModalAccessibility === 'function'
       ? window.createModalAccessibility(modal)
@@ -295,6 +296,9 @@
     };
     const open = () => {
       if (!content || disposed) return;
+      pendingHashOpen = false;
+      if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
+      hashOpenTimer = 0;
       if (modal.classList.contains('active')) {
         focusDialog();
         return;
@@ -350,12 +354,21 @@
       }
     };
     const openIfHashMatches = () => {
-      if (window.location.hash !== '#contact-modal') return;
       if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
+      hashOpenTimer = 0;
+      pendingHashOpen = window.location.hash === '#contact-modal';
+      if (!pendingHashOpen) return;
       hashOpenTimer = window.setTimeout(() => {
         hashOpenTimer = 0;
+        // Automatic deep links must not isolate an unresolved consent banner
+        // or steal focus from preferences. Resume after the CMP closes its UI.
+        if (document.documentElement.hasAttribute('data-consent-reserve') || document.getElementById('pcz-banner') || document.getElementById('pcz-modal')) return;
+        pendingHashOpen = false;
         if (!modal.classList.contains('active')) open();
       }, 120);
+    };
+    const resumePendingHash = () => {
+      if (pendingHashOpen) openIfHashMatches();
     };
     const handleEscape = (event) => {
       if (event.key === 'Escape' && modal.classList.contains('active')) close();
@@ -456,6 +469,8 @@
       if (sending) event.preventDefault();
     });
     listen(window, 'hashchange', openIfHashMatches);
+    listen(window, 'consent-changed', resumePendingHash);
+    listen(window, 'consent-ui-closed', resumePendingHash);
     listen(form, 'input', () => { updateSubmitState(); scheduleDraft(); });
     listen(window, 'pagehide', persistDraft);
     listen(document, 'site:route-before-leave', persistDraft);
@@ -488,6 +503,7 @@
         dismissDraftNotice?.();
         if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
         hashOpenTimer = 0;
+        pendingHashOpen = false;
         submitController?.abort();
         submitController = null;
         submissionToken += 1;

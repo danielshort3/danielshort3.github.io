@@ -145,7 +145,7 @@ const hardContext = vm.createContext({
   window: {},
   frame: null, welcome: null, stage: null, panel: null, slot: null, canvas: null, toolbar: null, viewport: null, loading: null, lastWidth: 0,
   document: { querySelector: selector => selector === '[data-site-route-manifest]' ? { textContent: JSON.stringify(hardManifest) }
-    : selector === '[data-site-route-content]' ? { replaceWith: node => { node.isConnected = true; } } : null },
+    : selector === '[data-site-route-content]' ? { before: node => { node.isConnected = true; }, remove() {} } : null },
   describe: (scope, manifest) => ({ manifest, tabSources: [] }),
   make: () => ({ append() {}, setAttribute() {}, clientWidth: 1412 }),
   commit: (description, options) => { adoptedCommit = { description, options }; }

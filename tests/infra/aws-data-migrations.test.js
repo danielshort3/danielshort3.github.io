@@ -8,6 +8,16 @@ const transcribeHistoryMigration = require('../../scripts/migrations/transcribe-
 const toolsTtlMigration = require('../../scripts/migrations/tools-ttl-backfill');
 const { requireApplyGuards, resolveTarget } = require('../../scripts/migrations/_shared');
 
+function assertExpressionBindings(operation){
+  const expressions = ['ConditionExpression', 'UpdateExpression', 'ProjectionExpression', 'KeyConditionExpression', 'FilterExpression']
+    .map(name => operation[name] || '').join(' ');
+  for (const [property, token] of [['ExpressionAttributeNames', '#'], ['ExpressionAttributeValues', ':']]) {
+    const used = new Set(expressions.match(new RegExp(`${token}[A-Za-z0-9_]+`, 'g')) || []);
+    const supplied = new Set(Object.keys(operation[property] || {}));
+    assert.deepEqual(supplied, used, `${property} must contain all and only aliases used by this operation`);
+  }
+}
+
 async function run(){
   const clickMigrationSource = fs.readFileSync(
     require.resolve('../../scripts/migrations/short-links-clicks-reconcile'),
@@ -246,6 +256,26 @@ async function run(){
     baselineCommand.input.TransactItems[1].Update.Key.clickId,
     shortLinksClicksMigration.BASELINE_CLICK_ID
   );
+  for (const entry of [
+    clickAnalysis.baselinePlan[0],
+    clickAnalysis.baselinePlan.find(item => item.link.slug === 'Charlie'),
+    runtimeBaselineAnalysis.baselinePlan[0],
+    {
+      ...runtimeBaselineAnalysis.baselinePlan[0],
+      prior: { ...runtimeBaselineAnalysis.baselinePlan[0].prior, reconciledAt }
+    }
+  ]) {
+    await shortLinksClicksMigration._internal.applyBaseline({
+      async send(command){
+        for (const item of command.input.TransactItems) {
+          assertExpressionBindings(item.ConditionCheck || item.Update);
+        }
+        const update = command.input.TransactItems[1].Update;
+        assert.equal(Object.hasOwn(update.ExpressionAttributeNames, '#clickId'), !entry.prior);
+        assert.match(update.ConditionExpression, entry.prior ? /#aggregateClicks = :priorAggregateClicks/ : /attribute_not_exists\(#clickId\)/);
+      }
+    }, 'links-table', 'clicks-table', entry, reconciledAt);
+  }
 
   assert.equal(
     shortLinksClicksMigration._internal.ttlApplyAction(

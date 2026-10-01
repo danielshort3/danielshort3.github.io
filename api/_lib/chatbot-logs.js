@@ -96,10 +96,26 @@ function sanitizeText(value, maxLen) {
   return text.length > maxLen ? text.slice(0, maxLen) : text;
 }
 
+function normalizeLogUrl(value) {
+  const raw = String(value || '');
+  if (!/^(?:https?:\/\/|\/(?!\/))/i.test(raw) || /[\u0000-\u001f\u007f]/.test(raw)) return '';
+  try {
+    const url = new URL(raw, 'https://www.danielshort.me');
+    if (!value || !['https:', 'http:'].includes(url.protocol)) return '';
+    url.username = '';
+    url.password = '';
+    url.search = '';
+    url.hash = '';
+    return url.toString().slice(0, 512);
+  } catch {
+    return '';
+  }
+}
+
 function normalizePageContext(value) {
   const input = value && typeof value === 'object' ? value : {};
   return {
-    url: sanitizeText(input.url, 512),
+    url: normalizeLogUrl(input.url),
     title: sanitizeText(input.title, 240)
   };
 }
@@ -109,7 +125,7 @@ function sanitizeSources(value, maxItems = 8) {
     .map((item) => ({
       id: sanitizeText(item && item.id, 120),
       title: sanitizeText(item && item.title, 160),
-      url: sanitizeText(item && item.url, 512),
+      url: normalizeLogUrl(item && item.url),
       category: sanitizeText(item && item.category, 80),
       score: Number.isFinite(Number(item && item.score)) ? Number(item.score) : undefined
     }))
@@ -121,7 +137,7 @@ function sanitizeLinks(value, maxItems = 8) {
   return (Array.isArray(value) ? value : [])
     .map((item) => ({
       title: sanitizeText(item && item.title, 160),
-      url: sanitizeText(item && item.url, 512),
+      url: normalizeLogUrl(item && item.url),
       reason: sanitizeText(item && item.reason, 180)
     }))
     .filter((item) => item.title || item.url)
@@ -130,13 +146,12 @@ function sanitizeLinks(value, maxItems = 8) {
 
 function requestMetadata(req) {
   const headers = req && req.headers ? req.headers : {};
+  let refererHost = '';
+  try { refererHost = new URL(normalizeLogUrl(headers.referer || headers.referrer)).hostname; } catch {}
+  const country = String(headers['x-vercel-ip-country'] || '').trim().toUpperCase();
   return {
-    origin: sanitizeText(headers.origin, 512),
-    referer: sanitizeText(headers.referer || headers.referrer, 1024),
-    userAgent: sanitizeText(headers['user-agent'], 768),
-    country: sanitizeText(headers['x-vercel-ip-country'], 64),
-    region: sanitizeText(headers['x-vercel-ip-country-region'], 128),
-    city: sanitizeText(headers['x-vercel-ip-city'], 128)
+    refererHost,
+    country: /^[A-Z]{2}$/.test(country) ? country : ''
   };
 }
 
@@ -287,5 +302,6 @@ module.exports = {
   isAdminRequest,
   listChatbotLogs,
   recordChatbotLog,
-  summarizeLog
+  summarizeLog,
+  _internal: { normalizeLogUrl, normalizePageContext, requestMetadata }
 };

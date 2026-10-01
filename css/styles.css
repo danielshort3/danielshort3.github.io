@@ -27,7 +27,6 @@
 @import url("components/project-demo-layout.css");
 @import url("components/project-demo-compact-layout.css");
 @import url("components/project-demo-dashboard-layout.css");
-@import url("components/project-image-viewer.css");
 @import url("layout/footer.css");
 @import url("utilities/layout.css");
 @import url("utilities/helpers.css");
@@ -36,4 +35,3 @@
 @import url("utilities/accessibility.css");
 @import url("utilities/design-system-overrides.css");
 @import url("utilities/color-fallback.css");
-@import url("components/contact-layout.css");

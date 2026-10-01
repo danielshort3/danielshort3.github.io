@@ -533,6 +533,27 @@ function applyParams(value, params) {
   return next;
 }
 
+function buildRedirectLocation(destination, requestUrl) {
+  const target = new URL(destination, requestUrl);
+  if (!target.search) {
+    // Retain the original encoding and repeated values in shared-input links.
+    target.search = requestUrl.search;
+  } else {
+    const destinationKeys = new Set(target.searchParams.keys());
+    // Retain raw shared-input bytes while giving configured keys precedence.
+    // URLSearchParams.append would rewrite spaces and encoded separators.
+    const incoming = requestUrl.search.slice(1).split('&').filter((part) => {
+      const key = new URLSearchParams(part).keys().next().value;
+      return part && !destinationKeys.has(key);
+    }).join('&');
+    target.search = `?${incoming ? `${incoming}&` : ''}${target.search.slice(1)}`;
+  }
+  if (/^[a-z][a-z\d+.-]*:/i.test(destination) || destination.startsWith('//')) {
+    return target.href;
+  }
+  return `${target.pathname}${target.search}${target.hash}`;
+}
+
 function isInside(baseDir, filePath) {
   const rel = path.relative(baseDir, filePath);
   return !!rel && !rel.startsWith('..') && !path.isAbsolute(rel);
@@ -982,7 +1003,7 @@ function createLocalServer({ envDir = root } = {}) {
     if (redirectMatch) {
       const destination = applyParams(redirectMatch.rule.destination, redirectMatch.params);
       res.statusCode = redirectMatch.rule.permanent ? 308 : 307;
-      res.setHeader('Location', destination);
+      res.setHeader('Location', buildRedirectLocation(destination, url));
       res.end();
       return;
     }
@@ -1063,6 +1084,7 @@ module.exports = {
   compileRoutes,
   matchRule,
   applyResponseHeaders,
+  buildRedirectLocation,
   resolveCurrentStylesheetFile,
   createLocalServer
 };

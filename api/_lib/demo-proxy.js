@@ -106,7 +106,7 @@ const DEMO_MANIFEST = Object.freeze({
     envKey: 'DEMO_SMART_SENTENCE_FUNCTION_ARN',
     routes: [
       route('health', ['GET', 'HEAD'], '/health', 'health', 0, 256 * 1024, 25_000),
-      route('rank', ['POST'], '/rank', 'inference', 24 * 1024, 1024 * 1024, 60_000)
+      route('rank', ['POST'], '/rank', 'inference', 24 * 1024, 1024 * 1024, 125_000)
     ]
   },
   'covid-outbreak': {
@@ -527,7 +527,7 @@ async function consumeRateLimit(req, resolved, config, clients) {
 function buildLambdaEvent(req, resolved, body) {
   const query = resolved.query || {};
   const rawQueryString = new URLSearchParams(query).toString();
-  const requestId = crypto.randomUUID();
+  const requestId = req.demoRequestId || crypto.randomUUID();
   const hasBody = resolved.route.maxBodyBytes > 0 && resolved.method !== 'HEAD';
   return {
     version: '2.0',
@@ -641,6 +641,17 @@ function decodeLambdaPayload(payload, maxResponseBytes = MAX_JSON_RESPONSE_BYTES
   return { statusCode, bodyText };
 }
 
+function validateSentenceBody(body) {
+  if (Object.keys(body).some((key) => !['query', 'top'].includes(key))) {
+    throw new Error('Only query and top are accepted for sentence search.');
+  }
+  const query = typeof body.query === 'string' ? body.query.trim() : '';
+  if (!query || Array.from(query).length > 512) throw new Error('Query must contain 1 to 512 characters.');
+  const top = body.top === undefined ? 5 : body.top;
+  if (!Number.isInteger(top) || top < 1 || top > 20) throw new Error('Top results must be an integer from 1 to 20.');
+  return { query, top };
+}
+
 async function invokeLambda(req, resolved, body, functionArn, config, clients) {
   const event = buildLambdaEvent(req, resolved, body);
   const controller = new AbortController();
@@ -714,6 +725,22 @@ async function handleDemoRequest(req, res, segments) {
     return;
   }
 
+  const suppliedRequestId = req.headers?.['x-request-id'];
+  req.demoRequestId = typeof suppliedRequestId === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(suppliedRequestId)
+    ? suppliedRequestId
+    : crypto.randomUUID();
+  res.setHeader('X-Request-Id', req.demoRequestId);
+  let body = {};
+  if (resolved.route.maxBodyBytes > 0) {
+    try {
+      body = await readJsonBody(req, Math.min(resolved.route.maxBodyBytes, MAX_JSON_BODY_BYTES));
+      if (resolved.demoId === 'smart-sentence' && resolved.upstreamPath === '/rank') body = validateSentenceBody(body);
+    } catch (err) {
+      sendJson(res, err?.statusCode || 400, { ok: false, error: err?.message || 'Invalid JSON body.' });
+      return;
+    }
+  }
+
   const functionArn = pickEnv([resolved.demo.envKey]);
   let config;
   let clients;
@@ -753,16 +780,6 @@ async function handleDemoRequest(req, res, segments) {
     return;
   }
 
-  let body = {};
-  if (resolved.route.maxBodyBytes > 0) {
-    try {
-      body = await readJsonBody(req, Math.min(resolved.route.maxBodyBytes, MAX_JSON_BODY_BYTES));
-    } catch (err) {
-      sendJson(res, err?.statusCode || 400, { ok: false, error: err?.message || 'Invalid JSON body.' }, rateHeaders);
-      return;
-    }
-  }
-
   let upstream;
   // Only these anonymous historical snapshots are reusable. Origin checks,
   // runtime configuration and per-visitor rate limits still run on every hit.
@@ -793,7 +810,8 @@ async function handleDemoRequest(req, res, segments) {
     const statusCode = err?.statusCode || 502;
     sendJson(res, statusCode, {
       ok: false,
-      error: statusCode === 504 ? 'Demo service timed out.' : 'Demo service is unavailable.'
+      error: statusCode === 504 ? 'Demo service timed out.' : 'Demo service is unavailable.',
+      ...(['DEMO_TIMEOUT', 'DEMO_FUNCTION_ERROR'].includes(err?.code) ? { code: err.code } : {})
     }, rateHeaders);
     return;
   }
@@ -839,6 +857,7 @@ module.exports = {
     proxyMode,
     resolveDemoRoute,
     setClientFactoryForTests,
-    validateQuery
+    validateQuery,
+    validateSentenceBody
   }
 };
