@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const runEarlyBootstrapTests = require('./early-bootstrap.test');
 const {
   CATEGORY_CONFIG,
   HARD_NAVIGATION_PATHS,
@@ -60,8 +61,8 @@ function assertTransitionBootstrap(assert, relativePath, html) {
   const source = String(html || '');
   const headEnd = source.search(/<\/head>/i);
   const bodyStart = source.search(/<body\b/i);
-  const scriptTags = source.match(/<script\b[^>]*><\/script>/gi) || [];
-  const noJsTags = scriptTags.filter((tag) => /\bsrc="(?:\/)?js\/common\/no-js\.js"/i.test(tag));
+  const scriptTags = source.match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) || [];
+  const noJsTags = scriptTags.filter((tag) => /\bdata-site-bootstrap="early"|\bsrc="(?:\/)?js\/common\/no-js\.js"/i.test(tag));
   const shellTags = scriptTags.filter((tag) => /\bsrc="(?:\/)?dist\/site-shell\.[^"/]+\.js"/i.test(tag));
   const noJsIndex = noJsTags.length === 1 ? source.indexOf(noJsTags[0]) : -1;
   const shellIndex = shellTags.length === 1 ? source.indexOf(shellTags[0]) : -1;
@@ -75,8 +76,11 @@ function assertTransitionBootstrap(assert, relativePath, html) {
     /\bdefer\b/i.test(shellTags[0]),
   `${relativePath} should load one deferred site shell from the document head`);
   const stylesheetIndex = source.search(/<link\b[^>]*\brel="stylesheet"[^>]*>/i);
-  assert(stylesheetIndex >= 0 && stylesheetIndex < noJsIndex,
-    `${relativePath} should declare its transition styles before the synchronous preload bootstrap`);
+  assert(stylesheetIndex >= 0 && noJsIndex < stylesheetIndex,
+    `${relativePath} should set its initial root state before waiting for stylesheets`);
+  const tracker = /(?:\/|^)job-application-tracker\.html$/.test(relativePath);
+  assert(tracker ? /\bsrc=/.test(noJsTags[0] || '') : /\bdata-site-bootstrap="early"/.test(noJsTags[0] || ''),
+    `${relativePath} should avoid a blocking bootstrap request where its CSP permits inline execution`);
 }
 
 function walkHtml(relativeDir) {
@@ -96,6 +100,7 @@ function walkHtml(relativeDir) {
 }
 
 function runPersonalAccordionShellTests({ assert }) {
+  runEarlyBootstrapTests({ assert });
   const sample = [
     '<!doctype html>',
     '<html><head><base href="/"><link rel="canonical" href="https://www.danielshort.me/contact"></head>',

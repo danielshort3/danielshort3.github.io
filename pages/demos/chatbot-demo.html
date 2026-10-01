@@ -10,26 +10,102 @@
   <meta name="description" content="Chatbot (LoRA + RAG) interactive demo, presented inside Daniel Short&#39;s project library.">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#091F3B">
-  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9569e04f.css">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.e630c3ed.css">
 
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
-  <script src="js/common/no-js.js"></script>
+
 <meta name="author" content="Daniel Short">
 
   <meta name="twitter:description" content="Chatbot (LoRA + RAG) interactive demo, presented inside Daniel Short&#39;s project library.">
-  <script defer src="dist/site-shell.3dcfa6d2.js"></script>
+  <script defer src="dist/site-shell.1069c15c.js"></script>
   <link rel="stylesheet" href="dist/styles-personal-accordion.4d150ecd.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:chatbot-demo","path":"/chatbot-demo","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.9569e04f.css","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.3dcfa6d2.js","/js/navigation/project-demo-wrapper.js","/dist/site-consent.a85f951d.js"],"module":"projects:chatbot-demo"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:chatbot-demo","path":"/chatbot-demo","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.e630c3ed.css","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/dist/site-shell.1069c15c.js","/js/navigation/project-demo-wrapper.js","/dist/site-consent.0247f290.js"],"module":"projects:chatbot-demo"}</script>
 </head>
 <body class="project-demo-wrapper-page personal-accordion-page" data-page="project-demo" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="chatbot-demo" data-personal-fit="viewport" data-site-route-id="projects:chatbot-demo" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="projects:chatbot-demo">
   <a href="/chatbot-demo#main" class="skip-link">Skip to interactive demo</a>
@@ -134,6 +210,6 @@
 </footer>
   <script defer src="js/navigation/project-demo-wrapper.js"></script>
 
-  <script defer src="dist/site-consent.a85f951d.js"></script>
+  <script defer src="dist/site-consent.0247f290.js"></script>
 </body>
 </html>

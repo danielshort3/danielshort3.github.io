@@ -44,7 +44,7 @@ const {
 
 const SUPPORTED_FORMATS = new Set(['mp3', 'mp4', 'wav', 'flac', 'ogg', 'webm', 'm4a', 'amr']);
 const VIDEO_FORMATS = new Set(['mp4', 'webm']);
-const MIN_DURATION_SECONDS = 15;
+const MIN_DURATION_SECONDS = 1;
 const DEFAULT_PRICE_PER_SECOND = 0.0001;
 const DEFAULT_MAX_FILES_PER_RUN = 10;
 const DEFAULT_MAX_FILE_BYTES = 500 * 1024 * 1024;
@@ -898,7 +898,7 @@ async function handlePresign(req, res){
     return;
   }
   if (!Number.isFinite(durationSeconds) || durationSeconds < MIN_DURATION_SECONDS) {
-    sendJson(res, 400, { ok: false, error: `File must be at least ${MIN_DURATION_SECONDS} seconds long.` });
+    sendJson(res, 400, { ok: false, error: `File must be at least ${MIN_DURATION_SECONDS} second${MIN_DURATION_SECONDS === 1 ? '' : 's'} long.` });
     return;
   }
   if (durationSeconds > AWS_MAX_MEDIA_DURATION_SECONDS) {
@@ -1735,6 +1735,8 @@ const handleTranscribe = async (req, res, segments = []) => {
 
 handleTranscribe._internal = {
   analyzeTranscriptCoverage,
+  calculateBillableSeconds,
+  calculateCostUsd,
   decodeHistoryCursor,
   encodeHistoryCursor,
   extractTranscript,

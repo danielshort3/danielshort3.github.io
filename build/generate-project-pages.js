@@ -668,10 +668,14 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
           const href = String(r.url || '').trim();
           const label = formatResourceLabel(r);
           const icon = String(r.icon || '').trim();
+          const iconPath = icon.replace(/[?#].*$/, '');
+          const compactIcon = /^(?:\/)?img\/icons\/(github|website)-icon\.png$/.exec(iconPath);
+          // Source PNG and optimized WebP share the complete generation key.
+          const iconSource = compactIcon ? `/img/icons/${compactIcon[1]}-icon-64.webp${icon.slice(iconPath.length)}` : icon;
           const isExternal = /^https?:\/\//i.test(href);
           const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
           const iconMarkup = icon
-            ? `<img class="project-link-icon" src="${escapeHtml(icon)}" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20">`
+            ? `<img class="project-link-icon" src="${escapeHtml(iconSource)}" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20">`
             : '';
           return `<a class="project-link" role="listitem" href="${escapeHtml(href)}"${attrs}>${iconMarkup}<span class="project-link-label">${escapeHtml(label)}</span></a>`;
         }).join('\n        ')}

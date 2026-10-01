@@ -341,7 +341,10 @@ async function applyTtlRemoval(client, tableName, entry){
 }
 
 function baselineCondition(entry, names, values){
-  if (!entry.prior) return 'attribute_not_exists(#clickId)';
+  if (!entry.prior) {
+    names['#clickId'] = 'clickId';
+    return 'attribute_not_exists(#clickId)';
+  }
   values[':priorEntityType'] = entry.prior.entityType;
   values[':priorHistoricalClicks'] = entry.prior.historicalClicks;
   values[':priorRecordedEventCount'] = entry.prior.recordedEventCount;
@@ -379,7 +382,6 @@ async function applyBaseline(client, linksTableName, clicksTableName, entry, rec
   }
 
   const baselineNames = {
-    '#clickId': 'clickId',
     '#entityType': 'entityType',
     '#historicalClicks': 'historicalClicks',
     '#recordedEventCount': 'recordedEventCount',

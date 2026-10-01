@@ -127,6 +127,7 @@ async function runCase({ browser, base, artifactDir, demo, width, project }) {
   page.setDefaultTimeout(18000);
   const errors = [];
   const requests = [];
+  let healthCalls = 0;
   let hold = false;
   let fail = false;
   let release;
@@ -134,6 +135,7 @@ async function runCase({ browser, base, artifactDir, demo, width, project }) {
   await context.route(`${base}/api/demos/${demo.endpoint}/**`, async route => {
     const operation = new URL(route.request().url()).pathname.split('/').filter(Boolean).at(-1);
     if (operation === 'health' || operation === 'warmup') {
+      if (operation === 'health') healthCalls += 1;
       await route.fulfill({ json: { status: 'ok', model_loaded: true } });
       return;
     }
@@ -144,7 +146,10 @@ async function runCase({ browser, base, artifactDir, demo, width, project }) {
     }
     requests.push(route.request().postDataJSON());
     if (hold) await new Promise(resolve => { release = resolve; });
-    await route.fulfill(fail ? { status: 400, json: { error: 'Controlled failure' } } : { json: demo.success });
+    // Sentence validation failures keep the connection healthy. Exercise the
+    // outage/reconnect layout here; its 400/422 recovery has a dedicated suite.
+    const failureStatus = demo.name === 'sentence' ? 503 : 400;
+    await route.fulfill(fail ? { status: failureStatus, json: { error: 'Controlled failure' } } : { json: demo.success });
   });
   try {
     const response = await page.goto(base + (project ? `/portfolio/${demo.project}` : demo.route), { waitUntil: 'domcontentloaded' });
@@ -192,6 +197,7 @@ async function runCase({ browser, base, artifactDir, demo, width, project }) {
       assert.equal(await frame.locator('#results .item').count(), 2);
     }
     const previousResult = await frame.locator(demo.result).innerText();
+    const healthCallsBeforeFailure = healthCalls;
     hold = true;
     await frame.locator(demo.action).click();
     await frame.locator(`${demo.badge}[data-state="loading"]`).waitFor();
@@ -209,6 +215,16 @@ async function runCase({ browser, base, artifactDir, demo, width, project }) {
     release = null;
     await frame.locator(`${demo.badge}[data-state="err"]`).waitFor();
     assert.equal(await frame.locator(demo.result).innerText(), previousResult, `${label}: failure preserves last result.`);
+    if (demo.name === 'sentence') {
+      assert.equal(healthCalls, healthCallsBeforeFailure, `${label}: an outage does not automatically reconnect health.`);
+      assert.equal(requests.length, 2, `${label}: a failed replacement makes one rank request without replay.`);
+      assert(await frame.getByRole('button', { name: 'Reconnect demo', exact: true }).isVisible(), `${label}: an outage offers reconnection.`);
+      assert(await frame.locator(demo.action).isEnabled(), `${label}: the visitor can manually retry the preserved idea.`);
+      fs.writeFileSync(path.join(artifactDir, `${label}-outage.json`), JSON.stringify({ label, status: 503,
+        healthCallsBeforeFailure, healthCallsAfterFailure: healthCalls, rankCalls: requests.length,
+        healthState: await frame.locator(demo.badge).getAttribute('data-state'),
+        query: await frame.locator('#query').inputValue(), preservedResult: previousResult }, null, 2));
+    }
     if (demo.name !== 'sentence') {
       assert(await frame.locator(demo.action).isEnabled(), `${label}: a failed replacement can be retried.`);
       await assertCanvasPixels(frame, `${label} error`, true);

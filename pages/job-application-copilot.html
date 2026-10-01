@@ -31,11 +31,93 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9569e04f.css">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.e630c3ed.css">
   <link rel="stylesheet" href="css/components/job-application-copilot-page.css?v=8c07f481f2a2">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
@@ -44,15 +126,15 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png?v=ecc0b34a9649">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png?v=49674505c1c5">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png?v=02cddde9a923">
-  <script src="js/common/no-js.js"></script>
+
   <meta name="author" content="Daniel Short">
   <meta property="og:locale" content="en_US">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.3dcfa6d2.js"></script>
+  <script defer src="dist/site-shell.1069c15c.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.4d150ecd.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:job-application-copilot","path":"/job-application-copilot","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.9569e04f.css","/css/components/job-application-copilot-page.css?v=8c07f481f2a2","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.3dcfa6d2.js","/dist/site-consent.a85f951d.js"],"module":"tools:job-application-copilot"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:job-application-copilot","path":"/job-application-copilot","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.e630c3ed.css","/css/components/job-application-copilot-page.css?v=8c07f481f2a2","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.1069c15c.js","/dist/site-consent.0247f290.js"],"module":"tools:job-application-copilot"}</script>
 </head>
 <body data-page="job-application-copilot" class="copilot-page site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="job-application-copilot" data-personal-fit="viewport" data-site-route-id="tools:job-application-copilot" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:job-application-copilot">
   <a href="/job-application-copilot#main" class="skip-link">Skip to main content</a>
@@ -317,6 +399,6 @@ OLLAMA_ORIGINS=chrome-extension://&lt;EXTENSION_ID&gt;</code></pre>
       </nav>
     </div>
   </footer>
-  <script defer src="dist/site-consent.a85f951d.js"></script>
+  <script defer src="dist/site-consent.0247f290.js"></script>
 </body>
 </html>
