@@ -214,11 +214,7 @@ module.exports = async (req, res) => {
     const clickId = `${now.toISOString()}#${crypto.randomBytes(4).toString('hex')}`;
     const hostHeader = getHeader(req, 'host');
     const referer = getHeader(req, 'referer') || getHeader(req, 'referrer');
-    const userAgent = getHeader(req, 'user-agent');
     const country = decodeHeaderValue(getHeader(req, 'x-vercel-ip-country'));
-    const region = decodeHeaderValue(getHeader(req, 'x-vercel-ip-country-region'));
-    const city = decodeHeaderValue(getHeader(req, 'x-vercel-ip-city'));
-    const timezone = decodeHeaderValue(getHeader(req, 'x-vercel-ip-timezone'));
 
     const clickEvent = {
       slug: canonicalSlug,
@@ -233,11 +229,7 @@ module.exports = async (req, res) => {
       host: hostHeader.split(':')[0].trim(),
       path: getRequestPath(req, base),
       refererHost: getUrlHost(referer),
-      userAgent,
-      country,
-      region,
-      city,
-      timezone
+      country: /^[A-Z]{2}$/.test(country) ? country : ''
     };
 
     try {

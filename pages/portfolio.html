@@ -24,7 +24,93 @@
   <meta name="twitter:image:alt" content="Daniel Short — Solving everyday problems with data and thoughtful tools. Navy and blue DS logo beside five colored website tabs.">
   <meta name="theme-color" content="#0F172A">
   <link rel="preload" href="css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="dist/styles.9569e04f.css">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.e630c3ed.css">
   <link rel="stylesheet" href="dist/styles-workbench.30a2e798.css">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
@@ -39,9 +125,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Daniel Short">
   <link rel="preconnect" href="https://public.tableau.com" crossorigin>
-  <script defer src="dist/site-consent.a85f951d.js"></script>
-  <script defer src="dist/site-shell.3dcfa6d2.js"></script>
-  <script src="js/common/no-js.js"></script>
+  <script defer src="dist/site-consent.0247f290.js"></script>
+  <script defer src="dist/site-shell.1069c15c.js"></script>
+
   <meta property="og:image:type" content="image/png">
   <meta name="author" content="Daniel Short">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -52,7 +138,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"CollectionPage","@id":"https://www.danielshort.me/portfolio#webpage","url":"https://www.danielshort.me/portfolio","name":"Data & Machine Learning Portfolio | Daniel Short","description":"Explore machine learning, data analytics, dashboards, browser tools, and interactive software case studies by Daniel Short.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/personal-social-card.png"},"mainEntity":{"@id":"https://www.danielshort.me/portfolio#itemlist"},"breadcrumb":{"@id":"https://www.danielshort.me/portfolio#breadcrumb"}},{"@type":"ItemList","@id":"https://www.danielshort.me/portfolio#itemlist","numberOfItems":17,"itemListElement":[{"@type":"ListItem","position":1,"name":"Smart Sentence Retriever","url":"https://www.danielshort.me/portfolio/smartSentence"},{"@type":"ListItem","position":2,"name":"Chatbot (LoRA + RAG)","url":"https://www.danielshort.me/portfolio/chatbotLora"},{"@type":"ListItem","position":3,"name":"Shape Classifier Demo","url":"https://www.danielshort.me/portfolio/shapeClassifier"},{"@type":"ListItem","position":4,"name":"UFO Sightings Dashboard","url":"https://www.danielshort.me/portfolio/ufoDashboard"},{"@type":"ListItem","position":5,"name":"COVID-19 Outbreak Drivers","url":"https://www.danielshort.me/portfolio/covidAnalysis"},{"@type":"ListItem","position":6,"name":"Empty-Package Shrink Dashboard","url":"https://www.danielshort.me/portfolio/targetEmptyPackage"},{"@type":"ListItem","position":7,"name":"Handwriting Legibility Scoring","url":"https://www.danielshort.me/portfolio/handwritingRating"},{"@type":"ListItem","position":8,"name":"Synthetic Digit Generator","url":"https://www.danielshort.me/portfolio/digitGenerator"},{"@type":"ListItem","position":9,"name":"Sheet Music Watermark Removal & Upscale","url":"https://www.danielshort.me/portfolio/sheetMusicUpscale"},{"@type":"ListItem","position":10,"name":"Delivery Tip","url":"https://www.danielshort.me/portfolio/deliveryTip"},{"@type":"ListItem","position":11,"name":"Store-Level Loss & Sales ETL","url":"https://www.danielshort.me/portfolio/retailStore"},{"@type":"ListItem","position":12,"name":"Pizza Tips Regression Modeling","url":"https://www.danielshort.me/portfolio/pizza"},{"@type":"ListItem","position":13,"name":"Baby Name Predictor","url":"https://www.danielshort.me/portfolio/babynames"},{"@type":"ListItem","position":14,"name":"Pizza Delivery Dashboard","url":"https://www.danielshort.me/portfolio/pizzaDashboard"},{"@type":"ListItem","position":15,"name":"Nonogram Solver","url":"https://www.danielshort.me/portfolio/nonogram"},{"@type":"ListItem","position":16,"name":"danielshort.me","url":"https://www.danielshort.me/portfolio/website"},{"@type":"ListItem","position":17,"name":"Daniel Short for Android","url":"https://www.danielshort.me/portfolio/androidApp"}]},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/portfolio#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Data & Machine Learning Portfolio","item":"https://www.danielshort.me/portfolio"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:projects-library","path":"/portfolio","category":"projects","view":"library","navigation":"soft","styles":["/dist/styles.9569e04f.css","/dist/styles-workbench.30a2e798.css","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-consent.a85f951d.js","/dist/site-shell.3dcfa6d2.js","/js/common/no-js.js"],"module":"projects:projects-library"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:projects-library","path":"/portfolio","category":"projects","view":"library","navigation":"soft","styles":["/dist/styles.e630c3ed.css","/dist/styles-workbench.30a2e798.css","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-consent.0247f290.js","/dist/site-shell.1069c15c.js"],"module":"projects:projects-library"}</script>
 </head>
 <body data-page="portfolio" class="site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="library" data-personal-category="projects" data-personal-item="projects-library" data-personal-fit="viewport" data-site-route-id="projects:projects-library" data-site-route-category="projects" data-site-route-view="library" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="projects:projects-library">
   <a href="/portfolio#main" class="skip-link">Skip to main content</a>
@@ -139,7 +225,7 @@
       <ul class="home-library__list" aria-label="Start here">
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/sheetMusicUpscale" data-content-open="true" data-content-id="sheetMusicUpscale" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/sheetMusicUpscale.webp?v=50658c2612ad"><img src="/img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/sheetMusicUpscale.webp?v=72c57065af22"><img src="/img/projects/icons/sheetMusicUpscale.png?v=72c57065af22" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Case study</small>
@@ -152,7 +238,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/handwritingRating" data-content-open="true" data-content-id="handwritingRating" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/handwritingRating.webp?v=582853161647"><img src="/img/projects/icons/handwritingRating.png?v=582853161647" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/handwritingRating.webp?v=25918dc175e2"><img src="/img/projects/icons/handwritingRating.png?v=25918dc175e2" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -165,7 +251,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/babynames" data-content-open="true" data-content-id="babynames" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/babynames.webp?v=7fc79e6e3331"><img src="/img/projects/icons/babynames.png?v=7fc79e6e3331" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/babynames.webp?v=a1972b54dcd2"><img src="/img/projects/icons/babynames.png?v=a1972b54dcd2" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -183,7 +269,7 @@
       <ul class="home-library__list" aria-label="Machine learning">
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/smartSentence" data-content-open="true" data-content-id="smartSentence" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/smartSentence.webp?v=7be7091370e0"><img src="/img/projects/icons/smartSentence.png?v=7be7091370e0" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/smartSentence.webp?v=f4c998ae5507"><img src="/img/projects/icons/smartSentence.png?v=f4c998ae5507" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -196,7 +282,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/chatbotLora" data-content-open="true" data-content-id="chatbotLora" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/chatbotLora.webp?v=a6d123e8bd75"><img src="/img/projects/icons/chatbotLora.png?v=a6d123e8bd75" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/chatbotLora.webp?v=cdf8472b5a32"><img src="/img/projects/icons/chatbotLora.png?v=cdf8472b5a32" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -209,7 +295,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/shapeClassifier" data-content-open="true" data-content-id="shapeClassifier" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/shapeClassifier.webp?v=981b96b1622f"><img src="/img/projects/icons/shapeClassifier.png?v=981b96b1622f" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/shapeClassifier.webp?v=bde61c2ac512"><img src="/img/projects/icons/shapeClassifier.png?v=bde61c2ac512" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -222,7 +308,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/digitGenerator" data-content-open="true" data-content-id="digitGenerator" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/digitGenerator.webp?v=f26866af05d5"><img src="/img/projects/icons/digitGenerator.png?v=f26866af05d5" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/digitGenerator.webp?v=39beb57fcde0"><img src="/img/projects/icons/digitGenerator.png?v=39beb57fcde0" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -235,7 +321,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/nonogram" data-content-open="true" data-content-id="nonogram" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/nonogram.webp?v=d8d2122f3f7f"><img src="/img/projects/icons/nonogram.png?v=d8d2122f3f7f" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/nonogram.webp?v=f5404d1edd34"><img src="/img/projects/icons/nonogram.png?v=f5404d1edd34" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -253,7 +339,7 @@
       <ul class="home-library__list" aria-label="Data stories">
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/ufoDashboard" data-content-open="true" data-content-id="ufoDashboard" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/ufoDashboard.webp?v=ae6e397c2406"><img src="/img/projects/icons/ufoDashboard.png?v=ae6e397c2406" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/ufoDashboard.webp?v=e69e3b95cc4d"><img src="/img/projects/icons/ufoDashboard.png?v=e69e3b95cc4d" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -266,7 +352,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/covidAnalysis" data-content-open="true" data-content-id="covidAnalysis" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/covidAnalysis.webp?v=9f13fa761f39"><img src="/img/projects/icons/covidAnalysis.png?v=9f13fa761f39" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/covidAnalysis.webp?v=b98d5c0231de"><img src="/img/projects/icons/covidAnalysis.png?v=b98d5c0231de" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -279,7 +365,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/targetEmptyPackage" data-content-open="true" data-content-id="targetEmptyPackage" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/targetEmptyPackage.webp?v=fe4215c27311"><img src="/img/projects/icons/targetEmptyPackage.png?v=fe4215c27311" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/targetEmptyPackage.webp?v=ffffe9b8b0cd"><img src="/img/projects/icons/targetEmptyPackage.png?v=ffffe9b8b0cd" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -292,7 +378,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/deliveryTip" data-content-open="true" data-content-id="deliveryTip" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/deliveryTip.webp?v=e035f25cb792"><img src="/img/projects/icons/deliveryTip.png?v=e035f25cb792" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/deliveryTip.webp?v=bef4109277ea"><img src="/img/projects/icons/deliveryTip.png?v=bef4109277ea" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Case study</small>
@@ -305,7 +391,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/retailStore" data-content-open="true" data-content-id="retailStore" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/retailStore.webp?v=8e0cf4b2dfa1"><img src="/img/projects/icons/retailStore.png?v=8e0cf4b2dfa1" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/retailStore.webp?v=4b1b3b8c44ef"><img src="/img/projects/icons/retailStore.png?v=4b1b3b8c44ef" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -318,7 +404,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/pizza" data-content-open="true" data-content-id="pizza" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/pizza.webp?v=478ab0f3d86a"><img src="/img/projects/icons/pizza.png?v=478ab0f3d86a" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/pizza.webp?v=425800be9bae"><img src="/img/projects/icons/pizza.png?v=425800be9bae" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -331,7 +417,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/pizzaDashboard" data-content-open="true" data-content-id="pizzaDashboard" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/pizzaDashboard.webp?v=4e01e3d6a7f6"><img src="/img/projects/icons/pizzaDashboard.png?v=4e01e3d6a7f6" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/pizzaDashboard.webp?v=290c248e01e7"><img src="/img/projects/icons/pizzaDashboard.png?v=290c248e01e7" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Interactive project</small>
@@ -349,7 +435,7 @@
       <ul class="home-library__list" aria-label="Practical applications">
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/website" data-content-open="true" data-content-id="website" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/website.webp?v=5ee2dd9327e1"><img src="/img/projects/icons/website.png?v=5ee2dd9327e1" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/website.webp?v=4674b5d40ac6"><img src="/img/projects/icons/website.png?v=4674b5d40ac6" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Case study</small>
@@ -362,7 +448,7 @@
       </li>
       <li class="home-library__item">
         <a class="home-library__card home-library__card--icon" href="/portfolio/androidApp" data-content-open="true" data-content-id="androidApp" data-content-type="project" data-resource-type="case_study" data-source-surface="personal_library_page">
-          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/androidApp.webp?v=162c534d07c5"><img src="/img/projects/icons/androidApp.png?v=162c534d07c5" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
+          <span class="home-library__media home-library__media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="/img/projects/icons/androidApp.webp?v=46a46841e5c6"><img src="/img/projects/icons/androidApp.png?v=46a46841e5c6" alt="" width="256" height="256" loading="lazy" decoding="async"></picture></span>
           <span class="home-library__copy">
             <span class="home-library__headline">
             <small class="home-library__badge">Case study</small>

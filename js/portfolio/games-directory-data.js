@@ -154,7 +154,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Work in progress, Action RPG, Character progression"
       ],
-      "iconImage": "img/games/icons/project-starfall.png?v=7b82f09e6c46",
+      "iconImage": "img/games/icons/project-starfall.png?v=3881ad6276cd",
       "image": "img/home-previews/games/project-starfall.webp",
       "imageWidth": 640,
       "imageHeight": 360,
@@ -194,7 +194,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Adaptive AI, Upgrade loops, Combat tuning"
       ],
-      "iconImage": "img/games/icons/stellar-dogfight.png?v=cffca10aeccc",
+      "iconImage": "img/games/icons/stellar-dogfight.png?v=1ed6460df253",
       "image": "img/games/stellar-dogfight/raster/background-nebula.png",
       "imageWidth": 1600,
       "imageHeight": 900,
@@ -234,7 +234,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Parameter sandbox, Realtime canvas, Visual systems"
       ],
-      "iconImage": "img/games/icons/ocean-wave-simulation.png?v=3615bece01d3",
+      "iconImage": "img/games/icons/ocean-wave-simulation.png?v=d661fa6fbc20",
       "image": "",
       "imageWidth": null,
       "imageHeight": null,
@@ -274,7 +274,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Probability, Distribution tracking, Table state"
       ],
-      "iconImage": "img/games/icons/roulette.png?v=a015246318a6",
+      "iconImage": "img/games/icons/roulette.png?v=1bc1cdaf9430",
       "image": "",
       "imageWidth": null,
       "imageHeight": null,
@@ -314,7 +314,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Simulation, Synergies, Prestige loops"
       ],
-      "iconImage": "img/games/icons/probability-engine.png?v=975bd1c11537",
+      "iconImage": "img/games/icons/probability-engine.png?v=2c80479fc199",
       "image": "",
       "imageWidth": null,
       "imageHeight": null,
@@ -354,7 +354,7 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Idle action, Upgrade loops, Mythic farming"
       ],
-      "iconImage": "img/games/icons/stormbreak.png?v=1de1030ce670",
+      "iconImage": "img/games/icons/stormbreak.png?v=b23651ef8b6b",
       "image": "img/games/stormbreak/temple-of-ash.webp",
       "imageWidth": 1536,
       "imageHeight": 1024,

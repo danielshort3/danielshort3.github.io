@@ -5,7 +5,7 @@ const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
   DynamoDBDocumentClient,
   GetCommand,
-  UpdateCommand
+  TransactWriteCommand
 } = require('@aws-sdk/lib-dynamodb');
 const { resolveAwsCredentials } = require('./aws-credentials');
 
@@ -56,7 +56,7 @@ function isProductionRuntime() {
 }
 
 function requiresDdbRateLimit() {
-  return boolEnv('CHATBOT_REQUIRE_DDB', false);
+  return boolEnv('CHATBOT_REQUIRE_DDB', isProductionRuntime());
 }
 
 function pickEnv(keys) {
@@ -105,7 +105,7 @@ function getClientIp(req) {
   return forwarded || real || socket || 'unknown';
 }
 
-function getActorHash(req, body = {}) {
+function getActorHash(req) {
   const salt = pickEnv(['CHATBOT_HASH_SALT']) || pickEnv(['VERCEL_PROJECT_PRODUCTION_URL', 'VERCEL_URL']) || 'local-chatbot-salt';
   if (!pickEnv(['CHATBOT_HASH_SALT']) && requiresDdbRateLimit()) {
     const err = new Error('CHATBOT_HASH_SALT is not configured');
@@ -114,10 +114,9 @@ function getActorHash(req, body = {}) {
   }
 
   const ip = getClientIp(req);
-  const session = String(body.conversationId || req.headers['x-chatbot-session'] || '').slice(0, 80);
   return crypto
-    .createHash('sha256')
-    .update(`${salt || 'local-chatbot-salt'}:${ip}:${session}`)
+    .createHmac('sha256', salt)
+    .update(ip)
     .digest('hex')
     .slice(0, 32);
 }
@@ -135,7 +134,13 @@ function ttlSeconds(now, days) {
 }
 
 function getMemoryItem(pk, sk) {
-  return memoryStore.get(`${pk}|${sk}`) || null;
+  const key = `${pk}|${sk}`;
+  const item = memoryStore.get(key) || null;
+  if (item && item.ttl <= Math.floor(Date.now() / 1000)) {
+    memoryStore.delete(key);
+    return null;
+  }
+  return item;
 }
 
 function updateMemoryCount(pk, sk, ttl, now) {
@@ -152,16 +157,17 @@ async function getItem(tableName, pk, sk) {
   if (!tableName) return getMemoryItem(pk, sk);
   const result = await getDocClient().send(new GetCommand({
     TableName: tableName,
-    Key: { pk, sk }
+    Key: { pk, sk },
+    ConsistentRead: true
   }));
   return result.Item || null;
 }
 
-async function updateCount(tableName, pk, sk, ttl, now) {
-  if (!tableName) return updateMemoryCount(pk, sk, ttl, now);
-  const result = await getDocClient().send(new UpdateCommand({
+function countUpdate(tableName, pk, sk, ttl, now, limit) {
+  return { Update: {
     TableName: tableName,
     Key: { pk, sk },
+    ...(limit ? { ConditionExpression: 'attribute_not_exists(#count) OR #count < :limit' } : {}),
     UpdateExpression: 'SET #ttl = :ttl, #updatedAt = :now ADD #count :one',
     ExpressionAttributeNames: {
       '#ttl': 'ttl',
@@ -171,23 +177,18 @@ async function updateCount(tableName, pk, sk, ttl, now) {
     ExpressionAttributeValues: {
       ':ttl': ttl,
       ':now': now,
-      ':one': 1
+      ':one': 1,
+      ...(limit ? { ':limit': limit } : {})
     },
-    ReturnValues: 'ALL_NEW'
-  }));
-  return result.Attributes || { count: 1 };
+    ReturnValuesOnConditionCheckFailure: 'ALL_OLD'
+  } };
 }
 
-async function setLastQuery(tableName, actorHash, now, ttl) {
-  const pk = `CHATBOT#ACTOR#${actorHash}`;
-  const sk = 'META';
-  if (!tableName) {
-    memoryStore.set(`${pk}|${sk}`, { pk, sk, lastQueryAt: now, ttl, updatedAt: now });
-    return;
-  }
-  await getDocClient().send(new UpdateCommand({
+function metaUpdate(tableName, actorPk, now, ttl, config, challengePassed) {
+  return { Update: {
     TableName: tableName,
-    Key: { pk, sk },
+    Key: { pk: actorPk, sk: 'META' },
+    ...(!challengePassed ? { ConditionExpression: 'attribute_not_exists(#lastQueryAt) OR #lastQueryAt <= :latest' } : {}),
     UpdateExpression: 'SET #lastQueryAt = :now, #ttl = :ttl, #updatedAt = :now',
     ExpressionAttributeNames: {
       '#lastQueryAt': 'lastQueryAt',
@@ -196,9 +197,11 @@ async function setLastQuery(tableName, actorHash, now, ttl) {
     },
     ExpressionAttributeValues: {
       ':now': now,
-      ':ttl': ttl
-    }
-  }));
+      ':ttl': ttl,
+      ...(!challengePassed ? { ':latest': now - config.minSecondsBetweenQueries * 1000 } : {})
+    },
+    ReturnValuesOnConditionCheckFailure: 'ALL_OLD'
+  } };
 }
 
 function limitPayload(reason, retryAfter, config, challengeRequired = false) {
@@ -226,7 +229,7 @@ async function checkChatbotRateLimit(req, body = {}, options = {}) {
   }
 
   const now = Date.now();
-  const actorHash = getActorHash(req, body);
+  const actorHash = getActorHash(req);
   const ttl = ttlSeconds(now, config.ttlDays);
   const actorPk = `CHATBOT#ACTOR#${actorHash}`;
   const globalPk = 'CHATBOT#GLOBAL';
@@ -251,43 +254,64 @@ async function checkChatbotRateLimit(req, body = {}, options = {}) {
 
   const currentWindow = windowKey(now, config.windowSeconds);
   const currentDay = todayKey(now);
-  const windowItem = await updateCount(tableName, actorPk, `WINDOW#${currentWindow}`, ttl, now);
-  const dayItem = await updateCount(tableName, actorPk, `DAY#${currentDay}`, ttl, now);
-  const globalDayItem = await updateCount(tableName, globalPk, `DAY#${currentDay}`, ttl, now);
-
-  if (!challengePassed && Number(windowItem.count || 0) > config.windowLimit) {
+  const windowSk = `WINDOW#${currentWindow}`;
+  const daySk = `DAY#${currentDay}`;
+  const denied = (index) => {
+    const reasons = [
+      ['Please wait before sending another question.', Math.ceil(config.minSecondsBetweenQueries), true],
+      ['Too many questions in a short period.', config.windowSeconds, true],
+      ['Daily question limit reached.', 86400, false],
+      ['The site-wide daily chatbot limit has been reached.', 86400, false]
+    ];
+    const [reason, retryAfter, challengeRequired] = reasons[index];
     return {
       allowed: false,
       actorHash,
       statusCode: 429,
-      payload: limitPayload(
-        'Too many questions in a short period.',
-        config.windowSeconds,
-        config,
-        true
-      )
+      payload: limitPayload(reason, retryAfter, config, challengeRequired)
     };
+  };
+
+  if (!tableName) {
+    // No awaits between admission and reservation: parallel local requests
+    // cannot partially spend another actor's global budget.
+    const latestQueryAt = Number(getMemoryItem(actorPk, 'META')?.lastQueryAt) || 0;
+    if (!challengePassed && latestQueryAt > now - config.minSecondsBetweenQueries * 1000) return denied(0);
+    const counts = [getMemoryItem(actorPk, windowSk), getMemoryItem(actorPk, daySk), getMemoryItem(globalPk, daySk)];
+    if (!challengePassed && Number(counts[0]?.count || 0) >= config.windowLimit) return denied(1);
+    if (Number(counts[1]?.count || 0) >= config.dailyLimit) return denied(2);
+    if (Number(counts[2]?.count || 0) >= config.globalDailyLimit) return denied(3);
+    updateMemoryCount(actorPk, windowSk, ttl, now);
+    updateMemoryCount(actorPk, daySk, ttl, now);
+    updateMemoryCount(globalPk, daySk, ttl, now);
+    memoryStore.set(`${actorPk}|META`, { pk: actorPk, sk: 'META', lastQueryAt: now, ttl, updatedAt: now });
+  } else {
+    const command = new TransactWriteCommand({ TransactItems: [
+      metaUpdate(tableName, actorPk, now, ttl, config, challengePassed),
+      countUpdate(tableName, actorPk, windowSk, ttl, now, challengePassed ? null : config.windowLimit),
+      countUpdate(tableName, actorPk, daySk, ttl, now, config.dailyLimit),
+      countUpdate(tableName, globalPk, daySk, ttl, now, config.globalDailyLimit)
+    ] });
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        await getDocClient().send(command);
+        break;
+      } catch (err) {
+        const reasons = err?.CancellationReasons || [];
+        const rejected = reasons.findIndex((reason) => reason?.Code === 'ConditionalCheckFailed');
+        if (rejected >= 0) return denied(rejected);
+        const conflict = err?.name === 'TransactionConflictException' || reasons.some((reason) => reason?.Code === 'TransactionConflict');
+        if (!conflict || attempt >= 3) throw err;
+        await new Promise((resolve) => setTimeout(resolve, 10 * (attempt + 1)));
+      }
+    }
   }
 
-  if (Number(dayItem.count || 0) > config.dailyLimit) {
-    return {
-      allowed: false,
-      actorHash,
-      statusCode: 429,
-      payload: limitPayload('Daily question limit reached.', 86400, config, false)
-    };
-  }
-
-  if (Number(globalDayItem.count || 0) > config.globalDailyLimit) {
-    return {
-      allowed: false,
-      actorHash,
-      statusCode: 429,
-      payload: limitPayload('The site-wide daily chatbot limit has been reached.', 86400, config, false)
-    };
-  }
-
-  await setLastQuery(tableName, actorHash, now, ttl);
+  const [windowItem, dayItem, globalDayItem] = await Promise.all([
+    getItem(tableName, actorPk, windowSk),
+    getItem(tableName, actorPk, daySk),
+    getItem(tableName, globalPk, daySk)
+  ]);
   return {
     allowed: true,
     actorHash,
@@ -308,5 +332,6 @@ module.exports = {
   getRateLimitTable,
   isProductionRuntime,
   requiresDdbRateLimit,
-  _memoryStore: memoryStore
+  _memoryStore: memoryStore,
+  _setDocClientForTests(client) { cachedDocClient = client; cachedClientKey = client ? `${getRegion()}:${getAwsCredentialConfig(getRegion()).cacheKey}` : ''; }
 };

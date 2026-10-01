@@ -38643,8 +38643,22 @@ try {
     });
     assert(rateLimit.includes('isProductionRuntime') && rateLimit.includes('memoryStore'),
       'chatbot rate limiter should have production guards and local fallback');
-    assert(rateLimit.includes("boolEnv('CHATBOT_REQUIRE_DDB', false)") && rateLimit.includes('requiresDdbRateLimit'),
-      'chatbot rate limiter should only require DynamoDB when explicitly configured');
+    const admission = require('./api/_lib/chatbot-rate-limit');
+    const priorAdmissionEnv = { VERCEL_ENV: process.env.VERCEL_ENV, CHATBOT_REQUIRE_DDB: process.env.CHATBOT_REQUIRE_DDB };
+    try {
+      process.env.VERCEL_ENV = 'production';
+      delete process.env.CHATBOT_REQUIRE_DDB;
+      assert(admission.requiresDdbRateLimit(), 'chatbot production admission should require durable protection by default');
+      process.env.VERCEL_ENV = 'development';
+      assert(!admission.requiresDdbRateLimit(), 'chatbot local admission should allow the offline fallback');
+      process.env.CHATBOT_REQUIRE_DDB = 'true';
+      assert(admission.requiresDdbRateLimit(), 'chatbot explicit durable protection should apply to local admission too');
+    } finally {
+      Object.entries(priorAdmissionEnv).forEach(([key, value]) => {
+        if (typeof value === 'undefined') delete process.env[key];
+        else process.env[key] = value;
+      });
+    }
     assert(logStore.includes('recordChatbotLog') && logStore.includes('listChatbotLogs') && logStore.includes('getChatbotLog'),
       'chatbot log store should record and read investigation logs');
     assert(logStore.includes('CHATBOT#LOGS') && logStore.includes('ttl') && logStore.includes('actorHash'),
@@ -41484,18 +41498,21 @@ try {
     });
 
     const imageOptimizer = readFile('build/optimize-site-images.js');
+    const imageRecipes = readFile('build/lib/image-variant-recipes.js');
     const homeAccordionSource = readFile('content/audiences/personal.json');
     const brandOverrideCss = readFile('css/utilities/design-system-overrides.css');
     const starfallLoadingCss = readFile('css/games/project-starfall/loading.css');
-    assert(imageOptimizer.includes('sharp') &&
-      imageOptimizer.includes('27-hero-mobile-light.png') &&
-      imageOptimizer.includes('23-hero-general-light.png') &&
-      imageOptimizer.includes('start-screen.png'),
-      'image optimization build should generate canonical personal and Project Starfall variants with Sharp');
-    assert(!imageOptimizer.includes('24-hero-analytics-light.png') &&
-      !imageOptimizer.includes('25-hero-data-science-light.png') &&
-      !imageOptimizer.includes('26-hero-tourism-light.png'),
-      'image optimization build should omit retired audience hero variants');
+    assert(imageOptimizer.includes("require('./lib/image-variant-recipes')") &&
+      imageOptimizer.includes('await renderVariant(sourcePath, output)') &&
+      imageRecipes.includes("require('sharp')") &&
+      imageRecipes.includes('27-hero-mobile-light.png') &&
+      imageRecipes.includes('23-hero-general-light.png') &&
+      imageRecipes.includes('start-screen.png'),
+      'image optimization build should use shared Sharp recipes for canonical personal and Project Starfall variants');
+    assert(!imageRecipes.includes('24-hero-analytics-light.png') &&
+      !imageRecipes.includes('25-hero-data-science-light.png') &&
+      !imageRecipes.includes('26-hero-tourism-light.png'),
+      'image optimization recipes should omit retired audience hero variants');
     assert(brandOverrideCss.includes('27-hero-mobile-light.avif') && brandOverrideCss.includes('27-hero-mobile-light.webp'),
       'shared mobile hero artwork should prefer AVIF/WebP with its PNG fallback');
     assert(starfallLoadingCss.includes('start-screen.avif') && starfallLoadingCss.includes('start-screen.webp'),
@@ -41612,13 +41629,16 @@ try {
     const vercel = fs.readFileSync('vercel.json','utf8');
     const vercelOidcTemplate = fs.readFileSync('aws/vercel-oidc/template.yaml', 'utf8');
     const toolsRoleBlock = vercelOidcTemplate.split('  ShortLinksRole:')[0];
-    assert(toolsRoleBlock.includes('dynamodb:ConditionCheckItem') &&
-           toolsRoleBlock.includes('dynamodb:TransactWriteItems'),
-      'Vercel Tools OIDC role should allow guarded DynamoDB transaction writes');
+    assert(['ConditionCheckItem', 'GetItem', 'PutItem', 'UpdateItem', 'DeleteItem']
+      .every(action => toolsRoleBlock.includes(`dynamodb:${action}`)) &&
+      toolsRoleBlock.includes('table/${ToolsTableName}'),
+      'Vercel Tools OIDC role should allow the underlying scoped actions for guarded transaction elements');
+    assert(!vercelOidcTemplate.includes('dynamodb:TransactWriteItems'),
+      'DynamoDB transactions must use element action permissions; TransactWriteItems is not an IAM action');
     const transcribeRoleBlock = (vercelOidcTemplate.split('  TranscribeRole:')[1] || '')
       .split('  ChatbotBedrockRole:')[0];
-    assert(transcribeRoleBlock.includes('dynamodb:PutItem') &&
-           transcribeRoleBlock.includes('dynamodb:TransactWriteItems') &&
+    assert(['GetItem', 'PutItem', 'UpdateItem', 'DeleteItem']
+           .every(action => transcribeRoleBlock.includes(`dynamodb:${action}`)) &&
            transcribeRoleBlock.includes("table/${ToolsTableName}"),
       'Vercel Transcribe OIDC role should allow table-scoped transactional ledger puts');
     assert(vercel.includes('Content-Security-Policy'), 'vercel.json missing CSP');
@@ -41671,9 +41691,10 @@ try {
       assert(redirects.some((rule) => rule.source === source && rule.destination === '/' && rule.permanent === true),
         `${source} should redirect to the canonical homepage`);
     });
-    ['/contributions', '/contributions.html', '/pages/contributions', '/pages/contributions.html'].forEach((source) => {
-      assert(redirects.some((rule) => rule.source === source && rule.destination === '/tourism' && rule.permanent === true),
-        source + ' should permanently redirect to /tourism');
+    [['/contributions', '/tourism'], ['/contributions.html', '/tourism'],
+      ['/pages/contributions', '/'], ['/pages/contributions.html', '/']].forEach(([source, destination]) => {
+      assert(redirects.some((rule) => rule.source === source && rule.destination === destination && rule.permanent === true),
+        source + ' should permanently redirect to ' + destination);
     });
     ['/analytics/:path*', '/data-science/:path*', '/tourism/:path*',
       '/professional/:audience/:path*', '/pages/professional/:audience/:path*'
@@ -42210,7 +42231,7 @@ try {
            rootPackage.dependencies?.['@aws-sdk/s3-presigned-post'] &&
            !endpoint.includes('getSignedUrl') &&
            endpoint.includes('TRANSCRIBE_SIGNING_SECRET') &&
-           endpoint.includes('MIN_DURATION_SECONDS = 15') &&
+           endpoint.includes('MIN_DURATION_SECONDS = 1') &&
            endpoint.includes("require('../tools-auth-session')") &&
            endpoint.includes('authenticateToolsRequest(req)'),
       'Transcribe endpoint should use exact-policy S3 uploads, Cognito auth, and Amazon Transcribe jobs');
@@ -43459,7 +43480,12 @@ try {
       .forEach(f => {
         const html = fs.readFileSync(f,'utf8');
         if (/http-equiv\s*=\s*"refresh"/i.test(html)) throw new Error(f+': should not use meta refresh');
-        if (/location\.replace\(/.test(html)) throw new Error(f+': should not call location.replace');
+        const authoritativeBootstrap = readFile('js/common/no-js.js').trim().replace(/<\/script/gi, '<\\/script').replace(/\r\n/g, '\n');
+        const withoutCanonicalBootstrap = html.replace(/<script\b[^>]*data-site-bootstrap="early"[^>]*>([\s\S]*?)<\/script>/gi,
+          (tag, content) => content.trim().replace(/\r\n/g, '\n') === authoritativeBootstrap ? '' : tag);
+        if (/location\.replace\(/.test(withoutCanonicalBootstrap)) {
+          throw new Error(f+': should not call location.replace outside the exact legacy-host canonical bootstrap');
+        }
       });
   });
 

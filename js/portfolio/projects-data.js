@@ -6,7 +6,7 @@ window.PROJECTS = [
     "subtitle": "Find relevant sentences by meaning, even when the wording differs.",
     "metaDescription": "Find relevant sentences by meaning in an interactive semantic-search demo. Explore the NLP workflow, deployment, and evaluation limitations.",
     "image": "img/projects/smartSentence.png",
-    "iconImage": "img/projects/icons/smartSentence.png?v=7be7091370e0",
+    "iconImage": "img/projects/icons/smartSentence.png?v=f4c998ae5507",
     "imageWidth": 952,
     "imageHeight": 952,
     "videoWebm": "img/projects/smartSentence.webm",
@@ -26,7 +26,7 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Smart-Sentence-Finder",
         "label": "GitHub"
       },
@@ -41,12 +41,12 @@ window.PROJECTS = [
         "label": "Notebook"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/sentence-demo",
         "label": "Live Demo"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.gutenberg.org/ebooks/11",
         "label": "Corpus (Project Gutenberg)",
         "type": "data"
@@ -119,7 +119,7 @@ window.PROJECTS = [
     "subtitle": "Explore Grand Junction with answers grounded in local sources.",
     "metaDescription": "Explore a Grand Junction chatbot combining retrieval and LoRA tuning, with source-linked answers, an interactive demo, and evaluation limitations.",
     "image": "img/projects/chatbotLora.png",
-    "iconImage": "img/projects/icons/chatbotLora.png?v=a6d123e8bd75",
+    "iconImage": "img/projects/icons/chatbotLora.png?v=cdf8472b5a32",
     "imageWidth": 1280,
     "imageHeight": 720,
     "videoWebm": "img/projects/chatbotLora.webm",
@@ -140,12 +140,12 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Chatbot-LoRA-RAG",
         "label": "GitHub"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/chatbot-demo",
         "label": "Live Demo"
       }
@@ -216,7 +216,7 @@ window.PROJECTS = [
     "subtitle": "Draw a shape and see how a model classifies it.",
     "metaDescription": "Draw one of five shapes and try a serverless classifier trained on Quick, Draw! sketches. Explore the model, deployment, and limitations.",
     "image": "img/projects/shapeClassifier.png",
-    "iconImage": "img/projects/icons/shapeClassifier.png?v=981b96b1622f",
+    "iconImage": "img/projects/icons/shapeClassifier.png?v=bde61c2ac512",
     "imageWidth": 926,
     "imageHeight": 926,
     "videoWebm": "img/projects/shapeClassifier.webm",
@@ -235,18 +235,18 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Shape-Analyzer",
         "label": "GitHub"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://github.com/googlecreativelab/quickdraw-dataset",
         "label": "Quick, Draw! Dataset",
         "type": "data"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/shape-demo",
         "label": "Live Demo"
       }
@@ -310,7 +310,7 @@ window.PROJECTS = [
     "subtitle": "Explore where and when historical UFO reports were recorded.",
     "metaDescription": "Explore historical UFO report records in Tableau, with geographic, seasonal, time-of-day, and reported-shape comparisons for the contiguous U.S.",
     "image": "img/projects/ufoDashboard.png",
-    "iconImage": "img/projects/icons/ufoDashboard.png?v=ae6e397c2406",
+    "iconImage": "img/projects/icons/ufoDashboard.png?v=e69e3b95cc4d",
     "imageWidth": 1600,
     "imageHeight": 1120,
     "tools": [
@@ -330,7 +330,7 @@ window.PROJECTS = [
         "label": "Interactive Dashboard"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://nuforc.org/databank/",
         "label": "NUFORC Database",
         "type": "data"
@@ -376,7 +376,7 @@ window.PROJECTS = [
     "subtitle": "Explore early warning signals for ICU strain and the factors behind them.",
     "metaDescription": "Explore historical ICU strain signals in HHS data with an interactive state-level risk demo, XGBoost methods, and documented evaluation limitations.",
     "image": "img/projects/covidAnalysis.png",
-    "iconImage": "img/projects/icons/covidAnalysis.png?v=9f13fa761f39",
+    "iconImage": "img/projects/icons/covidAnalysis.png?v=b98d5c0231de",
     "imageWidth": 1446,
     "imageHeight": 1446,
     "videoWebm": "img/projects/covidAnalysis.webm",
@@ -394,12 +394,12 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Covid-Analysis",
         "label": "GitHub"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/covid-outbreak-demo",
         "label": "Live Demo"
       },
@@ -409,7 +409,7 @@ window.PROJECTS = [
         "label": "Current Notebook (GitHub)"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u",
         "label": "HHS Dataset",
         "type": "data"
@@ -495,7 +495,7 @@ window.PROJECTS = [
     "subtitle": "Locate retail shrink hotspots and compare trends over time.",
     "metaDescription": "Explore an anonymized retail shrink dashboard that compares empty-package incident counts, retail value, locations, and trends over time.",
     "image": "img/projects/targetEmptyPackage.png",
-    "iconImage": "img/projects/icons/targetEmptyPackage.png?v=fe4215c27311",
+    "iconImage": "img/projects/icons/targetEmptyPackage.png?v=ffffe9b8b0cd",
     "imageWidth": 1460,
     "imageHeight": 1460,
     "videoWebm": "img/projects/targetEmptyPackage.webm",
@@ -524,7 +524,7 @@ window.PROJECTS = [
         "label": "Excel"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/target-empty-package-demo",
         "label": "Live Demo"
       }
@@ -575,7 +575,7 @@ window.PROJECTS = [
     "subtitle": "Explore how confidently a model recognizes your handwritten digits.",
     "metaDescription": "Try a handwritten-digit recognition demo and compare MNIST results with a small personal handwriting sample. Review the methods and limitations.",
     "image": "img/projects/handwritingRating.png",
-    "iconImage": "img/projects/icons/handwritingRating.png?v=582853161647",
+    "iconImage": "img/projects/icons/handwritingRating.png?v=25918dc175e2",
     "imageWidth": 1138,
     "imageHeight": 1138,
     "videoWebm": "img/projects/handwritingRating.webm",
@@ -596,12 +596,12 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Handwriting-Rating",
         "label": "GitHub"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/handwriting-rating-demo",
         "label": "Live Demo"
       },
@@ -616,7 +616,7 @@ window.PROJECTS = [
         "label": "Notebook"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.tensorflow.org/datasets/catalog/mnist",
         "label": "MNIST Dataset",
         "type": "data"
@@ -693,7 +693,7 @@ window.PROJECTS = [
     "subtitle": "Generate new handwritten-style digits and explore how a model learns their shapes.",
     "metaDescription": "Generate MNIST-style handwritten digits with a variational autoencoder. Explore the live demo, training approach, and model limitations.",
     "image": "img/projects/digitGenerator.png",
-    "iconImage": "img/projects/icons/digitGenerator.png?v=f26866af05d5",
+    "iconImage": "img/projects/icons/digitGenerator.png?v=39beb57fcde0",
     "imageWidth": 1470,
     "imageHeight": 1470,
     "videoWebm": "img/projects/digitGenerator.webm",
@@ -712,12 +712,12 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Handwritten-Digit-Generator",
         "label": "GitHub"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/digit-generator-demo",
         "label": "Live Demo"
       },
@@ -799,8 +799,8 @@ window.PROJECTS = [
     "title": "Sheet Music Watermark Removal & Upscale",
     "subtitle": "Restore sheet-music scans and make small notation easier to read.",
     "metaDescription": "Compare original, restored, and upscaled sheet-music scans. Explore the U-Net and VDSR workflow, project code, and evaluation limitations.",
-    "image": "img/projects/sheetMusicUpscale.png?v=7328193a7824",
-    "iconImage": "img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad",
+    "image": "img/projects/sheetMusicUpscale.png?v=854f9a56864c",
+    "iconImage": "img/projects/icons/sheetMusicUpscale.png?v=72c57065af22",
     "imageWidth": 1600,
     "imageHeight": 900,
     "previewComparison": {
@@ -899,7 +899,7 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Watermark-Remover",
         "label": "GitHub"
       },
@@ -951,7 +951,7 @@ window.PROJECTS = [
     "subtitle": "Compare delivery shifts and neighborhoods to plan where and when to work.",
     "metaDescription": "Explore an Excel analysis of delivery shifts and neighborhoods built from personal delivery records to inform where and when to work.",
     "image": "img/projects/deliveryTip.png",
-    "iconImage": "img/projects/icons/deliveryTip.png?v=e035f25cb792",
+    "iconImage": "img/projects/icons/deliveryTip.png?v=bef4109277ea",
     "imageWidth": 960,
     "imageHeight": 794,
     "tools": [
@@ -997,7 +997,7 @@ window.PROJECTS = [
     "subtitle": "Bring store data together to spot unusual loss and sales patterns.",
     "metaDescription": "Explore a retail loss and sales data pipeline with an interactive dashboard for comparing stores, spotting unusual patterns, and planning investigations.",
     "image": "img/projects/retailStore.png",
-    "iconImage": "img/projects/icons/retailStore.png?v=8e0cf4b2dfa1",
+    "iconImage": "img/projects/icons/retailStore.png?v=4b1b3b8c44ef",
     "imageWidth": 1410,
     "imageHeight": 1410,
     "videoWebm": "img/projects/retailStore.webm",
@@ -1017,7 +1017,7 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/target-packaging-analysis-mssql",
         "label": "GitHub"
       },
@@ -1032,7 +1032,7 @@ window.PROJECTS = [
         "label": "Notebook"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/retail-loss-sales-demo",
         "label": "Live Demo"
       }
@@ -1089,7 +1089,7 @@ window.PROJECTS = [
     "subtitle": "Explore which delivery and weather factors are associated with larger tips.",
     "metaDescription": "Explore regression models of delivery tips using delivery records and weather data, with methods, findings, and limits on interpretation.",
     "image": "img/projects/pizza.png",
-    "iconImage": "img/projects/icons/pizza.png?v=478ab0f3d86a",
+    "iconImage": "img/projects/icons/pizza.png?v=425800be9bae",
     "imageWidth": 1398,
     "imageHeight": 1398,
     "videoWebm": "img/projects/pizza.webm",
@@ -1107,7 +1107,7 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/pizza-tips-demo",
         "label": "Live Demo"
       },
@@ -1164,7 +1164,7 @@ window.PROJECTS = [
     "subtitle": "Personalized name recommendations from family preferences and naming trends.",
     "metaDescription": "Explore a baby-name recommendation model built from family preferences and historical naming trends, with an interactive demo and project notes.",
     "image": "img/projects/babynames.png",
-    "iconImage": "img/projects/icons/babynames.png?v=7fc79e6e3331",
+    "iconImage": "img/projects/icons/babynames.png?v=a1972b54dcd2",
     "imageWidth": 1238,
     "imageHeight": 1238,
     "videoWebm": "img/projects/babynames.webm",
@@ -1181,12 +1181,12 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/baby-names-demo",
         "label": "Live Demo"
       },
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Baby-Names",
         "label": "GitHub"
       },
@@ -1201,7 +1201,7 @@ window.PROJECTS = [
         "label": "Notebook"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.ssa.gov/oact/babynames/",
         "label": "SSA Baby Names Data",
         "type": "data"
@@ -1249,7 +1249,7 @@ window.PROJECTS = [
     "subtitle": "Explore recorded tips, city comparisons, and monthly delivery history.",
     "metaDescription": "Explore 1,251 historical pizza delivery records in Tableau, with tip summaries, city comparisons, a tip distribution, and monthly delivery counts.",
     "image": "img/projects/pizzaDashboard.png",
-    "iconImage": "img/projects/icons/pizzaDashboard.png?v=4e01e3d6a7f6",
+    "iconImage": "img/projects/icons/pizzaDashboard.png?v=290c248e01e7",
     "imageWidth": 1600,
     "imageHeight": 1133,
     "tools": [
@@ -1313,7 +1313,7 @@ window.PROJECTS = [
     "subtitle": "Watch a trained agent work through a five-by-five picture puzzle.",
     "metaDescription": "Watch a trained agent solve five-by-five Nonogram puzzles and explore the reinforcement-learning approach, demo, and evaluation limitations.",
     "image": "img/projects/nonogram.png",
-    "iconImage": "img/projects/icons/nonogram.png?v=d8d2122f3f7f",
+    "iconImage": "img/projects/icons/nonogram.png?v=f5404d1edd34",
     "imageWidth": 1228,
     "imageHeight": 1228,
     "videoWebm": "img/projects/nonogram.webm",
@@ -1332,12 +1332,12 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/Nonogram-Solver",
         "label": "GitHub"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/nonogram-demo",
         "label": "Live Demo"
       },
@@ -1423,7 +1423,7 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/minesweeper-demo.html",
         "label": "Live Demo"
       },
@@ -1466,8 +1466,8 @@ window.PROJECTS = [
     "title": "danielshort.me",
     "subtitle": "A home for practical tools, personal projects, and browser experiments.",
     "metaDescription": "Explore how Daniel Short built this portfolio with practical browser tools, a searchable project library, shared navigation, and generated pages.",
-    "image": "img/projects/website.png?v=020a43cd1f27",
-    "iconImage": "img/projects/icons/website.png?v=5ee2dd9327e1",
+    "image": "img/projects/website.png?v=5710e6017a6f",
+    "iconImage": "img/projects/icons/website.png?v=4674b5d40ac6",
     "imageWidth": 1600,
     "imageHeight": 1000,
     "tools": [
@@ -1484,12 +1484,12 @@ window.PROJECTS = [
     ],
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/danielshort3.github.io",
         "label": "GitHub"
       },
       {
-        "icon": "img/icons/website-icon.png",
+        "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "/",
         "label": "Live Site"
       }
@@ -1520,7 +1520,7 @@ window.PROJECTS = [
     "subtitle": "A mobile companion for my projects, tools, and games.",
     "metaDescription": "Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download.",
     "image": "img/projects/androidApp.png",
-    "iconImage": "img/projects/icons/androidApp.png?v=162c534d07c5",
+    "iconImage": "img/projects/icons/androidApp.png?v=46a46841e5c6",
     "imageWidth": 1600,
     "imageHeight": 1000,
     "imageAlt": "Screens from the Daniel Short Android app showing its native interface.",
@@ -1536,7 +1536,7 @@ window.PROJECTS = [
     "androidReleaseChannel": "review",
     "resources": [
       {
-        "icon": "img/icons/github-icon.png",
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
         "url": "https://github.com/danielshort3/danielshort3.github.io/tree/main/mobile/android",
         "label": "Android source on GitHub"
       }

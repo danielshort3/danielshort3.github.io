@@ -1,6 +1,7 @@
 {
   "/": [],
   "/contact": [
+    "css/components/contact-layout.css",
     "css/components/contact-card.css"
   ],
   "/solutions": [
@@ -44,6 +45,9 @@
   ],
   "/portfolio/*": [
     "css/components/project-page.css"
+  ],
+  "/portfolio/deliveryTip": [
+    "css/components/project-image-viewer.css"
   ],
   "/short-links": [
     "css/components/short-links.css"

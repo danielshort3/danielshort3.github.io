@@ -40,14 +40,16 @@ async function main() {
       const original = fs.readFileSync(path.join(root, relative));
       const optimized = fs.readFileSync(path.join(root, variant));
       const [before, after] = await Promise.all([sharp(original).metadata(), sharp(optimized).metadata()]);
-      assert.equal(after.width, before.width, `${relative} width`);
-      assert.equal(after.height, before.height, `${relative} height`);
+      const targetWidth = directory === 'img/games/icons' ? Math.min(128, before.width) : before.width;
+      const targetHeight = Math.round(before.height * targetWidth / before.width);
+      assert.equal(after.width, targetWidth, `${relative} width preserves the display-density contract`);
+      assert.equal(after.height, targetHeight, `${relative} height preserves the authored aspect ratio`);
       assert.equal(after.hasAlpha, before.hasAlpha, `${relative} alpha channel`);
       if (before.hasAlpha) {
         const [beforeAlpha, afterAlpha] = await Promise.all([
-          sharp(original).extractChannel('alpha').raw().toBuffer(), sharp(optimized).extractChannel('alpha').raw().toBuffer()
+          sharp(original).resize({ width: targetWidth, withoutEnlargement: true }).extractChannel('alpha').raw().toBuffer(), sharp(optimized).extractChannel('alpha').raw().toBuffer()
         ]);
-        assert(beforeAlpha.equals(afterAlpha), `${relative} keeps exact transparency`);
+        assert(beforeAlpha.equals(afterAlpha), `${relative} keeps the resized source transparency exactly`);
       }
       assert(optimized.length < original.length, `${relative} candidate must save bytes`);
       assert(icons.render(`<img src="${versionedImageUrl(relative)}" alt="">`).includes(`${variant}?v=`));
@@ -57,7 +59,7 @@ async function main() {
     }
   }
   assert(count > 30, 'project, tool and game catalogs are represented');
-  console.log(`Catalog icons: ${count} native fallbacks/dimensions/alpha verified; ${originalBytes} -> ${optimizedBytes} bytes (${((1 - optimizedBytes / originalBytes) * 100).toFixed(1)}% smaller).`);
+  console.log(`Catalog icons: ${count} PNG fallbacks, display-density dimensions and alpha verified; ${originalBytes} -> ${optimizedBytes} bytes (${((1 - optimizedBytes / originalBytes) * 100).toFixed(1)}% smaller).`);
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; });

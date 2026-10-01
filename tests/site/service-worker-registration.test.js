@@ -55,6 +55,23 @@ function testMetadataGeneration() {
 }
 
 function testToolPolicies() {
+  const bootstrapSource = read('js/common/no-js.js').trim().replace(/<\/script/gi, '<\\/script').replace(/\r\n/g, '\n');
+  function assertToolScripts(html, label, name) {
+    for (const tag of scriptTags(html).filter(executable)) {
+      const src = attribute(tag[1], 'src');
+      if (src) {
+        assert(!/^https?:\/\//i.test(src), `${label} must keep initial tool scripts on the same origin`);
+        continue;
+      }
+      const hasPolicy = (entry) => entry.headers.some((header) => header.key === 'Content-Security-Policy');
+      const rule = vercel.headers.find((entry) => entry.source === `/tools/${name}` && hasPolicy(entry))
+        || vercel.headers.find((entry) => entry.source.startsWith('/:path((?!') && hasPolicy(entry));
+      const policy = rule?.headers.find((header) => header.key === 'Content-Security-Policy')?.value || '';
+      assert(directive(policy, 'script-src-elem').includes("'unsafe-inline'"), `${label} must respect its CSP`);
+      assert.equal(attribute(tag[1], 'data-site-bootstrap'), 'early', `${label} may inline only the classified startup script`);
+      assert.equal(tag[2].trim().replace(/\r\n/g, '\n'), bootstrapSource, `${label} must use the authoritative startup script`);
+    }
+  }
   const toolPages = [...new Set(vercel.rewrites
     .filter((rule) => /^\/tools\//.test(rule.source) && !rule.source.includes(':'))
     .map((rule) => /^\/pages\/([^/?]+)/.exec(rule.destination)?.[1]?.replace(/\.html$/, ''))
@@ -64,18 +81,13 @@ function testToolPolicies() {
     const file = `pages/${name}.html`;
     const html = read(file);
     assertRegistration(html, file);
-    for (const tag of scriptTags(html).filter(executable)) {
-      assert(attribute(tag[1], 'src'), `${file} must keep executable scripts external`);
-      assert(!/^https?:\/\//i.test(attribute(tag[1], 'src')), `${file} must keep initial tool scripts on the same origin`);
-    }
+    assertToolScripts(html, file, name);
     assert.doesNotMatch(html, /<style\b/i, `${file} must not depend on an inline style block`);
     assert.doesNotMatch(html, /<[^>]+\son[a-z]+\s*=/i, `${file} must not use event-handler attributes blocked by script-src-attr`);
     if (process.argv.includes('--public')) {
       const output = read(`public/${file}`);
       assertRegistration(output, `public/${file}`);
-      for (const tag of scriptTags(output).filter(executable)) {
-        assert(attribute(tag[1], 'src'), `public/${file} must not regain inline executable scripts during the build`);
-      }
+      assertToolScripts(output, `public/${file}`, name);
     }
   }
   if (process.argv.includes('--public')) {
