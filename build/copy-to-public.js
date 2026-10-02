@@ -184,7 +184,8 @@ function collectDistArtifacts(cssManifest, jsManifest) {
     'site-sitemap.js',
     'site-privacy.js',
     'site-tools-account.js',
-    'site-tools-landing.js'
+    'site-tools-landing.js',
+    'wayfarers-guild.js'
   ].forEach((fileName) => artifacts.add(fileName));
 
   return [...artifacts]

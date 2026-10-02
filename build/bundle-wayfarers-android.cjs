@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..');
-const MODULES = ['numbers', 'content', 'core', 'persistence', 'billing', 'rewarded', 'icons', 'scene', 'app'];
+const MODULES = ['numbers', 'content', 'expeditions', 'core', 'persistence', 'billing', 'rewarded', 'icons', 'scene', 'expedition-scene', 'expedition-ui', 'app'];
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
 function bundle(output) {

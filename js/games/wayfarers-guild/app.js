@@ -45,6 +45,7 @@
     const loaded = store.load({ deferOffline: awaitingPurchaseWallet });
     let state = loaded.state || core.createState(Date.now());
     let view = core.getView(state);
+    let expeditionUI = null;
     let tab = 'trail';
     let room = 'mine';
     let overview = false;
@@ -176,6 +177,7 @@
 
     function announce(message) {
       if (!message) return;
+      if (expeditionUI) expeditionUI.notify(message);
       set('[data-status]', message);
       q('[data-status]').dataset.visible = 'true';
       root.clearTimeout(noticeTimer);
@@ -281,6 +283,11 @@
     }
     function renderIntroduction() {
       const entries = presentation().introductions || [];
+      if (expeditionUI) {
+        if (entries.length) core.act(state, { type:'introduction-seen', ids:entries.map(entry => entry.id) });
+        q('[data-teaching]').hidden = true;
+        return;
+      }
       if (!entries.length || awaitingPurchaseWallet || !q('[data-find-feedback]').hidden || pendingFinds.some(item => ['rare', 'epic', 'legendary'].includes(item.rarity))) return;
       const previous = state.introductions && JSON.parse(JSON.stringify(state.introductions));
       const result = core.act(state, { type: 'introduction-seen', ids: entries.map(item => item.id) });
@@ -843,7 +850,7 @@
       announce(view.goal.description);
     }
     function showFindFeedback() {
-      if (!pendingFinds.length || disposed || dialog.open || document.hidden) return;
+      if (!pendingFinds.length || disposed || dialog.open || expeditionUI && expeditionUI.isOpen() || document.hidden) return;
       const ranks = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
       const finds = pendingFinds.splice(0);
       finds.sort((a,b) => (ranks[b.rarity] || 0) - (ranks[a.rarity] || 0));
@@ -1126,7 +1133,7 @@
       renderJournal();
       renderDiscoveries();
       const fraction = view.progression.routePercent || 0;
-      scene.update({ room: tab === 'guild' ? room : 'trail', realm: view.progression.realm, progress: fraction > 1 ? fraction / 100 : fraction, workers: 1, companion: view.progression.companion || null, reducedMotion: quiet || motionQuery.matches });
+      if (!expeditionUI) scene.update({ room: tab === 'guild' ? room : 'trail', realm: view.progression.realm, progress: fraction > 1 ? fraction / 100 : fraction, workers: 1, companion: view.progression.companion || null, reducedMotion: quiet || motionQuery.matches });
       q('[data-scene]').setAttribute('aria-label', tab === 'guild' ? selectedRoom.name + ': ' + selectedRoom.description : 'An adventurer automatically traveling through ' + view.progression.realmName);
       if (dialog.open && ['refit', 'charter'].includes(dialogKind)) renderReset();
       if (dialog.open && dialogKind === 'inspect') renderInspect();
@@ -1136,6 +1143,7 @@
       renderDevelopment();
       updateSaveStatus();
       renderIntroduction();
+      if (expeditionUI) expeditionUI.update(view, { quiet:quiet || motionQuery.matches, saveFailure, awaitingWallet:awaitingPurchaseWallet });
     }
 
     function setSheetFooter(primary, secondary) {
@@ -1151,6 +1159,7 @@
       });
     }
     function openDialog(kind, restore) {
+      if (expeditionUI) expeditionUI.close();
       if (!dialog.open) { opener = document.activeElement; sheetStack.length = 0; }
       else if (!restore && kind === 'inspect' && ['room', 'shop', 'manage'].includes(dialogKind)) sheetStack.push({ kind: dialogKind, room, focus: document.activeElement });
       else if (!restore && kind !== dialogKind) sheetStack.length = 0;
@@ -1201,6 +1210,7 @@
       if (previous.focus && previous.focus.isConnected && previous.focus.getClientRects().length) previous.focus.focus({ preventScroll: true });
     }
     function handleBack() {
+      if (expeditionUI && expeditionUI.handleBack()) return true;
       if (dialog.open) { backSheet(); return true; }
       if (!q('[data-find-feedback]').hidden) { feedbackFind = null; q('[data-find-feedback]').hidden = true; return true; }
       if (['crew', 'research', 'planning'].includes(tab)) { showTab('guild'); return true; }
@@ -1474,8 +1484,18 @@
 
     setMarkup(q('[data-open="settings"]'), icon('settings'));
     setMarkup(q('[data-profession-flow]'), '<span>' + icon('ore') + 'Ore</span><b aria-hidden="true">→</b><span>' + icon('tools') + 'Equipment</span><b aria-hidden="true">→</b><span>' + icon('trail') + 'Routes</span>');
-    if (loaded.offline && loaded.offline.seconds >= 60) renderReturnSummary(loaded.offline.summary, loaded.offline.seconds, loaded.offline.gains);
+    if (root.WayfarersExpeditionUI && root.WayfarersExpeditionScene && view.expedition && view.expedition.local) {
+      expeditionUI = root.WayfarersExpeditionUI.create({
+        element:q('[data-game]'), perform, quiet,
+        openLegacy:openDialog,
+        overlayOpen:() => dialog.open || !q('[data-find-feedback]').hidden,
+        nativeOptions:() => q('.wg-exit').click()
+      });
+      scene.destroy();
+    }
+    if (!expeditionUI && loaded.offline && loaded.offline.seconds >= 60) renderReturnSummary(loaded.offline.summary, loaded.offline.seconds, loaded.offline.gains);
     render();
+    if (expeditionUI) expeditionUI.showReturn(loaded.offline);
     if (rewarded) rewarded.refresh().catch(() => announce('The caravan service could not connect. Saved deliveries will retry when it reconnects.'));
     if (billing && root.WayfarersPlayBilling) billingAction('refresh');
     if (loaded.status === 'new') save();
@@ -1503,6 +1523,7 @@
         if (rewarded) rewarded.destroy();
         if (dialog.open) closeDialog();
         if (billing) billing.destroy();
+        if (expeditionUI) expeditionUI.dispose();
         scene.destroy();
         if (audio) audio.close().catch(() => {});
         overviewScenes.forEach(renderer => renderer.destroy());
