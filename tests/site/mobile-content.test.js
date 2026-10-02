@@ -107,6 +107,16 @@ async function testImageRevisionsAndOutput() {
     const second = createMobileContent(source, { root: tempRoot });
     assert.notStrictEqual(first.projects[0].imageUrl, second.projects[0].imageUrl, 'Changed image bytes invalidate native image caches');
     assert.notStrictEqual(first.revision, second.revision, 'Changed image bytes invalidate the catalog');
+    const iconDirectory = path.join(tempRoot, 'img', 'home-icons');
+    fs.mkdirSync(iconDirectory, { recursive: true });
+    fs.writeFileSync(path.join(iconDirectory, 'guild.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+    source.projects[0].iconImage = 'img/home-icons/guild.svg';
+    const withIcon = createMobileContent(source, { root: tempRoot });
+    assert.match(withIcon.projects[0].iconUrl, /\/img\/home-icons\/guild\.svg\?v=[a-f0-9]{12}$/,
+      'Authored library SVG icons receive the same native cache version as raster art');
+    source.projects[0].iconImage = 'img/projects/guild.svg';
+    assert.equal(createMobileContent(source, { root: tempRoot }).projects[0].iconUrl, '', 'SVG support stays scoped to the authored icon directory');
+    source.projects[0].iconImage = 'https://unapproved.example.com/icon.png';
     const { outputPath } = await generateMobileContent({ root: tempRoot, content: source });
     assert.deepStrictEqual(JSON.parse(fs.readFileSync(outputPath, 'utf8')), second);
     assert(outputPath.endsWith(path.join('dist', 'app-content', 'v1', 'catalog.json')));

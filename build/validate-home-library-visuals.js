@@ -18,7 +18,8 @@ const GENERATED_HOME_LIBRARY_VISUALS = {
     'ocean-wave-simulation': 'wave-parameter-study',
     roulette: 'double-zero-roulette',
     'probability-engine': 'probability-branching',
-    stormbreak: 'olympian-storm-key-art'
+    stormbreak: 'olympian-storm-key-art',
+    'wayfarers-guild': 'pixel-guild-rooms'
   }
 };
 
