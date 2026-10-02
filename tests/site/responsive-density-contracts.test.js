@@ -49,19 +49,19 @@ function runResponsiveDensityContractTests({ assert }) {
   const gamesData = cmsRenderers.buildGamesDirectoryWorkbenchData(gamesPage);
   const gamesBody = cmsRenderers.renderGamesDirectoryBody(gamesPage);
   assert(
-    gamesData.items.length === 6 &&
+    gamesData.items.length === 7 &&
       JSON.stringify(gamesData.items.slice(0, 3).map((game) => game.id)) ===
         JSON.stringify(['project-starfall', 'stellar-dogfight', 'ocean-wave-simulation']) &&
       Object.keys(personalPageGenerator.GAME_PAGE_PATHS).length === 6 &&
       Object.prototype.hasOwnProperty.call(personalPageGenerator.GAME_PAGE_PATHS, 'project-starfall'),
-    'Games should expose six entries with the requested first three and include Starfall in generated routing',
+    'Games should expose seven entries with the requested first three and include Starfall in generated routing',
   );
   assert(
     gamesBody.includes('data-games-directory') &&
       gamesBody.includes('class="games-directory__grid" role="list"') &&
-      countMatches(gamesBody, /<a class="games-directory-card" role="listitem"/g) === 6 &&
+      countMatches(gamesBody, /<a class="games-directory-card" role="listitem"/g) === 7 &&
       gamesBody.includes('project-starfall'),
-    'Games should render a simple six-card list with native launch links',
+    'Games should render a simple seven-card list with native launch links',
   );
   assert(
     !gamesBody.includes('data-directory-workbench') &&
