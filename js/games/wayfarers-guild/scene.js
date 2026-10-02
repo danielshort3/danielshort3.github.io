@@ -132,7 +132,7 @@
         if (portrait) {
           // Preserve the whole trail, including its future Mine entrance. Extra
           // portrait height extends the sky above art anchored to the bottom.
-          portraitArtHeight = Math.min(logicalHeight, WIDTH * backdrop.naturalHeight / backdrop.naturalWidth);
+          portraitArtHeight = WIDTH * backdrop.naturalHeight / backdrop.naturalWidth;
           portraitArtTop = logicalHeight - portraitArtHeight;
           if (portraitArtTop > 0) paint.drawImage(backdrop, 0, 0, backdrop.naturalWidth, 1, 0, 0, WIDTH, portraitArtTop);
           paint.drawImage(backdrop, 0, 0, backdrop.naturalWidth, backdrop.naturalHeight, 0, portraitArtTop, WIDTH, portraitArtHeight);

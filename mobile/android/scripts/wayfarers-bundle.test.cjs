@@ -20,6 +20,9 @@ test('standalone assets use the canonical game bytes and contain no website cach
   assert.match(html, /connect-src 'none'/);
   assert.doesNotMatch(html, /serviceWorker|service-worker|site-consent|analytics|https:\/\/(?!appassets)/);
   assert.doesNotMatch(html, /personal-accordion|personal-game-header/);
+  assert.ok(html.indexOf('wayfarers/persistence.js') < html.indexOf('wayfarers/checkpoint.js'));
+  assert.ok(html.indexOf('wayfarers/native-checkpoint.js') < html.indexOf('wayfarers/checkpoint.js'));
+  assert.ok(html.indexOf('wayfarers/checkpoint.js') < html.indexOf('wayfarers/app.js'));
   for (const name of MODULES) {
     const record = records.find(record => record.path === `wayfarers/${name}.js`);
     assert.equal(record.sha256, sha256(fs.readFileSync(path.join(ROOT, record.source))));
@@ -30,6 +33,58 @@ test('standalone assets use the canonical game bytes and contain no website cach
   for (const image of ['living-trail.webp', 'living-room.webp', 'living-mine.webp', 'actors.png', 'props.png', 'realms.png', 'ui-icons.png']) {
     assert.ok(records.some(record => record.path === `img/wayfarers-guild/${image}`), image);
   }
+});
+
+function checkpointHarness(main, native) {
+  const persistence = require('../../../js/games/wayfarers-guild/persistence.js');
+  const values = new Map(main == null ? [] : [[persistence.SAVE_KEY, main]]);
+  const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
+  const messages = [];
+  const window = { WayfarersStorage: { ...persistence }, WayfarersNativeCheckpoint: native,
+    WayfarersAndroid: { postMessage: text => messages.push(JSON.parse(text)) } };
+  vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'mobile/android/wayfarers/web/checkpoint.js'), 'utf8'), { window, localStorage: storage });
+  return { window, storage, messages, values, key: persistence.SAVE_KEY };
+}
+
+function checkpointEnvelope(createdAt, savedAt, boots = 0) {
+  const core = require('../../../js/games/wayfarers-guild/core.js');
+  const state = core.createState(createdAt);
+  state.lastUpdate = savedAt;
+  state.upgrades.boots = boots;
+  return JSON.stringify({ format: 'wayfarers-guild-save', version: 4, savedAt, state });
+}
+
+test('native checkpoint recovers only a validated latest same-guild save or a reviewed replacement', () => {
+  const old = checkpointEnvelope(1000, 2000);
+  const recent = checkpointEnvelope(1000, 3000, 1);
+  const replacement = checkpointEnvelope(4000, 5000, 2);
+  assert.equal(checkpointHarness(old, { text: recent }).values.get('wayfarers-guild-save-v1'), recent);
+  assert.equal(checkpointHarness(null, { text: recent }).values.get('wayfarers-guild-save-v1'), recent);
+  assert.equal(checkpointHarness(recent, { text: old }).values.get('wayfarers-guild-save-v1'), recent);
+  assert.equal(checkpointHarness(old, { text: replacement }).values.get('wayfarers-guild-save-v1'), old);
+  assert.equal(checkpointHarness(old, { text: replacement, replacesCreatedAt: 1000 }).values.get('wayfarers-guild-save-v1'), replacement);
+  assert.equal(checkpointHarness(old, { text: '{}' }).values.get('wayfarers-guild-save-v1'), old);
+  const unsupported = JSON.stringify({ ...JSON.parse(old), version: 99 });
+  assert.equal(checkpointHarness(unsupported, { text: recent }).values.get('wayfarers-guild-save-v1'), unsupported);
+});
+
+test('native checkpoint mirrors successful canonical saves and explicitly reviewed imports', () => {
+  const old = checkpointEnvelope(1000, 2000);
+  const h = checkpointHarness(old, null);
+  const store = h.window.WayfarersStorage.createStore({ storage: h.storage, now: () => 3000 });
+  const loaded = store.load();
+  loaded.state.upgrades.boots = 1;
+  assert.equal(store.save(loaded.state).ok, true);
+  assert.equal(h.messages.length, 1);
+  assert.equal(JSON.parse(h.messages[0].text).state.upgrades.boots, 1);
+  assert.equal(h.window.WayfarersCheckpoint.confirmed(), false);
+  h.window.WayfarersAndroid.onmessage({ data: JSON.stringify({ type: 'checkpoint', requestId: 1, ok: true }) });
+  assert.equal(h.window.WayfarersCheckpoint.confirmed(), true);
+  assert.equal(store.save({}).ok, false);
+  assert.equal(h.messages.length, 1);
+  assert.equal(store.replaceImport(checkpointEnvelope(4000, 5000, 2)).persisted, true);
+  assert.equal(h.messages[1].replacesCreatedAt, 1000);
+  assert.equal(JSON.parse(h.messages[1].text).state.createdAt, 4000);
 });
 
 test('Wayfarers release profile retains strict identity and reconstructs a separate signed product', () => {

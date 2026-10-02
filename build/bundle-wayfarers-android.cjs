@@ -26,15 +26,18 @@ function bundle(output) {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <base href="/assets/"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'self'">
 <title>Wayfarers’ Guild</title><link rel="stylesheet" href="wayfarers/game.css"><link rel="stylesheet" href="wayfarers/android.css">
-${MODULES.map(name => `<script defer src="wayfarers/${name}.js"></script>`).join('\n')}
+${MODULES.map(name => `<script defer src="wayfarers/${name}.js"></script>${name === 'persistence' ? '\n<script defer src="wayfarers/native-checkpoint.js"></script>\n<script defer src="wayfarers/checkpoint.js"></script>' : ''}`).join('\n')}
 <script defer src="wayfarers/android.js"></script></head><body class="wayfarers-guild-page">${game}</body></html>\n`;
   write('wayfarers/index.html', Buffer.from(html), 'pages/games/wayfarers-guild.html');
+  // Native intercepts this same-origin script with its verified private checkpoint.
+  // The empty fallback keeps exact bundled-content previews independently runnable.
+  write('wayfarers/native-checkpoint.js', Buffer.from('window.WayfarersNativeCheckpoint=null;\n'), 'generated');
   write('wayfarers/game.css', fs.readFileSync(path.join(ROOT, 'css/games/wayfarers-guild.css')), 'css/games/wayfarers-guild.css');
   for (const name of MODULES) {
     const source = `js/games/wayfarers-guild/${name}.js`;
     write(`wayfarers/${name}.js`, fs.readFileSync(path.join(ROOT, source)), source);
   }
-  for (const name of ['android.js', 'android.css']) {
+  for (const name of ['android.js', 'android.css', 'checkpoint.js']) {
     const source = `mobile/android/wayfarers/web/${name}`;
     write(`wayfarers/${name}`, fs.readFileSync(path.join(ROOT, source)), source);
   }

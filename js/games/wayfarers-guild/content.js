@@ -40,6 +40,14 @@
     { id: 'supply', name: 'Supply', description: '+85% ore and herbs, +25% coins; travel is 40% slower.' },
     { id: 'discovery', name: 'Discovery', description: '+120% knowledge and maps; travel is 30% slower.' }
   ];
+  // A quick, one-control opening. Starter prices meet the established curve;
+  // the opening's stronger gains taper smoothly to the normal gain per rank.
+  const OPENING = {
+    routeDistances: [120, 450],
+    forgeOre: 8,
+    discounts: { boots: { firstCost: 2.4, untilRank: 16 }, miners: { firstCost: 12, untilRank: 8 }, 'gear-tools': { firstCost: 1, untilRank: 8 }, 'gear-boots': { firstCost: 2, untilRank: 8 } },
+    boots: { untilRank: 8, bonus: 0.17, decay: 0.5 }
+  };
   const UPGRADES = [
     { id: 'boots', room: 'trail', name: 'Improve travel boots', description: '+28% travel and +18% coins per level.', resource: 'coins', base: 20, scale: 1.65 },
     { id: 'preparation', room: 'trail', name: 'Field preparation', description: '+15% travel per level. Rebuilt after Refit.', resource: 'coins', base: 150, scale: 1.9, at: 2 },
@@ -181,5 +189,5 @@
     { id: 'cartography', label: 'Map Room and route plans', effect: 'Choose route rewards, spend maps on one-route preparations, and target missing relics.', action: { type: 'ui', tab: 'guild', room: 'cartography' } },
     { id: 'charter', label: 'Guild Charter', effect: 'Review the deeper renewal. Crests buy lasting capabilities; the preview lists every retained and reset system.', action: { type: 'ui', tab: 'journey', journal: 'renewals' } }
   ];
-  return { RESOURCES, ROOMS, REALMS, ROUTES, MODES, UPGRADES, RESEARCH, RECIPES, SPECIALISTS, COMPANIONS, DOCTRINES, CHALLENGES, REFIT_UPGRADES, LEGACY_UPGRADES, AUTOMATIONS, PREMIUM_ITEMS, PREMIUM_MILESTONES, RELICS, LUCK_RESEARCH, KITS, PROJECTS, CAPABILITIES, PREPARATIONS, PRESENTATION_SYSTEMS };
+  return { RESOURCES, ROOMS, REALMS, ROUTES, MODES, OPENING, UPGRADES, RESEARCH, RECIPES, SPECIALISTS, COMPANIONS, DOCTRINES, CHALLENGES, REFIT_UPGRADES, LEGACY_UPGRADES, AUTOMATIONS, PREMIUM_ITEMS, PREMIUM_MILESTONES, RELICS, LUCK_RESEARCH, KITS, PROJECTS, CAPABILITIES, PREPARATIONS, PRESENTATION_SYSTEMS };
 });
