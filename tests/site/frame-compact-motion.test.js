@@ -28,6 +28,9 @@ for (const audience of ['personal', 'analytics', 'data-science', 'tourism']) {
   }
 }
 const immersiveSource = { dataset: {}, querySelector: () => null, querySelectorAll: () => [] };
+check(descriptionContext.describe({ body: { dataset: { personalItem: 'wayfarers-guild' } },
+  querySelector: (selector) => selector === '[data-personal-accordion-shell]' ? immersiveSource : null }).presentation === 'game',
+  'The game route adopts its game-owned presentation on direct and soft loads.');
 check(descriptionContext.describe({ body: { dataset: { personalFit: 'immersive' } },
   querySelector: (selector) => selector === '[data-personal-accordion-shell]' ? immersiveSource : null }).fit === 'immersive',
   'Explicitly immersive route metadata remains exempt from the bounded frame.');
@@ -126,6 +129,17 @@ check(order.every(id => layoutTabs.get(id).hidden === (id !== 'tools')) &&
   configurationContext.stage.style.gridTemplateColumns === '68px minmax(0, 1fr)',
   'Desktop detail keeps its active rail beside the full-width content panel.');
 layoutDocument.body.classList.contains = () => false;
+for (const compact of [false, true]) {
+  configurationContext.compactQuery.matches = compact;
+  configurationContext.configure({ audience: 'personal', category: 'games', view: 'detail', home: false, presentation: 'game' });
+  check(order.every(id => layoutTabs.get(id).hidden && layoutTabs.get(id).inert && layoutTabs.get(id).tabIndex === -1) &&
+    configurationContext.frame.dataset.framePresentation === 'game' && configurationContext.slot.style.gridArea === '1 / 1',
+    'Game presentation removes every website rail from layout and focus at both sizes.');
+  configurationContext.configure({ audience: 'personal', category: 'games', view: 'detail', home: false, presentation: 'site' });
+  check(configurationContext.frame.dataset.framePresentation === 'site' && !layoutTabs.get('games').hidden,
+    'Leaving gameplay restores ordinary website navigation.');
+}
+configurationContext.compactQuery.matches = false;
 
 let adoptedCommit;
 const hardManifest = { id: 'tools:transcribe', path: '/tools/transcribe', navigation: 'hard' };

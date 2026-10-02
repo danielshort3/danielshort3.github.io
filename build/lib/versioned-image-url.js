@@ -7,6 +7,7 @@ const repositoryRoot = path.resolve(__dirname, '../..');
 const toolIcon = /^img\/tools\/icons\/[a-z0-9_-]+\.(?:png|webp|avif)$/i;
 const projectIcon = /^img\/projects\/icons\/[a-z0-9_-]+\.png$/i;
 const gameIcon = /^img\/games\/icons\/[a-z0-9_-]+\.png$/i;
+const libraryIcon = /^img\/home-icons\/[a-z0-9_-]+\.svg$/i;
 const sheetPoster = /^img\/projects\/sheetMusicUpscale(?:-(?:640|960))?\.(?:png|webp|avif)$/;
 const sheetStage = /^img\/projects\/sheetMusicUpscale-(?:original|watermark-removed|upscaled)-(?:full|comparison)\.webp$/;
 const projectPreview = /^img\/projects\/[a-z0-9-]+-preview\.webp$/i;
@@ -16,7 +17,7 @@ function versionedImageUrl(value, { root = repositoryRoot } = {}) {
   if (typeof value !== 'string') return value;
   const pathname = value.replace(/[?#].*$/, '');
   const relative = pathname.replace(/^\//, '');
-  if (!toolIcon.test(relative) && !projectIcon.test(relative) && !gameIcon.test(relative) && !sheetPoster.test(relative) && !sheetStage.test(relative) && !projectPreview.test(relative) && !websitePoster.test(relative)) return value;
+  if (!toolIcon.test(relative) && !projectIcon.test(relative) && !gameIcon.test(relative) && !libraryIcon.test(relative) && !sheetPoster.test(relative) && !sheetStage.test(relative) && !projectPreview.test(relative) && !websitePoster.test(relative)) return value;
   // Responsive encoders run after CMS generation. Their source PNG is the
   // stable generation key, so build order cannot fingerprint stale variants.
   const source = sheetPoster.test(relative) ? 'img/projects/sheetMusicUpscale.png'
