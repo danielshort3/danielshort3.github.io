@@ -59,7 +59,9 @@ function imageUrl(value, root, origin, preferPreview = false) {
   const safeUrl = publicHttpsUrl(value, origin);
   if (!safeUrl) return '';
   const url = new URL(safeUrl);
-  if (!SITE_HOSTS.has(url.hostname) || !/^\/img\/(?:projects|tools|games|hero|brand)\/[a-z\d_./-]+\.(?:png|jpe?g|webp|avif)$/i.test(url.pathname)) return '';
+  const raster = /^\/img\/(?:projects|tools|games|hero|brand)\/[a-z\d_./-]+\.(?:png|jpe?g|webp|avif)$/i;
+  const libraryIcon = /^\/img\/home-icons\/[a-z\d_-]+\.svg$/i;
+  if (!SITE_HOSTS.has(url.hostname) || (!raster.test(url.pathname) && !libraryIcon.test(url.pathname))) return '';
   let relative = url.pathname.slice(1);
   if (preferPreview) {
     const variant = relative.replace(/\.[^.]+$/, '-640.webp');

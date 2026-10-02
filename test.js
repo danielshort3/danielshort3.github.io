@@ -39595,8 +39595,8 @@ try {
 
     assert(gamesHtml.includes('data-games-directory') &&
       gamesHtml.includes('class="games-directory__grid" role="list"') &&
-      (gamesHtml.match(/<a class="games-directory-card" role="listitem"/g) || []).length === 6,
-      'games page should render the six-card directory including Project Starfall');
+      (gamesHtml.match(/<a class="games-directory-card" role="listitem"/g) || []).length === 7,
+      'games page should render the seven-card directory including Wayfarers Guild');
     assert(!gamesHtml.includes('data-directory-workbench') &&
       !gamesHtml.includes('data-portfolio-search') &&
       !gamesHtml.includes('data-portfolio-sort') &&

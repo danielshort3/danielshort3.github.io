@@ -1007,11 +1007,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const expectedLibraryCounts = {
     projects: 16,
     tools: 10,
-    games: 6
+    games: 7
   };
   assert(JSON.stringify(Object.fromEntries(Object.entries(homeLibraryData)
     .map(([id, library]) => [id, library.items?.length || 0]))) === JSON.stringify(expectedLibraryCounts),
-  'generated HOME_LIBRARY_DATA should expose all 16 projects, 10 public tools, and 6 games');
+  'generated HOME_LIBRARY_DATA should expose all 16 projects, 10 public tools, and 7 games');
   const projectGroupNames = [...new Set(homeLibraryData.projects.items.map((item) => item.group))];
   assert(JSON.stringify(projectGroupNames) === JSON.stringify(['Start here', 'Machine learning', 'Data stories', 'Practical applications']) &&
     JSON.stringify(homeLibraryData.projects.items.filter((item) => item.group === 'Start here').map((item) => item.id)) === JSON.stringify(startHereProjectIds),
@@ -1175,8 +1175,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(projectPreviewPaths.length === expectedLibraryCounts.projects &&
     toolIconPaths.length === expectedLibraryCounts.tools &&
     generatedPreviewPaths.length === expectedLibraryCounts.games &&
-    new Set([...projectPreviewPaths, ...toolIconPaths, ...generatedPreviewPaths]).size === 32,
-  'all 32 public library preview paths should remain unique');
+    new Set([...projectPreviewPaths, ...toolIconPaths, ...generatedPreviewPaths]).size ===
+      Object.values(expectedLibraryCounts).reduce((sum, count) => sum + count, 0),
+  'all public library preview paths should remain unique');
   assert(projectPreviewPaths.every((previewPath) => {
     const dimensions = readWebpDimensions(previewPath);
     return dimensions.width === 640 && dimensions.height > 0;
@@ -1191,7 +1192,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     .update(fs.readFileSync(path.join(ROOT, previewPath.replace(/^\/+/, ''))))
     .digest('hex'));
   assert(new Set(previewHashes).size === generatedPreviewPaths.length,
-  'all six public game preview files should have unique visual content');
+  'all public game preview files should have unique visual content');
 
   const cmsPreviewMappings = [
     'image: projectLibraryPreviewAsset(project.image)',
