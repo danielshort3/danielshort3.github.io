@@ -1,0 +1,6 @@
+html,body { margin:0; padding:0; width:100%; height:var(--android-webview-height,100dvh); overflow:hidden; background:#142b43; }
+body { display:flex; }
+.wg-app { flex:1; }
+.wg-exit { font-size:1.2rem; }
+.visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); }
+.wg-dialog::backdrop { background:rgba(10,25,40,.5); }

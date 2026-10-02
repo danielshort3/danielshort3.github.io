@@ -34,7 +34,10 @@ object UpdateManifestParser {
       require(root.strictLong("schemaVersion") == 1L)
       val packageName = root.getString("packageName")
       require(packageName.matches(Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+")))
-      if (root.has("channel")) require(root.getString("channel") == if (packageName.endsWith(".debug")) "review" else "stable")
+      if (root.has("channel")) require(root.getString("channel") == when (packageName) {
+        "me.danielshort.wayfarers" -> "wayfarers"
+        else -> if (packageName.endsWith(".debug")) "review" else "stable"
+      })
       val latestJson = root.getJSONObject("latest")
       val latest = LatestRelease(
         latestJson.positiveLong("versionCode"),
@@ -80,9 +83,10 @@ object UpdateUrlPolicy {
   private val siteHosts = setOf("danielshort.me", "www.danielshort.me")
   private val releaseCdns = setOf("release-assets.githubusercontent.com", "objects.githubusercontent.com")
   private const val RELEASE_PATH = "/danielshort3/danielshort3.github.io/releases/download/"
+  const val WAYFARERS_FEED = "https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json"
 
   fun requireFeedUrl(value: String): URI = validated(value).also {
-    require(it.host.lowercase() in siteHosts && safePath(it).startsWith("/app-updates/") && it.rawQuery == null) { "Unsupported update feed" }
+    require((it.host.lowercase() in siteHosts && safePath(it).startsWith("/app-updates/") && it.rawQuery == null) || value == WAYFARERS_FEED) { "Unsupported update feed" }
   }
 
   fun requirePublishedUrl(value: String): URI = validated(value).also {
@@ -95,7 +99,7 @@ object UpdateUrlPolicy {
   fun requireRedirect(current: URI, location: String, startedAt: URI, feed: Boolean): URI {
     val next = validated(current.resolve(location).toString())
     val startedAtGitHub = startedAt.host.equals("github.com", true) && safePath(startedAt).startsWith(RELEASE_PATH)
-    if (!feed && startedAtGitHub && next.host.lowercase() in releaseCdns) {
+    if (startedAtGitHub && (!feed || startedAt.toString() == WAYFARERS_FEED) && next.host.lowercase() in releaseCdns) {
       require(safePath(next).isNotEmpty())
       return next
     }

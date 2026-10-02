@@ -76,7 +76,9 @@ The collision table is published as a separate content-hashed `project-starfall-
 
 The website feed supplies public catalog content and image references. Published project cards open their first-party website case studies in the app; 11 first-party demos and five games also open their website experiences in an in-app WebView, with existing native adaptations available as alternatives. Nine public tools open their canonical website routes in the Android browser so file handling and account flows remain available; Screen Recorder uses Android's native capture API. Probability Engine opens its website game in the browser and offers the native adaptation because its file import/export is not handled by the in-app WebView. Deployed website changes reach these web experiences after an app version with this routing is installed; native behavior and storage remain separate. Start with the [Android build guide](../mobile/android/README.md) and [native feature guide](../mobile/android/NATIVE_FEATURES.md).
 
-All Kotlin paths below are under [`mobile/android/app/src/main/java/me/danielshort/app/`](../mobile/android/app/src/main/java/me/danielshort/app/).
+Wayfarers also has a separate [standalone Android module](../mobile/android/wayfarers/README.md). It bundles the canonical game for offline play under a stable appassets origin and uses the same verified updater implementation with its own package and feed. Its [Gradle configuration](../mobile/android/wayfarers/build.gradle.kts) owns source-set reuse and bundling through [bundle-wayfarers-android.cjs](../build/bundle-wayfarers-android.cjs); runtime ownership is under `mobile/android/wayfarers/src/main/java/me/danielshort/wayfarers/`. The personal-site app's website routing remains separate.
+
+All main-application Kotlin paths below are under [`mobile/android/app/src/main/java/me/danielshort/app/`](../mobile/android/app/src/main/java/me/danielshort/app/).
 
 | Task | Start here |
 | --- | --- |
