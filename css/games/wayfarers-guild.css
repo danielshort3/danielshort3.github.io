@@ -108,6 +108,7 @@
 .wg-flow>span { display:flex; align-items:center; gap:4px; }
 .wg-flow .wg-icon { font-size:1.25rem; }
 .wg-feature-panel { padding:12px; }
+.wg-stage>.wg-feature-panel { padding-top:60px; }
 .wg-panel-intro { padding:8px 0 16px; font-size:.875rem; }
 .wg-section { margin-top:20px; padding-top:16px; border-top:1px solid var(--wg-line); }
 .wg-section>h3 { font-size:1rem; margin-bottom:10px; }
@@ -264,18 +265,10 @@
 .wg-more-upgrades { display:block; width:100%; min-height:48px; color:#d3e5f2; font-size:.75rem; text-decoration:none; }
 .wg-controls-column>.wg-section,.wg-controls-column>.wg-details { padding:12px; margin:8px -8px -8px; background:var(--wg-paper); color:var(--wg-ink); }
 .wg-controls-column>.wg-section+section,.wg-controls-column>.wg-details+section { margin-top:8px; }
-.wg-game[data-early=true] .wg-topline { grid-template-columns:40px minmax(0,1fr) auto 48px; }
-.wg-game[data-early=true] .wg-exit { min-width:40px; }
-.wg-game[data-early=true] .wg-wallet { grid-column:3; grid-row:1; }
-.wg-game[data-early=true] .wg-resource { display:grid; grid-template-columns:auto auto; gap:2px 4px; }
-.wg-game[data-early=true] .wg-resource-rate { grid-column:1/-1; text-align:right; }
-.wg-game[data-early=true] .wg-utilities { grid-column:4; }
-.wg-game[data-early=true] .wg-controls-column { padding:10px 8px max(12px,env(safe-area-inset-bottom)); }
 @media(min-width:760px) {
   .wg-game { max-width:1100px; border-inline:3px solid #274f70; }
   .wg-topline { grid-template-columns:48px minmax(0,1fr) auto auto; }
   .wg-wallet { grid-column:auto; grid-row:auto; }
-  .wg-game[data-early=true] .wg-topline { grid-template-columns:48px minmax(0,1fr) auto 48px; }
   .wg-play { display:grid; grid-template-columns:minmax(280px,1.2fr) minmax(300px,1fr); align-items:stretch; }
   .wg-controls-column { max-height:none; border-top:0; border-left:3px solid var(--wg-amber); padding:10px; }
   .wg-primary-actions .wg-action { padding:10px 8px; }
@@ -286,18 +279,10 @@
   .wg-goal [data-goal-progress-text] { grid-column:2; grid-row:1; }
   .wg-feature-panel .wg-action-list { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .wg-nav { padding-inline:12%; }
-  .wg-game[data-early=true] { max-width:480px; }
-  .wg-game[data-early=true] .wg-play { display:flex; flex-direction:column; }
-  .wg-game[data-early=true] .wg-controls-column { max-height:48%; border-left:0; border-top:3px solid var(--wg-amber); }
-  .wg-game[data-early=true] .wg-scene-column { height:auto; }
-  .wg-game[data-early=true] .wg-goal-copy { grid-template-columns:minmax(0,1fr); }
-  .wg-game[data-early=true] .wg-goal progress { grid-column:1; grid-row:3; }
-  .wg-game[data-early=true] .wg-goal [data-goal-progress-text] { grid-column:1; grid-row:2; }
 }
 @media(max-width:359px) {
   .wg-topline { padding-inline:4px; gap:2px 4px; }
   .wg-brand { font-size:.875rem; }
-  .wg-game[data-early=true] .wg-brand { font-size:.8125rem; }
   .wg-action-list { gap:8px; }
   .wg-action { padding:8px; }
   .wg-goal { padding:6px; gap:4px; }
@@ -343,3 +328,140 @@
 .wg-brand { overflow-wrap:anywhere; }
 .wg-icon-button>.wg-icon,.wg-nav .wg-icon { font-size:16px; }
 .wg-long-goal { flex-basis:100%; font-size:.75rem; border-top:1px solid var(--wg-line); padding-top:8px; } .wg-goal-options { flex-basis:100%; grid-template-columns:repeat(2,minmax(0,1fr))!important; } .wg-goal-options .wg-action-info { min-height:48px!important; } .wg-goal-options .wg-item-icon { font-size:1.25rem; } .wg-goal-options .wg-action-effect { font-size:.75rem; }
+
+/* The game owns a stable viewport. Unlocks change its contents, never its rows.
+   Only lists and explicit detail sheets scroll; notices float over the world. */
+.wg-game { --wg-tray:224px; grid-template-rows:56px minmax(0,1fr) 60px; max-width:640px; border:0; background:var(--wg-navy); }
+.wg-game .wg-topline { grid-template-columns:48px minmax(0,1fr) auto; grid-template-rows:48px; padding:4px 8px; gap:4px; border-bottom:1px solid #34536b; }
+.wg-brand { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.wg-game .wg-wallet { grid-column:2; grid-row:1; display:flex; flex-wrap:nowrap; justify-content:center; gap:14px; overflow:hidden; }
+.wg-game .wg-resource { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; column-gap:5px; row-gap:0; flex:0 1 auto; }
+.wg-game button.wg-resource { border:0; background:transparent; padding:2px 0; text-align:left; min-height:48px; }
+.wg-record-row small { display:block; font-size:12px; font-weight:400; }
+.wg-game .wg-resource-icon { grid-row:1 / 3; font-size:24px; }
+.wg-game .wg-resource strong { font:800 16px/20px ui-monospace,monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wg-game .wg-resource-rate { grid-column:2; font:500 11px/14px ui-monospace,monospace; text-align:left; white-space:nowrap; }
+.wg-game .wg-wallet:not([data-count="1"]) { gap:8px; }
+.wg-game .wg-wallet:not([data-count="1"]) .wg-resource-icon { font-size:16px; }
+.wg-game .wg-wallet:not([data-count="1"]) .wg-resource strong { font-size:12px; }
+.wg-game .wg-wallet:not([data-count="1"]) .wg-resource-rate { font-size:10px; }
+.wg-game .wg-wallet[data-count="3"] { gap:4px; }
+.wg-game .wg-wallet[data-count="3"] .wg-resource { column-gap:2px; }
+.wg-game .wg-wallet[data-count="3"] .wg-resource strong { font-size:11px; }
+.wg-game .wg-utilities { grid-column:3; }
+.wg-topline .wg-icon-button>.wg-icon { font-size:22px; }
+.wg-topline [data-open=shop] span:not(.wg-icon) { display:none; }
+.wg-stage { position:relative; padding:0; }
+.wg-goal { flex:0 0 64px!important; height:64px; min-height:64px; display:grid; grid-template-columns:minmax(0,1fr) 100px; gap:8px; padding:6px 12px; border-bottom:2px solid #c1ad70; flex-wrap:nowrap; }
+.wg-game .wg-goal-copy { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:20px 16px 6px; gap:2px; min-width:0; }
+.wg-game .wg-goal h2 { font:750 14px/20px system-ui,sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wg-game .wg-goal [data-goal-progress-text] { grid-row:2; grid-column:1; font:500 11px/16px ui-monospace,monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wg-game .wg-goal progress { grid-row:3; grid-column:1; height:6px; }
+.wg-goal-controls { flex-wrap:nowrap; display:flex!important; justify-content:flex-end; gap:4px; min-width:100px; }
+.wg-goal-controls [data-goal-direct] { width:48px; height:48px; min-width:48px; padding:0; font-size:0!important; position:relative; }
+.wg-goal-controls [data-goal-direct]>* { display:none; }
+.wg-goal-controls [data-goal-direct]::after { content:'\2192'; font:800 24px/1 system-ui,sans-serif; }
+.wg-compass { background:transparent; border:0; }
+.wg-compass .wg-icon { font-size:24px; }
+.wg-info-symbol { display:grid; place-items:center; width:22px; height:22px; border:1.5px solid currentColor; border-radius:50%; font:700 14px/1 system-ui,sans-serif; }
+.wg-game .wg-play { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) var(--wg-tray); }
+.wg-game .wg-scene-column { height:auto; min-height:0; }
+.wg-game .wg-controls-column { display:grid; grid-template-rows:48px minmax(0,1fr); gap:0; height:var(--wg-tray); max-height:none; padding:0 12px 12px; border:0; border-top:2px solid #34536b; overflow:hidden; }
+.wg-dock-heading { display:flex; align-items:center; gap:8px; min-width:0; }
+.wg-dock-heading strong { font:700 14px/1.2 system-ui,sans-serif; white-space:nowrap; }
+.wg-dock-heading [data-dock-hint] { flex:1; color:#b9cbd9; font:400 11px/1.3 system-ui,sans-serif; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wg-game .wg-more-upgrades { margin-left:auto; flex-shrink:0; width:48px; height:48px; min-height:48px; padding:0; text-decoration:none; color:var(--wg-cream); }
+.wg-more-upgrades .wg-icon { font-size:24px; }
+.wg-primary-actions { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:minmax(0,1fr); gap:8px; min-height:0; }
+.wg-primary-actions[data-single=true] { grid-template-columns:minmax(0,280px); justify-content:center; }
+.wg-game .wg-primary-actions .wg-action { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:48px 20px minmax(48px,1fr) 16px; gap:2px; min-width:0; padding:6px 8px; border:1px solid #d0bd81; border-radius:6px; background:var(--wg-cream); color:var(--wg-ink); overflow:hidden; }
+.wg-game .wg-primary-actions .wg-action-info { grid-column:1; grid-row:1; min-height:48px!important; height:48px; padding:0; gap:7px; color:var(--wg-ink); }
+.wg-game .wg-primary-actions .wg-action-heading { display:block; min-width:0; }
+.wg-game .wg-primary-actions .wg-action-heading strong { display:block; font:750 14px/20px system-ui,sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wg-game .wg-primary-actions .wg-action-level { display:block; color:#546474; font:500 11px/16px ui-monospace,monospace; white-space:nowrap; }
+.wg-primary-actions .wg-item-icon { flex-shrink:0; font-size:32px; }
+.wg-game .wg-primary-actions button.wg-action-info .wg-info-mark { display:grid; width:16px; height:16px; margin-left:auto; border-color:#718696; color:#466073; }
+.wg-game .wg-primary-actions .wg-action-effect { grid-column:1; grid-row:2; margin:0; padding:0; color:#395d46; font:650 12px/20px system-ui,sans-serif; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.wg-game .wg-primary-actions .wg-action-footer { grid-column:1; grid-row:3; margin:0; min-height:48px; }
+.wg-game .wg-primary-actions .wg-buy { position:relative; flex-direction:row; justify-content:center; gap:8px; width:100%; height:100%; min-height:48px; padding:4px 6px; border:1px solid #ad8127; border-bottom:3px solid #ad8127; border-radius:4px; background:#f6c447; color:#17314a; overflow:hidden; }
+.wg-game .wg-primary-actions .wg-buy:disabled { opacity:1; background:#e9e5d4; border-color:#c6bea7; color:#5a6a72; }
+.wg-game .wg-primary-actions .wg-buy:disabled::before { content:''; position:absolute; inset:0 auto 0 0; width:var(--purchase-progress,0%); background:#e2cd8d; opacity:.5; pointer-events:none; }
+.wg-game .wg-primary-actions .wg-buy>* { position:relative; z-index:1; }
+.wg-primary-actions .wg-buy-costs { display:flex; flex-wrap:wrap; gap:2px 6px; justify-content:center; font-size:12px; line-height:16px; }
+.wg-primary-actions .wg-buy-label { font-size:12px; }
+.wg-primary-actions [data-action-type=buy] .wg-buy-label { font-size:0; }
+.wg-primary-actions [data-action-type=buy] .wg-buy-label::after { content:'+'; font:800 22px/1 system-ui,sans-serif; }
+.wg-game .wg-primary-actions .wg-action-reason { display:block; grid-column:1; grid-row:4; min-height:16px; padding:0; color:#52646c; font:500 10px/16px system-ui,sans-serif; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
+.wg-primary-actions .wg-action[data-ready=true] .wg-action-reason { color:#426a36; }
+.wg-game .wg-activity { left:12px; bottom:12px; border:0; border-radius:4px; padding:4px 8px; max-width:calc(100% - 24px); font:500 11px/16px system-ui,sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wg-game:is([data-early=true]) .wg-activity { display:none; }
+.wg-game .wg-nav { display:flex; justify-content:center; gap:0; height:60px; padding:0 8px; border-top:1px solid #34536b; }
+.wg-game .wg-nav button { flex:1 1 0; max-width:180px; height:60px; padding:5px 4px; flex-direction:column; gap:4px; font:650 11px/14px system-ui,sans-serif; border-radius:0; }
+.wg-game .wg-nav .wg-icon { font-size:22px; }
+.wg-game .wg-nav button[aria-current=page] { background:transparent; box-shadow:inset 0 3px var(--wg-amber); }
+.wg-teaching,.wg-return-summary { position:absolute; z-index:7; top:120px; left:12px; right:12px; margin:0; max-height:min(45%,220px); padding:10px; gap:8px; border:1px solid #b49a53; border-radius:6px; box-shadow:0 4px 20px #142b4333; }
+.wg-teaching { align-items:center; }
+.wg-teaching>div { flex:1; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; column-gap:8px; }
+.wg-teaching strong { grid-column:1; font:750 13px/18px system-ui,sans-serif; }
+.wg-teaching p { grid-column:1; font:450 11px/16px system-ui,sans-serif; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.wg-teaching [data-open-teaching] { grid-column:2; grid-row:1/3; padding:6px 8px; border:1px solid #b79541; background:#f6c447; border-radius:4px; text-decoration:none; color:#17314a; font-size:12px; }
+.wg-teaching-details { display:none; }
+.wg-teaching>[data-teaching-icon] { font-size:28px; }
+.wg-teaching .wg-icon-button { margin:0; width:48px; min-width:48px; align-self:start; }
+.wg-return-summary h2 { font:750 14px/20px system-ui,sans-serif; }
+.wg-return-summary p,.wg-return-summary summary { font-size:12px; }
+.wg-status { position:absolute; z-index:6; bottom:calc(var(--wg-tray) + 12px); left:16px; right:16px; width:fit-content; max-width:calc(100% - 32px); margin:auto!important; padding:8px 12px!important; border:0!important; border-radius:6px; background:#142b43ed; color:#fff9e9!important; font:500 12px/18px system-ui,sans-serif; pointer-events:none; opacity:0; max-height:60px; overflow:hidden; transition:opacity .2s; }
+.wg-status[data-visible=true]:not(:empty) { opacity:1; }
+.wg-warning { position:absolute; z-index:10; top:120px; left:12px; right:12px; margin:0; padding:8px 12px; max-height:120px; overflow:hidden; border:1px solid #d9ad56; border-radius:6px; font-size:12px; line-height:18px; pointer-events:none; }
+.wg-game .wg-discovery-dock { position:absolute; top:auto; right:8px; bottom:8px; height:48px; align-items:start; flex-wrap:nowrap; border:0; padding:0; }
+.wg-game .wg-discovery-dock .wg-small-dock { width:48px; height:48px; max-height:48px; flex:none; }
+.wg-small-dock { padding:6px; font-size:11px; }
+.wg-small-dock span:not(:first-child) { display:none; }
+.wg-small-dock .wg-icon { font-size:24px; }
+.wg-overview { display:flex; flex-direction:column; background:#72bbee url('/img/wayfarers-guild/living-trail.webp?v=7a796037857e') center bottom/cover no-repeat; padding-top:48px; }
+.wg-room-grid { margin-top:auto; flex-shrink:0; }
+.wg-subnav { position:absolute; z-index:2; top:64px; left:0; right:0; height:48px; }
+.wg-feature-panel { padding:12px; }
+.wg-feature-panel .wg-action-list,.wg-dialog .wg-action-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.wg-feature-panel .wg-action,.wg-dialog .wg-action { padding:8px; }
+.wg-dialog .wg-action-info { gap:5px; }
+.wg-dialog .wg-action-info .wg-item-icon { font-size:16px; }
+.wg-dialog .wg-action-heading strong { font-size:12px; overflow-wrap:normal; }
+.wg-feature-panel .wg-action-effect,.wg-dialog .wg-action-effect { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:12px; line-height:18px; padding:4px 0; }
+.wg-panel-intro { font-size:12px; padding:4px 0 10px; }
+.wg-has-help { position:relative; }
+.wg-has-help>h2,.wg-has-help>h3,.wg-has-help>.wg-panel-heading { padding-right:44px; min-height:40px; }
+.wg-has-help>.wg-context-help { position:absolute; top:0; right:0; width:48px; height:48px; border:0; background:transparent; color:#506477; display:grid; place-items:center; }
+.wg-context-help span { display:grid; place-items:center; border:1px solid currentColor; border-radius:50%; width:18px; height:18px; font:700 12px/1 system-ui,sans-serif; }
+.wg-context-copy { display:none; }
+.wg-action-heading strong { font-family:system-ui,sans-serif; font-size:14px; }
+.wg-action-reason { font-size:11px; }
+.wg-dialog { border-radius:12px 12px 0 0; margin:auto auto 0; width:min(640px,100%); height:min(720px,calc(var(--android-webview-height,100dvh) - 56px)); border:0; }
+.wg-dialog-heading h2 { font-family:system-ui,sans-serif; font-size:16px; }
+.wg-purchased { animation:wg-purchase .45s ease-out; }
+@keyframes wg-purchase { 40% { border-color:#5f983f; box-shadow:inset 0 0 0 2px #7aad54; } }
+.wg-app[data-quiet=true] .wg-purchased { animation:none; }
+@media(max-width:359px) {
+  .wg-game .wg-topline { padding-inline:4px; gap:0; }
+  .wg-game .wg-wallet { gap:8px; }
+  .wg-game .wg-resource strong { font-size:14px; }
+  .wg-game .wg-resource-rate { font-size:10px; }
+  .wg-game .wg-resource-icon { font-size:20px; }
+  .wg-game .wg-controls-column { padding-inline:8px; }
+  .wg-game .wg-primary-actions .wg-action { padding-inline:6px; }
+  .wg-game .wg-primary-actions .wg-action-heading strong { font-size:12px; }
+}
+@media(max-height:550px) and (orientation:landscape) {
+  .wg-game { max-width:1100px; --wg-tray:214px; grid-template-rows:52px minmax(0,1fr) 52px; }
+  .wg-game .wg-topline { padding-block:2px; }
+  .wg-game .wg-play { grid-template-columns:minmax(0,1fr) minmax(260px,40%); grid-template-rows:minmax(0,1fr); }
+  .wg-game .wg-controls-column { height:100%; grid-template-rows:48px minmax(0,1fr); border-top:0; border-left:2px solid #34536b; padding-bottom:6px; }
+  .wg-game .wg-primary-actions { align-content:start; }
+  .wg-game .wg-primary-actions .wg-action { height:164px; grid-template-rows:48px 20px 48px 16px; }
+  .wg-game .wg-nav,.wg-game .wg-nav button { height:52px; }
+  .wg-goal { flex-basis:56px!important; min-height:56px; height:56px; padding-block:2px; }
+  .wg-subnav { top:56px; }
+  .wg-game[data-screen=guild] [data-guild-nav] { right:40%; }
+  .wg-teaching,.wg-return-summary,.wg-warning { top:112px; right:42%; }
+  .wg-status { bottom:8px; right:42%; }
+}

@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.1.1`, version code `2` |
+| Default candidate | `0.2.0`, version code `3` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 
@@ -17,6 +17,8 @@ The namespace preserves the canonical updater's `BuildConfig` import; this modul
 The game remains authored in `pages/games/wayfarers-guild.html`, `js/games/wayfarers-guild/`, `css/games/wayfarers-guild.css`, and `img/wayfarers-guild/`. Gradle's `bundleWayfarers` task calls `build/bundle-wayfarers-android.cjs --output <generated-assets-directory>` and packages its `wayfarers/` tree. No website `public/` build or first network load is required. Treat the appassets origin as a storage contract: changing it would isolate existing WebView saves.
 
 The runtime is under `src/main/java/me/danielshort/wayfarers/`. Its activity and application own the WebView, lifecycle, save-file exchange and native update interface. Its explicit, unexported installer callback receiver lives under `me/danielshort/app/updates/` to satisfy the canonical installer's component reference.
+
+`GuildCheckpointStore.kt` adds a private, atomic, fsynced checkpoint of each successful canonical game save. `web/checkpoint.js` validates the envelope with the canonical parser before mirroring it and before bootstrap recovery; the native wrapper verifies its SHA-256 when reading. A newer valid WebView save wins. Recovery across a different guild identity requires the recorded identity from an explicitly reviewed import. `native-checkpoint.js` is an empty generated fallback for browser previews; the Android asset loader supplies the private checkpoint at that exact same-origin script URL without caching it. Checkpoints contain the normal exported game envelope, never a paid wallet. Lifecycle and installer safety checks finish the native write before reporting success.
 
 `shareUpdaterSources` copies the canonical `app/src/main/java/me/danielshort/app/updates/*.kt` and `data/AppSettings.kt` into an ignored generated source set without rewriting them. It excludes only `AutomaticInstallReceiver.kt`, whose application cast is specific to the main app. `shareUpdaterTests` compiles the original updater JVM tests in this module too. Changes to signatures, exact APK identity, patch verification, download bounds or installer recovery remain owned by the original updater sources; do not fork them here. The main application build configuration is unchanged.
 
@@ -53,6 +55,16 @@ The native **Automatic updates** option follows the shared updater's eligibility
 The manifest permits networking and package installation, disables cleartext traffic and Android backup/transfer, and exposes only the private verified `app-updates/ready/` directory through an unexported FileProvider. It does not request microphone, recording or broad storage access. JSON saves may be opened or shared into the game; the runtime must use inspected import and confirmation before replacing a save. Personal-site app, Android browser and standalone game state remain separate; there is no silent migration.
 
 Source/JVM/lint results, installed offline play and a real in-app baseline-to-candidate upgrade are distinct checks. Preserve a game checkpoint and settings through the installed upgrade before claiming continuity.
+
+Focused game checks run from the repository root:
+
+```powershell
+node tests/games/wayfarers-guild-opening.test.cjs
+node tests/games/wayfarers-guild-mobile.browser.cjs
+node --test mobile/android/scripts/wayfarers-bundle.test.cjs
+```
+
+The mobile browser check builds the same offline assets as the APK, exercises the first purchase and earned controls at five viewport sizes, and checks retained guilds, resource details, upgrade sheets, and long labels. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, and native checkpoint acknowledgement. Run its first-boot case on a fresh disposable emulator; never clear an existing player's data to make that case run.
 
 ## Publish a compatible update
 

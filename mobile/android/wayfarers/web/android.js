@@ -52,6 +52,10 @@
   });
   observer.observe(document.querySelector('[data-dialog-body]'), { childList: true, subtree: true });
   window.WayfarersAndroidUI = {
+    durableSnapshot: function () {
+      if (!window.WayfarersAndroidUI.flush()) return '';
+      return window.WayfarersCheckpoint ? window.WayfarersCheckpoint.snapshot() : '';
+    },
     reviewImport: function (text) {
       document.querySelector('[data-open="settings"]').click();
       const input = document.querySelector('#wg-save-text');

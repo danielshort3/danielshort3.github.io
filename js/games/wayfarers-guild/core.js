@@ -551,7 +551,7 @@
 
   function getRoute(index, state) {
     const revised = state && state.guild && !state.guild.grandfathered;
-    const opening = [1100, 2200, 30000, 350000, 1200000, 200000000000, 100000000000000, 500000000000000, 2000000000000000];
+    const opening = [...C.OPENING.routeDistances, 30000, 350000, 1200000, 200000000000, 100000000000000, 500000000000000, 2000000000000000];
     if (index < C.ROUTES.length) return Object.assign({}, C.ROUTES[index], { distance: revised ? index < opening.length ? N.from(opening[index]) : product(opening[8], power(4, index - 8)) : N.from(C.ROUTES[index].distance) });
     const frontier = index - C.ROUTES.length + 1;
     return { id: 'route-' + index, index, name: 'Frontier ' + frontier, realm: 'frontier', realmName: 'Endless Frontier', tier: 6 + Math.ceil(frontier / 3), material: 'Astral alloy', distance: revised ? product(opening[8], power(4, index - 8)) : product(C.ROUTES[17].distance, power(8, index - 17)), description: 'An endless expedition with stronger gathering tiers and new prestige targets.' };
@@ -592,6 +592,21 @@
     const condition = { mistwood: { id: 'supply', text: 'Mistwood: a field camp bypasses a 25% travel detour.' }, frostpass: { id: 'scout', text: 'Frostpass: scouting bypasses a 30% travel detour.' }, sunkenreach: { id: 'survey', text: 'Sunken Reach: a survey bypasses a 30% travel detour.' }, starfall: { id: 'scout', text: 'Starfall Heights: scouting bypasses a 35% travel detour.' } }[realm];
     return condition ? { text: condition.text + (prepared(state, condition.id) ? ' Preparation active.' : ' Ordinary travel continues.'), factor: prepared(state, condition.id) ? 1 : realm === 'mistwood' ? 0.75 : realm === 'starfall' ? 0.65 : 0.7 } : { text: 'Open paths: no regional detour.', factor: 1 };
   }
+  function bootsMultiplier(state, resource, rank) {
+    const normal = resource === 'travel' ? 1.28 : 1.18;
+    const opening = C.OPENING.boots;
+    if (state.guild.grandfathered) return power(normal, rank);
+    let multiplier = power(normal, Math.max(0, rank - opening.untilRank));
+    for (let index = 0; index < Math.min(rank, opening.untilRank); index += 1) multiplier = N.mul(multiplier, normal + opening.bonus * Math.pow(opening.decay, index));
+    return multiplier;
+  }
+  function forgeOreCost(state) { return state.guild.grandfathered ? 20 : C.OPENING.forgeOre; }
+  function upgradeDescription(state, def) {
+    if (def.id !== 'boots' || state.guild.grandfathered) return def.description;
+    const rank = level(state, 'boots');
+    const percent = resource => Math.round((ratio(bootsMultiplier(state, resource, rank + 1), bootsMultiplier(state, resource, rank)) - 1) * 1000 + 1e-7) / 10;
+    return '+' + percent('travel') + '% travel and +' + percent('coins') + '% coins for the next level.';
+  }
   function getRates(state, unboosted) {
     const rates = dictionary(C.RESOURCES, N.zero);
     const drain = dictionary(C.RESOURCES, N.zero);
@@ -602,8 +617,8 @@
     const collection = power(1.08, state.collections.length);
     const foundations = power(1.3, state.legacy.foundations);
     const specialists = researched(state, 'specialist-training');
-    let travel = product(power(1.28, level(state, 'boots')), power(1.35, equip('gear-boots')), power(1.15, level(state, 'preparation')), power(1.2, state.refitUpgrades.pace), power(1.35, state.legacy.waystones), master('trail'), collection);
-    rates.coins = product(0.3, power(1.18, level(state, 'boots')), power(1.2, equip('gear-boots')), material, foundations, master('trail'), collection);
+    let travel = product(bootsMultiplier(state, 'travel', level(state, 'boots')), power(1.35, equip('gear-boots')), power(1.15, level(state, 'preparation')), power(1.2, state.refitUpgrades.pace), power(1.35, state.legacy.waystones), master('trail'), collection);
+    rates.coins = product(0.3, bootsMultiplier(state, 'coins', level(state, 'boots')), power(1.2, equip('gear-boots')), material, foundations, master('trail'), collection);
     if (unlocked(state, 'mine')) rates.ore = product(state.guild.grandfathered ? 0.025 : 0.018, power(1.32, level(state, 'miners')), power(1.45, equip('gear-tools')), material, power(1.25, state.refitUpgrades.supply), foundations, master('mine'), collection);
     if (unlocked(state, 'forage')) rates.herbs = product(0.025, power(1.35, level(state, 'foragers')), material, power(1.25, state.refitUpgrades.supply), foundations, master('forage'), collection);
     if (unlocked(state, 'study')) rates.knowledge = product(0.015, power(1.35, level(state, 'scholars')), power(1.4, equip('gear-instruments')), material, power(1.25, state.refitUpgrades.insight), power(1.35, state.legacy.curriculum), master('study'), collection);
@@ -685,8 +700,11 @@
   function upgradeCost(state, def) {
     const invested = level(state, def.id);
     // Advanced ranks need disproportionately better supply chains, not just more clicks.
-    // The opening eight purchases keep a simple geometric curve.
+    // Starter discounts close smoothly, meeting the normal curve at a fixed
+    // rank. They do not expire with time, route transitions, or a saved game.
     let price = product(def.base, power(def.scale, invested), power(state.guild.grandfathered ? 1.045 : 1.025, Math.pow(Math.max(0, invested - 8), 2) / (state.guild.grandfathered ? 1 : 1 + Math.max(0, invested - 8) / 40)));
+    const starter = C.OPENING.discounts[def.id];
+    if (!state.guild.grandfathered && starter && invested < starter.untilRank) price = N.mul(price, power(starter.firstCost / def.base, 1 - invested / starter.untilRank));
     if (def.equipment) price = product(price, power(0.95, level(state, 'forge')), researched(state, 'efficient-smelting') ? 0.65 : 1, hasSpecialist(state, 'quartermaster') ? 0.8 : 1, completed(state, 'old-tools') ? 0.85 : 1);
     if (def.equipment && state.luck.active === 'starsteel-anvil') price = N.mul(price, 0.8);
     const costs = { [def.resource]: price };
@@ -1155,8 +1173,8 @@
     if (action.type === 'buy') return purchase(state, action.id);
     if (action.type === 'build-room' && action.id === 'forge') {
       if (!unlocked(state, 'mine') || unlocked(state, 'forge') || state.lifetime.highestRoute < 1) return { ok: false, message: 'Explore Watchtower Road before building the Forge.' };
-      const costs = { ore: N.from(20) };
-      if (!affordable(state, costs)) return { ok: false, message: 'The Forge needs 20 ore from your Mine.' };
+      const costs = { ore: N.from(forgeOreCost(state)) };
+      if (!affordable(state, costs)) return { ok: false, message: 'The Forge needs ' + forgeOreCost(state) + ' ore from your Mine.' };
       spend(state, costs); state.rooms.push('forge'); pushEvent(state, 'Forge built. Ore can now reinforce tools and expedition boots.');
       return { ok: true, message: 'The Forge is ready. Equipment and mining tools share your ore supply.' };
     }
@@ -1287,7 +1305,14 @@
       return Object.assign(base, { title: 'Complete ' + challenge.name, description: challenge.description + ' Follow the fresh expedition from Old Footpath; current route: ' + current.name + '.', action: state.route.index < next ? { type: 'route', id: 'route-' + next, mode: 'frontier' } : null });
     }
     if (!unlocked(state, 'mine')) return Object.assign(base, { title: 'Complete Old Footpath', description: 'Travel happens automatically. Finish Old Footpath to discover the Mine; better boots shorten the journey.', action: level(state, 'boots') < 3 ? { type: 'buy', id: 'boots' } : null });
-    if (!unlocked(state, 'forge')) return Object.assign(base, { title: 'Build the Forge', description: state.lifetime.highestRoute < 1 ? 'Complete Watchtower Road and gather 20 ore. The Mine supplies your first workshop.' : 'Spend 20 ore from the Mine to build the Forge and choose between tools and expedition boots.', progress: Math.min(1, ratio(state.resources.ore, N.from(20))), progressText: N.format(state.resources.ore) + ' / 20 ore', action: { type: 'build-room', id: 'forge' } });
+    if (!unlocked(state, 'forge')) {
+      const ore = forgeOreCost(state);
+      if (!state.guild.grandfathered && !level(state, 'miners')) {
+        const cost = upgradeCost(state, find(C.UPGRADES, 'miners')).coins;
+        return Object.assign(base, { title: 'Hire your first miner', description: 'Hire a miner to increase ore production by 32%. Save ' + ore + ' ore to build the Forge next.', progress: Math.min(1, ratio(state.resources.coins, cost)), progressText: N.format(state.resources.coins) + ' / ' + N.format(cost) + ' coins', action: { type: 'buy', id: 'miners' } });
+      }
+      return Object.assign(base, { title: 'Build the Forge', description: state.lifetime.highestRoute < 1 ? 'Complete Watchtower Road and gather ' + ore + ' ore. The Mine supplies your first workshop.' : 'Spend ' + ore + ' ore from the Mine to build the Forge and choose between tools and expedition boots.', progress: Math.min(1, ratio(state.resources.ore, N.from(ore))), progressText: N.format(state.resources.ore) + ' / ' + ore + ' ore', action: { type: 'build-room', id: 'forge' } });
+    }
     if (!level(state, 'gear-tools') || !level(state, 'gear-boots')) {
       const equipped = Number(level(state, 'gear-tools') > 0) + Number(level(state, 'gear-boots') > 0);
       return Object.assign(base, { title: 'Connect your professions', description: 'Forge tools strengthen the Mine; reinforced boots advance the expedition. Both spend ore.', progress: equipped / 2, progressText: equipped + ' / 2 equipment improvements', action: { type: 'ui', tab: 'guild', room: 'forge' } });
@@ -1384,7 +1409,7 @@
     if (goal.targetCosts) { costs = goal.targetCosts; delete goal.targetCosts; }
     if (goal.action && goal.action.type === 'buy') costs = upgradeCost(state, find(C.UPGRADES, goal.action.id));
     if (goal.action && goal.action.type === 'research') costs = { knowledge: N.from(find(C.RESEARCH, goal.action.id).cost) };
-    if (goal.action && goal.action.type === 'build-room') costs = { ore: N.from(20) };
+    if (goal.action && goal.action.type === 'build-room') costs = { ore: N.from(forgeOreCost(state)) };
     const info = costInfo(state, costs, getRates(state));
     const gatedForge = goal.action && goal.action.type === 'build-room' && state.lifetime.highestRoute < 1;
     const actionLabel = goal.action && goal.action.section === 'projects' ? 'Choose regional project' : goal.action ? goal.action.type === 'plan-goal' ? 'Save for ' + taskDetails(state, goal.action.action).name.toLowerCase() : goal.action.type === 'build-room' ? 'Build the Forge' : goal.action.type === 'project' ? projectName(goal.action.id) : goal.action.type === 'buy' ? find(C.UPGRADES, goal.action.id).name : goal.action.type === 'research' ? 'Research ' + find(C.RESEARCH, goal.action.id).name : goal.action.type === 'automation' ? 'Enable operation upgrades' : goal.action.type === 'route' ? 'Begin next expedition' : 'Review ' + (/charter/i.test(goal.title) ? 'Charter' : 'Refit') : '';
@@ -1425,7 +1450,7 @@
   }
 
   function roomRequirement(state, room) {
-    if (room.id === 'forge') return 'Complete Watchtower Road (route 2), then spend 20 ore from the Mine to build the Forge.';
+    if (room.id === 'forge') return 'Complete Watchtower Road (route 2), then spend ' + forgeOreCost(state) + ' ore from the Mine to build the Forge.';
     const project = C.PROJECTS.find(def => def.room === room.id);
     const route = C.ROUTES[room.at - 1];
     if (!project || state.guild.grandfathered) return 'Complete ' + route.name + ' (route ' + room.at + ').';
@@ -1490,8 +1515,9 @@
       let progress = Math.min(1, (completedRoutes + routePart) / nextRoom.at), progressText = Math.min(completedRoutes, nextRoom.at) + ' / ' + nextRoom.at + ' routes completed';
       let action = { type: 'ui', tab: 'trail' };
       if (nextRoom.id === 'forge' && completedRoutes >= nextRoom.at) {
-        progress = Math.min(1, ratio(state.resources.ore, 20)); progressText = N.format(N.min(state.resources.ore, 20)) + ' / 20 ore';
-        action = affordable(state, { ore: N.from(20) }) ? { type: 'build-room', id: 'forge' } : { type: 'ui', tab: 'guild', room: 'mine' };
+        const ore = forgeOreCost(state);
+        progress = Math.min(1, ratio(state.resources.ore, ore)); progressText = N.format(N.min(state.resources.ore, ore)) + ' / ' + ore + ' ore';
+        action = affordable(state, { ore: N.from(ore) }) ? { type: 'build-room', id: 'forge' } : { type: 'ui', tab: 'guild', room: 'mine' };
       } else if (project && !state.guild.grandfathered && completedRoutes >= nextRoom.at) {
         const costs = projectCosts(state, project.id), open = projectOpen(state, project.id);
         progress = open ? Math.min(...Object.keys(costs).map(id => Math.min(1, ratio(state.resources[id], costs[id])))) : 0;
@@ -1512,8 +1538,9 @@
       const canPay = affordable(state, costs);
       return Object.assign({ id, label, description, effectText: description, action, visible: true, unlocked: open !== false, affordable: canPay, disabled: open === false || !canPay, reason: open === false ? 'Continue exploring to unlock this.' : canPay ? '' : 'Needs ' + costRows(costs).filter(row => N.cmp(state.resources[row.resource], row.amount) < 0).map(row => row.text).join(' and '), cost: costRows(costs), level: 0 }, costInfo(state, costs, rates), extra || {});
     }
-    const upgrades = C.UPGRADES.map(def => descriptor(def.id, def.name, def.description, { type: 'buy', id: def.id }, upgradeCost(state, def), upgradeOpen(state, def), { room: def.room, level: level(state, def.id), visible: upgradeOpen(state, def), effectText: upgradeOpen(state, def) ? comparisonFor(state, { upgrades: Object.assign({}, state.upgrades, { [def.id]: level(state, def.id) + 1 }) }).text : def.description }));
-    upgrades.push(descriptor('build-forge', 'Build the Forge', 'Use 20 ore to open equipment crafting. Tools develop ore supply; boots help expeditions.', { type: 'build-room', id: 'forge' }, { ore: N.from(20) }, unlocked(state, 'mine') && state.lifetime.highestRoute >= 1 && !unlocked(state, 'forge'), { room: 'mine', visible: unlocked(state, 'mine') && !unlocked(state, 'forge'), reason: state.lifetime.highestRoute < 1 ? 'Complete Watchtower Road first.' : N.cmp(state.resources.ore, 20) < 0 ? 'Needs 20 ore.' : '' }));
+    const upgrades = C.UPGRADES.map(def => descriptor(def.id, def.name, upgradeDescription(state, def), { type: 'buy', id: def.id }, upgradeCost(state, def), upgradeOpen(state, def), { room: def.room, level: level(state, def.id), visible: upgradeOpen(state, def), effectText: upgradeOpen(state, def) ? comparisonFor(state, { upgrades: Object.assign({}, state.upgrades, { [def.id]: level(state, def.id) + 1 }) }).text : upgradeDescription(state, def) }));
+    const forgeOre = forgeOreCost(state);
+    upgrades.push(descriptor('build-forge', 'Build the Forge', 'Use ' + forgeOre + ' ore to open equipment crafting. Tools develop ore supply; boots help expeditions.', { type: 'build-room', id: 'forge' }, { ore: N.from(forgeOre) }, unlocked(state, 'mine') && state.lifetime.highestRoute >= 1 && !unlocked(state, 'forge'), { room: 'mine', visible: unlocked(state, 'mine') && !unlocked(state, 'forge'), reason: state.lifetime.highestRoute < 1 ? 'Complete Watchtower Road first.' : N.cmp(state.resources.ore, forgeOre) < 0 ? 'Needs ' + forgeOre + ' ore.' : '' }));
     const research = C.RESEARCH.map(def => {
       const owned = researched(state, def.id);
       return descriptor(def.id, def.name, def.description, { type: 'research', id: def.id }, { knowledge: N.from(def.cost) }, unlocked(state, 'study') && state.lifetime.highestRoute + 1 >= def.at && !owned, { room: 'study', owned, maxed: owned, visible: owned || unlocked(state, 'study') && def.at <= state.lifetime.highestRoute + 1, reason: owned ? 'Researched permanently.' : undefined });

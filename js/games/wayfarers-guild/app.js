@@ -4,8 +4,17 @@
   const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
   const icon = (id, label) => root.WayfarersIcons ? root.WayfarersIcons.markup(id, { label: label || '' }) : '<span class="wg-icon-fallback" aria-hidden="true">◆</span>';
   const shortNames = { boots: 'Boots', preparation: 'Field kit', miners: 'Miners', forge: 'Workshop', foragers: 'Foragers', cooks: 'Cooks', scholars: 'Scholars', surveyors: 'Surveyors', mentors: 'Mentors', 'gear-tools': 'Tools', 'gear-boots': 'Boots', 'gear-instruments': 'Instruments', 'auto-work': 'Ledgers', 'auto-forge': 'Forge orders', 'efficient-smelting': 'Smelting', 'field-notes': 'Journals', 'balanced-meals': 'Provisions', 'ore-conversion': 'Alloys', 'map-survey': 'Surveying', 'auto-route': 'Dispatch', 'smart-reserve': 'Reserves', 'specialist-training': 'Training', 'frontier-compass': 'Compass', 'meal-none': 'Save supplies', 'meal-travel': 'Trail stew', 'meal-study': 'Scholar tea', 'meal-mining': 'Miner’s lunch', alloy: 'Alloy', survey: 'Survey', compass: 'Compass', artisan: 'Artisan', scholar: 'Scholar', 'banner-amber': 'Amber banner', 'banner-moon': 'Moon banner' };
-  const itemName = item => shortNames[item.id] || item.label || item.name || item.id;
+  const itemName = item => item.id === 'build-forge' ? 'Forge' : shortNames[item.id] || item.label || item.name || item.id;
   const etaText = seconds => Number.isFinite(seconds) && seconds >= 0 ? seconds < 120 ? 'About ' + Math.max(1, Math.ceil(seconds)) + ' sec' : seconds < 3600 ? 'About ' + Math.ceil(seconds / 60) + ' min' : seconds < 86400 ? 'About ' + (seconds / 3600).toFixed(1) + ' hr' : 'About ' + (seconds / 86400).toFixed(1) + ' days' : '';
+  function compactNumber(value) {
+    const number = core.Numbers.from(value);
+    if (!number.m || number.e < 3) return core.format(number);
+    if (number.e >= 15) return Number(number.m.toFixed(1)) + 'e' + number.e;
+    const group = Math.floor(number.e / 3);
+    const scaled = number.m * Math.pow(10, number.e - group * 3);
+    // Truncate rather than round a price down to a misleading next magnitude.
+    return Number((Math.floor(scaled * (scaled < 10 ? 100 : scaled < 100 ? 10 : 1)) / (scaled < 10 ? 100 : scaled < 100 ? 10 : 1)).toFixed(2)) + ['', 'K', 'M', 'B', 'T'][group];
+  }
   const SCENE_ART = {
     trail: '/img/wayfarers-guild/living-trail.webp?v=7a796037857e',
     room: '/img/wayfarers-guild/living-room.webp?v=d6a6aa91c6ce',
@@ -42,8 +51,12 @@
     let expandedDock = false;
     let journalPage = 'discoveries';
     let inspectedKey = null;
+    let inspectedCurrency = 'coins';
     let highlightedKey = null;
     let teaching = null;
+    let teachingTimer = null;
+    let noticeTimer = null;
+    let currentActions = [];
     let feedbackFind = null;
     let pendingFinds = [];
     let pendingSeenSeq = null;
@@ -97,8 +110,43 @@
     q('.wg-scene-column').appendChild(q('[data-discovery-dock]'));
     q('[data-open-finds]').setAttribute('aria-label', 'Recent finds');
     q('[data-open-caravan]').setAttribute('aria-label', 'Caravan visit and reward');
+    const dockHeading = document.createElement('div');
+    dockHeading.className = 'wg-dock-heading';
+    dockHeading.innerHTML = '<strong data-dock-title>Trail</strong><span data-dock-hint>Coins arrive automatically</span>';
+    dockHeading.appendChild(q('[data-more-upgrades]'));
+    q('.wg-controls-column').prepend(dockHeading);
+    const manageContent = document.createElement('div');
+    manageContent.dataset.manageContent = '';
+    manageContent.hidden = true;
+    manageContent.innerHTML = '<div class="wg-action-list" data-all-upgrades></div>';
+    ['[data-recipes-section]', '[data-routes-section]', '[data-supply-section]', '[data-development-section]', '[data-room-connections]'].forEach(selector => manageContent.appendChild(q(selector)));
+    q('[data-sheet-scroll]').prepend(manageContent);
     const shopPanel = q('[data-panel="shop"]');
     const dialog = q('[data-dialog]');
+    const contextHelp = [];
+    // Explanations stay available beside their heading, outside the working view.
+    qa('.wg-panel-intro, .wg-section > p').forEach(paragraph => {
+      // Purchase status and wallet recovery instructions belong beside the transaction.
+      if (paragraph.closest('[data-panel="shop"]')) return;
+      const parent = paragraph.parentElement;
+      if (!parent.querySelector('h2, h3')) return;
+      let entry = contextHelp.find(item => item.parent === parent);
+      if (!entry) {
+        entry = { parent, paragraphs: [], title: parent.querySelector('h2, h3').textContent };
+        contextHelp.push(entry);
+        parent.classList.add('wg-has-help');
+        const help = document.createElement('button');
+        help.type = 'button';
+        help.className = 'wg-context-help';
+        help.dataset.contextHelp = String(contextHelp.length - 1);
+        help.setAttribute('aria-label', 'About ' + entry.title);
+        help.innerHTML = '<span aria-hidden="true">i</span>';
+        parent.prepend(help);
+      }
+      entry.paragraphs.push(paragraph);
+      paragraph.classList.add('wg-context-copy');
+    });
+    let activeHelp = null;
     const isRoomOpen = () => dialog.open && dialogKind === 'room';
     const destination = () => ['guild', 'crew', 'research', 'planning'].includes(tab) ? 'guild' : ['journey', 'finds'].includes(tab) ? 'journey' : 'trail';
     const presentation = () => view.presentation || { opening: view.unlocks.length === 1, primary: ['trail'], guildSections: [], journalSections: [], systems: [], introductions: [], nextUnlock: null, show: {} };
@@ -129,6 +177,9 @@
     function announce(message) {
       if (!message) return;
       set('[data-status]', message);
+      q('[data-status]').dataset.visible = 'true';
+      root.clearTimeout(noticeTimer);
+      noticeTimer = root.setTimeout(() => { if (!disposed) q('[data-status]').dataset.visible = 'false'; }, 3600);
       notices = [String(message)].concat(notices).slice(0, 20);
     }
     function storageNotice(message) {
@@ -196,7 +247,15 @@
       const previousFocus = document.activeElement;
       advance();
       const result = core.act(state, action);
-      announce(result.message);
+      if (result.ok && action.type === 'buy') {
+        const card = q('[data-main-actions] [data-item="' + action.id + '"]');
+        if (card) {
+          card.classList.remove('wg-purchased');
+          void card.offsetWidth;
+          card.classList.add('wg-purchased');
+        }
+        announce((shortNames[action.id] || action.id) + ' upgraded');
+      } else announce(result.message);
       if (result.ok) save();
       render();
       if (dialog.open && dialogKind === 'inspect') { if (descriptorLookup.has(inspectedKey)) renderInspect(); else backSheet(); }
@@ -243,12 +302,20 @@
       q('[data-teaching]').hidden = false;
       setMarkup(q('[data-teaching-icon]'), icon(teaching.icon || teaching.id));
       set('[data-teaching-title]', entries.length > 1 ? entries.length + ' new features' : teaching.label + ' unlocked');
-      set('[data-teaching-copy]', teaching.effect);
+      const shortEffect = {
+        boots: 'Faster travel. More coins.', mine: 'Hire miners to earn ore.', forge: 'Turn ore into stronger equipment.',
+        forage: 'Gather herbs for your guild.', kitchen: 'Cook supplies for your journey.', study: 'Research lasting improvements.',
+        cartography: 'Choose routes and discover new realms.', hall: 'Recruit a specialist for your guild.'
+      }[teaching.id];
+      set('[data-teaching-copy]', shortEffect || teaching.effect);
+      root.clearTimeout(teachingTimer);
+      teachingTimer = root.setTimeout(() => { if (!disposed) q('[data-teaching]').hidden = true; }, 12000);
       q('[data-teaching-details]').hidden = entries.length < 2;
       setMarkup(q('[data-teaching-features]'), explanation);
       q('[data-open-teaching]').hidden = !teaching.action;
-      set('[data-open-teaching]', 'Explore ' + teaching.label);
-      announce(teaching.label + ' unlocked. ' + teaching.effect);
+      set('[data-open-teaching]', 'Open');
+      set('[data-status]', teaching.label + ' unlocked. ' + teaching.effect);
+      q('[data-status]').dataset.visible = 'false';
     }
     async function billingAction(method, argument) {
       if (!billing || billingBusy) return;
@@ -303,10 +370,10 @@
       return (costs || []).map(entry => '<span class="wg-cost">' + icon(entry.resource) + '<span>' + escapeHtml(core.format(entry.amount)) + ' <span class="wg-cost-name">' + escapeHtml(entry.resource) + '</span></span></span>').join('');
     }
     function compactEffect(item, kind) {
-      if (kind !== 'main') return item.effectText || item.effect || (item.description || '').split(/(?<=[.!?])\s/)[0];
+      if (!['main', 'catalog'].includes(kind)) return item.effectText || item.effect || (item.description || '').split(/(?<=[.!?])\s/)[0];
       if (item.action && item.action.type === 'build-room') return 'Unlock ' + ((view.rooms.find(entry => entry.id === item.action.id) || {}).name || 'room');
       if (!item.action || item.action.type !== 'buy') return (item.effectText || item.description || '').split(';')[0];
-      const target = { boots: 'travel', preparation: 'coins', miners: 'ore', forge: 'ore', foragers: 'herbs', cooks: 'provisions', scholars: 'knowledge', surveyors: 'maps', mentors: 'knowledge', 'gear-tools': 'ore', 'gear-boots': 'travel', 'gear-instruments': 'knowledge' }[item.id];
+      const target = { boots: 'travel', preparation: 'travel', miners: 'ore', forge: 'ore', foragers: 'herbs', cooks: 'provisions', scholars: 'knowledge', surveyors: 'maps', mentors: 'knowledge', 'gear-tools': 'ore', 'gear-boots': 'travel', 'gear-instruments': 'knowledge' }[item.id];
       if (!target) return (item.effectText || item.description || '').split(';')[0];
       // Calculate from the same engine as spending, rather than parsing rounded
       // display text or using the illustrative percentages in the concept.
@@ -319,7 +386,11 @@
       if (core.Numbers.cmp(after, before) <= 0) return (item.effectText || item.description || '').split(';')[0];
       if (!before.m) return '+' + core.format(after) + ' ' + label + '/s';
       const percent = core.Numbers.toNumber(core.Numbers.mul(core.Numbers.sub(core.Numbers.div(after, before), 1), 100));
-      return Number.isFinite(percent) ? '+' + Number(percent.toFixed(1)) + '% ' + label : (item.effectText || '').split(';')[0];
+      if (!Number.isFinite(percent)) return (item.effectText || '').split(';')[0];
+      const text = '+' + Number(percent.toFixed(1)) + '% ' + label;
+      if (item.id !== 'boots') return text;
+      const coinPercent = core.Numbers.toNumber(core.Numbers.mul(core.Numbers.sub(core.Numbers.div(afterRates.gain.coins, beforeRates.gain.coins), 1), 100));
+      return text + ' · +' + Number(coinPercent.toFixed(1)) + '% coins';
     }
     function setMarkup(node, markup) {
       if (node && node.dataset.markup !== markup) { node.innerHTML = markup; node.dataset.markup = markup; }
@@ -345,7 +416,7 @@
         actionLookup.set(key, item.action);
         descriptorLookup.set(key, { item, kind });
         let detail = node.querySelector('.wg-action-info');
-        const simple = presentation().opening && kind === 'main';
+        const simple = false;
         if ((detail.tagName === 'DIV') !== simple) {
           const replacement = document.createElement(simple ? 'div' : 'button');
           replacement.className = 'wg-action-info';
@@ -366,6 +437,7 @@
         setMarkup(node.querySelector('.wg-action-cost'), costsMarkup(item.cost) || (item.owned ? '<span>Owned</span>' : ''));
         const button = node.querySelector('.wg-buy');
         button.dataset.perform = key;
+        button.dataset.actionType = item.action && item.action.type || '';
         button.disabled = awaitingPurchaseWallet || !!item.disabled || item.unlocked === false || item.affordable === false || (!!item.selected && kind !== 'automations');
         let label = item.selected || item.owned && !item.action ? '✓' : item.action && ['relic-equip','premium-equip'].includes(item.action.type) ? 'Equip' : kind === 'automations' ? item.selected ? 'On' : 'Off' : item.action && ['recipe','doctrine','route','companion','caravan-select'].includes(item.action.type) ? item.selected ? '✓' : 'Select' : '+';
         if (item.action && item.action.type === 'buy') label = item.id.startsWith('gear-') ? 'Craft' : 'Buy';
@@ -381,13 +453,19 @@
         if (kind === 'automations') { button.disabled = awaitingPurchaseWallet || !!item.disabled || item.unlocked === false; button.setAttribute('aria-pressed', String(!!item.selected)); }
         if (kind === 'premium') label = item.owned ? item.action && item.action.type === 'premium-equip' ? item.selected ? '✓' : 'Equip' : '✓' : 'Buy';
         const dockAction = kind === 'main';
-        if (dockAction) setMarkup(button, '<span class="wg-buy-costs">' + costsMarkup(item.cost) + '</span><span class="wg-buy-label">' + escapeHtml(label) + '</span>');
+        if (dockAction) setMarkup(button, '<span class="wg-buy-costs">' + (item.cost || []).map(entry => '<span class="wg-cost">' + icon(entry.resource) + '<span>' + escapeHtml(compactNumber(entry.amount)) + '</span></span>').join('') + '</span><span class="wg-buy-label">' + escapeHtml(label) + '</span>');
         else updateText(button, label);
         node.querySelector('.wg-action-cost').hidden = dockAction;
         button.dataset.compactLabel = String(label.length > 1);
         button.setAttribute('aria-label', descriptorButton(item, kind) + ' — ' + (item.label || item.name || item.id));
         const reason = dockAction ? item.unlocked === false ? item.reason || 'Explore to unlock' : !item.affordable && Number.isFinite(item.etaSeconds) ? 'Ready in ' + (item.etaSeconds < 120 ? Math.max(1, Math.ceil(item.etaSeconds)) + 's' : Math.ceil(item.etaSeconds / 60) + 'm') : !item.affordable ? item.shortageText || item.reason || 'More materials needed' : '' : kind === 'premium' && !item.owned ? (item.paymentSource === 'paid' ? 'Uses purchased Starshards' : 'Uses earned Starshards') : item.shortageText ? item.shortageText + (etaText(item.etaSeconds) ? ' · ' + etaText(item.etaSeconds) + ' at current rates' : '') : item.unlocked === false || item.disabled ? item.reason || 'Not available yet' : '';
-        updateText(node.querySelector('.wg-action-reason'), reason);
+        updateText(node.querySelector('.wg-action-reason'), kind === 'catalog' ? item.affordable ? 'Ready' : item.unlocked === false ? item.reason || 'Not unlocked yet' : etaText(item.etaSeconds) || 'More materials needed' : reason || (dockAction ? 'Ready' : ''));
+        node.dataset.ready = String(!button.disabled);
+        const costProgress = (item.cost || []).map(entry => {
+          const resource = view.resources.find(value => value.id === entry.resource);
+          return resource ? Math.min(1, core.Numbers.toNumber(core.Numbers.div(resource.amount || state.resources[entry.resource] || 0, entry.amount))) : 0;
+        });
+        node.style.setProperty('--purchase-progress', Math.round(100 * (costProgress.length ? Math.min(...costProgress) : 1)) + '%');
         node.dataset.selected = String(!!item.selected);
         node.dataset.owned = String(!!item.owned);
         node.dataset.locked = String(item.unlocked === false);
@@ -401,29 +479,36 @@
       const unlocked = new Set(view.unlocks);
       let preferred = ['coins'];
       if (tab === 'guild') {
-        preferred = { mine: ['coins', 'ore'], forge: ['coins', 'ore', 'herbs'], forage: ['coins', 'herbs'], kitchen: ['coins', 'herbs', 'provisions'], study: ['coins', 'knowledge'], cartography: ['coins', 'maps', 'knowledge'], hall: ['knowledge', 'notes'] }[room] || ['coins', 'ore'];
-      } else if (tab === 'research') preferred = ['knowledge', 'herbs', 'maps'];
+        preferred = { mine: ['coins', 'ore'], forge: ['ore', 'herbs'], forage: ['coins', 'herbs'], kitchen: ['herbs', 'provisions'], study: ['coins', 'knowledge'], cartography: ['maps', 'knowledge'], hall: ['knowledge', 'notes'] }[room] || ['coins', 'ore'];
+      } else if (tab === 'research') preferred = ['knowledge', 'herbs'];
       else if (tab === 'crew') preferred = ['coins', 'knowledge'];
-      else if (tab === 'journey') preferred = ['notes', 'crests', 'maps'];
+      else if (tab === 'journey') preferred = ['notes', 'crests'];
       else if (tab === 'shop') preferred = ['starshards'];
       else if (unlocked.has('kitchen')) preferred.push('provisions');
       const resources = view.resources.filter(item => item.visible !== false && preferred.includes(item.id));
       const wallet = q('[data-wallet]');
+      wallet.dataset.count = String(resources.length);
+      const walletRates = core.getRates(state);
       const existing = new Map(Array.from(wallet.children).map(node => [node.dataset.resource, node]));
       resources.forEach(item => {
         let node = existing.get(item.id);
         if (!node) {
-          node = document.createElement('span');
+          node = document.createElement('button');
+          node.type = 'button';
+          node.dataset.walletResource = item.id;
           node.className = 'wg-resource';
           node.dataset.resource = item.id;
           node.innerHTML = '<span class="wg-resource-icon"></span><strong></strong><span class="wg-resource-name"></span><small class="wg-resource-rate"></small>';
           wallet.appendChild(node);
         }
-        updateText(node.querySelector('strong'), item.formatted);
+        updateText(node.querySelector('strong'), compactNumber(state.resources[item.id]));
         setMarkup(node.querySelector('.wg-resource-icon'), icon(item.id));
         updateText(node.querySelector('.wg-resource-name'), item.id === 'starshards' ? 'earned Starshards' : item.name.toLowerCase());
-        updateText(node.querySelector('.wg-resource-rate'), presentation().opening && item.id === 'coins' ? item.rateFormatted : '');
-        node.setAttribute('aria-label', item.formatted + ' ' + item.name);
+        const gain = walletRates.gain[item.id] || 0, drain = walletRates.drain[item.id] || 0;
+        const declining = core.Numbers.cmp(gain, drain) < 0;
+        const net = declining ? core.Numbers.sub(drain, gain) : core.Numbers.sub(gain, drain);
+        updateText(node.querySelector('.wg-resource-rate'), (declining ? '−' : '+') + compactNumber(net) + '/s');
+        node.setAttribute('aria-label', item.formatted + ' ' + item.name + '. View resource balances');
         node.title = item.rateFormatted || core.format(item.rate || 0) + ' per second';
       });
       existing.forEach((node, id) => { if (!resources.some(item => item.id === id)) node.remove(); });
@@ -699,8 +784,8 @@
       const changes = (data.changes || []).map(display).filter(Boolean);
       const next = (data.nextChoices || []).map(display).filter(Boolean);
       const resources = Object.keys(gains || {}).filter(id => core.Numbers.cmp(gains[id], 0) > 0).slice(0, 4).map(id => '+' + core.format(gains[id]) + ' ' + id);
-      set('[data-return-main]', (completed[0] || resources.join(' · ') || 'Your guild continued working.') + ' · ' + (seconds >= 3600 ? (seconds / 3600).toFixed(1) + ' hours' : Math.floor(seconds / 60) + ' minutes') + ' processed.');
-      setMarkup(q('[data-return-details]'), [completed.length ? '<h3>Completed</h3><ul>' + completed.slice(0, 4).map(text => '<li>' + escapeHtml(text) + '</li>').join('') + '</ul>' : '', changes.length ? '<h3>Changed</h3><ul>' + changes.slice(0, 4).map(text => '<li>' + escapeHtml(text) + '</li>').join('') + '</ul>' : '', data.blockedReason ? '<h3>What limited the plan</h3><p>' + escapeHtml(data.blockedReason) + '</p>' : '', next.length ? '<h3>Useful next choices</h3><ul>' + next.slice(0, 3).map(text => '<li>' + escapeHtml(text) + '</li>').join('') + '</ul>' : '<p>Review your next objective and the guild’s current plan.</p>'].join(''));
+      set('[data-return-main]', (resources[0] || 'Your guild kept working') + ' · ' + (seconds >= 3600 ? (seconds / 3600).toFixed(1) + 'h' : Math.floor(seconds / 60) + 'm') + ' away');
+      setMarkup(q('[data-return-details]'), ['<p>' + escapeHtml(resources.join(' · ')) + '</p>', completed.length ? '<h3>Completed</h3><ul>' + completed.slice(0, 4).map(text => '<li>' + escapeHtml(text) + '</li>').join('') + '</ul>' : '', changes.length ? '<h3>Changed</h3><ul>' + changes.slice(0, 4).map(text => '<li>' + escapeHtml(text) + '</li>').join('') + '</ul>' : '', data.blockedReason ? '<h3>What limited the plan</h3><p>' + escapeHtml(data.blockedReason) + '</p>' : '', next.length ? '<h3>Useful next choices</h3><ul>' + next.slice(0, 3).map(text => '<li>' + escapeHtml(text) + '</li>').join('') + '</ul>' : '<p>Review your next objective and the guild’s current plan.</p>'].join(''));
       q('[data-return-summary]').hidden = false;
     }
     function renderInspect() {
@@ -745,11 +830,12 @@
         else if (action.type === 'project' || action.type === 'build-room') showTab('guild');
         else showTab('trail');
       }
+      if (['route', 'recipe', 'supply-plan', 'route-preparation'].includes(action.type)) openDialog('manage');
       if (action.type === 'route') q('[data-routes-section]').open = true;
       const actionMatch = Array.from(actionLookup).find(entry => entry[1] && entry[1].type === action.type && entry[1].id === action.id);
       const key = preferredKey || actionMatch && actionMatch[0];
       if (key && !node) node = q('.wg-buy[data-perform="' + key + '"]');
-      if (node && node.closest('[data-main-actions]') && node.closest('.wg-action').hidden) { expandedDock = true; render(); }
+      if (node && node.closest('[data-main-actions]') && node.closest('.wg-action').hidden) { openDialog('manage'); node = q('[data-perform="catalog:' + node.closest('.wg-action').dataset.item + '"]'); }
       if (node && node.disabled) node = q('[data-inspect="' + key + '"]');
       if (!node || !node.getClientRects().length) node = qa('.wg-buy:not(:disabled),.wg-action-info').find(button => button.getClientRects().length);
       qa('.wg-guided').forEach(button => button.classList.remove('wg-guided'));
@@ -926,7 +1012,7 @@
       q('[data-game]').dataset.early = String(isEarly);
       q('[data-game]').dataset.screen = tab;
       q('[data-game]').dataset.expanded = String(unlocked.has('forge') || !['trail', 'guild'].includes(tab));
-      q('[data-nav]').hidden = shown.primary.length < 2;
+      q('[data-nav]').hidden = false;
       qa('[data-tab]').forEach(button => { button.hidden = !shown.primary.includes(button.dataset.tab); button.disabled = false; });
       q('[data-tab="guild"]').title = 'Your working guild rooms';
       qa('[data-guild-view]').forEach(button => { button.hidden = !guildSections.includes(button.dataset.guildView); });
@@ -945,7 +1031,9 @@
       renderRooms();
       renderOverview();
       const selectedRoom = view.rooms.find(item => item.id === (tab === 'guild' ? room : 'trail')) || view.rooms[0];
-      q('[data-selected-room]').hidden = tab !== 'guild';
+      q('[data-selected-room]').hidden = true;
+      set('[data-dock-title]', tab === 'guild' ? selectedRoom.name : 'Trail');
+      set('[data-dock-hint]', isEarly ? 'Coins arrive automatically' : '');
       set('[data-room-sheet-title]', selectedRoom.name);
       set('[data-room-name]', selectedRoom.name);
       set('[data-room-description]', selectedRoom.description);
@@ -954,7 +1042,7 @@
       set('[data-activity]', tab === 'guild' ? selectedRoom.name + (outputResource ? ' · ' + outputResource.rateFormatted + ' ' + outputResource.name.toLowerCase() : '') : isEarly ? 'Automatic travel' : view.progression.routeName + ' · ' + view.progression.realmName);
       const goal = view.goal;
       const nextUnlock = shown.nextUnlock;
-      set('[data-goal-title]', isEarly ? view.progression.routeName.replace(/^Old /, '') : goal.title);
+      set('[data-goal-title]', isEarly ? 'Reach the Mine' : goal.title);
       const targetAction = goal.action && goal.action.type === 'plan-goal' ? goal.action.action : goal.action;
       const goalDescriptor = (view.actions || []).concat(view.research || [], view.development && view.development.projects || []).find(item => item.action && targetAction && item.action.type === targetAction.type && item.action.id === targetAction.id);
       const goalLabel = goal.actionLabel || (goal.action && goal.action.type === 'buy' ? 'Buy ' + (goalDescriptor ? itemName(goalDescriptor) : goal.action.id) : goal.action && goal.action.type === 'research' ? 'Research ' + (goalDescriptor ? itemName(goalDescriptor) : goal.action.id) : goalDescriptor ? goalDescriptor.label || goalDescriptor.name : goal.title);
@@ -969,33 +1057,37 @@
       set('[data-long-goal]', goal.longGoal || '');
       q('[data-long-goal]').hidden = true;
       q('[data-goal-options]').hidden = true;
-      q('[data-goal-action]').hidden = isEarly;
+      q('[data-goal-action]').hidden = false;
       const direct = q('[data-goal-direct]');
-      direct.hidden = isEarly || !goal.ready || !goal.action;
+      direct.hidden = isEarly || !goal.action;
       const plannedGoal = goal.action && goal.action.type === 'plan-goal' && view.planning && view.planning.goal && view.planning.goal.type === goal.action.action.type && view.planning.goal.id === goal.action.action.id;
       direct.disabled = awaitingPurchaseWallet || !!plannedGoal;
       const directLabel = plannedGoal ? 'Saving for this' : goal.action && goal.action.type === 'route' ? 'Explore' : goal.action && goal.action.type === 'build-room' ? 'Build ' + ((view.rooms.find(item => item.id === goal.action.id) || {}).name || 'room') : goal.action && ['refit','charter'].includes(goal.action.type) ? 'Review ' + goal.action.type : goal.action && ['ui','navigate'].includes(goal.action.type) && goal.action.tab === 'journey' ? 'Review ' + (/charter/i.test(goal.actionLabel || goal.title) ? 'charter' : 'refit') : goalLabel;
       direct.setAttribute('aria-label', plannedGoal ? 'Saving for this' : goalLabel + (goalDescriptor && goalDescriptor.cost && goal.action.type !== 'plan-goal' ? ' · ' + goalDescriptor.cost.map(entry => entry.text || core.format(entry.amount) + ' ' + entry.resource).join(' + ') : ''));
       setMarkup(direct, '<span>' + escapeHtml(directLabel) + '</span>' + (goalDescriptor && goalDescriptor.cost && !plannedGoal && goal.action.type !== 'plan-goal' ? '<span class="wg-buy-costs">' + costsMarkup(goalDescriptor.cost) + '</span>' : ''));
-      q('[data-next-unlock]').hidden = !nextUnlock;
+      q('[data-next-unlock]').hidden = true;
       if (nextUnlock) {
         set('[data-next-unlock-title]', { mine: 'Mine', forge: 'Forge', forage: 'Foragers', kitchen: 'Kitchen', study: 'Study', hall: 'Guild Hall', cartography: 'Map Room' }[nextUnlock.id] || nextUnlock.label.replace(/^The /, ''));
         q('[data-open-goal-details]').setAttribute('aria-label', 'Next: ' + nextUnlock.label + '. View requirements and effects');
         set('[data-next-unlock-requirement]', nextUnlock.requirement);
         set('[data-next-unlock-effect]', nextUnlock.effect);
       }
-      if (goal.title !== lastGoal) { lastGoal = goal.title; if (!isEarly) announce(goal.title + '. ' + goal.description); }
+      if (goal.title !== lastGoal) { lastGoal = goal.title; }
       q('[data-game]').dataset.room = tab === 'guild' ? room : 'trail';
-      setMarkup(q('[data-goal-action]'), icon('compass'));
+      setMarkup(q('[data-goal-action]'), '<span class="wg-info-symbol" aria-hidden="true">i</span>');
       let actions = (tab === 'guild' ? selectedRoom.actions.filter(item => item.action.type !== 'recipe') : view.actions.filter(item => item.room === 'trail')) || [];
       if (tab === 'guild' && room === 'forge') actions = actions.slice().sort((a, b) => (a.id.startsWith('gear-') ? 0 : 1) - (b.id.startsWith('gear-') ? 0 : 1));
-      reconcile('[data-main-actions]', actions, 'main');
+      currentActions = actions.filter(item => item.visible !== false);
+      reconcile('[data-main-actions]', currentActions, 'main');
       const dockRows = Array.from(q('[data-main-actions]').children);
-      dockRows.forEach((node, index) => { node.hidden = !expandedDock && index >= 2; });
+      dockRows.forEach((node, index) => { node.hidden = index >= 2; });
+      q('[data-main-actions]').dataset.single = String(dockRows.length === 1);
       const more = q('[data-more-upgrades]');
-      more.hidden = dockRows.length <= 2;
-      more.setAttribute('aria-expanded', String(expandedDock));
-      updateText(more, expandedDock ? 'Fewer upgrades' : 'More upgrades · ' + (dockRows.length - 2));
+      more.hidden = isEarly;
+      more.setAttribute('aria-label', tab === 'guild' ? selectedRoom.name + ' upgrades and recipes' : 'All trail upgrades and supplies');
+      more.setAttribute('aria-expanded', String(dialog.open && dialogKind === 'manage'));
+      setMarkup(more, icon('equipment'));
+      if (dialog.open && dialogKind === 'manage') reconcile('[data-all-upgrades]', currentActions, 'catalog');
       const recipes = (view.recipes || []).filter(item => item.room === room && tab === 'guild');
       q('[data-recipes-section]').hidden = !recipes.some(item => item.visible !== false);
       reconcile('[data-recipes]', recipes, 'recipes');
@@ -1039,6 +1131,7 @@
       if (dialog.open && ['refit', 'charter'].includes(dialogKind)) renderReset();
       if (dialog.open && dialogKind === 'inspect') renderInspect();
       if (dialog.open && dialogKind === 'goal') renderGoalDetails();
+      if (dialog.open && dialogKind === 'resources') renderResourceDetails();
       renderPlanning();
       renderDevelopment();
       updateSaveStatus();
@@ -1059,7 +1152,7 @@
     }
     function openDialog(kind, restore) {
       if (!dialog.open) { opener = document.activeElement; sheetStack.length = 0; }
-      else if (!restore && kind === 'inspect' && ['room', 'shop'].includes(dialogKind)) sheetStack.push({ kind: dialogKind, room, focus: document.activeElement });
+      else if (!restore && kind === 'inspect' && ['room', 'shop', 'manage'].includes(dialogKind)) sheetStack.push({ kind: dialogKind, room, focus: document.activeElement });
       else if (!restore && kind !== dialogKind) sheetStack.length = 0;
       dialogKind = kind;
       pendingImport = null;
@@ -1067,12 +1160,16 @@
       dialog.dataset.kind = kind;
       q('[data-room-content]').hidden = kind !== 'room';
       q('[data-shop-content]').hidden = kind !== 'shop';
-      q('[data-dialog-body]').hidden = ['room', 'shop'].includes(kind);
+      q('[data-dialog-body]').hidden = ['room', 'shop', 'manage'].includes(kind);
+      manageContent.hidden = kind !== 'manage';
       q('[data-sheet-back]').hidden = !sheetStack.length;
       if (sheetContentKey !== kind) { delete q('[data-dialog-body]').dataset.inspect; delete q('[data-dialog-body]').dataset.resetSignature; delete q('[data-dialog-body]').dataset.markup; sheetContentKey = kind; }
       setSheetFooter(null, { hook: 'data-close-dialog', label: 'Done' });
       if (kind === 'inspect') renderInspect();
       else if (kind === 'goal') renderGoalDetails();
+      else if (kind === 'resources') renderResourceDetails();
+      else if (kind === 'help' && activeHelp) { set('[data-dialog-title]', activeHelp.title); setMarkup(q('[data-dialog-body]'), activeHelp.paragraphs.map(node => '<p>' + escapeHtml(node.textContent) + '</p>').join('')); }
+      else if (kind === 'manage') { set('[data-dialog-title]', (tab === 'guild' ? (view.rooms.find(item => item.id === room) || {}).name : 'Trail') + ' upgrades'); reconcile('[data-all-upgrades]', currentActions, 'catalog'); }
       else if (kind === 'caravan') renderCaravan();
       else if (kind === 'settings') { renderSettings(); updateSaveStatus(); }
       else if (kind === 'refit' || kind === 'charter') renderReset();
@@ -1114,7 +1211,7 @@
     function renderSettings() {
       set('[data-dialog-title]', 'Settings & saves');
       const help = presentation().systems || [];
-      q('[data-dialog-body]').innerHTML = '<p>Your guild progresses automatically, including while this browser is closed. Saves belong to this browser and device. Export a backup to move them.</p>' +
+      q('[data-dialog-body]').innerHTML = '<p>Progress saves on this device. Export a backup to move your guild.</p>' +
         '<div data-purchase-wallet-wait' + (awaitingPurchaseWallet ? '' : ' hidden') + '><p>Waiting for the purchase wallet before calculating offline progress. Your saved guild is kept while it reconnects.</p><button type="button" class="wg-button" data-billing-refresh>Retry purchase wallet</button></div>' +
         (presentation().journalSections.includes('discoveries') ? '<label class="wg-toggle">Discovery chimes<input type="checkbox" data-sound' + (sound ? ' checked' : '') + '></label>' : '') +
         (rewardedSnapshot.privacyOptionsRequired ? '<button type="button" class="wg-button" data-ad-privacy>Ad privacy choices</button>' : '') +
@@ -1125,6 +1222,11 @@
         '<div class="wg-dialog-actions"><button type="button" class="wg-text-button" data-copy-save>Copy backup</button><button type="button" class="wg-button" data-review-import>Review import</button></div>' +
         '<label class="wg-dialog-label" for="wg-save-file">Or choose a save file</label><input id="wg-save-file" type="file" accept=".json,application/json,text/plain">' +
         '<div data-import-preview hidden></div>' + (help.length ? '<details class="wg-details" data-unlocked-help><summary>Your unlocked features</summary>' + help.map(item => '<section class="wg-section"><h3>' + escapeHtml(item.label) + '</h3><p>' + escapeHtml(item.requirement || '') + '</p><p>' + escapeHtml(item.effect) + '</p></section>').join('') + '</details>' : '<p>Explore the trail and improve your boots. The next unlock explains what comes next.</p>');
+    }
+    function renderResourceDetails() {
+      set('[data-dialog-title]', 'Resources');
+      const description = { coins: 'Earn coins by exploring. Improve your boots to earn more.', ore: 'Miners gather ore. Spend it on guild equipment.', herbs: 'Foragers gather herbs for recipes and supplies.', provisions: 'The Kitchen turns ingredients into expedition supplies.', knowledge: 'The Study generates knowledge for research.', maps: 'Use maps to prepare routes and reach new frontiers.', notes: 'Expedition Refits award notes for permanent upgrades.', crests: 'Guild Charters award crests for lasting guild improvements.' }[inspectedCurrency] || 'Your earned resources stay with this guild save.';
+      setMarkup(q('[data-dialog-body]'), '<p>' + escapeHtml(description) + '</p><div class="wg-record">' + view.resources.filter(item => item.visible !== false).map(item => '<div class="wg-record-row"><span>' + icon(item.id) + ' ' + escapeHtml(item.name) + '</span><strong>' + escapeHtml(item.formatted) + '<small>' + escapeHtml(item.rateFormatted || '') + '</small></strong></div>').join('') + '</div>');
     }
     function renderGoalDetails() {
       const goal = view.goal;
@@ -1209,7 +1311,7 @@
       if (button.dataset.inspect) { inspectedKey = button.dataset.inspect; openDialog('inspect'); }
       else if (button.dataset.perform) perform(actionLookup.get(button.dataset.perform));
       else if (button.hasAttribute('data-sheet-back')) backSheet();
-      else if (button.hasAttribute('data-goal-direct')) { const action = view.goal.action; if (action && ['refit', 'charter'].includes(action.type)) openDialog(action.type); else if (action && ['ui','navigate'].includes(action.type) && action.tab === 'journey') openDialog(/charter/i.test(view.goal.actionLabel || view.goal.title) ? 'charter' : 'refit'); else perform(action); }
+      else if (button.hasAttribute('data-goal-direct')) guideGoal();
       else if (button.dataset.guildView) showTab(button.dataset.guildView);
       else if (button.hasAttribute('data-dismiss-return')) q('[data-return-summary]').hidden = true;
       else if (button.hasAttribute('data-plan-queue-add')) perform({ type: 'plan-queue', action: planChoices.get(q('[data-plan-queue-choice]').value) });
@@ -1238,7 +1340,9 @@
       else if (button.dataset.open) { advance(); render(); openDialog(button.dataset.open); }
       else if (button.hasAttribute('data-goal-action') || button.hasAttribute('data-open-goal-details')) openDialog('goal');
       else if (button.hasAttribute('data-goal-guide')) { closeDialog(); guideGoal(); }
-      else if (button.hasAttribute('data-more-upgrades')) { expandedDock = !expandedDock; render(); }
+      else if (button.hasAttribute('data-more-upgrades')) openDialog('manage');
+      else if (button.hasAttribute('data-context-help')) { activeHelp = contextHelp[Number(button.dataset.contextHelp)]; openDialog('help'); }
+      else if (button.hasAttribute('data-wallet-resource')) { inspectedCurrency = button.dataset.walletResource; openDialog('resources'); }
       else if (button.hasAttribute('data-back-trail')) showTab('trail');
       else if (button.dataset.mode) perform({ type: 'route', id: view.progression.routeId, mode: button.dataset.mode });
       else if (button.hasAttribute('data-leave-challenge')) perform({ type: 'challenge', id: null });
@@ -1391,6 +1495,8 @@
         save();
         disposed = true;
         root.clearInterval(timer);
+        root.clearTimeout(teachingTimer);
+        root.clearTimeout(noticeTimer);
         controller.abort();
         unsubscribeBilling();
         unsubscribeRewarded();

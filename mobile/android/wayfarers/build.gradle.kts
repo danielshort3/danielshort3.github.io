@@ -10,8 +10,8 @@ val websiteRoot = rootProject.projectDir.resolve("../..").canonicalFile
 val gameAssets = layout.buildDirectory.dir("generated/gameAssets")
 val updaterSources = layout.buildDirectory.dir("generated/sharedUpdater/main")
 val updaterTests = layout.buildDirectory.dir("generated/sharedUpdater/test")
-val versionCodeProperty = providers.gradleProperty("wayfarersVersionCode").orElse("2").get()
-val versionNameProperty = providers.gradleProperty("wayfarersVersionName").orElse("0.1.1").get()
+val versionCodeProperty = providers.gradleProperty("wayfarersVersionCode").orElse("3").get()
+val versionNameProperty = providers.gradleProperty("wayfarersVersionName").orElse("0.2.0").get()
 val gameVersionCode = versionCodeProperty.toIntOrNull()
   ?: error("wayfarersVersionCode must be a positive Android version code.")
 require(gameVersionCode > 0) { "wayfarersVersionCode must be positive." }

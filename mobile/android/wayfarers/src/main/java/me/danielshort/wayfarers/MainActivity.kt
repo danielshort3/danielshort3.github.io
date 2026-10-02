@@ -40,12 +40,14 @@ import kotlinx.coroutines.withContext
 import me.danielshort.app.BuildConfig
 import me.danielshort.app.updates.*
 import org.json.JSONObject
+import org.json.JSONArray
 import java.io.ByteArrayInputStream
 import java.util.Locale
 
 /** A standalone game shell. Only signed, installed APKs change executable game assets. */
 class MainActivity : ComponentActivity() {
   private val app get() = application as WayfarersApplication
+  private val checkpoints by lazy { GuildCheckpointStore(java.io.File(filesDir, "guild-checkpoint.json")) }
   private var game: WebView? = null
   private var options by mutableStateOf(false)
   private var rendererFailed by mutableStateOf(false)
@@ -168,7 +170,10 @@ class MainActivity : ComponentActivity() {
   private fun flushGame(complete: (Boolean) -> Unit) {
     val current = game
     if (current == null || !GuildContentPolicy.isGame(current.url.orEmpty())) { complete(false); return }
-    current.evaluateJavascript("Boolean(window.WayfarersAndroidUI?.flush())") { result -> complete(result == "true") }
+    current.evaluateJavascript("window.WayfarersAndroidUI?.durableSnapshot() || ''") { result ->
+      val text = runCatching { JSONArray("[$result]").getString(0) }.getOrNull()
+      complete(!text.isNullOrEmpty() && checkpoints.write(text))
+    }
   }
   private fun notice(message: String) { Toast.makeText(this, message, Toast.LENGTH_LONG).show() }
 
@@ -197,6 +202,10 @@ class MainActivity : ComponentActivity() {
       webViewClient = object : WebViewClient() {
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse {
           if (!GuildContentPolicy.isAsset(request.url.toString()) || request.method != "GET") return denied()
+          if (request.url.toString() == GuildContentPolicy.ORIGIN + "/assets/wayfarers/native-checkpoint.js") {
+            return WebResourceResponse("application/javascript", "UTF-8", 200, "OK", mapOf("Cache-Control" to "no-store"),
+              ByteArrayInputStream(checkpoints.bootstrapScript().toByteArray(Charsets.UTF_8)))
+          }
           return assets.shouldInterceptRequest(request.url) ?: denied()
         }
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
@@ -216,13 +225,18 @@ class MainActivity : ComponentActivity() {
         }
       }
       if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
-        WebViewCompat.addWebMessageListener(this, "WayfarersAndroid", setOf(GuildContentPolicy.ORIGIN)) { view, message, origin, mainFrame, _ ->
+        WebViewCompat.addWebMessageListener(this, "WayfarersAndroid", setOf(GuildContentPolicy.ORIGIN)) { view, message, origin, mainFrame, reply ->
           if (!mainFrame || origin.toString().trimEnd('/') != GuildContentPolicy.ORIGIN ||
             !GuildContentPolicy.isGame(view.url.orEmpty())) return@addWebMessageListener
           val value = message.data ?: return@addWebMessageListener
-          if (value.toByteArray(Charsets.UTF_8).size > GuildContentPolicy.MAX_SAVE_BYTES + 4096) return@addWebMessageListener
+          if (value.toByteArray(Charsets.UTF_8).size > GuildContentPolicy.MAX_SAVE_BYTES * 2 + 4096) return@addWebMessageListener
           val request = runCatching { JSONObject(value) }.getOrNull() ?: return@addWebMessageListener
           when (request.optString("type")) {
+            "checkpoint" -> {
+              val replacement = if (request.has("replacesCreatedAt")) request.optDouble("replacesCreatedAt") else null
+              val success = checkpoints.write(request.optString("text"), replacement)
+              reply.postMessage(JSONObject().put("type", "checkpoint").put("requestId", request.optLong("requestId")).put("ok", success).toString())
+            }
             "options" -> showOptions()
             "import" -> importDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))
             "export" -> {
