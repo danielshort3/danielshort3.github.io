@@ -94,6 +94,17 @@ function prepareStormbreak(html, metadata) {
   return html.replace(titleBlock, '').replace(/(<main\b[^>]*\bid="main"[^>]*>)/i, `$1\n${masthead}`);
 }
 
+function prepareWayfarersGuild(html, metadata) {
+  const header = requireMatch(html, /<header\b[^>]*class="[^"]*\bwayfarers-guild-header\b[^"]*"[^>]*>[\s\S]*?<\/header>/i, 'Wayfarers Guild header')[0];
+  const title = requireMatch(header, /<h1\b[^>]*>[\s\S]*?<\/h1>/i, 'Wayfarers Guild title')[0];
+  const lead = requireMatch(header, /<p\b[^>]*>[\s\S]*?<\/p>/i, 'Wayfarers Guild introduction')[0];
+  return html.replace(header, renderGameHeader({
+    itemId: metadata.itemId,
+    classes: 'wayfarers-guild-masthead',
+    copy: `${title}\n${lead}`
+  }));
+}
+
 function prepareOcean(html, metadata) {
   const hero = requireMatch(html, /<section\b[^>]*class="[^"]*\bocean-wave-hero\b[^"]*"[^>]*>[\s\S]*?<\/section>/i, 'Ocean Wave Simulation introduction')[0];
   const title = requireMatch(hero, /<h1\b[^>]*>[\s\S]*?<\/h1>/i, 'Ocean Wave Simulation title')[0];
@@ -113,6 +124,7 @@ const PREPARERS = Object.freeze({
   roulette: prepareRoulette,
   'probability-engine': prepareProbability,
   stormbreak: prepareStormbreak,
+  'wayfarers-guild': prepareWayfarersGuild,
   'ocean-wave-simulation': prepareOcean
 });
 

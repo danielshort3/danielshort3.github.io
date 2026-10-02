@@ -60,6 +60,7 @@
       category,
       view: home ? (closed ? 'closed' : 'overview') : (manifest.view || 'detail'),
       fit: framePolicy.resolveFit(home ? undefined : scope.body?.dataset.personalFit),
+      presentation: framePolicy.resolvePresentation(home ? '' : scope.body?.dataset.personalItem),
       home: Boolean(home),
       source,
       title: scope.title,
@@ -158,14 +159,16 @@
 
   function configure(description) {
     const closed = description.home && description.view === 'closed';
-    const railFree = description.audience === 'personal' && mobileDockQuery.matches &&
-      (!description.home || description.view === 'library');
+    const gamePresentation = description.presentation === 'game';
+    const railFree = gamePresentation || (description.audience === 'personal' && mobileDockQuery.matches &&
+      (!description.home || description.view === 'library'));
     description.fit = framePolicy.resolveFit(description.fit);
     frame.dataset.frameAudience = description.audience;
     frame.dataset.frameNavigation = railFree ? 'dock' : 'rails';
     frame.dataset.frameView = description.view;
     frame.dataset.frameHome = String(description.home);
     frame.dataset.frameFit = description.fit;
+    frame.dataset.framePresentation = gamePresentation ? 'game' : 'site';
     frame.dataset.frameCategory = description.category;
     frame.classList.toggle('home-accordion', description.home);
     frame.classList.toggle('is-library-mode', description.home && description.view === 'library');

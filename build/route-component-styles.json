@@ -43,6 +43,9 @@
   "/games/stormbreak": [
     "css/games/stormbreak.css"
   ],
+  "/games/wayfarers-guild": [
+    "css/games/wayfarers-guild.css"
+  ],
   "/portfolio/*": [
     "css/components/project-page.css"
   ],

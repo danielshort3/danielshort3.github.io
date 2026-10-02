@@ -655,6 +655,7 @@ function removePersonalBodyAttributes(html) {
       'data-personal-accordion-view',
       'data-personal-category',
       'data-personal-item',
+      'data-personal-presentation',
       'data-personal-fit',
       'data-personal-chrome',
       'data-site-route-id',
@@ -875,6 +876,7 @@ function wrapPersonalAccordionHtml(html, options = {}) {
     'data-site-route-category': category,
     'data-site-route-view': options.view === 'library' ? 'library' : 'detail'
   };
+  if (framePolicy.resolvePresentation(options.itemId) === 'game') bodyAttributes['data-personal-presentation'] = 'game';
   const canonicalPath = getCanonicalRoutePath(cleanHtml);
   bodyAttributes['data-site-route-navigation'] = isHardNavigationPath(canonicalPath) || options.navigation === 'hard'
     ? 'hard'

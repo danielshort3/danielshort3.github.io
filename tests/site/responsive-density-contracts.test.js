@@ -52,8 +52,9 @@ function runResponsiveDensityContractTests({ assert }) {
     gamesData.items.length === 7 &&
       JSON.stringify(gamesData.items.slice(0, 3).map((game) => game.id)) ===
         JSON.stringify(['project-starfall', 'stellar-dogfight', 'ocean-wave-simulation']) &&
-      Object.keys(personalPageGenerator.GAME_PAGE_PATHS).length === 6 &&
-      Object.prototype.hasOwnProperty.call(personalPageGenerator.GAME_PAGE_PATHS, 'project-starfall'),
+      Object.keys(personalPageGenerator.GAME_PAGE_PATHS).length === 7 &&
+      Object.prototype.hasOwnProperty.call(personalPageGenerator.GAME_PAGE_PATHS, 'project-starfall') &&
+      Object.prototype.hasOwnProperty.call(personalPageGenerator.GAME_PAGE_PATHS, 'wayfarers-guild'),
     'Games should expose seven entries with the requested first three and include Starfall in generated routing',
   );
   assert(
