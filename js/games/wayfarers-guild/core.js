@@ -1,10 +1,10 @@
 (function (root, factory) {
   'use strict';
   const common = typeof module === 'object' && module.exports;
-  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./content.js') : root.WayfarersContent);
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./content.js') : root.WayfarersContent, common ? require('./expeditions.js') : root.WayfarersExpeditions);
   if (common) module.exports = api;
   if (root) root.WayfarersCore = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, C) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, C, E) {
   'use strict';
   const VERSION = 4;
   const MAX_TIME = 8.64e15;
@@ -72,6 +72,7 @@
   function setPremiumEntitlements(state, ids) {
     if (!object(state) || !Array.isArray(ids) || ids.some(id => typeof id !== 'string' || !find(C.PREMIUM_ITEMS, id))) return { ok: false, message: 'Invalid premium entitlements.' };
     premiumEntitlements.set(state, new Set(ids));
+    E.setEntitlements(state, ids);
     return { ok: true, message: 'Account ownership refreshed.' };
   }
   function premiumOwned(state, id) {
@@ -90,12 +91,13 @@
     state.resources.starshards = N.floor(N.add(state.resources.starshards, amount));
     pushEvent(state, 'Milestone gift: ' + amount + ' earned Starshards. This gift is awarded once.');
   }
-  function advancePremium(state, seconds) {
+  function advancePremium(state, seconds, at) {
     if (!unlocked(state, 'forge') || seconds <= 0) return;
     const premium = state.premium;
     // Count absolute clock boundaries, rather than rounding each foreground tick.
     // Integer milliseconds keep rare-drop boundaries identical across partitions.
-    const milliseconds = Math.max(0, Math.round(state.lastUpdate + seconds * 1000) - Math.round(state.lastUpdate));
+    const start = at === undefined ? state.lastUpdate : at;
+    const milliseconds = Math.max(0, Math.round(start + seconds * 1000) - Math.round(start));
     let remaining = milliseconds;
     let untilDrop = Math.round(premium.untilDrop * 1000);
     let drops = 0;
@@ -128,7 +130,7 @@
       lifetime: { work: N.zero(), coins: N.zero(), refits: 0, charters: 0, highestRoute: -1, frontier: 0 },
       crew: { owned: [], specialists: [null, null], companions: [], companion: null },
       meal: 'meal-none', doctrine: 'balanced', automations: { operations: false, equipment: false, routes: false },
-      challenges: { active: null, completed: [] }, collections: [], planner: 0, events: [], premium: createPremium(time), luck: createLuck(time), caravan: createCaravan(time), guild: createGuild(false), introductions: { seen: [] }
+      challenges: { active: null, completed: [] }, collections: [], planner: 0, events: [], premium: createPremium(time), luck: createLuck(time), caravan: createCaravan(time), guild: createGuild(false), introductions: { seen: [] }, expedition: E.create()
     };
   }
 
@@ -203,7 +205,7 @@
       if (state.route.index > state.lifetime.highestRoute + 1) errors.push('Route is not discovered.');
       if (state.run.completed > state.lifetime.highestRoute) errors.push('Run exceeds lifetime progress.');
       if (state.challenges.active && state.route.index > state.run.completed + 1) errors.push('Challenge route skips fresh expedition progress.');
-      if (C.ROOMS.some(room => state.rooms.includes(room.id) && room.at > state.lifetime.highestRoute + 1)) errors.push('Room is not discovered.');
+      if (C.ROOMS.some(room => state.rooms.includes(room.id) && (state.expedition && room.id === 'hall' ? 3 : room.at) > state.lifetime.highestRoute + 1)) errors.push('Room is not discovered.');
       if (N.cmp(state.route.progress, getRoute(state.route.index, version >= 4 ? state : null).distance) >= 0) errors.push('Route progress exceeds its target.');
       if (C.ROOMS.some(room => state.ranks[room.id] !== masteryRank(state.mastery[room.id]))) errors.push('Mastery rank does not match experience.');
       if (version >= 2) {
@@ -215,6 +217,7 @@
     }
     if (version >= 3) validateLuck(state, errors, version);
     if (version >= 4) validateGuild(state, errors);
+    if (version >= 4 && own(state, 'expedition') && (!E.validate(state.expedition) || state.expedition.cleared !== state.lifetime.highestRoute || state.route.index !== state.expedition.index + (state.expedition.completed ? 1 : 0))) errors.push('Invalid local expedition progress.');
     if (version >= 4 && own(state, 'introductions')) {
       if (!exactKeys(state.introductions, ['seen'])) errors.push('Invalid presentation introductions.');
       else ids(state.introductions.seen, C.PRESENTATION_SYSTEMS, 'seen introductions');
@@ -229,7 +232,7 @@
     // rewards for historical play. Only the exact supported v1 schema is admitted.
     try {
       if (!object(input) || ![1, 2, 3].includes(input.schemaVersion) || !validateSchema(input, input.schemaVersion).valid) return null;
-      const keys = Object.keys(createState(input.createdAt)).filter(key => !['guild', 'introductions'].includes(key) && (input.schemaVersion >= 3 || !['luck', 'caravan'].includes(key)) && (input.schemaVersion !== 1 || key !== 'premium'));
+      const keys = Object.keys(createState(input.createdAt)).filter(key => !['guild', 'introductions', 'expedition'].includes(key) && (input.schemaVersion >= 3 || !['luck', 'caravan'].includes(key)) && (input.schemaVersion !== 1 || key !== 'premium'));
       if (Object.keys(input).length !== keys.length || Object.keys(input).some(key => !keys.includes(key))) return null;
       const expected = { route: ['index', 'progress', 'mode'], run: ['id', 'completed', 'work', 'elapsed'], chapter: ['work', 'refits'], lifetime: ['work', 'coins', 'refits', 'charters', 'highestRoute', 'frontier'], crew: ['owned', 'specialists', 'companions', 'companion'], challenges: ['active', 'completed'], automations: C.AUTOMATIONS.map(x => x.id) };
       if (Object.keys(expected).some(key => Object.keys(input[key]).length !== expected[key].length || Object.keys(input[key]).some(field => !expected[key].includes(field)))) return null;
@@ -247,6 +250,7 @@
       out.guild = createGuild(true);
       out.guild.chapterProject.number = out.lifetime.charters;
       out.introductions = { seen: presentationSystems(out).map(system => system.id) };
+      out.expedition = E.hydrate(out, ratio(input.route.progress, getRoute(input.route.index, input).distance));
       return validateState(out).valid ? out : null;
     } catch (_) { return null; }
   }
@@ -255,8 +259,9 @@
     if (!validateState(input).valid) return createState(now);
     const out = createState(input.createdAt);
     // Only fields from the schema are admitted. Never merge untrusted keys into live objects.
-    Object.keys(out).forEach(key => { if (key !== 'introductions' || own(input, key)) out[key] = clone(input[key]); });
+    Object.keys(out).forEach(key => { if (!['introductions', 'expedition'].includes(key) || own(input, key)) out[key] = clone(input[key]); });
     if (!own(input, 'introductions')) out.introductions = { seen: presentationSystems(out).map(system => system.id) };
+    if (!own(input, 'expedition')) out.expedition = E.hydrate(out, ratio(input.route.progress, getRoute(input.route.index, input).distance));
     return out;
   }
 
@@ -552,9 +557,9 @@
   function getRoute(index, state) {
     const revised = state && state.guild && !state.guild.grandfathered;
     const opening = [...C.OPENING.routeDistances, 30000, 350000, 1200000, 200000000000, 100000000000000, 500000000000000, 2000000000000000];
-    if (index < C.ROUTES.length) return Object.assign({}, C.ROUTES[index], { distance: revised ? index < opening.length ? N.from(opening[index]) : product(opening[8], power(4, index - 8)) : N.from(C.ROUTES[index].distance) });
+    if (index < C.ROUTES.length) return Object.assign({}, C.ROUTES[index], { name: state && state.expedition ? E.stageName({ index }) : C.ROUTES[index].name, distance: revised ? index < opening.length ? N.from(opening[index]) : product(opening[8], power(4, index - 8)) : N.from(C.ROUTES[index].distance) });
     const frontier = index - C.ROUTES.length + 1;
-    return { id: 'route-' + index, index, name: 'Frontier ' + frontier, realm: 'frontier', realmName: 'Endless Frontier', tier: 6 + Math.ceil(frontier / 3), material: 'Astral alloy', distance: revised ? product(opening[8], power(4, index - 8)) : product(C.ROUTES[17].distance, power(8, index - 17)), description: 'An endless expedition with stronger gathering tiers and new prestige targets.' };
+    return { id: 'route-' + index, index, name: state && state.expedition ? E.stageName({ index }) : 'Frontier ' + frontier, realm: 'frontier', realmName: 'Endless Frontier', tier: 6 + Math.ceil(frontier / 3), material: 'Astral alloy', distance: revised ? product(opening[8], power(4, index - 8)) : product(C.ROUTES[17].distance, power(8, index - 17)), description: 'An endless expedition with stronger gathering tiers and new prestige targets.' };
   }
   function masteryRank(xp) { return Math.max(0, Math.floor(N.log10(N.add(N.div(xp, 300), 1)) / Math.log10(2) + 1e-10)); }
   function nextMastery(rank) { return N.mul(N.sub(power(2, rank + 1), 1), 300); }
@@ -602,6 +607,15 @@
   }
   function forgeOreCost(state) { return state.guild.grandfathered ? 20 : C.OPENING.forgeOre; }
   function upgradeDescription(state, def) {
+    if (state.expedition) {
+      const descriptions = {
+        boots: 'Improves guild coin income. Local Boots on the expedition screen control this crossing.',
+        preparation: 'Improves Greenway travel with diminishing returns. Rebuilt after Refit.',
+        'gear-tools': 'Improves guild ore production and Quarry extraction. Local extraction gains have diminishing returns.',
+        'gear-boots': 'Improves Greenway travel with diminishing returns and adds 20% guild coin output per rank.'
+      };
+      if (descriptions[def.id]) return descriptions[def.id];
+    }
     if (def.id !== 'boots' || state.guild.grandfathered) return def.description;
     const rank = level(state, 'boots');
     const percent = resource => Math.round((ratio(bootsMultiplier(state, resource, rank + 1), bootsMultiplier(state, resource, rank)) - 1) * 1000 + 1e-7) / 10;
@@ -623,6 +637,11 @@
     if (unlocked(state, 'forage')) rates.herbs = product(0.025, power(1.35, level(state, 'foragers')), material, power(1.25, state.refitUpgrades.supply), foundations, master('forage'), collection);
     if (unlocked(state, 'study')) rates.knowledge = product(0.015, power(1.35, level(state, 'scholars')), power(1.4, equip('gear-instruments')), material, power(1.25, state.refitUpgrades.insight), power(1.35, state.legacy.curriculum), master('study'), collection);
     if (unlocked(state, 'cartography')) rates.maps = product(0.006, power(1.35, level(state, 'surveyors')), power(1.4, equip('gear-instruments')), material, power(1.25, state.refitUpgrades.insight), master('cartography'), collection);
+    const outposts = E.contribution(state);
+    rates.coins = N.add(rates.coins, outposts.coins);
+    if (unlocked(state, 'mine')) rates.ore = N.add(rates.ore, outposts.ore);
+    ORDINARY.forEach(id => { rates[id] = N.mul(rates[id], outposts.production); });
+    travel = N.mul(travel, outposts.travel);
     if (hasSpecialist(state, 'scout')) travel = N.mul(travel, 1.4 * (specialists ? 1 + 0.04 * state.ranks.mine : 1));
     if (hasSpecialist(state, 'prospector')) { rates.ore = N.mul(rates.ore, 1.65); if (specialists) rates.herbs = N.mul(rates.herbs, 1 + 0.04 * state.ranks.forge); }
     if (hasSpecialist(state, 'naturalist')) rates.herbs = N.mul(rates.herbs, 1.7);
@@ -869,6 +888,23 @@
     if (!unlocked(state, 'cartography') || state.automations.routes && automationAvailable(state, 'routes')) state.route.index = index + 1;
   }
 
+  function settleExpedition(state) {
+    if (!state.expedition || !E.finish(state)) return false;
+    const index = state.expedition.index;
+    state.route.index = index;
+    settleRoute(state);
+    state.route.index = index + 1;
+    if (index >= 1 && !unlocked(state, 'forge')) { state.rooms.push('forge'); pushEvent(state, 'Forge built by the quarry expedition. Its equipment strengthens the whole guild.'); }
+    if (index >= 2 && !unlocked(state, 'hall')) {
+      state.rooms.push('hall');
+      ['scout', 'prospector', 'quartermaster'].forEach(id => { if (!state.crew.owned.includes(id)) state.crew.owned.push(id); });
+      if (state.crew.specialists.every(id => id === null)) state.crew.specialists[0] = 'scout';
+      pushEvent(state, 'Guild Hall opened. Choose a Scout, Prospector or Quartermaster for future expeditions.');
+    }
+    pushEvent(state, E.stageName(state.expedition) + ' expedition completed. Its outpost keeps working.');
+    return true;
+  }
+
   function advance(state, seconds) {
     if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds <= 0) return { seconds: 0, gained: {}, events: [] };
     const actual = Math.min(seconds, (MAX_TIME - state.lastUpdate) / 1000);
@@ -880,18 +916,20 @@
     let elapsed = 0;
     let iterations = 0;
     while (remaining > EPS) {
+      if (state.expedition && state.expedition.completed && state.expedition.automation.dispatch) E.restart(state, state.expedition.index + 1);
       cleanPlan(state);
       const rates = getRates(state);
       const luckEligible = { mine: unlocked(state, 'mine'), study: unlocked(state, 'study'), forge: caravanUnlocked(state) };
-      const batch = rates.kitchenRatio === 1 && (state.meal === 'meal-none' || rates.mealRatio === 1) && C.RESOURCES.every(resource => N.cmp(rates.gain[resource.id], rates.drain[resource.id]) >= 0);
+      const batch = !(state.expedition && state.expedition.automation.enabled) && rates.kitchenRatio === 1 && (state.meal === 'meal-none' || rates.mealRatio === 1) && C.RESOURCES.every(resource => N.cmp(rates.gain[resource.id], rates.drain[resource.id]) >= 0);
       const unboosted = batch ? getRates(state, true) : null;
       const target = getRoute(state.route.index, state).distance;
       const reserveEvents = {};
       let dt = remaining;
+      if (state.expedition) dt = Math.min(dt, E.nextEvent(state, rates.gain));
       dt = Math.min(dt, luckEventTime(state, batch));
       const dispatch = !unlocked(state, 'cartography') || state.automations.routes && automationAvailable(state, 'routes');
       const repeat = state.route.index <= state.run.completed && !dispatch && !state.guild.prepared.kinds.length;
-      const routeTime = repeat ? Infinity : ratio(N.sub(target, state.route.progress), rates.travel);
+      const routeTime = state.expedition || repeat ? Infinity : ratio(N.sub(target, state.route.progress), rates.travel);
       if (!repeat) dt = Math.min(dt, Math.max(EPS, routeTime));
       // A conservative bound includes the largest possible find before the
       // first check, then maximum subsequent find frequency. No automated
@@ -919,8 +957,13 @@
           reserveEvents[id] = { time, floor }; dt = Math.min(dt, time);
         }
       });
-      const distance = N.mul(rates.travel, dt);
-      state.route.progress = N.add(state.route.progress, distance);
+      let distance = N.mul(rates.travel, dt);
+      if (state.expedition) {
+        const beforeProgress = E.progress(state.expedition);
+        E.tick(state, dt);
+        distance = state.expedition.completed ? N.zero() : N.mul(target, Math.max(0, E.progress(state.expedition) - beforeProgress));
+        if (!state.expedition.completed) state.route.progress = N.mul(target, Math.min(1 - 1e-12, E.progress(state.expedition)));
+      } else state.route.progress = N.add(state.route.progress, distance);
       state.run.work = N.add(state.run.work, distance); state.chapter.work = N.add(state.chapter.work, distance); state.lifetime.work = N.add(state.lifetime.work, distance);
       state.run.elapsed += dt;
       state.lifetime.coins = N.add(state.lifetime.coins, N.mul(rates.gain.coins, dt));
@@ -934,7 +977,9 @@
       if (batch) batchLuck(state, dt, state.lastUpdate + elapsed * 1000, unboosted, luckEligible);
       C.ROOMS.forEach(room => { state.mastery[room.id] = N.add(state.mastery[room.id], N.mul(rates.xp[room.id], dt)); state.ranks[room.id] = masteryRank(state.mastery[room.id]); });
       state.planner += dt;
-      if (repeat && N.cmp(state.route.progress, target) >= 0) {
+      advancePremium(state, dt, state.lastUpdate + elapsed * 1000);
+      if (state.expedition) { settleExpedition(state); E.autoBuy(state); }
+      else if (repeat && N.cmp(state.route.progress, target) >= 0) {
         const laps = N.div(state.route.progress, target);
         // Repeated known routes have no completion grant. Batch their animation phase;
         // above mantissa precision the fractional lap is intentionally represented as zero.
@@ -953,7 +998,6 @@
       if (iterations >= 2048) break;
     }
     const processed = remaining === 0 ? actual : elapsed;
-    advancePremium(state, processed);
     state.lastUpdate += processed * 1000;
     const events = state.events.filter(event => !oldEvents.includes(event));
     const goal = getGoal(state);
@@ -975,10 +1019,10 @@
     const requiredWork = product(12000, power(2, state.chapter.refits));
     let reward = N.floor(product(2, power(N.div(state.run.work, 12000), 0.32), researched(state, 'field-notes') ? 1.25 : 1));
     if (state.run.completed < 2 || state.challenges.active) reward = N.zero();
-    const requirements = [{ label: 'Build the Forge and reinforce both mining tools and expedition boots', met: unlocked(state, 'forge') && level(state, 'gear-tools') >= 1 && level(state, 'gear-boots') >= 1 }, { label: 'Complete the Abandoned Quarry in this expedition', met: state.run.completed >= 2 }, { label: 'Earn ' + N.format(requiredWork) + ' expedition distance this run', met: N.cmp(state.run.work, requiredWork) >= 0 }, { label: 'Finish or leave the current challenge', met: state.challenges.active === null }];
+    const requirements = [{ label: 'Build the Forge and reinforce both mining tools and expedition boots', met: unlocked(state, 'forge') && level(state, 'gear-tools') >= 1 && level(state, 'gear-boots') >= 1 }, { label: 'Complete ' + getRoute(2, state).name + ' in this expedition', met: state.run.completed >= 2 }, { label: 'Earn ' + N.format(requiredWork) + ' expedition distance this run', met: N.cmp(state.run.work, requiredWork) >= 0 }, { label: 'Finish or leave the current challenge', met: state.challenges.active === null }];
     return { available: requirements.every(x => x.met), reward, rewardText: N.format(reward) + ' field notes', premiumGift: starshards, requirements, ...resetAdvice(state, 'notes', reward),
-      keeps: ['Discovered rooms and routes', 'Profession operations and mastery', 'Equipment reinforcement and recipes', 'Ore, herbs, provisions, knowledge, and maps', 'Crew ownership and assignments', 'Research, notes, collections, and legacy', 'Starshards, lasting charms, banners, and rare-drop timing', 'Relics, research, study progress, hunts, kits, and discovery timers', 'Caravan offers, reserved ad quotes, verified receipts, and remaining surge time'],
-      resets: ['Coins', 'Current route and route completion this run', 'Field preparation', 'Active meal returns to Save provisions', 'Unstarted caravan selections are repriced; reserved ad rewards keep their exact quote'],
+      keeps: ['Discovered rooms and routes', 'Profession operations and mastery', 'Equipment reinforcement and recipes', 'Ore, herbs, provisions, knowledge, and maps', 'Crew ownership and assignments', 'Research, notes, collections, and legacy', 'Starshards, lasting charms, banners, and rare-drop timing', 'Relics, research, study progress, hunts, kits, and discovery timers', 'Caravan offers, reserved ad quotes, verified receipts, and remaining surge time'].concat(state.expedition ? ['Productive outposts, regional mastery, blueprints and expedition automation'] : []),
+      resets: ['Coins', 'Current route and route completion this run', 'Field preparation', 'Active meal returns to Save provisions', 'Unstarted caravan selections are repriced; reserved ad rewards keep their exact quote'].concat(state.expedition ? ['Current local crew ranks, buffers and checkpoint work'] : []),
       gains: [N.format(reward) + ' field notes for permanent Refit improvements', state.lifetime.refits ? 'A new expedition using your retained guild' : 'Automatic operation purchases become available'].concat(starshards ? [starshards + ' earned Starshards · first Refit gift, once only'] : []) };
   }
   function getCharterPreview(state) {
@@ -989,8 +1033,8 @@
     const requirements = [{ label: 'Complete ' + getRoute(targetRoute, state).name + ' (route ' + (targetRoute + 1) + ') in this expedition', met: state.run.completed >= targetRoute }, state.guild.grandfathered ? { label: 'Complete two Refits in this charter (preserved legacy rules)', met: state.chapter.refits >= 2 } : { label: 'Complete one regional supply, atlas, or waystation project', met: state.guild.chapterProject.choice !== null }, { label: 'Earn ' + N.format(requiredWork) + ' distance in this charter', met: N.cmp(state.chapter.work, requiredWork) >= 0 }, { label: 'Finish or leave the current challenge', met: state.challenges.active === null }];
     if (!requirements.every(x => x.met)) reward = N.zero();
     return { available: requirements.every(x => x.met), reward, rewardText: N.format(reward) + ' guild crests', premiumGift: starshards, requirements, ...resetAdvice(state, 'crests', reward),
-      keeps: ['All room discoveries and equipment patterns', 'Lifetime profession mastery', 'Research and automation licenses', 'Crew ownership, recipes, and unlocked route choices', 'Collections and completed challenges', 'Guild crests and legacy upgrades', 'Starshards, lasting charms, banners, and rare-drop timing', 'Relics, research, study progress, hunts, kits, and discovery timers', 'Caravan offers, reserved ad quotes, verified receipts, and remaining surge time'],
-      resets: ['All ordinary resource stockpiles and field notes', 'Operations, field preparation, and equipment reinforcement', 'Refit improvement levels', 'Route progress and this charter’s expedition distance', 'Unstarted caravan selections are repriced; reserved ad rewards keep their exact quote'],
+      keeps: ['All room discoveries and equipment patterns', 'Lifetime profession mastery', 'Research and automation licenses', 'Crew ownership, recipes, and unlocked route choices', 'Collections and completed challenges', 'Guild crests and legacy upgrades', 'Starshards, lasting charms, banners, and rare-drop timing', 'Relics, research, study progress, hunts, kits, and discovery timers', 'Caravan offers, reserved ad quotes, verified receipts, and remaining surge time'].concat(state.expedition ? ['Productive outposts, regional mastery, blueprints and expedition automation'] : []),
+      resets: ['All ordinary resource stockpiles and field notes', 'Operations, field preparation, and equipment reinforcement', 'Refit improvement levels', 'Route progress and this charter’s expedition distance', 'Unstarted caravan selections are repriced; reserved ad rewards keep their exact quote'].concat(state.expedition ? ['Current local crew ranks, buffers and checkpoint work'] : []),
       gains: [N.format(reward) + ' guild crests for permanent legacy capabilities', 'An established guild opening with 100 coins', 'Discovered professions are immediately available'].concat(starshards ? [starshards + ' earned Starshards · first Charter gift, once only'] : []) };
   }
   function charterTarget(state) { return 8 + state.lifetime.charters * (state.guild.grandfathered ? 1 : 3); }
@@ -999,7 +1043,7 @@
     const purchases = C.CAPABILITIES.filter(def => def.resource === resource && !hasCapability(state, def.id) && (resource === 'notes' ? state.lifetime.refits + 1 : state.lifetime.charters + 1) >= def.at && N.cmp(budget, def.cost) >= 0).map(def => ({ name: def.name, costText: def.cost + ' ' + resource, effectText: def.description }));
     const retainedDistance = N.from(state.run.work);
     const rate = getRates(state).travel;
-    return { purchases, recovery: resource === 'notes' ? { seconds: ratio(retainedDistance, rate), text: 'Estimate at the current travel rate, before new purchases and route preparations. Returning to this reach may be faster as the guild improves.' } : { seconds: null, text: 'Operations and equipment restart. Retained mastery, research, playbooks, and your crest purchase determine recovery; no fixed-time promise.' }, planText: 'Reserves, priorities, saved objective, queue, automation settings, capabilities, and saved loadouts remain. Meals and paid route preparations restart; queued materials are earned again.' };
+    return { purchases, recovery: state.expedition ? { seconds: null, text: 'Local crews and checkpoint work restart. Outposts, regional mastery, blueprints and your selected expedition plan remain.' } : resource === 'notes' ? { seconds: ratio(retainedDistance, rate), text: 'Estimate at the current travel rate, before new purchases and route preparations. Returning to this reach may be faster as the guild improves.' } : { seconds: null, text: 'Operations and equipment restart. Retained mastery, research, playbooks, and your crest purchase determine recovery; no fixed-time promise.' }, planText: 'Reserves, priorities, saved objective, queue, automation settings, capabilities, and saved loadouts remain. Meals and paid route preparations restart; queued materials are earned again.' };
   }
   function resetRun(state) {
     state.resources.coins = N.zero(); state.upgrades.preparation = 0;
@@ -1026,6 +1070,17 @@
   function projectName(id) { const def = find(C.PROJECTS, id); return def ? def.name : { 'chapter-supply': 'Establish regional supply camps', 'chapter-survey': 'Complete a regional atlas', 'chapter-industry': 'Build a regional waystation' }[id] || id; }
   function performAction(state, action) {
     if (!object(action) || typeof action.type !== 'string') return { ok: false, message: 'Choose an available guild action.' };
+    if (action.type.startsWith('expedition-')) {
+      if (!state.expedition) state.expedition = E.hydrate(state, ratio(state.route.progress, getRoute(state.route.index, state).distance));
+      if (action.type === 'expedition-next') {
+        if (!state.expedition.completed) return { ok: false, message: 'Finish this expedition before continuing.' };
+        const next = state.expedition.index + 1;
+        E.restart(state, next); state.route.index = next; state.route.progress = N.zero(); state.guild.prepared = { index: -1, kinds: [] };
+        return { ok: true, message: E.stageName(state.expedition) + ' expedition started.' };
+      }
+      if (action.type === 'expedition-complete') return settleExpedition(state) ? { ok: true, message: 'Expedition completed.' } : { ok: false, message: 'Your crew completes the finale automatically.' };
+      return E.act(state, action);
+    }
     if (action.type === 'introduction-seen') {
       const earned = presentationSystems(state).map(system => system.id);
       if (!Array.isArray(action.ids) || !action.ids.length || action.ids.length > C.PRESENTATION_SYSTEMS.length || new Set(action.ids).size !== action.ids.length || action.ids.some(id => !earned.includes(id))) return { ok: false, message: 'Only introductions for earned systems can be acknowledged.' };
@@ -1172,7 +1227,7 @@
     }
     if (action.type === 'buy') return purchase(state, action.id);
     if (action.type === 'build-room' && action.id === 'forge') {
-      if (!unlocked(state, 'mine') || unlocked(state, 'forge') || state.lifetime.highestRoute < 1) return { ok: false, message: 'Explore Watchtower Road before building the Forge.' };
+      if (!unlocked(state, 'mine') || unlocked(state, 'forge') || state.lifetime.highestRoute < 1) return { ok: false, message: 'Complete ' + getRoute(1, state).name + ' before building the Forge.' };
       const costs = { ore: N.from(forgeOreCost(state)) };
       if (!affordable(state, costs)) return { ok: false, message: 'The Forge needs ' + forgeOreCost(state) + ' ore from your Mine.' };
       spend(state, costs); state.rooms.push('forge'); pushEvent(state, 'Forge built. Ore can now reinforce tools and expedition boots.');
@@ -1287,6 +1342,7 @@
 
   function act(state, action) {
     const result = performAction(state, action);
+    if (result.ok && state.expedition && ['route', 'refit', 'charter', 'challenge'].includes(action.type)) E.restart(state, state.route.index);
     if (result.ok && validPlanAction(action)) {
       const plan = state.guild.plan;
       if (plan.goal && canonical(plan.goal) === canonical(action)) plan.goal = null;
@@ -1311,7 +1367,7 @@
         const cost = upgradeCost(state, find(C.UPGRADES, 'miners')).coins;
         return Object.assign(base, { title: 'Hire your first miner', description: 'Hire a miner to increase ore production by 32%. Save ' + ore + ' ore to build the Forge next.', progress: Math.min(1, ratio(state.resources.coins, cost)), progressText: N.format(state.resources.coins) + ' / ' + N.format(cost) + ' coins', action: { type: 'buy', id: 'miners' } });
       }
-      return Object.assign(base, { title: 'Build the Forge', description: state.lifetime.highestRoute < 1 ? 'Complete Watchtower Road and gather ' + ore + ' ore. The Mine supplies your first workshop.' : 'Spend ' + ore + ' ore from the Mine to build the Forge and choose between tools and expedition boots.', progress: Math.min(1, ratio(state.resources.ore, N.from(ore))), progressText: N.format(state.resources.ore) + ' / ' + ore + ' ore', action: { type: 'build-room', id: 'forge' } });
+      return Object.assign(base, { title: 'Build the Forge', description: state.lifetime.highestRoute < 1 ? 'Complete ' + getRoute(1, state).name + ' and gather ' + ore + ' ore. The Mine supplies your first workshop.' : 'Spend ' + ore + ' ore from the Mine to build the Forge and choose between tools and expedition boots.', progress: Math.min(1, ratio(state.resources.ore, N.from(ore))), progressText: N.format(state.resources.ore) + ' / ' + ore + ' ore', action: { type: 'build-room', id: 'forge' } });
     }
     if (!level(state, 'gear-tools') || !level(state, 'gear-boots')) {
       const equipped = Number(level(state, 'gear-tools') > 0) + Number(level(state, 'gear-boots') > 0);
@@ -1436,10 +1492,17 @@
   }
   function comparisonFor(state, change) {
     const preview = Object.assign({}, state, change);
-    if (premiumEntitlements.has(state)) premiumEntitlements.set(preview, premiumEntitlements.get(state));
+    if (premiumEntitlements.has(state)) { premiumEntitlements.set(preview, premiumEntitlements.get(state)); E.setEntitlements(preview, premiumEntitlements.get(state)); }
     const before = getRates(state), after = getRates(preview), changes = [];
     const b = {}, a = {};
-    for (const id of ['travel', ...ORDINARY]) {
+    if (state.expedition) {
+      const localBefore = E.localRates(state), localAfter = E.localRates(preview);
+      for (const [id, label] of [['travel', 'Crossing speed'], ['picks', 'Quarry extraction'], ['furnace', 'Furnace capacity'], ['repair', 'Construction'], ['beacon', 'Beacon work']]) {
+        b[id] = localBefore[id].toFixed(2) + '/s'; a[id] = localAfter[id].toFixed(2) + '/s';
+        if (Math.abs(localAfter[id] - localBefore[id]) > 1e-9) changes.push(label + ' ' + b[id] + ' → ' + a[id]);
+      }
+    }
+    for (const id of [...(state.expedition ? [] : ['travel']), ...ORDINARY]) {
       const from = id === 'travel' ? before.travel : N.sub(before.gain[id], before.drain[id]);
       const to = id === 'travel' ? after.travel : N.sub(after.gain[id], after.drain[id]);
       b[id] = N.format(from) + '/s'; a[id] = N.format(to) + '/s';
@@ -1450,9 +1513,11 @@
   }
 
   function roomRequirement(state, room) {
-    if (room.id === 'forge') return 'Complete Watchtower Road (route 2), then spend ' + forgeOreCost(state) + ' ore from the Mine to build the Forge.';
+    if (state.expedition && room.id === 'forge') return 'Complete Copper Quarry to establish the Forge and earn one guild equipment rank.';
+    if (state.expedition && room.id === 'hall') return 'Complete Watchtower Road to open the Guild Hall and choose specialists.';
+    if (room.id === 'forge') return 'Complete ' + getRoute(1, state).name + ' (route 2), then spend ' + forgeOreCost(state) + ' ore from the Mine to build the Forge.';
     const project = C.PROJECTS.find(def => def.room === room.id);
-    const route = C.ROUTES[room.at - 1];
+    const route = getRoute(state.expedition && room.id === 'hall' ? 2 : room.at - 1, state);
     if (!project || state.guild.grandfathered) return 'Complete ' + route.name + ' (route ' + room.at + ').';
     const prior = room.id === 'study' ? 'Kitchen' : room.id === 'hall' ? 'Study' : 'Guild Hall';
     const price = Object.keys(project.costs).map(id => N.format(project.costs[id]) + ' ' + id).join(' + ');
@@ -1476,12 +1541,12 @@
     const requirements = {
       finds: 'Find the first supply cache while travelling after discovering the Mine.',
       collections: 'Discover the first relic. Realm landmarks remain listed in the Guild record.',
-      refit: 'Build the Forge, reinforce mining tools and expedition boots, complete Abandoned Quarry in this expedition, and earn the required expedition distance.',
+      refit: 'Build the Forge, reinforce mining tools and expedition boots, complete ' + getRoute(2, state).name + ' in this expedition, and earn the required expedition distance.',
       planning: 'Complete the first Expedition Refit or research Workshop ledgers.',
       keepsakes: 'Earn your first Starshards or already own a lasting charm or banner.',
       relics: 'Build or discover the Study. The first relic arrives within 45 eligible expedition minutes.',
       caravan: state.guild.grandfathered ? 'After building the Forge, wait for an actual caravan arrival. Established guild eligibility is preserved.' : 'After the first Refit and built Forge, wait for an actual caravan arrival.',
-      contracts: 'Complete Mosslight Way (route 7) to make the first optional contract available.',
+      contracts: 'Complete ' + getRoute(6, state).name + ' (route 7) to make the first optional contract available.',
       charter: 'Open the Map Room to plan a regional project and review the deeper renewal.'
     };
     return C.PRESENTATION_SYSTEMS.filter(def => own(earned, def.id) ? earned[def.id] : unlocked(state, def.id)).map(def => {
@@ -1535,12 +1600,28 @@
     const costRows = costs => Object.keys(costs).map(id => ({ resource: id, amount: N.from(costs[id]), text: N.format(costs[id]) + ' ' + find(C.RESOURCES, id).name.toLowerCase() }));
     function descriptor(id, label, description, action, costs, open, extra) {
       costs = costs || {};
+      if (state.expedition) {
+        const descriptionByAction = {
+          'refit-upgrade:pace': 'Improves Greenway travel with diminishing returns. Retained through Refits.',
+          'legacy-upgrade:waystones': 'Improves Greenway travel with diminishing returns. Retained through Charters.',
+          'specialist:scout': '+30% Greenway travel while assigned.',
+          'specialist:prospector': '+35% Quarry extraction and +65% guild ore while assigned.',
+          'specialist:quartermaster': '+15% furnace and construction work; half provision use and 20% cheaper equipment.',
+          'companion:fox': '+15% Greenway travel and +30% guild coins.',
+          'companion:tortoise': '+20% Quarry extraction; improves guild ore output.',
+          'recipe:meal-travel': 'Consume provisions for +25% Greenway travel; a Supplied push strengthens the bonus.',
+          'recipe:meal-mining': 'Consume provisions for +25% Quarry extraction; a Supplied push strengthens the bonus.',
+          'research:efficient-smelting': 'Equipment costs 35% less ore; Quarry furnace capacity increases 25%.'
+        };
+        const kind = action.type === 'recruit' ? action.kind === 'companion' ? 'companion' : 'specialist' : action.type;
+        description = descriptionByAction[kind + ':' + action.id] || description;
+      }
       const canPay = affordable(state, costs);
       return Object.assign({ id, label, description, effectText: description, action, visible: true, unlocked: open !== false, affordable: canPay, disabled: open === false || !canPay, reason: open === false ? 'Continue exploring to unlock this.' : canPay ? '' : 'Needs ' + costRows(costs).filter(row => N.cmp(state.resources[row.resource], row.amount) < 0).map(row => row.text).join(' and '), cost: costRows(costs), level: 0 }, costInfo(state, costs, rates), extra || {});
     }
     const upgrades = C.UPGRADES.map(def => descriptor(def.id, def.name, upgradeDescription(state, def), { type: 'buy', id: def.id }, upgradeCost(state, def), upgradeOpen(state, def), { room: def.room, level: level(state, def.id), visible: upgradeOpen(state, def), effectText: upgradeOpen(state, def) ? comparisonFor(state, { upgrades: Object.assign({}, state.upgrades, { [def.id]: level(state, def.id) + 1 }) }).text : upgradeDescription(state, def) }));
     const forgeOre = forgeOreCost(state);
-    upgrades.push(descriptor('build-forge', 'Build the Forge', 'Use ' + forgeOre + ' ore to open equipment crafting. Tools develop ore supply; boots help expeditions.', { type: 'build-room', id: 'forge' }, { ore: N.from(forgeOre) }, unlocked(state, 'mine') && state.lifetime.highestRoute >= 1 && !unlocked(state, 'forge'), { room: 'mine', visible: unlocked(state, 'mine') && !unlocked(state, 'forge'), reason: state.lifetime.highestRoute < 1 ? 'Complete Watchtower Road first.' : N.cmp(state.resources.ore, forgeOre) < 0 ? 'Needs ' + forgeOre + ' ore.' : '' }));
+    upgrades.push(descriptor('build-forge', 'Build the Forge', 'Use ' + forgeOre + ' ore to open equipment crafting. Tools develop ore supply; boots help expeditions.', { type: 'build-room', id: 'forge' }, { ore: N.from(forgeOre) }, unlocked(state, 'mine') && state.lifetime.highestRoute >= 1 && !unlocked(state, 'forge'), { room: 'mine', visible: unlocked(state, 'mine') && !unlocked(state, 'forge'), reason: state.lifetime.highestRoute < 1 ? 'Complete ' + getRoute(1, state).name + ' first.' : N.cmp(state.resources.ore, forgeOre) < 0 ? 'Needs ' + forgeOre + ' ore.' : '' }));
     const research = C.RESEARCH.map(def => {
       const owned = researched(state, def.id);
       return descriptor(def.id, def.name, def.description, { type: 'research', id: def.id }, { knowledge: N.from(def.cost) }, unlocked(state, 'study') && state.lifetime.highestRoute + 1 >= def.at && !owned, { room: 'study', owned, maxed: owned, visible: owned || unlocked(state, 'study') && def.at <= state.lifetime.highestRoute + 1, reason: owned ? 'Researched permanently.' : undefined });
@@ -1568,8 +1649,8 @@
     });
     if (state.challenges.active) challenges.push(descriptor('leave-challenge', 'Leave challenge', 'Keep current progress and restore unrestricted equipment and crew.', { type: 'challenge', id: null }, {}, true));
     const automations = C.AUTOMATIONS.map(def => descriptor(def.id, def.name, def.description, { type: 'automation', id: def.id, enabled: !state.automations[def.id] }, {}, automationAvailable(state, def.id), { visible: state.lifetime.refits > 0 || unlocked(state, 'study'), selected: state.automations[def.id] }));
-    const refitUpgrades = C.REFIT_UPGRADES.map(def => descriptor('refit-' + def.id, def.name, def.description, { type: 'refit-upgrade', id: def.id }, { notes: product(def.base, power(def.scale, state.refitUpgrades[def.id])) }, state.lifetime.refits > 0, { visible: state.lifetime.refits > 0, level: state.refitUpgrades[def.id], group: 'refit' }));
-    const legacyUpgrades = C.LEGACY_UPGRADES.map(def => descriptor('legacy-' + def.id, def.name, def.description, { type: 'legacy-upgrade', id: def.id }, { crests: product(def.base, power(def.scale, state.legacy[def.id])) }, state.lifetime.charters > 0, { visible: state.lifetime.charters > 0, level: state.legacy[def.id], group: 'legacy' }));
+    const refitUpgrades = C.REFIT_UPGRADES.map(def => descriptor('refit-' + def.id, def.name, def.description, { type: 'refit-upgrade', id: def.id }, { notes: product(def.base, power(def.scale, state.refitUpgrades[def.id])) }, state.lifetime.refits > 0, { visible: state.lifetime.refits > 0, level: state.refitUpgrades[def.id], group: 'refit', effectText: comparisonFor(state, { refitUpgrades: Object.assign({}, state.refitUpgrades, { [def.id]: state.refitUpgrades[def.id] + 1 }) }).text }));
+    const legacyUpgrades = C.LEGACY_UPGRADES.map(def => descriptor('legacy-' + def.id, def.name, def.description, { type: 'legacy-upgrade', id: def.id }, { crests: product(def.base, power(def.scale, state.legacy[def.id])) }, state.lifetime.charters > 0, { visible: state.lifetime.charters > 0, level: state.legacy[def.id], group: 'legacy', effectText: comparisonFor(state, { legacy: Object.assign({}, state.legacy, { [def.id]: state.legacy[def.id] + 1 }) }).text }));
     const routes = [];
     for (let index = 0; index <= Math.min(17, state.lifetime.highestRoute + 1); index += 1) {
       const route = getRoute(index, state);
@@ -1640,6 +1721,7 @@
       preparation: C.PREPARATIONS.map(def => descriptor(def.id, def.name, def.description + ' One preparation per route; consumed on completion, route change, or reset.', { type: 'prepare-route', id: def.id }, preparationCosts(state, def.id), unlocked(state, 'cartography') && !state.guild.prepared.kinds.length, { visible: unlocked(state, 'cartography'), selected: prepared(state, def.id), reason: state.guild.prepared.kinds.length ? 'A preparation is already active on this route.' : undefined })),
       prepared: state.guild.prepared.kinds.slice(), conditionText: regionCondition(state).text, demandText: 'Provisions: +' + N.format(rates.gain.provisions) + '/s produced; ' + N.format(rates.drain.provisions) + '/s consumed. ' + (rates.mealRatio < 1 && state.meal !== 'meal-none' && state.guild.supply !== 'save' ? 'Meal strength is limited by supply.' : 'Basic travel always continues.')
     };
+    Object.assign(expedition, E.view(state));
     const planning = {
       unlocked: planningOpen(state), reserves: ORDINARY.map(id => ({ id, name: find(C.RESOURCES, id).name, value: N.from(state.guild.plan.reserves[id]), formatted: N.format(state.guild.plan.reserves[id]) })), goal: clone(state.guild.plan.goal), priorities: clone(state.guild.plan.priorities), queue: state.guild.plan.queue.map(action => Object.assign({}, action, { name: taskDetails(state, action).name })), blockedReason: planBlockedReason(state), audit: clone(state.guild.audit), kit: state.guild.plan.kit, preparation: state.guild.plan.preparation, loadouts: state.guild.loadouts.map(entry => ({ id: entry.id, name: entry.name })),
       capabilities: C.CAPABILITIES.map(def => descriptor(def.id, def.name, def.description, { type: 'capability', id: def.id }, { [def.resource]: N.from(def.cost) }, !hasCapability(state, def.id) && (def.resource === 'notes' ? state.lifetime.refits > 0 : state.lifetime.charters >= def.at), { visible: def.resource === 'notes' ? state.lifetime.refits > 0 : state.lifetime.charters >= Math.max(1, def.at - 1), owned: hasCapability(state, def.id), maxed: hasCapability(state, def.id), reason: hasCapability(state, def.id) ? 'Learned permanently.' : undefined }))
@@ -1649,7 +1731,7 @@
       title: "Wayfarers’ Guild", resources, rooms, actions: upgrades.concat(refitUpgrades, legacyUpgrades), routes, modes, recipes, research, specialists, companions, doctrines, challenges, automations, refitUpgrades, legacyUpgrades, premium, luck, caravan,
       refit: getRefitPreview(state), charter: getCharterPreview(state), goal: getGoal(state), unlocks: state.rooms.slice(), events: state.events.slice(),
       progression: { routeId: current.id, routeIndex: current.index, routeName: current.name, realm: current.realm, realmName: current.realmName, routeProgress: N.format(state.route.progress), routeTarget: N.format(current.distance), routePercent: Math.min(1, ratio(state.route.progress, current.distance)), mode: state.route.mode, highestRoute: state.lifetime.highestRoute, frontier: state.lifetime.frontier, refits: state.lifetime.refits, charters: state.lifetime.charters, challenge: state.challenges.active, notes: N.format(state.resources.notes), mastery: clone(state.ranks), collections: state.collections.map(id => ({ id, name: find(C.REALMS, id).name, description: 'Permanent +8% production and travel.' })), specialists: state.crew.specialists.slice(), companion: state.crew.companion, doctrine: state.doctrine, materialTier: tier(state), meal: state.meal },
-      stats: { travelRate: N.format(rates.travel) + '/s', travel: rates.travel, runDistance: N.format(state.run.work), chapterDistance: N.format(state.chapter.work), lifetimeDistance: N.format(state.lifetime.work), elapsed: state.run.elapsed, kitchenSupply: rates.kitchenRatio, provisionSupply: rates.mealRatio, recipes: C.RECIPES.filter(def => unlocked(state, def.room) && (!def.research || researched(state, def.research))).length }
+      stats: { workLabel: state.expedition ? 'Expedition work' : 'Travel', workRate: state.expedition ? E.localRates(state).work + E.localRates(state).finale : N.toNumber(rates.travel), travelRate: state.expedition ? (E.localRates(state).work + E.localRates(state).finale).toFixed(2) + '/s' : N.format(rates.travel) + '/s', travel: state.expedition ? N.from(E.localRates(state).work + E.localRates(state).finale) : rates.travel, runDistance: N.format(state.run.work), chapterDistance: N.format(state.chapter.work), lifetimeDistance: N.format(state.lifetime.work), elapsed: state.run.elapsed, kitchenSupply: rates.kitchenRatio, provisionSupply: rates.mealRatio, recipes: C.RECIPES.filter(def => unlocked(state, def.room) && (!def.research || researched(state, def.research))).length }
     };
   }
   return { VERSION, MAX_TIME, Numbers: N, Content: C, format: N.format, createState, normalizeState, validateState, migrateState, setPremiumEntitlements, getRoute, getRates, upgradeCost, advance, advanceTo, act, getView, getPresentation, getGoal, getRefitPreview, getCharterPreview, getCaravanQuote, beginCaravanReward, cancelCaravanReward, grantCaravanReward };

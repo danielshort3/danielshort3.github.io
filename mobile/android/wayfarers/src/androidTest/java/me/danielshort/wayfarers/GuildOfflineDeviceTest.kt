@@ -23,17 +23,17 @@ class GuildOfflineDeviceTest {
       val opening = awaitReady(scenario)
       // Run on a fresh disposable AVD to cover the real first-run transition.
       // Retained save QA deliberately does not reset somebody else's guild.
-      assumeTrue("Opening transition requires a naturally fresh guild", opening.getInt("boots") == 0)
-      val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(90)
+      assumeTrue("Opening transition requires a naturally fresh guild", opening.getInt("stageIndex") == 0 && opening.getInt("boots") == 0 && opening.getInt("guildBoots") == 0)
+      val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20)
       var ready = opening
       while (!ready.optBoolean("canBuyBoots") && System.nanoTime() < deadline) {
         Thread.sleep(200)
         ready = readSnapshot(scenario)
         assertAnchored(opening, ready)
       }
-      assertTrue("The first useful upgrade must arrive within 90 seconds", ready.optBoolean("canBuyBoots"))
+      assertTrue("The first useful upgrade must arrive within 20 seconds on the device", ready.optBoolean("canBuyBoots"))
       assertAnchored(opening, ready)
-      evaluate(scenario, "document.querySelector('[data-perform=\"main:boots\"]').click(); true")
+      evaluate(scenario, "document.querySelector('[data-wx-buy=\"boots\"]').click(); true")
       var purchased = readSnapshot(scenario)
       val saveDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
       while ((purchased.optInt("boots") == 0 || !purchased.optBoolean("nativeConfirmed")) && System.nanoTime() < saveDeadline) {
@@ -62,7 +62,8 @@ class GuildOfflineDeviceTest {
         assertNotNull("A separate reader verifies the checksum and complete atomic file", checkpoint)
         val state = JSONObject(checkpoint!!.text).getJSONObject("state")
         assertEquals(saved.getLong("createdAt"), state.getLong("createdAt"))
-        assertEquals(saved.getInt("boots"), state.getJSONObject("upgrades").getInt("boots"))
+        assertEquals(saved.getInt("boots"), state.getJSONObject("expedition").getJSONObject("ranks").getInt("boots"))
+        assertEquals(saved.getInt("guildBoots"), state.getJSONObject("upgrades").getInt("boots"))
       }
     }
   }
@@ -127,11 +128,38 @@ class GuildOfflineDeviceTest {
     }
   }
 
+  @Test fun nativeBackClosesContextSheetsBeforeLeavingTheGame() {
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      awaitReady(scenario)
+      evaluate(scenario, "document.querySelector('[data-wx-options]').click(); true")
+      assertEquals("options", readSnapshot(scenario).optString("sheetKind"))
+      evaluate(scenario, "Array.from(document.querySelectorAll('.wx-sheet button')).find(b => b.textContent.includes('How this expedition works')).click(); true")
+      assertEquals("objective", readSnapshot(scenario).optString("sheetKind"))
+      scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+      awaitSheet(scenario, "options")
+      scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+      awaitSheet(scenario, "")
+      assertEquals(GuildContentPolicy.GAME_URL, awaitReady(scenario).getString("url"))
+    }
+  }
+
+  private fun awaitSheet(scenario: ActivityScenario<MainActivity>, expected: String) {
+    val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
+    while (System.nanoTime() < deadline) {
+      if (readSnapshot(scenario).optString("sheetKind") == expected) return
+      Thread.sleep(100)
+    }
+    assertEquals("Native Back preserves the game's sheet hierarchy", expected, readSnapshot(scenario).optString("sheetKind"))
+  }
+
   private fun awaitReady(scenario: ActivityScenario<MainActivity>, landscape: Boolean? = null): JSONObject {
     val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(35)
     var snapshot = JSONObject()
     while (System.nanoTime() < deadline) {
       snapshot = readSnapshot(scenario)
+      if (snapshot.optString("sheetKind") in listOf("return", "finale")) {
+        evaluate(scenario, "document.querySelector('.wx-sheet [data-wx-close]').click(); true")
+      }
       val orientationMatches = landscape == null || (snapshot.optInt("viewportWidth") > snapshot.optInt("viewportHeight")) == landscape
       if (snapshot.optString("scene") == "ready" && snapshot.optBoolean("saved") && snapshot.optBoolean("rendered") && orientationMatches) return snapshot
       Thread.sleep(150)
@@ -149,12 +177,13 @@ class GuildOfflineDeviceTest {
         JSON.stringify((function () {
           var envelope = JSON.parse(localStorage.getItem('wayfarers-guild-save-v1') || 'null');
           var state = envelope && envelope.state;
-          var scene = document.querySelector('[data-scene]');
-          var game = document.querySelector('[data-game]');
-          var action = document.querySelector('[data-perform="main:boots"]');
-          var goal = document.querySelector('[data-goal]');
-          var dock = document.querySelector('.wg-controls-column');
-          var nav = document.querySelector('[data-nav]');
+          var scene = document.querySelector('[data-wx-canvas]');
+          var game = document.querySelector('.wx-game');
+          var action = document.querySelector('[data-wx-buy="boots"]') || document.querySelector('[data-wx-buy]');
+          var goal = document.querySelector('.wx-objective');
+          var dock = document.querySelector('.wx-tray');
+          var nav = document.querySelector('.wx-nav');
+          var sheet = document.querySelector('.wx-sheet[open]');
           var gameBox = game && game.getBoundingClientRect(), buttonBox = action && action.getBoundingClientRect();
           var sceneBox = scene && scene.getBoundingClientRect(), dockBox = dock && dock.getBoundingClientRect();
           var goalBox = goal && goal.getBoundingClientRect(), navBox = nav && nav.getBoundingClientRect();
@@ -162,7 +191,10 @@ class GuildOfflineDeviceTest {
           var noHorizontalOverflow = document.documentElement.scrollWidth <= innerWidth + 1 && game && game.scrollWidth <= game.clientWidth + 1;
           return {url: location.href, scene: scene && scene.dataset.sceneStatus, saved: !!state,
             createdAt: state && state.createdAt, lastUpdate: state && state.lastUpdate,
-            boots: state && state.upgrades.boots, quiet: localStorage.getItem('wayfarers-guild-quiet'),
+            boots: state && state.expedition && state.expedition.ranks.boots,
+            guildBoots: state && state.upgrades.boots,
+            stageIndex: state && state.expedition && state.expedition.index,
+            sheetKind: sheet ? sheet.dataset.kind : '', quiet: localStorage.getItem('wayfarers-guild-quiet'),
             nativeConfirmed: !!(window.WayfarersCheckpoint && window.WayfarersCheckpoint.confirmed()),
             canBuyBoots: action && !action.disabled,
             sceneTop: sceneBox && sceneBox.top, sceneHeight: sceneBox && sceneBox.height,

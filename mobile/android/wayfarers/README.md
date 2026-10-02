@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.2.0`, version code `3` |
+| Default candidate | `0.3.0`, version code `4` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 
@@ -60,11 +60,11 @@ Focused game checks run from the repository root:
 
 ```powershell
 node tests/games/wayfarers-guild-opening.test.cjs
-node tests/games/wayfarers-guild-mobile.browser.cjs
+node tests/games/wayfarers-guild-expedition.browser.cjs
 node --test mobile/android/scripts/wayfarers-bundle.test.cjs
 ```
 
-The mobile browser check builds the same offline assets as the APK, exercises the first purchase and earned controls at five viewport sizes, and checks retained guilds, resource details, upgrade sheets, and long labels. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, and native checkpoint acknowledgement. Run its first-boot case on a fresh disposable emulator; never clear an existing player's data to make that case run.
+The expedition browser check builds the same offline assets as the APK. It exercises the first purchase and earned controls at three portrait/landscape sizes, completes three stages through visible purchases and decisions, reloads the saved guild, and checks retained guilds, portrait crew selection, automation sheets, and Atlas navigation. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, and native checkpoint acknowledgement. Run its first-boot case on a fresh disposable emulator; never clear an existing player's data to make that case run.
 
 ## Publish a compatible update
 

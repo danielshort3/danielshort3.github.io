@@ -150,6 +150,8 @@
     { "source": "/games/probability-engine.html", "destination": "/pages/games/probability-engine" },
     { "source": "/games/stormbreak", "destination": "/pages/games/stormbreak" },
     { "source": "/games/stormbreak.html", "destination": "/pages/games/stormbreak" },
+    { "source": "/games/wayfarers-guild", "destination": "/pages/games/wayfarers-guild" },
+    { "source": "/games/wayfarers-guild.html", "destination": "/pages/games/wayfarers-guild" },
     { "source": "/games/ocean-wave-simulation", "destination": "/pages/ocean-wave-simulation" },
     { "source": "/games/ocean-wave-simulation.html", "destination": "/pages/ocean-wave-simulation" },
     { "source": "/games",             "destination": "/pages/games" },
