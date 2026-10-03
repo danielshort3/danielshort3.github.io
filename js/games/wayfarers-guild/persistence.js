@@ -9,6 +9,7 @@
 
   const SAVE_KEY = 'wayfarers-guild-save-v1';
   const BACKUP_KEY = SAVE_KEY + '-backup';
+  const RESET_KEY = SAVE_KEY + '-reset';
   const FORMAT = 'wayfarers-guild-save';
   const VERSION = 6;
   const MAX_BYTES = 1024 * 1024;
@@ -53,6 +54,8 @@
     let unreadSave = false;
     let pendingImport = false;
     let observedMain = null;
+    let observedReset = null;
+    let resetObserved = false;
     let hasObservedMain = false;
     try {
       storage = Object.prototype.hasOwnProperty.call(settings, 'storage') ? settings.storage : root && root.localStorage;
@@ -76,6 +79,15 @@
       } catch (error) {
         return result(false, 'unavailable', STORAGE_MESSAGE);
       }
+    }
+    function generation() {
+      try { return observedReset ? JSON.parse(observedReset).id : ''; } catch (error) { return ''; }
+    }
+    function saveKey(key, id = generation()) { return id ? key + '-generation-' + id : key; }
+    function readSave(key) { return read(saveKey(key)); }
+    function writeSave(key, text) {
+      storage.setItem(saveKey(key), text);
+      if (generation()) storage.setItem(key, text); // Compatibility mirror, never reset-era authority.
     }
 
     function validateState(state) {
@@ -131,7 +143,14 @@
         const snapshot = core.normalizeState(JSON.parse(JSON.stringify(state)), time);
         const checked = validateState(snapshot);
         if (!checked.ok) return checked;
-        const text = JSON.stringify({ format: FORMAT, version: VERSION, savedAt: time, state: snapshot }, null, pretty ? 2 : 0);
+        const envelope = { format: FORMAT, version: VERSION, savedAt: time, state: snapshot };
+        // Device reset fencing belongs to the local envelope, never the exported
+        // guild. A write serialized before a reset cannot impersonate its nonce.
+        if (!pretty && observedReset) {
+          const reset = parseReset(observedReset);
+          if (reset) envelope.resetGeneration = reset.id;
+        }
+        const text = JSON.stringify(envelope, null, pretty ? 2 : 0);
         if (text.length >= MAX_BYTES || byteLength(text) >= MAX_BYTES) return result(false, 'invalid', 'The save must be smaller than 1 MB.');
         return result(true, 'serialized', '', { text: text });
       } catch (error) {
@@ -177,8 +196,34 @@
 
     function load(loadOptions) {
       const time = now();
+      const reset = read(RESET_KEY);
+      if (!reset.ok) { unreadSave = true; return fresh(time, 'unavailable', READ_MESSAGE, false); }
+      observedReset = reset.text;
+      resetObserved = true;
+      if (reset.text) {
+        const journal = parseReset(reset.text);
+        if (!journal) { unreadSave = true; return fresh(time, 'reset-pending', 'The testing reset record needs recovery. Automatic saving is paused.', false); }
+        if (journal.text) {
+          const repaired = finishReset(false);
+          const pending = parse(journal.text);
+          return result(true, 'reset-pending', repaired.ok ? 'Finish the testing reset before continuing.' : repaired.message, {
+            state: pending.payload.state, offline: emptyOffline(), canSave: false, savedAt: pending.payload.savedAt
+          });
+        }
+        const mainCandidate = readSave(SAVE_KEY);
+        const parsedCandidate = mainCandidate.ok && mainCandidate.text && parse(mainCandidate.text);
+        if (!mainCandidate.ok) { unreadSave = true; return fresh(time, 'unavailable', READ_MESSAGE, false); }
+        if (!parsedCandidate || !parsedCandidate.ok || parsedCandidate.payload.resetGeneration !== journal.id) {
+          const backupCandidate = readSave(BACKUP_KEY);
+          const parsedBackup = backupCandidate.ok && backupCandidate.text && parse(backupCandidate.text);
+          if (!backupCandidate.ok) { unreadSave = true; return fresh(time, 'unavailable', READ_MESSAGE, false); }
+          const recovery = parsedBackup && parsedBackup.ok && parsedBackup.payload.resetGeneration === journal.id ? backupCandidate.text : journal.seedText;
+          try { writeSave(BACKUP_KEY, recovery); writeSave(SAVE_KEY, recovery); }
+          catch (error) { unreadSave = true; return fresh(time, 'reset-pending', 'Reset recovery is paused. Retry after device storage is available.', false); }
+        }
+      }
       const deferOffline = !!(loadOptions && loadOptions.deferOffline === true);
-      const main = read(SAVE_KEY);
+      const main = readSave(SAVE_KEY);
       protectedSave = false;
       unreadSave = false;
       pendingImport = false;
@@ -202,7 +247,7 @@
         protectedSave = true;
         return fresh(time, 'unsupported', UNSUPPORTED_MESSAGE, false);
       }
-      const backup = read(BACKUP_KEY);
+      const backup = readSave(BACKUP_KEY);
       if (!backup.ok) {
         unreadSave = true;
         return fresh(time, 'unavailable', READ_MESSAGE, false);
@@ -228,12 +273,14 @@
     }
 
     function save(state, explicitImport) {
+      const resetGuard = checkReset();
+      if (!resetGuard.ok) return resetGuard;
       const mayReplace = explicitImport || pendingImport;
       if (unreadSave && !mayReplace) return result(false, 'unavailable', READ_MESSAGE);
       if (protectedSave && !mayReplace) return result(false, 'unsupported', UNSUPPORTED_MESSAGE);
       const serialized = serialize(state, now(), false);
       if (!serialized.ok) return serialized;
-      const main = read(SAVE_KEY);
+      const main = readSave(SAVE_KEY);
       if (!main.ok) return main;
       if (hasObservedMain && main.text !== observedMain && !explicitImport) return result(false, 'conflict', CONFLICT_MESSAGE);
       const previous = main.text === null ? null : parse(main.text);
@@ -249,8 +296,10 @@
         if (!storage || typeof storage.setItem !== 'function') return result(false, 'unavailable', STORAGE_MESSAGE);
         // A corrupt main must never replace a good backup. A failed backup write also leaves
         // the main untouched, so quota/security failures cannot sacrifice the last good save.
-        if (previous && previous.ok) storage.setItem(BACKUP_KEY, main.text);
-        storage.setItem(SAVE_KEY, serialized.text);
+        if (previous && previous.ok) writeSave(BACKUP_KEY, main.text);
+        writeSave(SAVE_KEY, serialized.text);
+        const finalGuard = checkReset();
+        if (!finalGuard.ok) return finalGuard;
         observedMain = serialized.text;
         hasObservedMain = true;
         protectedSave = false;
@@ -283,6 +332,8 @@
     }
 
     function replaceImport(text, options) {
+      const resetGuard = checkReset();
+      if (!resetGuard.ok) return resetGuard;
       const parsed = parse(text);
       if (!parsed.ok) return result(false, parsed.status, parsed.message + ' Your current guild has not changed.');
       let restored;
@@ -297,8 +348,94 @@
       return result(true, saved.ok ? 'imported' : saved.status, saved.ok ? 'Guild imported and saved on this device.' : 'Guild imported for this session. ' + saved.message, Object.assign(restored, { persisted: saved.ok, canSave: true }));
     }
 
-    return { load: load, save: function (state) { return save(state, false); }, export: exportSave, inspectImport: inspectImport, replaceImport: replaceImport };
+    function parseReset(text) {
+      try {
+        const value = JSON.parse(text);
+        if (!isRecord(value) || value.version !== 1 || !/^[a-zA-Z0-9-]{16,100}$/.test(value.id) ||
+          typeof value.previousId !== 'string' || (value.previousId && !/^[a-zA-Z0-9-]{16,100}$/.test(value.previousId)) ||
+          (value.previousCreatedAt !== null && !validTime(value.previousCreatedAt)) ||
+          (value.text !== null && (typeof value.text !== 'string' || !parse(value.text).ok)) ||
+          typeof value.seedText !== 'string' || !parse(value.seedText).ok || parse(value.seedText).payload.resetGeneration !== value.id ||
+          (value.text !== null && parse(value.text).payload.resetGeneration !== value.id)) return null;
+        return value;
+      } catch (error) { return null; }
+    }
+    function checkReset() {
+      const reset = read(RESET_KEY);
+      if (!reset.ok) return reset;
+      if (!resetObserved) { observedReset = reset.text; resetObserved = true; }
+      if (reset.text !== observedReset) return result(false, 'conflict', 'This guild was reset in another window. Reload before continuing.');
+      if (reset.text) {
+        const journal = parseReset(reset.text);
+        if (!journal || journal.text) return result(false, 'reset-pending', 'Finish the testing reset before continuing.');
+      }
+      return result(true, 'ready');
+    }
+    function pendingReset() {
+      const reset = read(RESET_KEY);
+      if (!reset.ok || !reset.text) return null;
+      return parseReset(reset.text);
+    }
+    function finishReset(commit) {
+      const raw = read(RESET_KEY);
+      if (!raw.ok || raw.text !== observedReset) return result(false, 'conflict', CONFLICT_MESSAGE);
+      const journal = raw.text && parseReset(raw.text);
+      if (!journal) return result(false, 'reset-pending', 'The reset could not be recovered. Existing files remain protected.');
+      if (!journal.text) return result(true, 'reset-complete');
+      const parsed = parse(journal.text);
+      try {
+        // The journal is authoritative until BOTH recovery copies hold the fresh
+        // guild. A crash at any write resumes this exact seed, never the old save.
+        writeSave(BACKUP_KEY, journal.text);
+        if (read(RESET_KEY).text !== observedReset) return result(false, 'conflict', CONFLICT_MESSAGE);
+        writeSave(SAVE_KEY, journal.text);
+        observedMain = journal.text;
+        hasObservedMain = true;
+        if (commit) {
+          if (read(RESET_KEY).text !== observedReset) return result(false, 'conflict', CONFLICT_MESSAGE);
+          if (journal.previousId && storage.removeItem) {
+            storage.removeItem(saveKey(SAVE_KEY, journal.previousId));
+            storage.removeItem(saveKey(BACKUP_KEY, journal.previousId));
+          }
+          const completed = JSON.stringify(Object.assign({}, journal, { text: null }));
+          storage.setItem(RESET_KEY, completed);
+          observedReset = completed;
+          protectedSave = false; unreadSave = false; pendingImport = false;
+        }
+        return result(true, commit ? 'reset-complete' : 'reset-pending', '', { state: parsed.payload.state, persisted: true, journal });
+      } catch (error) { return result(false, 'reset-pending', 'The reset is paused. Retry to finish clearing this device; the same fresh guild will be used.'); }
+    }
+    function resetForTesting(options) {
+      const current = read(RESET_KEY);
+      if (!current.ok || (resetObserved && current.text !== observedReset)) return result(false, 'conflict', CONFLICT_MESSAGE);
+      const previousJournal = current.text && parseReset(current.text);
+      if (current.text && !previousJournal) return result(false, 'reset-pending', 'The reset record could not be read. No progress was changed.');
+      if (previousJournal && previousJournal.text) return finishReset(!(options && options.deferCommit));
+      const main = readSave(SAVE_KEY);
+      if (!main.ok || (hasObservedMain && main.text !== observedMain)) return result(false, 'conflict', CONFLICT_MESSAGE);
+      const old = main.text && parse(main.text);
+      const time = now();
+      const next = core.createState(time);
+      if (old && old.ok && next.createdAt === old.payload.state.createdAt) next.createdAt = Math.min(MAX_TIME, next.createdAt + 1);
+      const serialized = serialize(next, time, false);
+      if (!serialized.ok) return serialized;
+      const cryptoApi = settings.crypto || (typeof globalThis !== 'undefined' && globalThis.crypto);
+      if (!cryptoApi || typeof cryptoApi.randomUUID !== 'function') return result(false, 'unavailable', 'A secure reset identifier is unavailable. No progress was changed.');
+      const id = cryptoApi.randomUUID();
+      const freshEnvelope = JSON.parse(serialized.text); freshEnvelope.resetGeneration = id;
+      const seedText = JSON.stringify(freshEnvelope);
+      const journal = { version: 1, id, previousId: previousJournal ? previousJournal.id : '',
+        previousCreatedAt: old && old.ok ? old.payload.state.createdAt : null, text: seedText, seedText };
+      try {
+        storage.setItem(RESET_KEY, JSON.stringify(journal));
+        observedReset = JSON.stringify(journal); resetObserved = true;
+      } catch (error) { return result(false, 'unavailable', 'The reset could not be started. Your existing guild is unchanged.'); }
+      return finishReset(!(options && options.deferCommit));
+    }
+
+    return { load: load, save: function (state) { return save(state, false); }, export: exportSave, inspectImport: inspectImport, replaceImport: replaceImport,
+      resetForTesting, pendingReset, finishReset };
   }
 
-  return { createStore: createStore, SAVE_KEY: SAVE_KEY, BACKUP_KEY: BACKUP_KEY, FORMAT: FORMAT, VERSION: VERSION, MAX_BYTES: MAX_BYTES };
+  return { createStore: createStore, SAVE_KEY: SAVE_KEY, BACKUP_KEY: BACKUP_KEY, RESET_KEY: RESET_KEY, FORMAT: FORMAT, VERSION: VERSION, MAX_BYTES: MAX_BYTES };
 }));

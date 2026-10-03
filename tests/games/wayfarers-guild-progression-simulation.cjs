@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const Core = require('../../js/games/wayfarers-guild/core.js');
 const P = require('../../js/games/wayfarers-guild/progression.js');
 const N = Core.Numbers;
+const { claimTiers } = require('./helpers/wayfarers-progression.cjs');
 const mode = process.argv[2] || 'reference';
 if (!['reference', 'no-focus', 'missed', 'active', 'opening'].includes(mode)) throw new Error('Unknown simulation policy.');
 if (mode === 'opening') {
@@ -13,12 +14,14 @@ if (mode === 'opening') {
   const production = () => Object.fromEntries(Object.entries(Core.getRates(state).gain).map(([id, value]) => [id, N.toNumber(value)]));
   let firstBuy = null, firstRefit = null, originalRates = null, eligibility = null, heldSince = null, sustained = null;
   for (let time = 0; time < 10800; time += 1) {
+    claimTiers(state);
     const expedition = state.expedition;
     if (expedition.completed) {
       if (Core.getRefitPreview(state).available && firstRefit === null) {
         originalRates = production(); firstRefit = time;
         stages.push({ index: expedition.index, time });
         Core.act(state, { type: 'refit' });
+        claimTiers(state);
         Core.act(state, { type: 'refit-upgrade', id: 'pace' });
         Core.act(state, { type: 'expedition-automation', enabled: true, priority: 'balanced', dispatch: false });
       } else if (firstRefit !== null && Core.getRefitPreview(state).available) {
@@ -85,6 +88,8 @@ function advance(seconds) {
 }
 
 function decide() {
+  // Tier claims are deliberate visit-time decisions, never performed by advance.
+  claimTiers(state);
   const expedition = state.expedition;
   // At most one prestige per day. The first three Refits fund Notes, then
   // at least two Refits between eligible Charters balance permanent spending.

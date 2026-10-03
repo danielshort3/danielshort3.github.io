@@ -5,6 +5,7 @@ const { test } = require('node:test');
 const Core = require('../../js/games/wayfarers-guild/core.js');
 const P = require('../../js/games/wayfarers-guild/progression.js');
 const Purchases = require('../../js/games/wayfarers-guild/progression-purchases.js');
+const { claimTiers } = require('./helpers/wayfarers-progression.cjs');
 const N = Core.Numbers;
 const clone = value => JSON.parse(JSON.stringify(value));
 const dependencies = { Content: Core.Content, upgradeCost: Core.upgradeCost, batchModes: P.batchModes, isOpen: () => true };
@@ -105,6 +106,8 @@ test('the opening and each lifetime milestone expose only earned batch modes', (
 
 test('the canonical catalog quotes and executes five guild ranks with the actual resulting output', () => {
   const state = guild();
+  state.lifetime.highestRoute = 0; // Guild-wide purchases are taught after the first landmark.
+  claimTiers(state);
   assert.ok(Core.act(state, { type: 'expedition-batch', count: 5 }).ok);
   const before = Core.getRates(state);
   const offer = Core.getView(state).globalUpgrades.find(item => item.action.type === 'buy' && item.action.id === 'boots');
@@ -129,6 +132,7 @@ test('five canonical equipment ranks award five ranks of Forge experience in one
   const state = guild();
   state.rooms = Core.Content.ROOMS.map(room => room.id);
   state.lifetime.highestRoute = 10;
+  claimTiers(state);
   assert.ok(Core.act(state, { type: 'expedition-batch', count: 5 }).ok);
   const before = state.mastery.forge;
   const offer = Core.getView(state).globalUpgrades.find(item => item.action.type === 'buy' && item.action.id === 'gear-instruments');

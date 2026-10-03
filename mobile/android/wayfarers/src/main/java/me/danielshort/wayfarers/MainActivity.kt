@@ -170,9 +170,10 @@ class MainActivity : ComponentActivity() {
   private fun flushGame(complete: (Boolean) -> Unit) {
     val current = game
     if (current == null || !GuildContentPolicy.isGame(current.url.orEmpty())) { complete(false); return }
-    current.evaluateJavascript("window.WayfarersAndroidUI?.durableSnapshot() || ''") { result ->
-      val text = runCatching { JSONArray("[$result]").getString(0) }.getOrNull()
-      complete(!text.isNullOrEmpty() && checkpoints.write(text))
+    current.evaluateJavascript("JSON.stringify({text:window.WayfarersAndroidUI?.durableSnapshot() || '',generation:window.WayfarersCheckpoint?.generation() || ''})") { result ->
+      val snapshot = runCatching { JSONObject(JSONArray("[$result]").getString(0)) }.getOrNull()
+      val text = snapshot?.optString("text")
+      complete(!text.isNullOrEmpty() && checkpoints.write(text, generation = snapshot.optString("generation")))
     }
   }
   private fun notice(message: String) { Toast.makeText(this, message, Toast.LENGTH_LONG).show() }
@@ -234,8 +235,12 @@ class MainActivity : ComponentActivity() {
           when (request.optString("type")) {
             "checkpoint" -> {
               val replacement = if (request.has("replacesCreatedAt")) request.optDouble("replacesCreatedAt") else null
-              val success = checkpoints.write(request.optString("text"), replacement)
+              val success = checkpoints.write(request.optString("text"), replacement, request.optString("generation", ""))
               reply.postMessage(JSONObject().put("type", "checkpoint").put("requestId", request.optLong("requestId")).put("ok", success).toString())
+            }
+            "reset-guild" -> {
+              val success = checkpoints.reset(request.optString("text"), request.optString("previousGeneration"), request.optString("generation"))
+              reply.postMessage(JSONObject().put("type", "reset-guild").put("requestId", request.optLong("requestId")).put("ok", success).toString())
             }
             "options" -> showOptions()
             "import" -> importDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))

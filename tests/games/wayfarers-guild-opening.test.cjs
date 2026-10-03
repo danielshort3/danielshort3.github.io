@@ -147,7 +147,9 @@ test('all historical schemas preserve rates, prices, route distances and Forge c
 test('new-save normalization preserves upgrades, resources, RNG and premium schedule', () => {
   const state = guidedOpening(120).state, snapshot = clone(state);
   const restored = Core.normalizeState(clone(state), state.lastUpdate);
-  assert.deepEqual(restored, snapshot);
+  const retained = clone(restored); delete retained.upgradeTiers;
+  assert.deepEqual(retained, snapshot, 'Only additive tier metadata changes the historical save');
+  assert.equal(Core.getView(restored).upgradeTiers.notice, null);
   assert.deepEqual(Core.getRates(restored), Core.getRates(state));
   assert.deepEqual(Core.upgradeCost(restored, upgrade('boots')), Core.upgradeCost(state, upgrade('boots')));
   assert.deepEqual(state, snapshot);

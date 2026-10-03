@@ -44,6 +44,9 @@ function collected(all=false) {
   }
   assert(H.Core.validateState(state).valid); return state;
 }
+function claimReadyTiers(state) {
+  for (const tier of H.Core.getView(state).expedition.tiers?.ready || []) assert(H.Core.act(state,tier.unlockAction).ok);
+}
 async function run() {
   fs.mkdirSync(output,{recursive:true});const files=path.join(output,'collection-bundle');bundle(files);
   const server=http.createServer((request,response)=>{
@@ -65,9 +68,10 @@ async function run() {
   }
   try {
     const two=H.Core.createState(0);H.fund(two);
-    while(!two.expedition.completed) { for(const [areaId,area] of Object.entries(two.expedition.areas)) for(const id of area.learned) if(area.ranks[id]<15) H.Core.act(two,{type:'expedition-buy',areaId,id});H.advance(two,20); }
+    while(!two.expedition.completed) { claimReadyTiers(two); for(const [areaId,area] of Object.entries(two.expedition.areas)) for(const id of area.learned) if(area.ranks[id]<15) H.Core.act(two,{type:'expedition-buy',areaId,id});H.advance(two,20); }
     H.Core.act(two,{type:'expedition-next'});
-    while(H.P.progress(two.expedition)<.96) { for(const [areaId,area] of Object.entries(two.expedition.areas)) for(const id of area.learned) if(area.ranks[id]<15) H.Core.act(two,{type:'expedition-buy',areaId,id});H.advance(two,1); }
+    while(H.P.progress(two.expedition)<.96) { claimReadyTiers(two); for(const [areaId,area] of Object.entries(two.expedition.areas)) for(const id of area.learned) if(area.ranks[id]<15) H.Core.act(two,{type:'expedition-buy',areaId,id});H.advance(two,1); }
+    claimReadyTiers(two);
     H.Core.act(two,{type:'collection-unlock',kind:'cards'});
     for(const [width,height] of [[320,740],[915,390]]) {
       const {context,page}=await open(width,height,two);await page.locator('[data-wx-collection="cards"]').click();assert.equal(await page.locator('.wx-deck-slot').count(),2);await shot(page,'two-slots-'+width);

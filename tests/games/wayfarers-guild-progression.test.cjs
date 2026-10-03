@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { Core, P, N, clone, advance, fund, mature } = require('./helpers/wayfarers-progression.cjs');
+const { Core, P, N, clone, advance, fund, mature, claimTiers } = require('./helpers/wayfarers-progression.cjs');
 const near = (a, b, tolerance = 1e-8) => assert.ok(Math.abs(a - b) <= Math.max(1, Math.abs(a), Math.abs(b)) * tolerance, `${a} != ${b}`);
 const valid = state => assert.deepEqual(Core.validateState(state), { valid: true, errors: [] });
 const amount = value => N.toNumber(value);
@@ -268,6 +268,7 @@ test('the first Refit takes 30–45 minutes and sustained prior production retur
   const state = Core.createState(0), refits = [];
   let firstBuy = null, originalRates = null, heldSince = null, sustainedRecovery = null;
   for (let time = 0; time < 5400; time += 1) {
+    claimTiers(state);
     if (state.expedition.completed) {
       if (Core.getRefitPreview(state).available) {
         if (!refits.length) {
@@ -275,6 +276,7 @@ test('the first Refit takes 30–45 minutes and sustained prior production retur
           originalRates = Core.getRates(state).gain;
           const preview = Core.getRefitPreview(state);
           act(state, { type: 'refit' });
+          claimTiers(state);
           assert.equal(N.cmp(state.resources.coins, preview.starter), 0);
           act(state, { type: 'refit-upgrade', id: 'pace' });
           act(state, { type: 'expedition-automation', enabled: true, priority: 'balanced', dispatch: false });

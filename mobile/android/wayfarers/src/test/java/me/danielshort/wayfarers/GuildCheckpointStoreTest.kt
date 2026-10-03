@@ -87,4 +87,32 @@ class GuildCheckpointStoreTest {
     file.writeText("not json")
     assertEquals("window.WayfarersNativeCheckpoint=null;", store.bootstrapScript())
   }
+
+  @Test fun testingResetFencesEveryOldWriterAndKeepsAnIdempotentReceipt() {
+    val file = temporary.newFile("reset.json")
+    val store = GuildCheckpointStore(file)
+    val token = "11111111-2222-4333-8444-555555555555"
+    assertTrue(store.write(envelope(boots = 99)))
+    val fresh = envelope(createdAt = 5000, savedAt = 5000, boots = 0)
+    assertTrue(store.reset(fresh, "", token))
+    assertEquals(token, GuildCheckpointStore(file).read()!!.generation)
+    assertFalse(store.write(envelope(savedAt = 9000, boots = 99)))
+    assertFalse(store.write(envelope(createdAt = 5000, savedAt = 9000, boots = 99), generation = ""))
+    val progressed = envelope(createdAt = 5000, savedAt = 6000, boots = 1)
+    assertTrue(store.write(progressed, generation = token))
+    assertTrue(store.reset(fresh, "", token))
+    assertEquals(progressed, store.read()!!.text)
+    assertFalse(store.reset(envelope(createdAt = 7000), "", "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+    assertFalse(store.reset(envelope(createdAt = 7000), token, "bad"))
+    assertEquals(progressed, store.read()!!.text)
+    assertTrue(store.reset(envelope(createdAt = 10000, savedAt = 10000, boots = 0), token, "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+    assertFalse(store.write(progressed, generation = token))
+  }
+
+  @Test fun resetMayRepairClockSkewWithoutAllowingOrdinaryOlderWrites() {
+    val store = GuildCheckpointStore(temporary.newFile("reset-clock.json"))
+    assertTrue(store.write(envelope(savedAt = 999999)))
+    assertTrue(store.reset(envelope(createdAt = 3000, savedAt = 3000, boots = 0), "", "11111111-2222-4333-8444-555555555555"))
+    assertEquals(3000.0, store.read()!!.savedAt, 0.0)
+  }
 }
