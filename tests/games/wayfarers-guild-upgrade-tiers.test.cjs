@@ -135,6 +135,7 @@ test('automation and saved plans cannot buy an unclaimed guild group', () => {
 test('new pending tiers and their acknowledgements survive an actual Charter', () => {
   const state=mature(), id='guild:mine:0';
   state.upgradeTiers.claimed=state.upgradeTiers.claimed.filter(value=>value!==id); state.upgradeTiers.pending.push(id);
+  for (const key of ['entries','announced','read']) state.onboarding[key]=state.onboarding[key].filter(value=>value!=='tier:'+id);
   act(state,{type:'upgrade-tier-defer',ids:[id]});
   while(!Core.getCharterPreview(state).available) {
     if (state.expedition.completed) act(state,{type:'expedition-next'});
@@ -152,5 +153,5 @@ test('strict optional metadata rejects malformed arrays, future tiers, duplicate
   const state=ready();
   const changes=[s=>s.upgradeTiers=null,s=>s.upgradeTiers.claimed.push('area:harbor:stowage'),s=>s.upgradeTiers.pending.push('area:harbor:stowage'),s=>s.upgradeTiers.prompted.push('not-ready'),s=>s.upgradeTiers.pending.push('constructor'),s=>s.upgradeTiers.claimed.push('area:greenway:boots'),s=>s.upgradeTiers.pending.push('area:greenway:boots'),s=>s.upgradeTiers.pending={},s=>s.upgradeTiers.extra=1];
   for(const change of changes) {const bad=clone(state);change(bad);assert.equal(Core.validateState(bad).valid,false);const text=JSON.stringify({format:Storage.FORMAT,version:Core.VERSION,savedAt:bad.lastUpdate,state:bad});assert.equal(Storage.createStore({storage:null,now:()=>bad.lastUpdate}).inspectImport(text).ok,false);}
-  const historical=clone(state);delete historical.upgradeTiers;valid(historical);const restored=Core.normalizeState(historical,historical.lastUpdate);assert(T.allows(restored,{type:'expedition-buy',areaId:'greenway',id:'porters'}),'Previously learned knowledge grandfathered');valid(restored);
+  const historical=clone(state);delete historical.upgradeTiers;delete historical.onboarding;valid(historical);const restored=Core.normalizeState(historical,historical.lastUpdate);assert(T.allows(restored,{type:'expedition-buy',areaId:'greenway',id:'porters'}),'Previously learned knowledge grandfathered');valid(restored);
 });

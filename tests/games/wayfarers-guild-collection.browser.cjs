@@ -9,6 +9,7 @@ const http = require('node:http');
 const { chromium } = require('playwright');
 const { bundle } = require('../../build/bundle-wayfarers-android.cjs');
 const H = require('./helpers/wayfarers-progression.cjs');
+const Onboarding = require('./helpers/wayfarers-onboarding.cjs');
 const K = require('../../js/games/wayfarers-guild/collections');
 const D = require('../../js/games/wayfarers-guild/collection-content');
 const Storage = require('../../js/games/wayfarers-guild/persistence');
@@ -59,6 +60,7 @@ async function run() {
   async function open(width,height,state) {
     const context=await browser.newContext({viewport:{width,height},hasTouch:true,reducedMotion:'reduce'});
     state=clone(state);state.lastUpdate=1000;
+    Onboarding.announceDiscoveries(Onboarding.completeAreaGuides(state));
     H.Core.act(state,{type:'introduction-seen',ids:H.Core.getPresentation(state).introductions.map(item=>item.id)});
     H.Core.act(state,{type:'discovery-seen',seq:state.luck.ledger.seq});
     const record=Storage.createStore({storage:null,now:()=>1000}).export(state);assert(record.ok,record.message);
@@ -97,12 +99,13 @@ async function run() {
       const {context,page}=await open(width,height,H.mature());
       const original=await page.locator('.wx-world').boundingBox();
       await page.locator('[data-wx-collection="cards"]').click();await key(page,'collection-intro:cards').click();
+      await Onboarding.finishCurrentGuide(page);
       let state=await save(page);assert.equal(state.collection.cardsUnlocked,true);assert(state.collection.decks.every(deck=>deck.slots.every(id=>id===null)));
       await page.locator('[data-wx-nav="expedition"]').click();assert.deepEqual(await page.locator('.wx-world').boundingBox(),original,'Claim causes no world shift');
       await page.locator('[data-wx-collection="cards"]').click();assert.equal(await page.locator('.wx-deck-slot').count(),4);await geometry(page);await shot(page,'starter-cards-'+width);
       await key(page,'card:trail-courier').click();await key(page,'equip-card-slot:0').click();await geometry(page);await footer(page);
       state=await save(page);assert.equal(state.collection.decks[0].slots[0],'trail-courier');
-      await page.locator('[data-wx-collection="equipment"]').click();await key(page,'collection-intro:equipment').click();await geometry(page);await shot(page,'starter-equipment-'+width);
+      await page.locator('[data-wx-collection="equipment"]').click();await key(page,'collection-intro:equipment').click();await Onboarding.finishCurrentGuide(page);await geometry(page);await shot(page,'starter-equipment-'+width);
       await key(page,'gear:trail-boots').click();await footer(page);state=await save(page);assert.equal(state.collection.equipped.boots,'trail-boots');await geometry(page);await shot(page,'equipment-detail-'+width);await close(page);
       await key(page,'gear:quarry-pick').click();await footer(page);state=await save(page);assert(state.collection.gear['quarry-pick']);assert.equal(state.collection.equipped.tool,null,'Forging never auto-equips');await footer(page);await context.close();
       const mature=await open(width,height,collected(true));await mature.page.locator('[data-wx-collection="cards"]').click();await geometry(mature.page);await shot(mature.page,'all-cards-'+width);

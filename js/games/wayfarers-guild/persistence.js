@@ -85,9 +85,15 @@
     }
     function saveKey(key, id = generation()) { return id ? key + '-generation-' + id : key; }
     function readSave(key) { return read(saveKey(key)); }
-    function writeSave(key, text) {
+    function writeSave(key, text, requireMirror = false) {
       storage.setItem(saveKey(key), text);
-      if (generation()) storage.setItem(key, text); // Compatibility mirror, never reset-era authority.
+      if (generation()) {
+        // A compatibility mirror cannot turn an already committed generation
+        // save into a reported failure. Reset itself still requires every old
+        // recovery copy to be replaced before its journal can be completed.
+        if (requireMirror) storage.setItem(key, text);
+        else { try { storage.setItem(key, text); } catch (_) { /* Canonical generation is durable. */ } }
+      }
     }
 
     function validateState(state) {
@@ -298,10 +304,13 @@
         // the main untouched, so quota/security failures cannot sacrifice the last good save.
         if (previous && previous.ok) writeSave(BACKUP_KEY, main.text);
         writeSave(SAVE_KEY, serialized.text);
-        const finalGuard = checkReset();
-        if (!finalGuard.ok) return finalGuard;
         observedMain = serialized.text;
         hasObservedMain = true;
+        const finalGuard = checkReset();
+        if (!finalGuard.ok) return Object.assign({}, finalGuard, {
+          committed: true,
+          message: finalGuard.status === 'unavailable' ? 'Progress was written, but its reset record could not be checked. Retry save before continuing.' : finalGuard.message
+        });
         protectedSave = false;
         unreadSave = false;
         pendingImport = false;
@@ -386,9 +395,9 @@
       try {
         // The journal is authoritative until BOTH recovery copies hold the fresh
         // guild. A crash at any write resumes this exact seed, never the old save.
-        writeSave(BACKUP_KEY, journal.text);
+        writeSave(BACKUP_KEY, journal.text, true);
         if (read(RESET_KEY).text !== observedReset) return result(false, 'conflict', CONFLICT_MESSAGE);
-        writeSave(SAVE_KEY, journal.text);
+        writeSave(SAVE_KEY, journal.text, true);
         observedMain = journal.text;
         hasObservedMain = true;
         if (commit) {

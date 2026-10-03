@@ -61,6 +61,7 @@ test('whole-batch affordability, stale quotes, invalid counts and cap remainder 
 test('saved areas, working choices and funded permanent research survive a real Refit while ranks rebuild', () => {
   const state = mature();
   state.expedition.projects = state.expedition.projects.filter(id => id !== 'guild-commerce');
+  for (const key of ['entries', 'announced', 'read']) state.onboarding[key] = state.onboarding[key].filter(id => id !== 'project:guild-commerce');
   act(state, { type: 'expedition-development', id: 'guild-commerce' });
   state.expedition.commission.work = 123;
   act(state, { type: 'expedition-config', areaId: 'watchtower', kind: 'assignments', slot: 1, id: 'industry' });
@@ -250,6 +251,7 @@ test('standing plans rebuild invested tracks without adopting a new unbought bra
 test('a saved permanent-project goal protects its material bill from conversion and automatic ranks', () => {
   const state = mature();
   state.expedition.projects = state.expedition.projects.filter(id => id !== 'guild-industry');
+  for (const key of ['entries', 'announced', 'read']) state.onboarding[key] = state.onboarding[key].filter(id => id !== 'project:guild-industry');
   act(state, { type: 'plan-goal', action: { type: 'expedition-development', id: 'guild-industry' } });
   state.resources.ore = N.zero();
   const project = P.Content.PROJECTS.find(p => p.id === 'guild-industry');
