@@ -34,7 +34,7 @@ test('explicit adoption keeps locked rewards, receipt history, earned ownership 
   const before = clone(state), preview = Core.getRefitPreview(state);
   assert.equal(Core.act(state, { type: 'refit' }).ok, true);
   assert.equal(state.expedition.version, 3);
-  assert.equal(state.schemaVersion, 5);
+  assert.equal(state.schemaVersion, Core.VERSION);
   assert.equal(state.run.id, before.run.id + 1);
   assert.deepEqual(state.luck, before.luck);
   assert.deepEqual(state.caravan, before.caravan);
@@ -53,7 +53,7 @@ test('explicit adoption keeps locked rewards, receipt history, earned ownership 
 test('a frozen pre-adoption reward pays exactly its original amount after save reload and only once', () => {
   const { state, quote } = pendingReleasedReward();
   assert.ok(Core.act(state, { type: 'refit' }).ok);
-  const text = JSON.stringify({ format: Storage.FORMAT, version: 5, savedAt: state.lastUpdate, state });
+  const text = JSON.stringify({ format: Storage.FORMAT, version: Storage.VERSION, savedAt: state.lastUpdate, state });
   const values = new Map([[Storage.SAVE_KEY, text]]);
   const store = Storage.createStore({ storage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value) }, now: () => state.lastUpdate });
   const loaded = store.load({ deferOffline: true });

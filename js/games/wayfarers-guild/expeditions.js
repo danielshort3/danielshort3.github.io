@@ -1,10 +1,10 @@
 (function (root, factory) {
   'use strict';
   const common = typeof module === 'object' && module.exports;
-  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers);
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./collections.js') : root.WayfarersCollections);
   if (common) module.exports = api;
   if (root) root.WayfarersExpeditions = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, Collection) {
   'use strict';
   const EPS = 1e-8;
   const KINDS = ['greenway', 'quarry', 'watchtower'];
@@ -123,7 +123,8 @@
     const collection = Math.pow(1.08, parent.collections.length);
     const travelKit = parent.luck.active === 'living-crucible' && parent.luck.kit.active === 'travel' && parent.luck.kit.remainingSeconds > 0;
     const miningKit = parent.luck.active === 'living-crucible' && parent.luck.kit.active === 'mining' && parent.luck.kit.remainingSeconds > 0;
-    const globalBoots = (1 + Math.sqrt(equipped('gear-boots')) * 0.12 + Math.sqrt(parent.refitUpgrades.pace) * 0.08 + Math.sqrt(parent.legacy.waystones) * 0.1 + Math.sqrt(parent.upgrades.preparation) * 0.06)
+    const collectionGear = Collection.modifiers(parent);
+    const globalBoots = (1 + Math.sqrt(equipped('gear-boots')) * 0.12 + Math.sqrt(parent.refitUpgrades.pace) * 0.08 + Math.sqrt(parent.legacy.waystones) * 0.1 + Math.sqrt(parent.upgrades.preparation) * 0.06) * (1 + (collectionGear.travel || 0) + (collectionGear.voyage || 0))
       * (crew.includes('scout') ? 1.3 : 1) * (companion === 'fox' ? 1.15 : 1) * (owns('compass') ? 1.1 : 1)
       * (supplied && parent.meal === 'meal-travel' ? 1 + .25 * mealStrength : 1)
       * (prepared('scout') ? 1.35 : 1) * (prepared('scout') && parent.luck.active === 'frost-compass' ? 1.4 : 1)

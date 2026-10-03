@@ -52,6 +52,9 @@
     const stack = [];
     let view;
     let screen = 'expedition';
+    let guildPage = 'overview';
+    let guildOrigin = null;
+    const guildScroll = new Map();
     let upgradeArea = 'all';
     let upgradeEffect = 'all';
     let upgradeSearch = '';
@@ -79,10 +82,10 @@
     const shell = document.createElement('section');
     shell.className = 'wx-game';
     shell.setAttribute('aria-label', 'Wayfarers Guild');
-    shell.innerHTML = '<header class="wx-header"><button class="wx-wallet" data-wx-wallet aria-label="Resource stockpile"></button><div class="wx-local-count" data-wx-local-count hidden></div><div class="wx-utilities"><button data-wx-reward aria-label="Caravan reward" hidden>' + icon('caravan') + '</button><button data-wx-options aria-label="Settings and app updates">' + icon('settings') + '</button></div></header>' +
+    shell.innerHTML = '<header class="wx-header"><button class="wx-wallet" data-wx-wallet aria-label="Resource stockpile"></button><div class="wx-local-count" data-wx-local-count hidden></div><div class="wx-utilities"><button class="wx-collection-shortcut" data-wx-collection="cards" aria-label="Cards" hidden>' + icon('cards') + '<small>Cards</small></button><button class="wx-collection-shortcut" data-wx-collection="equipment" aria-label="Equipment" hidden>' + icon('equipment') + '<small>Gear</small></button><button data-wx-reward aria-label="Caravan reward" hidden>' + icon('caravan') + '</button><button data-wx-options aria-label="Settings and app updates">' + icon('settings') + '</button></div></header>' +
       '<div class="wx-objective"><button class="wx-area-step" data-wx-prev hidden aria-label="Previous area">‹</button><button data-wx-objective><span data-wx-stage-name></span><strong data-wx-objective-text></strong></button><button class="wx-area-step" data-wx-next hidden aria-label="Next area">›</button><progress data-wx-progress max="100" value="0" aria-label="Expedition completion"></progress></div>' +
       '<div class="wx-play"><div class="wx-world"><canvas data-wx-canvas role="img" aria-label="Your expedition"></canvas><button class="wx-world-label" data-wx-world-label aria-label="Current area objective"></button><button class="wx-network-link" data-wx-network hidden></button><button class="wx-focus-trigger" data-wx-focus hidden></button><div class="wx-hotspots" data-wx-hotspots></div><div class="wx-world-actions" data-wx-world-actions></div></div><section class="wx-dock" aria-label="Area upgrades"><div class="wx-dock-heading"><strong data-wx-upgrade-count>Upgrades</strong><button data-wx-batch hidden></button></div><div class="wx-tray" data-wx-tray tabindex="0" aria-label="Area upgrades; scroll for more"></div></section></div>' +
-      '<section class="wx-destination" data-wx-destination hidden></section><nav class="wx-nav" aria-label="Game destinations"><button data-wx-nav="expedition">' + icon('maps') + '<span>Areas</span><i data-wx-attention hidden aria-label="New development"></i></button><button data-wx-nav="upgrades" hidden>' + icon('research') + '<span>Upgrades</span></button><button data-wx-nav="guild" hidden>' + icon('guild') + '<span>Guild</span></button></nav>' +
+      '<section class="wx-destination" data-wx-destination hidden></section><nav class="wx-nav" aria-label="Game destinations"><button data-wx-nav="expedition">' + icon('maps') + '<span>Areas</span><i data-wx-attention hidden aria-label="New development"></i></button><button data-wx-nav="upgrades" hidden>' + icon('research') + '<span>Upgrades</span></button><button data-wx-nav="guild" hidden>' + icon('guild') + '<span>Guild</span><i data-wx-guild-attention hidden aria-label="Reward or collection available"></i></button></nav>' +
       '<div class="wx-toast" data-wx-toast role="status" aria-live="polite"></div><div class="wx-sr-status" data-wx-area-status role="status" aria-live="polite"></div><button class="wx-save-alert" data-wx-save-alert hidden>Save needs attention</button>';
     const dialog = document.createElement('dialog');
     dialog.className = 'wx-sheet';
@@ -100,11 +103,14 @@
       if (node.dataset.markup === html) return;
       const focus = node.contains(document.activeElement) && document.activeElement.dataset.wxDo;
       const searching = node.contains(document.activeElement) && document.activeElement.hasAttribute('data-wx-search');
+      const naming = node.contains(document.activeElement) && document.activeElement.hasAttribute('data-wx-deck-name');
+      const draft = naming ? {value:document.activeElement.value,caret:document.activeElement.selectionStart} : null;
       const caret = searching ? document.activeElement.selectionStart : null;
       node.innerHTML = html;
       node.dataset.markup = html;
       if (focus) Array.from(node.querySelectorAll('[data-wx-do]')).find(button => button.dataset.wxDo === focus)?.focus({ preventScroll:true });
       if (searching) { const input = node.querySelector('[data-wx-search]'); input?.focus({ preventScroll:true }); if (input && caret != null) input.setSelectionRange(caret, caret); }
+      if (draft) { const input=node.querySelector('[data-wx-deck-name]'); if(input) { input.value=draft.value; input.focus({preventScroll:true}); input.setSelectionRange(draft.caret,draft.caret); } }
     }
     function text(node, value) { if (node.textContent !== String(value)) node.textContent = value; }
     function command(action, key) {
@@ -114,7 +120,7 @@
     }
     function button(label, action, settings) {
       const cfg = settings || {};
-      return '<button type="button"' + command(action, cfg.key) + ' class="' + esc(cfg.className || 'wx-button') + '"' + (cfg.disabled ? ' disabled' : '') + (cfg.selected ? ' aria-pressed="true"' : '') + (cfg.aria ? ' aria-label="' + esc(cfg.aria) + '"' : '') + '>' + label + '</button>';
+      return '<button type="button"' + command(action, cfg.key || (typeof action === 'function' ? 'callback:' + label : undefined)) + ' class="' + esc(cfg.className || 'wx-button') + '"' + (cfg.disabled ? ' disabled' : '') + (cfg.selected ? ' aria-pressed="true"' : '') + (cfg.aria ? ' aria-label="' + esc(cfg.aria) + '"' : '') + '>' + label + '</button>';
     }
     function costs(item) {
       return (item.cost || []).map(cost => '<span>' + icon(cost.resource) + esc(compact(cost.amount)) + '</span>').join('');
@@ -149,6 +155,147 @@
     }
     function menu(label, detail, glyph, model) {
       return button(icon(glyph) + '<span><strong>' + esc(label) + '</strong><small>' + esc(detail || '') + '</small></span><b aria-hidden="true">›</b>', () => open(model), { key:'menu:' + JSON.stringify(model), className:'wx-menu' });
+    }
+    function showGuildPage(page) {
+      if (screen === 'guild') guildScroll.set(guildPage,q('[data-wx-destination]').scrollTop);
+      if (!guildOrigin && page !== 'overview') guildOrigin = { screen, page:guildPage, scroll:q('[data-wx-destination]').scrollTop };
+      close(); screen = 'guild'; guildPage = page; update(view);
+      q('[data-wx-destination]').scrollTop = guildScroll.get(page) || 0;
+    }
+    function guildTabs() {
+      const collection = view.collection || {};
+      const pages = [{id:'overview',label:'Overview'},...(collection.cardsAvailable || collection.cardsUnlocked ? [{id:'cards',label:'Cards'}] : []),...(collection.equipmentAvailable || collection.equipmentUnlocked ? [{id:'equipment',label:'Equipment'}] : [])];
+      return pages.length < 2 ? '' : '<nav class="wx-guild-tabs" aria-label="Guild pages">' + pages.map(page => button(esc(page.label),()=>showGuildPage(page.id),{key:'guild-page:' + page.id,selected:guildPage === page.id,className:'wx-guild-tab',aria:page.label + (guildPage === page.id ? ', selected' : '')})).join('') + '</nav>';
+    }
+    function collectionItem(kind, id) { return (kind === 'card' ? view.collection?.cards : view.collection?.equipment?.items)?.find(item => item.id === id); }
+    function collectionCost(cost) {
+      const entries = Array.isArray(cost) ? cost.map(item => [item.resource,item.amount]) : Object.entries(cost || {});
+      return entries.map(([id,amount]) => root.WayfarersCore.format(amount) + ' ' + id).join(' · ');
+    }
+    function collectionImpacts(item) {
+      return impacts({impact:(item?.impact || []).filter(change => root.WayfarersCore.Numbers.cmp(change.currentValue ?? change.current,change.nextValue ?? change.next) !== 0)});
+    }
+    function collectionHero(item, subtitle) {
+      return '<div class="wx-collection-hero" data-rarity="' + esc(item.rarity || 'common') + '">' + icon(item.artId || item.id) + '<span><strong>' + esc(item.name) + '</strong><small>' + esc(subtitle) + '</small></span></div>';
+    }
+    function collectionFooter(label, action, disabled, summary) {
+      detailFooter = '<div class="wx-purchase-summary"><strong>' + esc(summary || '') + '</strong>' + (currentContext.saveFailure ? '<small>Result is waiting to be saved. Retry without spending again.</small>' : '') + '</div><div class="wx-purchase-controls">' + (currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{className:'wx-confirm'}) : button(label,action,{className:'wx-confirm',disabled:disabled || currentContext.awaitingWallet})) + '</div>';
+    }
+    function collectionIntro(kind) {
+      const intro = view.collection?.unlocks?.[kind];
+      return '<div class="wx-collection-intro">' + icon(kind === 'cards' ? 'cards' : 'equipment') + '<h3>' + (kind === 'cards' ? 'Build your first deck' : 'Your equipment satchel') + '</h3><p>' + esc(intro?.starterText || intro?.description || '') + '</p>' + button(kind === 'cards' ? 'Claim starter cards' : 'Claim starter equipment',intro?.action,{key:'collection-intro:' + kind,className:'wx-confirm',disabled:intro?.disabled || currentContext.saveFailure}) + '</div>';
+    }
+    function collectionInbox() {
+      const events = view.collection?.events || [];
+      return events.length ? button(icon('chest') + '<span><strong>' + events.length + ' collection update' + (events.length === 1 ? '' : 's') + '</strong><small>' + esc(events[events.length - 1].title) + '</small></span><b>›</b>',()=>open({kind:'collection-inbox'}),{key:'collection-inbox',className:'wx-menu wx-collection-inbox'}) : '';
+    }
+    function cardsBody() {
+      const collection = view.collection || {};
+      if (!collection.cardsUnlocked) return collectionIntro('cards');
+      const deck = collection.decks.find(item => item.selected) || collection.decks[0];
+      return '<div class="wx-collection-workbench"><section class="wx-deck-workspace"><div class="wx-deck-tabs" aria-label="Saved decks">' + collection.decks.map(item => button('<strong>' + esc(item.name) + '</strong><small>' + (item.selected ? 'Active deck' : 'Use deck') + '</small>',item.selectAction,{key:'deck:' + item.id,selected:item.selected,className:'wx-deck-tab',aria:item.name + (item.selected ? ', active deck' : ', use saved deck')})).join('') + '</div><div class="wx-deck-heading"><span>Active deck bonuses</span>' + button('Bonuses',()=>open({kind:'collection-help',section:'synergies'}),{key:'deck-bonuses',className:'wx-small-button'}) + button('Rename',()=>open({kind:'deck-name',id:deck.id}),{key:'deck-name:' + deck.id,className:'wx-small-button'}) + '</div><div class="wx-deck-slots">' + deck.slots.filter(slot => !slot.locked).map(slot => {
+        const card = collection.cards.find(item => item.id === slot.cardId);
+        return button('<span class="wx-card-portrait" data-rarity="' + esc(card?.rarity || 'empty') + '">' + (card ? icon(card.artId) : '<b aria-hidden="true">+</b>') + '</span><strong>' + esc(card?.name || 'Add card') + '</strong><small>' + (card ? 'Rank ' + card.rank : 'Slot ' + (slot.index + 1)) + '</small>',()=>open({kind:'card-slot',deckId:deck.id,slot:slot.index}),{key:'card-slot:' + deck.id + ':' + slot.index,className:'wx-deck-slot',aria:'Deck slot ' + (slot.index + 1) + ': ' + (card?.name || 'empty')});
+      }).join('') + '</div>' + collectionInbox() + '</section><section class="wx-card-library"><div class="wx-library-heading"><h3>Cards · ' + collection.cards.filter(card => card.owned).length + ' / ' + collection.cards.length + '</h3>' + button('Ink ' + collection.ink,()=>open({kind:'collection-help',section:'cards'}),{key:'card-help',className:'wx-small-button',aria:'Archive Ink ' + collection.ink + '. Card finds and crafting details'}) + '</div><div class="wx-card-grid">' + collection.cards.map(card => button('<span class="wx-card-portrait" data-rarity="' + esc(card.rarity) + '">' + icon(card.artId) + '<small>' + esc(card.rarity) + '</small>' + (card.owned ? '<b class="wx-card-rank">R' + card.rank + '</b>' : '') + '</span><strong>' + esc(card.name) + '</strong><small>' + (card.owned ? card.copies + ' duplicate' + (card.copies === 1 ? '' : 's') : esc(card.rarity)) + '</small>',()=>open({kind:'collection-card',id:card.id}),{key:'card:' + card.id,className:'wx-card-tile',aria:'Inspect ' + card.name + ', ' + card.rarity + ', ' + (card.owned ? 'rank ' + card.rank + ', ' + card.copies + ' duplicates' : 'not discovered')})).join('') + '</div></section></div>';
+    }
+    function equipmentBody() {
+      const collection = view.collection || {};
+      if (!collection.equipmentUnlocked) return collectionIntro('equipment');
+      const equipment = collection.equipment;
+      return '<div class="wx-collection-workbench"><section><div class="wx-gear-slots">' + equipment.slots.map(slot => {
+        const item = equipment.items.find(item => item.id === slot.itemId);
+        return button(icon(item?.artId || 'equipment') + '<span><small>' + esc(slot.name) + '</small><strong>' + esc(item?.name || 'Choose gear') + '</strong></span>',()=>open({kind:'gear-slot',slot:slot.id}),{key:'gear-slot:' + slot.id,className:'wx-gear-slot',aria:slot.name + ': ' + (item?.name || 'empty')});
+      }).join('') + '</div>' + collectionInbox() + button('Scrolls & recovery',()=>open({kind:'collection-help',section:'equipment'}),{key:'gear-help'}) + '</section><section><div class="wx-library-heading"><h3>Equipment</h3><span>' + equipment.items.filter(item => item.owned).length + ' / ' + equipment.items.length + '</span></div><div class="wx-gear-grid">' + equipment.items.map(item => button(icon(item.artId) + '<strong>' + esc(item.name) + '</strong><small>' + esc(item.slot) + ' · ' + (item.equipped ? 'Equipped' : item.owned ? '+' + item.points : 'Forge') + '</small>',()=>open({kind:'collection-gear',id:item.id}),{key:'gear:' + item.id,className:'wx-gear-tile',aria:'Inspect ' + item.name + ', ' + item.slot + (item.equipped ? ', equipped' : '')})).join('') + '</div></section></div>';
+    }
+    function collectionSheet(model) {
+      const collection = view.collection;
+      let title = '', html = '';
+      if (model.kind === 'deck-name') {
+        const deck = collection.decks.find(item => item.id === model.id);
+        title = 'Name your deck';
+        html = '<label class="wx-field">Deck name<input data-wx-deck-name maxlength="24" value="' + esc(deck.name) + '" aria-label="Deck name, up to 24 characters"></label>';
+        collectionFooter('Save name',()=>{ const result=execute(Object.assign({},deck.renameAction,{name:dialog.querySelector('[data-wx-deck-name]').value.trim()})); if(result?.ok) back(); },false,'Up to 24 characters');
+      } else if (model.kind === 'card-slot') {
+        const deck = collection.decks.find(item => item.id === model.deckId);
+        title = deck.name + ' · Slot ' + (model.slot + 1);
+        html = '<div class="wx-card-grid">' + collection.cards.filter(card => card.owned).map(card => button('<span class="wx-card-portrait" data-rarity="' + esc(card.rarity) + '">' + icon(card.artId) + '</span><strong>' + esc(card.name) + '</strong><small>Rank ' + card.rank + '</small>',()=>open({kind:'card-equip',id:card.id,deckId:deck.id,slot:model.slot}),{key:'choose-card:' + card.id,className:'wx-card-tile'})).join('') + '</div>';
+        if (deck.slots[model.slot].cardId) html += button('Empty this slot',()=>{ const result=execute(deck.slots[model.slot].clearAction); if(result?.ok) back(); },{key:'empty-card-slot'});
+      } else if (model.kind === 'collection-card' || model.kind === 'card-equip') {
+        const card = collectionItem('card',model.id); title = card.name;
+        html = collectionHero(card,card.rarity + ' · ' + (card.owned ? 'Rank ' + card.rank + ' / ' + card.maxRank + ' · ' + card.copies + ' duplicates' : 'Not discovered')) + '<p class="wx-effect">' + esc(card.effectText || card.description) + '</p>';
+        if (model.kind === 'card-equip') {
+          const deck = collection.decks.find(item => item.id === model.deckId), slot = deck.slots[model.slot];
+          const target = card.equipActions.find(item => item.deckId === deck.id && item.slot === model.slot);
+          const previous = collection.cards.find(item => item.id === slot.cardId);
+          html += '<p class="wx-muted">' + esc(deck.name) + ' · Slot ' + (model.slot + 1) + ': ' + esc(previous?.name || 'Empty') + ' → ' + esc(card.name) + '</p><div class="wx-impact">' + collectionImpacts(target || card) + '</div>';
+          collectionFooter(target.selected ? 'Equipped' : 'Equip card',()=>{ const result=execute(target.action); if(result?.ok) { close(); showGuildPage('cards'); } },target.disabled || target.selected,target.reason || 'Only the active deck changes production');
+        } else if (card.owned) {
+          const deck = collection.decks.find(item => item.selected);
+          html += section('Equip in ' + deck.name,'<div class="wx-segments">' + deck.slots.filter(slot => !slot.locked).map(slot => button('Slot ' + (slot.index + 1),()=>open({kind:'card-equip',id:card.id,deckId:deck.id,slot:slot.index}),{key:'equip-card-slot:' + slot.index,selected:slot.cardId === card.id})).join('') + '</div>');
+          html += menu('Fuse duplicates',card.rank >= card.maxRank ? 'Maximum rank' : card.fusion.costCopies + ' duplicates → Rank ' + card.fusion.rankAfter,'cards',{kind:'collection-transaction',entity:'card',id:card.id,operation:'fusion'});
+          html += menu('Archive Ink',card.copies + ' duplicates · ' + collection.ink + ' Ink','research',{kind:'card-ink',id:card.id});
+          const refs = collection.decks.filter(deck => deck.slots.some(slot => slot.cardId === card.id));
+          if (refs.length) html += '<p class="wx-muted">Saved in: ' + esc(refs.map(deck => deck.name).join(', ')) + '. Fusion updates this card in every deck.</p>';
+        } else html += '<p class="wx-muted">Discover this card before crafting copies.</p>';
+      } else if (model.kind === 'card-ink') {
+        const card = collectionItem('card',model.id); title = 'Archive Ink';
+        html = collectionHero(card,card.copies + ' loose duplicates · ' + collection.ink + ' Ink') + menu('Recycle one duplicate','Gain ' + card.recycle.inkGain + ' Ink; keep the owned card','research',{kind:'collection-transaction',entity:'card',id:card.id,operation:'recycle'}) + menu('Craft one duplicate',card.craft.costInk + ' Ink','cards',{kind:'collection-transaction',entity:'card',id:card.id,operation:'craft'});
+      } else if (model.kind === 'gear-slot') {
+        title = collection.equipment.slots.find(item => item.id === model.slot).name;
+        html = '<div class="wx-gear-grid">' + collection.equipment.items.filter(item => item.slot === model.slot).map(item => button(icon(item.artId) + '<strong>' + esc(item.name) + '</strong><small>' + (item.equipped ? 'Equipped' : item.owned ? '+' + item.points : 'Forge') + '</small>',()=>open({kind:'collection-gear',id:item.id}),{key:'gear-choice:' + item.id,className:'wx-gear-tile'})).join('') + '</div>';
+      } else if (model.kind === 'collection-gear') {
+        const item=collectionItem('gear',model.id); title=item.name;
+        const current=collection.equipment.items.find(gear => gear.slot === item.slot && gear.equipped);
+        html = collectionHero(item,item.slot + ' · ' + (item.equipped ? 'Equipped' : item.owned ? 'Owned' : 'Not forged')) + '<p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
+        if (item.owned) {
+          html += '<div class="wx-gear-attempts"><strong>+' + item.points + ' points</strong><span>' + (item.slotsMax-item.slotsUsed) + ' / ' + item.slotsMax + ' free attempts</span><span>' + item.failedSlots + ' recoverable</span></div><p class="wx-muted">Current ' + esc(item.slot) + ': ' + esc(current?.name || 'Empty') + '</p><div class="wx-impact">' + collectionImpacts(item) + '</div>';
+          html += section('Enhance with a scroll','<div class="wx-scroll-list">' + item.scrolls.map(scroll => button('<span><strong>' + esc(scroll.name) + '</strong><small>' + (scroll.id === 'restoration' ? 'Recover 1 failed slot' : scroll.successPercent + '% success · +' + scroll.points + ' points') + '</small></span><b>' + scroll.count + '</b>',()=>open({kind:'collection-transaction',entity:'gear',id:item.id,operation:'scroll',scrollId:scroll.id}),{key:'scroll:' + scroll.id,className:'wx-menu'})).join('') + '</div>');
+          if(item.reforge?.visible) html += menu('Reforge equipment','Clear all enhancements; keep the base item','forge',{kind:'collection-transaction',entity:'gear',id:item.id,operation:'reforge'});
+          collectionFooter(item.equipped ? 'Unequip' : 'Equip ' + item.slot,item.equipped ? collection.equipment.slots.find(slot => slot.id === item.slot).clearAction : item.equipAction,false,item.equipped ? 'Returns to your satchel' : 'Replaces ' + (current?.name || 'empty slot'));
+        } else collectionFooter('Forge equipment',item.forge.action,item.forge.disabled,collectionCost(item.forge.cost) || item.forge.reason);
+      } else if (model.kind === 'collection-transaction') {
+        const item=collectionItem(model.entity,model.id);
+        const preview=model.operation === 'scroll' ? item.scrolls.find(scroll => scroll.id === model.scrollId) : item[model.operation];
+        title=model.operation === 'fusion' ? 'Fuse ' + item.name : model.operation === 'recycle' ? 'Recycle duplicate' : model.operation === 'craft' ? 'Craft duplicate' : model.operation === 'reforge' ? 'Reforge ' + item.name : preview.name;
+        html=collectionHero(item,model.entity === 'card' ? 'Rank ' + item.rank + ' · ' + item.copies + ' duplicates' : '+' + item.points + ' points · ' + (item.slotsMax-item.slotsUsed) + ' free attempts');
+        let summary='';
+        if(model.operation === 'fusion') {
+          summary='Consume ' + preview.costCopies + ' duplicates';
+          html += '<p class="wx-effect">Rank ' + item.rank + ' → ' + preview.rankAfter + '</p><p>' + esc(preview.effectText || preview.nextEffectText || '') + '</p><p class="wx-muted">Keep the owned card. All saved decks using it receive the new rank.</p>';
+        } else if(model.operation === 'recycle') { summary='Consume 1 loose duplicate'; html += '<p class="wx-effect">+' + preview.inkGain + ' Archive Ink</p><p class="wx-muted">Your owned card and all deck slots stay intact.</p>'; }
+        else if(model.operation === 'craft') { summary='Consume ' + preview.costInk + ' Archive Ink'; html += '<p class="wx-effect">+1 duplicate of ' + esc(item.name) + '</p>'; }
+        else if(model.operation === 'reforge') {
+          summary='Consume ' + preview.scrollCost + ' Restoration Scrolls · ' + collectionCost(preview.cost);
+          html += '<p class="wx-effect">Lose all ' + preview.pointsLost + ' enhancement points → 0</p><div class="wx-impact"><div><span>Free attempt slots</span><strong>' + (item.slotsMax-item.slotsUsed) + ' → ' + preview.slotsAfter + '</strong></div></div><p>' + esc(preview.currentEffectText) + ' → ' + esc(preview.nextEffectText) + '</p><p class="wx-muted">Guaranteed reset. Keep this item, its base bonuses and its equipped slot. All successful enhancements and failed slots are cleared.</p>';
+        }
+        else { summary='Consume 1 ' + preview.name + (model.scrollId === 'restoration' ? '' : ' + 1 attempt slot'); html += '<div class="wx-scroll-odds"><strong>' + preview.successPercent + '%</strong><span>' + (model.scrollId === 'restoration' ? 'restore one failed slot' : 'chance of +' + preview.points + ' points') + '</span></div><p class="wx-effect">' + esc(preview.currentEffectText || item.effectText) + (preview.nextEffectText && preview.nextEffectText !== preview.currentEffectText ? ' → ' + esc(preview.nextEffectText) : '') + '</p><p class="wx-muted">' + esc(preview.failureText) + '</p><p class="wx-muted">Restoration repairs failed slots. Reforge clears all enhancements' + (item.reforge?.visible ? '.' : ' after the Workshop unlocks.') + '</p>'; }
+        const comparison=collectionImpacts(preview);
+        html += (comparison ? section(model.operation === 'scroll' ? 'On success' : 'Production change','<div class="wx-impact">' + comparison + '</div>') : '') + (preview.reason ? '<p class="wx-muted">' + esc(preview.reason) + '</p>' : '');
+        collectionFooter(model.operation === 'scroll' ? 'Use scroll' : model.operation === 'reforge' ? 'Confirm reforge' : model.operation === 'fusion' ? 'Fuse duplicates' : model.operation === 'recycle' ? 'Recycle duplicate' : 'Craft duplicate',preview.action,preview.disabled,summary);
+      } else if (model.kind === 'collection-inbox') {
+        title='Collection updates'; html=(collection.events || []).slice().reverse().map(event => menu(event.title,event.detail,event.cardId ? collectionItem('card',event.cardId)?.artId : event.itemId ? collectionItem('gear',event.itemId)?.artId : 'chest',{kind:'collection-result',id:event.id})).join('') || '<p>Every collection update has been reviewed.</p>';
+      } else if (model.kind === 'collection-result') {
+        const event=collection.events.find(event => event.id === model.id);
+        title=({failed:'Scroll did not take',restored:'Attempt restored',reforged:'Equipment reforged',fused:'Card fused',success:'Enhancement succeeded',found:'Collection find'})[event?.outcome] || 'Collection update';
+        if(event) {
+          const item=event.cardId ? collectionItem('card',event.cardId) : event.itemId ? collectionItem('gear',event.itemId) : null;
+          html=(item ? collectionHero(Object.assign({},item,{rarity:event.rarity || item.rarity}),event.outcome) : '') + '<p class="wx-effect">' + esc(event.title) + '</p><p>' + esc(event.detail) + '</p>';
+          const earlier=collection.events.filter(entry => entry.id < event.id);
+          if(earlier.length) html += '<details class="wx-collection-earlier"><summary>Also received · ' + earlier.length + '</summary>' + earlier.map(entry => '<p><strong>' + esc(entry.title) + '</strong> · ' + esc(entry.detail) + '</p>').join('') + '</details>';
+          if(event.outcome === 'failed') html += '<p class="wx-muted">Equipment and all existing points are safe. A Restoration Scroll can recover the failed slot.</p>';
+          const consumed=Object.entries(event.consumed || {}).filter(([,value]) => value && typeof value === 'number').map(([key,value]) => value + ' ' + key.replace(/([A-Z])/g,' $1').toLowerCase());
+          if(consumed.length) html += '<p class="wx-muted">Consumed: ' + esc(consumed.join(' · ')) + '</p>';
+          collectionFooter('Done',()=>{ const result=execute(event.ackAction || {type:'collection-ack',sequence:event.sequence || event.id}); if(result?.ok) close(); },false,'Saved collection result');
+        } else html='<p>This update has been reviewed.</p>';
+      } else if (model.kind === 'collection-help') {
+        title=model.section === 'synergies' ? 'Deck bonuses' : model.section === 'cards' ? 'Cards & Archive Ink' : 'Scrolls & recovery';
+        const acquisition=collection.acquisition || {};
+        html=model.section === 'synergies' ? '' : '<p>' + esc(model.section === 'cards' ? acquisition.cards : acquisition.scrolls) + '</p>';
+        if(model.section === 'synergies') html += (collection.synergies || []).map(item => '<div class="wx-gear-attempts"><strong>' + esc(item.id) + ' · ' + item.count + '</strong><span>' + esc(item.effectText) + '</span>' + (!item.active && item.nextCount ? '<span>Next bonus at ' + item.nextCount + ' matching cards</span>' : '') + '</div>').join('') + '<p class="wx-muted">Only cards in your active deck count toward these bonuses.</p>';
+        else if(model.section === 'cards') html += '<p>Only cards in your active deck give bonuses. Fusion strengthens one permanent card across every saved deck. Recycle loose duplicates for Ink; craft only previously discovered cards.</p>' + (acquisition.oddsText ? '<p>' + esc(acquisition.oddsText) + '</p>' : '') + '<p class="wx-muted">' + esc(acquisition.pity || '') + '</p>';
+        else html += '<div class="wx-scroll-list">' + collection.equipment.scrolls.map(scroll => '<div class="wx-gear-attempts"><strong>' + esc(scroll.name) + '</strong><span>' + scroll.successPercent + '% · ' + scroll.count + ' owned</span></div>').join('') + '</div><p>Restoration recovers a failed slot without changing points. Workshop Reforge clears all enhancements for a fresh set of attempts. Equipment is never destroyed.</p>';
+      }
+      return {title,html};
     }
     function section(title, html) { return html ? '<section class="wx-group"><h3>' + esc(title) + '</h3>' + html + '</section>' : ''; }
     function catalog(title, items) { const shown = visible(items); return shown.length ? section(title, tiles(shown)) : ''; }
@@ -294,7 +441,7 @@
       if (navigate) { event.preventDefault(); stepArea(dx < 0 ? 1 : -1); }
     }
     function execute(action) {
-      if (typeof action === 'function') { action(); return; }
+      if (typeof action === 'function') return action();
       if (!action) return;
       if (['challenge'].includes(action.type)) close();
       const result = options.perform(action);
@@ -304,6 +451,15 @@
       if (result?.ok && action.type === 'expedition-focus') close();
       if (result?.ok && ['expedition-next','expedition-expand','expedition-select'].includes(action.type)) { close(); screen = 'expedition'; update(view); }
       if (result?.ok && action.type === 'route') { close(); screen = 'expedition'; update(view); }
+      if (result?.ok && ['card-fuse','card-recycle','card-craft','gear-scroll','gear-forge','gear-reforge'].includes(action.type)) {
+        const event = view.collection?.events?.slice(-1)[0];
+        if (event) open({kind:'collection-result',id:event.id},true);
+      }
+      if (result?.ok && action.type === 'retry-save') {
+        const event = view.collection?.events?.slice(-1)[0];
+        if (event) open({kind:'collection-result',id:event.id},true);
+      }
+      return result;
     }
     function choiceBody(choice) {
       if (!choice || !choice.visible) return '<p>This decision appears at the next checkpoint.</p>';
@@ -382,7 +538,10 @@
       let html = '';
       const model = sheet;
       detailFooter = '';
-      if (model.kind === 'areas') {
+      if (['deck-name','card-slot','card-equip','card-ink','gear-slot'].includes(model.kind) || model.kind.startsWith('collection-')) {
+        const content = collectionSheet(model); title = content.title; html = content.html;
+      }
+      else if (model.kind === 'areas') {
         title = 'Your areas';
         const areas = e.areas || [];
         const next = areas.find(area => !area.unlocked && area.visible !== false);
@@ -532,6 +691,7 @@
         html = button(icon('settings') + '<span>Settings & saves</span>', () => legacy('settings'), { key:'settings', className:'wx-menu' });
         if (root.WayfarersAndroid) html += button(icon('automation') + '<span>App updates</span>', () => { close(); options.nativeOptions(); }, { key:'native-options', className:'wx-menu' });
         if (view.premium?.unlocked) html += button(icon('starshards') + '<span>Starshard shop</span>', () => legacy('shop'), { key:'shop', className:'wx-menu' });
+        if (view.caravan?.offer || view.caravan?.pending) html += button(icon('caravan') + '<span>Caravan delivery<span class="wx-new">Ready</span></span>',()=>legacy('caravan'),{key:'caravan-options',className:'wx-menu'});
         html += menu('How this expedition works', e.stage.name, 'compass', { kind:'objective' });
       } else if (model.kind === 'return') {
         title = 'Welcome back';
@@ -549,12 +709,16 @@
       const e = view.expedition;
       if (screen === 'upgrades') return upgradesBody();
       if (screen === 'guild') {
+        if (guildPage === 'cards') return guildTabs() + cardsBody();
+        if (guildPage === 'equipment') return guildTabs() + equipmentBody();
         const rooms = view.rooms.filter(r => r.unlocked && r.id !== 'trail');
-        let html = '<div class="wx-room-grid">' + rooms.map(room => button(icon(room.id) + '<strong>' + esc(room.name) + '</strong><small>' + esc(room.level ? 'Rank ' + room.level : 'Working') + '</small>', () => open({ kind:'room', id:room.id }), { key:'room:' + room.id, className:'wx-room' })).join('') + '</div>';
+        let html = guildTabs();
+        if (view.caravan?.offer || view.caravan?.pending) html += button(icon('caravan') + '<span><strong>Caravan delivery</strong><small>A reward is ready to review</small></span><b>›</b>',()=>legacy('caravan'),{key:'caravan-guild',className:'wx-menu wx-caravan-ready'});
+        html += '<div class="wx-room-grid">' + rooms.map(room => button(icon(room.id) + '<strong>' + esc(room.name) + '</strong><small>' + esc(room.level ? 'Rank ' + room.level : 'Working') + '</small>', () => open({ kind:'room', id:room.id }), { key:'room:' + room.id, className:'wx-room' })).join('') + '</div>';
         if (visible(view.specialists).length) html += menu('Crew', 'Explorers & companions', 'crew', { kind:'crew' });
         html += button(icon('maps') + '<span><strong>Atlas & discoveries</strong><small>Outposts, relics and renewals</small></span><b>›</b>', () => { close(); screen = 'atlas'; update(view); }, { key:'guild-atlas', className:'wx-menu' });
         if (e.automation?.unlocked || view.planning?.unlocked) html += menu('Automation', e.automation?.enabled ? 'Expedition helper active' : 'Set your priorities', 'automation', { kind:'planning' });
-        if (visible(view.globalUpgrades || []).length) html += button(icon('research') + '<span><strong>Global upgrades</strong><small>Developments, equipment & research</small></span><b>›</b>', () => showUpgrades(), { key:'guild-upgrades', className:'wx-menu' });
+        if (visible(view.globalUpgrades || []).length) html += button(icon('research') + '<span><strong>Global upgrades</strong><small>Developments, guild tools & research</small></span><b>›</b>', () => showUpgrades(), { key:'guild-upgrades', className:'wx-menu' });
         if (visible(view.recipes).length) html += menu('Supplies', 'Meals, kits & preparation', 'provisions', { kind:'supplies' });
         html += menu('Stockpile', 'Production & resources', 'crate', { kind:'stockpile' });
         return html;
@@ -588,7 +752,11 @@
       const ctx = currentContext;
       const allDescriptors = ['actions','routes','modes','recipes','research','specialists','companions','doctrines','challenges','automations','refitUpgrades','legacyUpgrades'].flatMap(key => view[key] || []).concat(e.blueprints || [], e.preparation || [], e.supplyChoices || [], view.planning?.capabilities || [], view.development?.projects || [], view.development?.chapter?.projects || [], view.luck?.relics || [], view.luck?.research || [], view.luck?.hunts || [], view.luck?.kits || [], view.globalUpgrades || []);
       allDescriptors.forEach(item => descriptors.set(descriptorKey(item), item));
-      const guildUnlocked = view.unlocks.some(id => id !== 'trail');
+      const collection = view.collection || {};
+      const hasCards = !!(collection.cardsAvailable || collection.cardsUnlocked);
+      const hasEquipment = !!(collection.equipmentAvailable || collection.equipmentUnlocked);
+      const hasCollection = hasCards || hasEquipment;
+      const guildUnlocked = view.unlocks.some(id => id !== 'trail') || hasCollection;
       const areas = e.areas || ['greenway','quarry','watchtower'].map((id,index) => ({ id, unlocked:stage.index >= index, selected:stage.kind === id }));
       const selectedArea = areas.find(area => area.selected)?.id || stage.kind;
       const unlockedAreas = areas.filter(area => area.unlocked);
@@ -606,6 +774,11 @@
       q('[data-wx-nav="expedition"] [data-wx-attention]').hidden = !areas.some(area => area.attention && !area.selected);
       q('[data-wx-nav="expedition"]').setAttribute('aria-label', 'Areas, current ' + (areaNames[selectedArea] || stage.name) + (areas.some(area => area.attention && !area.selected) ? ', new development' : ''));
       shell.dataset.screen = screen;
+      shell.dataset.guildPage = guildPage;
+      shell.dataset.collection = String(hasCollection);
+      q('[data-wx-collection="cards"]').hidden = !hasCards;
+      q('[data-wx-collection="equipment"]').hidden = !hasEquipment;
+      q('[data-wx-guild-attention]').hidden = !collection.attention && !view.caravan?.offer && !view.caravan?.pending;
       shell.dataset.area = selectedArea;
       shell.querySelectorAll('[data-wx-nav]').forEach(node => node.setAttribute('aria-current', node.dataset.wxNav === screen || screen === 'atlas' && node.dataset.wxNav === 'guild' ? 'page' : 'false'));
       q('.wx-play').hidden = screen !== 'expedition';
@@ -613,16 +786,16 @@
       const coins = view.resources.find(r => r.id === 'coins');
       markup(q('[data-wx-wallet]'), icon('coins') + '<span><strong>' + esc(compact(coins.value)) + '</strong><small>' + esc(coins.rateFormatted) + '</small></span>');
       const furnace = (e.stations || []).find(item => item.id === 'furnace');
-      q('[data-wx-local-count]').hidden = screen !== 'expedition' || !furnace;
+      q('[data-wx-local-count]').hidden = hasCollection || screen !== 'expedition' || !furnace;
       if (furnace) {
         const repairing = e.finale.ready && !e.finale.completed;
         const output = stage.established ? e.scene?.rates?.materials : e.scene?.flows?.furnace;
         const value = repairing ? Math.floor(percent(e.finale.progress)) + '%' : output >= 1000 ? compact(output) : root.WayfarersCore.format(output || 0);
         markup(q('[data-wx-local-count]'), '<small>' + (repairing ? 'Lift repair' : stage.established ? 'Ore /s' : 'Smelt /s') + '</small><strong>' + esc(value) + '</strong>');
       }
-      q('[data-wx-reward]').hidden = !view.caravan?.offer && !view.caravan?.pending;
+      q('[data-wx-reward]').hidden = hasCollection || !view.caravan?.offer && !view.caravan?.pending;
       q('[data-wx-save-alert]').hidden = !ctx.saveFailure && !ctx.awaitingWallet;
-      text(q('[data-wx-save-alert]'), ctx.awaitingWallet ? 'Restoring purchase wallet…' : 'Save needs attention');
+      text(q('[data-wx-save-alert]'), ctx.awaitingWallet ? 'Restoring purchase wallet…' : 'Retry save');
       text(q('[data-wx-stage-name]'), screen === 'expedition' ? canNavigateAreas ? (areaIndex + 1) + ' OF ' + unlockedAreas.length + ' AREAS' : stage.name : screen === 'guild' ? 'YOUR GUILD' : screen === 'upgrades' ? 'CONNECTED GUILD' : 'THE ATLAS');
       text(q('[data-wx-objective-text]'), screen === 'expedition' ? canNavigateAreas ? (areaNames[selectedArea] || stage.name) + ' ▾' : stage.objective : screen === 'guild' ? 'Build your advantage' : screen === 'upgrades' ? 'Every improvement, one place' : 'Every journey leaves a mark');
       q('[data-wx-objective]').disabled = screen !== 'expedition';
@@ -733,7 +906,8 @@
       if (target.dataset.wxDo) execute(commands.get(target.dataset.wxDo));
       else if (target.dataset.wxBuy) execute(view.expedition.cards.find(c => c.id === target.dataset.wxBuy)?.action);
       else if (target.dataset.wxArea) selectArea(target.dataset.wxArea);
-      else if (target.dataset.wxNav) { close(); screen = target.dataset.wxNav; update(view); }
+      else if (target.dataset.wxNav) { close(); guildOrigin = null; screen = target.dataset.wxNav; update(view); }
+      else if (target.dataset.wxCollection) showGuildPage(target.dataset.wxCollection);
       else if (target.hasAttribute('data-wx-network')) open({ kind:'network' });
       else if (target.hasAttribute('data-wx-close')) close();
       else if (target.hasAttribute('data-wx-back')) back();
@@ -745,7 +919,7 @@
       else if (target.hasAttribute('data-wx-batch')) open({kind:'batch'});
       else if (target.hasAttribute('data-wx-focus')) open({kind:'focus'});
       else if (target.hasAttribute('data-wx-options')) open({ kind:'options' });
-      else if (target.hasAttribute('data-wx-save-alert')) legacy('settings');
+      else if (target.hasAttribute('data-wx-save-alert')) { if(currentContext.saveFailure) execute({type:'retry-save'}); else legacy('settings'); }
       else if (target.hasAttribute('data-wx-reward')) legacy('caravan');
     }
     shell.addEventListener('click', click, { signal:controller.signal });
@@ -762,7 +936,7 @@
     return {
       update, notify, close,
       isOpen: () => dialog.open,
-      handleBack() { if (dialog.open) { back(); return true; } if (screen !== 'expedition') { screen = 'expedition'; update(view); return true; } return false; },
+      handleBack() { if (dialog.open) { back(); return true; } if (screen === 'guild' && guildOrigin) { const origin=guildOrigin; guildOrigin=null; screen=origin.screen; guildPage=origin.page; update(view); q('[data-wx-destination]').scrollTop=origin.scroll; return true; } if (screen !== 'expedition') { screen = 'expedition'; update(view); return true; } return false; },
       showReturn(offline) {
         if (!offline || offline.seconds < 60 || !view || dialog.open || options.overlayOpen()) return;
         const gains = Object.entries(offline.gains || {}).slice(0,4).map(([id, amount]) => ({ id, amount:root.WayfarersCore.format(amount) }));

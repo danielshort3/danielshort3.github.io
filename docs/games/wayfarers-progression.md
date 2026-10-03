@@ -57,6 +57,7 @@ Canonical quotes include the aggregate resource cost, resulting rank, crossed mi
 | Funded permanent research commission and its completed work | Keep | Keep |
 | Discovered areas, learned tracks, recipes and cap permissions | Keep | Keep |
 | Crew ownership, working choices and saved plans | Keep | Keep |
+| Card ranks, copies, decks, equipped items, enhancement slots, Ink and scrolls | Keep | Keep |
 | Notes and Notes improvements | Keep; award new Notes | Clear |
 | Crest improvements | Keep | Keep; award new Crests |
 | Premium ownership, earned Starshards and reward receipt history | Keep | Keep |

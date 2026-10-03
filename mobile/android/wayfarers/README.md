@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.5.1`, version code `7` |
+| Default candidate | `0.6.0`, version code `8` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 
@@ -22,7 +22,7 @@ The runtime is under `src/main/java/me/danielshort/wayfarers/`. Its activity and
 
 `shareUpdaterSources` copies the canonical `app/src/main/java/me/danielshort/app/updates/*.kt` and `data/AppSettings.kt` into an ignored generated source set without rewriting them. It excludes only `AutomaticInstallReceiver.kt`, whose application cast is specific to the main app. `shareUpdaterTests` compiles the original updater JVM tests in this module too. Changes to signatures, exact APK identity, patch verification, download bounds or installer recovery remain owned by the original updater sources; do not fork them here. The main application build configuration is unchanged.
 
-The game envelope now uses schema 5. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 5, so an older checkpoint can reach the canonical migration code. Existing version-4 runs retain their economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-5 envelope; the WebView backup retains the previous valid bytes.
+The game envelope now uses schema 6, adding an initially inactive card and equipment collection. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 6, so an older checkpoint can reach the canonical migration code. Retained expedition-version-2 runs keep their released economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-6 envelope; the WebView backup retains the previous valid bytes. [Collection contracts](../../../docs/games/wayfarers-collections.md) describe permanent inventory, named decks, scroll outcomes and schema compatibility.
 
 ## Local builds and signing
 
@@ -63,6 +63,7 @@ Focused game checks run from the repository root:
 ```powershell
 npm run test:wayfarers-guild:expeditions
 npm run test:wayfarers-guild:progression:browser
+npm run test:wayfarers-guild:collections:browser
 node tests/games/wayfarers-guild-expedition.browser.cjs
 node --test mobile/android/scripts/wayfarers-bundle.test.cjs
 ```
