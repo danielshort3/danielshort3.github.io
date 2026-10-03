@@ -90,6 +90,7 @@
     let practiceControl = null;
     let deliberateHelp = null;
     let deliverySequence = null;
+    let pendingCollectionOutcome = null;
     let practiceControlOriginal = null;
     let onboardingBusy = false;
     let onboardingReplay = null;
@@ -204,7 +205,7 @@
       return '<div class="wx-collection-hero" data-rarity="' + esc(item.rarity || 'common') + '">' + icon(item.artId || item.id) + '<span><strong>' + esc(item.name) + '</strong><small>' + esc(subtitle) + '</small></span></div>';
     }
     function collectionFooter(label, action, disabled, summary) {
-      detailFooter = '<div class="wx-purchase-summary"><strong>' + esc(summary || '') + '</strong>' + (currentContext.saveFailure ? '<small>Result is waiting to be saved. Retry without spending again.</small>' : '') + '</div><div class="wx-purchase-controls">' + (currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{className:'wx-confirm'}) : button(label,action,{className:'wx-confirm',disabled:disabled || currentContext.awaitingWallet})) + '</div>';
+      detailFooter = '<div class="wx-purchase-summary"><strong>' + esc(summary || '') + '</strong>' + (currentContext.saveFailure ? '<small>Save recovery required. Retry save before continuing.</small>' : '') + '</div><div class="wx-purchase-controls">' + (currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{className:'wx-confirm'}) : button(label,action,{className:'wx-confirm',disabled:disabled || currentContext.awaitingWallet})) + '</div>';
     }
     function collectionIntro(kind) {
       const intro = view.collection?.unlocks?.[kind];
@@ -811,7 +812,7 @@
       const identity=String(data.identity || data.guildIdentity || '') + ':' + String(currentContext.onboardingEpoch || 0);
       if (identity !== onboardingIdentity) {
         root.clearTimeout(onboardingTimer); onboardingTimer=null; onboardingReplay=null;
-        guide.hide(); restorePracticeControl(); practiceReceiptToken=null; deliberateHelp=null;deliverySequence=null;guideScroll=null; guideReturnArea=null; onboardingIdentity=identity;
+        guide.hide(); restorePracticeControl(); practiceReceiptToken=null; deliberateHelp=null;deliverySequence=null;pendingCollectionOutcome=null;guideScroll=null; guideReturnArea=null; onboardingIdentity=identity;
         onboardingNoticePresented=false; onboardingSuppressed=new Set();
         if (sheet?.kind.startsWith('onboarding')) close();
       }
@@ -1006,6 +1007,9 @@
       const suppressedBefore = investment ? new Set([...tierNoticeSuppressed,...readyTiers().map(item => item.id)]) : null;
       const onboardingBefore = investment ? new Set([...onboardingSuppressed,...(onboarding()?.notice?.items || []).map(item => item.id)]) : null;
       const result = options.perform(action);
+      if (result?.pendingSave && result.committed && result.collectionEvent != null) {
+        pendingCollectionOutcome={id:result.collectionEvent,identity:onboardingIdentity};
+      }
       if(result?.ok && result.completedGuide) notify((currentPractice?.title || 'Practice')+' complete'+(result.reward?.coins && root.WayfarersCore.Numbers.cmp(result.reward.coins,0)>0 ? ' · +'+root.WayfarersCore.format(result.reward.coins)+' coins' : ''));
       if (result?.ok && investment) {
         tierNoticePresented = false;
@@ -1022,18 +1026,23 @@
       if (result?.ok && ['expedition-next','expedition-expand','expedition-select'].includes(appliedAction.type)) { close(); screen = 'expedition'; update(view); }
       if (result?.ok && action.type === 'route') { close(); screen = 'expedition'; update(view); }
       if (result?.ok && ['card-fuse','card-recycle','card-craft','gear-scroll','gear-forge','gear-reforge'].includes(appliedAction.type)) {
-        const event = view.collection?.events?.slice(-1)[0];
+        const event = view.collection?.events?.find(item => item.id === result.collectionEvent);
         if (event) open({kind:'collection-result',id:event.id},true);
       }
       if(action.type==='onboarding-perform') { restorePracticeControl();syncOnboarding(); }
       if(result?.ok && action.type==='onboarding-perform' && appliedAction.type==='onboarding-open') goToDiscovery({id:appliedAction.id},result);
       if (result?.ok && action.type === 'retry-save') {
-        if (sheet?.kind === 'tier' || sheet?.kind === 'tiers') {
+        const pendingEvent=pendingCollectionOutcome?.identity===onboardingIdentity && view.collection?.events?.find(item => item.id===pendingCollectionOutcome.id);
+        pendingCollectionOutcome=null;
+        if (pendingEvent) open({kind:'collection-result',id:pendingEvent.id},true);
+        else if (sheet?.kind === 'tier' || sheet?.kind === 'tiers') {
           if (sheet.kind === 'tier' && !readyTiers().some(item => item.id === sheet.id)) close();
           else renderSheet();
         } else if (sheet?.kind.startsWith('collection-')) {
-          const event = view.collection?.events?.slice(-1)[0];
-          if (event) open({kind:'collection-result',id:event.id},true);
+          // Retrying persistence does not execute a rolled-back purchase. Keep
+          // its review, and never substitute an unrelated historical outcome.
+          if (sheet.kind==='collection-result' && !view.collection?.events?.some(item => item.id===sheet.id)) close();
+          else renderSheet();
         }
       }
       return result;

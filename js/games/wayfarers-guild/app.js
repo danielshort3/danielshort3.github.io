@@ -277,7 +277,7 @@
         if (!saved.committed) { state = beforeAction; core.setPremiumEntitlements(state, billingSnapshot.owned); }
         announce(saved.committed ? saved.message : 'This action could not be saved. Nothing was spent. Retry save, then try the action again.');
         render();
-        return {ok:false,pendingSave:true,message:saved.message};
+        return {ok:false,pendingSave:true,committed:!!saved.committed,collectionEvent:saved.committed ? result.collectionEvent || null : null,message:saved.message};
       }
       if (result.ok && action.type === 'buy') {
         const card = q('[data-main-actions] [data-item="' + action.id + '"]');
