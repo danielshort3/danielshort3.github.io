@@ -17,10 +17,31 @@
   const TITLES = { greenway: 'Trail', quarry: 'Quarry', watchtower: 'Tower', workshop: 'Workshop', ruins: 'Ruins', harbor: 'Harbor', cards: 'Cards and decks', equipment: 'Equipment and scrolls', tiers: 'Unlock an upgrade tier', expansion: 'Expand the guild', plans: 'Choose a working plan', bulk: 'Buy an exact batch', 'guild-upgrades': 'Guild improvements', projects: 'Fund a connected project', focus: 'Use a Focus charge', automation: 'Set a standing plan', reserves: 'Protect a reserve', crew: 'Recruit and assign crew', companions: 'Choose a companion', relics: 'Equip a relic', meals: 'Choose a meal', kits: 'Prepare an expedition kit', 'card-archive': 'Archive a duplicate', 'card-craft': 'Craft a discovered card', 'gear-craft': 'Craft equipment', 'gear-repair': 'Restore a failed slot', 'gear-reforge': 'Review reforging', specialization: 'Assign a specialist track', configuration: 'Configure an operation', supply: 'Set provision demand', planner: 'Save an upgrade goal', playbooks: 'Save a guild playbook', refit: 'Review a Refit', charter: 'Review a Charter', shop: 'Review the Starshard shop', caravan: 'Review a caravan reward' };
   const KEYS = Object.fromEntries(IDS.map(id => [id, AREAS.includes(id) ? ['inspect', 'upgrade', 'operate'] : id === 'cards' ? ['equip', 'fuse', 'deck', 'second-deck', 'return-deck'] : id === 'equipment' ? ['equip', 'scroll', 'result'] : id === 'bulk' ? ['quantity', 'purchase'] : ['inspect', 'practice']]));
   let contextProvider = null;
+  let costProvider = null;
   const setContextProvider = fn => { contextProvider = fn; };
+  const setCostProvider = fn => { costProvider = fn; };
+  const CURRENCIES = {
+    coins: ['Coins', 'coins', 'Spend on upgrades and guild helpers.', 'Earn coins as your Trail crew works and completes deliveries.'],
+    ore: ['Ore', 'ore', 'Build equipment, improve industry and supply manufacturing.', 'The Quarry extracts, hauls and refines ore.'],
+    herbs: ['Herbs', 'herbs', 'Prepare recipes and fund discoveries.', 'Foragers and botanical discoveries produce herbs.'],
+    provisions: ['Provisions', 'provisions', 'Supply meals and fund a voyage before it departs.', 'Kitchens, recipes and manufacturing produce provisions.'],
+    knowledge: ['Knowledge', 'knowledge', 'Research improvements and fund connected projects.', 'Surveys, study and recovered discoveries produce knowledge.'],
+    maps: ['Maps', 'maps', 'Fund exploration and later connected projects.', 'Surveys, cartography and voyage cargo provide maps.'],
+    notes: ['Field notes', 'notes', 'Buy lasting Refit improvements.', 'Complete an eligible Refit to earn field notes.'],
+    crests: ['Guild crests', 'crests', 'Buy lasting Charter improvements.', 'Complete an eligible Guild Charter to earn crests.'],
+    starshards: ['Starshards', 'starshards', 'Buy permanent shop benefits. Earned and purchased balances are tracked separately.', 'Find rare Starshards or make a verified optional purchase.'],
+    ink: ['Archive Ink', 'relic', 'Craft extra copies of a card you have already discovered.', 'Archive loose duplicates to earn Ink.'],
+    copies: ['Duplicate cards', 'relic', 'Fusion spends copies for a guaranteed rank increase; rarity stays the same.', 'Discover another copy or craft a previously discovered card.'],
+    steady: ['Steady Scrolls', 'equipment', 'Use one attempt slot for a guaranteed enhancement point.', 'Find scrolls in earned supply caches.'],
+    bold: ['Bold Scrolls', 'equipment', 'Spend one attempt slot: 60% chance of two enhancement points.', 'Find scrolls in earned supply caches.'],
+    brilliant: ['Brilliant Scrolls', 'equipment', 'Spend one attempt slot: 15% chance of five enhancement points.', 'Find scrolls in earned supply caches.'],
+    restoration: ['Restoration Scrolls', 'equipment', 'Recover one failed attempt slot. Successful enhancements stay unchanged.', 'Find Restoration Scrolls in rare earned supply caches.'],
+    focus: ['Focus charges', 'focus', 'Temporarily accelerate one area while respecting its available inputs.', 'Unlocked after a Refit; shared charges recharge over time.']
+  };
+  const currencyInfo = id => own(CURRENCIES, id) ? { id, name: CURRENCIES[id][0], label: CURRENCIES[id][0], icon: CURRENCIES[id][1], purpose: CURRENCIES[id][2], earnedFrom: CURRENCIES[id][3] } : null;
   const context = (state, supplied) => supplied || (contextProvider ? contextProvider(state) : {});
   const TRIGGERS = { tiers: ['upgrade-tier-unlock', 'onboarding-open'], expansion: ['expedition-next'], plans: ['expedition-choice'], bulk: ['expedition-batch'], 'guild-upgrades': ['buy', 'refit-upgrade', 'legacy-upgrade', 'capability'], projects: ['expedition-development', 'project', 'research', 'luck-research'], focus: ['expedition-focus'], automation: ['automation', 'expedition-automation'], reserves: ['plan-reserve'], crew: ['recruit', 'specialist'], companions: ['companion', 'recruit'], relics: ['relic-equip', 'relic-hunt'], meals: ['recipe'], kits: ['kit-prepare', 'kit-use'], 'card-archive': ['card-recycle'], 'card-craft': ['card-craft'], 'gear-craft': ['gear-forge'], 'gear-repair': ['gear-scroll'], specialization: ['expedition-specialize'], configuration: ['expedition-config'], supply: ['supply-plan'], planner: ['plan-goal', 'plan-priority', 'plan-queue', 'plan-kit', 'plan-preparation'], playbooks: ['loadout-save', 'loadout-use'] };
-  const initial = () => ({ version: 1, progress: { greenway: 0 }, active: null, bindings: {}, intentions: {}, proofs: [], supplies: [], rewards: [], helpRewards: [] });
+  const initial = () => ({ version: 1, progress: { greenway: 0 }, active: null, bindings: {}, intentions: {}, proofs: [], supplies: [], rewards: [], helpRewards: [], currencyRead: [] });
   const ledger = state => state.onboarding?.practice;
   const hasArea = (s, id) => !!s.expedition?.areas?.[id];
   const bindingUsable = (s, id, b) => b && (!b.cardId || !!s.collection.cards[b.cardId]) && (!b.itemId || !!s.collection.gear[b.itemId]) && (!b.trackId || own(s.expedition.areas[id]?.ranks || {}, b.trackId));
@@ -53,6 +74,7 @@
     if (!state.onboarding) return;
     if (!state.onboarding.practice) state.onboarding.practice = initial();
     const x = ledger(state);
+    if (!own(x, 'currencyRead')) x.currencyRead = [];
     for (const id of IDS) if (earned(state, id) && !own(x.progress, id)) x.progress[id] = 0;
     for (const id of Object.keys(x.bindings)) if (earned(state, id) && !bindingUsable(state, id, x.bindings[id])) x.bindings[id] = bind(state, id, {});
     for (const id of PRIMARY) if (earned(state, id) && x.progress[id] === KEYS[id].length) {
@@ -117,7 +139,7 @@
     if (id === 'equipment') {
       const def = Collection.Content.GEAR.find(d => d.id === b.itemId), item = state.collection.gear[b.itemId], dest = destination('equipment', { itemId: b.itemId });
       return [state.collection.equipped[def.slot] === def.id ? inspect('equip', 'equipment-slots', 'Inspect your equipped item', 'This item already occupies its correct slot. Open it to inspect its real bonuses.', dest, { itemId: def.id, slot: def.slot, mastered: true }) : action('equip', 'gear-equip', 'Equip ' + def.name, 'Use Equip on this owned item. Its bonuses become active in the matching character slot.', { type: 'gear-equip', id: def.id, slot: def.slot }, dest, { itemId: def.id, slot: def.slot }),
-        Collection.used(item) >= 6 ? inspect('scroll', 'gear-detail', 'Inspect the enhanced item', 'All six attempt slots are already used. Review the successful points; practice never forces a destructive reforge.', dest, { itemId: def.id, mastered: true }) : action('scroll', 'gear-scroll', 'Use a guaranteed Steady Scroll', 'Confirm the free practice scroll on this real item. It adds one point and uses one attempt slot.', { type: 'gear-scroll', id: def.id, scrollId: 'steady' }, dest, { itemId: def.id, scrollId: 'steady' }, { supply: 'scroll', suppliesText: 'Guild supplies one Steady Scroll for this attempt. Your saved scrolls are not spent.' }),
+        Collection.used(item) >= 6 ? inspect('scroll', 'gear-detail', 'Inspect the enhanced item', 'All six attempt slots are already used. Review the successful points; practice never forces a destructive reforge.', dest, { itemId: def.id, mastered: true }) : action('scroll', 'gear-scroll', 'Use a guaranteed Steady Scroll', 'Confirm the supplied practice scroll on this real item. It adds one point and uses one attempt slot.', { type: 'gear-scroll', id: def.id, scrollId: 'steady' }, dest, { itemId: def.id, scrollId: 'steady' }, { supply: 'scroll', suppliesText: 'Guild supplies one Steady Scroll for this attempt. Your saved scrolls are not spent.' }),
         inspect('result', 'gear-detail', 'Check the actual improvement', 'Open the enhanced item. Compare its points and remaining slots. Riskier scrolls can fail without destroying the item.', dest, { itemId: def.id })];
     }
     let dest = destination('guild'), data = { section: id }, a = null, target = 'guild-action', explanation = 'Use the real control when you are ready. Its normal effect remains in your guild.', supply = null;
@@ -160,11 +182,30 @@
     return [state.createdAt, state.run.id, state.expedition.revision || 0, state.collection.revision, id, x.progress[id], step.id, actionKey(step.requiredAction), JSON.stringify(step.targetData)].join('|');
   }
   const helpToken = (state, id) => [state.createdAt, state.run.id, 'optional-help', id].join('|');
+  const mandatory = (state, id) => PRIMARY.includes(id) || !!ledger(state)?.intentions[id];
+  function pendingCurrency(state, id, supplied) {
+    const x = ledger(state), all = steps(state, id, supplied), current = all[x.progress[id]];
+    // Explain the next real price before opening its comparison.
+    const step = current?.mode === 'action' ? current : all.slice(x.progress[id]).find(row => row.mode === 'action');
+    if (!step?.requiredAction || !costProvider) return null;
+    const costs = costProvider(state, step.requiredAction) || {};
+    const missing = Object.keys(costs).find(key => own(CURRENCIES, key) && N.cmp(N.from(costs[key]), 0) > 0 && !x.currencyRead?.includes(key));
+    return missing ? { ...currencyInfo(missing), coverageText: step.supply ? 'The guild supplies this first practice purchase. The shown price is its usual cost; your saved materials remain unchanged.' : 'This action uses your saved resources at the displayed price.', cost: N.from(costs[missing]), supplied: !!step.supply } : null;
+  }
+  function currencyToken(state, id, info, step) {
+    return token(state, id, step || steps(state, id)[ledger(state).progress[id]]) + '|currency|' + info.id;
+  }
+  function guardAction(state, action) {
+    const x = ledger(state); if (!x?.active || String(action.type).startsWith('onboarding-') && action.type !== 'onboarding-open') return null;
+    const step = steps(state, x.active).slice(x.progress[x.active]).find(row => row.requiredAction);
+    if (step?.requiredAction && actionKey(normalizedAction(state, step.requiredAction)) === actionKey(normalizedAction(state, action)) && pendingCurrency(state, x.active)) return { ok: false, message: 'Read the currency explanation before this lesson action.' };
+    return null;
+  }
   function descriptor(state, id, supplied) {
     const x = ledger(state), all = steps(state, id, supplied), progress = x?.progress[id] || 0;
     const list = all.map(step => ({ ...step, targetData: Object.fromEntries(Object.entries(step.targetData || {}).filter(([, v]) => v !== undefined)), completed: x?.proofs.includes(id + ':' + step.id) || false }));
     const optional = OPTIONAL.includes(id), reward = optional ? x?.rewards.includes(id) ? 0 : 8 : state.onboarding.rewardClaims.includes(id) ? 0 : ({ greenway: 12, quarry: 60, watchtower: 120, workshop: 200, ruins: 360, harbor: 600 })[id] || 0;
-    return { id, areaId: AREAS.includes(id) ? id : null, title: TITLES[id], mandatory: PRIMARY.includes(id), optional, available: !list.some(step => step.mode === 'wait'), reason: list.some(step => step.mode === 'wait') ? 'Return when this operation has an available action.' : '', complete: progress >= list.length, progress, steps: list, visitAction: { type: 'onboarding-visit', id }, ...(optional && !x?.helpRewards.includes(id) ? { helpOpenAction: { type: 'onboarding-help-open', id, token: helpToken(state, id) } } : {}), helpReward: { amount: optional && !x?.helpRewards.includes(id) ? 4 : 0, claimed: !optional || x?.helpRewards.includes(id), text: optional && !x?.helpRewards.includes(id) ? '+4 coins the first time you open this help.' : 'First-open help reward already saved.' }, rewardPreview: { resource: 'coins', amount: N.from(reward), available: reward > 0, text: reward ? reward + ' coins once after completing this hands-on lesson.' : 'This lesson cannot grant a repeat reward.' } };
+    return { id, areaId: AREAS.includes(id) ? id : null, title: TITLES[id], mandatory: mandatory(state, id), optional, available: !list.some(step => step.mode === 'wait'), reason: list.some(step => step.mode === 'wait') ? 'Return when this operation has an available action.' : '', complete: progress >= list.length, progress, steps: list, visitAction: { type: 'onboarding-visit', id }, ...(optional && !x?.helpRewards.includes(id) ? { helpOpenAction: { type: 'onboarding-help-open', id, token: helpToken(state, id) } } : {}), helpReward: { amount: optional && !x?.helpRewards.includes(id) ? 4 : 0, claimed: !optional || x?.helpRewards.includes(id), text: optional && !x?.helpRewards.includes(id) ? '+4 coins the first time you open this help.' : 'First-open help reward already saved.' }, rewardPreview: { resource: 'coins', amount: N.from(reward), available: reward > 0, text: reward ? reward + ' coins once after completing this hands-on lesson.' : 'This lesson cannot grant a repeat reward.' } };
   }
   function view(state, supplied) {
     const x = ledger(state); if (!x) return null;
@@ -178,6 +219,20 @@
       if (step.mode === 'action' && step.requiredAction) active.practiceAction = { type: 'onboarding-perform', id: current.id, stepId: step.id, token: t, action: clone(step.requiredAction) };
       delete active.helpOpenAction;
       if (current.optional && !x.intentions[current.id] && !x.helpRewards.includes(current.id)) active.helpOpenAction = clone(current.helpOpenAction);
+      active.canLeave = !mandatory(state, current.id);
+      if (!active.canLeave) delete active.leaveAction;
+      active.costCoverage = step.supply ? 'guild' : 'wallet';
+      active.suppliedCost = step.supply && step.requiredAction && costProvider ? costProvider(state, step.requiredAction) : null;
+      active.walletSpend = step.supply ? {} : step.requiredAction && costProvider ? costProvider(state, step.requiredAction) : {};
+      active.quotedCost = step.requiredAction && costProvider ? costProvider(state, step.requiredAction) : {};
+      const info = pendingCurrency(state, current.id, c);
+      if (info) {
+        active.mode = 'currency'; active.stepId = 'currency:' + info.id; active.target = 'currency-info'; active.currencyInfo = info;
+        active.heading = info.name; active.body = info.purpose + ' ' + info.earnedFrom + ' ' + info.coverageText;
+        active.token = currencyToken(state, current.id, info, step);
+        active.action = active.ackAction = { type: 'onboarding-currency-ack', id: current.id, currencyId: info.id, token: active.token };
+        delete active.practiceAction; delete active.inspectAction;
+      }
     }
     return { guides, active, triggers: guides.filter(g => !g.complete && TRIGGERS[g.id]).flatMap(g => ['crew', 'companions'].includes(g.id) ? [{ id: g.id, actionTypes: TRIGGERS[g.id].filter(t => t !== 'recruit'), visitAction: g.visitAction }, { id: g.id, actionTypes: ['recruit'], match: { kind: g.id === 'crew' ? 'specialist' : 'companion' }, visitAction: g.visitAction }] : [{ id: g.id, actionTypes: TRIGGERS[g.id], ...(g.id === 'gear-repair' ? { match: { scrollId: 'restoration' } } : {}), visitAction: g.visitAction }]), helpQueue: guides.filter(g => g.optional && !g.complete && g.available).slice(0, 3) };
   }
@@ -195,6 +250,13 @@
   }
   function act(state, action) {
     const x = ledger(state); if (!x) return { ok: false, message: 'Reload this guild before practicing.' };
+    if (action.type === 'onboarding-currency-ack') {
+      if (!exact(action, ['type', 'id', 'currencyId', 'token']) || x.active !== action.id) return { ok: false, message: 'Open the current currency explanation.' };
+      const info = pendingCurrency(state, action.id);
+      if (!info || info.id !== action.currencyId || currencyToken(state, action.id, info) !== action.token) return { ok: false, message: 'This currency explanation changed or was already saved.' };
+      x.currencyRead.push(info.id);
+      return { ok: true, message: info.name + ' explained.' };
+    }
     if (action.type === 'onboarding-help-open') {
       if (!exact(action, ['type', 'id', 'token']) || !OPTIONAL.includes(action.id) || !earned(state, action.id) || x.active === action.id && x.intentions[action.id] || helpToken(state, action.id) !== action.token || x.helpRewards.includes(action.id)) return { ok: false, message: 'This first-open help reward is unavailable or already saved.' };
       x.helpRewards.push(action.id); state.resources.coins = N.add(state.resources.coins, 4);
@@ -203,18 +265,20 @@
     if (action.type === 'onboarding-visit') {
       if (!(exact(action, ['type', 'id']) || exact(action, ['type', 'id', 'intendedAction']) && validIntention(action.id, action.intendedAction)) || !IDS.includes(action.id) || !earned(state, action.id) || !own(x.progress, action.id) || x.progress[action.id] >= KEYS[action.id].length || x.active && x.active !== action.id) return { ok: false, message: 'Open an earned unfinished lesson.' };
       if (action.intendedAction) x.intentions[action.id] = cleanAction(action.intendedAction);
-      else delete x.intentions[action.id];
+      else if (x.active !== action.id) delete x.intentions[action.id];
       if (!x.bindings[action.id]) x.bindings[action.id] = bind(state, action.id, context(state));
       x.active = action.id; state.onboarding.active = null;
       return { ok: true, message: 'Hands-on lesson opened.' };
     }
     if (action.type === 'onboarding-leave') {
       if (!exact(action, ['type', 'id']) || x.active !== action.id) return { ok: false, message: 'That lesson is not open.' };
+      if (mandatory(state, action.id)) return { ok: false, message: 'Complete this first-use lesson to continue. Settings and save recovery remain available.' };
       x.active = null; return { ok: true, message: 'Lesson progress saved.' };
     }
     if (action.type === 'onboarding-next') return { ok: false, message: 'Use the highlighted game control to complete this action.' };
     if (action.type === 'onboarding-inspect') {
       if (!exact(action, ['type', 'id', 'stepId', 'target', 'token']) || x.active !== action.id) return { ok: false, message: 'Open the current lesson’s actual control.' };
+      if (pendingCurrency(state, action.id)) return { ok: false, message: 'Read the currency explanation first.' };
       const step = steps(state, action.id)[x.progress[action.id]];
       if (!step || step.mode !== 'inspect' || step.id !== action.stepId || step.target !== action.target || token(state, action.id, step) !== action.token) return { ok: false, message: 'This lesson target changed. Open its current control.' };
       return completeStep(state, action.id, step);
@@ -224,6 +288,7 @@
   function prepare(state, action) {
     const x = ledger(state);
     if (!x || !exact(action, ['type', 'id', 'stepId', 'token', 'action']) || x.active !== action.id || !object(action.action)) return { ok: false, message: 'Open the current practice action first.' };
+    if (pendingCurrency(state, action.id)) return { ok: false, message: 'Read the currency explanation first.' };
     const step = steps(state, action.id)[x.progress[action.id]];
     if (!step || step.mode !== 'action' || step.id !== action.stepId || actionKey(action.action) !== actionKey(step.requiredAction) || token(state, action.id, step) !== action.token || x.proofs.includes(action.id + ':' + step.id)) return { ok: false, message: 'The practice action changed. Review the current lesson.' };
     return { ok: true, step, action: clone(step.requiredAction), supply: step.supply || null };
@@ -244,7 +309,7 @@
   }
   function validate(x, state) {
     try {
-      if (!exact(x, ['version', 'progress', 'active', 'bindings', 'intentions', 'proofs', 'supplies', 'rewards', 'helpRewards']) || x.version !== 1 || !object(x.progress) || !object(x.bindings) || !object(x.intentions) || Object.entries(x.intentions).some(([id, action]) => !own(x.progress, id) || !validIntention(id, action))) return false;
+      if (!exact(x, ['version', 'progress', 'active', 'bindings', 'intentions', 'proofs', 'supplies', 'rewards', 'helpRewards'].concat(own(x, 'currencyRead') ? ['currencyRead'] : [])) || x.version !== 1 || !object(x.progress) || !object(x.bindings) || !object(x.intentions) || Object.entries(x.intentions).some(([id, action]) => !own(x.progress, id) || !validIntention(id, action))) return false;
       if (Object.entries(x.progress).some(([id, p]) => !IDS.includes(id) || !Number.isSafeInteger(p) || p < 0 || p > KEYS[id].length)) return false;
       if (x.active !== null && (typeof x.active !== 'string' || !own(x.progress, x.active) || x.progress[x.active] === KEYS[x.active].length)) return false;
       if (Object.entries(x.bindings).some(([id, b]) => !own(x.progress, id) || !object(b) || Object.entries(b).some(([k, v]) => !['areaId', 'trackId', 'cardId', 'deckId', 'returnDeckId', 'otherDeckId', 'itemId'].includes(k) || typeof v !== 'string' || v.length > 80 || !/^[a-z0-9-]+$/.test(v)))) return false;
@@ -253,6 +318,7 @@
       if (expected.length !== x.proofs.length || expected.some(key => !x.proofs.includes(key))) return false;
       if (x.supplies.some(key => !x.proofs.includes(key))) return false;
       if (x.helpRewards.some(id => !OPTIONAL.includes(id))) return false;
+      if (own(x, 'currencyRead') && (!Array.isArray(x.currencyRead) || new Set(x.currencyRead).size !== x.currencyRead.length || x.currencyRead.some(id => typeof id !== 'string' || !own(CURRENCIES, id)))) return false;
       if (x.rewards.some(id => !OPTIONAL.includes(id) || x.progress[id] !== KEYS[id].length) || OPTIONAL.some(id => x.progress[id] === KEYS[id].length && !x.rewards.includes(id))) return false;
       for (const [id, b] of Object.entries(x.bindings)) {
         if (b.areaId && !AREAS.includes(b.areaId) || b.trackId && !D.AREAS.find(a => a.id === b.areaId)?.tracks.some(t => t.id === b.trackId) && !['lift', 'beacon'].includes(b.trackId) || b.cardId && !Collection.Content.CARDS.some(c => c.id === b.cardId) || b.itemId && !Collection.Content.GEAR.some(g => g.id === b.itemId)) return false;
@@ -274,9 +340,10 @@
     a.supplies = [...new Set(a.supplies.concat(b.supplies))].filter(key => a.proofs.includes(key));
     a.rewards = OPTIONAL.filter(id => a.progress[id] === KEYS[id].length);
     a.helpRewards = [...new Set(a.helpRewards.concat(b.helpRewards))];
+    a.currencyRead = [...new Set((a.currencyRead || []).concat(b.currencyRead || []))];
     a.active = null;
     sync(incoming);
     return incoming;
   }
-  return { initial, sync, view, act, prepare, capture, observe, validate, mergeReceipts, setContextProvider, completeStep, IDS, KEYS };
+  return { initial, sync, view, act, prepare, capture, observe, validate, mergeReceipts, setContextProvider, setCostProvider, guardAction, currencyInfo, completeStep, IDS, KEYS };
 });

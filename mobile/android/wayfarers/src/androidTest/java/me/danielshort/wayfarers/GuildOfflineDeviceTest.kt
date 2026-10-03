@@ -133,7 +133,7 @@ class GuildOfflineDeviceTest {
       InstrumentationRegistry.getArguments().getString("guildGuideAcknowledgementQa") == "true")
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val opening = awaitReady(scenario)
-      // The separate onboarding suite proves the free practice rank is exactly
+      // The separate onboarding suite proves the supplied practice rank is exactly
       // zero to one. This case measures the next ordinary paid rank instead.
       assumeTrue("Opening transition requires a naturally fresh guild after its real lesson", opening.getInt("stageIndex") == 0 && opening.getInt("guildBoots") == 0 && opening.optInt("trailPracticeProgress") == 3)
       val initialRank = opening.getInt("boots")
@@ -338,7 +338,7 @@ class GuildOfflineDeviceTest {
       if (snapshot.optBoolean("guideOpen") && InstrumentationRegistry.getArguments()
           .getString("guildGuideAcknowledgementQa") == "true") {
         practiced = true
-        evaluate(scenario, "var target=Array.from(document.querySelectorAll('[aria-describedby~=\"wx-guide-body\"]')).find(function(node){return !node.classList.contains('wx-guide');}); if(target && !target.disabled && !target.closest('[inert]')) target.click(); true")
+        evaluate(scenario, "var guide=document.querySelector('.wx-guide[open]'); var target=guide && guide.dataset.step.startsWith('currency:') ? guide.querySelector('[data-guide-next]:not([hidden])') : Array.from(document.querySelectorAll('[aria-describedby~=\"wx-guide-body\"]')).find(function(node){return !node.classList.contains('wx-guide');}); if(target && !target.disabled && !target.closest('[inert]')) target.click(); true")
         Thread.sleep(150)
         continue
       }

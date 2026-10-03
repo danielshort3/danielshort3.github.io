@@ -10,13 +10,14 @@ function completeAreaGuides(state) {
   for (const guide of Core.getView(state).onboarding.guides.filter(item => item.mandatory && !item.complete)) {
     if (guide.areaId) assert(Core.act(state, { type: 'expedition-select', areaId: guide.areaId }).ok);
     assert(Core.act(state, guide.visitAction).ok);
-    for (let count=0;count<10;count+=1) {
+    for (let count=0;count<40;count+=1) {
       const active=Core.getView(state).onboarding.active;
       if(!active)break;
       const action=active.practiceAction || active.inspectAction || active.action;
       assert(action,'Fixture guide has a canonical action: '+active.guideId);
       const result=Core.act(state,action);assert(result.ok,result.message);
     }
+    assert(Core.getView(state).onboarding.guides.find(item=>item.id===guide.id).complete,'Fixture guide completed through canonical actions: '+guide.id);
   }
   assert(Core.act(state, { type: 'expedition-select', areaId: selected }).ok);
   return state;

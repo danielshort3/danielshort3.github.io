@@ -8,7 +8,8 @@ const Storage = require('../../js/games/wayfarers-guild/persistence.js');
 const valid = s => assert.deepEqual(Core.validateState(s), { valid: true, errors: [] });
 const act = (s, a) => { const r = Core.act(s, a); assert.ok(r.ok, JSON.stringify(a) + ': ' + r.message); valid(s); return r; };
 const current = s => Core.getView(s).onboarding.active;
-function step(s) { const a = current(s); assert.ok(a); return act(s, a.practiceAction || a.inspectAction); }
+function explain(s) { while (current(s)?.mode === 'currency') act(s, current(s).ackAction); }
+function step(s) { explain(s); const a = current(s); assert.ok(a); return act(s, a.practiceAction || a.inspectAction); }
 function finish(s, id, intendedAction) {
   act(s, { type: 'onboarding-visit', id, ...(intendedAction ? { intendedAction } : {}) });
   let result;
@@ -22,7 +23,7 @@ test('fresh Trail requires actual information opening and a real supplied rank, 
   const s = Core.createState(1), before = clone(s);
   Core.getView(s); assert.deepEqual(s, before);
   act(s, { type: 'onboarding-visit', id: 'greenway' });
-  assert.equal(current(s).mode, 'inspect');
+  assert.equal(current(s).mode, 'currency'); explain(s); assert.equal(current(s).mode, 'inspect');
   const unchanged = clone(s); assert.equal(Core.act(s, { type: 'onboarding-next', id: 'greenway', stepId: 'inspect' }).ok, false); assert.deepEqual(s, unchanged);
   step(s); assert.equal(current(s).requiredAction.type, 'expedition-buy');
   step(s); assert.equal(s.expedition.areas.greenway.ranks.boots, 1); assert.deepEqual(s.resources.coins, N.zero());
@@ -39,9 +40,9 @@ test('stale tokens, substitutions, replay and duplicate transactions cannot spen
   step(s); assert.equal(Core.act(s, { type: 'onboarding-visit', id: 'greenway' }).ok, false);
 });
 
-test('leaving before a supplied action grants nothing and reload resumes exactly', () => {
+test('mandatory lesson rejects leaving and reload resumes without granting supplies', () => {
   let s = Core.createState(3); act(s, { type: 'onboarding-visit', id: 'greenway' }); step(s);
-  act(s, current(s).leaveAction); assert.deepEqual(s.resources.coins, N.zero());
+  assert.equal(current(s).canLeave, false); assert.equal(Core.act(s, {type:'onboarding-leave',id:'greenway'}).ok, false); assert.deepEqual(s.resources.coins, N.zero());
   s = Core.normalizeState(clone(s), s.lastUpdate); act(s, { type: 'onboarding-visit', id: 'greenway' });
   assert.equal(current(s).stepId, 'upgrade'); step(s); step(s);
   assert.equal(s.expedition.areas.greenway.ranks.boots, 1);
@@ -74,7 +75,8 @@ test('full enhanced equipment is reviewed without reforge, slot clearing or more
 test('optional Help opening is a separate once-only reward, never automatic interception', () => {
   const s = mature(); s.resources.coins = N.from(100); const before = N.from(s.resources.coins);
   act(s, { type: 'onboarding-visit', id: 'reserves', intendedAction: { type: 'plan-reserve', id: 'ore', amount: '33' } });
-  assert.equal(current(s).helpOpenAction, undefined); act(s, current(s).leaveAction);
+  assert.equal(current(s).helpOpenAction, undefined); assert.equal(Core.act(s, {type:'onboarding-leave',id:'reserves'}).ok, false);
+  const optional = mature(); optional.resources.coins = N.from(100); Object.assign(s, optional);
   act(s, { type: 'onboarding-visit', id: 'reserves' }); const help = current(s).helpOpenAction;
   act(s, help); assert.deepEqual(s.resources.coins, N.add(before, 4));
   const saved = clone(s); assert.equal(Core.act(s, help).ok, false); assert.deepEqual(s, saved);
@@ -129,7 +131,7 @@ test('missing imported card binding reconciles safely while preserving already p
   act(s, { type: 'onboarding-visit', id: 'cards' }); step(s);
   assert.equal(s.onboarding.practice.bindings.cards.cardId, 'tower-astronomer');
   Core.mergePracticeReceipts(old, s); valid(old); assert.doesNotThrow(() => Core.getView(old));
-  act(old, { type: 'onboarding-visit', id: 'cards' }); assert.equal(current(old).stepId, 'fuse'); step(old); valid(old);
+  act(old, { type: 'onboarding-visit', id: 'cards' }); explain(old); assert.equal(current(old).stepId, 'fuse'); step(old); valid(old);
 });
 
 test('malformed ledger and prototype references reject without throwing or mutating', () => {

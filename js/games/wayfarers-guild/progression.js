@@ -508,6 +508,12 @@
       return { id: key, label, effect, description: effect, selected: a.choice === key, visible: open, disabled: !open, action: { type: 'expedition-choice', areaId: id, id: key } };
     });
   }
+  function attentionOptions(state) {
+    return Object.keys(state.expedition.areas).flatMap(areaId => [
+      ...(choices(state, areaId).filter(row => row.visible !== false && !row.disabled).length > 1 ? choices(state, areaId).filter(row => row.visible !== false && !row.disabled) : []).map(row => ({ areaId, group: 'plan', id: row.id, label: row.label, action: row.action })),
+      ...configurations(state, areaId).flatMap(group => group.options.filter(row => !row.disabled).map(row => ({ areaId, group: group.id, id: row.id, label: row.label, action: row.action })))
+    ]);
+  }
   function metrics(state) {
     const r = rawRates(state), result = {};
     for (const [id, rates] of Object.entries(r.areas)) for (const key of ['work', 'capacity', 'picks', 'carts', 'furnace', 'research', 'flow', 'demand', 'freight', 'cargo', 'duration', 'travel', 'coordination', 'delving', 'interpretation', 'recovery', 'assembly', 'supply', 'voyagePace']) if (rates[key] !== undefined) result[id + ':' + key] = { areaId: id, label: areaDef(id).name + ' · ' + ({ picks: 'Extraction capacity', carts: 'Hauling capacity', furnace: 'Smelting capacity', flow: 'Actual throughput', work: 'Expansion work', capacity: 'Storage / assignment capacity', research: 'Research', demand: 'Input demand', freight: 'Freight support', cargo: 'Cargo', duration: 'Voyage duration', travel: 'Travel capacity', coordination: 'Coordination strength', delving: 'Delving capacity', interpretation: 'Interpretation capacity', recovery: 'Recovery capacity', assembly: 'Assembly capacity', supply: 'Next manifest provisions', voyagePace: 'Fleet travel capacity' }[key]), value: N.from(rates[key]), unit: key === 'duration' ? 's' : ['capacity', 'coordination', 'cargo', 'supply'].includes(key) ? '' : '/s' };
@@ -648,5 +654,5 @@
     const t = targets(x);
     return x.work <= t.work + EPS && x.finaleWork <= t.finale + EPS && (x.work >= t.work - EPS || x.finaleWork === 0) && (!x.completed || x.work >= t.work - EPS && x.finaleWork >= t.finale - EPS && x.index <= x.cleared);
   }
-  return { Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, finish, restart, reset, autoBuy, act, view, catalog, impact, developmentTask, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider, setTierProvider };
+  return { attentionOptions, Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, finish, restart, reset, autoBuy, act, view, catalog, impact, developmentTask, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider, setTierProvider };
 });

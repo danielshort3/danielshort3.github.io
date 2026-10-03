@@ -1468,6 +1468,8 @@
   function act(state, action) {
     if (!object(action)) return { ok: false, message: 'Choose a valid guild action.' };
     if (action.type === 'onboarding-perform') return performPractice(state, action);
+    const currencyGuard = Onboarding.guardAction(state, action);
+    if (currencyGuard) return currencyGuard;
     const practiceBefore = Onboarding.capture(state, action);
     if (!Tiers.allows(state, action)) return { ok: false, message: 'Unlock the ready upgrade tier before purchasing its upgrades.' };
     const adoptingExpedition = state.expedition && !P.active(state);
@@ -1551,7 +1553,7 @@
       card.copies += 2;
     }
     if (prepared.supply === 'scroll') {
-      if (action.scrollId !== 'steady' || !next.collection.gear[action.id] || Collection.used(next.collection.gear[action.id]) >= 6) return { ok: false, message: 'Use a free Steady Scroll on an item with an unused slot.' };
+      if (action.scrollId !== 'steady' || !next.collection.gear[action.id] || Collection.used(next.collection.gear[action.id]) >= 6) return { ok: false, message: 'Use the supplied Steady Scroll on an item with an unused slot.' };
       next.collection.scrolls.steady += 1;
     }
     if (['card-fuse', 'card-recycle', 'card-craft', 'gear-forge', 'gear-reforge', 'gear-scroll'].includes(action.type)) action.quote = Collection.quote(next, action).token;
@@ -1570,6 +1572,30 @@
   }
   function purchaseDependencies() {
     return { Content: C, upgradeCost, batchModes: P.batchModes, isOpen: (state, action) => Tiers.allows(state, action) && (action.type === 'buy' ? !!find(C.UPGRADES, action.id) && upgradeOpen(state, find(C.UPGRADES, action.id)) : action.type === 'refit-upgrade' ? state.lifetime.refits > 0 : state.lifetime.charters > 0) };
+  }
+  function practiceCosts(state, action) {
+    let costs = {};
+    if (action.type === 'expedition-buy') {
+      const id = action.areaId || state.expedition.selectedArea;
+      if (P.active(state)) costs = P.quote(state, id, action.id, action.count || 1).costs;
+      else costs = Object.fromEntries((E.catalog(state).find(row => row.areaId === id && row.action?.id === action.id)?.cost || []).map(row => [row.resource || row.id, row.amount]));
+    } else if (['buy', 'refit-upgrade', 'legacy-upgrade'].includes(action.type) && P.active(state)) costs = Purchases.quote(state, action, action.count || 1, purchaseDependencies()).costs;
+    else if (validPlanAction(action)) costs = taskDetails(state, action)?.costs;
+    else if (action.type === 'kit-prepare') costs = kitCosts(state);
+    else if (action.type === 'recipe') costs = recipeTrade(state, action.id).costs;
+    else if (action.type === 'recruit') costs = action.kind === 'companion' ? { coins: 2000, knowledge: 20 } : { coins: 1000, knowledge: 15 };
+    else if (action.type === 'luck-research') costs = { knowledge: find(C.LUCK_RESEARCH, action.id)?.cost || 0 };
+    else if (action.type === 'capability') { const def = find(C.CAPABILITIES, action.id); if (def) costs = { [def.resource]: def.cost }; }
+    else if (['refit-upgrade', 'legacy-upgrade'].includes(action.type)) { const legacy = action.type === 'legacy-upgrade', def = find(legacy ? C.LEGACY_UPGRADES : C.REFIT_UPGRADES, action.id); if (def) costs = { [legacy ? 'crests' : 'notes']: product(def.base, power(def.scale, (legacy ? state.legacy : state.refitUpgrades)[def.id])) }; }
+    if (['card-fuse', 'card-recycle', 'card-craft', 'gear-forge', 'gear-reforge', 'gear-scroll'].includes(action.type)) {
+      const quote = Collection.quote(state, action); costs = { ...quote.cost };
+      if (quote.costInk) costs.ink = quote.costInk;
+      if (quote.costCopies) costs.copies = quote.costCopies;
+      if (action.type === 'gear-scroll') costs[action.scrollId] = 1;
+      if (action.type === 'gear-reforge') costs.restoration = quote.scrollCost;
+    }
+    if (action.type === 'expedition-focus') costs.focus = 1;
+    return costs || {};
   }
   function baseGoal(state) {
     const current = getRoute(state.route.index, state);
@@ -2015,7 +2041,22 @@
     }
     return view;
   }
+  const attentionCatalogIds = [
+    ...P.Content.AREAS.flatMap(a => a.tracks.map(t => 'area:' + a.id + ':' + t.id)), 'area:watchtower:lift',
+    ...P.Content.PROJECTS.map(p => 'development:' + p.id), ...LegacyE.tierDefinitions().map(p => 'development:' + p.id),
+    ...[['buy', C.UPGRADES], ['research', C.RESEARCH], ['luck-research', C.LUCK_RESEARCH], ['project', C.PROJECTS], ['capability', C.CAPABILITIES]].flatMap(([kind, rows]) => rows.map(row => 'guild:' + kind + ':' + row.id)),
+    ...['chapter-supply', 'chapter-survey', 'chapter-industry'].map(id => 'guild:project:' + id),
+    ...C.REFIT_UPGRADES.map(row => 'guild:refit-upgrade:refit-' + row.id), ...C.LEGACY_UPGRADES.map(row => 'guild:legacy-upgrade:legacy-' + row.id)
+  ];
+  const attentionOptionGroups = { greenway: { plan: ['trade', 'freight', 'survey', 'mixed', 'continental', 'trade-survey'], route: ['short', 'supply'], dispatch: ['trade', 'freight', 'survey', 'relay', 'trade-survey'] }, quarry: { plan: ['balanced', 'rich', 'alloy', 'precision', 'mixed', 'optics', 'adaptive'], smelting: ['throughput', 'quality', 'precision', 'mixed', 'optics', 'adaptive'], equipment: ['tools', 'equipment-boots'] }, watchtower: { plan: ['survey', 'industry', 'trade'], allocation: ['balanced', 'repair', 'protect'], assignments: ['survey', 'industry', 'trade', 'discovery'], target: ['near', 'deep', 'ocean'] }, workshop: { plan: ['tools', 'extraction', 'manufacture', 'precision', 'integrated'], templates: ['supplies', 'tools', 'instruments'] }, ruins: { plan: ['industry', 'trade', 'survey'], discovery: ['botanical', 'metallic', 'inscribed'], loadouts: ['industry', 'trade', 'survey'] }, harbor: { plan: ['trade', 'materials', 'discovery', 'commerce'], port: ['coast', 'ruins', 'ocean'] } };
+  Onboarding.configureAttention({ provider: state => E.attentionOptions(state), ids: [
+    ...P.Content.AREAS.map(row => 'area:' + row.id), ...attentionCatalogIds.map(id => 'upgrade:' + id),
+    ...Object.entries(attentionOptionGroups).flatMap(([area, groups]) => Object.entries(groups).flatMap(([group, ids]) => ids.map(id => 'option:' + area + ':' + group + ':' + id))),
+    ...Collection.Content.CARDS.map(row => 'card:' + row.id), ...Collection.Content.GEAR.map(row => 'gear:' + row.id),
+    ...C.RESOURCES.map(row => 'currency:' + row.id), 'currency:ink'
+  ] });
   Onboarding.setContextProvider(state => getView(state, { skipOnboarding: true }));
+  Onboarding.setCostProvider(practiceCosts);
   P.setWorkRateProvider((state, ownership) => { if (ownership) premiumEntitlements.set(state, ownership); return getRates(state); });
   Tiers.configure({ legacyDevelopments: LegacyE.tierDefinitions(), baseOpen: (state, action) => {
     if (action.type === 'buy') { const def = find(C.UPGRADES, action.id); return !!def && upgradeOpen(state, def); }

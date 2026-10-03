@@ -20,5 +20,6 @@ import '../../js/games/wayfarers-guild/icons.js';
 import '../../js/games/wayfarers-guild/scene.js';
 import '../../js/games/wayfarers-guild/expedition-scene.js';
 import '../../js/games/wayfarers-guild/onboarding-ui.js';
+import '../../js/games/wayfarers-guild/area-motion.js';
 import '../../js/games/wayfarers-guild/expedition-ui.js';
 import '../../js/games/wayfarers-guild/app.js';

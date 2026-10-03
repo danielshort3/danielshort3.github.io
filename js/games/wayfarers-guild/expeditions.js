@@ -756,6 +756,20 @@
         action: { type: 'expedition-development', id: d.id } };
     }));
   }
+  function attentionOptions(parent) {
+    const x = parent.expedition, rows = [];
+    const add = (areaId, group, ids) => ids.forEach(id => rows.push({ areaId, group, id, label: id, action: { type: 'expedition-choice', areaId, id } }));
+    for (const [id, a] of Object.entries(x.areas)) {
+      if (id === 'greenway') {
+        if (a.index > 0 || sumRanks(a) >= 2 || a.work >= 28) add(id, 'route', ['short', 'supply']);
+        if (ownsDevelopment(x, 'trail-caravans') || ownsDevelopment(x, 'tower-survey')) add(id, 'dispatch', ['trade'].concat(ownsDevelopment(x, 'trail-caravans') ? ['freight'] : [], ownsDevelopment(x, 'tower-survey') ? ['survey'] : [], ownsDevelopment(x, 'relay-network') ? ['relay'] : [], ownsDevelopment(x, 'survey-exchange') ? ['trade-survey'] : []));
+      } else if (id === 'quarry') {
+        add(id, 'smelting', ['throughput', 'quality'].concat(ownsDevelopment(x, 'quarry-precision') ? ['precision'] : [], ownsDevelopment(x, 'shared-workshops') ? ['mixed'] : [], ownsDevelopment(x, 'optical-foundry') ? ['optics'] : [], ownsDevelopment(x, 'tower-control-room') ? ['adaptive'] : []));
+        if (progress(a) >= .35) add(id, 'equipment', ['tools', 'equipment-boots']);
+      } else add(id, 'allocation', ['balanced', 'repair', 'protect']);
+    }
+    return rows;
+  }
   function worldView(parent) {
     const x = parent.expedition;
     if (!x || x.version !== 2) return view(parent);
@@ -803,5 +817,5 @@
       dispatch: a.choices.dispatch, rates: { travel: r.travel, picks: r.picks, carts: r.carts, furnace: r.furnace, repair: r.repair, beacon: r.beacon, income: N.toNumber(r.income), maps: N.toNumber(r.maps), knowledge: N.toNumber(r.knowledge), materials: N.toNumber(r.materials) }, flows: { picks: r.actualPicks, carts: r.actualCarts, furnace: r.actualFurnace } });
     return result;
   }
-  return { create: createWorld, hydrate: hydrateWorld, validate: validateWorld, normalize: upgradeWorld, progress: worldProgress, targets: worldTargets, localRates: localWorldRates, rates: worldRates, contribution: worldContribution, nextEvent: worldNextEvent, tick: worldTick, finish: worldFinish, restart: beginProject, autoBuy: worldAutoBuy, act: worldAct, view: worldView, catalog: worldCatalog, impact: impactFor, developmentTask, stageName, setEntitlements, setReserveProvider, setRateProvider, setTierProvider, tierDefinitions: () => DEVELOPMENTS };
+  return { attentionOptions, create: createWorld, hydrate: hydrateWorld, validate: validateWorld, normalize: upgradeWorld, progress: worldProgress, targets: worldTargets, localRates: localWorldRates, rates: worldRates, contribution: worldContribution, nextEvent: worldNextEvent, tick: worldTick, finish: worldFinish, restart: beginProject, autoBuy: worldAutoBuy, act: worldAct, view: worldView, catalog: worldCatalog, impact: impactFor, developmentTask, stageName, setEntitlements, setReserveProvider, setRateProvider, setTierProvider, tierDefinitions: () => DEVELOPMENTS };
 });

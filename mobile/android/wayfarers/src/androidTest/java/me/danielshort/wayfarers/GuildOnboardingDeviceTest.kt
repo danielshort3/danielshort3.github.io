@@ -30,7 +30,9 @@ class GuildOnboardingDeviceTest {
       }
       assertTrue(opening.getInt("progress") in 0..2)
       val originalClaims = opening.getInt("claimCount")
+      acknowledgeCurrencies(scenario)
       if (opening.getInt("progress") == 0) performHighlightedStep(scenario, "inspect")
+      acknowledgeCurrencies(scenario)
       if (snapshot(scenario).getInt("progress") == 1) performHighlightedStep(scenario, "upgrade")
       val beforePlan = awaitGuide(scenario, "greenway", "operate")
       assertEquals(1, beforePlan.getInt("boots"))
@@ -59,14 +61,25 @@ class GuildOnboardingDeviceTest {
     }
   }
 
-  @Test fun freshTrailPracticeResumesAndItsFreeRankCannotRepeat() {
+  @Test fun freshTrailPracticeResumesAndItsSuppliedRankCannotRepeat() {
     assumeTrue("Requires an explicitly reset disposable guild",
       InstrumentationRegistry.getArguments().getString("guildOnboardingQa") == "true")
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val currency = awaitGuide(scenario, "greenway", "currency:coins")
+      assertEquals(0, currency.getInt("progress"))
+      assertEquals(0, currency.getInt("proofCount"))
+      assertEquals(0, currency.getJSONArray("currencyRead").length())
+      assertCurrencyCoach(currency)
+      scenario.recreate()
+      val currencyResumed = awaitGuide(scenario, "greenway", "currency:coins")
+      assertEquals(currency.getLong("createdAt"), currencyResumed.getLong("createdAt"))
+      assertEquals(0, currencyResumed.getJSONArray("currencyRead").length())
+      acknowledgeCurrencies(scenario)
       val opening = awaitGuide(scenario, "greenway", "inspect")
       assertEquals("Fixture must have its real untouched first guide", 0, opening.getInt("progress"))
       assertEquals(0, opening.getInt("claimCount"))
       assertEquals(0, opening.getInt("boots"))
+      assertEquals("[\"coins\"]", opening.getJSONArray("currencyRead").toString())
       assertCoach(opening)
       performHighlightedStep(scenario, "inspect")
       val second = awaitGuide(scenario, "greenway", "upgrade")
@@ -79,21 +92,24 @@ class GuildOnboardingDeviceTest {
       scenario.recreate()
       val resumed = awaitGuide(scenario, "greenway", "upgrade")
       assertEquals(opening.getLong("createdAt"), resumed.getLong("createdAt"))
-      var paused = resumed
-      repeat(4) {
-        if (paused.optBoolean("guideOpen")) {
-          val previousSheet = paused.optString("sheetKind")
-          scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
-          paused = awaitSnapshot(scenario, "Back must close a context sheet or pause the lesson") {
-            !it.optBoolean("guideOpen") || it.optString("sheetKind") != previousSheet
-          }
-          assertEquals("Back must preserve the unfinished action", 1, paused.getInt("progress"))
-          assertEquals(0, paused.getInt("boots"))
-        }
+      assertEquals(opening.getJSONArray("currencyRead").toString(), resumed.getJSONArray("currencyRead").toString())
+      repeat(3) {
+        scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        Thread.sleep(250)
+        val retained = awaitGuide(scenario, "greenway", "upgrade")
+        assertEquals("Back must preserve the unfinished action", 1, retained.getInt("progress"))
+        assertEquals(0, retained.getInt("boots"))
+        assertFalse("Mandatory Back cannot expose an area-navigation bypass", retained.getString("sheetKind") in listOf("areas", "options"))
+        assertCoach(retained)
       }
-      assertFalse("Back must provide a safe exit from the required lesson", paused.getBoolean("guideOpen"))
-      assertEquals(if (paused.getInt("areaCount") > 1) "areas" else "options", paused.getString("sheetKind"))
-      assertEquals(1, paused.getInt("progress"))
+      evaluate(scenario, "document.querySelector('.wx-guide[open] [data-guide-settings]').click(); true")
+      val recovery = awaitSnapshot(scenario, "The actual recovery control must open restricted Options") {
+        it.optString("sheetKind") == "options" && it.optBoolean("recoveryOptions") && !it.optBoolean("guideOpen")
+      }
+      assertEquals(1, recovery.getInt("progress"))
+      assertEquals(0, recovery.getInt("boots"))
+      assertEquals(0, recovery.getInt("supplyCount"))
+      assertEquals(1, recovery.getInt("proofCount"))
       scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
       awaitGuide(scenario, "greenway", "upgrade")
 
@@ -127,7 +143,7 @@ class GuildOnboardingDeviceTest {
       assertCoach(purchased)
       assertEquals("The highlighted real control must purchase exactly one rank", 1, purchased.getInt("boots"))
       assertEquals(2, purchased.getInt("proofCount"))
-      assertEquals("The free practice supply is consumed once", 1, purchased.getInt("supplyCount"))
+      assertEquals("The guild practice supply is consumed once", 1, purchased.getInt("supplyCount"))
       assertTrue("The rank must improve actual Trail capacity", purchased.getDouble("travelCapacity") > opening.getDouble("travelCapacity"))
       scenario.recreate()
       val afterPurchase = awaitGuide(scenario, "greenway", "operate")
@@ -168,20 +184,57 @@ class GuildOnboardingDeviceTest {
       assertEquals(1, afterReplay.getInt("supplyCount"))
       assertEquals(3, afterReplay.getInt("proofCount"))
       assertEquals(1, afterReplay.getInt("boots"))
+      assertEquals(opening.getJSONArray("currencyRead").toString(), afterReplay.getJSONArray("currencyRead").toString())
       assertEquals(complete.getLong("createdAt"), afterReplay.getLong("createdAt"))
     }
   }
 
   private fun assertCoach(snapshot: JSONObject) {
-    assertTrue("The coach and its visible 48dp exit must fit", snapshot.getBoolean("coachFits"))
+    assertGuideChrome(snapshot)
     assertTrue("The highlighted real control must be visible", snapshot.getBoolean("spotlightVisible"))
     assertTrue("The real highlighted control must be operable and at least 48dp", snapshot.getBoolean("targetOperable"))
     assertTrue("The coach must not intercept its required game control: $snapshot", snapshot.getBoolean("targetReceivesHit"))
+  }
+
+  private fun assertCurrencyCoach(snapshot: JSONObject) {
+    assertGuideChrome(snapshot)
+    assertTrue("Currency teaching has an explicit operable 48dp Next", snapshot.getBoolean("currencyNextOperable"))
+    assertEquals("Next", snapshot.getString("currencyNextLabel"))
+    assertTrue("The explained currency must be highlighted", snapshot.getBoolean("spotlightVisible"))
+  }
+
+  private fun assertGuideChrome(snapshot: JSONObject) {
+    assertTrue("The coach must fit", snapshot.getBoolean("coachFits"))
+    assertFalse("A mandatory lesson must not show Skip or Leave", snapshot.getBoolean("leaveVisible"))
+    assertTrue("The 48dp Settings recovery control must remain reachable", snapshot.getBoolean("recoveryOperable"))
     assertTrue("Unrelated controls must not receive click-through", snapshot.getBoolean("backgroundBlocked"))
     assertTrue("Keyboard focus stays in the allowed target, coach or sheet exit: $snapshot", snapshot.getBoolean("focusAllowed"))
     assertTrue("The guide has an accessible name and description", snapshot.getBoolean("accessible"))
     assertTrue("Each step exposes one atomic polite announcement", snapshot.getBoolean("stepAnnouncement"))
     assertTrue("The game must not acquire horizontal overflow", snapshot.getBoolean("noOverflow"))
+    assertTrue("Supplied purchases use normal labels without Free", snapshot.getBoolean("normalPurchaseCopy"))
+  }
+
+  private fun acknowledgeCurrencies(scenario: ActivityScenario<MainActivity>) {
+    repeat(16) {
+      val before = snapshot(scenario)
+      val step = before.optString("step")
+      if (!before.optBoolean("guideOpen") || !step.startsWith("currency:")) return
+      assertCurrencyCoach(before)
+      evaluate(scenario, "document.querySelector('.wx-guide[open] [data-guide-next]:not([hidden])').click(); true")
+      val after = awaitSnapshot(scenario, "Next must save the currency receipt and advance only the explanation") {
+        it.optString("step") != step && it.optBoolean("nativeConfirmed")
+      }
+      for (key in listOf("progress", "proofCount", "supplyCount", "claimCount", "boots")) {
+        assertEquals("Currency Next cannot change $key", before.getInt(key), after.getInt(key))
+      }
+      val previous = before.getJSONArray("currencyRead")
+      val learned = after.getJSONArray("currencyRead")
+      assertEquals(previous.length() + 1, learned.length())
+      assertEquals(step.removePrefix("currency:"), learned.getString(learned.length() - 1))
+      for (index in 0 until previous.length()) assertEquals(previous.getString(index), learned.getString(index))
+    }
+    fail("Currency teaching did not reach its real required action")
   }
 
   private fun performHighlightedStep(scenario: ActivityScenario<MainActivity>, step: String, nativeTouch: Boolean = false) {
@@ -257,29 +310,38 @@ class GuildOnboardingDeviceTest {
         var guide=document.querySelector('.wx-guide[open]'), sheet=document.querySelector('.wx-sheet[open]');
         var card=guide && guide.querySelector('.wx-guide-card'), ring=guide && guide.querySelector('.wx-guide-ring');
         var leave=guide && guide.querySelector('[data-guide-leave]');
+        var recovery=guide && guide.querySelector('[data-guide-settings]');
+        var currencyNext=guide && guide.querySelector('[data-guide-next]');
         var target=Array.from(document.querySelectorAll('[aria-describedby~="wx-guide-body"]')).find(function(node){return !node.classList.contains('wx-guide');});
         function box(el){return el && el.getBoundingClientRect();}
         function fits(el,action){var r=box(el);return !!r && r.width >= (action?47:1) && r.height >= (action?47:1) && r.left>=-1 && r.top>=-1 && r.right<=innerWidth+1 && r.bottom<=innerHeight+1;}
         function receivesHit(el){var r=box(el),hit=r && document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return !!el && (el===hit || el.contains(hit));}
         function renderInfo(el){if(!el)return null;var r=box(el),c=getComputedStyle(el),pop=false;try{pop=el.matches(':popover-open');}catch(error){}return {tag:el.tagName,classes:el.className,parent:el.parentElement?.className,popover:el.getAttribute('popover'),popoverOpen:pop,transform:c.transform,overflow:c.overflow,position:c.position,rect:{x:r.x,y:r.y,width:r.width,height:r.height}};}
-        var focused=document.activeElement, wallet=document.querySelector('[data-wx-wallet]');
+        var focused=document.activeElement, unrelated=document.querySelector('[data-wx-nav="guild"]');
         var exits=sheet ? Array.from(sheet.querySelectorAll('[data-wx-close],[data-wx-back]')) : [];
         var capacity=state && state.expedition.version===3 && window.WayfarersProgression ? window.WayfarersProgression.rawRates(state).areas.greenway.travel : 0;
         return {createdAt:state && state.createdAt,areaCount:state ? Object.keys(state.expedition.areas).length : 0,progress:practice && practice.progress.greenway,claimCount:o ? o.rewardClaims.filter(function(id){return id==='greenway';}).length : 0,
           proofCount:practice ? practice.proofs.filter(function(id){return id.startsWith('greenway:');}).length : 0,
           supplyCount:practice ? practice.supplies.filter(function(id){return id==='greenway:upgrade';}).length : 0,travelCapacity:capacity,
+          currencyRead:practice?.currencyRead || [],
           boots:state && state.expedition.areas.greenway.ranks.boots,guideOpen:!!guide,guide:guide && guide.dataset.guide,step:guide && guide.dataset.step,replay:!!guide && guide.dataset.replay==='true',
           expeditionVersion:state && state.expedition.version,routeChoice:state && state.expedition.areas.greenway.choices.route,
           renderDiagnostics:{popoverSupported:typeof HTMLElement.prototype.showPopover==='function',guide:renderInfo(guide),parent:renderInfo(guide?.parentElement),sheet:renderInfo(sheet),target:renderInfo(target)},
           sheetKind:sheet ? sheet.dataset.kind:'',width:innerWidth,height:innerHeight,
           viewportExactWidth:visualViewport ? visualViewport.width : innerWidth,
           replayAvailable:!!sheet && !!sheet.querySelector('[data-wx-do="guide-replay:greenway"]'),
+          recoveryOptions:!!sheet && !!sheet.querySelector('[data-wx-do="settings"]') && !sheet.querySelector('[data-wx-do^="guide-replay:"],[data-wx-do="caravan-options"],[data-wx-do="atlas"],[data-wx-do^="lesson-start:"]'),
           referenceSteps:sheet ? sheet.querySelectorAll('.wx-lesson-reference').length:0,
           referenceReadOnly:!!sheet && !sheet.querySelector('[data-wx-practice],[data-wx-do^="lesson-start:"]'),
-          coachFits:fits(card,false) && fits(leave,true),spotlightVisible:fits(ring,false) && !ring.hidden,
+          coachFits:fits(card,false),leaveVisible:!!leave && !leave.hidden && !!leave.getClientRects().length,
+          recoveryOperable:fits(recovery,true) && !recovery.hidden && !recovery.disabled && !recovery.closest('[inert]') && receivesHit(recovery),
+          currencyNextOperable:fits(currencyNext,true) && !currencyNext.hidden && !currencyNext.disabled && receivesHit(currencyNext),
+          currencyNextLabel:currencyNext?.textContent.trim() || '',
+          normalPurchaseCopy:!Array.from(document.querySelectorAll('[data-wx-practice],.wx-guide[open],.wx-sheet[open]')).some(function(node){return /\bfree\b/i.test(node.textContent);}),
+          spotlightVisible:fits(ring,false) && !ring.hidden,
           targetOperable:fits(target,true) && !target.disabled && !target.closest('[inert]'),targetReceivesHit:receivesHit(target),
           targetKey:target ? [target.tagName,target.getAttribute('data-wx-do'),target.getAttribute('data-upgrade'),target.getAttribute('data-wx-practice'),target.textContent].join('|') : '',
-          backgroundBlocked:!wallet || !!wallet.closest('[inert]') || !receivesHit(wallet),
+          backgroundBlocked:!!unrelated && (!!unrelated.closest('[inert]') || !receivesHit(unrelated)),
           focusAllowed:!!guide && (guide.contains(focused) || !!target && (target===focused || target.contains(focused)) || exits.includes(focused)),
           activeElement:document.activeElement && document.activeElement.outerHTML.slice(0,250),
           accessible:!!guide && !!document.getElementById(guide.getAttribute('aria-labelledby'))?.textContent && !!document.getElementById(guide.getAttribute('aria-describedby'))?.textContent,
