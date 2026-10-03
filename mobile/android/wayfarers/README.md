@@ -76,7 +76,7 @@ Open **Settings & saves → Testing → Reset all game progress**, optionally do
 
 `persistence.js` writes a fixed fresh snapshot and unique generation to a durable journal before touching saves. Canonical main/backup keys include that generation; fixed keys are compatibility mirrors. Old sessions cannot overwrite the new generation, including purchases saved after reset. A pending journal blocks gameplay and offers Retry using the same snapshot. The Android bridge requires an atomic `GuildCheckpointStore` reset acknowledgment before marking completion; normal and onPause checkpoints carry the same generation. Lost acknowledgments retry idempotently. Never implement this using `localStorage.clear()`, app-data deletion or silent checkpoint fallback.
 
-`npm run test:wayfarers-guild` includes fault-injection reset tests. Run `npm run test:wayfarers-guild:testing-reset:browser` for confirmation, layout, failure/retry, reload and stale tier-popup checks. Verify a populated disposable device resets, makes a first purchase and retains it through an offline cold launch; never use a retained player device for destructive testing.
+`npm run test:wayfarers-guild:progression` includes fault-injection reset tests. Run `npm run test:wayfarers-guild:testing-reset:browser` for confirmation, layout, failure/retry, reload and stale tier-popup checks. Verify a populated disposable device resets, makes a first purchase and retains it through an offline cold launch; never use a retained player device for destructive testing.
 
 ## Publish a compatible update
 
