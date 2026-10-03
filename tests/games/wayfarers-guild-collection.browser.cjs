@@ -48,6 +48,25 @@ function collected(all=false) {
 function claimReadyTiers(state) {
   for (const tier of H.Core.getView(state).expedition.tiers?.ready || []) assert(H.Core.act(state,tier.unlockAction).ok);
 }
+function retainLearnedControls(state) {
+  // Restore a controlled inventory after teaching on a copy, using the same
+  // receipt merge as an older-backup import. Paid-operation fixtures therefore
+  // keep their authored copies, points, rates and RNG instead of tutorial gains.
+  const learned=clone(state);Onboarding.completeAreaGuides(learned);
+  if(learned.collection.equipmentUnlocked && !Object.values(learned.collection.gear).some(item=>item.failed>0)) {
+    learned.collection.gear['trail-boots'].failed=1;
+  }
+  H.Core.act(learned,{type:'collection-ack',sequence:learned.collection.sequence});
+  for(const id of ['card-archive','card-craft','gear-craft','gear-repair','gear-reforge']) {
+    const guide=H.Core.getView(learned).onboarding.guides.find(row=>row.id===id);
+    if(!guide||guide.complete||!guide.available)continue;
+    assert(H.Core.act(learned,guide.visitAction).ok);
+    for(let i=0;i<10;i+=1){const active=H.Core.getView(learned).onboarding.active;if(!active)break;const result=H.Core.act(learned,active.practiceAction||active.inspectAction);assert(result.ok,result.message);}
+    assert(H.Core.getView(learned).onboarding.guides.find(row=>row.id===id).complete,'Paid-operation fixture already learned '+id);
+  }
+  H.Core.mergePracticeReceipts(state,learned);assert(H.Core.validateState(state).valid);
+  return state;
+}
 async function run() {
   fs.mkdirSync(output,{recursive:true});const files=path.join(output,'collection-bundle');bundle(files);
   const server=http.createServer((request,response)=>{
@@ -60,7 +79,7 @@ async function run() {
   async function open(width,height,state) {
     const context=await browser.newContext({viewport:{width,height},hasTouch:true,reducedMotion:'reduce'});
     state=clone(state);state.lastUpdate=1000;
-    Onboarding.announceDiscoveries(Onboarding.completeAreaGuides(state));
+    Onboarding.announceDiscoveries(retainLearnedControls(state));
     H.Core.act(state,{type:'introduction-seen',ids:H.Core.getPresentation(state).introductions.map(item=>item.id)});
     H.Core.act(state,{type:'discovery-seen',seq:state.luck.ledger.seq});
     const record=Storage.createStore({storage:null,now:()=>1000}).export(state);assert(record.ok,record.message);
@@ -100,21 +119,20 @@ async function run() {
       const original=await page.locator('.wx-world').boundingBox();
       await page.locator('[data-wx-collection="cards"]').click();await key(page,'collection-intro:cards').click();
       await Onboarding.finishCurrentGuide(page);
-      let state=await save(page);assert.equal(state.collection.cardsUnlocked,true);assert(state.collection.decks.every(deck=>deck.slots.every(id=>id===null)));
+      let state=await save(page);assert.equal(state.collection.cardsUnlocked,true);assert.equal(state.collection.cards['trail-courier'].rank,2);assert.equal(state.collection.decks.filter(deck=>deck.slots.includes('trail-courier')).length,2,'Hands-on tutorial builds two real saved decks');
       await page.locator('[data-wx-nav="expedition"]').click();assert.deepEqual(await page.locator('.wx-world').boundingBox(),original,'Claim causes no world shift');
       await page.locator('[data-wx-collection="cards"]').click();assert.equal(await page.locator('.wx-deck-slot').count(),4);await geometry(page);await shot(page,'starter-cards-'+width);
-      await key(page,'card:trail-courier').click();await key(page,'equip-card-slot:0').click();await geometry(page);await footer(page);
-      state=await save(page);assert.equal(state.collection.decks[0].slots[0],'trail-courier');
-      await page.locator('[data-wx-collection="equipment"]').click();await key(page,'collection-intro:equipment').click();await Onboarding.finishCurrentGuide(page);await geometry(page);await shot(page,'starter-equipment-'+width);
-      await key(page,'gear:trail-boots').click();await footer(page);state=await save(page);assert.equal(state.collection.equipped.boots,'trail-boots');await geometry(page);await shot(page,'equipment-detail-'+width);await close(page);
-      await key(page,'gear:quarry-pick').click();await footer(page);state=await save(page);assert(state.collection.gear['quarry-pick']);assert.equal(state.collection.equipped.tool,null,'Forging never auto-equips');await footer(page);await context.close();
+      await key(page,'card:trail-courier').click();await geometry(page);state=await save(page);assert.equal(state.collection.decks[0].slots[0],'trail-courier');await close(page);
+      await page.locator('[data-wx-collection="equipment"]').click();await key(page,'collection-intro:equipment').click();await Onboarding.finishCurrentGuide(page);await geometry(page);await shot(page,'starter-equipment-'+width);await close(page);
+      await key(page,'gear:trail-boots').click();state=await save(page);assert.equal(state.collection.equipped.boots,'trail-boots');assert.equal(K.points(state.collection.gear['trail-boots']),1,'Hands-on tutorial makes a real enhancement');await geometry(page);await shot(page,'equipment-detail-'+width);await close(page);await context.close();
       const mature=await open(width,height,collected(true));await mature.page.locator('[data-wx-collection="cards"]').click();await geometry(mature.page);await shot(mature.page,'all-cards-'+width);
       await key(mature.page,'card-help').click();assert.match(await sheet(mature.page).innerText(),/next|common|rarity/i);await geometry(mature.page);await shot(mature.page,'card-odds-'+width);await close(mature.page);
       await key(mature.page,'card:trail-courier').click();await key(mature.page,'menu:'+JSON.stringify({kind:'collection-transaction',entity:'card',id:'trail-courier',operation:'fusion'})).click();await geometry(mature.page);await shot(mature.page,'fusion-unequipped-'+width);await close(mature.page);
       await mature.page.locator('[data-wx-collection="equipment"]').click();await geometry(mature.page);await shot(mature.page,'all-equipment-'+width);
       await key(mature.page,'gear:trail-boots').click();await key(mature.page,'scroll:bold').click();assert.match(await sheet(mature.page).innerText(),/8%.*→.*10/i);await geometry(mature.page);await shot(mature.page,'scroll-unequipped-'+width);await mature.context.close();evidence.viewports.push({width,height,stableClaim:true});
     }
-    const {context,page}=await open(390,844,collected());
+    const paidFixture=collected();paidFixture.resources.coins=H.Core.Numbers.from(1000000);paidFixture.resources.ore=H.Core.Numbers.from(1000000);
+    const {context,page}=await open(390,844,paidFixture);
     await page.locator('[data-wx-collection="cards"]').click();
     await key(page,'deck-name:deck-1').click();await page.locator('[data-wx-deck-name]').fill('My travelling guild');await page.clock.runFor(2000);assert.equal(await page.locator('[data-wx-deck-name]').inputValue(),'My travelling guild');await footer(page);assert.equal((await save(page)).collection.decks[0].name,'My travelling guild');
     for(const deck of ['deck-1','deck-2','deck-3']) {
@@ -125,7 +143,17 @@ async function run() {
     let state=await save(page);assert.equal(state.collection.cards['trail-courier'].rank,2);assert.equal(state.collection.cards['trail-courier'].copies,10);assert(state.collection.decks.every(deck=>deck.slots[0]==='trail-courier'));await shot(page,'fusion-result');await footer(page);
     await key(page,'card:trail-courier').click();await key(page,'menu:'+JSON.stringify({kind:'card-ink',id:'trail-courier'})).click();await key(page,'menu:'+JSON.stringify({kind:'collection-transaction',entity:'card',id:'trail-courier',operation:'recycle'})).click();await footer(page);assert.equal((await save(page)).collection.ink,21);await footer(page);
     await key(page,'card:trail-courier').click();await key(page,'menu:'+JSON.stringify({kind:'card-ink',id:'trail-courier'})).click();await key(page,'menu:'+JSON.stringify({kind:'collection-transaction',entity:'card',id:'trail-courier',operation:'craft'})).click();await footer(page);assert.equal((await save(page)).collection.ink,11);await footer(page);
-    await page.locator('[data-wx-collection="equipment"]').click();await key(page,'gear:trail-boots').click();await footer(page);
+    await page.locator('[data-wx-collection="equipment"]').click();await key(page,'gear:quarry-pick').click();
+    const beforeForge=await save(page),forgeCost=H.Core.getView(beforeForge).collection.equipment.items.find(item=>item.id==='quarry-pick').forge.cost;
+    assert.equal(beforeForge.collection.gear['quarry-pick'],undefined);await footer(page);const forged=await save(page);
+    const accruedForge=clone(beforeForge);H.Core.advanceTo(accruedForge,forged.lastUpdate);
+    for(const [resource,cost] of Object.entries(forgeCost)) {
+      const debit=H.Core.Numbers.toNumber(accruedForge.resources[resource])-H.Core.Numbers.toNumber(forged.resources[resource]);
+      assert(Math.abs(debit-H.Core.Numbers.toNumber(cost))<1e-6,'Ordinary forging spends its quoted '+resource+' cost after normal elapsed production');
+    }
+    assert.equal(forged.collection.recent.at(-1).itemId,'quarry-pick');assert.equal(forged.collection.equipped.tool,beforeForge.collection.equipped.tool,'Forging never auto-equips');assert.equal(forged.collection.scrollRng,beforeForge.collection.scrollRng);await footer(page);
+    await key(page,'gear:quarry-pick').click();await footer(page);assert.equal((await save(page)).collection.equipped.tool,'quarry-pick');await close(page);
+    await key(page,'gear:trail-boots').click();await footer(page);
     for(const id of ['steady','bold','restoration']) {
       if(!(await sheet(page).count())) await key(page,'gear:trail-boots').click();
       await key(page,'scroll:'+id).click();await geometry(page);await shot(page,'scroll-'+id+'-preview');await footer(page);state=await save(page);
@@ -137,14 +165,35 @@ async function run() {
     const failed=await open(390,844,failureFixture);const p=failed.page;
     await p.locator('[data-wx-collection="equipment"]').click();await key(p,'gear:trail-boots').click();await key(p,'scroll:bold').click();const before=await save(p);
     await p.evaluate(()=>{window.collectionSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key.startsWith('wayfarers-guild-save'))throw new DOMException('Quota full','QuotaExceededError');return window.collectionSetItem.call(this,key,value);};});
-    await footer(p);assert.match(await sheet(p).innerText(),/pending|waiting to be saved/i);assert.equal(await p.locator('.wx-sheet[data-kind="collection-result"][open]').count(),0);
+    await footer(p);assert.match(await sheet(p).innerText(),/Save recovery required/i);assert.equal(await p.locator('.wx-sheet[data-kind="collection-result"][open]').count(),0);
     const persisted=await p.evaluate(()=>JSON.parse(localStorage.getItem(WayfarersStorage.SAVE_KEY)).state);assert.deepEqual(persisted.collection,before.collection);
-    await p.evaluate(()=>{Storage.prototype.setItem=window.collectionSetItem;});await footer(p);assert.equal(await p.locator('.wx-sheet[data-kind="collection-result"][open]').count(),1);
+    await p.evaluate(()=>{Storage.prototype.setItem=window.collectionSetItem;});await footer(p);
+    assert.equal(await p.locator('.wx-sheet[data-kind="collection-result"][open]').count(),0,'Retry of a rolled-back action does not display a historical result');
+    assert.equal(await p.locator('.wx-sheet[data-kind="collection-transaction"][open]').count(),1,'The actual scroll review remains available after Retry');
+    assert.deepEqual(inventory((await save(p)).collection),inventory(before.collection),'Retry saves the rollback without consuming a scroll or drawing RNG');
+    await footer(p);assert.equal(await p.locator('.wx-sheet[data-kind="collection-result"][open]').count(),1,'A new explicit confirmation commits the roll');
     const recovered=await save(p);assert.equal(recovered.collection.scrolls.bold,before.collection.scrolls.bold-1);assert.equal(recovered.collection.gear['trail-boots'].failed,1);assert(recovered.collection.sequence>recovered.collection.seen);
     await p.evaluate(()=>{Storage.prototype.setItem=function(key,value){if(key.startsWith('wayfarers-guild-save'))throw new DOMException('Quota full','QuotaExceededError');return window.collectionSetItem.call(this,key,value);};});await footer(p);
     assert.equal((await p.evaluate(()=>JSON.parse(localStorage.getItem(WayfarersStorage.SAVE_KEY)).state)).collection.seen,recovered.collection.seen,'Failed acknowledgement never discards pending result');
     await p.evaluate(()=>{Storage.prototype.setItem=window.collectionSetItem;});await footer(p);assert.equal((await save(p)).collection.seen,recovered.collection.seen,'Retry saves the unseen result, not the failed acknowledgement');
-    await p.reload();await p.locator('.wx-game').waitFor();assert.deepEqual(inventory((await save(p)).collection),inventory(recovered.collection));await p.locator('[data-wx-collection="equipment"]').click();assert(await key(p,'collection-inbox').count());await shot(p,'save-retry-restored');evidence.flows.push('failed durable write preserves one result; retry does not reroll; immediate reload retains unseen result');await failed.context.close();
+    await p.reload();await p.locator('.wx-game').waitFor();assert.deepEqual(inventory((await save(p)).collection),inventory(recovered.collection));await p.locator('[data-wx-collection="equipment"]').click();assert(await key(p,'collection-inbox').count());await shot(p,'save-retry-restored');evidence.flows.push('failed durable write rolls back inventory and RNG; retry requires a fresh explicit roll; failed acknowledgement and reload retain its unseen result');await failed.context.close();
+    const committed=await open(390,844,failureFixture),f=committed.page;
+    await f.locator('[data-wx-collection="equipment"]').click();await key(f,'gear:trail-boots').click();await key(f,'scroll:bold').click();const beforeCommit=await save(f);
+    await f.evaluate(()=>{
+      window.collectionSetItem=Storage.prototype.setItem;window.collectionGetItem=Storage.prototype.getItem;window.collectionWritten=false;
+      Storage.prototype.setItem=function(key,value){const result=window.collectionSetItem.call(this,key,value);if(key===WayfarersStorage.SAVE_KEY)window.collectionWritten=true;return result;};
+      Storage.prototype.getItem=function(key){if(key===WayfarersStorage.RESET_KEY && window.collectionWritten)throw new DOMException('Fence unavailable','SecurityError');return window.collectionGetItem.call(this,key);};
+    });
+    await footer(f);assert.equal(await f.locator('.wx-sheet[data-kind="collection-result"][open]').count(),0,'A committed but unchecked result waits for the save fence');
+    const durable=await f.evaluate(()=>JSON.parse(window.collectionGetItem.call(localStorage,WayfarersStorage.SAVE_KEY)).state);
+    assert.equal(durable.collection.scrolls.bold,beforeCommit.collection.scrolls.bold-1);assert.equal(durable.collection.gear['trail-boots'].failed,1);assert.equal(durable.collection.sequence,beforeCommit.collection.sequence+1);
+    assert.notEqual(durable.collection.scrollRng,beforeCommit.collection.scrollRng);assert(durable.collection.sequence>durable.collection.seen);
+    await f.evaluate(()=>{Storage.prototype.setItem=window.collectionSetItem;Storage.prototype.getItem=window.collectionGetItem;});await footer(f);
+    assert.equal(await f.locator('.wx-sheet[data-kind="collection-result"][open]').count(),1);assert.match(await sheet(f).innerText(),/Scroll did not take/);
+    assert.deepEqual(inventory((await save(f)).collection),inventory(durable.collection),'Retry displays the exact committed outcome without spending or rerolling');
+    await shot(f,'committed-fence-retry');await footer(f);const acknowledged=await save(f);assert.equal(acknowledged.collection.seen,durable.collection.sequence);
+    await f.reload();await f.locator('.wx-game').waitFor();assert.deepEqual(inventory((await save(f)).collection),inventory(acknowledged.collection));
+    evidence.flows.push('committed-fence failure keeps one durable roll; Retry shows that exact new result; acknowledgement and reload do not reroll');await committed.context.close();
     assert.deepEqual(evidence.errors,[]);fs.writeFileSync(path.join(output,'collection-browser.json'),JSON.stringify(evidence,null,2));console.log(JSON.stringify({ok:true,output,viewports:evidence.viewports.length,flows:evidence.flows.length}));
   } finally { await browser.close();await new Promise(resolve=>server.close(resolve)); }
 }
