@@ -525,7 +525,10 @@
       const selectedPlan = e.choice?.options?.find(option => option.selected)?.label;
       const planLabel = choiceCount > 1 ? 'Plans · ' + choiceCount : stage.kind === 'greenway' ? 'Path' : stage.kind === 'quarry' ? 'Processing' : 'Crew plan';
       let worldActions = e.choice?.visible ? button(icon('compass') + '<span>' + esc(planLabel) + '</span><b>›</b>', () => open({ kind:'choice' }), { key:'world-choice', className:'wx-world-button', aria:e.choice.title + (selectedPlan ? ': ' + selectedPlan : '') }) : '';
-      if (stage.completed && e.next?.action && !e.next.disabled) worldActions = button(esc(e.next.label) + ' →', e.next.action, { className:'wx-world-button wx-gold', disabled:e.next.disabled });
+      if (stage.completed && e.next?.action && !e.next.disabled) {
+        const nextLabel = e.next.label.replace('Discover','Open').replace('Copper Quarry','Quarry').replace('Greenway','Trail').replace('Watchtower','Tower');
+        worldActions += button(esc(nextLabel) + ' →', e.next.action, { className:'wx-world-button wx-gold', aria:e.next.label });
+      }
       else if (activeArea?.established && upgradesUnlocked) worldActions += button(icon('tools') + '<span>Develop</span>', () => showUpgrades(selectedArea), { key:'area-develop:' + selectedArea, className:'wx-world-button wx-develop' });
       markup(q('[data-wx-world-actions]'), worldActions);
       scene.setQuiet(!!ctx.quiet);

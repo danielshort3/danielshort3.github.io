@@ -199,9 +199,34 @@ async function run() {
       await page.clock.runFor(50);
       assert.equal(await page.locator('[data-wx-canvas]').getAttribute('data-scene-kind'),id);
       assert.equal(await page.locator('[data-wx-canvas]').getAttribute('data-scene-established'),'true');
+      assert(await page.locator('[data-wx-do="world-choice"]').isVisible(),'completed frontier must leave the selected area working plans directly accessible');
+      assert(await page.locator('.wx-world-actions ' + command('expedition-next')).isVisible(),'expansion remains available beside the working plan');
+      const workingBefore = await state(page);
+      await page.locator('[data-wx-do="world-choice"]').click();
+      assert.equal(await page.locator('.wx-sheet[open]').getAttribute('data-kind'),'choice');
+      const plan = {greenway:'freight',quarry:'quality',watchtower:'balanced'}[id];
+      await clickAction(page,'expedition-choice',plan); await closeSheet(page);
+      const workingAfter = await state(page);
+      assert.equal(workingAfter.expedition.areas[id].choices[{greenway:'dispatch',quarry:'smelting',watchtower:'allocation'}[id]],plan,'completed-area working plan is applied and saved');
+      assert.equal(workingAfter.expedition.index,workingBefore.expedition.index,'working plan does not expand or restart the frontier');
+      assert.equal(workingAfter.expedition.cleared,workingBefore.expedition.cleared);
+      assert.equal(workingAfter.expedition.completed,true);
+      for (const other of ids.filter(key => key !== id)) assert.deepEqual(workingAfter.expedition.areas[other].choices,workingBefore.expedition.areas[other].choices,'working plan only changes the selected area');
       const switched = await state(page);
       for (const kept of ids) assert.deepEqual(switched.expedition.areas[kept].ranks,built.expedition.areas[kept].ranks,'area visits retain ' + kept);
       await layout(page,'persistent ' + id); await screen(page,'network-persistent-' + id);
+    }
+    for (const [width,height] of [[320,740],[915,390]]) {
+      await page.setViewportSize({width,height}); await paint(page);
+      const frame = await geometry(page);
+      for (const id of ids) {
+        await page.locator('[data-wx-area="' + id + '"]').click(); await paint(page);
+        assert.deepEqual(await geometry(page),frame,'completed-area navigation keeps the scene anchored at ' + width);
+        assert(await page.locator('[data-wx-do="world-choice"]').isVisible());
+        assert.equal(await page.locator('.wx-world-actions ' + command('expedition-next')).getAttribute('aria-label'),'Expand Greenway');
+        assert(await page.locator('.wx-world-actions button').evaluateAll(nodes=>nodes.every(node=>node.scrollWidth<=node.clientWidth+1)),'Plans and Expand fit the existing action row');
+        await layout(page,'completed plans ' + id + ' ' + width); await screen(page,'network-completed-plans-' + id + '-' + width);
+      }
     }
     const beforeIdle = await state(page);
     await page.locator('[data-wx-nav="upgrades"]').click(); await page.clock.runFor(20000);
