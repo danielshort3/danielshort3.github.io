@@ -31,17 +31,22 @@
   function normalizeView(input) {
     const source = input && (input.scene || input.expedition && input.expedition.scene || input) || {};
     const kind = ['greenway', 'quarry', 'watchtower'].includes(source.kind) ? source.kind : 'greenway';
+    const region = String(source.region || '').toLowerCase().replace(/[-\s]/g, '').replace('starfallheights','starfall');
     return {
       kind,
       index: Math.floor(finite(source.index)),
-      region: PALETTES[source.region] ? source.region : 'greenway',
+      region: PALETTES[region] ? region : 'greenway',
       progress: clamp(source.progress, 0, 1),
       completed: source.completed === true,
+      established: source.established === true,
+      expansion: Math.floor(finite(source.expansion)),
+      developments: Array.isArray(source.developments) ? source.developments.slice().sort() : [],
       ranks: source.ranks || {},
       rates: source.rates || {},
       flows: source.flows || null,
       unlocked: Array.isArray(source.unlocked) ? source.unlocked : null,
       route: source.route === 'supply' ? 'supply' : 'short',
+      dispatch: ['trade','freight','survey','relay','trade-survey'].includes(source.dispatch) ? source.dispatch : 'trade',
       oreBuffer: finite(source.oreBuffer),
       smeltBuffer: finite(source.smeltBuffer),
       capacity: Math.max(1, finite(source.capacity)),
@@ -50,7 +55,7 @@
       checkpoint: Math.floor(clamp(source.checkpoint, 0, 4)),
       bottleneck: ['picks', 'carts', 'furnace'].includes(source.bottleneck) ? source.bottleneck : null,
       allocation: ['repair', 'protect'].includes(source.allocation) ? source.allocation : 'balanced',
-      quality: source.quality === 'quality' ? 'quality' : 'throughput',
+      quality: ['quality','precision','mixed','optics','adaptive'].includes(source.quality) ? source.quality : 'throughput',
       pressure: finite(source.pressure),
       hazard: source.hazard === true,
       banner: ['banner-amber', 'banner-moon'].includes(source.banner) ? source.banner : null,
@@ -218,6 +223,7 @@
       hotspots.push({ id, kind, label: labelText, x: x / width, y: y / viewportHeight, width: w / width, height: h / viewportHeight });
     }
     function rank(id) { return finite(view.ranks[id]); }
+    function developed(id) { return view.developments.includes(id); }
     function unlocked(id) { return !view.unlocked || view.unlocked.includes(id); }
     function haulRate() { return view.flows ? finite(view.flows.carts) : finite(view.rates.carts) || 0.4 + rank('carts') * 0.2; }
     function haulPeriod() { return clamp(10 / Math.sqrt(Math.max(0.1, haulRate())), 2, 12); }
@@ -269,7 +275,7 @@
       if (rank('scouts') > 0 || view.progress > 0.2) dottedPath(view.route === 'supply' ? short : supply, '#d6d9b6');
       dottedPath(view.route === 'supply' ? supply : short, '#f1d78b');
       const bridgeX = width * 0.78;
-      const repair = view.completed ? 1 : view.beacon;
+      const repair = view.established || view.completed ? 1 : view.beacon;
       line([[bridgeX - 16, bridgeY - 8], [bridgeX + 17, bridgeY - 8]], '#72523b', 3);
       line([[bridgeX - 16, bridgeY + 7], [bridgeX + 17, bridgeY + 7]], '#72523b', 3);
       for (let i = 0; i < 9; i += 1) {
@@ -277,6 +283,13 @@
         if (existing || i - 2 < repair * 5) rectangle(bridgeX - 17 + i * 4, bridgeY - 7, 3, 14, existing ? '#b78b52' : '#dfb568');
       }
       [-18, 16].forEach(dx => { rectangle(bridgeX + dx, bridgeY - 12, 3, 24, '#694a37'); rectangle(bridgeX + dx, bridgeY - 12, 3, 2, '#bf965b'); });
+      if (developed('paved-roads')) {
+        line(supply, '#919b8d', 10);
+        line(supply, '#c2c3a9', 7);
+        for (let i = 0; i <= 18; i += 1) { const at = pathPosition(supply, i / 18); rectangle(at[0] - 2, at[1] - 1, 4, 2, '#e1d4b1'); }
+        rectangle(bridgeX - 18, bridgeY - 10, 37, 2, '#9eaeb0');
+        rectangle(bridgeX - 18, bridgeY + 8, 37, 2, '#7b969c');
+      }
       tree(width * 0.13, height * 0.24, 0.9, palette);
       tree(width * 0.47, height * 0.18, 1, palette);
       tree(width * 0.95, height * 0.19, 0.82, palette);
@@ -293,16 +306,42 @@
       crate(campX + 17, campY + 1, 8);
       guildBanner(campX + 25, campY - 10);
       if (rank('porters') >= 3) crate(campX + 24, campY + 5, 7);
+      if (developed('trail-depot')) {
+        const depotX = width * 0.23, depotY = height * 0.72;
+        rectangle(depotX - 12, depotY - 17, 24, 17, '#876947');
+        rectangle(depotX - 8, depotY - 13, 7, 13, '#2b3d3b');
+        polygon([[depotX - 16,depotY - 16],[depotX,depotY - 29],[depotX + 16,depotY - 16]], '#536f78');
+        line([[depotX - 16,depotY - 16],[depotX,depotY - 29],[depotX + 16,depotY - 16]], '#8fabb0', 2);
+        crate(depotX + 11,depotY + 1,8); crate(depotX + 18,depotY + 4,7);
+      }
       const route = view.route === 'supply' ? supply : short;
-      const explorer = view.completed ? [bridgeX + 23, bridgeY] : pathPosition(route, Math.min(0.84, view.progress / 0.78 * 0.84));
-      actor(explorer[0], explorer[1] - 2, 'explorer', !view.completed, 1);
+      const operating = view.established && finite(view.rates.travel) > 0;
+      const run = reduced() ? 0.57 : animation * Math.max(0.012,Math.min(0.13,Math.sqrt(finite(view.rates.travel)) * 0.018)) % 1;
+      const explorer = operating ? pathPosition(route, run < 0.5 ? run * 1.86 : (1 - run) * 1.86) : view.completed ? [bridgeX + 23, bridgeY] : pathPosition(route, Math.min(0.84, view.progress / 0.78 * 0.84));
+      actor(explorer[0], explorer[1] - 2, 'explorer', operating || !view.completed, operating && run > 0.5 ? -1 : 1);
       companion(explorer[0] - 17, explorer[1] + 2);
       if (rank('porters') >= 3) crate(explorer[0] - 12, explorer[1] - 3, 6);
       [0.22, 0.49, 0.72].forEach((fraction, i) => {
         const at = pathPosition(route, fraction);
         flag(at[0] + 9, at[1] - 6, view.checkpoint > i || view.progress >= fraction);
       });
-      if (view.completed) { flag(bridgeX + 23, bridgeY - 3, true); label('Outpost established', width / 2, height - 20, GOLD); }
+      if (developed('trail-caravans')) {
+        const delivery = pathPosition(supply, reduced() ? 0.32 : (run + .36) % .9);
+        cart(delivery[0], delivery[1] + 3, view.dispatch === 'freight' || view.dispatch === 'relay' ? .8 : .25, true);
+      }
+      if (developed('tower-survey') || developed('relay-network')) {
+        const postX = width * .72, postY = height * .47;
+        rectangle(postX,postY - 25,3,25,'#776245');
+        rectangle(postX - 4,postY - 26,11,7,'#526d82');
+        rectangle(postX - 2,postY - 24,7,3,GOLD);
+        if (view.dispatch === 'survey' || view.dispatch === 'trade-survey') {
+          const surveyPath = [junction,[width * .67,height * .5],[postX - 5,postY]];
+          line(surveyPath,'#b9ae79',5); dottedPath(surveyPath,'#f2df94');
+          rectangle(postX - 14,postY - 9,9,7,'#e7d5a1'); rectangle(postX - 12,postY - 7,5,1,'#5b8282');
+        }
+        if (developed('relay-network')) { rectangle(postX - 8,postY - 31,19,2,'#d4c590'); rectangle(postX + 1,postY - 35,1,7,GOLD); }
+      }
+      if (view.established || view.completed) { flag(bridgeX + 23, bridgeY - 3, true); }
       else if (repair > 0) { bar(bridgeX - 17, bridgeY + 18, 35, repair); label('Bridge', bridgeX, bridgeY + 24); }
       hotspot('boots', 'upgrade', 'Inspect boots', explorer[0] - 14, explorer[1] - 28, 28, 32);
       hotspot('porters', 'upgrade', 'Inspect satchel', campX - 19, campY - 25, 46, 32);
@@ -337,7 +376,7 @@
     function drawQuarry(palette) {
       rectangle(0, 0, width, height, '#243343');
       polygon([[0, 0], [width, 0], [width, height * 0.16], [width * 0.78, height * 0.06], [width * 0.59, height * 0.17], [width * 0.34, height * 0.1], [0, height * 0.22]], palette.rock);
-      const floor = Math.round(height * 0.59);
+      const floor = Math.round(height < 145 ? Math.min(height - 36, height * 0.72) : height * 0.59);
       rectangle(0, floor, width, height - floor, '#38434a');
       rectangle(0, floor, width, 5, '#8c755c');
       rectangle(0, floor + 5, width, 3, '#554b42');
@@ -355,7 +394,7 @@
       [[5, -21], [14, -29], [22, -17], [11, -11]].forEach(([x, y]) => { rectangle(x, floor + y, 5, 4, '#d39a68'); rectangle(x + 1, floor + y, 2, 1, '#ecc098'); });
       if (rank('picks') >= 3) { rectangle(6, floor - 37, 6, 4, '#e2b673'); rectangle(13, floor - 41, 4, 3, '#d59f55'); }
       const extracting = view.flows ? finite(view.flows.picks) > 0 : view.oreBuffer < view.capacity;
-      actor(miningX + 9, floor - 1, 'miner', extracting && !view.completed, -1);
+      actor(miningX + 9, floor - 1, 'miner', extracting && (view.established || !view.completed), -1);
       companion(miningX - 9, floor + 1);
       guildBanner(width * 0.85, height * 0.29);
       const minedFraction = clamp(view.oreBuffer / view.capacity, 0, 1);
@@ -371,7 +410,7 @@
       // A trip's period follows actual haul throughput (or a bounded rank
       // fallback for older saves). Animation is a rate cue, not an extra tick.
       const rate = haulRate();
-      const phase = reduced() || view.completed || rate === 0 ? 0.3 : cartPhase % 1;
+      const phase = reduced() || !view.established && view.completed || rate === 0 ? 0.3 : cartPhase % 1;
       const distance = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
       const hasLoad = rate > 0 || view.oreBuffer > 0.02 || view.smeltBuffer > 0.02;
       cart(railStart + (railEnd - railStart) * distance, floor - 4, hasLoad && phase < 0.55 ? Math.max(0.25, minedFraction) : 0, false);
@@ -387,14 +426,37 @@
       rectangle(furnaceX - 6, floor - 49, 13, 3, '#a7a89b');
       rectangle(furnaceX - 10, floor - 23, 20, 21, '#303740');
       rectangle(furnaceX - 7, floor - 19, 14, 17, '#171f29');
-      const smelting = (view.flows ? finite(view.flows.furnace) > 0 : view.smeltBuffer > 0.02) && !view.completed;
-      if (smelting || view.completed) {
+      const smelting = (view.flows ? finite(view.flows.furnace) > 0 : view.smeltBuffer > 0.02) && (view.established || !view.completed);
+      if (smelting) {
         rectangle(furnaceX - 6, floor - 15, 12, 12, '#cb642f');
         const flicker = reduced() ? 0 : Math.floor(animation * 6) % 3;
         polygon([[furnaceX - 4, floor - 4], [furnaceX - 3, floor - 12 - flicker], [furnaceX, floor - 8], [furnaceX + 3, floor - 15 + flicker], [furnaceX + 5, floor - 4]], GOLD);
         rectangle(furnaceX - 1, floor - 9, 3, 6, '#ffedbb');
       }
       if (rank('furnace') >= 3) rectangle(furnaceX - 13, floor - 27, 26, 3, view.quality === 'quality' ? GOLD : '#a4b8bd');
+      if (developed('quarry-precision')) {
+        const sorterX = width * .31;
+        rectangle(sorterX - 10,floor - 45,20,7,'#a3b9b9');
+        polygon([[sorterX - 9,floor - 38],[sorterX + 9,floor - 38],[sorterX + 3,floor - 28],[sorterX - 3,floor - 28]],'#72939a');
+        rectangle(sorterX - 1,floor - 28,3,15,'#bfd0bd');
+        line([[sorterX - 13,floor - 9],[sorterX + 15,floor - 9]],'#668891',4);
+        for (let i = 0; i < 5; i += 1) rectangle(sorterX - 12 + i * 6,floor - 12,3,3,i % 2 ? '#d69f65' : '#b6c8c1');
+        if (view.quality === 'precision' || view.quality === 'mixed') { rectangle(furnaceX - 11,floor - 27,22,3,'#7cbeaf'); rectangle(sorterX - 7,floor - 43,14,3,'#e0d99d'); }
+      }
+      if (developed('trail-depot')) { crate(width * .13,height - 15,12); crate(width * .13 + 12,height - 11,10); crate(width * .13 + 2,height - 26,10); }
+      if (developed('relay-network')) { rectangle(width * .08, height * .29, 9, 12, '#668190'); rectangle(width * .08 + 2,height * .29 + 2,5,5,GOLD); }
+      if (developed('optical-foundry')) {
+        const lensX = width * .66;
+        rectangle(lensX - 5,floor - 45,10,11,'#526f88');
+        rectangle(lensX - 3,floor - 43,6,6,view.quality === 'optics' ? '#b7ecf0' : '#76999d');
+        rectangle(lensX - 1,floor - 34,2,13,'#9aa9a6');
+        if (view.quality === 'optics') line([[lensX,floor - 40],[furnaceX - 10,floor - 29]],'#9cd5d7',1);
+      }
+      if (developed('tower-control-room')) {
+        rectangle(furnaceX + 10,floor - 40,10,13,'#345366');
+        rectangle(furnaceX + 12,floor - 38,6,4,view.quality === 'adaptive' ? '#dfe798' : '#7c9699');
+        rectangle(furnaceX + 13,floor - 31,2,2,'#acc0aa');
+      }
       pile(furnaceX + 16, floor - 1, view.smeltBuffer, '#c88c5b', view.capacity);
       const bars = Math.min(6, Math.floor(view.progress / 0.78 * 7));
       for (let i = 0; i < bars; i += 1) { rectangle(furnaceX - 10 + (i % 3) * 8, floor + 16 - Math.floor(i / 3) * 4, 7, 4, '#d79354'); rectangle(furnaceX - 9 + (i % 3) * 8, floor + 16 - Math.floor(i / 3) * 4, 5, 1, '#f2c58c'); }
@@ -417,9 +479,9 @@
         for (let i = 0; i < Math.min(4, bars); i += 1) rectangle(shaftX - 12 + i % 2 * 12, liftY - 4 - Math.floor(i / 2) * 4, 10, 4, '#dca970');
         if (view.beacon > 0 && !view.completed) bar(shaftX - 18, shaftBottom + 6, 36, view.beacon);
       }
-      if (!view.completed && view.progress < 0.78) {
+      if (view.established || !view.completed && view.progress < 0.78) {
         const full = view.oreBuffer >= view.capacity * 0.95;
-        const waiting = !smelting && view.progress < 0.78;
+        const waiting = !smelting && (view.established || view.progress < 0.78);
         if (full) label('Full', width * 0.36, floor - 24, GOLD);
         if (waiting) label('Waiting', furnaceX, floor - 64, CREAM);
         if (!full && !waiting && view.bottleneck) {
@@ -428,7 +490,7 @@
           label('Slowest', x, y, GOLD);
           polygon([[x - 3, y + 15], [x + 3, y + 15], [x, y + 19]], GOLD);
         }
-      } else if (view.completed) label('Mine established', width / 2, height - 19, GOLD);
+      }
       if (deliveredFlash > 0 && !reduced()) { const rise = (1 - deliveredFlash) * 8; rectangle(furnaceX + 19, floor - 32 - rise, 3, 3, GOLD); rectangle(furnaceX + 21, floor - 37 - rise, 1, 1, CREAM); }
       hotspot('picks', 'upgrade', 'Inspect picks', 0, floor - 48, width * 0.36, 52);
       hotspot('carts', 'upgrade', 'Inspect carts', width * 0.37, floor - 25, width * 0.31, 57);
@@ -449,7 +511,7 @@
       const towerHeight = Math.min(height * 0.55, 118);
       const top = floor - towerHeight;
       const courses = 9;
-      const built = Math.min(courses, 2 + Math.floor(view.progress / 0.78 * 7));
+      const built = view.established ? courses : Math.min(courses, 2 + Math.floor(view.progress / 0.78 * 7));
       rectangle(towerX - towerWidth / 2 - 5, floor - 2, towerWidth + 10, 5, '#5b655e');
       // Empty scaffold preserves the landmark silhouette; only completed
       // masonry courses appear, so progress has a readable physical result.
@@ -474,8 +536,8 @@
       const workY = floor - built * towerHeight / courses + 2;
       const workerCount = Math.min(4, Math.max(1, Math.ceil(view.workers.repair / 2)));
       for (let i = 0; i < workerCount; i += 1) {
-        const walk = reduced() || view.completed ? 0 : Math.sin(animation * (0.6 + rank('crew') * 0.03) + i * 2) * 6;
-        actor(towerX - towerWidth / 2 - 5 + i * 11 + walk, i % 2 ? floor - 2 : workY, 'miner', !view.completed, i % 2 ? -1 : 1);
+        const walk = reduced() || !view.established && view.completed ? 0 : Math.sin(animation * (0.6 + rank('crew') * 0.03) + i * 2) * 6;
+        actor(towerX - towerWidth / 2 - 5 + i * 11 + walk, i % 2 ? floor - 2 : workY, 'miner', view.established || !view.completed, i % 2 ? -1 : 1);
       }
       const guardCount = Math.min(3, Math.ceil(view.workers.protection / 2));
       for (let i = 0; i < guardCount; i += 1) {
@@ -488,7 +550,7 @@
       rectangle(craneX, top + 19, 4, towerHeight - 19, '#72523b');
       line([[craneX - 5, top + 27], [craneX + 28, top + 13]], '#8c6540', 4);
       const liftRate = finite(view.rates.repair) || 1 + rank('lift') * 0.25;
-      const liftPhase = reduced() || view.completed ? 0.65 : (Math.sin(animation * 0.4 * Math.sqrt(liftRate)) + 1) / 2;
+      const liftPhase = reduced() || !view.established && view.completed ? 0.65 : (Math.sin(animation * 0.4 * Math.sqrt(liftRate)) + 1) / 2;
       const liftY = top + 30 + liftPhase * (towerHeight - 39);
       rectangle(craneX + 24, top + 15, 1, liftY - top - 15, '#e1c283');
       crate(craneX + 18, liftY + 10, rank('lift') >= 3 ? 14 : 10);
@@ -497,22 +559,31 @@
       rectangle(towerX - 9, beaconY + 4, 18, 4, '#6f523a');
       rectangle(towerX - 7, beaconY, 2, 8, '#ac8953');
       rectangle(towerX + 5, beaconY, 2, 8, '#ac8953');
-      if (view.completed || view.beacon >= 1) {
+      if (view.established || view.completed || view.beacon >= 1) {
         const flicker = reduced() ? 0 : Math.floor(animation * 5) % 3;
         polygon([[towerX - 5, beaconY + 4], [towerX - 7, beaconY - 5], [towerX - 2, beaconY - 2], [towerX + 1, beaconY - 14 - flicker], [towerX + 4, beaconY - 5], [towerX + 7, beaconY + 4]], '#df7d35');
         polygon([[towerX - 3, beaconY + 4], [towerX - 1, beaconY - 7], [towerX + 3, beaconY - 2], [towerX + 4, beaconY + 4]], GOLD);
         rectangle(towerX - 7, top + 19, 14, 26, '#335c81');
         rectangle(towerX - 1, top + 22, 3, 16, GOLD);
         rectangle(towerX - 4, top + 27, 9, 3, GOLD);
-        label('Beacon restored', width / 2, height - 18, GOLD);
+        if (developed('tower-survey')) {
+          rectangle(towerX + 13,beaconY - 1,16,5,'#718d9c');
+          rectangle(towerX + 26,beaconY - 3,4,9,'#b7c9cb');
+          rectangle(towerX + 28,beaconY - 1,2,5,'#dfe9c8');
+          line([[towerX + 18,beaconY + 4],[towerX + 13,beaconY + 13]],'#715b45',2);
+        }
+        if (developed('relay-network')) {
+          polygon([[towerX - 6,beaconY - 4],[towerX - 42,beaconY - 20],[towerX - 42,beaconY - 8]],'#e6d38844');
+          polygon([[towerX + 6,beaconY - 4],[towerX + 42,beaconY - 20],[towerX + 42,beaconY - 8]],'#e6d38844');
+        }
       } else if (unlocked('beacon')) bar(towerX - 10, beaconY - 7, 20, view.beacon, GOLD);
-      if (!view.completed && view.workers.total > 0) {
-        label(String(Math.round(view.workers.repair)) + ' build', width * 0.25, height - 18);
+      if ((view.established || !view.completed) && view.workers.total > 0) {
+        label(String(Math.round(view.workers.repair)) + (view.established ? ' signal' : ' build'), width * 0.25, height - 18);
         label(String(Math.round(view.workers.protection)) + ' guard', width * 0.75, height - 18);
       }
       guildBanner(towerX - towerWidth / 2 - 2, floor - 3);
       companion(width * 0.09, floor + 16);
-      if (view.hazard && !view.completed) {
+      if (view.hazard && (view.established || !view.completed)) {
         const cloudX = width * 0.17;
         const cloudY = height * 0.1;
         rectangle(cloudX - 16, cloudY + 4, 38, 7, '#71828e');
@@ -537,7 +608,9 @@
       const physicalHeight = Math.round(bounds.height * dpr);
       // Each logical art pixel maps to an integer number of device pixels.
       // A narrow, centered margin absorbs any non-divisible remainder.
-      const scale = Math.max(1, Math.round(Math.max(1, Math.round(bounds.width / 192)) * dpr));
+      const widthScale = Math.max(1, Math.round(Math.max(1, Math.round(bounds.width / 192)) * dpr));
+      const heightScale = Math.max(1, Math.floor(Math.max(1, physicalHeight - 70 * dpr) / 112));
+      const scale = Math.min(widthScale, heightScale);
       width = Math.max(96, Math.floor(physicalWidth / scale));
       viewportHeight = Math.max(1, Math.floor(physicalHeight / scale));
       // The host's one-thumb choice button occupies the bottom of the world.
@@ -560,6 +633,8 @@
       canvas.dataset.sceneKind = view.kind;
       canvas.dataset.sceneCheckpoint = String(view.checkpoint);
       canvas.dataset.sceneProgress = String(Math.round(view.progress * 100));
+      canvas.dataset.sceneEstablished = String(view.established);
+      canvas.dataset.sceneDevelopments = view.developments.join(',');
       canvas.dataset.scenePixelScale = String(scale);
       canvas.dataset.sceneReducedMotion = String(reduced());
       canvas.dataset.sceneDraws = String((Number(canvas.dataset.sceneDraws) || 0) + 1);
@@ -582,7 +657,7 @@
         deliveredFlash = Math.max(0, deliveredFlash - delta * 1.5);
       }
       if (dirty || !reduced() && now - lastPaint >= 100) draw(now);
-      if (!reduced() && !view.completed) frame = root.requestAnimationFrame(tick);
+      if (!reduced() && (view.established || !view.completed)) frame = root.requestAnimationFrame(tick);
     }
     function schedule() {
       if (visible() && frame === null) frame = root.requestAnimationFrame(tick);

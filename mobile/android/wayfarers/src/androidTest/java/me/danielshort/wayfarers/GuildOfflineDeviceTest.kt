@@ -62,7 +62,9 @@ class GuildOfflineDeviceTest {
         assertNotNull("A separate reader verifies the checksum and complete atomic file", checkpoint)
         val state = JSONObject(checkpoint!!.text).getJSONObject("state")
         assertEquals(saved.getLong("createdAt"), state.getLong("createdAt"))
-        assertEquals(saved.getInt("boots"), state.getJSONObject("expedition").getJSONObject("ranks").getInt("boots"))
+        val expedition = state.getJSONObject("expedition")
+        val trail = expedition.optJSONObject("areas")?.optJSONObject("greenway") ?: expedition
+        assertEquals(saved.getInt("boots"), trail.getJSONObject("ranks").getInt("boots"))
         assertEquals(saved.getInt("guildBoots"), state.getJSONObject("upgrades").getInt("boots"))
       }
     }
@@ -177,6 +179,8 @@ class GuildOfflineDeviceTest {
         JSON.stringify((function () {
           var envelope = JSON.parse(localStorage.getItem('wayfarers-guild-save-v1') || 'null');
           var state = envelope && envelope.state;
+          var expedition = state && state.expedition;
+          var trail = expedition && (expedition.areas ? expedition.areas.greenway : expedition);
           var scene = document.querySelector('[data-wx-canvas]');
           var game = document.querySelector('.wx-game');
           var action = document.querySelector('[data-wx-buy="boots"]') || document.querySelector('[data-wx-buy]');
@@ -191,7 +195,7 @@ class GuildOfflineDeviceTest {
           var noHorizontalOverflow = document.documentElement.scrollWidth <= innerWidth + 1 && game && game.scrollWidth <= game.clientWidth + 1;
           return {url: location.href, scene: scene && scene.dataset.sceneStatus, saved: !!state,
             createdAt: state && state.createdAt, lastUpdate: state && state.lastUpdate,
-            boots: state && state.expedition && state.expedition.ranks.boots,
+            boots: trail && trail.ranks.boots,
             guildBoots: state && state.upgrades.boots,
             stageIndex: state && state.expedition && state.expedition.index,
             sheetKind: sheet ? sheet.dataset.kind : '', quiet: localStorage.getItem('wayfarers-guild-quiet'),

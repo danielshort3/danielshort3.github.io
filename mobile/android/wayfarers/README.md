@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.3.0`, version code `4` |
+| Default candidate | `0.4.0`, version code `5` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 
@@ -64,7 +64,7 @@ node tests/games/wayfarers-guild-expedition.browser.cjs
 node --test mobile/android/scripts/wayfarers-bundle.test.cjs
 ```
 
-The expedition browser check builds the same offline assets as the APK. It exercises the first purchase and earned controls at three portrait/landscape sizes, completes three stages through visible purchases and decisions, reloads the saved guild, and checks retained guilds, portrait crew selection, automation sheets, and Atlas navigation. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, and native checkpoint acknowledgement. Run its first-boot case on a fresh disposable emulator; never clear an existing player's data to make that case run.
+The expedition browser check builds the same offline assets as the APK. It exercises the first purchase and earned controls at portrait/landscape sizes, establishes the three operations through visible purchases and decisions, revisits productive earlier areas, buys cross-area developments from the shared catalog, and reloads the retained guild. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, and native checkpoint acknowledgement. Run its first-boot case on a fresh disposable emulator; never clear an existing player's data to make that case run.
 
 ## Publish a compatible update
 

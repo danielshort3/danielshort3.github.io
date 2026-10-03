@@ -106,13 +106,13 @@ test('starter discounts rise smoothly and meet unmodified mature prices', () => 
 
 test('ten minutes deliver three capstones, equipment, crew and persistent regional progression', () => {
   const result = guidedOpening(600), m = result.milestones;
-  assert.ok(m.forge >= 210 && m.forge <= 285);
-  assert.ok(m.hall >= 420 && m.hall <= 510);
-  assert.equal(result.state.upgrades['gear-tools'], 1);
-  assert.ok(result.purchases.length >= 25 && result.purchases.length <= 35);
+  assert.ok(m.forge >= 180 && m.forge <= 260);
+  assert.ok(m.hall >= 300 && m.hall <= 440);
+  assert.equal(result.state.upgrades['gear-tools'], Math.floor((result.state.expedition.cleared + 2) / 3));
+  assert.ok(result.purchases.length >= 50 && result.purchases.length <= 80);
   assert.ok(Math.max(...result.purchases.map((item, i, all) => item.second - (all[i - 1]?.second || 0))) <= 45);
   assert.equal(E.view(result.state).outposts.length, 3);
-  assert.equal(result.state.expedition.index, 3);
+  assert.ok(result.state.expedition.index >= 3);
   assert.equal(result.state.lifetime.refits, 0);
 });
 
