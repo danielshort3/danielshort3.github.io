@@ -12,7 +12,7 @@ const Core = require('../../js/games/wayfarers-guild/core');
 const Storage = require('../../js/games/wayfarers-guild/persistence');
 const output = path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.join(os.tmpdir(), 'guild-expedition-')));
 const files = path.join(output, 'expedition-bundle');
-const evidence = { opening: [], sessions: [], retained: [], errors: [] };
+const evidence = { opening: [], sessions: [], retained: [], charters: [], errors: [] };
 const anchors = ['.wx-header', '.wx-objective', '.wx-world', '.wx-tray', '.wx-nav'];
 
 function command(type, id) { return '[data-wx-do=' + JSON.stringify(JSON.stringify(id === undefined ? { type } : { type, id })) + ']'; }
@@ -49,10 +49,16 @@ async function closeSheet(page) {
 }
 async function choose(page, id) {
   await page.locator('[data-wx-do="world-choice"]').click();
-  await page.locator(command('expedition-choice', id)).click();
+  await clickAction(page, 'expedition-choice', id);
   await closeSheet(page);
 }
 async function screen(page, filename) { await page.screenshot({ path: path.join(output, filename + '.png') }); }
+async function paint(page) {
+  // Visibility observers settle on the browser's compositor before the next
+  // clock-driven canvas frame after returning from a full-screen menu.
+  await page.waitForTimeout(35); await page.clock.runFor(50);
+  await page.waitForTimeout(35); await page.clock.runFor(50);
+}
 async function clickAction(page, type, id) {
   const key = await page.locator('.wx-sheet[open] [data-wx-do]').evaluateAll((buttons, wanted) => {
     for (const button of buttons) {
@@ -105,199 +111,209 @@ async function run() {
     return { context, page, errors };
   }
   try {
-    for (const [width, height] of [[320, 740], [390, 844], [800, 480]]) {
+    for (const [width, height] of [[320, 740], [390, 844], [800, 480], [915, 390]]) {
       const { context, page, errors } = await open(width, height);
-      assert.equal(await page.locator('[data-wx-buy]').count(), 1, 'only Boots initially');
-      assert(!(await page.locator('[data-wx-nav="guild"]').isVisible()), 'guild earned later');
-      assert(!(await page.locator('[data-wx-nav="atlas"]').isVisible()), 'atlas earned later');
+      assert.equal(await page.locator('[data-wx-buy]').count(), 1, 'one opening upgrade');
+      assert.equal(await page.locator('.wx-nav button:visible').count(), 1, 'only the Trail is introduced');
       const before = await geometry(page);
       await layout(page, 'opening ' + width);
-      await screen(page, 'expedition-opening-' + width);
+      await screen(page, 'network-opening-' + width);
       await page.clock.runFor(8000);
-      const buy = page.locator('[data-wx-buy="boots"]');
-      assert(await buy.isEnabled(), 'first purchase ready by 8 seconds');
-      const target = await buy.boundingBox();
-      await buy.click();
-      assert.deepEqual(await geometry(page), before, 'first upgrade cannot move the playfield');
-      assert.deepEqual(await buy.boundingBox(), target, 'first price remains in place');
+      await page.locator('[data-wx-buy="boots"]').click();
+      assert.deepEqual(await geometry(page), before, 'first upgrade preserves the complete playfield');
       await page.locator('[data-wx-do="local:boots"]').click();
-      assert.equal(await page.locator('.wx-sheet').getAttribute('data-kind'), 'local');
-      assert.match(await page.locator('.wx-sheet').innerText(), /travel|rank|milestone/i);
-      await layout(page, 'upgrade sheet ' + width);
-      await screen(page, 'expedition-upgrade-sheet-' + width);
+      assert.match(await page.locator('.wx-sheet').innerText(), /→|travel|milestone/i);
+      await layout(page, 'opening details ' + width);
       await closeSheet(page);
-      for (let i = 0; i < 5; i += 1) {
+      for (let i = 0; i < 6; i += 1) {
         await page.clock.runFor(5000);
         const enabled = page.locator('[data-wx-buy]:enabled').first();
         if (await enabled.count()) await enabled.click();
       }
-      assert((await page.locator('[data-wx-buy]').count()) >= 2, 'next track appears through play');
-      assert.deepEqual(await geometry(page), before, 'earned track cannot move the playfield');
-      await layout(page, 'unlocked ' + width);
-      await screen(page, 'expedition-unlocked-' + width);
+      assert((await page.locator('[data-wx-buy]').count()) >= 2, 'new tracks arrive through normal play');
+      assert.deepEqual(await geometry(page), before, 'new tracks do not push the scene');
+      const textFits = await page.locator('.wx-upgrade-info').evaluateAll(nodes => nodes.every(node => node.scrollHeight <= node.clientHeight + 1 && [...node.querySelectorAll('small,strong')].every(label => label.getBoundingClientRect().bottom <= node.getBoundingClientRect().bottom + 1)));
+      assert(textFits, 'upgrade label and effect stay above purchase price at ' + width);
+      await layout(page, 'earned upgrades ' + width);
+      await screen(page, 'network-upgrades-' + width);
       const saved = await state(page);
-      await page.reload();
-      await page.locator('.wx-game').waitFor();
-      await page.clock.runFor(50);
+      await page.reload(); await page.locator('.wx-game').waitFor(); await page.clock.runFor(50);
       const restored = await state(page);
-      assert.equal(restored.createdAt, saved.createdAt, 'same guild after reload');
-      assert.deepEqual(restored.expedition.ranks, saved.expedition.ranks, 'local upgrades survive reload');
-      assert.equal(restored.expedition.purchases, saved.expedition.purchases);
+      assert.equal(restored.createdAt, saved.createdAt);
+      assert.deepEqual(restored.expedition.areas.greenway.ranks, saved.expedition.areas.greenway.ranks);
       assert.deepEqual(errors, []);
-      evidence.opening.push({ width, height, geometry: before, savedPurchases: saved.expedition.purchases });
+      evidence.opening.push({ width, height, geometry:before, ranks:saved.expedition.areas.greenway.ranks });
       await context.close();
     }
 
     const { context, page, errors } = await open(390, 844);
-    let stage = 0;
-    let selected = new Set();
-    let purchases = 0;
-    let lastPurchase = 0;
-    let longestGap = 0;
-    const stages = [];
-    const purchaseEvents = [];
-    const choices = [];
-    for (let seconds = 2; seconds <= 720 && stage < 3; seconds += 2) {
-      await page.clock.runFor(2000);
-      await dismissFind(page);
-      const finale = page.locator('.wx-sheet[open][data-kind="finale"]');
-      if (await finale.count()) {
-        const saved = await state(page);
-        await layout(page, 'finale ' + stage);
-        await screen(page, 'expedition-finale-' + stage);
-        stages.push({ stage, seconds, purchases: saved.expedition.purchases, ranks: saved.expedition.ranks });
-        assert(saved.expedition.completed, 'finale is real completed engine state');
-        stage += 1;
-        if (stage < 3) {
-          await finale.locator(command('expedition-next')).click();
-          await page.clock.runFor(50);
-          await screen(page, 'expedition-arrival-' + stage);
+    let stage = 0, purchases = 0, lastPurchase = 0, longestGap = 0;
+    const started = [0], selected = new Set(), stages = [], choices = [];
+    const ids = ['greenway','quarry','watchtower'];
+    for (let seconds = 2; seconds <= 900 && stage < 3; seconds += 2) {
+      await page.clock.runFor(2000); await dismissFind(page);
+      const saved = await state(page);
+      if (saved.expedition.completed && saved.expedition.index === stage) {
+        const prior = JSON.parse(JSON.stringify(saved.expedition.areas[ids[stage]].ranks));
+        stages.push({ stage, seconds, purchases:saved.expedition.purchases, ranks:prior });
+        await layout(page, 'established ' + stage); await screen(page, 'network-established-' + stage);
+        if (stage === 1) {
+          await page.locator('[data-wx-do="unlock-project:development:trail-caravans"]').click();
+          assert.equal((await state(page)).expedition.selectedArea,'greenway','Quarry discovery returns to the earlier Trail');
+          assert.match(await page.locator('.wx-sheet').innerText(),/Caravan routes/);
+          await layout(page,'earned cross-area discovery'); await screen(page,'network-earned-caravan-discovery');
+          await clickAction(page,'expedition-development','trail-caravans'); await closeSheet(page); await paint(page);
+          assert((await state(page)).expedition.developments.includes('trail-caravans'),'earlier-area capability bought with naturally earned supplies');
+          await screen(page,'network-earned-trail-transformation');
         }
-        continue;
+        if (stage < 2) {
+          await page.locator('body:has(.wx-sheet[open]) .wx-sheet[open] ' + command('expedition-next') + ', body:not(:has(.wx-sheet[open])) .wx-world-actions ' + command('expedition-next')).click();
+          await page.clock.runFor(50);
+          const next = await state(page);
+          assert.deepEqual(next.expedition.areas[ids[stage]].ranks, prior, 'unlocking another area retains all previous ranks');
+          assert(next.expedition.areas[ids[stage]].established);
+          await screen(page, 'network-opened-' + (stage + 1));
+        }
+        stage += 1; started[stage] = seconds; continue;
       }
-      const choice = page.locator('[data-wx-do="world-choice"]');
-      if (await choice.count()) {
-        let id = !selected.has(stage + ':initial') ? ['short', 'throughput', 'repair'][stage] : null;
-        if (stage === 2 && (await choice.innerText()).includes('Protect') && !selected.has('tower-guard')) { id = 'protect'; selected.add('tower-guard'); }
-        if (id) { await choose(page, id); selected.add(stage + ':initial'); choices.push({ stage, id, seconds }); }
+      await closeSheet(page);
+      if (await page.locator('[data-wx-do="world-choice"]').count()) {
+        let id = !selected.has(stage) ? ['short','throughput','repair'][stage] : null;
+        if (stage === 2 && seconds - started[stage] > 30 && !selected.has('guard')) { id = 'protect'; selected.add('guard'); }
+        if (id) { await choose(page,id); selected.add(stage); choices.push({ stage,id,seconds }); }
       }
-      const available = await page.locator('[data-wx-buy]:enabled').evaluateAll(buttons => buttons.map(button => ({ id: button.dataset.wxBuy, level: Number(button.closest('article').querySelector('[data-wx-rank]').textContent.replace(/\D/g, '')), price: Number(button.getAttribute('aria-label').split(', ').pop().replace(/[^\d.]/g, '')) })).sort((a, b) => a.level - b.level || a.price - b.price));
+      const available = await page.locator('[data-wx-buy]:enabled').evaluateAll(buttons => buttons.map(button => ({ id:button.dataset.wxBuy, level:Number(button.closest('article').querySelector('[data-wx-rank]').textContent.replace(/\D/g,'')) })).sort((a,b) => a.level - b.level));
       if (available.length) {
         await page.locator('[data-wx-buy="' + available[0].id + '"]').click();
-        purchases += 1;
-        longestGap = Math.max(longestGap, seconds - lastPurchase);
-        lastPurchase = seconds;
-        purchaseEvents.push({ stage, seconds, id: available[0].id });
+        purchases += 1; longestGap = Math.max(longestGap, seconds - lastPurchase); lastPurchase = seconds;
       }
-      if (seconds % 60 === 0) {
-        await layout(page, 'natural session ' + seconds);
-        await screen(page, 'expedition-session-' + seconds);
-      }
+      if (seconds % 120 === 0) { await layout(page,'natural ' + seconds); await screen(page,'network-session-' + seconds); }
     }
-    assert.equal(stage, 3, 'three distinct expeditions finish within twelve minutes through visible controls');
-    assert(purchases >= 20, 'a full opening contains frequent useful upgrade opportunities');
-    assert(longestGap < 90, 'opening has no unexplained 90 second purchase gap');
-    assert(choices.some(choice => choice.id === 'protect'), 'tower protection is a playable decision');
+    assert.equal(stage,3,'three areas establish through naturally earned visible purchases');
+    assert(purchases >= 20,'many useful upgrades in the opening'); assert(longestGap < 90,'no unexplained 90-second purchase drought');
     await closeSheet(page);
-    await page.locator('[data-wx-nav="guild"]').click();
-    await page.getByRole('button', { name: /Automation.*priorities/i }).click();
-    assert.equal(await page.locator('.wx-sheet').getAttribute('data-kind'), 'planning');
-    await layout(page, 'earned automation');
-    await screen(page, 'expedition-earned-automation');
-    await closeSheet(page);
-    const completed = await state(page);
-    assert(completed.expedition.cleared >= 2, 'third zero-based stage is cleared');
-    await page.reload();
-    await page.locator('.wx-game').waitFor();
-    await page.clock.runFor(50);
-    const retained = await state(page);
-    assert.equal(retained.createdAt, completed.createdAt);
-    assert.equal(retained.expedition.cleared, completed.expedition.cleared);
-    assert.deepEqual(retained.expedition.choices, completed.expedition.choices);
-    assert.deepEqual(errors, []);
-    evidence.sessions.push({ stages, purchases, longestGap, purchaseEvents, choices });
+    const built = await state(page);
+    assert.equal(await page.locator('.wx-nav button:visible').count(),5,'three areas plus Upgrades and Guild');
+    for (const id of ids) {
+      await page.locator('[data-wx-area="' + id + '"]').click();
+      await page.clock.runFor(50);
+      assert.equal(await page.locator('[data-wx-canvas]').getAttribute('data-scene-kind'),id);
+      assert.equal(await page.locator('[data-wx-canvas]').getAttribute('data-scene-established'),'true');
+      const switched = await state(page);
+      for (const kept of ids) assert.deepEqual(switched.expedition.areas[kept].ranks,built.expedition.areas[kept].ranks,'area visits retain ' + kept);
+      await layout(page,'persistent ' + id); await screen(page,'network-persistent-' + id);
+    }
+    const beforeIdle = await state(page);
+    await page.locator('[data-wx-nav="upgrades"]').click(); await page.clock.runFor(20000);
+    const afterIdle = await state(page);
+    for (const id of ids) assert(afterIdle.expedition.areas[id].elapsed > beforeIdle.expedition.areas[id].elapsed,'hidden area keeps advancing: ' + id);
+    for (const resource of ['coins','ore','knowledge']) assert(Core.Numbers.cmp(afterIdle.resources[resource],beforeIdle.resources[resource]) > 0,resource + ' produced while global menu is open');
+    await layout(page,'earned global upgrades'); await screen(page,'network-earned-global');
+    await page.reload(); await page.locator('.wx-game').waitFor(); await page.clock.runFor(50);
+    const reload = await state(page);
+    assert.deepEqual(reload.expedition.areas.greenway.ranks,built.expedition.areas.greenway.ranks);
+    assert.deepEqual(reload.expedition.areas.quarry.ranks,built.expedition.areas.quarry.ranks);
+    assert.deepEqual(reload.expedition.areas.watchtower.ranks,built.expedition.areas.watchtower.ranks);
+    assert.deepEqual(errors,[]); evidence.sessions.push({ stages,purchases,longestGap,choices,hiddenProduction:true });
     await context.close();
 
     const legacy = Core.migrateState(require('./fixtures/wayfarers-v3-state.json'));
-    assert(legacy && Core.validateState(legacy).valid, 'legacy guild migrates');
-    // Fund one expensive mature equipment purchase in this isolated UI fixture.
-    // The preceding first-three-stage playthrough uses only naturally earned resources.
-    legacy.resources.ore = Core.Numbers.from('2e10');
-    for (const [width, height] of [[320, 740], [390, 844], [800, 480]]) {
-      const { context: oldContext, page: oldPage, errors: oldErrors } = await open(width, height, legacy);
-      await closeSheet(oldPage);
-      await oldPage.locator('[data-wx-nav="guild"]').click();
-      await layout(oldPage, 'retained guild ' + width);
-      await screen(oldPage, 'expedition-retained-guild-' + width);
-      await oldPage.getByRole('button', { name: /Crew.*Explorers/i }).click();
-      assert.equal(await oldPage.locator('.wx-sheet').getAttribute('data-kind'), 'crew');
-      assert.equal(await oldPage.locator('.wx-sheet select').count(), 0, 'crew uses portrait choices');
-      await layout(oldPage, 'retained crew ' + width);
-      await screen(oldPage, 'expedition-retained-crew-' + width);
-      if (width === 390) {
-        await clickAction(oldPage, 'recruit', 'scout');
-        assert((await state(oldPage)).crew.owned.includes('scout'), 'recruit through rendered price');
-      }
-      await oldPage.locator('[data-wx-do="crew-slot:0"]').click();
-      assert.equal(await oldPage.locator('.wx-sheet').getAttribute('data-kind'), 'roster');
-      await layout(oldPage, 'retained roster ' + width);
-      if (width === 390) {
-        await clickAction(oldPage, 'specialist', 'scout');
-        assert.equal((await state(oldPage)).crew.specialists[0], 'scout', 'portrait assignment persists');
-      }
-      await oldPage.locator('[data-wx-back]').click();
-      assert.equal(await oldPage.locator('.wx-sheet').getAttribute('data-kind'), 'crew', 'back preserves sheet hierarchy');
-      if (width === 390) {
-        await oldPage.getByRole('button', { name:/Companion.*Choose a travelling partner/ }).click();
-        await clickAction(oldPage, 'recruit', 'fox');
-        await clickAction(oldPage, 'companion', 'fox');
-        assert.equal((await state(oldPage)).crew.companion, 'fox', 'companion choice persists');
-        await closeSheet(oldPage);
-        await oldPage.getByRole('button', { name:/Forge.*Working|Forge.*Rank/ }).click();
-        const toolsBefore = (await state(oldPage)).upgrades['gear-tools'];
-        await clickAction(oldPage, 'buy', 'gear-tools');
-        assert.equal((await state(oldPage)).upgrades['gear-tools'], toolsBefore + 1, 'equipment bought from compact Forge');
-        await closeSheet(oldPage);
-        await oldPage.getByRole('button', { name:/Research.*Lasting guild improvements/ }).click();
-        await clickAction(oldPage, 'research', 'smart-reserve');
-        assert((await state(oldPage)).research.includes('smart-reserve'), 'research purchased through the sheet');
-      }
-      await closeSheet(oldPage);
-      await oldPage.getByRole('button', { name: /Automation/i }).click();
-      await layout(oldPage, 'retained automation ' + width);
-      await screen(oldPage, 'expedition-retained-automation-' + width);
-      if (width === 390) {
-        await oldPage.getByRole('button', { name:'Turn helper on', exact:true }).click();
-        assert((await state(oldPage)).expedition.automation.enabled, 'local helper enabled from rendered controls');
-        await oldPage.getByRole('button', { name:/Purchase priorities/ }).click();
-        await clickAction(oldPage, 'plan-priority', 'production');
-        assert.equal((await state(oldPage)).guild.plan.priorities.operations, 'production', 'valid guild priority chosen');
-      }
-      await closeSheet(oldPage);
-      await oldPage.locator('[data-wx-nav="atlas"]').click();
-      await layout(oldPage, 'retained atlas ' + width);
-      await screen(oldPage, 'expedition-retained-atlas-' + width);
-      const save = await state(oldPage);
-      assert.equal(save.createdAt, legacy.createdAt, 'legacy guild identity retained');
-      assert.deepEqual(oldErrors, []);
-      evidence.retained.push({ width, height, expedition: save.expedition.index, createdAt: save.createdAt });
-      await oldContext.close();
+    assert(legacy && Core.validateState(legacy).valid,'old guild migrates into persistent areas');
+    for (const resource of ['coins','ore','knowledge','maps','herbs','provisions']) legacy.resources[resource] = Core.Numbers.from(1e12);
+    // Mature catalog/causality fixture is isolated and funded. The preceding
+    // three-area session never grants resources or edits state during play.
+    for (const [width,height] of [[320,740],[390,844],[800,480],[915,390]]) {
+      const { context:ctx,page:p,errors:errs } = await open(width,height,legacy);
+      await closeSheet(p); await p.locator('[data-wx-nav="upgrades"]').click();
+      await layout(p,'global catalog ' + width); await screen(p,'network-catalog-' + width);
+      assert.equal(await p.locator('.wx-destination select').count(),0,'catalog uses visible buttons');
+      await p.locator('[data-wx-do="filter:area:greenway"]').click();
+      const targets = await p.locator('[data-wx-upgrade]').evaluateAll(nodes => nodes.map(node => node.dataset.wxUpgrade));
+      assert(targets.includes('area:greenway:boots'),'area filter includes its exact persistent tracks');
+      await p.locator('[data-wx-do="filter:area:all"]').click();
+      await p.locator('[data-wx-do="upgrade-filters"]').click();
+      await layout(p,'effect filter sheet ' + width); await screen(p,'network-effect-filters-' + width);
+      await p.locator('[data-wx-do="filter:effect:all"]').click();
+      await p.locator('[data-wx-search]').fill('Caravan routes');
+      const caravan = p.locator('[data-wx-upgrade="development:trail-caravans"]');
+      assert.equal(await caravan.count(),1); await caravan.getByRole('button',{name:/Details/}).click();
+      assert.match(await p.locator('.wx-sheet').innerText(),/Quarry|quarry/);
+      assert.match(await p.locator('.wx-sheet').innerText(),/Locked.*Available/s);
+      await layout(p,'development details ' + width); await screen(p,'network-development-details-' + width);
+      await clickAction(p,'expedition-development','trail-caravans'); await closeSheet(p);
+      assert((await state(p)).expedition.developments.includes('trail-caravans'),'canonical development purchased');
+      assert(await p.locator('[data-wx-area="greenway"] [data-wx-attention]').isVisible(),'new earlier-area development is marked');
+      await p.locator('[data-wx-area="greenway"]').click(); await paint(p);
+      assert(!(await p.locator('[data-wx-area="greenway"] [data-wx-attention]').isVisible()),'visiting an area acknowledges its new feature');
+      assert(await p.locator('[data-wx-area="quarry"] [data-wx-attention]').isVisible(),'visiting Trail does not erase Quarry attention');
+      assert((await p.locator('[data-wx-canvas]').getAttribute('data-scene-developments')).includes('trail-caravans'));
+      await choose(p,'freight');
+      assert.equal((await state(p)).expedition.areas.greenway.choices.dispatch,'freight');
+      await screen(p,'network-trail-caravans-' + width);
+      await p.locator('[data-wx-do="world-choice"]').click(); await layout(p,'freight choices ' + width); await screen(p,'network-freight-choices-' + width); await closeSheet(p);
+      await p.locator('[data-wx-nav="upgrades"]').click(); await p.locator('[data-wx-search]').fill('Precision smelting');
+      const precision = p.locator('[data-wx-upgrade="development:quarry-precision"]');
+      await precision.locator('.wx-price').click();
+      await p.locator('[data-wx-area="quarry"]').click(); await paint(p);
+      assert((await p.locator('[data-wx-canvas]').getAttribute('data-scene-developments')).includes('quarry-precision'));
+      assert.match(await p.locator('[data-wx-local-count]').innerText(),/Ore \/s/,'established Quarry displays ongoing production');
+      await choose(p,'precision');
+      assert.equal((await state(p)).expedition.areas.quarry.choices.smelting,'precision');
+      await layout(p,'transformed quarry ' + width); await screen(p,'network-quarry-precision-' + width);
+      await p.locator('[data-wx-do="world-choice"]').click(); await layout(p,'precision choices ' + width); await screen(p,'network-precision-choices-' + width);
+      assert((await p.locator('.wx-choice-impact').evaluateAll(nodes => nodes.every(node => node.children.length <= 3))),'choice previews keep only three tradeoff rows');
+      await p.locator('[data-wx-do="choice-metrics:smelting"]').click();
+      assert.match(await p.locator('.wx-sheet').innerText(),/Sustainable raw processing/);
+      await layout(p,'full processing comparison ' + width); await screen(p,'network-full-comparison-' + width); await closeSheet(p);
+      await p.locator('[data-wx-nav="upgrades"]').click(); await p.locator('[data-wx-search]').fill('Boots');
+      const local = p.locator('[data-wx-upgrade="area:greenway:boots"]');
+      const oldBoots = (await state(p)).expedition.areas.greenway.ranks.boots;
+      await local.locator('.wx-price').click();
+      assert.equal((await state(p)).expedition.areas.greenway.ranks.boots,oldBoots + 1,'global menu targets Trail even while Quarry selected');
+      await p.locator('[data-wx-search]').fill('Tools');
+      const equipment = p.locator('[data-wx-upgrade="guild:buy:gear-tools"]');
+      assert.equal(await equipment.count(),1,'canonical equipment row is present');
+      const before = (await state(p)).upgrades['gear-tools'];
+      await equipment.locator('.wx-price').click(); await equipment.locator('.wx-price').click();
+      assert.equal((await state(p)).upgrades['gear-tools'],before + 2,'owned equipment remains repeatable');
+      await p.locator('[data-wx-search]').fill('regional atlas');
+      assert.equal(await p.locator('[data-wx-upgrade="guild:project:chapter-survey"]').count(),1,'regional projects remain reachable in the comprehensive catalog');
+      await p.locator('[data-wx-search]').fill('Relic lore');
+      assert.equal(await p.locator('[data-wx-upgrade="guild:luck-research:relic-lore"]').count(),1,'relic research remains reachable in the comprehensive catalog');
+      await p.locator('[data-wx-nav="guild"]').click();
+      await p.getByRole('button',{name:/Crew.*Explorers/}).click(); await layout(p,'mature crew ' + width); await screen(p,'network-crew-' + width); await closeSheet(p);
+      await p.getByRole('button',{name:/Automation/}).click(); await layout(p,'mature automation ' + width); await screen(p,'network-automation-' + width); await closeSheet(p);
+      await p.locator('[data-wx-do="guild-atlas"]').click(); await layout(p,'mature atlas ' + width); await screen(p,'network-atlas-' + width);
+      const saved = await state(p); await p.reload(); await p.locator('.wx-game').waitFor(); await p.clock.runFor(50); const restored = await state(p);
+      assert.equal(restored.createdAt,legacy.createdAt); assert.deepEqual(restored.expedition.developments,saved.expedition.developments);
+      for (const id of ids) { assert.deepEqual(restored.expedition.areas[id].ranks,saved.expedition.areas[id].ranks); assert.deepEqual(restored.expedition.areas[id].choices,saved.expedition.areas[id].choices); }
+      assert.deepEqual(errs,[]); evidence.retained.push({ width,height,createdAt:saved.createdAt,developments:saved.expedition.developments }); await ctx.close();
     }
-    const crowdedQuarry = Core.normalizeState(JSON.parse(JSON.stringify(legacy)), 1000);
-    assert(Core.act(crowdedQuarry, { type:'route', id:'route-1' }).ok);
-    crowdedQuarry.resources.coins = Core.Numbers.from(987654321);
-    const crowded = await open(320, 740, crowdedQuarry);
-    await closeSheet(crowded.page);
-    await layout(crowded.page, 'large shared wallet with ingots, caravan and settings');
-    assert.match(await crowded.page.locator('[data-wx-wallet] strong').innerText(), /M|B/);
-    assert(await crowded.page.locator('[data-wx-local-count]').isVisible());
-    assert(await crowded.page.locator('[data-wx-reward]').isVisible());
-    assert(await crowded.page.locator('[data-wx-wallet] strong').evaluate(node => node.scrollWidth <= node.clientWidth), 'large balance keeps its magnitude visible');
-    await screen(crowded.page, 'expedition-large-wallet-320');
-    assert.deepEqual(crowded.errors, []);
-    await crowded.context.close();
-    fs.writeFileSync(path.join(output, 'expedition-browser-evidence.json'), JSON.stringify(evidence, null, 2));
-    console.log('Expedition browser QA passed: 3 viewport openings, 3 natural stage completions, saved reloads, and 3 legacy guild flows. ' + output);
+    if (process.env.WAYFARERS_QA_CHARTER_FIXTURE) {
+      const preCharter = JSON.parse(fs.readFileSync(process.env.WAYFARERS_QA_CHARTER_FIXTURE,'utf8'));
+      assert(Core.validateState(preCharter).valid,'naturally played Charter review fixture is valid');
+      const {context:ctx,page:p,errors:errs} = await open(320,740,preCharter);
+      await closeSheet(p); await p.locator('[data-wx-nav="upgrades"]').click();
+      const gates = ['trail-prospectors','tower-control-room','survey-exchange'];
+      for (const [index,id] of gates.entries()) {
+        const item = Core.getView(preCharter).globalUpgrades.find(entry => entry.id === 'development:' + id);
+        await p.locator('[data-wx-search]').fill(item.name || item.label);
+        await p.locator('[data-wx-upgrade="development:' + id + '"] .wx-research-info').click();
+        assert.match(await p.locator('.wx-sheet').innerText(),new RegExp('Earn ' + (index + 1) + ' Guild Charter'));
+        assert(await p.locator('.wx-sheet .wx-confirm').isDisabled(),'Charter-only capability cannot be bought early');
+        await layout(p,'Charter requirement ' + id); await screen(p,'network-charter-gate-' + (index + 1)); await closeSheet(p);
+      }
+      await p.locator('[data-wx-nav="guild"]').click(); await p.locator('[data-wx-do="guild-atlas"]').click();
+      await p.getByRole('button',{name:/Renewals.*Field notes/}).click();
+      await p.getByRole('button',{name:/Guild Charter.*guild crests/}).click();
+      await p.getByRole('button',{name:'Review reset',exact:true}).click();
+      assert.match(await p.locator('[data-dialog-body]').innerText(),/Every area, its upgrade ranks, queues/);
+      const capability = p.locator('[data-dialog-body] li').filter({hasText:'Prospecting network'});
+      await capability.scrollIntoViewIfNeeded(); await screen(p,'network-charter-preview');
+      assert.deepEqual(errs,[]); evidence.charters.push({width:320,gates,preview:'Prospecting network',createdAt:preCharter.createdAt}); await ctx.close();
+    }
+    fs.writeFileSync(path.join(output,'expedition-browser-evidence.json'),JSON.stringify(evidence,null,2));
+    console.log('Persistent guild browser QA passed: four viewport openings, naturally established areas, retained builds, hidden production, global catalog purchases and mature menus. ' + output);
   } finally {
     fs.writeFileSync(path.join(output, 'expedition-browser-partial.json'), JSON.stringify(evidence, null, 2));
     await browser.close();
