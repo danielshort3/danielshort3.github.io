@@ -16,6 +16,7 @@
     let disposed = false;
     let missing = false;
     let submitting = false;
+    let pendingStepFocus = false;
     let target = null;
     const observer = new ResizeObserver(schedule);
     observer.observe(dialog);
@@ -105,7 +106,7 @@
     function show(next) {
       model = next;
       if (!model) { hide(); return; }
-      const nextSignature = [model.guideId,model.stepId,model.index,model.replay,model.epoch].join(':');
+      const nextSignature = [model.guideId,model.stepId,model.index,model.replay,model.epoch,model.context].join(':');
       const changed = nextSignature !== signature;
       signature = nextSignature;
       dialog.dataset.guide = model.guideId || '';
@@ -123,13 +124,19 @@
       layout();
       if (changed) {
         q('.wx-guide-copy').scrollTop=0;
-        q('[data-guide-next]').focus({preventScroll:true});
+        pendingStepFocus = true;
+        focusStep();
         q('[data-guide-announcement]').textContent = (model.title || 'Area guide') + '. Step ' + (model.index+1) + ' of ' + model.total + '. ' + model.heading + '. ' + model.body;
       }
     }
+    function focusStep() {
+      if (!pendingStepFocus || submitting || !dialog.open || q('[data-guide-next]').disabled) return;
+      pendingStepFocus = false;
+      q('[data-guide-next]').focus({preventScroll:true});
+    }
     function hide() {
       if (target) observer.unobserve(target);
-      model = null; signature = ''; target = null;
+      model = null; signature = ''; target = null; pendingStepFocus = false;
       if (frame) root.cancelAnimationFrame(frame);
       frame = 0;
       if (dialog.open) dialog.close();
@@ -143,7 +150,14 @@
       if (missing && !model.saveFailure) { layout(); return; }
       submitting = true;
       try { model.saveFailure ? options.onRetry(model) : options.onNext(model); }
-      finally { submitting = false; if (dialog.open) layout(); }
+      finally {
+        submitting = false;
+        if (dialog.open) {
+          layout();
+          if (!dialog.contains(document.activeElement) || document.activeElement === dialog) pendingStepFocus = true;
+          focusStep();
+        }
+      }
     },{signal:abort.signal});
     dialog.addEventListener('cancel',event => { event.preventDefault(); leave(); },{signal:abort.signal});
     dialog.addEventListener('keydown',event => {

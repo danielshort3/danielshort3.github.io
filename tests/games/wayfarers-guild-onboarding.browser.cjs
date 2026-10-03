@@ -73,6 +73,7 @@ async function run() {
       assert.equal((await state(page)).expedition.areas.greenway.ranks.boots,0,'Guide needs no purchase');
       await page.locator('[data-guide-next]').click();
       assert.equal(await guide(page).getAttribute('data-step'),'operation');
+      assert(await page.locator('[data-guide-next]').evaluate(node=>node===document.activeElement),'Advanced step focuses its re-enabled Next button');
       assert.match(await page.locator('[data-guide-announcement]').textContent(),/Step 2 of 3/);
       await page.evaluate(()=>{window.guideAnnouncements=0;new MutationObserver(records=>{window.guideAnnouncements+=records.length;}).observe(document.querySelector('[data-guide-announcement]'),{childList:true,characterData:true,subtree:true});});
       await page.clock.runFor(1200);assert.equal(await page.evaluate(()=>window.guideAnnouncements),0,'Unchanged ticks never repeat the screen-reader step announcement');
@@ -88,7 +89,7 @@ async function run() {
       await page.clock.runFor(2000);assert.equal(await guide(page).count(),0,'Options outrank guide');
       await page.locator('[data-wx-close]').click();await page.clock.runFor(900);
       assert.equal(await guide(page).getAttribute('data-step'),'operation');
-      await page.locator('[data-guide-next]').click();await geometry(page);await shot(page,'trail-next-step-'+width);
+      await page.locator('[data-guide-next]').click();assert(await page.locator('[data-guide-next]').evaluate(node=>node===document.activeElement),'Final step focuses its re-enabled Start working button');await geometry(page);await shot(page,'trail-next-step-'+width);
       await page.locator('[data-guide-next]').click();assert.equal(await guide(page).count(),0);
       const finished=await state(page);assert.equal(finished.onboarding.progress.greenway,3);assert(finished.onboarding.rewardClaims.includes('greenway'));
       assert.deepEqual(await anchors(page),before,'Tour never moves world/dock/navigation');
@@ -99,6 +100,35 @@ async function run() {
       await context.close();
     }
     evidence.flows.push('fresh zero-spend guide, real highlighted control, inert scrim, saved-step reload, Android-style Back/Options/resume, single reward and replay, stable geometry at three viewports');
+    const callback=await open(390,844,H.Core.createState(1000));const kb=callback.page;
+    await kb.clock.runFor(900);
+    for(const stepId of ['operation','next-step']) {
+      const focus=await kb.evaluate(()=>{document.activeElement?.blur();document.querySelector('[data-guide-next]').click();const dialog=document.querySelector('.wx-guide[open]');return {step:dialog?.dataset.step,inside:dialog?.contains(document.activeElement),next:document.activeElement?.hasAttribute('data-guide-next')};});
+      assert.equal(focus.step,stepId);assert(focus.inside && focus.next,'Synchronous native-style click restores the enabled next-step action');
+    }
+    await kb.evaluate(()=>document.querySelector('[data-guide-leave]').click());assert.equal(await guide(kb).count(),0);
+    await kb.clock.runFor(100);assert(await kb.evaluate(()=>document.querySelector('.wx-sheet[open]')?.contains(document.activeElement)),'Completed callback does not steal focus from Game options');
+    await callback.context.close();
+    evidence.flows.push('pointer and synchronous native-style step callbacks focus only the current re-enabled guide action, never steal focus after leaving');
+    for(const [width,height] of [[320,740],[915,390]]) {
+      const aged=await open(width,height,H.Core.createState(1000));const gp=aged.page;
+      await gp.clock.runFor(900);await gp.locator('[data-guide-next]').click();
+      await gp.clock.runFor(180000);assert.equal((await state(gp)).expedition.completed,true,'The landmark finishes while the guide remains on operation');
+      await gp.reload();await gp.locator('.wx-game').waitFor();await gp.clock.runFor(900);
+      assert.equal(await guide(gp).getAttribute('data-step'),'operation');
+      await gp.locator('[data-guide-next]').click();await gp.clock.runFor(100);
+      assert.match(await gp.locator('#wx-guide-body').textContent(),/Expand Quarry starts your next landmark/);
+      const target=await gp.locator('[data-wx-expand]').boundingBox(),ring=await gp.locator('.wx-guide-ring').boundingBox(),status=await gp.locator('[data-wx-world-label]').boundingBox();
+      assert(target && ring,'Available expansion has a real anchor');
+      assert(ring.x<=target.x && ring.y<=target.y && ring.x+ring.width>=target.x+target.width && ring.y+ring.height>=target.y+target.height,'Spotlight surrounds the actual expansion control');
+      assert(ring.y>=status.y+status.height || ring.y+ring.height<=status.y || ring.x>=status.x+status.width || ring.x+ring.width<=status.x,'Producing-status label is not the goal anchor');
+      const bounds=await geometry(gp);await shot(gp,'trail-aged-expansion-'+width);
+      await gp.locator('[data-guide-next]').click();assert.equal((await state(gp)).expedition.completed,true,'Explanation never starts the expansion');
+      assert(await gp.locator('[data-wx-expand]').isEnabled(),'Explained expansion remains ready to use');
+      evidence.viewports.push({width,height,scenario:'aged-resumed-expansion',openGuideGeometry:bounds});
+      await aged.context.close();
+    }
+    evidence.flows.push('paused Trail guide ages through landmark completion, reload resumes exact step, final spotlight encloses Expand Quarry and excludes production status at320/915 without starting expansion');
     const seeded=H.Core.createState(1000);H.fund(seeded);complete(seeded,'greenway');
     const {context,page}=await open(390,844,seeded);
     await page.locator('[data-wx-buy=boots]').click();await page.locator('[data-wx-buy=boots]').click();await page.clock.runFor(1000);
@@ -118,7 +148,12 @@ async function run() {
         await page.clock.runFor(1000);
         assert.equal(await guide(page).getAttribute('data-guide'),id);
         for(let step=0;step<3;step++){
+          if (step === 2 && ['quarry','watchtower'].includes(id)) {
+            const target=await page.locator(id==='quarry' ? '[data-wx-objective]' : '[data-wx-nav="upgrades"]').boundingBox(),ring=await page.locator('.wx-guide-ring').boundingBox();
+            assert(ring.x<=target.x+4 && ring.y<=target.y+4 && ring.x+ring.width>=target.x+target.width-4 && ring.y+ring.height>=target.y+target.height-4,'Final '+id+' step highlights the actual '+(id==='quarry' ? 'area picker' : 'Upgrades destination')+' with only viewport-edge ring clipping: '+JSON.stringify({ring,target}));
+          }
           await geometry(page);await shot(page,id+'-step'+step+'-'+width);await page.locator('[data-guide-next]').click();
+          if(step<2)assert(await page.locator('[data-guide-next]').evaluate(node=>node===document.activeElement),'Every new area step restores focus after its durable transaction');
         }
         assert.equal((await state(page)).onboarding.progress[id],3);
       }
@@ -130,6 +165,7 @@ async function run() {
     await fp.evaluate(()=>{window.savedSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key.startsWith('wayfarers-guild-save'))throw new DOMException('Quota full','QuotaExceededError');return window.savedSetItem.call(this,key,value);};});
     await fp.locator('[data-guide-next]').click();
     assert.equal(await guide(fp).getAttribute('data-step'),'purpose','Failed save never acknowledges a step');
+    assert(await fp.locator('[data-guide-next]').evaluate(node=>node===document.activeElement),'Failed save restores focus to Retry after re-enabling it');
     assert.equal(await fp.locator('[data-guide-next]').innerText(),'Retry');
     assert.equal((await state(fp)).onboarding.progress.greenway,0);
     await shot(fp,'guide-save-failure-390');

@@ -61,7 +61,15 @@ class GuildOnboardingDeviceTest {
           activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
       }
-      awaitGuide(scenario, "greenway", "operation")
+      var stablePortraitSamples = 0
+      var previousDimensions = ""
+      awaitSnapshot(scenario, "Portrait restoration must finish before the next acknowledgement") {
+        val dimensions = "${it.optInt("width")}:${it.optInt("height")}"
+        val ready = it.optString("step") == "operation" && it.optInt("height") > it.optInt("width") && it.optBoolean("coachFits")
+        stablePortraitSamples = if (ready && dimensions == previousDimensions) stablePortraitSamples + 1 else 0
+        previousDimensions = dimensions
+        stablePortraitSamples >= 3
+      }
       acknowledge(scenario)
       assertCoach(awaitGuide(scenario, "greenway", "next-step"))
       acknowledge(scenario)
@@ -91,7 +99,7 @@ class GuildOnboardingDeviceTest {
     assertTrue("The coach card and two 48dp actions must fit", snapshot.getBoolean("coachFits"))
     assertTrue("The highlighted real control must be visible", snapshot.getBoolean("spotlightVisible"))
     assertTrue("Only the modal action receives pointer hits", snapshot.getBoolean("nextReceivesHit"))
-    assertTrue("Initial keyboard focus stays inside the guide", snapshot.getBoolean("focusInside"))
+    assertTrue("Initial keyboard focus stays inside the guide: $snapshot", snapshot.getBoolean("focusInside"))
     assertTrue("The guide has an accessible name and description", snapshot.getBoolean("accessible"))
     assertTrue("Each step exposes one atomic polite announcement", snapshot.getBoolean("stepAnnouncement"))
     assertTrue("The game must not acquire horizontal overflow", snapshot.getBoolean("noOverflow"))
@@ -139,6 +147,7 @@ class GuildOnboardingDeviceTest {
           sheetKind:sheet ? sheet.dataset.kind:'',width:innerWidth,height:innerHeight,
           coachFits:fits(card,false) && fits(next,true) && fits(leave,true),spotlightVisible:fits(ring,false) && !ring.hidden,
           focusInside:!!guide && guide.contains(document.activeElement),nextReceivesHit:!!next && (next===hit || next.contains(hit)),
+          activeElement:document.activeElement && document.activeElement.outerHTML.slice(0,250),
           accessible:!!guide && !!document.getElementById(guide.getAttribute('aria-labelledby'))?.textContent && !!document.getElementById(guide.getAttribute('aria-describedby'))?.textContent,
           stepAnnouncement:!!guide && !!guide.querySelector('[data-guide-announcement][aria-live="polite"][aria-atomic="true"]')?.textContent,
           noOverflow:document.documentElement.scrollWidth<=innerWidth+1,

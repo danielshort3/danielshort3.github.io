@@ -396,12 +396,35 @@
     function selectedAreaId() { return view?.expedition.areas?.find(area => area.selected)?.id || view?.expedition.stage.kind; }
     function guideScopeId() { return screen === 'expedition' ? selectedAreaId() : screen === 'guild' && ['cards','equipment'].includes(guildPage) && view.collection?.[guildPage === 'cards' ? 'cardsUnlocked' : 'equipmentUnlocked'] ? guildPage : null; }
     function guideForArea(areaId) { return areaId ? onboarding()?.guides?.find(item => item.areaId === areaId || item.id === areaId) : null; }
+    function guideGoal() {
+      const area=selectedAreaId();
+      const upgrades=q('[data-wx-nav="upgrades"]');
+      if (area === 'watchtower' && upgrades?.getClientRects().length && !upgrades.hidden) return {element:upgrades,kind:'upgrades'};
+      if (area === 'quarry') return {element:q('[data-wx-objective]'),kind:'areas'};
+      const expansion=q('[data-wx-expand]');
+      if (expansion?.getClientRects().length) return {element:expansion,kind:'expand',label:view.expedition.next.label};
+      const develop=q('[data-wx-develop]');
+      if (develop?.getClientRects().length) return {element:develop,kind:'develop'};
+      const multiple=(view.expedition.areas || []).filter(area=>area.unlocked).length > 1;
+      return {element:q('[data-wx-objective]'),kind:multiple ? 'areas' : 'objective'};
+    }
+    function contextualGuide(model) {
+      if (model?.target !== 'area-goal') return model;
+      const goal=guideGoal();
+      model.context=goal.kind + ':' + (goal.label || '');
+      if (model.guideId === 'greenway') {
+        if (goal.kind === 'expand') { model.heading='Choose the next expansion'; model.body=goal.label + ' starts your next landmark when you are ready. Your unlocked areas keep working.'; }
+        else if (goal.kind === 'develop') { model.heading='Keep developing the Trail'; model.body='Develop opens the Trail’s earned upgrades. The Trail keeps producing while you visit other areas.'; }
+        else if (goal.kind === 'areas') { model.heading='Visit your other areas'; model.body='The area picker returns to every unlocked area. Each keeps working while you develop another.'; }
+      }
+      return model;
+    }
     function resolveGuideTarget(target, fallback) {
       const resolve = key => {
         if (key === 'scene') return {element:q('[data-wx-canvas]'),clip:q('.wx-world')};
         if (key === 'area-upgrades') return {element:q('.wx-upgrade .wx-upgrade-info'),clip:q('[data-wx-tray]'),scroll:q('[data-wx-tray]')};
         if (key === 'area-plans') return {element:q('[data-wx-plans]'),clip:q('.wx-world')};
-        if (key === 'area-goal') return {element:q('[data-wx-world-label]:not([hidden])') || q('[data-wx-objective]')};
+        if (key === 'area-goal') return guideGoal();
         const collectionTargets = {'cards-introduction':'.wx-collection-intro','cards-decks':'.wx-deck-tabs','cards-library':'.wx-card-grid','equipment-introduction':'.wx-collection-intro','equipment-slots':'.wx-gear-slots','equipment-inventory':'.wx-gear-grid',cards:'.wx-deck-workspace, .wx-collection-intro',equipment:'.wx-gear-slots, .wx-collection-intro'};
         if (collectionTargets[key]) return {element:q(collectionTargets[key]),clip:q('[data-wx-destination]'),scroll:q('[data-wx-destination]')};
         return null;
@@ -419,13 +442,13 @@
       if (onboardingReplay) {
         const definition = data?.guides?.find(item => item.id === onboardingReplay.id);
         const step = definition?.steps?.[onboardingReplay.index];
-        return step ? Object.assign({},step,{guideId:definition.id,stepId:step.id,title:definition.title,index:onboardingReplay.index,total:definition.steps.length,replay:true,epoch:onboardingIdentity}) : null;
+        return step ? contextualGuide(Object.assign({},step,{guideId:definition.id,stepId:step.id,title:definition.title,index:onboardingReplay.index,total:definition.steps.length,replay:true,epoch:onboardingIdentity})) : null;
       }
       const active = data?.active;
       if (!active || (active.guideId || active.areaId) !== guideScopeId()) return null;
       const definition = data.guides?.find(item => item.id === (active.guideId || active.id) || item.areaId === active.areaId);
       const step = definition?.steps?.find(item => item.id === active.stepId) || {};
-      return Object.assign({},step,active,{guideId:active.guideId || active.id || definition?.id,title:active.title || definition?.title,index:active.index ?? definition?.progress ?? 0,total:active.total || definition?.steps?.length || 3,epoch:onboardingIdentity,saveFailure:currentContext.saveFailure,disabled:currentContext.awaitingWallet,leaveLabel:currentContext.saveFailure || (view.expedition.areas || []).filter(area => area.unlocked).length === 1 ? 'Game options' : screen === 'guild' ? 'Guild overview' : 'Leave area'});
+      return contextualGuide(Object.assign({},step,active,{guideId:active.guideId || active.id || definition?.id,title:active.title || definition?.title,index:active.index ?? definition?.progress ?? 0,total:active.total || definition?.steps?.length || 3,epoch:onboardingIdentity,saveFailure:currentContext.saveFailure,disabled:currentContext.awaitingWallet,leaveLabel:currentContext.saveFailure || (view.expedition.areas || []).filter(area => area.unlocked).length === 1 ? 'Game options' : screen === 'guild' ? 'Guild overview' : 'Leave area'}));
     }
     function onboardingSafe() {
       return !disposed && !onboardingBusy && !!guideScopeId() && !dialog.open && !guide?.isOpen() && !document.hidden && !swipe && !activePointers.size && !options.overlayOpen() && !currentContext.saveFailure && !currentContext.awaitingWallet && (!options.onboardingAllowed || options.onboardingAllowed());
@@ -1209,6 +1232,8 @@
       else if (activeArea?.established && upgradesUnlocked) worldActions += button(icon('tools') + '<span>Develop</span>', () => showUpgrades(selectedArea), { key:'area-develop:' + selectedArea, className:'wx-world-button wx-develop' });
       markup(q('[data-wx-world-actions]'), worldActions);
       q('[data-wx-do="world-choice"]')?.setAttribute('data-wx-plans','');
+      q('[data-wx-world-actions] .wx-gold')?.setAttribute('data-wx-expand','');
+      q('[data-wx-world-actions] .wx-develop')?.setAttribute('data-wx-develop','');
       scene.setQuiet(!!ctx.quiet);
       scene.update(Object.assign({}, e, { scene:Object.assign({}, e.scene, { banner:view.premium?.equipped, companion:view.progression.companion }) }));
       q('[data-wx-canvas]').setAttribute('aria-label', stage.name + '. ' + stage.objective + '. ' + Math.floor(percent(stage.progress)) + '% complete.' + (bottleneck ? ' ' + bottleneck.label + ' is the bottleneck.' : ''));
