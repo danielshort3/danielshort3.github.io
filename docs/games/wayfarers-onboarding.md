@@ -63,12 +63,15 @@ A reviewed import of an older backup from the same `createdAt` guild keeps the f
 
 `onboarding-ui.js` presents a short coach in the top layer. The required real button and its necessary navigation remain usable; unrelated controls are inert. The coach reanchors after sheets, selection and confirmation screens change. Pointer, keyboard, native Back, small screens, text scaling and reduced motion are part of the rendering contract. A missing target offers recovery; it never automatically completes the step.
 
+During a guided action, transformed modal parents use temporary viewport framing, including on Android WebViews with popover support. The framing is removed when the lesson leaves that panel. Intermediate instructions describe the highlighted Close or Plans control before asking for the actual plan choice. Native retained-run checks must hit-test and tap the real screen target; a scripted DOM click alone cannot verify that it is visible and reachable.
+
 ## Focused verification
 
 ```powershell
 node --test tests/games/wayfarers-guild-practice.test.cjs tests/games/wayfarers-guild-onboarding.test.cjs
 npm.cmd run test:wayfarers-guild:progression
 npm.cmd run test:wayfarers-guild:onboarding:browser
+node tests/games/wayfarers-guild-practice-retained.browser.cjs
 ```
 
 Engine checks cover required actions, no-op/stale requests, bounded free practice, optional help, same-guild imports, replay, migration and prestige. Browser/native checks operate the actual highlighted controls and verify resulting ranks, inventory, saves, focus, visibility and safe exit. Trail destination bonuses have a separate [simulation contract](wayfarers-trail-deliveries.md).
