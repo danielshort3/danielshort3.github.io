@@ -348,3 +348,33 @@ test('material voyages exchange coin and map cargo for ore while funded manifest
   assert.deepEqual(state.expedition.areas.harbor.voyages, funded);
   valid(state);
 });
+
+test('area picker describes each operation and Harbor uses real manifests rather than shared wallet rates', () => {
+  const state = mature();
+  state.expedition.areas.harbor.voyages = [];
+  const before = clone(state), rates = Core.getRates(state);
+  const rows = () => Object.fromEntries(P.view(state).areas.map(row => [row.id, row]));
+  let areas = rows();
+  assert.equal(areas.greenway.rateText, 'Delivering cargo');
+  assert.equal(areas.quarry.rateText, 'Refining ore');
+  assert.equal(areas.watchtower.rateText, 'Surveying');
+  assert.equal(areas.workshop.rateText, 'Manufacturing');
+  assert.equal(areas.ruins.rateText, 'Recovering finds');
+  assert.equal(areas.harbor.rateText, 'Preparing voyage');
+  for (const area of Object.values(areas)) assert.doesNotMatch(area.rateText, /\+|\/s|maps|coins/);
+  assert.deepEqual(state, before);
+  assert.deepEqual(Core.getRates(state), rates);
+  advance(state, 1);
+  const count = state.expedition.areas.harbor.voyages.length;
+  assert.ok(count > 0);
+  areas = rows();
+  assert.equal(areas.harbor.rateText, count + ' voyage' + (count === 1 ? '' : 's') + ' at sea');
+  state.expedition.areas.harbor.voyages = [];
+  state.resources.provisions = N.zero();
+  state.resources.ore = N.zero();
+  state.guild.plan.reserves.ore = N.from(1000);
+  areas = rows();
+  assert.equal(areas.harbor.rateText, 'Waiting for provisions');
+  assert.equal(areas.workshop.rateText, 'Waiting for ore');
+  valid(state);
+});

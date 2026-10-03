@@ -100,7 +100,7 @@ The longer reference policy is three ten-minute visits per day without purchases
 
 Acceptance includes exact batch boundaries and failed transactions, save and reward continuity, reset bootstrap, online/offline equivalence, useful alternative working plans, real late-to-early wallet effects, and rendered controls at 320×740, 390×844 and 915×390 with larger text. The Android release additionally requires matching package and signer, verified public bytes, a real in-app update from the previously installed release, retained settings and save, and offline cold launch.
 
-### Measured balance for version 0.5.0
+### Measured balance for versions 0.5.0–0.5.1
 
 The deterministic opening buys its first rank at six seconds and earns its first Refit at 37 minutes 45 seconds. After investing in Pace and enabling the earned standing plan, all initially positive canonical production rates recover after 12 minutes 11 seconds and stay at or above the original values for the following minute: 32.3% of the first run. This measures output recovery separately from merely becoming eligible for another Refit.
 

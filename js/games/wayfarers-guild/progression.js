@@ -528,7 +528,16 @@
   }
   function view(state) {
     const x = state.expedition, id = x.selectedArea, a = x.areas[id], raw = rawRates(state), r = raw.areas[id], t = targets(x), list = catalog(state), p = progress(x), current = id === x.projectArea;
-    const areaRows = ids.filter(key => x.areas[key]).map(key => ({ id: key, label: areaDef(key).name, icon: areaDef(key).icon, unlocked: true, selected: key === id, established: ids.indexOf(key) > 2 || x.cleared >= ids.indexOf(key), objective: key === x.projectArea && !x.completed ? 'Expanding' : 'Producing', progress: key === x.projectArea ? p : 1, rateText: '+' + N.format(raw.gain[areaDef(key).resource]) + ' ' + areaDef(key).resource + '/s', status: 'Working automatically', attention: x.recent.some(e => e.areaId === key && e.sequence > x.areas[key].seen), action: { type: 'expedition-select', areaId: key } }));
+    const operationStatus = key => {
+      const operation = raw.areas[key], area = x.areas[key];
+      if (key === 'harbor') return area.voyages.length ? area.voyages.length + ' voyage' + (area.voyages.length === 1 ? '' : 's') + ' at sea' : operation.canLaunch ? 'Preparing voyage' : 'Waiting for provisions';
+      if (key === 'greenway') return operation.income > EPS ? 'Delivering cargo' : 'Preparing deliveries';
+      if (key === 'quarry') return operation.actualFurnace > EPS ? 'Refining ore' : operation.actualPicks > EPS ? 'Extracting ore' : 'Waiting for ore';
+      if (key === 'watchtower') return operation.research > EPS ? 'Surveying' : 'Preparing survey';
+      if (key === 'workshop') return operation.flow > EPS ? 'Manufacturing' : 'Waiting for ore';
+      return operation.flow > EPS ? 'Recovering finds' : 'Studying discoveries';
+    };
+    const areaRows = ids.filter(key => x.areas[key]).map(key => ({ id: key, label: areaDef(key).name, icon: areaDef(key).icon, unlocked: true, selected: key === id, established: ids.indexOf(key) > 2 || x.cleared >= ids.indexOf(key), objective: key === x.projectArea && !x.completed ? 'Expanding' : 'Producing', progress: key === x.projectArea ? p : 1, rateText: operationStatus(key), status: operationStatus(key), attention: x.recent.some(e => e.areaId === key && e.sequence > x.areas[key].seen), action: { type: 'expedition-select', areaId: key } }));
     const comparison = action => { const copy = detached(state); const result = act(copy, action); return result.ok ? impact(state, copy) : []; };
     const workingChoices = choices(state, id).map(c => Object.assign({}, c, { impact: c.disabled ? [] : comparison(c.action) }));
     const configurationsView = configurations(state, id).map(group => Object.assign({}, group, { options: group.options.map(o => Object.assign({}, o, { impact: o.disabled ? [] : comparison(o.action) })), slotOptions: Array.from({ length: group.slots }, (_, slot) => ({ slot, selected: Array.isArray(group.selected) ? group.selected[slot] : group.selected, options: group.options.map(o => { const action = Object.assign({}, o.action, { slot }); return Object.assign({}, o, { action, impact: o.disabled ? [] : comparison(action) }); }) })) }));
