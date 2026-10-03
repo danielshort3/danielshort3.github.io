@@ -54,7 +54,7 @@ async function isolateRequests(context, base, state, omitProjectStyles = false) 
 }
 
 async function dismissConsent(page) {
-  const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+  const essential = page.locator('#pcz-reject');
   if (await essential.isVisible()) await essential.click();
 }
 

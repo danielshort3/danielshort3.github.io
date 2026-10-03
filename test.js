@@ -1213,19 +1213,19 @@ try {
     const contactPageHtml = readFile('pages/contact.html');
     assert(contactPageHtml.includes('id="contact-options"') &&
            (contactPageHtml.match(/class="contact-card"/g) || []).length === 2 &&
-           (contactPageHtml.match(/id="contact-form-toggle"/g) || []).length === 1 &&
+           (contactPageHtml.match(/id="contact-form"/g) || []).length === 1 &&
+           contactPageHtml.includes('data-contact-inline') &&
+           !contactPageHtml.includes('id="contact-modal"') &&
            contactPageHtml.includes('Delta, Colorado'),
-      'contact page should keep one form entry point plus email and GitHub contact options');
+      'contact page should expose one inline form plus email and GitHub contact options');
     assert(!/linkedin/i.test(contactPageHtml),
       'contact page should omit the disabled LinkedIn profile');
-    const contactMapIframe = contactPageHtml.match(/<iframe\b[^>]*title="Map of Delta, CO"[^>]*>/)?.[0] || '';
-    assert(contactPageHtml.includes('id="grand-junction-location"') &&
-           contactPageHtml.includes('class="location-map-shell" data-contact-map-slot') &&
-           /data-home-contact-map-src="https:\/\/www\.google\.com\/maps\?q=Delta%2C%20CO&amp;output=embed"[^>]*loading="lazy"/.test(contactMapIframe) &&
-           !/\ssrc\s*=|\ssrcdoc\s*=/.test(contactMapIframe) &&
-           !contactPageHtml.includes('data-google-maps-iframe') &&
-           !contactPageHtml.includes('Open in Google Maps'),
-      'contact page should reserve a persistent city map without loading a duplicate iframe or showing an extra map button');
+    assert(contactPageHtml.includes('class="contact-location"') &&
+           contactPageHtml.includes('Open in Maps') &&
+           /href="https:\/\/www\.google\.com\/maps\/search\/\?api=1&amp;query=Delta%2C%20CO"/.test(contactPageHtml) &&
+           !contactPageHtml.includes('<iframe') &&
+           !contactPageHtml.includes('data-contact-map-slot'),
+      'contact page should offer a compact external city map link without an embedded map');
     assert(!/maps\/embed\/v1\/place\?[^"\s]*key=/i.test(contactPageHtml),
       'generated contact source should not commit a Google Maps API key');
 
@@ -41025,14 +41025,14 @@ try {
       'Cookie Settings should keep a 44px close target without stacking the first-run consent backdrop',
     );
     assert(
-      consentManagerJs.includes("const CSS_VERSION = 'v14';") &&
+      consentManagerJs.includes("const CSS_VERSION = 'v15';") &&
         consentManagerJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
         consentManagerJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
         consentManagerJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,12px);position:relative;background:var(--modal-surface,#fff)') &&
         consentManagerJs.includes('border-radius:var(--pcz-panel-radius);') &&
         consentManagerJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
         consentManagerJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
-      'consent critical CSS v14 should mirror the shared shell before privacy.css finishes loading',
+      'consent critical CSS v15 should mirror the shared shell before privacy.css finishes loading',
     );
     assert(toolThemeCss.includes('body[data-page="text-compare"]') && toolThemeCss.includes('padding:var(--mobile-card-pad);'), 'tool pages should compact mobile cards');
     assert(contactCardCss.includes('.contact-card') && contactCardCss.includes('padding:22px 16px;'), 'contact cards should use compact mobile padding');
@@ -43493,7 +43493,7 @@ try {
     const distCss = fs.readFileSync('dist/styles.css','utf8');
     assert(distCss.includes('#smartSentence-modal .modal-body{overflow-x:hidden}'), 'sentence modal missing overflow-x hidden');
 
-    checkFileContains('pages/contact.html', 'id="contact-modal"');
+    checkFileContains('pages/contact.html', 'data-contact-inline');
     const contactContent = readFile('content/pages/contact.json');
     const rootContactHtml = readFile('contact.html');
     const pageContactHtml = readFile('pages/contact.html');
@@ -43502,7 +43502,7 @@ try {
         !content.includes('chevron-hint scroll-indicator'),
         'personal Contact page should not render the removed scroll-for-ways panel');
     });
-    assert(rootContactHtml.includes('id="contact-form-toggle"') &&
+    assert(rootContactHtml.includes('data-contact-inline') &&
       pageContactHtml.includes('id="contact-options"'),
       'Contact page should preserve the message action and connection options after removing the scroll panel');
     checkFileContains('contact.html', 'id="contact-form"');
@@ -43657,12 +43657,12 @@ try {
     });
     assert(consentCode.includes('pref-status-row'),
       'consent manager should render a locked necessary status row');
-    assert(consentCode.includes('Required for site operation'),
-      'consent manager should clarify that necessary cookies are required');
-    assert(consentCode.includes('pref-disclosure'),
-      'consent manager should render inline preference disclosures');
-    assert(consentCode.includes("row.classList.toggle('is-expanded'"),
-      'consent manager should toggle expanded preference rows');
+    assert(consentCode.includes('Saves your privacy choice.') && consentCode.includes("stateAlwaysOn: 'Always on'"),
+      'consent manager should explain necessary storage and its always-on state');
+    assert(consentCode.includes('class="pref-description"') && !consentCode.includes('class="pref-info"'),
+      'consent manager should render category purposes without hidden help controls');
+    assert(consentCode.includes('pcz-panel-body') && consentCode.includes('pcz-panel-actions'),
+      'consent manager should separate scrollable content from its close and save controls');
     assert(consentCode.includes('pcz-consent-critical-styles') && consentCode.includes('#pcz-banner .pcz-primary'),
       'consent manager should inject critical readable banner styles before privacy.css loads');
     assert(consentCode.includes("closeBtn.addEventListener('click', useEssentialOnly)") &&
@@ -43679,8 +43679,8 @@ try {
       'closing preferences should cancel a stale banner exit before restoring a fresh banner');
     assert(privacyCss.includes('.pref-option-head'),
       'privacy.css missing aligned preference row layout');
-    assert(privacyCss.includes('.pref-disclosure'),
-      'privacy.css missing animated preference disclosure styling');
+    assert(privacyCss.includes('.pcz-panel-body') && privacyCss.includes('overscroll-behavior: contain;'),
+      'privacy.css should contain category scrolling without scrolling the entire dialog');
   });
 
   section('Portfolio helpers, URL parsing, and templates', () => {

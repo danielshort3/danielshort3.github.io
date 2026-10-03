@@ -170,7 +170,7 @@
 
   @media (min-width: 680px){
     .pref-option{
-      grid-template-columns:minmax(0, 1fr) auto;
+      grid-template-columns:minmax(0, 1fr);
     }
     #save-privacy-preferences{
       width:auto;

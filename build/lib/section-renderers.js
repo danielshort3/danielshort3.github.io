@@ -1,6 +1,7 @@
 'use strict';
 
 const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
+const { render: renderContactForm } = require('../../js/forms/contact-markup');
 
 const {
   renderPersonalLibraryHeader
@@ -194,6 +195,23 @@ function renderMap(section, options = {}) {
     '  </div>',
     '</section>'
   ].filter(Boolean).join('\n');
+}
+
+function renderContactWorkspace(section) {
+  const props = section.props || {};
+  return [
+    '<section class="contact-workspace" aria-label="Contact Daniel Short">',
+    '  <div class="contact-direct" id="contact-options">',
+    `    <h2>${escapeHtml(props.title || 'Other ways to connect')}</h2>`,
+    '    <div class="contact-grid">',
+    `      <a href="mailto:${escapeHtml(props.email || 'daniel@danielshort.me')}" class="contact-card"><span class="contact-card__icon" aria-hidden="true"><img src="/img/icons/contact-email-v2.png" alt="" width="256" height="256" decoding="async"></span><span class="contact-card__copy"><strong>Email me directly</strong><small>${escapeHtml(props.email || 'daniel@danielshort.me')}</small></span><span class="contact-card__arrow" aria-hidden="true">${sectionArrowImage('contact')}</span></a>`,
+    '      <a href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" class="contact-card"><span class="contact-card__icon" aria-hidden="true"><img src="/img/icons/github-icon.png" alt="" width="256" height="256" decoding="async"></span><span class="contact-card__copy"><strong>GitHub</strong><small>github.com/danielshort3</small></span><span class="contact-card__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="20" height="20" decoding="async"></span></a>',
+    '    </div>',
+    `    <p class="contact-location"><span>${escapeHtml(props.location || 'Delta, Colorado')}</span><a href="${escapeHtml(googleMapsSearchUrl(props.address || 'Delta, CO'))}" target="_blank" rel="noopener noreferrer">Open in Maps <span aria-hidden="true">↗</span></a></p>`,
+    '  </div>',
+    renderContactForm({ inline: true }),
+    '</section>'
+  ].join('\n');
 }
 
 function renderEmbed(section) {
@@ -970,6 +988,7 @@ const SECTION_RENDERERS = new Map([
   ['image-gallery', renderImageGallery],
   ['document-list', renderDocumentList],
   ['map', renderMap],
+  ['contact-workspace', renderContactWorkspace],
   ['embed', renderEmbed],
   ['kpi-band', renderKpiBand],
   ['proof-block', renderProofBlock],

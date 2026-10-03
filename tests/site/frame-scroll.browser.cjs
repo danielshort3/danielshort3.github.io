@@ -199,8 +199,8 @@ async function runEngine(engine) {
     });
     await runCase(page, engine, "modal-background-isolation", async () => {
       await page.setViewportSize({ width: 1440, height: 660 });
-      await ready(page, "/contact");
-      await page.locator("#contact-form-toggle").click();
+      await ready(page, "/portfolio/website");
+      await page.locator(".project-question-link").click();
       await page.locator("#contact-modal.active").waitFor({ state: "visible" });
       await page.waitForTimeout(350);
       const before = await read(page);

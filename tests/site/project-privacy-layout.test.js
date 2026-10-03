@@ -127,8 +127,9 @@ function runProjectPrivacyLayoutTests({ assert }) {
   for (const pref of ['necessary', 'analytics', 'functional', 'advertising']) {
     assert((privacyMain.match(new RegExp(`class="pref-toggle" data-pref="${pref}"`, 'g')) || []).length === 1,
       `${pref} has exactly one actual preference toggle.`);
-    assert(idCounts.get(`pref-desc-${pref}`) === 1 && privacyMain.includes(`aria-controls="pref-desc-${pref}"`),
-      `${pref} keeps its existing expandable explanation.`);
+    assert(idCounts.get(`pref-desc-${pref}`) === 1 && privacyMain.includes(`aria-describedby="pref-desc-${pref}"`) &&
+      !new RegExp(`id="pref-desc-${pref}"[^>]* hidden`).test(privacyMain),
+      `${pref} keeps its purpose visible and associates it with the control.`);
   }
   assert(/data-pref="necessary"[^>]*data-locked="true" disabled/.test(privacyMain),
     'Necessary cookies remain locked on.');
