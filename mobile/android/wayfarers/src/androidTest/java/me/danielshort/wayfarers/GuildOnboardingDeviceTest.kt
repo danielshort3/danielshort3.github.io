@@ -315,6 +315,7 @@ class GuildOnboardingDeviceTest {
     var result = JSONObject()
     evaluate(scenario, """
       JSON.stringify((function(){
+        try {
         var envelope=JSON.parse(localStorage.getItem('wayfarers-guild-save-v1') || 'null');
         var state=envelope && envelope.state, o=state && state.onboarding, practice=o && o.practice;
         var guide=document.querySelector('.wx-guide[open]'), sheet=document.querySelector('.wx-sheet[open]');
@@ -337,7 +338,7 @@ class GuildOnboardingDeviceTest {
           supplyCount:practice ? practice.supplies.filter(function(id){return id==='greenway:upgrade';}).length : 0,travelCapacity:capacity,
           currencyRead:practice?.currencyRead || [],
           boots:state && state.expedition.areas.greenway.ranks.boots,guideOpen:!!guide,guide:guide && guide.dataset.guide,step:guide && guide.dataset.step,replay:!!guide && guide.dataset.replay==='true',
-          expeditionVersion:state && state.expedition.version,routeChoice:state && state.expedition.areas.greenway.choices.route,
+          expeditionVersion:state && state.expedition.version,routeChoice:state && (state.expedition.areas.greenway.choices?.route || state.expedition.areas.greenway.choice),
           renderDiagnostics:{popoverSupported:typeof HTMLElement.prototype.showPopover==='function',guide:renderInfo(guide),parent:renderInfo(guide?.parentElement),sheet:renderInfo(sheet),target:renderInfo(target)},
           sheetKind:sheet ? sheet.dataset.kind:'',width:innerWidth,height:innerHeight,
           viewportExactWidth:visualViewport ? visualViewport.width : innerWidth,
@@ -364,6 +365,7 @@ class GuildOnboardingDeviceTest {
           stepAnnouncement:!!guide && !!guide.querySelector('[data-guide-announcement][aria-live="polite"][aria-atomic="true"]')?.textContent,
           noOverflow:document.documentElement.scrollWidth<=innerWidth+1,
           nativeConfirmed:!!(window.WayfarersCheckpoint && window.WayfarersCheckpoint.confirmed())};
+        } catch(error) { return {snapshotError:String(error.stack || error)}; }
       }()))
     """.trimIndent()) { raw -> result = runCatching { JSONObject(JSONArray("[$raw]").getString(0)) }.getOrDefault(JSONObject()) }
     return result
