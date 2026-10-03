@@ -38,8 +38,8 @@ class GuildOnboardingDeviceTest {
       val resumed = awaitGuide(scenario, "greenway", "operation")
       assertEquals(opening.getLong("createdAt"), resumed.getLong("createdAt"))
       scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
-      val paused = awaitSnapshot(scenario, "Back must offer Game options without losing step two") {
-        !it.optBoolean("guideOpen") && it.optString("sheetKind") == "options"
+      val paused = awaitSnapshot(scenario, "Back must offer the contextual exit without losing step two") {
+        !it.optBoolean("guideOpen") && it.optString("sheetKind") == if (it.optInt("areaCount") > 1) "areas" else "options"
       }
       assertEquals(1, paused.getInt("progress"))
       scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
@@ -142,7 +142,7 @@ class GuildOnboardingDeviceTest {
         function box(el){return el && el.getBoundingClientRect();}
         function fits(el,action){var r=box(el);return !!r && r.width >= (action?47:1) && r.height >= (action?47:1) && r.left>=-1 && r.top>=-1 && r.right<=innerWidth+1 && r.bottom<=innerHeight+1;}
         var n=box(next), hit=n && document.elementFromPoint(n.x+n.width/2,n.y+n.height/2);
-        return {createdAt:state && state.createdAt,progress:o && o.progress.greenway,claimCount:o ? o.rewardClaims.filter(function(id){return id==='greenway';}).length : 0,
+        return {createdAt:state && state.createdAt,areaCount:state ? Object.keys(state.expedition.areas).length : 0,progress:o && o.progress.greenway,claimCount:o ? o.rewardClaims.filter(function(id){return id==='greenway';}).length : 0,
           boots:state && state.expedition.areas.greenway.ranks.boots,guideOpen:!!guide,guide:guide && guide.dataset.guide,step:guide && guide.dataset.step,replay:!!guide && guide.dataset.replay==='true',
           sheetKind:sheet ? sheet.dataset.kind:'',width:innerWidth,height:innerHeight,
           coachFits:fits(card,false) && fits(next,true) && fits(leave,true),spotlightVisible:fits(ring,false) && !ring.hidden,
