@@ -135,7 +135,12 @@ async function runMobileScrollChromeChecks({ browser, base, artifactDir, prepare
         await checkSectionPosition(page, category);
       }
 
-      await page.locator('#contact-form-toggle').click();
+      await page.locator('#contact-name').fill('Inline reviewer');
+      assert(!await page.locator(mastheadSelector).evaluate(node => node.inert),
+        'Inline contact leaves the shared masthead interactive.');
+      await page.goto(`${base}/portfolio/website`);
+      await settle(page);
+      await page.locator('.project-question-link').click();
       await page.locator('#contact-name').fill('Local reviewer');
       assert(!await page.locator('body').evaluate(node => node.classList.contains('is-mobile-chrome-hidden')),
         'A contact dialog retains the top masthead.');

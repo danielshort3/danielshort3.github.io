@@ -9,7 +9,7 @@ const source = fs.readFileSync(path.join(__dirname, '../../js/common/common.js')
 const loaderSource = source.slice(source.indexOf('  function loadScriptOnce(src)'), source.indexOf('  window.requestContactModal = requestContactModal;'));
 const turn = () => new Promise((resolve) => setImmediate(resolve));
 
-function createHarness() {
+function createHarness({ inline = false } = {}) {
   const scripts = [];
   const warnings = [];
   const navigations = [];
@@ -19,7 +19,8 @@ function createHarness() {
   const document = {
     head: { appendChild: (script) => scripts.push(script) },
     createElement: () => ({}),
-    getElementById: (id) => id === 'contact-modal' ? modal : fields[id] || null
+    querySelector: (selector) => inline && selector === '[data-contact-inline]' ? modal : null,
+    getElementById: (id) => id === 'contact-modal' ? inline ? null : modal : fields[id] || null
   };
   const window = {
     location: { hash: '', assign: (href) => navigations.push(href) },
@@ -78,6 +79,14 @@ async function runContactLoaderTests() {
   await deferred;
   assert(initialized > 0, 'a document hash request prepares the contact controller');
   assert.equal(deepLink.opened(), 0, 'a document hash request leaves automatic opening to the consent-aware controller');
+
+  const inline = createHarness({ inline: true });
+  inline.window.__contactModalReady = true;
+  inline.window.requestContactModal({ name: 'Morgan', email: 'morgan@example.com', message: 'Inline question' });
+  assert.equal(inline.opened(), 1, 'the shared request hook focuses an existing inline form');
+  assert.equal(inline.fields['contact-message'].value, 'Inline question');
+  assert.equal(inline.scripts.length, 0, 'an initialized inline form never loads or injects a second modal');
+  assert.deepEqual(inline.navigations, []);
 }
 
 module.exports = runContactLoaderTests;

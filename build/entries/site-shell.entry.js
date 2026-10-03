@@ -4,6 +4,7 @@ import '../../js/common/catalog-icons.js';
 import '../../js/common/site-realm.js';
 import '../../js/navigation/site-route-runtime.js';
 import '../../js/common/motion.js';
+import '../../js/forms/contact-markup.js';
 import '../../js/common/common.js';
 import '../../js/common/modal-accessibility.js';
 import '../../js/common/certifications-modal.js';

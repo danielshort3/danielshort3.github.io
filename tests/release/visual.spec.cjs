@@ -9,8 +9,7 @@ for (const width of [1440, 390]) {
       await ready(page, routes[state]);
       if (state === 'comparison') await compare(page);
       if (state === 'contact') {
-        await page.locator('#contact-form-toggle').click();
-        await expect(page.getByRole('dialog', { name: 'Send a Message' })).toBeVisible();
+        await expect(page.locator('[data-contact-inline] #contact-form')).toBeVisible();
       }
       if (state === 'digit') {
         if (width === 390) {
@@ -33,6 +32,9 @@ for (const width of [1440, 390]) {
         const box = image.getBoundingClientRect();
         return box.bottom > 0 && box.top < innerHeight;
       }).map((image) => image.decode?.().catch(() => {}))));
+      // Dismissing consent can leave the pointer above a newly revealed link.
+      // Capture the resting design, independently of that incidental hover.
+      await page.mouse.move(0, 0);
       await expect(page).toHaveScreenshot(`${state}-${width}.png`, { fullPage: state === 'comparison' && width === 390 });
     });
   }

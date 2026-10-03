@@ -6,7 +6,7 @@ Build first with `npm run build`. Tests use the built site and its real clean-UR
 
 - `npm run test:release`: pinned Chromium, Firefox and WebKit; WCAG 2 A/AA, 2.1 A/AA and 2.2 AA axe checks; keyboard activation, focus restoration, reduced motion, forced colors where supported, 320px reflow and enlarged text. Checks all homepage panels, the three libraries, a project, Text Compare results, expanded header search, search results, account and contact dialogs.
 - `node tests/release/geometry.cjs`: reuse the existing frame route and 100%/200% typography checks in all three engines, including the 844×390 typography fixture.
-- `npm run test:recovery`: contact and guest recovery plus analytics-consent browser regressions. Every contact submission and inference request uses a local fixture. No messages are sent and no account data is written.
+- `npm run test:recovery`: contact and guest recovery plus analytics-consent browser regressions. Consent checks cover equal choices, saved preferences, keyboard containment, readable category purposes, short/narrow/enlarged dialogs and actual analytics gating in all three engines. Every contact submission and inference request uses a local fixture. No messages are sent and no account data is written.
 - `npm run performance:lab`: mobile Lighthouse, three runs per selected route locally; CI measures three interleaved candidate/reference pairs per route. Retain medians and raw reports. Lab Total Blocking Time is a diagnostic, not real-user INP.
 - `npm run test:parity`: verify updated sources, generated pages and content-hashed bundles match `public/`, including the copy step's intentional CSS filename resolution.
 
@@ -18,7 +18,7 @@ Reports, traces, screenshots and diffs are stored under `tmp/`. CI pins Ubuntu 2
 
 ## Screenshot baseline review
 
-Fourteen baseline screenshots cover closed home, About, Tools, the website project, Digit Generator, Text Compare results and the contact dialog at 1440×900 and 390×844. The mobile Digit Generator follows its masthead launch into the isolated demo; the mobile comparison uses a full-page capture so the result remains included. Capture them on Linux (WSL is supported), with the lockfile's Chromium, loaded local fonts, reduced motion and deterministic service responses. Windows runs explicitly skip screenshot comparisons; use WSL or the Linux CI gate for this check.
+Fourteen baseline screenshots cover closed home, About, Tools, the website project, Digit Generator, Text Compare results and the inline contact workspace at 1440×900 and 390×844. The mobile Digit Generator follows its masthead launch into the isolated demo; the mobile comparison uses a full-page capture so the result remains included. Capture them on Linux (WSL is supported), with the lockfile's Chromium, loaded local fonts, reduced motion and deterministic service responses. Windows runs explicitly skip screenshot comparisons; use WSL or the Linux CI gate for this check.
 
 `npm run test:visual` compares against the reviewed images in `tests/release/baselines/`. Baselines never update during a normal run or CI. To propose an intentional change, run `npm run test:visual:update` on Linux, inspect every changed image at full size, run the comparison again without the update flag, and include the baseline diff in code review. The comparison permits a 0.2 per-pixel threshold and at most 0.3% different pixels to accommodate rasterization noise, not layout drift.
 

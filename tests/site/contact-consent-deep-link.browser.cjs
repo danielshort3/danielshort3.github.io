@@ -1,4 +1,4 @@
-/** First-visit Contact deep links must leave consent usable, then open one dialog. */
+/** Contact deep links defer focus for consent, then activate inline or modal forms. */
 'use strict';
 
 const assert = require('node:assert/strict');
@@ -17,6 +17,7 @@ async function runContactConsentDeepLinkChecks({ browser, base, artifactDir, bro
     .map(choice => ({ width, choice, route: '/contact' })));
   cases.push({ width: 390, choice: 'reject', route: '/tools/text-compare' });
   for (const { width, choice, route } of cases) {
+    const inline = route === '/contact';
     const label = `contact-consent-${browserName}-${width}-${choice}${route === '/contact' ? '' : '-tool-route'}`;
     const context = await browser.newContext({ viewport: { width, height: 900 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
     await isolateRequests(context, base);
@@ -34,6 +35,8 @@ async function runContactConsentDeepLinkChecks({ browser, base, artifactDir, bro
       await page.clock.runFor(600);
       const assertConsentUsable = async () => {
         assert.equal(await page.locator('#contact-modal.active').count(), 0, `${label}: automatic Contact waits for first-visit consent UI.`);
+        if (inline) assert.equal(await page.locator('#contact-name').evaluate(input => document.activeElement === input), false,
+          `${label}: the inline deep link does not move focus ahead of first-visit consent.`);
         const choices = await page.locator('#pcz-accept, #pcz-reject').evaluateAll(buttons => buttons.map(button => {
           const rect = button.getBoundingClientRect();
           const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
@@ -62,37 +65,54 @@ async function runContactConsentDeepLinkChecks({ browser, base, artifactDir, bro
       }
       await page.locator('#pcz-banner').waitFor({ state: 'detached' });
       await page.locator('#pcz-modal').waitFor({ state: 'detached' });
-      await page.locator('#contact-modal.active').waitFor();
-      await page.waitForFunction(() => document.querySelector('#contact-modal .modal-content').contains(document.activeElement));
+      const waitForContact = async () => {
+        if (inline) {
+          await page.locator('[data-contact-inline]').waitFor({ state: 'visible' });
+          await expect(page.locator('#contact-name')).toBeFocused();
+          assert.equal(await page.locator('#contact-modal').count(), 0, `${label}: the contact page retains one inline form.`);
+        } else {
+          await page.locator('#contact-modal.active').waitFor();
+          await page.waitForFunction(() => document.querySelector('#contact-modal .modal-content').contains(document.activeElement));
+        }
+      };
+      await waitForContact();
       const saved = await page.evaluate(() => consentAPI.get());
       assert.equal(saved.analytics, choice === 'accept', `${label}: the actual choice persists accurately.`);
       for (let step = 0; step < 12; step += 1) {
-        await page.keyboard.press('Tab');
         if (await page.locator('#contact-name').evaluate(input => document.activeElement === input)) break;
+        await page.keyboard.press('Tab');
       }
       await expect(page.locator('#contact-name')).toBeFocused();
       await page.keyboard.type('Deep link usable');
       await expect(page.locator('#contact-name')).toHaveValue('Deep link usable');
       await page.screenshot({ path: path.join(artifactDir, `${label}-form.png`) });
-      await page.keyboard.press('Escape');
-      await page.locator('#contact-modal.active').waitFor({ state: 'hidden' });
-      if (route === '/contact') await expect(page.locator('#contact-form-toggle')).toBeFocused();
+      if (!inline) {
+        await page.keyboard.press('Escape');
+        await page.locator('#contact-modal.active').waitFor({ state: 'hidden' });
+      }
       // Closing preferences later must not reopen a Contact dialog already
       // dismissed by the user, even though the old fragment remains in URL.
-      await page.evaluate(() => consentAPI.open());
+      await page.locator('#privacy-settings-link-footer').click();
       await page.locator('#pcz-modal.pcz-visible').waitFor();
       await page.keyboard.press('Escape');
       await page.locator('#pcz-modal').waitFor({ state: 'detached' });
       await page.clock.runFor(500);
       assert.equal(await page.locator('#contact-modal.active').count(), 0, `${label}: later privacy changes do not reopen dismissed Contact.`);
+      await expect(page.locator('#privacy-settings-link-footer')).toBeFocused();
+      await expect(page.locator('#contact-name')).toHaveValue('Deep link usable');
+      if (inline) {
+        assert(await page.locator('[data-contact-inline]').evaluate(form => !form.closest('[inert]')),
+          `${label}: closing preferences leaves the inline form interactive.`);
+      }
       await page.reload({ waitUntil: 'domcontentloaded' });
-      await page.locator('#contact-modal.active').waitFor();
+      await waitForContact();
       assert.equal(await page.locator('#pcz-banner').count(), 0, `${label}: saved consent opens the deep link without another banner.`);
       await expect(page.locator('#contact-name')).toHaveValue('Deep link usable');
-      assert(await page.locator('#contact-modal .modal-content').evaluate(dialog => !dialog.closest('[inert]')), `${label}: restored Contact remains interactive.`);
+      assert(await page.locator(inline ? '[data-contact-inline]' : '#contact-modal .modal-content').evaluate(form => !form.closest('[inert]')),
+        `${label}: restored Contact remains interactive.`);
       assert.equal(submissions, 0, `${label}: no message is sent.`);
       assert.deepEqual(errors, [], `${label}: no uncaught errors.`);
-      results.push({ label, saved });
+      results.push({ label, saved, surface: inline ? 'inline' : 'modal' });
       console.log(`Contact deep-link consent passed: ${label}`);
     } catch (error) {
       await page.screenshot({ path: path.join(artifactDir, `${label}-failure.png`) }).catch(() => {});

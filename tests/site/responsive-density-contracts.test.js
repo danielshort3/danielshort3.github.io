@@ -406,28 +406,29 @@ function runResponsiveDensityContractTests({ assert }) {
       modalMobileCss.includes('max(8px, env(safe-area-inset-left))') &&
       /\.modal-content\s*\{[^}]*max-height\s*:\s*calc\(100svh - var\(--modal-mobile-top-clearance\) - var\(--modal-mobile-bottom-clearance\)\)/s.test(modalMobileCss) &&
       /\.modal-body\s*\{[^}]*overflow-y\s*:\s*auto\s*;/s.test(modalCss) &&
-      privacyMobileCss.includes('max(8px, env(safe-area-inset-right))') &&
-      privacyMobileCss.includes('max(8px, env(safe-area-inset-left))') &&
-      /#pcz-modal \.pcz-panel\s*\{[^}]*max-height\s*:\s*calc\(100svh - var\(--pcz-mobile-top-clearance\) - 8px\)/s.test(privacyMobileCss) &&
-      /#pcz-modal \.pcz-panel\s*\{[^}]*overflow\s*:\s*auto\s*;/s.test(privacyCss),
+      privacyMobileCss.includes('max(16px, env(safe-area-inset-right))') &&
+      privacyMobileCss.includes('max(16px, env(safe-area-inset-left))') &&
+      privacyMobileCss.includes('max-height: calc(100svh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)))') &&
+      /#pcz-modal \.pcz-panel\s*\{[^}]*overflow\s*:\s*hidden\s*;/s.test(privacyCss) &&
+      /#pcz-modal \.pcz-panel-body\s*\{[^}]*overflow-y\s*:\s*auto\s*;/s.test(privacyCss),
     'shared modal shells should retain mobile safe-area clearance and internal scrolling',
   );
   assert(
     /body\.consent-blocked:has\(#pcz-modal\.pcz-visible\)::before\s*\{[^}]*opacity\s*:\s*0\s*!important\s*;[^}]*pointer-events\s*:\s*none\s*!important\s*;[^}]*backdrop-filter\s*:\s*none\s*;/s.test(privacyCss) &&
-      consentJs.includes("const CSS_VERSION = 'v14';") &&
+      consentJs.includes("const CSS_VERSION = 'v15';") &&
       consentJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
       consentJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
       consentJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,12px);') &&
       consentJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
       consentJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
-    'Cookie Settings critical CSS v14 should match the shared shell without stacking the first-run backdrop',
+    'Cookie Settings critical CSS v15 should match the shared shell without stacking the first-run backdrop',
   );
   assert(
     !privacyCss.includes('@media (prefers-color-scheme: dark)') &&
       !privacyCss.includes('data-theme-scope') &&
       /#pcz-banner \.pcz-btn,\s*#pcz-modal \.pcz-save-preferences\s*\{[^}]*min-height:\s*44px;/s.test(privacyCss) &&
       /#pcz-banner \.pcz-close\s*\{[^}]*width:\s*32px;[^}]*height:\s*32px;/s.test(privacyCss) &&
-      /#pcz-modal \.pref-info\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/s.test(privacyCss) &&
+      /#pcz-modal \.pref-toggle,\s*#pcz-modal \.pref-status-row\s*\{[^}]*min-height:\s*44px;/s.test(privacyCss) &&
       consentJs.includes('modal._pczRestoreBackground = isolateModalBackground(modal);') &&
       consentJs.includes('modal._pczReturnFocus = returnFocus;'),
     'consent surfaces should remain compact and light while the modal isolates the page and restores focus',
