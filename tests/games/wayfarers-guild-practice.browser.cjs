@@ -18,6 +18,8 @@ const evidence = {sourceHashes:Object.fromEntries(['expedition-ui.js','onboardin
 const clone = state => JSON.parse(JSON.stringify(state));
 const guide = page => page.locator('.wx-guide[open]');
 const sheet = page => page.locator('.wx-sheet[open]');
+async function currencies(page) { for(let i=0;i<12 && /^currency:/.test(await guide(page).getAttribute('data-step').catch(()=>''));i++){await page.locator('[data-guide-next]').click();await page.clock.runFor(100);} }
+async function actualTarget(page) { await currencies(page); return page.locator('[data-guide-target]'); }
 const command = (page,id) => page.locator('[data-wx-do=' + JSON.stringify(id) + ']:visible');
 async function state(page) { return page.evaluate(() => {document.dispatchEvent(new Event('freeze'));return JSON.parse(localStorage.getItem(WayfarersStorage.SAVE_KEY)).state;}); }
 async function shot(page,name) {await page.clock.runFor(50);await page.waitForTimeout(70);await page.screenshot({path:path.join(output,name+'.png')});}
@@ -68,7 +70,7 @@ async function run() {
   try {
     for(const [width,height] of [[320,740],[390,844],[915,390]]) {
       const {context,page}=await open(width,height,H.Core.createState(1000));
-      await page.clock.runFor(900);
+      await page.clock.runFor(900);await currencies(page);
       assert.equal(await guide(page).getAttribute('data-step'),'inspect');
       evidence.viewports.push({width,height,step:'inspect',geometry:await geometry(page)});await shot(page,'trail-inspect-'+width);
       await page.locator('[data-upgrade="boots"] .wx-upgrade-info').click();
@@ -91,14 +93,14 @@ async function run() {
       const seed=H.mature();Fixtures.completeAreaGuides(seed);Fixtures.announceDiscoveries(seed);
       const {context,page}=await open(width,height,seed);
       for(const kind of ['cards','equipment']) {
-        await page.locator('[data-wx-collection="'+kind+'"]').click();
+        await page.locator('[data-wx-nav="guild"]').click();await page.locator('[data-wx-collection="'+kind+'"]').click();
         await page.locator('[data-wx-do="collection-intro:'+kind+'"]').click();
         await page.clock.runFor(1000);
         for(let action=0;action<25 && await guide(page).count();action++) {
           const step=await guide(page).getAttribute('data-step');
           await geometry(page);await shot(page,kind+'-'+step+'-'+action+'-'+width);
           if(width===320 && kind==='equipment' && step==='scroll' && await page.locator('[data-wx-practice]').count()){await page.addStyleTag({content:'.wx-guide p{font-size:18.2px!important}.wx-guide h2{font-size:23.4px!important}.wx-guide button{font-size:16.9px!important}'});await page.clock.runFor(100);await page.waitForFunction(()=>document.querySelector('.wx-guide-card').getBoundingClientRect().bottom<=innerHeight);await geometry(page);await shot(page,'equipment-scroll-large-text-320');await page.setViewportSize({width:915,height:390});await page.waitForTimeout(100);await page.clock.runFor(100);await geometry(page);await shot(page,'equipment-scroll-large-text-915');await page.setViewportSize({width,height});await page.clock.runFor(100);}
-          const target=page.locator('[data-guide-target]');
+          const target=await actualTarget(page);
           assert.equal(await target.count(),1,'One actual control is highlighted: '+kind+' '+step);
           await target.click();await page.clock.runFor(1000);
           if(await page.locator('.wx-sheet[data-kind="collection-result"][open]').count()) {
@@ -115,13 +117,13 @@ async function run() {
 
     for(const [width,height] of [[320,740],[915,390]]) {
       const seed=H.mature();assert(H.Core.act(seed,{type:'refit'}).ok);assert(H.Core.act(seed,{type:'expedition-batch',count:100}).ok);assert(H.Core.act(seed,{type:'expedition-select',areaId:'workshop'}).ok);Fixtures.announceDiscoveries(seed);
-      const {context,page}=await open(width,height,seed);await page.clock.runFor(1000);await page.locator('[data-guide-target]').click();await page.clock.runFor(100);
+      const {context,page}=await open(width,height,seed);await page.clock.runFor(1000);await (await actualTarget(page)).click();await page.clock.runFor(100);
       assert.equal(await guide(page).getAttribute('data-step'),'upgrade');
-      const summary=await page.locator('.wx-purchase-summary').innerText();assert.match(summary,/Exactly 1 rank.*0.*1/s);assert.match(summary,/Free/);assert(!summary.includes('100 ranks'));
+      const summary=await page.locator('.wx-purchase-summary').innerText();assert.match(summary,/Exactly 1 rank.*0.*1/s);assert.match(summary,/Guild supplies/);assert(!/\bFree\b/.test(summary));assert(!summary.includes('100 ranks'));
       const model=H.Core.getView(await state(page)).onboarding.active;assert.equal(model.practicePreview.quantity,1);assert.equal(model.practicePreview.rankAfter,1);
       assert.equal(await page.locator('.wx-sheet [data-wx-do="batch"]').count(),0,'Shared bulk selector does not contradict supplied one-rank purchase');
       await shot(page,'inherited-bulk-exact-practice-'+width);await page.locator('[data-wx-practice]').click();await page.clock.runFor(1000);assert.equal((await state(page)).expedition.areas.workshop.ranks.assembly,1);assert.equal((await state(page)).expedition.batch,100);
-      for(let n=0;n<12 && await guide(page).count();n++){await shot(page,'bulk-resume-'+width+'-'+n);await page.locator('[data-guide-target]').click();await page.clock.runFor(1000);}
+      for(let n=0;n<12 && await guide(page).count();n++){await shot(page,'bulk-resume-'+width+'-'+n);await (await actualTarget(page)).click();await page.clock.runFor(1000);}
       if(await sheet(page).count())await page.locator('[data-wx-close]').click();await page.locator('[data-upgrade="assembly"] .wx-upgrade-info').click();assert.match(await page.locator('.wx-purchase-summary').innerText(),/Exactly 100 ranks/);await shot(page,'inherited-bulk-restored-'+width);
       await context.close();
     }
@@ -137,7 +139,7 @@ async function run() {
       const trace=[];if(!await guide(page).count()){await shot(page,'missing-guide-'+id);console.log('NO GUIDE',id,await page.locator('dialog[open]').evaluateAll(ns=>ns.map(n=>({class:n.className,kind:n.dataset.kind,text:n.innerText.slice(0,500)}))));}
       for(let n=0;n<30;n++) {
         const saved=await state(page);if(saved.onboarding.practice.active!==id)break;
-        const target=page.locator('[data-guide-target]');
+        const target=await actualTarget(page);
         trace.push({step:await guide(page).getAttribute('data-step'),target:await target.count()?await target.getAttribute('data-wx-do'):null,sheet:await sheet(page).count()?await sheet(page).getAttribute('data-kind'):null});
         await shot(page,'optional-'+id+'-'+n);
         assert.equal(await target.count(),1,id+' has a real target '+JSON.stringify(trace));
@@ -150,7 +152,7 @@ async function run() {
     }
 
     for(const committed of [false,true]) {
-      const {context,page}=await open(390,844,H.Core.createState(1000));await page.clock.runFor(900);await page.locator('[data-upgrade="boots"] .wx-upgrade-info').click();await page.clock.runFor(100);
+      const {context,page}=await open(390,844,H.Core.createState(1000));await page.clock.runFor(900);await currencies(page);await page.locator('[data-upgrade="boots"] .wx-upgrade-info').click();await page.clock.runFor(100);
       await page.evaluate(committed=>{
         window.practiceSet=Storage.prototype.setItem;window.practiceGet=Storage.prototype.getItem;window.practiceWritten=false;
         Storage.prototype.setItem=function(key,value){if(!committed && key.startsWith('wayfarers-guild-save'))throw new DOMException('Quota full','QuotaExceededError');const result=window.practiceSet.call(this,key,value);if(key===WayfarersStorage.SAVE_KEY)window.practiceWritten=true;return result;};
@@ -161,7 +163,7 @@ async function run() {
       assert.equal(stored.expedition.areas.greenway.ranks.boots,committed?1:0);
       assert.equal(stored.onboarding.practice.progress.greenway,committed?2:1);
       await shot(page,'practice-save-failure-'+committed);
-      await page.locator('[data-guide-leave]').click();assert.equal(await sheet(page).getAttribute('data-kind'),'options');
+      await page.locator('[data-guide-settings]').click();assert.equal(await sheet(page).getAttribute('data-kind'),'options');
       assert(await command(page,'settings').isEnabled(),'Settings/export remains reachable during pending save');
       await page.evaluate(()=>{Storage.prototype.setItem=window.practiceSet;Storage.prototype.getItem=window.practiceGet;});
       await page.locator('[data-wx-close]').click();await page.clock.runFor(1000);
@@ -175,7 +177,7 @@ async function run() {
       const seed=Fixtures.completeAreaGuides(H.mature());Fixtures.announceDiscoveries(seed);const {context,page}=await open(390,844,seed);
       await page.locator('[data-wx-batch]').click();const choice=page.locator('[data-wx-do]').filter({hasText:'×5'}).first();await choice.click();await page.clock.runFor(1000);
       assert.equal((await state(page)).onboarding.practice.active,'bulk','First ordinary batch interaction teaches its actual selected action');
-      for(let n=0;n<8 && (await state(page)).onboarding.practice.active==='bulk';n++){await page.locator('[data-guide-target]').click();await page.clock.runFor(1000);}
+      for(let n=0;n<8 && (await state(page)).onboarding.practice.active==='bulk';n++){await (await actualTarget(page)).click();await page.clock.runFor(1000);}
       assert.equal((await state(page)).expedition.batch,5);assert(!(await state(page)).onboarding.practice.helpRewards.includes('bulk'),'Automatic first-use never collects optional help-open reward');
       if(await sheet(page).count())await page.locator('[data-wx-close]').click();
       await page.locator('[data-wx-options]').click();await command(page,'menu:'+JSON.stringify({kind:'lessons'})).click();await command(page,'menu:'+JSON.stringify({kind:'lesson-help',id:'bulk'})).click();await page.clock.runFor(100);assert((await state(page)).onboarding.practice.helpRewards.includes('bulk'),'Completed practice still earns its separate first Help-open reward');await page.locator('[data-wx-back]').click();await command(page,'menu:'+JSON.stringify({kind:'lesson-help',id:'reserves'})).click();await page.clock.runFor(200);
@@ -188,7 +190,7 @@ async function run() {
     for(const id of ['quarry','watchtower','workshop','ruins','harbor']) {
       const seed=H.mature();Fixtures.announceDiscoveries(seed);assert(H.Core.act(seed,{type:'expedition-select',areaId:id}).ok);
       const {context,page}=await open(320,740,seed);await page.clock.runFor(1000);
-      for(let n=0;n<15 && await guide(page).count();n++) {await geometry(page);await page.locator('[data-guide-target]').click();await page.clock.runFor(1000);}
+      for(let n=0;n<15 && await guide(page).count();n++) {await geometry(page);await (await actualTarget(page)).click();await page.clock.runFor(1000);}
       assert.equal((await state(page)).onboarding.practice.progress[id],3,id+' returned guild teaches actual existing upgrade and plan');
       await context.close();
     }

@@ -19,8 +19,61 @@
     return tierCache.get(version);
   };
   const firstArea = 'area:greenway';
+  let contextProvider = null, attentionProvider = null, attentionIds = new Set();
+  const setContextProvider = fn => { contextProvider = fn; Practice.setContextProvider(fn); };
+  const configureAttention = options => { attentionProvider = options.provider; attentionIds = new Set(options.ids); };
+  const attentionInitial = () => ({ version: 1, seen: [], currencies: ['coins'], finds: {}, findSequence: 0 });
+  const WALLET = ['coins', 'ore', 'herbs', 'provisions', 'knowledge', 'maps', 'notes', 'crests', 'starshards', 'ink'];
+  function earnedCurrencies(state) {
+    const area = id => !!state.expedition?.areas?.[id], room = id => state.rooms.includes(id);
+    const open = { coins: true, ore: area('quarry') || room('mine'), herbs: area('ruins') || room('forage'), provisions: area('workshop') || room('kitchen'), knowledge: area('watchtower') || room('study'), maps: area('watchtower') || room('cartography'), notes: state.lifetime.refits > 0, crests: state.lifetime.charters > 0, starshards: area('quarry') || room('forge'), ink: !!state.collection?.cardsUnlocked };
+    return WALLET.filter(id => open[id] || state.onboarding?.attention?.currencies.includes(id) || state.onboarding?.practice?.currencyRead?.includes(id));
+  }
+  function currencyRows(state) {
+    return earnedCurrencies(state).map(id => {
+      const value = N.from(id === 'ink' ? state.collection.ink : state.resources[id]);
+      return { ...Practice.currencyInfo(id), value, formatted: N.format(value), ...(id === 'starshards' ? { balanceSource: 'earned-plus-verified-account', earnedValue: value, paidValue: null } : {}) };
+    });
+  }
+  function attentionRows(state, context) {
+    const c = context || contextProvider?.(state) || {}, options = attentionProvider?.(state) || [];
+    const result = [];
+    const add = (id, kind, label, extra = {}) => { if (!result.some(row => row.id === id)) result.push({ id, kind, label, ...extra }); };
+    for (const area of D.AREAS) if (hasArea(state, area.id)) add('area:' + area.id, 'area', area.name, { areaId: area.id, destination: ui('expedition', { areaId: area.id }) });
+    for (const row of c.globalUpgrades || []) if (row.visible !== false) add('upgrade:' + row.id, 'upgrade', row.label || row.name, { areaId: row.areaId || null, itemId: row.id, destination: row.action?.type === 'expedition-buy' ? ui('expedition', { areaId: row.areaId, upgradeId: row.action.id }) : ui('upgrades', { catalogId: row.id }) });
+    for (const row of options) add('option:' + row.areaId + ':' + row.group + ':' + row.id, 'option', row.label, { areaId: row.areaId, itemId: row.id, group: row.group, destination: ui('expedition', { areaId: row.areaId, control: 'plans', group: row.group, optionId: row.id }) });
+    for (const id of Object.keys(state.collection?.cards || {})) add('card:' + id, 'card', id, { itemId: id, destination: ui('cards', { cardId: id }) });
+    for (const id of Object.keys(state.collection?.gear || {})) add('gear:' + id, 'gear', id, { itemId: id, destination: ui('equipment', { itemId: id }) });
+    for (const row of currencyRows(state)) add('currency:' + row.id, 'currency', row.name, { itemId: row.id, destination: ui('currency', { currencyId: row.id }) });
+    for (const row of definitions(state)) if (row.earned && !row.retired && !['area', 'project'].includes(row.kind) && (row.kind !== 'tier-ready' || row.pending)) add('discovery:' + row.id, row.kind, row.label, { areaId: row.targetAreaId || null, itemId: row.id, destination: row.goToAction });
+    return result;
+  }
+  const attentionToken = (state, row) => [state.createdAt, state.run.id, 'inspect', row.id, state.onboarding?.attention?.finds?.[row.id]?.latest || 0, JSON.stringify(row.destination)].join('|');
+  function syncFinds(state) {
+    const x = state.onboarding.attention, migrated = !own(x, 'finds');
+    if (migrated) { x.finds = {}; x.findSequence = 0; }
+    for (const event of state.collection?.recent || []) {
+      if (event.id <= x.findSequence || event.outcome !== 'found' || !(event.delta?.owned > 0 || event.delta?.copies > 0)) continue;
+      const id = event.cardId ? 'card:' + event.cardId : event.itemId ? 'gear:' + event.itemId : null;
+      if (!id) continue;
+      const previous = x.finds[id];
+      x.finds[id] = { latest: event.id, seen: migrated && x.seen.includes(id) ? event.id : previous?.seen || 0 };
+    }
+    x.findSequence = state.collection?.sequence || 0;
+  }
+  function attentionView(state, context) {
+    const seen = state.onboarding?.attention?.seen || [];
+    const items = attentionRows(state, context).map(row => ({ ...row, unseen: (!seen.includes(row.id) || (state.onboarding.attention?.finds?.[row.id]?.latest || 0) > (state.onboarding.attention?.finds?.[row.id]?.seen || 0)) && !(row.kind === 'currency' && state.onboarding.practice?.currencyRead?.includes(row.itemId)), inspectAction: { type: 'onboarding-item-inspect', id: row.id, token: attentionToken(state, row) } }));
+    const unseen = items.filter(row => row.unseen), areaIds = Object.fromEntries(D.AREAS.map(area => [area.id, unseen.some(row => row.areaId === area.id)]));
+    return { items, count: unseen.length, areas: Object.values(areaIds).some(Boolean), areaIds, upgrades: unseen.some(row => ['upgrade', 'tier', 'tier-ready', 'batch'].includes(row.kind)), guild: unseen.some(row => row.kind === 'upgrade' && !row.areaId || row.id === 'discovery:feature:guild'), cards: unseen.some(row => row.kind === 'card' || row.id === 'discovery:feature:cards'), equipment: unseen.some(row => row.kind === 'gear' || row.id === 'discovery:feature:equipment'), currency: unseen.some(row => row.kind === 'currency') };
+  }
+  function initializeAttention(state) {
+    const x = state.onboarding, rows = attentionRows(state), unread = definitions(state).filter(row => row.earned && !x.read.includes(row.id));
+    const newItems = new Set((state.collection?.recent || []).filter(row => row.id > state.collection.seen).flatMap(row => [row.cardId ? 'card:' + row.cardId : null, row.itemId ? 'gear:' + row.itemId : null].filter(Boolean)));
+    x.attention = { version: 1, currencies: earnedCurrencies(state), seen: rows.filter(row => !newItems.has(row.id) && !unread.some(notice => row.id === 'discovery:' + notice.id || row.id === notice.id || notice.kind === 'tier' && row.kind === 'upgrade' && row.areaId === notice.targetAreaId)).map(row => row.id) };
+  }
   function initial() {
-    return { version: 1, progress: { greenway: 0 }, active: null, entries: [firstArea], announced: [firstArea], read: [firstArea], rewardClaims: [], practice: Practice.initial() };
+    return { version: 1, progress: { greenway: 0 }, active: null, entries: [firstArea], announced: [firstArea], read: [firstArea], rewardClaims: [], practice: Practice.initial(), attention: attentionInitial() };
   }
   const hasArea = (state, id) => !!state.expedition?.areas?.[id];
   const available = (state, id) => GUIDES.includes(id) && (id === 'cards' ? hasArea(state, 'quarry') : id === 'equipment' ? hasArea(state, 'watchtower') : hasArea(state, id));
@@ -73,6 +126,9 @@
     }
     if (x.active && !['cards', 'equipment'].includes(x.active) && state.expedition?.selectedArea !== x.active) x.active = null;
     Practice.sync(state);
+    if (!x.attention) initializeAttention(state);
+    x.attention.currencies = [...new Set(x.attention.currencies.concat(earnedCurrencies(state)))];
+    syncFinds(state);
   }
   function adopt(state) {
     const x = state.onboarding;
@@ -123,7 +179,18 @@
   function act(state, action) {
     const x = state.onboarding;
     if (!x) return { ok: false, message: 'Reload this guild before starting a guide.' };
-    if (x.practice && ['onboarding-visit', 'onboarding-next', 'onboarding-leave', 'onboarding-inspect', 'onboarding-help-open'].includes(action.type)) return Practice.act(state, action);
+    if (action.type === 'onboarding-item-inspect') {
+      if (!exact(action, ['type', 'id', 'token']) || !x.attention) return { ok: false, message: 'Open an earned item’s details first.' };
+      const row = attentionRows(state).find(item => item.id === action.id);
+      if (!row || attentionToken(state, row) !== action.token) return { ok: false, message: 'This inspection belongs to another item or expedition.' };
+      const find = x.attention.finds?.[row.id];
+      if (x.attention.seen.includes(row.id) && (!find || find.seen === find.latest)) return { ok: false, message: 'This inspection was already saved.' };
+      if (!x.attention.seen.includes(row.id)) x.attention.seen.push(row.id);
+      if (find) find.seen = find.latest;
+      if (row.kind === 'currency' && x.practice && !x.practice.currencyRead.includes(row.itemId)) x.practice.currencyRead.push(row.itemId);
+      return { ok: true, message: 'Inspection saved.' };
+    }
+    if (x.practice && ['onboarding-visit', 'onboarding-next', 'onboarding-leave', 'onboarding-inspect', 'onboarding-help-open', 'onboarding-currency-ack'].includes(action.type)) return Practice.act(state, action);
     if (action.type === 'onboarding-visit') {
       if (!exact(action, ['type', 'id']) || !available(state, action.id) || !own(x.progress, action.id) || !['cards', 'equipment'].includes(action.id) && state.expedition.selectedArea !== action.id || x.progress[action.id] === 3) return { ok: false, message: 'Visit an available, unfinished guide.' };
       if (x.active && x.active !== action.id) return { ok: false, message: 'Close the current guide before starting another.' };
@@ -186,12 +253,14 @@
     const entries = x.entries.map(id => rows.find(row => row.id === id)).filter(Boolean).map(row => { const item = clone(row); delete item.earned; return { ...item, read: x.read.includes(row.id), announced: x.announced.includes(row.id), readAction: { type: 'onboarding-read', ids: [row.id] }, openAction: { type: 'onboarding-open', id: row.id }, openLabel: row.kind === 'tier-ready' && row.pending ? 'Unlock & go' : row.retired ? 'View area' : 'Go to' }; });
     const unseen = entries.filter(row => !row.announced);
     const practice = x.practice ? Practice.view(state, context) : null;
-    return { identity: String(state.createdAt) + (practice ? ':practice-1' : ':1'), guides: practice?.guides || guides, active: practice?.active || (practice ? null : active), triggers: practice?.triggers || [], helpQueue: practice?.helpQueue || [], inbox: { entries, unreadCount: entries.filter(row => !row.read).length }, notice: unseen.length ? { id: unseen.map(row => row.id).join('|'), title: unseen.map(row => row.id).length === 1 ? 'New discovery' : unseen.length + ' new discoveries', items: unseen, deferAction: { type: 'onboarding-announce', ids: unseen.map(row => row.id) } } : null };
+    return { identity: String(state.createdAt) + (practice ? ':practice-1' : ':1'), guides: practice?.guides || guides, active: practice?.active || (practice ? null : active), currencies: currencyRows(state), attention: attentionView(state, context), triggers: practice?.triggers || [], helpQueue: practice?.helpQueue || [], inbox: { entries, unreadCount: entries.filter(row => !row.read).length }, notice: unseen.length ? { id: unseen.map(row => row.id).join('|'), title: unseen.map(row => row.id).length === 1 ? 'New discovery' : unseen.length + ' new discoveries', items: unseen, deferAction: { type: 'onboarding-announce', ids: unseen.map(row => row.id) } } : null };
   }
   function validate(x, state) {
     try {
-      if (!exact(x, ['version', 'progress', 'active', 'entries', 'announced', 'read', 'rewardClaims'].concat(own(x, 'practice') ? ['practice'] : [])) || x.version !== 1 || !object(x.progress)) return false;
+      if (!exact(x, ['version', 'progress', 'active', 'entries', 'announced', 'read', 'rewardClaims'].concat(own(x, 'practice') ? ['practice'] : [], own(x, 'attention') ? ['attention'] : [])) || x.version !== 1 || !object(x.progress)) return false;
       if (own(x, 'practice') && !Practice.validate(x.practice, state)) return false;
+      if (own(x, 'attention') && (!exact(x.attention, ['version', 'seen', 'currencies'].concat(own(x.attention, 'finds') ? ['finds', 'findSequence'] : [])) || x.attention.version !== 1 || !Array.isArray(x.attention.seen) || x.attention.seen.length > 1000 || new Set(x.attention.seen).size !== x.attention.seen.length || x.attention.seen.some(id => !attentionIds.has(id) && !definitions(state).some(row => 'discovery:' + row.id === id)) || !Array.isArray(x.attention.currencies) || new Set(x.attention.currencies).size !== x.attention.currencies.length || x.attention.currencies.some(id => !WALLET.includes(id)))) return false;
+      if (x.attention && own(x.attention, 'finds') && (!object(x.attention.finds) || Object.keys(x.attention.finds).length > 26 || !Number.isSafeInteger(x.attention.findSequence) || x.attention.findSequence < 0 || x.attention.findSequence > state.collection.sequence || Object.entries(x.attention.finds).some(([id, value]) => !attentionIds.has(id) || !/^(card|gear):/.test(id) || !exact(value, ['latest', 'seen']) || !Number.isSafeInteger(value.latest) || value.latest < 1 || value.latest > x.attention.findSequence || !Number.isSafeInteger(value.seen) || value.seen < 0 || value.seen > value.latest))) return false;
       if (Object.entries(x.progress).some(([id, value]) => !available(state, id) || !Number.isSafeInteger(value) || value < 0 || value > 3)) return false;
       if (x.active !== null && (typeof x.active !== 'string' || !own(x.progress, x.active) || x.progress[x.active] >= 3)) return false;
       if (x.active !== null && !['cards', 'equipment'].includes(x.active) && state.expedition?.selectedArea !== x.active) return false;
@@ -203,5 +272,16 @@
       return true;
     } catch (_) { return false; }
   }
-  return { initial, migrate, sync, adopt, act, view, validate, setContextProvider: Practice.setContextProvider, preparePractice: Practice.prepare, capture: Practice.capture, observeAction: Practice.observe, mergePracticeReceipts: Practice.mergeReceipts };
+  function mergePracticeReceipts(incoming, current) {
+    Practice.mergeReceipts(incoming, current);
+    if (incoming.createdAt === current.createdAt && incoming.onboarding?.attention && current.onboarding?.attention) {
+      incoming.onboarding.attention.seen = [...new Set(incoming.onboarding.attention.seen.concat(current.onboarding.attention.seen))];
+      incoming.onboarding.attention.currencies = [...new Set(incoming.onboarding.attention.currencies.concat(current.onboarding.attention.currencies))];
+      // Keep the imported branch's event cursor. Importing a future receipt
+      // number would hide genuinely new finds after an older save is restored.
+      for (const [id, find] of Object.entries(incoming.onboarding.attention.finds || {})) if (current.onboarding.attention.seen.includes(id) && (!current.onboarding.attention.finds?.[id] || current.onboarding.attention.finds[id].seen >= find.latest)) find.seen = find.latest;
+    }
+    return incoming;
+  }
+  return { configureAttention, initial, migrate, sync, adopt, act, view, validate, setContextProvider, setCostProvider: Practice.setCostProvider, guardAction: Practice.guardAction, preparePractice: Practice.prepare, capture: Practice.capture, observeAction: Practice.observe, mergePracticeReceipts };
 });

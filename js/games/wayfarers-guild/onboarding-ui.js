@@ -6,7 +6,7 @@
     dialog.className = 'wx-guide';
     dialog.setAttribute('aria-labelledby','wx-guide-heading');
     dialog.setAttribute('aria-describedby','wx-guide-body');
-    dialog.innerHTML = '<svg class="wx-guide-shade" aria-hidden="true"><path fill-rule="evenodd"></path></svg><div class="wx-guide-ring" aria-hidden="true"></div><span class="wx-guide-announcement" aria-live="polite" aria-atomic="true" data-guide-announcement></span><section class="wx-guide-card"><div class="wx-guide-meta"><span data-guide-area></span><span data-guide-count></span></div><h2 id="wx-guide-heading"></h2><div class="wx-guide-copy"><p id="wx-guide-body"></p><p class="wx-guide-reward" data-guide-reward hidden></p><p class="wx-guide-recovery" data-guide-recovery hidden></p></div><footer><button type="button" data-guide-leave>Leave area</button><button type="button" data-guide-next>Next</button></footer></section>';
+    dialog.innerHTML = '<svg class="wx-guide-shade" aria-hidden="true"><path fill-rule="evenodd"></path></svg><div class="wx-guide-ring" aria-hidden="true"></div><span class="wx-guide-announcement" aria-live="polite" aria-atomic="true" data-guide-announcement></span><section class="wx-guide-card"><div class="wx-guide-meta"><span data-guide-area></span><span data-guide-count></span><button type="button" data-guide-settings aria-label="Settings and recovery">⚙</button></div><h2 id="wx-guide-heading"></h2><div class="wx-guide-copy"><p id="wx-guide-body"></p><p class="wx-guide-reward" data-guide-reward hidden></p><p class="wx-guide-recovery" data-guide-recovery hidden></p></div><footer><button type="button" data-guide-leave>Close</button><button type="button" data-guide-next>Next</button></footer></section>';
     options.parent.append(dialog);
     const q = selector => dialog.querySelector(selector);
     let model = null;
@@ -72,7 +72,8 @@
     function layout() {
       if (!model || !dialog.open) return;
       const found = options.resolveTarget(model.target,model.fallbackTarget,model);
-      const nextTarget = found?.element || found;
+      const candidate=found && Object.prototype.hasOwnProperty.call(found,'element') ? found.element : found;
+      const nextTarget=candidate instanceof Element ? candidate : null;
       if (interactive) {
         const parent=nextTarget?.closest('dialog[open]') || options.parent;
         // Some Android WebViews still clip a nested popover to a transformed
@@ -109,6 +110,10 @@
       const safe = { left:left-viewport.left+pad, top:top-viewport.top+pad, right:right-viewport.left-pad, bottom:bottom-viewport.top-pad };
       const clip = rect(found?.clip);
       let box = rect(target);
+      if(box && found?.scroll && clip && (box.left<clip.left || box.right>clip.right)) {
+        found.scroll.scrollLeft+=box.left<clip.left ? box.left-clip.left-5 : box.right-clip.right+5;
+        box=rect(target);
+      }
       if (box && found?.scroll && clip && (box.top < clip.top || box.bottom > clip.bottom)) {
         // A tall library cannot fit both edges. Keep its visible intersection
         // instead of alternating between top and bottom on every layout pass.
@@ -125,11 +130,14 @@
       dialog.dataset.missing = String(missing);
       const recovery = q('[data-guide-recovery]');
       recovery.hidden = !missing && !model.saveFailure;
-      recovery.textContent = model.saveFailure ? 'Save needs attention. Retry to keep your place.' : missing ? 'This control is not visible yet. Retry, or leave and resume here later.' : '';
+      recovery.textContent = model.saveFailure ? 'Save needs attention. Retry to keep your place.' : missing ? 'This control is not visible yet. Retry, or open Settings to recover your progress.' : '';
       q('[data-guide-next]').textContent = model.saveFailure || missing ? 'Retry' : model.ackLabel || 'Next';
-      q('[data-guide-next]').hidden = interactive && !model.saveFailure && !missing;
+      q('[data-guide-next]').hidden = interactive && model.mode!=='currency' && !model.saveFailure && !missing;
       q('[data-guide-next]').disabled = submitting || !!model.disabled;
+      q('[data-guide-leave]').hidden = !canLeave() && !model.saveFailure;
       q('[data-guide-leave]').disabled = submitting;
+      q('[data-guide-settings]').hidden=canLeave() && !model.saveFailure;
+      q('footer').hidden=q('[data-guide-leave]').hidden && q('[data-guide-next]').hidden;
       const shade = q('svg');
       shade.setAttribute('viewBox','0 0 ' + viewport.width + ' ' + viewport.height);
       let path = 'M0 0H' + viewport.width + 'V' + viewport.height + 'H0Z';
@@ -195,7 +203,7 @@
       const nextSignature = [model.guideId,model.stepId,model.index,model.replay,model.epoch,model.context].join(':');
       const changed = nextSignature !== signature;
       signature = nextSignature;
-      const nextInteractive=!!model.mode && !model.replay;
+      const nextInteractive=!!model.mode && model.mode!=='currency' && !model.replay;
       if (interactive !== nextInteractive && dialog.open) {
         if (dialog.hasAttribute('popover')) { if (dialog.matches(':popover-open')) dialog.hidePopover(); dialog.removeAttribute('open'); dialog.removeAttribute('popover'); }
         else dialog.close();
@@ -211,7 +219,7 @@
       q('[data-guide-count]').textContent = (model.index+1) + ' / ' + model.total;
       q('#wx-guide-heading').textContent = model.heading;
       q('#wx-guide-body').textContent = model.body;
-      q('[data-guide-leave]').textContent = model.replay ? 'Close replay' : model.leaveLabel || 'Leave area';
+      q('[data-guide-leave]').textContent = model.saveFailure ? 'Game options' : model.replay ? 'Close replay' : 'Close';
       const reward = q('[data-guide-reward]');
       reward.hidden = !model.rewardText;
       reward.textContent = model.rewardText || '';
@@ -250,8 +258,10 @@
       if (previousFocus?.isConnected && previousFocus.getClientRects().length) previousFocus.focus({preventScroll:true});
       previousFocus = null;
     }
-    function leave() { if (model && !submitting) options.onLeave(model); }
+    function canLeave() { return !!model && (model.replay || (model.canLeave ?? !model.mandatory)); }
+    function leave() { if (model && !submitting && (canLeave() || model.saveFailure)) options.onLeave(model); }
     q('[data-guide-leave]').addEventListener('click',leave,{signal:abort.signal});
+    q('[data-guide-settings]').addEventListener('click',()=>{if(model&&!submitting)options.onSettings?.(model);},{signal:abort.signal});
     q('[data-guide-next]').addEventListener('click',() => {
       if (!model || submitting) return;
       if (missing && !model.saveFailure) { if (interactive) options.onLocate?.(model); layout(); return; }
@@ -266,7 +276,7 @@
         }
       }
     },{signal:abort.signal});
-    dialog.addEventListener('cancel',event => { event.preventDefault(); leave(); },{signal:abort.signal});
+    dialog.addEventListener('cancel',event => { event.preventDefault(); (options.onBack || leave)(model); },{signal:abort.signal});
     document.addEventListener('keydown',event => {
       if (!dialog.open) return;
       if (interactive && event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); (options.onBack || leave)(model); return; }

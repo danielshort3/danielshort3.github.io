@@ -484,6 +484,25 @@
 .wx-game button:active:not(:disabled),.wx-sheet button:active:not(:disabled) { filter:brightness(1.22); }
 .wx-game .wg-icon,.wx-sheet .wg-icon { font-size:22px; vertical-align:middle; }
 .wx-header { display:flex; justify-content:space-between; gap:8px; padding:4px 8px; border-bottom:1px solid #30495a; min-width:0; }
+.wx-currency-strip { position:relative; display:flex; flex:1; min-width:0; }
+.wx-currency-rail { display:flex; align-items:center; flex:1; min-width:0; gap:4px; height:100%; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; overscroll-behavior-x:contain; touch-action:pan-x; scroll-padding:4px; }
+.wx-currency-rail::-webkit-scrollbar { display:none; }
+.wx-header .wx-currency { display:flex; align-items:center; gap:5px; flex:0 0 auto; min-width:76px; height:48px; padding:3px 7px; border:0; background:transparent; text-align:left; }
+.wx-currency .wg-icon { flex-shrink:0; width:22px; }
+.wx-currency>span:last-child { display:grid; gap:2px; min-width:0; }
+.wx-currency strong { font:750 14px/18px ui-monospace,monospace; white-space:nowrap; }
+.wx-currency small { color:#b4cad3; font-size:9px; line-height:12px; white-space:nowrap; }
+.wx-header .wx-currency-more { flex:0 0 48px; width:48px; min-width:48px; height:48px; min-height:48px; padding:0; border:0; border-radius:0; background:linear-gradient(90deg,#0b1d2cbb,#0b1d2c 40%); font-size:25px; color:#ffdd83; }
+.wx-currency-detail { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.wx-currency-detail .wg-icon { font-size:34px; }
+.wx-currency-detail strong { font:750 24px/1.3 ui-monospace,monospace; }
+.wx-funded { color:#c5dcb8; }
+[data-wx-unseen] { position:relative; }
+[data-wx-unseen]::after { content:''; position:absolute; top:5px; right:5px; width:7px; height:7px; border-radius:50%; background:#ffdd83; box-shadow:0 0 0 2px #122b3b; pointer-events:none; animation:wx-unseen-pulse 2.8s ease-in-out infinite; }
+.wx-guild-tab[data-wx-unseen]::after { top:7px; right:7px; }
+@keyframes wx-unseen-pulse { 0%,100% { opacity:1; box-shadow:0 0 0 2px #122b3b; } 50% { opacity:.75; box-shadow:0 0 0 4px #ffdd8330; } }
+@media(prefers-reduced-motion:reduce) { [data-wx-unseen]::after { animation:none; } }
+.wx-game[data-quiet=true] [data-wx-unseen]::after,.wx-sheet[data-quiet=true] [data-wx-unseen]::after { animation:none; }
 .wx-header .wx-wallet { display:flex; align-items:center; gap:6px; padding:0 6px; border:0; background:transparent; min-width:0; text-align:left; }
 .wx-wallet>span:last-child { display:grid; min-width:0; }
 .wx-wallet strong { font:750 20px/24px ui-monospace,monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -765,7 +784,8 @@ dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform
 .wx-guide-shade { position:absolute; inset:0; width:100%; height:100%; fill:#04131ddd; pointer-events:none; }
 .wx-guide-ring { position:absolute; border:3px solid #ffdb70; border-radius:6px; box-shadow:0 0 0 2px #081b2e; pointer-events:none; }
 .wx-guide-card { position:absolute; display:flex; flex-direction:column; min-width:0; padding:14px; border:1px solid #7795a5; border-radius:12px; background:#122d40; box-shadow:0 5px 24px #0008; overflow:hidden; }
-.wx-guide-meta { display:flex; justify-content:space-between; gap:8px; color:#bdd0d7; font-size:11px; line-height:16px; }
+.wx-guide-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#bdd0d7; font-size:11px; line-height:16px; }
+.wx-guide .wx-guide-meta [data-guide-settings] { flex:0 0 48px; width:48px; min-width:48px; height:48px; padding:0; border:0; background:transparent; font-size:24px; margin:-8px -8px -8px 0; }
 .wx-guide-meta [data-guide-area] { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .wx-guide-meta [data-guide-count] { flex-shrink:0; white-space:nowrap; color:#ffe2a1; }
 .wx-guide h2 { min-width:0; max-width:100%; overflow-wrap:anywhere; white-space:normal; color:#fff3d7; font:750 18px/1.25 system-ui,sans-serif; margin:7px 0 8px; }
@@ -781,6 +801,7 @@ dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform
 .wx-guide :is(.wx-guide-ring,.wx-guide-reward,.wx-guide-recovery)[hidden] { display:none; }
 .wx-guide-announcement { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .wx-guide[data-missing=true] .wx-guide-card { border-color:#c2a067; }
+.wx-guide [hidden] { display:none!important; }
 .wx-inbox-list .wx-menu small { max-width:100%; white-space:normal; }
 .wx-guide-replay { margin-top:8px; }
 .wx-arrival-target { outline:3px solid #ffe28a!important; outline-offset:-3px; }

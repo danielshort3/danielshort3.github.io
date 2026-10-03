@@ -9,7 +9,7 @@ const act = (state, action) => { const result = Core.act(state, action); assert.
 function finish(state, id) {
   act(state, { type: 'onboarding-visit', id });
   let result;
-  for(let n=0;n<8;n+=1) { const active=Core.getView(state).onboarding.active; if(!active) break; result=act(state,active.practiceAction||active.inspectAction); }
+  for(let n=0;n<16;n+=1) { const active=Core.getView(state).onboarding.active; if(!active) break; result=act(state,active.ackAction||active.practiceAction||active.inspectAction); }
   return result;
 }
 function withoutGuidance(state) { const copy = clone(state); delete copy.onboarding; return copy; }
@@ -84,7 +84,7 @@ test('returning released saves retain every economic field and receive guides wi
 
 test('Refit and Charter retain guide completion, in-progress steps and once-only reward claims', () => {
   const state=mature(); act(state,{type:'expedition-select',areaId:'greenway'}); finish(state,'greenway');
-  act(state,{type:'expedition-select',areaId:'quarry'}); act(state,{type:'onboarding-visit',id:'quarry'}); act(state,Core.getView(state).onboarding.active.inspectAction); act(state,{type:'onboarding-leave',id:'quarry'});
+  act(state,{type:'expedition-select',areaId:'quarry'}); act(state,{type:'onboarding-visit',id:'quarry'}); while(Core.getView(state).onboarding.active.mode==='currency') act(state,Core.getView(state).onboarding.active.ackAction); act(state,Core.getView(state).onboarding.active.inspectAction); assert.equal(Core.act(state,{type:'onboarding-leave',id:'quarry'}).ok,false);
   const learned=clone(state.onboarding.progress), claimed=clone(state.onboarding.rewardClaims);
   assert.ok(Core.getRefitPreview(state).available); act(state,{type:'refit'});
   assert.deepEqual(state.onboarding.progress,learned); assert.deepEqual(state.onboarding.rewardClaims,claimed); valid(state);

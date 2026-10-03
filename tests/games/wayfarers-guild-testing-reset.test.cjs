@@ -81,12 +81,21 @@ test('stale tabs cannot overwrite, import or reset the new generation', () => {
   assert.deepEqual(Array.from(storage.data), snapshot);
 });
 
+function acknowledgeCurrencies(state) {
+  let active = Core.getView(state).onboarding.active;
+  while (active?.mode === 'currency') {
+    assert(Core.act(state, active.ackAction).ok);
+    active = Core.getView(state).onboarding.active;
+  }
+}
+
 for (const mirrorKey of [Storage.SAVE_KEY, Storage.BACKUP_KEY]) test('a failed compatibility mirror cannot roll back a committed tutorial reward: ' + mirrorKey, () => {
   const { storage, store, make } = setup();
   const reset = store.resetForTesting();
   assert(reset.ok);
   const state = reset.state;
   assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
+  acknowledgeCurrencies(state);
   assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
   assert(Core.act(state, Core.getView(state).onboarding.active.practiceAction).ok);
   assert(store.save(state).ok);
@@ -111,6 +120,7 @@ test('a failed canonical generation write remains retryable without claiming a t
   const state = reset.state;
   assert(reset.ok);
   assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
+  acknowledgeCurrencies(state);
   assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
   assert(Core.act(state, Core.getView(state).onboarding.active.practiceAction).ok);
   assert(store.save(state).ok);
@@ -135,6 +145,7 @@ test('a post-write fence read failure keeps the committed tutorial result and re
   const { storage, store, make } = setup();
   const state = store.resetForTesting().state;
   assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
+  acknowledgeCurrencies(state);
   assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
   assert(Core.act(state, Core.getView(state).onboarding.active.practiceAction).ok);
   assert(store.save(state).ok);

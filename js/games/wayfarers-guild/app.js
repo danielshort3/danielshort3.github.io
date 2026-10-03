@@ -1173,7 +1173,16 @@
       renderDevelopment();
       updateSaveStatus();
       renderIntroduction();
-      if (expeditionUI) expeditionUI.update(view, { quiet:quiet || motionQuery.matches, saveFailure, awaitingWallet:awaitingPurchaseWallet, onboardingEpoch, legacySheetKind: dialog.open ? dialogKind : null });
+      if (expeditionUI) expeditionUI.update(view, {
+        quiet:quiet || motionQuery.matches, saveFailure, awaitingWallet:awaitingPurchaseWallet, onboardingEpoch,
+        legacySheetKind:dialog.open ? dialogKind : null,
+        premiumWallet:{
+          native:!!billingSnapshot.native, available:!!billingSnapshot.available,
+          verified:!!billingSnapshot.hydrated,
+          balance:billingSnapshot.hydrated ? billingSnapshot.balance : null,
+          debt:billingSnapshot.hydrated ? billingSnapshot.debt || 0 : null
+        }
+      });
     }
 
     function setSheetFooter(primary, secondary) {
