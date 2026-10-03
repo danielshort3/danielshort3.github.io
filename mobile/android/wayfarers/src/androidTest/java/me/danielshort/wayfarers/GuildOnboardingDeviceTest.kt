@@ -106,7 +106,16 @@ class GuildOnboardingDeviceTest {
       }
       dismissNotice(scenario)
       evaluate(scenario, "var close=document.querySelector('.wx-sheet[open] [data-wx-close]'); if(close) close.click(); true")
-      evaluate(scenario, "document.querySelector('[data-wx-options]').click(); document.querySelector('[data-wx-do=\"guide-replay:greenway\"]').click(); true")
+      var closedSamples = 0
+      awaitSnapshot(scenario, "The previous sheet must finish closing before Options opens") {
+        closedSamples = if (it.optString("sheetKind").isEmpty()) closedSamples + 1 else 0
+        closedSamples >= 2
+      }
+      evaluate(scenario, "document.querySelector('[data-wx-options]').click(); true")
+      awaitSnapshot(scenario, "Options must render its actual Trail replay control") {
+        it.optString("sheetKind") == "options" && it.optBoolean("replayAvailable")
+      }
+      evaluate(scenario, "document.querySelector('.wx-sheet[open] [data-wx-do=\"guide-replay:greenway\"]').click(); true")
       val replay = awaitSnapshot(scenario, "Replay must open the actual read-only lesson reference") {
         it.optString("sheetKind") == "lesson-help" && it.optInt("referenceSteps") == 3
       }
@@ -192,6 +201,7 @@ class GuildOnboardingDeviceTest {
           supplyCount:practice ? practice.supplies.filter(function(id){return id==='greenway:upgrade';}).length : 0,travelCapacity:capacity,
           boots:state && state.expedition.areas.greenway.ranks.boots,guideOpen:!!guide,guide:guide && guide.dataset.guide,step:guide && guide.dataset.step,replay:!!guide && guide.dataset.replay==='true',
           sheetKind:sheet ? sheet.dataset.kind:'',width:innerWidth,height:innerHeight,
+          replayAvailable:!!sheet && !!sheet.querySelector('[data-wx-do="guide-replay:greenway"]'),
           referenceSteps:sheet ? sheet.querySelectorAll('.wx-lesson-reference').length:0,
           referenceReadOnly:!!sheet && !sheet.querySelector('[data-wx-practice],[data-wx-do^="lesson-start:"]'),
           coachFits:fits(card,false) && fits(leave,true),spotlightVisible:fits(ring,false) && !ring.hidden,
