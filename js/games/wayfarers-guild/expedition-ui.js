@@ -498,7 +498,7 @@
         else node=closeButton();
       }
       if(!node && target==='area-goal') node=inSheet ? closeButton() : q('[data-wx-world-label]:not([hidden])') || q('[data-wx-objective]');
-      if(!node && target==='area-expand') node=inSheet ? closeButton() : q('[data-wx-expand]') || q('[data-wx-objective]');
+      if(!node && target==='area-expand') node=inSheet ? closeButton() : model.mode==='inspect' ? q('[data-wx-world-label]:not([hidden])') || q('[data-wx-objective]') : q('[data-wx-expand]') || q('[data-wx-objective]');
       if(!node && target==='batch-select') node=inSheet ? closeButton() : q('[data-wx-batch]');
       if(!node && target==='focus-action') node=inSheet ? closeButton() : q('[data-wx-focus]');
       if(!node && target==='tier-unlock') {
@@ -727,7 +727,7 @@
     }
     function startLesson(id,intendedAction) {
       const definition=onboarding()?.guides?.find(item=>item.id===id);
-      if(!definition || definition.complete || !definition.available) return {ok:false,message:'This lesson is not available yet.'};
+      if(!definition || definition.complete || !definition.available && !intendedAction) return {ok:false,message:'This lesson is not available yet.'};
       onboardingBusy=true;
       const result=onboardingAction(Object.assign({},definition.visitAction,intendedAction ? {intendedAction} : {}));
       onboardingBusy=false;
@@ -1053,6 +1053,9 @@
     }
     function detailBody(item, local) {
       if (!item) return '<p>This upgrade is no longer available.</p>';
+      const exactPractice=practice()?.practicePreview;
+      const supplied=exactPractice && exactPractice.areaId===(item.areaId || item.action?.areaId) && exactPractice.trackId===(item.trackId || item.id);
+      if(supplied)item=Object.assign({},item,exactPractice,{label:exactPractice.label || exactPractice.name || item.label});
       const unmet = (item.dependencies || []).some(dependency => !dependency.met);
       const running = view.expedition.commission?.id === item.action?.id && item.action?.type === 'expedition-development';
       let html = '<div class="wx-detail-hero">' + icon(item.icon || item.trackId || item.id) + '<strong>' + esc(local ? 'Rank ' + (item.rank ?? item.level ?? 0) + ' / ' + (item.maxRank ?? item.maxLevel) : running ? 'Researching · ' + Math.floor(percent(view.expedition.commission.progress)) + '%' : item.selected ? 'Active' : completedUpgrade(item) ? 'Complete' : unmet ? 'Locked' : item.level ? 'Rank ' + item.level : item.disabled ? 'Save up' : 'Available') + '</strong></div><p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
@@ -1064,12 +1067,12 @@
       if (item.comparison && !(item.impact || []).length) html += '<p>' + esc(typeof item.comparison === 'string' ? item.comparison : item.comparison.text) + '</p>';
       if (item.chainOutput) html += '<p class="wx-muted">Whole chain: ' + item.chainOutput.current.toFixed(2) + ' → ' + item.chainOutput.next.toFixed(2) + ' ingots/s</p>';
       if (item.nextMilestone) html += '<div class="wx-milestone">' + icon('mastery') + '<span>' + esc(typeof item.nextMilestone === 'string' ? item.nextMilestone : 'Lv ' + item.nextMilestone.rank + ' · ' + (item.nextMilestone.label || item.nextMilestone.effectText)) + '</span></div>';
-      if (item.reason || item.shortageText) html += '<p class="wx-muted">' + esc(item.shortageText || item.reason) + '</p>';
+      if (!supplied && (item.reason || item.shortageText)) html += '<p class="wx-muted">' + esc(item.shortageText || item.reason) + '</p>';
       const rankCap = item.maxRank ?? item.maxLevel;
       const rangeValid = item.rankAfter != null && (rankCap == null || item.rankAfter <= rankCap);
       const quantityLabel = item.quantity ? 'Exactly ' + item.quantity + ' rank' + (item.quantity === 1 ? '' : 's') + (rangeValid ? ' · ' + (item.rank ?? item.level ?? 0) + ' → ' + item.rankAfter : '') : '';
-      const exactCost = (item.cost || []).map(cost => cost.text).join(' · ');
-      detailFooter = '<div class="wx-purchase-summary">' + (quantityLabel ? '<strong>' + esc(quantityLabel) + '</strong>' : '') + (exactCost ? '<small>' + (running ? 'Funded: ' : 'Cost: ') + esc(exactCost) + '</small>' : '') + (item.quantity && !rangeValid && item.reason ? '<small>' + esc(item.reason) + '</small>' : '') + '</div><div class="wx-purchase-controls">' + (item.quantity && batchAvailable() ? batchControl() : '') + button(completedUpgrade(item) ? 'Complete' : running ? 'Researching' : item.quantity ? 'Buy ×' + item.quantity : exactCost ? 'Buy upgrade' : item.selected ? 'Selected' : 'Choose', item.action, { disabled:item.disabled || completedUpgrade(item) || currentContext.awaitingWallet || currentContext.saveFailure, className:'wx-confirm',aria:(running ? 'Researching ' : item.quantity ? 'Buy exactly ' + item.quantity + ' ranks of ' : 'Buy ') + (item.label || item.name || item.id) + (!running && exactCost ? ', ' + exactCost : '') }) + '</div>';
+      const exactCost = supplied ? 'Free · Guild practice supplies' : (item.cost || []).map(cost => cost.text).join(' · ');
+      detailFooter = '<div class="wx-purchase-summary">' + (quantityLabel ? '<strong>' + esc(quantityLabel) + '</strong>' : '') + (exactCost ? '<small>' + (supplied ? '' : running ? 'Funded: ' : 'Cost: ') + esc(exactCost) + '</small>' : '') + (item.quantity && !rangeValid && item.reason ? '<small>' + esc(item.reason) + '</small>' : '') + '</div><div class="wx-purchase-controls">' + (!supplied && item.quantity && batchAvailable() ? batchControl() : '') + button(completedUpgrade(item) ? 'Complete' : running ? 'Researching' : item.quantity ? 'Buy ×' + item.quantity : exactCost ? 'Buy upgrade' : item.selected ? 'Selected' : 'Choose', item.action, { disabled:item.disabled || completedUpgrade(item) || currentContext.awaitingWallet || currentContext.saveFailure, className:'wx-confirm',aria:(running ? 'Researching ' : item.quantity ? 'Buy exactly ' + item.quantity + ' ranks of ' : 'Buy ') + (item.label || item.name || item.id) + (!running && exactCost ? ', ' + exactCost : '') }) + '</div>';
       if (!local && !running && view.planning?.unlocked && ['buy','research','project','expedition-development'].includes(item.action?.type) && !item.owned) {
         html += section('Planning', button('Save for this', { type:'plan-goal', action:item.action }) + (view.planning.capabilities.some(c => c.id === 'purchase-queue' && c.owned) ? button('Add to queue', { type:'plan-queue', action:item.action }) : ''));
       }

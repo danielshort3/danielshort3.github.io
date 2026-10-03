@@ -97,7 +97,7 @@ async function run() {
         for(let action=0;action<25 && await guide(page).count();action++) {
           const step=await guide(page).getAttribute('data-step');
           await geometry(page);await shot(page,kind+'-'+step+'-'+action+'-'+width);
-          if(width===320 && kind==='equipment' && step==='scroll' && await page.locator('[data-wx-practice]').count()){await page.addStyleTag({content:'.wx-guide p{font-size:18.2px!important}.wx-guide h2{font-size:23.4px!important}.wx-guide button{font-size:16.9px!important}'});await page.clock.runFor(100);await geometry(page);await shot(page,'equipment-scroll-large-text-320');await page.setViewportSize({width:915,height:390});await page.waitForTimeout(100);await page.clock.runFor(100);await geometry(page);await shot(page,'equipment-scroll-large-text-915');await page.setViewportSize({width,height});await page.clock.runFor(100);}
+          if(width===320 && kind==='equipment' && step==='scroll' && await page.locator('[data-wx-practice]').count()){await page.addStyleTag({content:'.wx-guide p{font-size:18.2px!important}.wx-guide h2{font-size:23.4px!important}.wx-guide button{font-size:16.9px!important}'});await page.clock.runFor(100);await page.waitForFunction(()=>document.querySelector('.wx-guide-card').getBoundingClientRect().bottom<=innerHeight);await geometry(page);await shot(page,'equipment-scroll-large-text-320');await page.setViewportSize({width:915,height:390});await page.waitForTimeout(100);await page.clock.runFor(100);await geometry(page);await shot(page,'equipment-scroll-large-text-915');await page.setViewportSize({width,height});await page.clock.runFor(100);}
           const target=page.locator('[data-guide-target]');
           assert.equal(await target.count(),1,'One actual control is highlighted: '+kind+' '+step);
           await target.click();await page.clock.runFor(1000);
@@ -112,6 +112,20 @@ async function run() {
       await context.close();
     }
 
+
+    for(const [width,height] of [[320,740],[915,390]]) {
+      const seed=H.mature();assert(H.Core.act(seed,{type:'refit'}).ok);assert(H.Core.act(seed,{type:'expedition-batch',count:100}).ok);assert(H.Core.act(seed,{type:'expedition-select',areaId:'workshop'}).ok);Fixtures.announceDiscoveries(seed);
+      const {context,page}=await open(width,height,seed);await page.clock.runFor(1000);await page.locator('[data-guide-target]').click();await page.clock.runFor(100);
+      assert.equal(await guide(page).getAttribute('data-step'),'upgrade');
+      const summary=await page.locator('.wx-purchase-summary').innerText();assert.match(summary,/Exactly 1 rank.*0.*1/s);assert.match(summary,/Free/);assert(!summary.includes('100 ranks'));
+      const model=H.Core.getView(await state(page)).onboarding.active;assert.equal(model.practicePreview.quantity,1);assert.equal(model.practicePreview.rankAfter,1);
+      assert.equal(await page.locator('.wx-sheet [data-wx-do="batch"]').count(),0,'Shared bulk selector does not contradict supplied one-rank purchase');
+      await shot(page,'inherited-bulk-exact-practice-'+width);await page.locator('[data-wx-practice]').click();await page.clock.runFor(1000);assert.equal((await state(page)).expedition.areas.workshop.ranks.assembly,1);assert.equal((await state(page)).expedition.batch,100);
+      for(let n=0;n<12 && await guide(page).count();n++){await shot(page,'bulk-resume-'+width+'-'+n);await page.locator('[data-guide-target]').click();await page.clock.runFor(1000);}
+      if(await sheet(page).count())await page.locator('[data-wx-close]').click();await page.locator('[data-upgrade="assembly"] .wx-upgrade-info').click();assert.match(await page.locator('.wx-purchase-summary').innerText(),/Exactly 100 ranks/);await shot(page,'inherited-bulk-restored-'+width);
+      await context.close();
+    }
+    evidence.flows.push('Inherited ×100 new-area lesson previews exact supplied ×1 effects/cost, buys one rank and restores unchanged shared ×100 afterward');
     for(const id of ['expansion','bulk','focus','plans','configuration','specialization','crew','companions','guild-upgrades','automation','reserves','planner','refit','charter','shop','projects','relics','meals','kits','playbooks','card-archive','card-craft','gear-craft','gear-repair','gear-reforge','supply','caravan'].filter(id=>!process.env.WAYFARERS_LESSON || id===process.env.WAYFARERS_LESSON)) {
       const extra=['projects','relics','meals','kits','playbooks','card-archive','card-craft','gear-craft','gear-repair','gear-reforge','supply','caravan'].includes(id);
       const seed=extra?PracticeFixtures.advanced():H.mature();Fixtures.completeAreaGuides(seed);Fixtures.announceDiscoveries(seed);
@@ -128,7 +142,8 @@ async function run() {
         await shot(page,'optional-'+id+'-'+n);
         assert.equal(await target.count(),1,id+' has a real target '+JSON.stringify(trace));
         if(id==='reserves' && await page.locator('[data-wx-reserve]:visible').count())await page.locator('[data-wx-reserve]').fill('10');
-        await target.click();await page.clock.runFor(1000);
+        const prior=await state(page);await target.click();await page.clock.runFor(1000);
+        if(id==='expansion' && trace[trace.length-1].step==='inspect')assert.equal((await state(page)).expedition.index,prior.expedition.index,'Inspect opens a review without performing expansion');
       }
       assert.equal((await state(page)).onboarding.practice.active,null,id+' completes '+JSON.stringify(trace));
       evidence.flows.push('Actual optional controls '+id);await context.close();
