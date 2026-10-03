@@ -4,25 +4,28 @@
   const iconNames = { porters:'backpack', picks:'tools', carts:'crate', furnace:'forge', lift:'equipment', beacon:'observatory', atlas:'maps' };
   const icon = name => root.WayfarersIcons.markup(iconNames[name] || name);
   const propCells = { boots:2, porters:3, picks:4, carts:5, furnace:6, lift:7, crew:1, beacon:9 };
-  const areaNames = { greenway:'Trail', quarry:'Quarry', watchtower:'Tower', guild:'Guild' };
-  const areaIcons = { greenway:'trail', quarry:'mine', watchtower:'observatory', guild:'guild' };
+  const areaNames = { greenway:'Trail', quarry:'Quarry', watchtower:'Tower', workshop:'Workshop', ruins:'Ruins', harbor:'Harbor', guild:'Guild' };
+  const areaIcons = { greenway:'trail', quarry:'mine', watchtower:'observatory', workshop:'tools', ruins:'relic', harbor:'caravan', guild:'guild' };
   const groupNames = { local:'Area upgrades', area:'Area upgrades', development:'Developments', developments:'Developments', research:'Research', legacy:'Guild upgrades', equipment:'Equipment', production:'Production', blueprint:'Blueprints', blueprints:'Blueprints' };
-  function localIcon(id) {
+  function localIcon(id, fallback) {
     const cell = propCells[id];
-    return cell == null ? icon(id) : '<span class="wx-prop" aria-hidden="true" style="background-image:url(&quot;img/wayfarers-guild/expedition-props.png&quot;);background-position:' + ((cell % 4) * 100 / 3) + '% ' + (Math.floor(cell / 4) * 50) + '%"></span>';
+    return cell == null ? icon(fallback || id) : '<span class="wx-prop" aria-hidden="true" style="background-image:url(&quot;img/wayfarers-guild/expedition-props.png&quot;);background-position:' + ((cell % 4) * 100 / 3) + '% ' + (Math.floor(cell / 4) * 50) + '%"></span>';
   }
   function gainLabel(item) {
-    const fields = { boots:['exploration','travel'], porters:['coins'], scouts:['exploration','maps'], picks:['extraction','picks'], carts:['haul','carts'], furnace:['smelting','furnace','ore'], crew:['knowledge','construction'], lift:['construction','repair'], beacon:['knowledge','protection'] }[item.trackId || item.id] || [];
+    const progression = item.catalogId && item.quantity;
+    const track = item.trackId || item.id;
+    const fields = (progression ? { boots:['travel','flow'],porters:['capacity','coins'],scouts:['research','maps'],caravans:['freight'],waystations:['capacity','herbs'],railways:['freight'],picks:['picks'],carts:['carts','capacity'],furnace:['furnace','ore'],geology:['ore'],recovery:['ore'],deepworks:['picks'],beacon:['research'],signals:['coordination','maps'],crew:['coordination','capacity','maps'],optics:['research'],forecasting:['travel','duration'], 'relay-grid':['coordination','knowledge'],assembly:['flow','assembly'],toolmaking:['picks','research'],metallurgy:['provisions'],mechanisms:['picks','assembly'],precision:['demand','research'],replication:['capacity','provisions'],delving:['delving'],archaeology:['interpretation','research'],'recovery-teams':['recovery','flow'],restoration:['knowledge'],attunement:['ore','coins','research'],resonance:['capacity','research'],shipbuilding:['cargo','capacity'],seamanship:['travel','duration'],stowage:['cargo'],contracts:['coins'],navigation:['travel','duration'],'fleet-command':['capacity','cargo'] } : { boots:['exploration','travel'],porters:['coins'],scouts:['exploration','maps'],picks:['extraction','picks'],carts:['haul','carts'],furnace:['smelting','furnace','ore'],crew:['knowledge','construction'],lift:['construction','repair'],beacon:['knowledge','protection'] })[track] || [];
     const changes = (item.impact || []).filter(change => change.current != null && change.next != null);
     const change = fields.map(field => changes.find(candidate => String(candidate.metric).split(':').pop() === field)).find(Boolean) || changes[0];
     if (change) {
       const current = root.WayfarersCore.Numbers.toNumber(change.currentValue ?? change.current);
       const next = root.WayfarersCore.Numbers.toNumber(change.nextValue ?? change.next);
       const key = String(change.metric).split(':').pop();
-      const effect = ({ picks:'mining', carts:'haul', furnace:'smelt', construction:item.description?.includes('Expansion') ? 'projects' : 'build' }[key] || String(change.label || '').split('·').pop().trim().toLowerCase().replace('exploration','travel').replace('extraction','mining').replace('hauling','haul').replace('smelting','smelt').replace('construction','build')).replace(' capacity','');
-      if (current > 0 && next > current) { const delta = (next / current - 1) * 100; return (delta < .05 ? '<0.1' : '+' + (delta < 1 ? delta.toFixed(1) : Math.round(delta))) + '% ' + effect; }
+      const effect = ({ picks:'mining', carts:'haul', furnace:'smelt', flow:item.areaId === 'greenway' ? 'travel' : 'output',capacity:item.areaId === 'greenway' && track === 'porters' ? 'cargo' : 'capacity',demand:'input demand',travel:item.areaId === 'harbor' ? 'sailing speed' : 'travel',construction:item.description?.includes('Expansion') ? 'projects' : 'build' }[key] || String(change.label || '').split('·').pop().trim().toLowerCase().replace('exploration','travel').replace('extraction','mining').replace('hauling','haul').replace('smelting','smelt').replace('construction','build')).replace(' capacity','');
+      if (current > 0 && next !== current) { const delta = (next / current - 1) * 100, magnitude = Math.abs(delta); return (delta < 0 ? '−' : '+') + (magnitude < .05 ? '<0.1' : magnitude < 1 ? magnitude.toFixed(1) : Math.round(magnitude)) + '% ' + effect; }
       if (next > 0) return change.next + ' ' + effect + (change.unit || '');
     }
+    if (progression && !changes.length && !item.disabled) return 'Current plan unchanged';
     const rates = String(item.comparison || '').match(/^([\d.]+) → ([\d.]+)/);
     const label = item.effectText === 'Bridge repair capacity' ? 'repair' : { boots:'travel', porters:'coins', scouts:'travel', picks:'mining', carts:'haul', furnace:'smelt', crew:'build', lift:'build', beacon:'light' }[item.id] || 'work';
     return rates && Number(rates[1]) > 0 ? '+' + Math.round((Number(rates[2]) / Number(rates[1]) - 1) * 100) + '% ' + label : item.effectText;
@@ -60,29 +63,38 @@
     let toastTimer;
     let previousRanks = {};
     let previousStage = null;
+    let displayedArea = null;
+    const areaScroll = new Map();
+    const earnedTracks = new Map();
+    const activePointers = new Set();
+    let swipe = null;
+    let suppressSceneTapUntil = 0;
+    let knownAreaCount = null;
+    let swipeTaught = false;
     const celebrated = new Set();
     const viewedStages = new Set();
     let seenSequence = null;
     let disposed = false;
+    let detailFooter = '';
     const shell = document.createElement('section');
     shell.className = 'wx-game';
     shell.setAttribute('aria-label', 'Wayfarers Guild');
     shell.innerHTML = '<header class="wx-header"><button class="wx-wallet" data-wx-wallet aria-label="Resource stockpile"></button><div class="wx-local-count" data-wx-local-count hidden></div><div class="wx-utilities"><button data-wx-reward aria-label="Caravan reward" hidden>' + icon('caravan') + '</button><button data-wx-options aria-label="Settings and app updates">' + icon('settings') + '</button></div></header>' +
-      '<div class="wx-objective"><button data-wx-objective><span data-wx-stage-name></span><strong data-wx-objective-text></strong></button><div class="wx-checkpoints" data-wx-checkpoints></div><progress data-wx-progress max="100" value="0" aria-label="Expedition completion"></progress></div>' +
-      '<div class="wx-play"><div class="wx-world"><canvas data-wx-canvas role="img" aria-label="Your expedition"></canvas><div class="wx-world-label" data-wx-world-label></div><button class="wx-network-link" data-wx-network hidden></button><div class="wx-hotspots" data-wx-hotspots></div><div class="wx-world-actions" data-wx-world-actions></div></div><div class="wx-tray" data-wx-tray></div></div>' +
-      '<section class="wx-destination" data-wx-destination hidden></section><nav class="wx-nav" aria-label="Game destinations">' + ['greenway','quarry','watchtower'].map(id => '<button data-wx-area="' + id + '"' + (id !== 'greenway' ? ' hidden' : '') + '>' + icon(areaIcons[id]) + '<span>' + areaNames[id] + '</span><i data-wx-attention hidden aria-label="New development"></i></button>').join('') + '<button data-wx-nav="upgrades" hidden>' + icon('research') + '<span>Upgrades</span></button><button data-wx-nav="guild" hidden>' + icon('guild') + '<span>Guild</span></button></nav>' +
-      '<div class="wx-toast" data-wx-toast role="status" aria-live="polite"></div><button class="wx-save-alert" data-wx-save-alert hidden>Save needs attention</button>';
+      '<div class="wx-objective"><button class="wx-area-step" data-wx-prev hidden aria-label="Previous area">‹</button><button data-wx-objective><span data-wx-stage-name></span><strong data-wx-objective-text></strong></button><button class="wx-area-step" data-wx-next hidden aria-label="Next area">›</button><progress data-wx-progress max="100" value="0" aria-label="Expedition completion"></progress></div>' +
+      '<div class="wx-play"><div class="wx-world"><canvas data-wx-canvas role="img" aria-label="Your expedition"></canvas><button class="wx-world-label" data-wx-world-label aria-label="Current area objective"></button><button class="wx-network-link" data-wx-network hidden></button><button class="wx-focus-trigger" data-wx-focus hidden></button><div class="wx-hotspots" data-wx-hotspots></div><div class="wx-world-actions" data-wx-world-actions></div></div><section class="wx-dock" aria-label="Area upgrades"><div class="wx-dock-heading"><strong data-wx-upgrade-count>Upgrades</strong><button data-wx-batch hidden></button></div><div class="wx-tray" data-wx-tray tabindex="0" aria-label="Area upgrades; scroll for more"></div></section></div>' +
+      '<section class="wx-destination" data-wx-destination hidden></section><nav class="wx-nav" aria-label="Game destinations"><button data-wx-nav="expedition">' + icon('maps') + '<span>Areas</span><i data-wx-attention hidden aria-label="New development"></i></button><button data-wx-nav="upgrades" hidden>' + icon('research') + '<span>Upgrades</span></button><button data-wx-nav="guild" hidden>' + icon('guild') + '<span>Guild</span></button></nav>' +
+      '<div class="wx-toast" data-wx-toast role="status" aria-live="polite"></div><div class="wx-sr-status" data-wx-area-status role="status" aria-live="polite"></div><button class="wx-save-alert" data-wx-save-alert hidden>Save needs attention</button>';
     const dialog = document.createElement('dialog');
     dialog.className = 'wx-sheet';
     dialog.setAttribute('aria-labelledby', 'wx-sheet-title');
-    dialog.innerHTML = '<header><button data-wx-back aria-label="Back">‹</button><h2 id="wx-sheet-title"></h2><button data-wx-close aria-label="Close">×</button></header><div class="wx-sheet-content" data-wx-sheet-content></div>';
+    dialog.innerHTML = '<header><button data-wx-back aria-label="Back">‹</button><h2 id="wx-sheet-title"></h2><button data-wx-close aria-label="Close">×</button></header><div class="wx-sheet-content" data-wx-sheet-content></div><footer class="wx-purchase-footer" data-wx-sheet-footer hidden></footer>';
     host.dataset.expeditionMode = 'true';
     host.append(shell);
     host.parentElement.append(dialog);
     const q = selector => shell.querySelector(selector);
     const scene = root.WayfarersExpeditionScene.create(q('[data-wx-canvas]'), {
       quiet: !!options.quiet,
-      onSelect(target) { if (target.kind === 'upgrade') inspectLocal(target.id); else if (target.kind === 'choice') open({ kind:'choice' }); }
+      onSelect(target) { if (root.performance.now() < suppressSceneTapUntil || swipe || activePointers.size > 1 || dialog.open || options.overlayOpen()) return; if (target.kind === 'upgrade') inspectLocal(target.id); else if (target.kind === 'choice') open({ kind:'choice' }); }
     });
     function markup(node, html) {
       if (node.dataset.markup === html) return;
@@ -107,17 +119,32 @@
     function costs(item) {
       return (item.cost || []).map(cost => '<span>' + icon(cost.resource) + esc(compact(cost.amount)) + '</span>').join('');
     }
+    function focusInput(item) {
+      return item.text || (item.resource ? item.resource[0].toUpperCase() + item.resource.slice(1) : 'Input') + ' ' + metric(item.current) + ' → ' + metric(item.next) + (item.unit || '');
+    }
+    function focusInputs(item) {
+      const changed = (item.inputs || []).filter(input => Math.abs(Number(input.next) - Number(input.current)) > Math.max(1,Math.abs(Number(input.current))) * 1e-9);
+      return changed.length ? 'Input rates: ' + changed.map(focusInput).join(' · ') : 'Input rates unchanged';
+    }
+    function purchaseLabel(item, compactRow) {
+      if (item.quantity && !(item.cost || []).length) return '<span class="wx-batch-unavailable">×' + esc(item.quantity) + '<br>Unavailable</span>';
+      return (!compactRow && item.quantity > 1 ? '<small class="wx-quantity">×' + esc(item.quantity) + '</small>' : '') + costs(item);
+    }
+    function batchAvailable() { return (view.expedition.batch?.options || []).some(item => item.unlocked && item.count > 1); }
+    function batchControl() {
+      return batchAvailable() ? button('Buy ×' + (view.expedition.batch.selected || 1) + ' ▾', () => open({ kind:'batch' }), { key:'batch', className:'wx-batch', aria:'Purchase quantity: ' + (view.expedition.batch.selected || 1) + '. Change exact quantity.' }) : '';
+    }
     function descriptorKey(item) { return JSON.stringify(item.action || { id:item.id }); }
     function tiles(items) {
       return '<div class="wx-catalog">' + visible(items).map(item => {
         const id = descriptorKey(item);
         descriptors.set(id, item);
         const owned = item.owned && item.maxed;
-        const caption = item.selected ? 'Active' : owned ? 'Complete' : item.owned && item.disabled ? 'Owned' : (item.cost || []).length ? costs(item) : 'Choose';
+        const caption = item.selected ? 'Active' : owned ? 'Complete' : item.owned && item.disabled && !item.quantity ? 'Owned' : (item.cost || []).length ? purchaseLabel(item) : 'Choose';
         return '<article class="wx-card" data-ready="' + (!item.disabled && !owned) + '">' +
           button(icon(item.icon || item.id) + '<strong>' + esc(name(item)) + '</strong>' + (item.level ? '<small>Rank ' + esc(item.level) + '</small>' : ''), () => open({ kind:'inspect', id }), { key:'inspect:' + id, className:'wx-card-info', aria:'Inspect ' + name(item) }) +
           '<span class="wx-card-effect">' + esc(item.effectText || item.description || '') + '</span>' +
-          button(caption, item.action, { disabled: item.disabled || owned, className:'wx-price', aria:(item.selected ? 'Selected ' : 'Use ') + name(item) + ((item.cost || []).length ? ': ' + item.cost.map(c => c.text).join(', ') : '') }) + '</article>';
+          button(caption, item.action, { disabled: item.disabled || owned, className:'wx-price', aria:(item.selected ? 'Selected ' : item.quantity ? 'Buy ' + item.quantity + ' ranks of ' : 'Use ') + name(item) + ((item.cost || []).length ? ': ' + item.cost.map(c => c.text).join(', ') : '') }) + '</article>';
       }).join('') + '</div>';
     }
     function menu(label, detail, glyph, model) {
@@ -159,6 +186,7 @@
     function upgradeRows(items) {
       return '<div class="wx-upgrade-list">' + items.map(item => {
         const complete = completedUpgrade(item);
+        const running = view.expedition.commission?.id === item.action?.id && item.action?.type === 'expedition-development';
         const level = item.level == null ? item.rank : item.level;
         const label = name(item);
         const change = (item.impact || []).find(entry => entry.current != null && entry.next != null && !String(entry.metric).startsWith('behavior:'));
@@ -167,7 +195,7 @@
         const prerequisite = (item.dependencies || []).find(dependency => !dependency.met);
         return '<article class="wx-research-row" data-wx-upgrade="' + esc(item.id) + '" data-ready="' + (!item.disabled && !complete) + '">' +
           button(icon(item.icon || item.trackId || item.id) + '<span><strong>' + esc(label) + (level ? '<small> ' + level + '</small>' : '') + '</strong><span class="wx-research-effect">' + esc(effect) + '</span>' + areaLinks(item) + (prerequisite ? '<small class="wx-prerequisite">' + esc(prerequisite.label) + '</small>' : '') + '</span>', () => open({ kind:'upgrade', id:item.id }), { key:'upgrade-detail:' + item.id, className:'wx-research-info', aria:'Details: ' + label }) +
-          button(complete ? '✓' : (item.cost || []).length ? costs(item) : 'Unlock', item.action, { disabled:item.disabled || complete || currentContext.awaitingWallet, className:'wx-price', aria:(complete ? 'Completed ' : 'Buy ') + label + ((item.cost || []).length ? ', ' + item.cost.map(cost => cost.text).join(', ') : '') }) + '</article>';
+          button(complete ? '✓' : running ? Math.floor(percent(view.expedition.commission.progress)) + '%' : (item.cost || []).length ? purchaseLabel(item) : 'Unlock', item.action, { disabled:item.disabled || complete || currentContext.awaitingWallet, className:'wx-price', aria:(complete ? 'Completed ' : running ? 'Researching ' : 'Buy ' + (item.quantity || 1) + ' ranks of ') + label + (!running && (item.cost || []).length ? ', ' + item.cost.map(cost => cost.text).join(', ') : '') }) + '</article>';
       }).join('') + '</div>';
     }
     function upgradesBody() {
@@ -182,7 +210,11 @@
       const filter = (label, id, type) => button(esc(label), () => { if (type === 'area') upgradeArea = id; else upgradeEffect = id; update(view); q('[data-wx-destination]').scrollTop = 0; }, { key:'filter:' + type + ':' + id, selected:(type === 'area' ? upgradeArea : upgradeEffect) === id, className:'wx-filter' });
       const human = value => ({ production:'Production', throughput:'Production', travel:'Travel', conversion:'Conversion', capacity:'Capacity', automation:'Automation', unlock:'Unlocks', research:'Research', synergy:'Connections', income:'Income', work:'Work', construction:'Building', protection:'Protection' }[value] || String(value).replace(/[-_]/g,' ').replace(/^./, c => c.toUpperCase()));
       let html = '<div class="wx-upgrade-tools"><label class="wx-upgrade-search">' + icon('research') + '<input data-wx-search type="search" aria-label="Find an upgrade" placeholder="Find an upgrade" value="' + esc(upgradeSearch) + '"></label>' + button('Filter' + (upgradeEffect !== 'all' ? ' ●' : ''), () => open({ kind:'upgrade-filters', effects }), { key:'upgrade-filters', className:'wx-filter-trigger', aria:'Filter by upgrade effect' }) + '<div class="wx-filter-strip wx-area-filters" aria-label="Affected area">' + filter('All','all','area') + areas.map(area => filter(areaNames[area.id] || area.label,area.id,'area')).join('') + filter('Guild','guild','area') + '</div>';
-      html += '</div>';
+      html += button(esc(upgradeArea === 'all' ? 'All areas' : areaNames[upgradeArea] || upgradeArea) + ' ▾', () => open({kind:'upgrade-areas'}), {key:'upgrade-areas',className:'wx-area-filter-trigger',aria:'Filter upgrades by area'}) + batchControl() + '</div>';
+      if (view.expedition.commission) {
+        const commission = view.expedition.commission;
+        html += menu(commission.name, 'Researching · ' + Math.floor(percent(commission.progress)) + '%', 'research', {kind:'upgrade',id:'development:' + commission.id});
+      }
       const available = filtered.filter(item => !completedUpgrade(item));
       const groups = [...new Set(available.map(item => item.group || 'development'))];
       html += groups.map(group => section(groupNames[group] || human(group), upgradeRows(available.filter(item => (item.group || 'development') === group)))).join('');
@@ -193,6 +225,7 @@
     }
     function legacy(kind) { close(); options.openLegacy(kind); }
     function open(model, replace) {
+      cancelSwipe();
       if (!dialog.open) { opener = document.activeElement; stack.length = 0; }
       else if (!replace && sheet) stack.push(sheet);
       sheet = model;
@@ -220,12 +253,55 @@
       if (!area || !area.unlocked) return;
       close(); screen = 'expedition'; execute(area.action || { type:'expedition-select', areaId }); update(view);
     }
+    function stepArea(direction) {
+      const areas = (view?.expedition.areas || []).filter(area => area.unlocked);
+      const index = areas.findIndex(area => area.selected || area.id === displayedArea);
+      if (areas[index + direction]) selectArea(areas[index + direction].id);
+    }
+    function cancelSwipe() {
+      if (swipe?.moved) suppressSceneTapUntil = root.performance.now() + 500;
+      swipe = null;
+      q('.wx-world').style.removeProperty('--wx-swipe');
+    }
+    function startPointer(event) {
+      activePointers.add(event.pointerId);
+      if (activePointers.size > 1) { suppressSceneTapUntil = root.performance.now() + 1000; cancelSwipe(); return; }
+      if (event.target !== q('[data-wx-canvas]') || event.button > 0 || screen !== 'expedition' || dialog.open || options.overlayOpen()) return;
+      const bounds = q('.wx-world').getBoundingClientRect();
+      const edge = 28;
+      if (event.clientX < edge || event.clientX > root.innerWidth - edge || event.clientX < bounds.left + 12 || event.clientX > bounds.right - 12) { suppressSceneTapUntil = root.performance.now() + 500; return; }
+      swipe = { id:event.pointerId, x:event.clientX, y:event.clientY, moved:false, cancelled:false, locked:false };
+    }
+    function movePointer(event) {
+      if (!swipe || event.pointerId !== swipe.id) return;
+      const dx = event.clientX - swipe.x, dy = event.clientY - swipe.y;
+      if (Math.hypot(dx,dy) < 12) return;
+      swipe.moved = true;
+      if (!swipe.locked && (Math.abs(dy) > Math.abs(dx) * .55)) { swipe.cancelled = true; return; }
+      if (swipe.cancelled) return;
+      swipe.locked = true;
+      if (event.cancelable) event.preventDefault();
+    }
+    function endPointer(event) {
+      activePointers.delete(event.pointerId);
+      if (!swipe || event.pointerId !== swipe.id) return;
+      const gesture = swipe;
+      const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
+      const threshold = Math.max(48, Math.min(80, q('.wx-world').clientWidth * .16));
+      const navigate = !gesture.cancelled && event.type === 'pointerup' && Math.abs(dx) >= threshold && Math.abs(dx) >= Math.abs(dy) * 1.8;
+      if (gesture.moved || navigate || event.type !== 'pointerup') suppressSceneTapUntil = root.performance.now() + 500;
+      swipe = null;
+      if (navigate) { event.preventDefault(); stepArea(dx < 0 ? 1 : -1); }
+    }
     function execute(action) {
       if (typeof action === 'function') { action(); return; }
       if (!action) return;
       if (['challenge'].includes(action.type)) close();
       const result = options.perform(action);
       if (result?.ok && action.type === 'expedition-choice') { notify('Plan selected'); back(); }
+      if (result?.ok && ['expedition-config','expedition-specialize'].includes(action.type)) notify('Plan updated');
+      if (result?.ok && action.type === 'expedition-batch') back();
+      if (result?.ok && action.type === 'expedition-focus') close();
       if (result?.ok && ['expedition-next','expedition-expand','expedition-select'].includes(action.type)) { close(); screen = 'expedition'; update(view); }
       if (result?.ok && action.type === 'route') { close(); screen = 'expedition'; update(view); }
     }
@@ -245,18 +321,23 @@
     function detailBody(item, local) {
       if (!item) return '<p>This upgrade is no longer available.</p>';
       const unmet = (item.dependencies || []).some(dependency => !dependency.met);
-      let html = '<div class="wx-detail-hero">' + icon(item.icon || item.trackId || item.id) + '<strong>' + esc(local ? 'Rank ' + (item.rank ?? item.level ?? 0) + ' / ' + (item.maxRank ?? item.maxLevel) : item.selected ? 'Active' : completedUpgrade(item) ? 'Complete' : unmet ? 'Locked' : item.level ? 'Rank ' + item.level : item.disabled ? 'Save up' : 'Available') + '</strong></div><p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
-      if (item.description && item.effectText && item.description !== item.effectText) html += '<p class="wx-muted">' + esc(item.description) + '</p>';
+      const running = view.expedition.commission?.id === item.action?.id && item.action?.type === 'expedition-development';
+      let html = '<div class="wx-detail-hero">' + icon(item.icon || item.trackId || item.id) + '<strong>' + esc(local ? 'Rank ' + (item.rank ?? item.level ?? 0) + ' / ' + (item.maxRank ?? item.maxLevel) : running ? 'Researching · ' + Math.floor(percent(view.expedition.commission.progress)) + '%' : item.selected ? 'Active' : completedUpgrade(item) ? 'Complete' : unmet ? 'Locked' : item.level ? 'Rank ' + item.level : item.disabled ? 'Save up' : 'Available') + '</strong></div><p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
+      if (item.description && item.effectText && !item.description.startsWith(item.effectText)) html += '<p class="wx-muted">' + esc(item.description) + '</p>';
       html += areaLinks(item);
       if ((item.impact || []).length) html += '<div class="wx-impact">' + impacts(item) + '</div>';
+      else if (item.quantity && item.group === 'area' && !item.disabled) html += '<p class="wx-muted">No immediate rate change in this quote.</p>' + button('Review area plans', () => { selectArea(item.areaId); open({kind:'choice'}); }, {key:'review-area-plan:' + item.areaId});
       if ((item.dependencies || []).length) html += '<ul class="wx-dependencies">' + item.dependencies.map(dependency => '<li data-met="' + !!dependency.met + '"><b aria-hidden="true">' + (dependency.met ? '✓' : '○') + '</b>' + esc(dependency.label) + '</li>').join('') + '</ul>';
-      if (item.comparison) html += '<p>' + esc(typeof item.comparison === 'string' ? item.comparison : item.comparison.text) + '</p>';
+      if (item.comparison && !(item.impact || []).length) html += '<p>' + esc(typeof item.comparison === 'string' ? item.comparison : item.comparison.text) + '</p>';
       if (item.chainOutput) html += '<p class="wx-muted">Whole chain: ' + item.chainOutput.current.toFixed(2) + ' → ' + item.chainOutput.next.toFixed(2) + ' ingots/s</p>';
       if (item.nextMilestone) html += '<div class="wx-milestone">' + icon('mastery') + '<span>' + esc(typeof item.nextMilestone === 'string' ? item.nextMilestone : 'Lv ' + item.nextMilestone.rank + ' · ' + (item.nextMilestone.label || item.nextMilestone.effectText)) + '</span></div>';
       if (item.reason || item.shortageText) html += '<p class="wx-muted">' + esc(item.shortageText || item.reason) + '</p>';
-      if ((item.cost || []).length) html += '<p class="wx-muted">Cost: ' + esc(item.cost.map(cost => cost.text).join(' · ')) + '</p>';
-      html += button(completedUpgrade(item) ? 'Complete' : (item.cost || []).length ? costs(item) : item.selected ? 'Selected' : 'Choose', item.action, { disabled:item.disabled || completedUpgrade(item) || currentContext.awaitingWallet, className:'wx-confirm' });
-      if (!local && view.planning?.unlocked && ['buy','research','project','expedition-development'].includes(item.action?.type) && !item.owned) {
+      const rankCap = item.maxRank ?? item.maxLevel;
+      const rangeValid = item.rankAfter != null && (rankCap == null || item.rankAfter <= rankCap);
+      const quantityLabel = item.quantity ? 'Exactly ' + item.quantity + ' rank' + (item.quantity === 1 ? '' : 's') + (rangeValid ? ' · ' + (item.rank ?? item.level ?? 0) + ' → ' + item.rankAfter : '') : '';
+      const exactCost = (item.cost || []).map(cost => cost.text).join(' · ');
+      detailFooter = '<div class="wx-purchase-summary">' + (quantityLabel ? '<strong>' + esc(quantityLabel) + '</strong>' : '') + (exactCost ? '<small>' + (running ? 'Funded: ' : 'Cost: ') + esc(exactCost) + '</small>' : '') + (item.quantity && !rangeValid && item.reason ? '<small>' + esc(item.reason) + '</small>' : '') + '</div><div class="wx-purchase-controls">' + (item.quantity && batchAvailable() ? batchControl() : '') + button(completedUpgrade(item) ? 'Complete' : running ? 'Researching' : item.quantity ? 'Buy ×' + item.quantity : exactCost ? 'Buy upgrade' : item.selected ? 'Selected' : 'Choose', item.action, { disabled:item.disabled || completedUpgrade(item) || currentContext.awaitingWallet, className:'wx-confirm',aria:(running ? 'Researching ' : item.quantity ? 'Buy exactly ' + item.quantity + ' ranks of ' : 'Buy ') + (item.label || item.name || item.id) + (!running && exactCost ? ', ' + exactCost : '') }) + '</div>';
+      if (!local && !running && view.planning?.unlocked && ['buy','research','project','expedition-development'].includes(item.action?.type) && !item.owned) {
         html += section('Planning', button('Save for this', { type:'plan-goal', action:item.action }) + (view.planning.capabilities.some(c => c.id === 'purchase-queue' && c.owned) ? button('Add to queue', { type:'plan-queue', action:item.action }) : ''));
       }
       return html;
@@ -300,10 +381,51 @@
       let title = '';
       let html = '';
       const model = sheet;
-      if (model.kind === 'local') { const item = (view.globalUpgrades || []).find(c => c.id === model.catalogId) || e.cards.find(c => c.id === model.id && (!model.areaId || c.action?.areaId === model.areaId || !c.action?.areaId)); title = item?.label || item?.name || 'Upgrade'; html = detailBody(item, true); }
+      detailFooter = '';
+      if (model.kind === 'areas') {
+        title = 'Your areas';
+        const areas = e.areas || [];
+        const next = areas.find(area => !area.unlocked && area.visible !== false);
+        html = '<div class="wx-area-grid">' + areas.filter(area => area.unlocked).map(area => '<button data-wx-area="' + esc(area.id) + '" class="wx-area-tile" aria-pressed="' + !!area.selected + '" aria-label="' + esc((areaNames[area.id] || area.label) + (area.selected ? ', current area' : '') + ', ' + (area.rateText || area.status || 'Working') + (area.attention ? ', new development' : '')) + '">' + icon(areaIcons[area.id]) + '<strong>' + esc(areaNames[area.id] || area.label) + '</strong><small>' + esc(area.rateText || area.status || 'Working') + '</small>' + (area.attention ? '<span class="wx-new">New</span>' : '') + '</button>').join('') + '</div>';
+        if (next) html += '<div class="wx-next-discovery">' + icon(areaIcons[next.id]) + '<span><strong>Next · ' + esc(areaNames[next.id] || next.label) + '</strong><small>' + esc(next.requirement || next.reason || next.objective || 'Continue your current expedition') + '</small></span></div>';
+      }
+      else if (model.kind === 'batch') {
+        title = 'Purchase quantity';
+        const options = e.batch?.options || [{count:1,unlocked:true}];
+        const next = options.find(item => !item.unlocked);
+        html = '<div class="wx-batch-options">' + options.filter(item => item.unlocked).map(item => button('×' + item.count, item.action || { type:'expedition-batch', count:item.count }, { key:'batch:' + item.count, selected:(e.batch?.selected || 1) === item.count, aria:'Buy exactly ' + item.count + ' ranks per purchase' })).join('') + '</div><p class="wx-muted">Each purchase buys the full quantity. Prices and effects update together.</p>' + (next ? '<div class="wx-next-discovery"><span><strong>Next · ×' + next.count + '</strong><small>' + esc(next.requirement || 'Continue developing your guild') + '</small></span></div>' : '');
+      }
+      else if (model.kind === 'focus') {
+        title = 'Guild Focus';
+        const focus = e.focus || {};
+        html = '<div class="wx-focus-summary"><strong>' + (focus.charges || 0) + ' / ' + (focus.max || 3) + '</strong><span>Shared across every area</span></div>' + (focus.active ? '<p class="wx-effect">' + esc(areaNames[focus.active] || focus.active) + ' focused · ' + Math.ceil(focus.remaining) + 's left</p>' : '') + (focus.charges < focus.max ? '<p class="wx-muted">Next charge in ' + esc(Math.ceil((focus.nextChargeSeconds || 0) / 60)) + ' min · Restores while away</p>' : '') + '<div class="wx-focus-choices">' + (focus.actions || []).map(item => button(icon(item.icon || areaIcons[item.areaId || e.stage.kind]) + '<span><strong>' + esc(item.label) + '</strong><small>' + esc(item.description || item.effectText) + '</small>' + (item.context ? '<small>' + esc(item.context) + '</small>' : '') + '<small>' + esc(focusInputs(item)) + '</small>' + ((item.impact || []).length ? '<span class="wx-impact">' + impacts(item) + '</span>' : '') + '</span><b>1 ◆</b>', item.action, { key:'focus:' + item.id, disabled:item.disabled || !focus.charges, className:'wx-focus-choice' })).join('') + '</div>';
+      }
+      else if (model.kind === 'local') { const item = (view.globalUpgrades || []).find(c => c.id === model.catalogId) || e.cards.find(c => c.id === model.id && (!model.areaId || c.action?.areaId === model.areaId || !c.action?.areaId)); title = item?.label || item?.name || 'Upgrade'; html = detailBody(item, true); }
       else if (model.kind === 'upgrade') { const item = (view.globalUpgrades || []).find(c => c.id === model.id); title = item ? name(item) : 'Upgrade'; html = detailBody(item); }
       else if (model.kind === 'inspect') { const item = descriptors.get(model.id); title = item ? name(item) : 'Upgrade'; html = detailBody(item); }
-      else if (model.kind === 'choice') { title = 'Expedition choices'; html = visible(e.choices || [e.choice]).map(choice => section(choice.title, choiceBody(choice))).join(''); }
+      else if (model.kind === 'choice') {
+        title = 'Area plans';
+        const groups = visible(e.choices || [e.choice]);
+        const configurations = visible(e.configurations);
+        if (configurations.length || (e.specializations || []).length > 1) {
+          html = groups.map(choice => menu(choice.title, choice.options.find(item => item.selected)?.label || 'Choose a working plan', 'compass', {kind:'plan-choice',id:choice.id})).join('');
+          html += configurations.map(group => menu(group.label, Array.isArray(group.selected) ? group.selected.filter(Boolean).length + ' / ' + group.slots + ' assigned' : group.options.find(item => item.id === group.selected)?.label || 'Choose', 'compass', {kind:'configuration',id:group.id,slot:0})).join('');
+          if ((e.specializations || []).length > 1) html += menu('Specialization', e.specializations.find(item => item.selected)?.label || 'Balanced tracks', 'mastery', {kind:'specialization'});
+        } else html = groups.map(choice => section(choice.title, choiceBody(choice))).join('');
+      }
+      else if (model.kind === 'plan-choice') { const choice = e.choices.find(item => item.id === model.id); title = choice?.title || 'Working plan'; html = choiceBody(choice); }
+      else if (model.kind === 'configuration') {
+        const group = (e.configurations || []).find(item => item.id === model.id);
+        title = group?.label || 'Area plan';
+        if (group) {
+          const slot = Math.max(0,Math.min(model.slot || 0,group.slots - 1));
+          if (group.slots > 1) html += '<div class="wx-segments">' + Array.from({length:group.slots},(_,index) => button('Slot ' + (index + 1), () => open({kind:'configuration',id:group.id,slot:index},true), {key:'config-slot:' + index,selected:slot === index})).join('') + '</div>';
+          const options = group.slotOptions?.find(item => item.slot === slot)?.options || (slot === 0 ? group.options : []);
+          const selected = Array.isArray(group.selected) ? group.selected[slot] : group.selected;
+          html += choiceBody({visible:true,id:group.id,options:options.map(item => Object.assign({},item,{selected:item.id === selected,effectText:item.description || item.effectText}))});
+        }
+      }
+      else if (model.kind === 'specialization') { title = 'Specialization'; html = choiceBody({visible:true,id:'specializations',options:(e.specializations || []).map(item => Object.assign({},item,{effectText:item.description || item.effect || 'No specialized track'}))}); }
       else if (model.kind === 'choice-metrics') {
         const choice = (e.choices || [e.choice]).find(item => item.id === model.id);
         title = 'Full rate comparison';
@@ -313,9 +435,18 @@
         title = 'Upgrade effects';
         html = '<div class="wx-options">' + ['all', ...model.effects].map(id => button(id === 'all' ? 'All effects' : id.replace(/[-_]/g,' ').replace(/^./, letter => letter.toUpperCase()), () => { upgradeEffect = id; close(); update(view); q('[data-wx-destination]').scrollTop = 0; }, { key:'filter:effect:' + id, selected:upgradeEffect === id })).join('') + '</div>';
       }
+      else if (model.kind === 'upgrade-areas') {
+        title = 'Affected area';
+        html = '<div class="wx-options">' + ['all',...(e.areas || []).filter(area => area.unlocked).map(area => area.id),'guild'].map(id => button(id === 'all' ? 'All areas' : esc(areaNames[id] || id), () => { upgradeArea = id; close(); update(view); q('[data-wx-destination]').scrollTop = 0; }, {key:'filter:area:' + id,selected:upgradeArea === id})).join('') + '</div>';
+      }
       else if (model.kind === 'objective') {
         title = e.stage.name;
         html = '<p class="wx-effect">' + esc(e.stage.objective) + '</p><ol class="wx-checkpoint-list">' + (e.checkpoints || []).map(c => '<li data-done="' + !!c.complete + '"><b>' + (c.complete ? '✓' : '○') + '</b><span>' + esc(c.label) + '</span></li>').join('') + '</ol>';
+        if (e.scene?.kind === 'harbor' && e.scene?.ruleset === 'progression') {
+          const voyage = e.scene.voyage || {};
+          html += section('At sea', (voyage.manifests || []).map((manifest,index) => '<div class="wx-milestone"><span><strong>Ship ' + (index + 1) + ' · ' + Math.floor(percent(manifest.work / manifest.target)) + '%</strong><small>' + esc(manifest.port) + ' · On arrival: ' + esc(Object.entries(manifest.payout || {}).map(([id,value]) => '+' + metric(value) + ' ' + id).join(' · ')) + '</small></span></div>').join('') || '<p class="wx-muted">Ships launch automatically when supplies are available.</p>');
+          html += '<p class="wx-muted">Next departure uses ' + esc(metric(e.scene.rates?.supply || 0)) + ' provisions. Arrival rewards are credited when a voyage finishes.</p>';
+        }
         if (e.condition) html += '<p>' + esc(e.condition) + '</p>';
         if (e.stage.index > 2) html += '<ul class="wx-muted">' + (e.guildLinks || []).map(link => '<li>' + esc(link) + '</li>').join('') + '</ul>';
         if (e.choice?.visible) html += menu('Current approach', e.choice.options.find(c => c.selected)?.label, 'compass', { kind:'choice' });
@@ -410,6 +541,9 @@
       dialog.dataset.kind = model.kind;
       dialog.querySelector('[data-wx-back]').hidden = !stack.length;
       markup(dialog.querySelector('[data-wx-sheet-content]'), html);
+      const footer = dialog.querySelector('[data-wx-sheet-footer]');
+      footer.hidden = !detailFooter;
+      markup(footer,detailFooter);
     }
     function destinationBody() {
       const e = view.expedition;
@@ -436,7 +570,18 @@
     }
     function update(nextView, context) {
       if (disposed || !nextView.expedition?.local) return;
-      view = nextView;
+      const incoming = nextView.expedition;
+      const choiceGroups = (incoming.choices || []).some(choice => Array.isArray(choice.options)) ? incoming.choices : incoming.choices?.length ? [{id:'plans',title:'Working plan',visible:visible(incoming.choices).length > 1,options:visible(incoming.choices).map(item => Object.assign({effectText:item.description || item.effect},item))}] : [];
+      const stageModel = Object.assign({ objective:incoming.stage.goal || incoming.stage.checkpoint?.label || 'Develop this area', established:incoming.scene?.established },incoming.stage);
+      view = Object.assign({},nextView,{expedition:Object.assign({},incoming,{
+        stage:stageModel,
+        cards:(incoming.cards || []).map(item => item.trackId && item.id !== item.trackId ? Object.assign({},item,{id:item.trackId}) : item),
+        choices:choiceGroups,
+        choice:incoming.choice || choiceGroups.find(choice => choice.visible !== false) || {visible:false,options:[]},
+        finale:incoming.finale || {ready:stageModel.phase === 'Capstone',completed:stageModel.completed,progress:stageModel.finaleTarget ? stageModel.finaleWork / stageModel.finaleTarget : 0},
+        sequence:incoming.sequence ?? Math.max(0,...(incoming.events || []).map(event => event.sequence || 0)),
+        checkpoints:incoming.checkpoints || [], outposts:incoming.outposts || []
+      })});
       const e = view.expedition;
       const stage = e.stage;
       if (context) currentContext = context;
@@ -446,17 +591,20 @@
       const guildUnlocked = view.unlocks.some(id => id !== 'trail');
       const areas = e.areas || ['greenway','quarry','watchtower'].map((id,index) => ({ id, unlocked:stage.index >= index, selected:stage.kind === id }));
       const selectedArea = areas.find(area => area.selected)?.id || stage.kind;
+      const unlockedAreas = areas.filter(area => area.unlocked);
+      const areaIndex = unlockedAreas.findIndex(area => area.id === selectedArea);
+      const canNavigateAreas = screen === 'expedition' && unlockedAreas.length > 1;
       const upgradesUnlocked = guildUnlocked || areas.filter(area => area.unlocked).length > 1;
       q('[data-wx-nav="guild"]').hidden = !guildUnlocked;
       q('[data-wx-nav="upgrades"]').hidden = !upgradesUnlocked;
       if ((screen === 'guild' || screen === 'atlas') && !guildUnlocked || screen === 'upgrades' && !upgradesUnlocked) screen = 'expedition';
-      shell.querySelectorAll('[data-wx-area]').forEach(node => {
-        const area = areas.find(item => item.id === node.dataset.wxArea);
-        node.hidden = !area?.unlocked;
-        node.setAttribute('aria-current', screen === 'expedition' && selectedArea === area?.id ? 'page' : 'false');
-        node.setAttribute('aria-label', (areaNames[node.dataset.wxArea] || area?.label) + (area?.rateText ? ', ' + area.rateText : '') + (area?.attention ? ', new development' : ''));
-        node.querySelector('[data-wx-attention]').hidden = !area?.attention;
-      });
+      q('[data-wx-prev]').hidden = q('[data-wx-next]').hidden = !canNavigateAreas;
+      q('[data-wx-prev]').disabled = areaIndex <= 0;
+      q('[data-wx-next]').disabled = areaIndex >= unlockedAreas.length - 1;
+      q('[data-wx-prev]').setAttribute('aria-label', 'Previous area' + (unlockedAreas[areaIndex - 1] ? ': ' + areaNames[unlockedAreas[areaIndex - 1].id] : ''));
+      q('[data-wx-next]').setAttribute('aria-label', 'Next area' + (unlockedAreas[areaIndex + 1] ? ': ' + areaNames[unlockedAreas[areaIndex + 1].id] : ''));
+      q('[data-wx-nav="expedition"] [data-wx-attention]').hidden = !areas.some(area => area.attention && !area.selected);
+      q('[data-wx-nav="expedition"]').setAttribute('aria-label', 'Areas, current ' + (areaNames[selectedArea] || stage.name) + (areas.some(area => area.attention && !area.selected) ? ', new development' : ''));
       shell.dataset.screen = screen;
       shell.dataset.area = selectedArea;
       shell.querySelectorAll('[data-wx-nav]').forEach(node => node.setAttribute('aria-current', node.dataset.wxNav === screen || screen === 'atlas' && node.dataset.wxNav === 'guild' ? 'page' : 'false'));
@@ -475,17 +623,27 @@
       q('[data-wx-reward]').hidden = !view.caravan?.offer && !view.caravan?.pending;
       q('[data-wx-save-alert]').hidden = !ctx.saveFailure && !ctx.awaitingWallet;
       text(q('[data-wx-save-alert]'), ctx.awaitingWallet ? 'Restoring purchase wallet…' : 'Save needs attention');
-      text(q('[data-wx-stage-name]'), screen === 'expedition' ? stage.name : screen === 'guild' ? 'YOUR GUILD' : screen === 'upgrades' ? 'CONNECTED GUILD' : 'THE ATLAS');
-      text(q('[data-wx-objective-text]'), screen === 'expedition' ? stage.objective : screen === 'guild' ? 'Build your advantage' : screen === 'upgrades' ? 'Every improvement, one place' : 'Every journey leaves a mark');
+      text(q('[data-wx-stage-name]'), screen === 'expedition' ? canNavigateAreas ? (areaIndex + 1) + ' OF ' + unlockedAreas.length + ' AREAS' : stage.name : screen === 'guild' ? 'YOUR GUILD' : screen === 'upgrades' ? 'CONNECTED GUILD' : 'THE ATLAS');
+      text(q('[data-wx-objective-text]'), screen === 'expedition' ? canNavigateAreas ? (areaNames[selectedArea] || stage.name) + ' ▾' : stage.objective : screen === 'guild' ? 'Build your advantage' : screen === 'upgrades' ? 'Every improvement, one place' : 'Every journey leaves a mark');
       q('[data-wx-objective]').disabled = screen !== 'expedition';
+      q('[data-wx-objective]').setAttribute('aria-label', canNavigateAreas ? 'Choose area. ' + (areaNames[selectedArea] || stage.name) + ', ' + (areaIndex + 1) + ' of ' + unlockedAreas.length : stage.name + ': ' + stage.objective);
+      q('[data-wx-objective]').setAttribute('aria-haspopup', canNavigateAreas ? 'dialog' : 'false');
       q('[data-wx-progress]').hidden = screen !== 'expedition';
       q('[data-wx-progress]').value = percent(stage.progress);
-      markup(q('[data-wx-checkpoints]'), screen === 'expedition' ? (e.checkpoints || []).map(c => '<span data-complete="' + !!c.complete + '" title="' + esc(c.label) + '" aria-label="' + esc(c.label + (c.complete ? ': complete' : ': pending')) + '"></span>').join('') : '');
       if (screen !== 'expedition') markup(q('[data-wx-destination]'), destinationBody());
       if (previousScreen !== screen) { q('[data-wx-destination]').scrollTop = 0; previousScreen = screen; }
-      const shown = e.cards.filter(c => c.visible !== false).slice(0,3);
+      const shown = e.cards.filter(c => c.visible !== false);
       const tray = q('[data-wx-tray]');
+      const switchingArea = displayedArea !== selectedArea;
+      if (switchingArea && displayedArea) text(q('[data-wx-area-status]'),(areaNames[selectedArea] || stage.name) + ', area ' + (areaIndex + 1) + ' of ' + unlockedAreas.length);
+      if (switchingArea && displayedArea) areaScroll.set(displayedArea,tray.scrollTop);
       tray.dataset.count = shown.length;
+      q('.wx-dock').dataset.count = String(Math.min(3,shown.length));
+      text(q('[data-wx-upgrade-count]'), 'Upgrades' + (shown.length > 1 ? ' · ' + shown.length : ''));
+      const batch = q('[data-wx-batch]');
+      batch.hidden = !batchAvailable();
+      text(batch, 'Buy ×' + (e.batch?.selected || 1) + ' ▾');
+      batch.setAttribute('aria-label', 'Purchase quantity: ' + (e.batch?.selected || 1) + '. Change exact quantity.');
       for (const node of Array.from(tray.children)) if (!shown.some(c => c.id === node.dataset.upgrade)) node.remove();
       shown.forEach(item => {
         let node = Array.from(tray.children).find(c => c.dataset.upgrade === item.id);
@@ -493,38 +651,55 @@
           node = document.createElement('article');
           node.className = 'wx-upgrade';
           node.dataset.upgrade = item.id;
-          node.innerHTML = button('<strong>' + esc(item.label) + '</strong>' + localIcon(item.id) + '<small data-wx-rank></small><small class="wx-next-rate" data-wx-next-rate></small>', () => inspectLocal(item.id), { key:'local:' + item.id, className:'wx-upgrade-info', aria:'Inspect ' + item.label }) + '<button class="wx-price" data-wx-buy="' + esc(item.id) + '"></button>';
+          node.innerHTML = button(localIcon(item.id,item.icon) + '<span class="wx-track-copy"><strong>' + esc(item.label) + '</strong><small data-wx-rank></small><small class="wx-next-rate" data-wx-next-rate></small></span>', () => inspectLocal(item.id), { key:'local:' + item.id, className:'wx-upgrade-info', aria:'Inspect ' + item.label }) + '<button class="wx-price" data-wx-buy="' + esc(item.id) + '"></button>';
           tray.append(node);
         }
-        text(node.querySelector('[data-wx-rank]'), 'Lv ' + item.rank);
+        text(node.querySelector('[data-wx-rank]'), item.rank + ' / ' + item.maxRank);
         text(node.querySelector('[data-wx-next-rate]'), item.rank >= item.maxRank ? 'Mastered' : gainLabel(item));
         const buy = node.querySelector('[data-wx-buy]');
-        markup(buy, item.rank >= item.maxRank ? 'Max' : costs(item));
+        markup(buy, item.rank >= item.maxRank ? 'Max' : purchaseLabel(item, true));
         buy.disabled = !!item.disabled || !!ctx.awaitingWallet;
-        buy.setAttribute('aria-label', 'Upgrade ' + item.label + ', level ' + item.rank + ', ' + (item.cost || []).map(c => c.text).join(', '));
+        buy.setAttribute('aria-label', 'Buy ' + (item.quantity || 1) + ' ranks of ' + item.label + ', rank ' + item.rank + ' of ' + item.maxRank + ', ' + (item.cost || []).map(c => c.text).join(', ') + (item.disabled && item.reason ? '. ' + item.reason : ''));
         node.dataset.ready = String(!buy.disabled);
         if (previousStage === stage.id && previousRanks[item.id] != null && previousRanks[item.id] < item.rank) { node.classList.remove('wx-purchased'); void node.offsetWidth; node.classList.add('wx-purchased'); }
       });
+      if (switchingArea) tray.scrollTop = areaScroll.get(selectedArea) || 0;
+      displayedArea = selectedArea;
+      const previouslyEarned = earnedTracks.get(selectedArea);
+      if (!switchingArea && previouslyEarned && shown.length > previouslyEarned.length) {
+        const newTrack = shown.find(item => !previouslyEarned.includes(item.id));
+        if (newTrack) { const node = Array.from(tray.children).find(item => item.dataset.upgrade === newTrack.id); node?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}); notify((areaNames[selectedArea] || stage.name) + ': ' + newTrack.label + ' unlocked'); }
+      }
+      earnedTracks.set(selectedArea, shown.map(item => item.id));
+      if (knownAreaCount !== null && knownAreaCount < unlockedAreas.length && !swipeTaught && unlockedAreas.length > 1) { swipeTaught = true; notify('Swipe the scenery to visit your other areas'); }
+      knownAreaCount = unlockedAreas.length;
       previousRanks = Object.fromEntries(e.cards.map(c => [c.id,c.rank]));
       previousStage = stage.id;
       if (seenSequence == null) seenSequence = e.sequence;
       if (e.sequence > seenSequence) {
+        const previousSequence = seenSequence;
         seenSequence = e.sequence;
-        const event = (e.events || []).filter(item => item.kind !== 'stage').pop();
-        if (event) notify(event.title + ': ' + event.text);
+        const event = (e.events || []).filter(item => item.sequence > previousSequence && item.kind !== 'stage').pop();
+        if (event) { const affected = event.targetAreas?.find(id => id !== event.areaId) || event.areaId; notify((affected ? (areaNames[affected] || affected) + ': ' : '') + event.title); }
         root.queueMicrotask(() => { if (!disposed) options.perform({ type:'expedition-seen', sequence:seenSequence }); });
       }
       const bottleneck = (e.stations || []).find(s => s.bottleneck);
       const activeArea = areas.find(area => area.id === selectedArea);
-      text(q('[data-wx-world-label]'), bottleneck ? bottleneck.label + ' · ' + (bottleneck.status || 'Bottleneck') : activeArea?.established ? activeArea.rateText || 'Area working' : stage.index === 0 && shown.length === 1 ? 'Coins arrive as you explore' : '');
+      const voyageLabel = e.scene?.kind === 'harbor' && e.scene?.ruleset === 'progression' ? e.scene.voyage?.ships ? 'Voyage · ' + Math.floor(percent(e.scene.voyage.progress)) + '% · ' + e.scene.voyage.ships + ' at sea' : 'Ships waiting for supplies' : null;
+      text(q('[data-wx-world-label]'), voyageLabel || (bottleneck ? bottleneck.label + ' · ' + (bottleneck.status || 'Bottleneck') : activeArea?.established ? activeArea.rateText || 'Area working' : canNavigateAreas ? stage.objective : stage.index === 0 && shown.length === 1 ? 'Coins arrive as you explore' : ''));
+      q('[data-wx-world-label]').hidden = !q('[data-wx-world-label]').textContent;
+      q('[data-wx-world-label]').setAttribute('aria-label','Area details: ' + q('[data-wx-world-label]').textContent);
+      const focus = q('[data-wx-focus]');
+      focus.hidden = !e.focus?.unlocked;
+      if (e.focus?.unlocked) { markup(focus, '<span aria-hidden="true">◆</span><span>Focus<small>' + (e.focus.active ? Math.ceil(e.focus.remaining) + 's' : e.focus.charges + ' / ' + e.focus.max) + '</small></span>'); focus.setAttribute('aria-label', 'Guild Focus. ' + (e.focus.active ? (areaNames[e.focus.active] || e.focus.active) + ' active, ' + Math.ceil(e.focus.remaining) + ' seconds left. ' : '') + e.focus.charges + ' of ' + e.focus.max + ' shared charges. Review effects.'); }
       const support = visible(view.globalUpgrades || []).find(item => item.owned && (item.targetAreas || []).includes(selectedArea) && (item.sourceAreas || []).some(id => id !== selectedArea));
       const network = q('[data-wx-network]');
       network.hidden = !support;
       if (support) { markup(network, areaLinks(support) + '<span>' + esc(name(support)) + '</span>'); network.setAttribute('aria-label', 'Area connections: ' + name(support)); }
-      const choiceCount = visible(e.choices || [e.choice]).length;
+      const choiceCount = visible(e.choices || [e.choice]).length + visible(e.configurations).length + ((e.specializations || []).length > 1 ? 1 : 0);
       const selectedPlan = e.choice?.options?.find(option => option.selected)?.label;
-      const planLabel = choiceCount > 1 ? 'Plans · ' + choiceCount : stage.kind === 'greenway' ? 'Path' : stage.kind === 'quarry' ? 'Processing' : 'Crew plan';
-      let worldActions = e.choice?.visible ? button(icon('compass') + '<span>' + esc(planLabel) + '</span><b>›</b>', () => open({ kind:'choice' }), { key:'world-choice', className:'wx-world-button', aria:e.choice.title + (selectedPlan ? ': ' + selectedPlan : '') }) : '';
+      const planLabel = choiceCount > 1 ? 'Plans · ' + choiceCount : stage.kind === 'greenway' ? 'Path' : stage.kind === 'quarry' ? 'Processing' : 'Plans';
+      let worldActions = choiceCount ? button(icon('compass') + '<span>' + esc(planLabel) + '</span><b>›</b>', () => open({ kind:'choice' }), { key:'world-choice', className:'wx-world-button', aria:'Area plans' + (selectedPlan ? ': ' + selectedPlan : '') }) : '';
       if (stage.completed && e.next?.action && !e.next.disabled) {
         const nextLabel = e.next.label.replace('Discover','Open').replace('Copper Quarry','Quarry').replace('Greenway','Trail').replace('Watchtower','Tower');
         worldActions += button(esc(nextLabel) + ' →', e.next.action, { className:'wx-world-button wx-gold', aria:e.next.label });
@@ -563,12 +738,24 @@
       else if (target.hasAttribute('data-wx-close')) close();
       else if (target.hasAttribute('data-wx-back')) back();
       else if (target.hasAttribute('data-wx-wallet')) open({ kind:'stockpile' });
-      else if (target.hasAttribute('data-wx-objective')) open({ kind:'objective' });
+      else if (target.hasAttribute('data-wx-objective')) open({ kind:(view.expedition.areas || []).filter(area => area.unlocked).length > 1 ? 'areas' : 'objective' });
+      else if (target.hasAttribute('data-wx-world-label')) open({kind:'objective'});
+      else if (target.hasAttribute('data-wx-prev')) stepArea(-1);
+      else if (target.hasAttribute('data-wx-next')) stepArea(1);
+      else if (target.hasAttribute('data-wx-batch')) open({kind:'batch'});
+      else if (target.hasAttribute('data-wx-focus')) open({kind:'focus'});
       else if (target.hasAttribute('data-wx-options')) open({ kind:'options' });
       else if (target.hasAttribute('data-wx-save-alert')) legacy('settings');
       else if (target.hasAttribute('data-wx-reward')) legacy('caravan');
     }
     shell.addEventListener('click', click, { signal:controller.signal });
+    document.addEventListener('pointerdown', startPointer, { capture:true, signal:controller.signal });
+    document.addEventListener('pointermove', movePointer, { capture:true, passive:false, signal:controller.signal });
+    document.addEventListener('pointerup', endPointer, { capture:true, signal:controller.signal });
+    document.addEventListener('pointercancel', endPointer, { capture:true, signal:controller.signal });
+    root.addEventListener('blur', () => { cancelSwipe(); activePointers.clear(); }, {signal:controller.signal});
+    root.addEventListener('resize', cancelSwipe, {signal:controller.signal});
+    q('.wx-world').addEventListener('keydown', event => { if (event.target !== q('[data-wx-canvas]') || dialog.open) return; if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); stepArea(event.key === 'ArrowLeft' ? -1 : 1); } }, {signal:controller.signal});
     shell.addEventListener('input', event => { if (event.target.hasAttribute('data-wx-search')) { upgradeSearch = event.target.value; markup(q('[data-wx-destination]'), destinationBody()); } }, { signal:controller.signal });
     dialog.addEventListener('click', click, { signal:controller.signal });
     dialog.addEventListener('cancel', event => { event.preventDefault(); back(); }, { signal:controller.signal });

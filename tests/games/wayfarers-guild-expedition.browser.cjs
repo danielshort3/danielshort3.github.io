@@ -47,6 +47,20 @@ async function dismissFind(page) {
 async function closeSheet(page) {
   if (await page.locator('.wx-sheet[open]').count()) await page.locator('[data-wx-close]').click();
 }
+async function areaPicker(page) {
+  await closeSheet(page);
+  await page.locator('[data-wx-nav="expedition"]').click();
+  await page.locator('[data-wx-objective]').click();
+}
+async function selectArea(page,id) {
+  await areaPicker(page);
+  await page.locator('[data-wx-area="' + id + '"]').click();
+}
+async function filterArea(page, id) {
+  const picker = page.locator('[data-wx-do="upgrade-areas"]');
+  if (await picker.isVisible()) { await picker.click(); await page.locator('.wx-sheet [data-wx-do="filter:area:' + id + '"]').click(); }
+  else await page.locator('[data-wx-do="filter:area:' + id + '"]').click();
+}
 async function choose(page, id) {
   await page.locator('[data-wx-do="world-choice"]').click();
   await clickAction(page, 'expedition-choice', id);
@@ -88,6 +102,9 @@ async function run() {
   const browser = await chromium.launch({ headless: true });
   async function open(width, height, savedState) {
     const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
+    // Preserve the released economy's natural flow until an explicit reset.
+    // New six-area progression has its own rendered-input suite.
+    if (!savedState) savedState = Core.migrateState(require('./fixtures/wayfarers-v4-fresh.json'));
     if (savedState) {
       const saved = JSON.parse(JSON.stringify(savedState));
       saved.lastUpdate = 1000;
@@ -182,7 +199,7 @@ async function run() {
         if (stage === 2 && seconds - started[stage] > 30 && !selected.has('guard')) { id = 'protect'; selected.add('guard'); }
         if (id) { await choose(page,id); selected.add(stage); choices.push({ stage,id,seconds }); }
       }
-      const available = await page.locator('[data-wx-buy]:enabled').evaluateAll(buttons => buttons.map(button => ({ id:button.dataset.wxBuy, level:Number(button.closest('article').querySelector('[data-wx-rank]').textContent.replace(/\D/g,'')) })).sort((a,b) => a.level - b.level));
+      const available = await page.locator('[data-wx-buy]:enabled').evaluateAll(buttons => buttons.map(button => ({ id:button.dataset.wxBuy, level:Number(button.closest('article').querySelector('[data-wx-rank]').textContent.split('/')[0].trim()) })).sort((a,b) => a.level - b.level));
       if (available.length) {
         await page.locator('[data-wx-buy="' + available[0].id + '"]').click();
         purchases += 1; longestGap = Math.max(longestGap, seconds - lastPurchase); lastPurchase = seconds;
@@ -193,9 +210,9 @@ async function run() {
     assert(purchases >= 20,'many useful upgrades in the opening'); assert(longestGap < 90,'no unexplained 90-second purchase drought');
     await closeSheet(page);
     const built = await state(page);
-    assert.equal(await page.locator('.wx-nav button:visible').count(),5,'three areas plus Upgrades and Guild');
+    assert.equal(await page.locator('.wx-nav button:visible').count(),3,'Areas, Upgrades and Guild remain full-size destinations');
     for (const id of ids) {
-      await page.locator('[data-wx-area="' + id + '"]').click();
+      await selectArea(page,id);
       await page.clock.runFor(50);
       assert.equal(await page.locator('[data-wx-canvas]').getAttribute('data-scene-kind'),id);
       assert.equal(await page.locator('[data-wx-canvas]').getAttribute('data-scene-established'),'true');
@@ -220,7 +237,7 @@ async function run() {
       await page.setViewportSize({width,height}); await paint(page);
       const frame = await geometry(page);
       for (const id of ids) {
-        await page.locator('[data-wx-area="' + id + '"]').click(); await paint(page);
+        await selectArea(page,id); await paint(page);
         assert.deepEqual(await geometry(page),frame,'completed-area navigation keeps the scene anchored at ' + width);
         assert(await page.locator('[data-wx-do="world-choice"]').isVisible());
         assert.equal(await page.locator('.wx-world-actions ' + command('expedition-next')).getAttribute('aria-label'),'Expand Greenway');
@@ -252,10 +269,10 @@ async function run() {
       await closeSheet(p); await p.locator('[data-wx-nav="upgrades"]').click();
       await layout(p,'global catalog ' + width); await screen(p,'network-catalog-' + width);
       assert.equal(await p.locator('.wx-destination select').count(),0,'catalog uses visible buttons');
-      await p.locator('[data-wx-do="filter:area:greenway"]').click();
+      await filterArea(p, 'greenway');
       const targets = await p.locator('[data-wx-upgrade]').evaluateAll(nodes => nodes.map(node => node.dataset.wxUpgrade));
       assert(targets.includes('area:greenway:boots'),'area filter includes its exact persistent tracks');
-      await p.locator('[data-wx-do="filter:area:all"]').click();
+      await filterArea(p, 'all');
       await p.locator('[data-wx-do="upgrade-filters"]').click();
       await layout(p,'effect filter sheet ' + width); await screen(p,'network-effect-filters-' + width);
       await p.locator('[data-wx-do="filter:effect:all"]').click();
@@ -267,10 +284,13 @@ async function run() {
       await layout(p,'development details ' + width); await screen(p,'network-development-details-' + width);
       await clickAction(p,'expedition-development','trail-caravans'); await closeSheet(p);
       assert((await state(p)).expedition.developments.includes('trail-caravans'),'canonical development purchased');
-      assert(await p.locator('[data-wx-area="greenway"] [data-wx-attention]').isVisible(),'new earlier-area development is marked');
+      await areaPicker(p);
+      assert(await p.locator('[data-wx-area="greenway"] .wx-new').isVisible(),'new earlier-area development is marked');
       await p.locator('[data-wx-area="greenway"]').click(); await paint(p);
-      assert(!(await p.locator('[data-wx-area="greenway"] [data-wx-attention]').isVisible()),'visiting an area acknowledges its new feature');
-      assert(await p.locator('[data-wx-area="quarry"] [data-wx-attention]').isVisible(),'visiting Trail does not erase Quarry attention');
+      await areaPicker(p);
+      assert(!(await p.locator('[data-wx-area="greenway"] .wx-new').isVisible()),'visiting an area acknowledges its new feature');
+      assert(await p.locator('[data-wx-area="quarry"] .wx-new').isVisible(),'visiting Trail does not erase Quarry attention');
+      await closeSheet(p);
       assert((await p.locator('[data-wx-canvas]').getAttribute('data-scene-developments')).includes('trail-caravans'));
       await choose(p,'freight');
       assert.equal((await state(p)).expedition.areas.greenway.choices.dispatch,'freight');
@@ -279,7 +299,7 @@ async function run() {
       await p.locator('[data-wx-nav="upgrades"]').click(); await p.locator('[data-wx-search]').fill('Precision smelting');
       const precision = p.locator('[data-wx-upgrade="development:quarry-precision"]');
       await precision.locator('.wx-price').click();
-      await p.locator('[data-wx-area="quarry"]').click(); await paint(p);
+      await selectArea(p,'quarry'); await paint(p);
       assert((await p.locator('[data-wx-canvas]').getAttribute('data-scene-developments')).includes('quarry-precision'));
       assert.match(await p.locator('[data-wx-local-count]').innerText(),/Ore \/s/,'established Quarry displays ongoing production');
       await choose(p,'precision');

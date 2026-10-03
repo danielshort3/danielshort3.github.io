@@ -26,10 +26,11 @@ class GuildOfflineDeviceTest {
       InstrumentationRegistry.getArguments().getString("guildMatureQa") == "true")
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val before = awaitReady(scenario)
-      assertEquals("All three permanent areas must exist in this QA fixture", 3, before.getInt("areaCount"))
+      assertTrue("At least the first three permanent areas must exist in this QA fixture", before.getInt("areaCount") >= 3)
+      evaluate(scenario, "var batch = document.querySelector('[data-wx-batch]'); if (batch && !batch.hidden) { batch.click(); document.querySelector('[data-wx-do=\"batch:1\"]').click(); } true")
       val ranks = before.getString("areaRanks")
       for (id in listOf("greenway", "watchtower", "quarry")) {
-        evaluate(scenario, "document.querySelector('[data-wx-area=\"$id\"]').click(); true")
+        selectArea(scenario, id)
         val selected = awaitSnapshot(scenario, "Selecting $id should only navigate") {
           it.optString("selectedArea") == id && it.optString("sceneKind") == id && it.optBoolean("rendered")
         }
@@ -68,13 +69,59 @@ class GuildOfflineDeviceTest {
       }
       scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
       awaitSheet(scenario, "")
-      evaluate(scenario, "document.querySelector('[data-wx-area=\"quarry\"]').click(); true")
+      selectArea(scenario, "quarry")
       awaitReady(scenario)
       scenario.recreate()
       val restored = awaitReady(scenario)
       assertEquals(purchased.getLong("createdAt"), restored.getLong("createdAt"))
       assertEquals(purchased.getString("areaRanks"), restored.getString("areaRanks"))
       assertEquals("quarry", restored.getString("selectedArea"))
+    }
+  }
+
+  private fun selectArea(scenario: ActivityScenario<MainActivity>, id: String) {
+    evaluate(scenario, "document.querySelector('[data-wx-nav=\"expedition\"]').click(); document.querySelector('[data-wx-objective]').click(); true")
+    awaitSheet(scenario, "areas")
+    evaluate(scenario, "document.querySelector('[data-wx-area=\"$id\"]').click(); true")
+  }
+
+  @Test fun sixAreaPickerExactBatchAndPlansRemainUsableWithLargeText() {
+    assumeTrue("Requires the explicitly opted-in disposable six-area fixture",
+      InstrumentationRegistry.getArguments().getString("guildProgressionQa") == "true")
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val before = awaitReady(scenario)
+      assertEquals(6, before.getInt("areaCount"))
+      val ranks = before.getString("areaRanks")
+      try {
+        scenario.onActivity { activity -> findWebView(activity.window.decorView)!!.settings.textZoom = 130 }
+        for (id in listOf("greenway", "quarry", "watchtower", "workshop", "ruins", "harbor")) {
+          selectArea(scenario, id)
+          val selected = awaitSnapshot(scenario, "Six-area navigation must show $id") {
+            it.optString("selectedArea") == id && it.optString("sceneKind") == id && it.optBoolean("rendered")
+          }
+          assertEquals("Navigation retains all ordinary ranks", ranks, selected.getString("areaRanks"))
+          assertTrue("Large text keeps every currency line inside its button", selected.getBoolean("priceLabelsFit"))
+          assertEquals("All six learned tracks remain available", 6, selected.getInt("trackCount"))
+          evaluate(scenario, "document.querySelector('[data-wx-do=\"world-choice\"]').click(); true")
+          awaitSheet(scenario, "choice")
+          scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+          awaitSheet(scenario, "")
+        }
+        selectArea(scenario, "greenway")
+        evaluate(scenario, "document.querySelector('[data-wx-batch]').click(); document.querySelector('[data-wx-do=\"batch:5\"]').click(); true")
+        val purchasedBefore = readSnapshot(scenario)
+        evaluate(scenario, "document.querySelector('[data-wx-buy=\"boots\"]').click(); true")
+        val purchased = awaitSnapshot(scenario, "Exact five-rank purchase must be durably saved") {
+          it.optInt("boots") == purchasedBefore.getInt("boots") + 5 && it.optBoolean("nativeConfirmed")
+        }
+        assertEquals(5, purchased.getInt("batch"))
+        scenario.recreate()
+        val restored = awaitReady(scenario)
+        assertEquals(purchased.getInt("boots"), restored.getInt("boots"))
+        assertEquals(5, restored.getInt("batch"))
+      } finally {
+        scenario.onActivity { activity -> findWebView(activity.window.decorView)!!.settings.textZoom = 100 }
+      }
     }
   }
 
@@ -271,6 +318,10 @@ class GuildOfflineDeviceTest {
             createdAt: state && state.createdAt, lastUpdate: state && state.lastUpdate,
             boots: trail && trail.ranks.boots,
             areaCount: Object.keys(areas).length, selectedArea: expedition && expedition.selectedArea,
+            batch: expedition && expedition.batch || 1, trackCount: document.querySelectorAll('[data-wx-buy]').length,
+            priceLabelsFit: Array.from(document.querySelectorAll('.wx-dock .wx-price>span')).every(function (label) {
+              return label.getBoundingClientRect().bottom <= label.parentElement.getBoundingClientRect().bottom + 1;
+            }),
             areaRanks: JSON.stringify(areaRanks), areaElapsed: areaElapsed,
             sceneKind: scene && scene.dataset.sceneKind,
             catalogRows: document.querySelectorAll('[data-wx-upgrade]').length,

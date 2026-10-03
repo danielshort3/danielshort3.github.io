@@ -51,7 +51,7 @@ function checkpointEnvelope(createdAt, savedAt, boots = 0) {
   const state = core.createState(createdAt);
   state.lastUpdate = savedAt;
   state.upgrades.boots = boots;
-  return JSON.stringify({ format: 'wayfarers-guild-save', version: 4, savedAt, state });
+  return JSON.stringify({ format: 'wayfarers-guild-save', version: state.schemaVersion, savedAt, state });
 }
 
 test('native checkpoint recovers only a validated latest same-guild save or a reviewed replacement', () => {

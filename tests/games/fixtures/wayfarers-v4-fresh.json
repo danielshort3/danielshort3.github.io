@@ -1,0 +1,345 @@
+{
+  "schemaVersion": 4,
+  "createdAt": 0,
+  "lastUpdate": 0,
+  "resources": {
+    "coins": {
+      "m": 0,
+      "e": 0
+    },
+    "ore": {
+      "m": 0,
+      "e": 0
+    },
+    "herbs": {
+      "m": 0,
+      "e": 0
+    },
+    "provisions": {
+      "m": 0,
+      "e": 0
+    },
+    "knowledge": {
+      "m": 0,
+      "e": 0
+    },
+    "maps": {
+      "m": 0,
+      "e": 0
+    },
+    "notes": {
+      "m": 0,
+      "e": 0
+    },
+    "crests": {
+      "m": 0,
+      "e": 0
+    },
+    "starshards": {
+      "m": 0,
+      "e": 0
+    }
+  },
+  "upgrades": {
+    "boots": 0,
+    "preparation": 0,
+    "miners": 0,
+    "forge": 0,
+    "foragers": 0,
+    "cooks": 0,
+    "scholars": 0,
+    "surveyors": 0,
+    "mentors": 0,
+    "gear-tools": 0,
+    "gear-boots": 0,
+    "gear-instruments": 0
+  },
+  "research": [],
+  "refitUpgrades": {
+    "pace": 0,
+    "supply": 0,
+    "insight": 0
+  },
+  "legacy": {
+    "foundations": 0,
+    "curriculum": 0,
+    "waystones": 0
+  },
+  "rooms": [
+    "trail"
+  ],
+  "mastery": {
+    "trail": {
+      "m": 0,
+      "e": 0
+    },
+    "mine": {
+      "m": 0,
+      "e": 0
+    },
+    "forge": {
+      "m": 0,
+      "e": 0
+    },
+    "forage": {
+      "m": 0,
+      "e": 0
+    },
+    "kitchen": {
+      "m": 0,
+      "e": 0
+    },
+    "study": {
+      "m": 0,
+      "e": 0
+    },
+    "hall": {
+      "m": 0,
+      "e": 0
+    },
+    "cartography": {
+      "m": 0,
+      "e": 0
+    }
+  },
+  "ranks": {
+    "trail": 0,
+    "mine": 0,
+    "forge": 0,
+    "forage": 0,
+    "kitchen": 0,
+    "study": 0,
+    "hall": 0,
+    "cartography": 0
+  },
+  "route": {
+    "index": 0,
+    "progress": {
+      "m": 0,
+      "e": 0
+    },
+    "mode": "frontier"
+  },
+  "run": {
+    "id": 1,
+    "completed": -1,
+    "work": {
+      "m": 0,
+      "e": 0
+    },
+    "elapsed": 0
+  },
+  "chapter": {
+    "work": {
+      "m": 0,
+      "e": 0
+    },
+    "refits": 0
+  },
+  "lifetime": {
+    "work": {
+      "m": 0,
+      "e": 0
+    },
+    "coins": {
+      "m": 0,
+      "e": 0
+    },
+    "refits": 0,
+    "charters": 0,
+    "highestRoute": -1,
+    "frontier": 0
+  },
+  "crew": {
+    "owned": [],
+    "specialists": [
+      null,
+      null
+    ],
+    "companions": [],
+    "companion": null
+  },
+  "meal": "meal-none",
+  "doctrine": "balanced",
+  "automations": {
+    "operations": false,
+    "equipment": false,
+    "routes": false
+  },
+  "challenges": {
+    "active": null,
+    "completed": []
+  },
+  "collections": [],
+  "planner": 0,
+  "events": [],
+  "premium": {
+    "rng": 3806652160,
+    "eligibleSeconds": 0,
+    "untilDrop": 14483.261,
+    "drops": 0,
+    "claimedMilestones": [],
+    "owned": [],
+    "equipped": null
+  },
+  "luck": {
+    "rng": 4235380996,
+    "commonRemainingMs": 591216,
+    "relicRemainingMs": 301767,
+    "pitySeconds": 0,
+    "owned": [],
+    "active": null,
+    "duplicateProgress": {
+      "golden-pickaxe": 0,
+      "surveyors-lens": 0,
+      "living-crucible": 0,
+      "marsh-lantern": 0,
+      "frost-compass": 0,
+      "archive-quill": 0,
+      "starsteel-anvil": 0,
+      "wayfarer-standard": 0
+    },
+    "hunt": "balanced",
+    "scheduledHunt": "balanced",
+    "research": [],
+    "kit": {
+      "prepared": null,
+      "active": null,
+      "remainingSeconds": 0
+    },
+    "ledger": {
+      "seq": 0,
+      "seen": 0,
+      "recent": []
+    },
+    "collectionBanner": false,
+    "commonFinds": 0,
+    "relicFinds": 0
+  },
+  "caravan": {
+    "rng": 1760403615,
+    "remainingMs": 4337776,
+    "offer": null,
+    "sequence": 0,
+    "completed": [],
+    "receipts": [],
+    "pendingQuote": null,
+    "surge": {
+      "resource": null,
+      "remainingSeconds": 0
+    }
+  },
+  "guild": {
+    "grandfathered": false,
+    "projects": [],
+    "capabilities": [],
+    "supply": "steady",
+    "prepared": {
+      "index": -1,
+      "kinds": []
+    },
+    "chapterProject": {
+      "number": 0,
+      "choice": null
+    },
+    "plan": {
+      "reserves": {
+        "coins": {
+          "m": 0,
+          "e": 0
+        },
+        "ore": {
+          "m": 0,
+          "e": 0
+        },
+        "herbs": {
+          "m": 0,
+          "e": 0
+        },
+        "provisions": {
+          "m": 0,
+          "e": 0
+        },
+        "knowledge": {
+          "m": 0,
+          "e": 0
+        },
+        "maps": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "goal": null,
+      "priorities": {
+        "operations": "balanced",
+        "equipment": "balanced"
+      },
+      "queue": [],
+      "kit": "off",
+      "preparation": "off"
+    },
+    "loadouts": [],
+    "audit": []
+  },
+  "introductions": {
+    "seen": []
+  },
+  "expedition": {
+    "version": 2,
+    "index": 0,
+    "cleared": -1,
+    "completed": false,
+    "selectedArea": "greenway",
+    "areas": {
+      "greenway": {
+        "index": 0,
+        "goalMode": "legacy",
+        "legacyRegion": 0,
+        "seenSequence": 0,
+        "established": false,
+        "elapsed": 0,
+        "work": 0,
+        "finaleWork": 0,
+        "buffers": {
+          "ore": 0,
+          "smelt": 0
+        },
+        "ranks": {
+          "boots": 0,
+          "porters": 0,
+          "scouts": 0,
+          "picks": 0,
+          "carts": 0,
+          "furnace": 0,
+          "crew": 0,
+          "lift": 0,
+          "beacon": 0
+        },
+        "choices": {
+          "route": "short",
+          "smelting": "throughput",
+          "equipment": "tools",
+          "allocation": "balanced",
+          "dispatch": "trade"
+        },
+        "purchases": 0
+      }
+    },
+    "developments": [],
+    "blueprints": [],
+    "mastery": {
+      "greenway": 0,
+      "quarry": 0,
+      "watchtower": 0
+    },
+    "automation": {
+      "enabled": false,
+      "priority": "balanced",
+      "dispatch": false
+    },
+    "sequence": 0,
+    "seen": 0,
+    "recent": [],
+    "purchases": 0
+  }
+}

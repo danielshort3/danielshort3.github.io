@@ -257,7 +257,7 @@
           card.classList.add('wg-purchased');
         }
         announce((shortNames[action.id] || action.id) + ' upgraded');
-      } else announce(result.message);
+      } else if (!result.ok || !['expedition-select', 'expedition-seen', 'discovery-seen', 'introduction-seen'].includes(action.type)) announce(result.message);
       if (result.ok) save();
       render();
       if (dialog.open && dialogKind === 'inspect') { if (descriptorLookup.has(inspectedKey)) renderInspect(); else backSheet(); }

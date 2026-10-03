@@ -2,6 +2,10 @@
 import '../../js/games/wayfarers-guild/numbers.js';
 import '../../js/games/wayfarers-guild/content.js';
 import '../../js/games/wayfarers-guild/expeditions.js';
+import '../../js/games/wayfarers-guild/progression-content.js';
+import '../../js/games/wayfarers-guild/progression-modifiers.js';
+import '../../js/games/wayfarers-guild/progression.js';
+import '../../js/games/wayfarers-guild/progression-purchases.js';
 import '../../js/games/wayfarers-guild/core.js';
 import '../../js/games/wayfarers-guild/persistence.js';
 import '../../js/games/wayfarers-guild/billing.js';

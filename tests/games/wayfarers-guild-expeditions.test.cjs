@@ -2,7 +2,9 @@
 'use strict';
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const Core = require('../../js/games/wayfarers-guild/core.js');
+const CurrentCore = require('../../js/games/wayfarers-guild/core.js');
+// These witnesses cover a released v4 run before explicit economy adoption.
+const Core = Object.assign({}, CurrentCore, { createState(now = 0) { const state = CurrentCore.migrateState(require('./fixtures/wayfarers-v4-fresh.json')); state.createdAt = now; state.lastUpdate = now; return state; } });
 const E = require('../../js/games/wayfarers-guild/expeditions.js');
 const Storage = require('../../js/games/wayfarers-guild/persistence.js');
 const N = Core.Numbers;
@@ -173,39 +175,27 @@ test('persistent choices support actual local work, retain paid effects and disc
   assert.ok(E.localRates(quarry).furnace > before.furnace);
 });
 
-test('blueprints, mastery, outposts and automation survive both existing prestige resets', () => {
+test('an explicit released-run Refit adopts rebuilding ranks while preserving permanent knowledge and plans', () => {
   const state = stage(3);
   assert.ok(Core.act(state, { type: 'expedition-blueprint', id: 'engineering' }).ok);
   assert.equal(Core.act(state, { type: 'expedition-blueprint', id: 'caravan' }).ok, false);
   assert.ok(Core.act(state, { type: 'expedition-automation', enabled: true, priority: 'progress', dispatch: true }).ok);
-  // This first Refit is reachable using exactly the earned Quarry ore.
   assert.ok(Core.act(state, { type: 'buy', id: 'gear-boots' }).ok);
   assert.ok(Core.getRefitPreview(state).available);
   const retained = clone(state.expedition), premium = clone(state.premium);
   assert.ok(Core.act(state, { type: 'refit' }).ok);
-  for (const key of ['cleared', 'blueprints', 'mastery', 'automation', 'sequence', 'seen', 'recent', 'purchases']) assert.deepEqual(state.expedition[key], retained[key]);
+  assert.equal(state.expedition.version, 3);
+  for (const key of ['cleared', 'blueprints', 'mastery', 'purchases']) assert.deepEqual(state.expedition[key], retained[key]);
+  for (const key of ['enabled', 'priority', 'dispatch']) assert.equal(state.expedition.automation[key], retained.automation[key]);
   for (const id of Object.keys(retained.areas)) {
-    assert.deepEqual(area(state, id).ranks, retained.areas[id].ranks);
-    assert.deepEqual(area(state, id).buffers, retained.areas[id].buffers);
-    assert.deepEqual(area(state, id).choices, retained.areas[id].choices);
+    assert.ok(Object.values(area(state, id).ranks).every(rank => rank === 0));
+    assert.deepEqual(area(state, id).buffers, { input: 0, output: 0 });
+    assert.ok(area(state, id).learned.length >= 3);
   }
-  assert.equal(area(state, 'greenway').work, 0);
+  assert.equal(state.expedition.work, 0);
   assert.equal(state.premium.rng, premium.rng);
-  assert.ok(E.contribution(state).ore.m > 0);
-  valid(state);
-  // A self-contained, valid funded chapter checkpoint exercises the deeper reset.
-  // Its timeline is deliberately not a pacing assertion.
-  state.lifetime.highestRoute = 8; state.run.completed = 8; state.route.index = 9;
-  state.expedition.cleared = 8; E.restart(state, 9);
-  state.run.work = N.from(2e16); state.chapter.work = N.from(2e16); state.lifetime.work = N.from(2e16);
-  state.guild.chapterProject.choice = 'industry';
-  valid(state);
-  const beforeCharter = clone(state.expedition);
-  assert.ok(Core.getCharterPreview(state).available);
-  assert.ok(Core.act(state, { type: 'charter' }).ok);
-  for (const key of ['cleared', 'blueprints', 'mastery', 'automation']) assert.deepEqual(state.expedition[key], beforeCharter[key]);
-  assert.equal(state.expedition.index, 0);
-  assert.equal(state.upgrades['gear-boots'], 0);
+  assert.ok(Core.getRates(state).gain.ore.m > 0);
+  assert.ok(Core.getRefitPreview(state).resets.some(text => /ranks/.test(text)));
   valid(state);
 });
 
@@ -404,16 +394,16 @@ test('shared reserve and explicit development objective protect savings from bot
   assert.ok(Core.act(state, { type: 'buy', id: 'gear-boots' }).ok);
   assert.ok(Core.act(state, { type: 'refit' }).ok);
   assert.ok(Core.act(state, { type: 'plan-reserve', id: 'coins', amount: '100' }).ok);
-  assert.ok(Core.act(state, { type: 'plan-goal', action: { type: 'expedition-development', id: 'trail-caravans' } }).ok);
+  assert.ok(Core.act(state, { type: 'plan-goal', action: { type: 'expedition-development', id: 'wheelworks' } }).ok);
   assert.ok(Core.act(state, { type: 'expedition-automation', enabled: true, priority: 'balanced', dispatch: true }).ok);
-  advance(state, 180);
-  assert.ok(state.expedition.developments.includes('trail-caravans'));
+  advance(state, 600);
+  assert.ok(state.expedition.projects.includes('wheelworks'));
   assert.ok(N.cmp(state.resources.coins, 100) >= 0);
   assert.equal(state.guild.plan.goal, null);
   // A deliberately short cash interval cannot buy a rank just below its exact
   // cost. The next interval does; the wallet never supplies a free whole coin.
   Core.act(state, { type: 'expedition-automation', enabled: false, priority: 'balanced', dispatch: false });
-  const offer = E.catalog(state).find(x => x.id === 'area:greenway:boots');
+  const offer = require('../../js/games/wayfarers-guild/progression.js').catalog(state).find(x => x.id === 'area:greenway:boots');
   state.resources.coins = N.sub(offer.cost[0].amount, .001);
   assert.equal(Core.act(state, offer.action).ok, false);
   advance(state, .01);
@@ -478,8 +468,8 @@ test('a reachable Refit preserves infrastructure and credits only newly performe
   const target = N.toNumber(Core.getRoute(0, state).distance);
   advance(state, 1);
   assert.ok(N.toNumber(state.run.work) > 0 && N.toNumber(state.run.work) < target, 'past area work is not re-credited after a reset');
-  for (const id of Object.keys(retained)) assert.deepEqual(area(state, id).ranks, retained[id].ranks);
-  assert.deepEqual(state.expedition.developments, developments);
+  for (const id of Object.keys(retained)) assert.ok(Object.values(area(state, id).ranks).every(rank => rank === 0));
+  assert.deepEqual(state.expedition.legacyDevelopments, developments);
   valid(state);
 });
 
@@ -488,7 +478,7 @@ test('late transformations require earned Charters and are advertised before ren
   state.lifetime.highestRoute = 17; state.run.completed = 17; state.route.index = 18;
   state.expedition.cleared = 17; E.restart(state, 18);
   for (const key of ['coins', 'ore', 'knowledge', 'maps']) state.resources[key] = N.from(1e12);
-  assert.ok(Core.getCharterPreview(state).gains.some(text => text.includes('Prospecting network')));
+  assert.ok(Core.getCharterPreview(state).resets.some(text => text.includes('adopts the new six-area')));
   const ids = ['trail-prospectors', 'tower-control-room', 'survey-exchange'];
   for (const id of ids) assert.equal(Core.act(state, { type: 'expedition-development', id }).ok, false);
   for (let count = 1; count <= 3; count += 1) {

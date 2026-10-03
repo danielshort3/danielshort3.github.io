@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.4.0`, version code `5` |
+| Default candidate | `0.5.0`, version code `6` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 
@@ -21,6 +21,8 @@ The runtime is under `src/main/java/me/danielshort/wayfarers/`. Its activity and
 `GuildCheckpointStore.kt` adds a private, atomic, fsynced checkpoint of each successful canonical game save. `web/checkpoint.js` validates the envelope with the canonical parser before mirroring it and before bootstrap recovery; the native wrapper verifies its SHA-256 when reading. A newer valid WebView save wins. Recovery across a different guild identity requires the recorded identity from an explicitly reviewed import. `native-checkpoint.js` is an empty generated fallback for browser previews; the Android asset loader supplies the private checkpoint at that exact same-origin script URL without caching it. Checkpoints contain the normal exported game envelope, never a paid wallet. Lifecycle and installer safety checks finish the native write before reporting success.
 
 `shareUpdaterSources` copies the canonical `app/src/main/java/me/danielshort/app/updates/*.kt` and `data/AppSettings.kt` into an ignored generated source set without rewriting them. It excludes only `AutomaticInstallReceiver.kt`, whose application cast is specific to the main app. `shareUpdaterTests` compiles the original updater JVM tests in this module too. Changes to signatures, exact APK identity, patch verification, download bounds or installer recovery remain owned by the original updater sources; do not fork them here. The main application build configuration is unchanged.
+
+The game envelope now uses schema 5. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 5, so an older checkpoint can reach the canonical migration code. Existing version-4 runs retain their economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-5 envelope; the WebView backup retains the previous valid bytes.
 
 ## Local builds and signing
 
@@ -59,12 +61,13 @@ Source/JVM/lint results, installed offline play and a real in-app baseline-to-ca
 Focused game checks run from the repository root:
 
 ```powershell
-node tests/games/wayfarers-guild-opening.test.cjs
+npm run test:wayfarers-guild:expeditions
+npm run test:wayfarers-guild:progression:browser
 node tests/games/wayfarers-guild-expedition.browser.cjs
 node --test mobile/android/scripts/wayfarers-bundle.test.cjs
 ```
 
-The expedition browser check builds the same offline assets as the APK. It exercises the first purchase and earned controls at portrait/landscape sizes, establishes the three operations through visible purchases and decisions, revisits productive earlier areas, buys cross-area developments from the shared catalog, and reloads the retained guild. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, and native checkpoint acknowledgement. Run its first-boot case on a fresh disposable emulator; never clear an existing player's data to make that case run.
+Both browser checks build the same offline assets as the APK. The expedition suite checks retained published runs; the progression suite checks the new opening, six-area navigation, exact bulk transactions, cap remainders, gestures and bounded layouts. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, six-area controls and native checkpoint acknowledgement. Run first-boot and opted-in mature fixtures only on a disposable emulator; never clear an existing player's data to make a case run.
 
 ## Publish a compatible update
 
