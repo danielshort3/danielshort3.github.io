@@ -2,6 +2,7 @@
 
 const Core = require('../../../js/games/wayfarers-guild/core.js');
 const P = require('../../../js/games/wayfarers-guild/progression.js');
+const Tiers = require('../../../js/games/wayfarers-guild/upgrade-tiers.js');
 const N = Core.Numbers;
 const clone = value => JSON.parse(JSON.stringify(value));
 function advance(state, seconds) {
@@ -14,6 +15,19 @@ function advance(state, seconds) {
 function fund(state, amount = 1e14) {
   for (const id of ['coins', 'ore', 'herbs', 'provisions', 'knowledge', 'maps']) state.resources[id] = N.from(amount);
 }
+// Explicit decisions for funded behavior fixtures, never offline auto-claims.
+function claimTiers(state) {
+  Tiers.sync(state);
+  for (let pass = 0; pass < 100; pass += 1) {
+    const ready = Tiers.view(state).ready;
+    if (!ready.length) return;
+    for (const tier of ready) {
+      const result = Core.act(state, tier.unlockAction);
+      if (!result.ok) throw new Error(result.message);
+    }
+  }
+  throw new Error('Tier claims did not settle.');
+}
 let cached;
 // A deliberately funded behavior/renderer fixture, never a natural pacing
 // witness. Areas and branches are created by their actual engine actions.
@@ -23,6 +37,7 @@ function mature(options = {}) {
   fund(state);
   for (let index = 0; index < 3; index += 1) {
     while (!state.expedition.completed) {
+      claimTiers(state);
       for (const [areaId, area] of Object.entries(state.expedition.areas)) for (const id of area.learned) {
         if (area.ranks[id] < 20) Core.act(state, { type: 'expedition-buy', areaId, id });
       }
@@ -32,9 +47,11 @@ function mature(options = {}) {
   }
   for (const definition of P.Content.PROJECTS) {
     fund(state);
+    claimTiers(state);
     const started = Core.act(state, { type: 'expedition-development', id: definition.id });
     if (!started.ok) throw new Error(started.message);
     P.tick(state, definition.work / P.rawRates(state).researchRate + 1e-6);
+    claimTiers(state);
     if (state.expedition.commission) throw new Error('Research fixture did not finish ' + definition.id);
     if (definition.id === options.untilProject) break;
   }
@@ -44,6 +61,7 @@ function mature(options = {}) {
   state.premium.claimedMilestones.push('first-refit', 'first-charter');
   state.expedition.focus = { charges: 3, recharge: 0, active: null, remaining: 0, unlocked: true };
   fund(state);
+  claimTiers(state);
   for (const [areaId, area] of Object.entries(state.expedition.areas)) for (const id of area.learned) {
     while (area.ranks[id] < 25) Core.act(state, { type: 'expedition-buy', areaId, id });
   }
@@ -52,4 +70,4 @@ function mature(options = {}) {
   if (!options.untilProject) cached = clone(state);
   return state;
 }
-module.exports = { Core, P, N, clone, advance, fund, mature };
+module.exports = { Core, P, N, clone, advance, fund, mature, claimTiers };

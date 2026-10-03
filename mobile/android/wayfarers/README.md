@@ -70,6 +70,14 @@ node --test mobile/android/scripts/wayfarers-bundle.test.cjs
 
 Both browser checks build the same offline assets as the APK. The expedition suite checks retained published runs; the progression suite checks the new opening, six-area navigation, exact bulk transactions, cap remainders, gestures and bounded layouts. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, six-area controls and native checkpoint acknowledgement. Run first-boot and opted-in mature fixtures only on a disposable emulator; never clear an existing player's data to make a case run.
 
+## Testing reset
+
+Open **Settings & saves → Testing → Reset all game progress**, optionally download a backup, and type `RESET` to confirm. This clears the guild's currencies, areas, ranks, resets, discoveries, cards, equipment and local recovery copies. It preserves app preferences, other site data and account-owned purchases; downloaded backup files remain available. It is separate from the in-game Refit and Charter resets.
+
+`persistence.js` writes a fixed fresh snapshot and unique generation to a durable journal before touching saves. Canonical main/backup keys include that generation; fixed keys are compatibility mirrors. Old sessions cannot overwrite the new generation, including purchases saved after reset. A pending journal blocks gameplay and offers Retry using the same snapshot. The Android bridge requires an atomic `GuildCheckpointStore` reset acknowledgment before marking completion; normal and onPause checkpoints carry the same generation. Lost acknowledgments retry idempotently. Never implement this using `localStorage.clear()`, app-data deletion or silent checkpoint fallback.
+
+`npm run test:wayfarers-guild` includes fault-injection reset tests. Run `npm run test:wayfarers-guild:testing-reset:browser` for confirmation, layout, failure/retry, reload and stale tier-popup checks. Verify a populated disposable device resets, makes a first purchase and retains it through an offline cold launch; never use a retained player device for destructive testing.
+
 ## Publish a compatible update
 
 1. Build `:wayfarers:assembleRelease` with an increased `wayfarersVersionCode` and version name. Archive the exact APK outside the checkout. Release builds disable WebView debugging; the retained signing certificate must match the previously installed release.

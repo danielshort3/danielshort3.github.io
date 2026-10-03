@@ -79,13 +79,18 @@
     let seenSequence = null;
     let disposed = false;
     let detailFooter = '';
+    let tierNoticeTimer = null;
+    let tierNoticeId = null;
+    let tierNoticeRunning = false;
+    let tierNoticePresented = false;
+    let tierNoticeSuppressed = new Set();
     const shell = document.createElement('section');
     shell.className = 'wx-game';
     shell.setAttribute('aria-label', 'Wayfarers Guild');
     shell.innerHTML = '<header class="wx-header"><button class="wx-wallet" data-wx-wallet aria-label="Resource stockpile"></button><div class="wx-local-count" data-wx-local-count hidden></div><div class="wx-utilities"><button class="wx-collection-shortcut" data-wx-collection="cards" aria-label="Cards" hidden>' + icon('cards') + '<small>Cards</small></button><button class="wx-collection-shortcut" data-wx-collection="equipment" aria-label="Equipment" hidden>' + icon('equipment') + '<small>Gear</small></button><button data-wx-reward aria-label="Caravan reward" hidden>' + icon('caravan') + '</button><button data-wx-options aria-label="Settings and app updates">' + icon('settings') + '</button></div></header>' +
       '<div class="wx-objective"><button class="wx-area-step" data-wx-prev hidden aria-label="Previous area">‹</button><button data-wx-objective><span data-wx-stage-name></span><strong data-wx-objective-text></strong></button><button class="wx-area-step" data-wx-next hidden aria-label="Next area">›</button><progress data-wx-progress max="100" value="0" aria-label="Expedition completion"></progress></div>' +
-      '<div class="wx-play"><div class="wx-world"><canvas data-wx-canvas role="img" aria-label="Your expedition"></canvas><button class="wx-world-label" data-wx-world-label aria-label="Current area objective"></button><button class="wx-network-link" data-wx-network hidden></button><button class="wx-focus-trigger" data-wx-focus hidden></button><div class="wx-hotspots" data-wx-hotspots></div><div class="wx-world-actions" data-wx-world-actions></div></div><section class="wx-dock" aria-label="Area upgrades"><div class="wx-dock-heading"><strong data-wx-upgrade-count>Upgrades</strong><button data-wx-batch hidden></button></div><div class="wx-tray" data-wx-tray tabindex="0" aria-label="Area upgrades; scroll for more"></div></section></div>' +
-      '<section class="wx-destination" data-wx-destination hidden></section><nav class="wx-nav" aria-label="Game destinations"><button data-wx-nav="expedition">' + icon('maps') + '<span>Areas</span><i data-wx-attention hidden aria-label="New development"></i></button><button data-wx-nav="upgrades" hidden>' + icon('research') + '<span>Upgrades</span></button><button data-wx-nav="guild" hidden>' + icon('guild') + '<span>Guild</span><i data-wx-guild-attention hidden aria-label="Reward or collection available"></i></button></nav>' +
+      '<div class="wx-play"><div class="wx-world"><canvas data-wx-canvas role="img" aria-label="Your expedition"></canvas><button class="wx-world-label" data-wx-world-label aria-label="Current area objective"></button><button class="wx-network-link" data-wx-network hidden></button><button class="wx-focus-trigger" data-wx-focus hidden></button><div class="wx-hotspots" data-wx-hotspots></div><div class="wx-world-actions" data-wx-world-actions></div></div><section class="wx-dock" aria-label="Area upgrades"><div class="wx-dock-heading"><strong data-wx-upgrade-count>Upgrades</strong><button data-wx-tier-ready hidden></button><button data-wx-batch hidden></button></div><div class="wx-tray" data-wx-tray tabindex="0" aria-label="Area upgrades; scroll for more"></div></section></div>' +
+      '<section class="wx-destination" data-wx-destination hidden></section><nav class="wx-nav" aria-label="Game destinations"><button data-wx-nav="expedition">' + icon('maps') + '<span>Areas</span><i data-wx-attention hidden aria-label="New development"></i></button><button data-wx-nav="upgrades" hidden>' + icon('research') + '<span>Upgrades</span><i data-wx-tier-attention hidden aria-label="Upgrade tier ready"></i></button><button data-wx-nav="guild" hidden>' + icon('guild') + '<span>Guild</span><i data-wx-guild-attention hidden aria-label="Reward or collection available"></i></button></nav>' +
       '<div class="wx-toast" data-wx-toast role="status" aria-live="polite"></div><div class="wx-sr-status" data-wx-area-status role="status" aria-live="polite"></div><button class="wx-save-alert" data-wx-save-alert hidden>Save needs attention</button>';
     const dialog = document.createElement('dialog');
     dialog.className = 'wx-sheet';
@@ -342,12 +347,14 @@
         const prerequisite = (item.dependencies || []).find(dependency => !dependency.met);
         return '<article class="wx-research-row" data-wx-upgrade="' + esc(item.id) + '" data-ready="' + (!item.disabled && !complete) + '">' +
           button(icon(item.icon || item.trackId || item.id) + '<span><strong>' + esc(label) + (level ? '<small> ' + level + '</small>' : '') + '</strong><span class="wx-research-effect">' + esc(effect) + '</span>' + areaLinks(item) + (prerequisite ? '<small class="wx-prerequisite">' + esc(prerequisite.label) + '</small>' : '') + '</span>', () => open({ kind:'upgrade', id:item.id }), { key:'upgrade-detail:' + item.id, className:'wx-research-info', aria:'Details: ' + label }) +
-          button(complete ? '✓' : running ? Math.floor(percent(view.expedition.commission.progress)) + '%' : (item.cost || []).length ? purchaseLabel(item) : 'Unlock', item.action, { disabled:item.disabled || complete || currentContext.awaitingWallet, className:'wx-price', aria:(complete ? 'Completed ' : running ? 'Researching ' : 'Buy ' + (item.quantity || 1) + ' ranks of ') + label + (!running && (item.cost || []).length ? ', ' + item.cost.map(cost => cost.text).join(', ') : '') }) + '</article>';
+          button(complete ? '✓' : running ? Math.floor(percent(view.expedition.commission.progress)) + '%' : (item.cost || []).length ? purchaseLabel(item) : 'Unlock', item.action, { disabled:item.disabled || complete || currentContext.awaitingWallet || currentContext.saveFailure, className:'wx-price', aria:(complete ? 'Completed ' : running ? 'Researching ' : 'Buy ' + (item.quantity || 1) + ' ranks of ') + label + (!running && (item.cost || []).length ? ', ' + item.cost.map(cost => cost.text).join(', ') : '') }) + '</article>';
       }).join('') + '</div>';
     }
     function upgradesBody() {
       const all = visible(view.globalUpgrades || []);
-      const areas = (view.expedition.areas || []).filter(area => area.unlocked);
+      const areas = (view.expedition.areas || []).filter(area => area.unlocked && all.some(item => item.areaId === area.id || (item.targetAreas || []).includes(area.id)));
+      const hasGuild = all.some(item => !String(item.action?.type || '').startsWith('expedition-'));
+      if (upgradeArea === 'guild' && !hasGuild) upgradeArea = 'all';
       if (upgradeArea !== 'all' && upgradeArea !== 'guild' && !areas.some(area => area.id === upgradeArea)) upgradeArea = 'all';
       const matchingArea = all.filter(item => upgradeArea === 'all' || item.areaId === upgradeArea || (item.targetAreas || []).includes(upgradeArea) || upgradeArea === 'guild' && !String(item.action?.type || '').startsWith('expedition-'));
       const effects = [...new Set(matchingArea.map(item => item.effectKind).filter(Boolean))];
@@ -356,8 +363,9 @@
       const filtered = matchingArea.filter(item => (upgradeEffect === 'all' || item.effectKind === upgradeEffect) && (!search || [name(item),item.effectText,item.description,groupNames[item.group] || item.group,...(item.sourceAreas || []).map(id => areaNames[id] || id),...(item.targetAreas || []).map(id => areaNames[id] || id)].join(' ').toLowerCase().includes(search)));
       const filter = (label, id, type) => button(esc(label), () => { if (type === 'area') upgradeArea = id; else upgradeEffect = id; update(view); q('[data-wx-destination]').scrollTop = 0; }, { key:'filter:' + type + ':' + id, selected:(type === 'area' ? upgradeArea : upgradeEffect) === id, className:'wx-filter' });
       const human = value => ({ production:'Production', throughput:'Production', travel:'Travel', conversion:'Conversion', capacity:'Capacity', automation:'Automation', unlock:'Unlocks', research:'Research', synergy:'Connections', income:'Income', work:'Work', construction:'Building', protection:'Protection' }[value] || String(value).replace(/[-_]/g,' ').replace(/^./, c => c.toUpperCase()));
-      let html = '<div class="wx-upgrade-tools"><label class="wx-upgrade-search">' + icon('research') + '<input data-wx-search type="search" aria-label="Find an upgrade" placeholder="Find an upgrade" value="' + esc(upgradeSearch) + '"></label>' + button('Filter' + (upgradeEffect !== 'all' ? ' ●' : ''), () => open({ kind:'upgrade-filters', effects }), { key:'upgrade-filters', className:'wx-filter-trigger', aria:'Filter by upgrade effect' }) + '<div class="wx-filter-strip wx-area-filters" aria-label="Affected area">' + filter('All','all','area') + areas.map(area => filter(areaNames[area.id] || area.label,area.id,'area')).join('') + filter('Guild','guild','area') + '</div>';
+      let html = '<div class="wx-upgrade-tools"><label class="wx-upgrade-search">' + icon('research') + '<input data-wx-search type="search" aria-label="Find an upgrade" placeholder="Find an upgrade" value="' + esc(upgradeSearch) + '"></label>' + button('Filter' + (upgradeEffect !== 'all' ? ' ●' : ''), () => open({ kind:'upgrade-filters', effects }), { key:'upgrade-filters', className:'wx-filter-trigger', aria:'Filter by upgrade effect' }) + '<div class="wx-filter-strip wx-area-filters" aria-label="Affected area">' + filter('All','all','area') + areas.map(area => filter(areaNames[area.id] || area.label,area.id,'area')).join('') + (hasGuild ? filter('Guild','guild','area') : '') + '</div>';
       html += button(esc(upgradeArea === 'all' ? 'All areas' : areaNames[upgradeArea] || upgradeArea) + ' ▾', () => open({kind:'upgrade-areas'}), {key:'upgrade-areas',className:'wx-area-filter-trigger',aria:'Filter upgrades by area'}) + batchControl() + '</div>';
+      if (readyTiers().length) html += button(icon('research') + '<span><strong>' + readyTiers().length + ' upgrade tier' + (readyTiers().length === 1 ? '' : 's') + ' ready</strong><small>Choose what to add</small></span><b>›</b>', () => showReadyTiers(), {key:'ready-tiers',className:'wx-menu wx-tier-link'});
       if (view.expedition.commission) {
         const commission = view.expedition.commission;
         html += menu(commission.name, 'Researching · ' + Math.floor(percent(commission.progress)) + '%', 'research', {kind:'upgrade',id:'development:' + commission.id});
@@ -369,6 +377,49 @@
       const owned = filtered.filter(completedUpgrade);
       if (owned.length) html += button((showOwnedUpgrades ? 'Hide completed' : 'Completed') + ' · ' + owned.length, () => { showOwnedUpgrades = !showOwnedUpgrades; update(view); }, { key:'owned-upgrades', className:'wx-owned-toggle', selected:showOwnedUpgrades }) + (showOwnedUpgrades ? upgradeRows(owned) : '');
       return html;
+    }
+    function readyTiers() { return view?.expedition.tiers?.ready || []; }
+    function tierTracks(tier) {
+      return (tier.tracks || []).slice(0,2).map(track => typeof track === 'string' ? {label:track} : track);
+    }
+    function tierPreview(tier) {
+      const tracks = tierTracks(tier);
+      const single = tracks.length === 1 && String(tier.label).includes(tracks[0].label);
+      return '<div class="wx-tier-heading">' + icon(tier.icon || areaIcons[tier.areaId] || 'research') + '<span><small>' + esc(areaNames[tier.areaId] || 'Guild') + ' · New upgrade</small><strong>' + esc(single ? tracks[0].label : tier.label) + '</strong></span></div>' +
+        '<p class="wx-tier-effect">' + esc(tier.shortEffect || '') + '</p>' + (single ? '' : '<div class="wx-tier-tracks">' + tracks.map(track => '<div>' + icon(track.icon || 'research') + '<span><strong>' + esc(track.label || track.name || track.id) + '</strong>' + (track.shortEffect && track.shortEffect !== track.label ? '<small>' + esc(track.shortEffect) + '</small>' : '') + '</span></div>').join('') + '</div>') + ((tier.tracks || []).length > tracks.length ? '<p class="wx-muted">+' + (tier.tracks.length - tracks.length) + ' more upgrades in this tier</p>' : '');
+    }
+    function showReadyTiers(id, automatic) {
+      const ready = readyTiers();
+      const tier = id && ready.find(item => item.id === id);
+      if (!ready.length || id && !tier) return;
+      if (!automatic) {
+        const action = view.expedition.tiers?.notice?.deferAction || tier?.deferAction;
+        if (action && !execute(action)?.ok) return;
+      }
+      tierNoticePresented = true;
+      ready.forEach(item => tierNoticeSuppressed.add(item.id));
+      open(tier || ready.length === 1 ? {kind:'tier',id:(tier || ready[0]).id} : {kind:'tiers'});
+    }
+    function tierNoticeSafe() {
+      return !disposed && !tierNoticeRunning && screen === 'expedition' && !dialog.open && !document.hidden && !swipe && !activePointers.size && !options.overlayOpen() && !currentContext.saveFailure && !currentContext.awaitingWallet && (!options.tierNoticeAllowed || options.tierNoticeAllowed());
+    }
+    function scheduleTierNotice() {
+      const notice = view?.expedition.tiers?.notice;
+      if (!notice || notice.id !== tierNoticeId) {
+        root.clearTimeout(tierNoticeTimer); tierNoticeTimer = null; tierNoticeId = notice?.id || null;
+      }
+      if (tierNoticePresented) (notice?.items || []).forEach(item => tierNoticeSuppressed.add(item.id));
+      if (!notice || !notice.items.some(item => !tierNoticeSuppressed.has(item.id)) || tierNoticeTimer || tierNoticePresented || !tierNoticeSafe()) return;
+      const id = notice.id;
+      tierNoticeTimer = root.setTimeout(() => {
+        tierNoticeTimer = null;
+        if (tierNoticePresented || !tierNoticeSafe() || view?.expedition.tiers?.notice?.id !== id) return;
+        const current = view.expedition.tiers.notice;
+        tierNoticeRunning = true;
+        const result = execute(current.deferAction);
+        tierNoticeRunning = false;
+        if (result?.ok && readyTiers().length) showReadyTiers(null,true);
+      }, 1200);
     }
     function legacy(kind) { close(); options.openLegacy(kind); }
     function open(model, replace) {
@@ -444,11 +495,19 @@
       if (typeof action === 'function') return action();
       if (!action) return;
       if (['challenge'].includes(action.type)) close();
+      const investment = ['expedition-buy','buy','expedition-development','research','luck-research','refit-upgrade','legacy-upgrade','project','capability','expedition-next','expedition-expand'].includes(action.type);
+      const suppressedBefore = investment ? new Set([...tierNoticeSuppressed,...readyTiers().map(item => item.id)]) : null;
       const result = options.perform(action);
+      if (result?.ok && investment) {
+        tierNoticePresented = false;
+        tierNoticeSuppressed = suppressedBefore;
+        scheduleTierNotice();
+      }
       if (result?.ok && action.type === 'expedition-choice') { notify('Plan selected'); back(); }
       if (result?.ok && ['expedition-config','expedition-specialize'].includes(action.type)) notify('Plan updated');
       if (result?.ok && action.type === 'expedition-batch') back();
       if (result?.ok && action.type === 'expedition-focus') close();
+      if (result?.ok && action.type === 'upgrade-tier-unlock') { close(); notify('Upgrade tier unlocked'); }
       if (result?.ok && ['expedition-next','expedition-expand','expedition-select'].includes(action.type)) { close(); screen = 'expedition'; update(view); }
       if (result?.ok && action.type === 'route') { close(); screen = 'expedition'; update(view); }
       if (result?.ok && ['card-fuse','card-recycle','card-craft','gear-scroll','gear-forge','gear-reforge'].includes(action.type)) {
@@ -456,8 +515,13 @@
         if (event) open({kind:'collection-result',id:event.id},true);
       }
       if (result?.ok && action.type === 'retry-save') {
-        const event = view.collection?.events?.slice(-1)[0];
-        if (event) open({kind:'collection-result',id:event.id},true);
+        if (sheet?.kind === 'tier' || sheet?.kind === 'tiers') {
+          if (sheet.kind === 'tier' && !readyTiers().some(item => item.id === sheet.id)) close();
+          else renderSheet();
+        } else if (sheet?.kind.startsWith('collection-')) {
+          const event = view.collection?.events?.slice(-1)[0];
+          if (event) open({kind:'collection-result',id:event.id},true);
+        }
       }
       return result;
     }
@@ -492,7 +556,7 @@
       const rangeValid = item.rankAfter != null && (rankCap == null || item.rankAfter <= rankCap);
       const quantityLabel = item.quantity ? 'Exactly ' + item.quantity + ' rank' + (item.quantity === 1 ? '' : 's') + (rangeValid ? ' · ' + (item.rank ?? item.level ?? 0) + ' → ' + item.rankAfter : '') : '';
       const exactCost = (item.cost || []).map(cost => cost.text).join(' · ');
-      detailFooter = '<div class="wx-purchase-summary">' + (quantityLabel ? '<strong>' + esc(quantityLabel) + '</strong>' : '') + (exactCost ? '<small>' + (running ? 'Funded: ' : 'Cost: ') + esc(exactCost) + '</small>' : '') + (item.quantity && !rangeValid && item.reason ? '<small>' + esc(item.reason) + '</small>' : '') + '</div><div class="wx-purchase-controls">' + (item.quantity && batchAvailable() ? batchControl() : '') + button(completedUpgrade(item) ? 'Complete' : running ? 'Researching' : item.quantity ? 'Buy ×' + item.quantity : exactCost ? 'Buy upgrade' : item.selected ? 'Selected' : 'Choose', item.action, { disabled:item.disabled || completedUpgrade(item) || currentContext.awaitingWallet, className:'wx-confirm',aria:(running ? 'Researching ' : item.quantity ? 'Buy exactly ' + item.quantity + ' ranks of ' : 'Buy ') + (item.label || item.name || item.id) + (!running && exactCost ? ', ' + exactCost : '') }) + '</div>';
+      detailFooter = '<div class="wx-purchase-summary">' + (quantityLabel ? '<strong>' + esc(quantityLabel) + '</strong>' : '') + (exactCost ? '<small>' + (running ? 'Funded: ' : 'Cost: ') + esc(exactCost) + '</small>' : '') + (item.quantity && !rangeValid && item.reason ? '<small>' + esc(item.reason) + '</small>' : '') + '</div><div class="wx-purchase-controls">' + (item.quantity && batchAvailable() ? batchControl() : '') + button(completedUpgrade(item) ? 'Complete' : running ? 'Researching' : item.quantity ? 'Buy ×' + item.quantity : exactCost ? 'Buy upgrade' : item.selected ? 'Selected' : 'Choose', item.action, { disabled:item.disabled || completedUpgrade(item) || currentContext.awaitingWallet || currentContext.saveFailure, className:'wx-confirm',aria:(running ? 'Researching ' : item.quantity ? 'Buy exactly ' + item.quantity + ' ranks of ' : 'Buy ') + (item.label || item.name || item.id) + (!running && exactCost ? ', ' + exactCost : '') }) + '</div>';
       if (!local && !running && view.planning?.unlocked && ['buy','research','project','expedition-development'].includes(item.action?.type) && !item.owned) {
         html += section('Planning', button('Save for this', { type:'plan-goal', action:item.action }) + (view.planning.capabilities.some(c => c.id === 'purchase-queue' && c.owned) ? button('Add to queue', { type:'plan-queue', action:item.action }) : ''));
       }
@@ -540,6 +604,19 @@
       detailFooter = '';
       if (['deck-name','card-slot','card-equip','card-ink','gear-slot'].includes(model.kind) || model.kind.startsWith('collection-')) {
         const content = collectionSheet(model); title = content.title; html = content.html;
+      }
+      else if (model.kind === 'tier') {
+        const tier = readyTiers().find(item => item.id === model.id);
+        title = 'New upgrades ready';
+        if (tier) {
+          html = tierPreview(tier);
+          detailFooter = '<div class="wx-tier-actions">' + button('Later',close,{key:'tier-later',className:'wx-tier-later'}) + (currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{key:'tier-retry',className:'wx-confirm'}) : button('Unlock tier',tier.unlockAction,{key:'tier-unlock:' + tier.id,className:'wx-confirm',disabled:currentContext.awaitingWallet,aria:'Unlock ' + tier.label + ' for ' + (areaNames[tier.areaId] || 'Guild')})) + '</div>';
+        } else html = '<p>This tier is already unlocked.</p>' + button('Continue',close,{key:'tier-finished'});
+      }
+      else if (model.kind === 'tiers') {
+        title = 'Upgrade tiers ready';
+        html = '<div class="wx-tier-ready-list">' + readyTiers().map(tier => button(icon(tier.icon || areaIcons[tier.areaId] || 'research') + '<span><small>' + esc(areaNames[tier.areaId] || 'Guild') + '</small><strong>' + esc(tier.label) + '</strong><small>' + esc(tier.shortEffect || '') + '</small></span><b>›</b>',()=>open({kind:'tier',id:tier.id}),{key:'tier-review:' + tier.id,className:'wx-menu'})).join('') + '</div>';
+        detailFooter = button('Later',close,{key:'tier-later',className:'wx-tier-later'});
       }
       else if (model.kind === 'areas') {
         title = 'Your areas';
@@ -596,7 +673,10 @@
       }
       else if (model.kind === 'upgrade-areas') {
         title = 'Affected area';
-        html = '<div class="wx-options">' + ['all',...(e.areas || []).filter(area => area.unlocked).map(area => area.id),'guild'].map(id => button(id === 'all' ? 'All areas' : esc(areaNames[id] || id), () => { upgradeArea = id; close(); update(view); q('[data-wx-destination]').scrollTop = 0; }, {key:'filter:area:' + id,selected:upgradeArea === id})).join('') + '</div>';
+        const catalog = visible(view.globalUpgrades || []);
+        const areaIds = (e.areas || []).filter(area => area.unlocked && catalog.some(item => item.areaId === area.id || (item.targetAreas || []).includes(area.id))).map(area => area.id);
+        if (catalog.some(item => !String(item.action?.type || '').startsWith('expedition-'))) areaIds.push('guild');
+        html = '<div class="wx-options">' + ['all',...areaIds].map(id => button(id === 'all' ? 'All areas' : esc(areaNames[id] || id), () => { upgradeArea = id; close(); update(view); q('[data-wx-destination]').scrollTop = 0; }, {key:'filter:area:' + id,selected:upgradeArea === id})).join('') + '</div>';
       }
       else if (model.kind === 'objective') {
         title = e.stage.name;
@@ -763,8 +843,12 @@
       const areaIndex = unlockedAreas.findIndex(area => area.id === selectedArea);
       const canNavigateAreas = screen === 'expedition' && unlockedAreas.length > 1;
       const upgradesUnlocked = guildUnlocked || areas.filter(area => area.unlocked).length > 1;
+      const tierReady = readyTiers();
+      const localTiers = tierReady.filter(item => item.areaId === selectedArea);
       q('[data-wx-nav="guild"]').hidden = !guildUnlocked;
       q('[data-wx-nav="upgrades"]').hidden = !upgradesUnlocked;
+      q('[data-wx-tier-attention]').hidden = !tierReady.length;
+      q('[data-wx-nav="upgrades"]').setAttribute('aria-label','Upgrades' + (tierReady.length ? ', ' + tierReady.length + ' upgrade tiers ready' : ''));
       if ((screen === 'guild' || screen === 'atlas') && !guildUnlocked || screen === 'upgrades' && !upgradesUnlocked) screen = 'expedition';
       q('[data-wx-prev]').hidden = q('[data-wx-next]').hidden = !canNavigateAreas;
       q('[data-wx-prev]').disabled = areaIndex <= 0;
@@ -813,6 +897,11 @@
       tray.dataset.count = shown.length;
       q('.wx-dock').dataset.count = String(Math.min(3,shown.length));
       text(q('[data-wx-upgrade-count]'), 'Upgrades' + (shown.length > 1 ? ' · ' + shown.length : ''));
+      const readyButton = q('[data-wx-tier-ready]');
+      readyButton.hidden = !localTiers.length;
+      readyButton.dataset.tierId = localTiers.length === 1 ? localTiers[0].id : '';
+      text(readyButton,'Ready' + (localTiers.length > 1 ? ' · ' + localTiers.length : '') + ' ›');
+      readyButton.setAttribute('aria-label',(areaNames[selectedArea] || stage.name) + ': ' + localTiers.length + ' upgrade tier' + (localTiers.length === 1 ? '' : 's') + ' ready. Review unlocks.');
       const batch = q('[data-wx-batch]');
       batch.hidden = !batchAvailable();
       text(batch, 'Buy ×' + (e.batch?.selected || 1) + ' ▾');
@@ -831,7 +920,7 @@
         text(node.querySelector('[data-wx-next-rate]'), item.rank >= item.maxRank ? 'Mastered' : gainLabel(item));
         const buy = node.querySelector('[data-wx-buy]');
         markup(buy, item.rank >= item.maxRank ? 'Max' : purchaseLabel(item, true));
-        buy.disabled = !!item.disabled || !!ctx.awaitingWallet;
+        buy.disabled = !!item.disabled || !!ctx.awaitingWallet || !!ctx.saveFailure;
         buy.setAttribute('aria-label', 'Buy ' + (item.quantity || 1) + ' ranks of ' + item.label + ', rank ' + item.rank + ' of ' + item.maxRank + ', ' + (item.cost || []).map(c => c.text).join(', ') + (item.disabled && item.reason ? '. ' + item.reason : ''));
         node.dataset.ready = String(!buy.disabled);
         if (previousStage === stage.id && previousRanks[item.id] != null && previousRanks[item.id] < item.rank) { node.classList.remove('wx-purchased'); void node.offsetWidth; node.classList.add('wx-purchased'); }
@@ -841,7 +930,7 @@
       const previouslyEarned = earnedTracks.get(selectedArea);
       if (!switchingArea && previouslyEarned && shown.length > previouslyEarned.length) {
         const newTrack = shown.find(item => !previouslyEarned.includes(item.id));
-        if (newTrack) { const node = Array.from(tray.children).find(item => item.dataset.upgrade === newTrack.id); node?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}); notify((areaNames[selectedArea] || stage.name) + ': ' + newTrack.label + ' unlocked'); }
+        if (newTrack) { const node = Array.from(tray.children).find(item => item.dataset.upgrade === newTrack.id); if (!e.tiers) node?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}); notify((areaNames[selectedArea] || stage.name) + ': ' + newTrack.label + ' unlocked'); }
       }
       earnedTracks.set(selectedArea, shown.map(item => item.id));
       if (knownAreaCount !== null && knownAreaCount < unlockedAreas.length && !swipeTaught && unlockedAreas.length > 1) { swipeTaught = true; notify('Swipe the scenery to visit your other areas'); }
@@ -888,6 +977,7 @@
         celebrated.add(stage.id);
         open({ kind:'finale' });
       }
+      scheduleTierNotice();
     }
     function notify(message) {
       if (!message || disposed) return;
@@ -917,6 +1007,7 @@
       else if (target.hasAttribute('data-wx-prev')) stepArea(-1);
       else if (target.hasAttribute('data-wx-next')) stepArea(1);
       else if (target.hasAttribute('data-wx-batch')) open({kind:'batch'});
+      else if (target.hasAttribute('data-wx-tier-ready')) showReadyTiers(target.dataset.tierId || null);
       else if (target.hasAttribute('data-wx-focus')) open({kind:'focus'});
       else if (target.hasAttribute('data-wx-options')) open({ kind:'options' });
       else if (target.hasAttribute('data-wx-save-alert')) { if(currentContext.saveFailure) execute({type:'retry-save'}); else legacy('settings'); }
@@ -942,7 +1033,7 @@
         const gains = Object.entries(offline.gains || {}).slice(0,4).map(([id, amount]) => ({ id, amount:root.WayfarersCore.format(amount) }));
         open({ kind:'return', time:offline.seconds >= 3600 ? (offline.seconds / 3600).toFixed(1) + ' hours' : Math.floor(offline.seconds / 60) + ' minutes', gains });
       },
-      dispose() { disposed = true; controller.abort(); root.clearTimeout(toastTimer); scene.dispose(); dialog.remove(); shell.remove(); delete host.dataset.expeditionMode; }
+      dispose() { disposed = true; controller.abort(); root.clearTimeout(toastTimer); root.clearTimeout(tierNoticeTimer); scene.dispose(); dialog.remove(); shell.remove(); delete host.dataset.expeditionMode; }
     };
   }
   root.WayfarersExpeditionUI = { create };

@@ -25,6 +25,8 @@
   const reserve = (state, resource = 'coins') => reserveProvider(state, resource);
   let rateProvider = null;
   let workRateProvider = null;
+  let tierProvider = () => true;
+  const setTierProvider = fn => { tierProvider = fn; };
   const ownership = new WeakMap();
   const setEntitlements = (state, values) => ownership.set(state, new Set(values));
   const setReserveProvider = fn => { reserveProvider = fn; };
@@ -64,6 +66,7 @@
     const x = state.expedition, a = x.areas[areaId], d = trackDef(areaId, trackId);
     const result = { count, rank: a?.ranks[trackId] || 0, rankAfter: (a?.ranks[trackId] || 0) + count, costs: {}, valid: false, affordable: false, reason: '' };
     if (!d || !a || !learned(x, areaId, trackId)) { result.reason = 'Learn this track first.'; return result; }
+    if (!tierProvider(state, { type: 'expedition-buy', areaId, id: trackId })) { result.reason = 'Unlock this ready upgrade tier first.'; return result; }
     if (!batchModes(state).some(b => b.count === count && b.unlocked)) { result.reason = 'Earn this purchase quantity first.'; return result; }
     if (result.rankAfter > a.cap) { result.reason = 'Only ' + (a.cap - result.rank) + ' ranks remain. Choose a smaller batch.'; return result; }
     for (let i = 0; i < count; i += 1) Object.entries(cost(state, areaId, trackId, result.rank + i)).forEach(([key, value]) => { result.costs[key] = N.add(result.costs[key] || 0, value); });
@@ -287,10 +290,15 @@
     }
     return next;
   }
-  function learnIntro(x, id) {
+  function learnIntro(state, id) {
+    const x = state.expedition;
     const a = x.areas[id], defs = areaDef(id).tracks;
     for (let i = 1; i < 3; i += 1) if (!a.learned.includes(defs[i].id) && (a.ranks[defs[i - 1].id] >= 2 || a.elapsed >= i * 180)) {
-      a.learned.push(defs[i].id); event(x, 'development', defs[i].name + ' learned', defs[i].effect + '. This knowledge survives every reset.', id); x.revision += 1;
+      a.learned.push(defs[i].id);
+      // New tier notices have their own durable ledger. Do not also announce a
+      // capped transient event as though this purchase had already been claimed.
+      if (tierProvider(state, { type: 'expedition-buy', areaId: id, id: defs[i].id })) event(x, 'development', defs[i].name + ' learned', defs[i].effect + '. This knowledge survives every reset.', id);
+      x.revision += 1;
     }
   }
   function completeProject(x) {
@@ -314,7 +322,7 @@
         if (a.buffers[key] < EPS) a.buffers[key] = 0;
         if (r.areas[id].capacity - a.buffers[key] < EPS) a.buffers[key] = r.areas[id].capacity;
       }
-      learnIntro(x, id);
+      learnIntro(state, id);
     }
     if (x.areas.ruins) {
       const area = x.areas.ruins; area.discoveryWork += r.areas.ruins.flow * seconds;
@@ -373,6 +381,7 @@
     return { name: d.name, costs: Object.fromEntries(Object.entries(d.costs).map(([k, v]) => [k, N.from(v)])), open: !!state && projectDependencies(state, d).every(v => v.met) && !state.expedition.commission, done: !!state && (built(state.expedition, id) || state.expedition.commission?.id === id) };
   }
   function act(state, action) {
+    if (!tierProvider(state, action)) return { ok: false, message: 'Unlock this ready upgrade tier first.' };
     const x = state.expedition, id = action.areaId || x.selectedArea, a = x.areas[id];
     if (action.type === 'expedition-select') { if (!a) return { ok: false, message: 'Discover that area first.' }; x.selectedArea = id; a.seen = x.sequence; return { ok: true, message: areaDef(id).name + ' selected.' }; }
     if (action.type === 'expedition-batch') { if (!batchModes(state).some(b => b.count === action.count && b.unlocked)) return { ok: false, message: 'Earn this quantity first.' }; x.batch = action.count; return { ok: true, message: 'Exact ×' + action.count + ' purchases selected.' }; }
@@ -383,7 +392,7 @@
       Object.entries(q.costs).forEach(([key, value]) => { state.resources[key] = N.sub(state.resources[key], value); });
       const before = a.ranks[action.id]; a.ranks[action.id] = q.rankAfter; a.purchases += q.count; x.purchases += q.count; x.revision += 1;
       for (const milestone of [3, 10, 25, 50, 100, 250, 1000]) if (before < milestone && q.rankAfter >= milestone && a.highRanks[action.id] < milestone) event(x, 'milestone', trackDef(id, action.id).name + ' ' + milestone, milestone === 25 ? 'A specialist plan is now learned permanently.' : '+' + Math.round(((milestoneBonus[milestone] || 1) - 1) * 100) + '% extra rank capacity at this milestone.', id);
-      a.highRanks[action.id] = Math.max(a.highRanks[action.id], q.rankAfter); learnIntro(x, id);
+      a.highRanks[action.id] = Math.max(a.highRanks[action.id], q.rankAfter); learnIntro(state, id);
       return { ok: true, message: trackDef(id, action.id).name + ' +' + q.count + ' · rank ' + q.rankAfter, quantity: q.count };
     }
     if (action.type === 'expedition-development') {
@@ -510,7 +519,7 @@
   function catalog(state) {
     const x = state.expedition, rows = [];
     for (const [id, a] of Object.entries(x.areas)) for (const d of areaDef(id).tracks) {
-      if (!a.learned.includes(d.id)) continue;
+      if (!a.learned.includes(d.id) || !tierProvider(state, { type: 'expedition-buy', areaId: id, id: d.id })) continue;
       const q = quote(state, id, d.id, x.batch), copy = detached(state);
       if (q.valid) copy.expedition.areas[id].ranks[d.id] = q.rankAfter;
       const effects = q.valid ? impact(state, copy) : [];
@@ -525,7 +534,7 @@
       const dependencies = projectDependencies(state, d), owned = built(x, d.id), running = x.commission?.id === d.id;
       const costs = Object.entries(d.costs).map(([resource, value]) => ({ resource, amount: N.from(value), text: N.format(value) + ' ' + resource }));
       rows.push({ id: 'development:' + d.id, catalogId: 'development:' + d.id, name: d.name, label: d.name, icon: areaDef(d.target).icon, areaId: d.target, group: d.unlock.cap ? 'expansion' : 'research', effectKind: 'unlock', sourceAreas: [d.source], targetAreas: [d.target], description: d.effect, effectText: d.effect, owned, maxed: owned, level: owned ? 1 : 0, maxLevel: 1,
-        visible: owned || running || dependencies.every(p => p.met) || d === nextLocked, disabled: owned || !!x.commission || dependencies.some(p => !p.met) || costs.some(c => N.cmp(state.resources[c.resource], c.amount) < 0), dependencies, cost: costs, impact: [{ metric: 'behavior:' + d.id, label: d.name, current: owned ? 'Learned' : running ? 'Researching' : 'Locked', next: d.effect, unit: '' }],
+        visible: owned || running || dependencies.every(p => p.met) && tierProvider(state, { type: 'expedition-development', id: d.id }), disabled: owned || !!x.commission || dependencies.some(p => !p.met) || costs.some(c => N.cmp(state.resources[c.resource], c.amount) < 0), dependencies, cost: costs, impact: [{ metric: 'behavior:' + d.id, label: d.name, current: owned ? 'Learned' : running ? 'Researching' : 'Locked', next: d.effect, unit: '' }],
         progress: running ? x.commission.work / d.work : owned ? 1 : 0, action: { type: 'expedition-development', id: d.id } });
     });
     return rows;
@@ -636,5 +645,5 @@
     const t = targets(x);
     return x.work <= t.work + EPS && x.finaleWork <= t.finale + EPS && (x.work >= t.work - EPS || x.finaleWork === 0) && (!x.completed || x.work >= t.work - EPS && x.finaleWork >= t.finale - EPS && x.index <= x.cleared);
   }
-  return { Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, finish, restart, reset, autoBuy, act, view, catalog, impact, developmentTask, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider };
+  return { Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, finish, restart, reset, autoBuy, act, view, catalog, impact, developmentTask, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider, setTierProvider };
 });

@@ -1,10 +1,10 @@
 (function (root, factory) {
   'use strict';
   const common = typeof module === 'object' && module.exports;
-  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./content.js') : root.WayfarersContent, common ? require('./expeditions.js') : root.WayfarersExpeditions, common ? require('./progression.js') : root.WayfarersProgression, common ? require('./progression-purchases.js') : root.WayfarersProgressionPurchases, common ? require('./collections.js') : root.WayfarersCollections);
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./content.js') : root.WayfarersContent, common ? require('./expeditions.js') : root.WayfarersExpeditions, common ? require('./progression.js') : root.WayfarersProgression, common ? require('./progression-purchases.js') : root.WayfarersProgressionPurchases, common ? require('./collections.js') : root.WayfarersCollections, common ? require('./upgrade-tiers.js') : root.WayfarersUpgradeTiers);
   if (common) module.exports = api;
   if (root) root.WayfarersCore = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, C, LegacyE, P, Purchases, Collection) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, C, LegacyE, P, Purchases, Collection, Tiers) {
   'use strict';
   const VERSION = 6;
   // Released runs keep the exact legacy formulas until a deliberate prestige.
@@ -12,7 +12,7 @@
   const E = Object.fromEntries(Object.keys(LegacyE).map(key => [key, (...args) => {
     const first = args[0], current = first && (first.version === 3 || first.expedition?.version === 3);
     if (key === 'create') return P.create();
-    if (['setEntitlements', 'setReserveProvider', 'setRateProvider'].includes(key)) { LegacyE[key](...args); P[key](...args); return; }
+    if (['setEntitlements', 'setReserveProvider', 'setRateProvider', 'setTierProvider'].includes(key)) { LegacyE[key](...args); P[key](...args); return; }
     if (key === 'developmentTask' && (current || !first && P.Content.PROJECTS.some(p => p.id === args[1]))) return P.developmentTask(...args);
     return current && P[key] ? P[key](...args) : LegacyE[key](...args);
   }]));
@@ -140,7 +140,7 @@
       lifetime: { work: N.zero(), coins: N.zero(), refits: 0, charters: 0, highestRoute: -1, frontier: 0 },
       crew: { owned: [], specialists: [null, null], companions: [], companion: null },
       meal: 'meal-none', doctrine: 'balanced', automations: { operations: false, equipment: false, routes: false },
-      challenges: { active: null, completed: [] }, collections: [], planner: 0, events: [], premium: createPremium(time), luck: createLuck(time), caravan: createCaravan(time), guild: createGuild(false), introductions: { seen: [] }, expedition: E.create(), collection: Collection.create(time)
+      challenges: { active: null, completed: [] }, collections: [], planner: 0, events: [], premium: createPremium(time), luck: createLuck(time), caravan: createCaravan(time), guild: createGuild(false), introductions: { seen: [] }, expedition: E.create(), collection: Collection.create(time), upgradeTiers: Tiers.initial()
     };
   }
 
@@ -233,6 +233,7 @@
       else ids(state.introductions.seen, C.PRESENTATION_SYSTEMS, 'seen introductions');
     }
     if (version >= 6 && !Collection.validate(state.collection, state)) errors.push('Invalid card and equipment collection.');
+    if (version >= 6 && own(state, 'upgradeTiers') && !Tiers.validate(state.upgradeTiers, state)) errors.push('Invalid upgrade tier progress.');
     return { valid: errors.length === 0, errors };
   }
 
@@ -244,13 +245,13 @@
     try {
       if (!object(input) || ![1, 2, 3, 4, 5].includes(input.schemaVersion) || !validateSchema(input, input.schemaVersion).valid) return null;
       if (input.schemaVersion >= 4) {
-        const keys = Object.keys(createState(input.createdAt)).filter(key => key !== 'collection');
+        const keys = Object.keys(createState(input.createdAt)).filter(key => !['collection', 'upgradeTiers'].includes(key));
         if (Object.keys(input).some(key => !keys.includes(key)) || keys.filter(key => !['expedition', 'introductions'].includes(key)).some(key => !own(input, key))) return null;
         const retained = clone(input); retained.schemaVersion = VERSION;
         retained.collection = Collection.create(input.createdAt);
         return validateState(retained).valid ? retained : null;
       }
-      const keys = Object.keys(createState(input.createdAt)).filter(key => !['guild', 'introductions', 'expedition', 'collection'].includes(key) && (input.schemaVersion >= 3 || !['luck', 'caravan'].includes(key)) && (input.schemaVersion !== 1 || key !== 'premium'));
+      const keys = Object.keys(createState(input.createdAt)).filter(key => !['guild', 'introductions', 'expedition', 'collection', 'upgradeTiers'].includes(key) && (input.schemaVersion >= 3 || !['luck', 'caravan'].includes(key)) && (input.schemaVersion !== 1 || key !== 'premium'));
       if (Object.keys(input).length !== keys.length || Object.keys(input).some(key => !keys.includes(key))) return null;
       const expected = { route: ['index', 'progress', 'mode'], run: ['id', 'completed', 'work', 'elapsed'], chapter: ['work', 'refits'], lifetime: ['work', 'coins', 'refits', 'charters', 'highestRoute', 'frontier'], crew: ['owned', 'specialists', 'companions', 'companion'], challenges: ['active', 'completed'], automations: C.AUTOMATIONS.map(x => x.id) };
       if (Object.keys(expected).some(key => Object.keys(input[key]).length !== expected[key].length || Object.keys(input[key]).some(field => !expected[key].includes(field)))) return null;
@@ -279,10 +280,12 @@
     if (!validateState(input).valid) return createState(now);
     const out = createState(input.createdAt);
     // Only fields from the schema are admitted. Never merge untrusted keys into live objects.
-    Object.keys(out).forEach(key => { if (!['introductions', 'expedition'].includes(key) || own(input, key)) out[key] = clone(input[key]); });
+    Object.keys(out).forEach(key => { if (!['introductions', 'expedition', 'upgradeTiers'].includes(key) || own(input, key)) out[key] = clone(input[key]); });
     if (!own(input, 'introductions')) out.introductions = { seen: presentationSystems(out).map(system => system.id) };
     if (!own(input, 'expedition')) out.expedition = E.hydrate(out, ratio(input.route.progress, getRoute(input.route.index, input).distance));
     else if (out.expedition.version === 1) out.expedition = E.normalize(out);
+    if (!own(input, 'upgradeTiers')) out.upgradeTiers = Tiers.migrate(out);
+    Tiers.sync(out);
     return out;
   }
 
@@ -830,6 +833,7 @@
     if (!planningOpen(state)) return [];
     const plan = state.guild.plan, result = [];
     const add = (action, routine) => {
+      if (!Tiers.allows(state, action)) return;
       const detail = taskDetails(state, action);
       if (detail && detail.open && !detail.done) result.push({ action, name: detail.name, costs: detail.costs, routine, required: reservedCosts(state, action, detail.costs, routine) });
     };
@@ -1041,7 +1045,7 @@
       state.planner += dt;
       advancePremium(state, dt, state.lastUpdate + elapsed * 1000);
       Collection.tick(state, dt);
-      if (state.expedition) { settleExpedition(state); E.autoBuy(state); }
+      if (state.expedition) { settleExpedition(state); if (state.upgradeTiers) Tiers.sync(state); E.autoBuy(state); }
       else if (repeat && N.cmp(state.route.progress, target) >= 0) {
         const laps = N.div(state.route.progress, target);
         // Repeated known routes have no completion grant. Batch their animation phase;
@@ -1442,16 +1446,19 @@
 
   function act(state, action) {
     if (!object(action)) return { ok: false, message: 'Choose a valid guild action.' };
+    if (!Tiers.allows(state, action)) return { ok: false, message: 'Unlock the ready upgrade tier before purchasing its upgrades.' };
+    const adoptingExpedition = state.expedition && !P.active(state);
     const revision = state.expedition?.revision;
     const bulk = P.active(state) && ['buy', 'refit-upgrade', 'legacy-upgrade'].includes(action.type);
     const collectionAction = ['collection-unlock', 'collection-ack', 'deck-select', 'deck-name', 'card-equip', 'card-fuse', 'card-recycle', 'card-craft', 'gear-equip', 'gear-forge', 'gear-reforge', 'gear-scroll'].includes(action.type);
-    const result = collectionAction ? Collection.act(state, action) : bulk ? Purchases.commit(state, action, purchaseDependencies()) : performAction(state, action);
+    const result = typeof action.type === 'string' && action.type.startsWith('upgrade-tier-') ? Tiers.act(state, action) : collectionAction ? Collection.act(state, action) : bulk ? Purchases.commit(state, action, purchaseDependencies()) : performAction(state, action);
     if (result.ok && result.equipmentRanks) {
       state.mastery.forge = N.add(state.mastery.forge, 30 * result.equipmentRanks);
       state.ranks.forge = masteryRank(state.mastery.forge);
     }
     if (result.ok && state.expedition && ['refit', 'charter'].includes(action.type)) {
       const started = P.reset(state, action.type);
+      if (adoptingExpedition) Tiers.adopt(state);
       result.message = (action.type === 'charter' ? 'Guild Charter' : 'Refit') + ' complete. Repeatable ranks and ordinary stocks rebuild; discovered areas, learned branches, cap unlocks and saved plans remain. ' + N.format(started.starter) + ' starter coins fund one earned ×' + started.quantity + ' Pathfinding batch.';
     }
     else if (result.ok && state.expedition && action.type === 'challenge' && action.id !== null) E.restart(state, state.route.index);
@@ -1464,10 +1471,11 @@
       cleanPlan(state);
     }
     if (result.ok) Collection.syncUnlocks(state);
+    if (result.ok && state.upgradeTiers) Tiers.sync(state);
     return result;
   }
   function purchaseDependencies() {
-    return { Content: C, upgradeCost, batchModes: P.batchModes, isOpen: (state, action) => action.type === 'buy' ? !!find(C.UPGRADES, action.id) && upgradeOpen(state, find(C.UPGRADES, action.id)) : action.type === 'refit-upgrade' ? state.lifetime.refits > 0 : state.lifetime.charters > 0 };
+    return { Content: C, upgradeCost, batchModes: P.batchModes, isOpen: (state, action) => Tiers.allows(state, action) && (action.type === 'buy' ? !!find(C.UPGRADES, action.id) && upgradeOpen(state, find(C.UPGRADES, action.id)) : action.type === 'refit-upgrade' ? state.lifetime.refits > 0 : state.lifetime.charters > 0) };
   }
   function baseGoal(state) {
     const current = getRoute(state.route.index, state);
@@ -1580,6 +1588,11 @@
       goal = { title: 'Prepare a regional Charter project', description: 'Choose supply camps, a regional atlas, or a waystation. Each uses a different profession chain and its completion stays through Refits.', progress: 0, progressText: 'Choose one regional project', action: { type: 'ui', tab: 'guild', section: 'projects' } };
     }
     if (!state.guild.grandfathered && goal.title === 'Build a charter-worthy guild' && state.guild.chapterProject.choice && planningOpen(state)) goal = nearbyGoal(state, goal);
+    if (goal.action && !Tiers.allows(state, goal.action)) {
+      const tier = Tiers.readyFor(state, goal.action);
+      if (tier) return { title: tier.label, description: tier.shortEffect, progress: 1, progressText: 'New upgrade tier ready', action: tier.unlockAction, actionLabel: 'Unlock upgrades', ready: true, cost: [], shortageText: '', etaSeconds: 0 };
+      return { title: 'Develop the current area', description: 'Current area upgrades reveal the next improvement.', progress: 0, progressText: 'Explore and improve your area', action: null, actionLabel: '', ready: false, cost: [], shortageText: '', etaSeconds: null };
+    }
     if (goal.targetCosts) { costs = goal.targetCosts; delete goal.targetCosts; }
     if (goal.action && goal.action.type === 'buy') costs = upgradeCost(state, find(C.UPGRADES, goal.action.id));
     if (goal.action && goal.action.type === 'research') costs = { knowledge: N.from(find(C.RESEARCH, goal.action.id).cost) };
@@ -1596,6 +1609,7 @@
     const task = plan.goal || plan.queue[0];
     if (task) {
       const detail = taskDetails(state, task);
+      if (!Tiers.allows(state, task)) return detail.name + ': unlock its ready upgrade tier before the saved plan can purchase it.';
       if (!detail.open && !detail.done) return detail.name + ': meet its discovery requirements first.';
       const info = costInfo(state, reservedCosts(state, task, detail.costs, false), getRates(state));
       return info.shortageText ? detail.name + ': saving ' + info.shortageText + ', including reserves.' : detail.name + ': ready for the next planning minute.';
@@ -1745,7 +1759,9 @@
         description = descriptionByAction[kind + ':' + action.id] || description;
       }
       const canPay = affordable(state, costs);
-      return Object.assign({ id, label, description, effectText: description, action, visible: true, unlocked: open !== false, affordable: canPay, disabled: open === false || !canPay, reason: open === false ? 'Continue exploring to unlock this.' : canPay ? '' : 'Needs ' + costRows(costs).filter(row => N.cmp(state.resources[row.resource], row.amount) < 0).map(row => row.text).join(' and '), cost: costRows(costs), level: 0 }, costInfo(state, costs, rates), extra || {});
+      const result = Object.assign({ id, label, description, effectText: description, action, visible: true, unlocked: open !== false, affordable: canPay, disabled: open === false || !canPay, reason: open === false ? 'Continue exploring to unlock this.' : canPay ? '' : 'Needs ' + costRows(costs).filter(row => N.cmp(state.resources[row.resource], row.amount) < 0).map(row => row.text).join(' and '), cost: costRows(costs), level: 0 }, costInfo(state, costs, rates), extra || {});
+      if (!Tiers.visible(state, action)) { result.visible = false; result.disabled = true; }
+      return result;
     }
     const upgrades = C.UPGRADES.map(def => descriptor(def.id, def.name, upgradeDescription(state, def), { type: 'buy', id: def.id }, upgradeCost(state, def), upgradeOpen(state, def), { room: def.room, level: level(state, def.id), visible: upgradeOpen(state, def), effectText: upgradeOpen(state, def) ? comparisonFor(state, { upgrades: Object.assign({}, state.upgrades, { [def.id]: level(state, def.id) + 1 }) }).text : upgradeDescription(state, def) }));
     const forgeOre = forgeOreCost(state);
@@ -1850,6 +1866,7 @@
       prepared: state.guild.prepared.kinds.slice(), conditionText: regionCondition(state).text, demandText: 'Provisions: +' + N.format(rates.gain.provisions) + '/s produced; ' + N.format(rates.drain.provisions) + '/s consumed. ' + (rates.mealRatio < 1 && state.meal !== 'meal-none' && state.guild.supply !== 'save' ? 'Meal strength is limited by supply.' : 'Basic travel always continues.')
     };
     Object.assign(expedition, E.view(state));
+    expedition.tiers = Tiers.view(state);
     function globalDescriptor(item) {
       const area = item.room === 'trail' ? 'greenway' : ['mine', 'forge'].includes(item.room) ? 'quarry' : 'watchtower';
       const action = item.action, preview = Object.assign({}, state);
@@ -1871,14 +1888,14 @@
       if (oneTime && !item.owned && !item.maxed && !impact.length) impact.push({ metric: 'unlock:' + action.id, label: item.label || item.name, current: 'Locked', next: 'Available', unit: '' });
       return Object.assign({}, item, { id: 'guild:' + action.type + ':' + item.id, catalogId: 'guild:' + action.type + ':' + item.id, group: action.type === 'research' || action.type === 'luck-research' ? 'research' : action.type === 'project' ? 'expansion' : action.type === 'capability' ? 'automation' : action.type === 'refit-upgrade' || action.type === 'legacy-upgrade' ? 'legacy' : 'guild', areaId: area, sourceAreas: [area], targetAreas: [...new Set(impact.map(row => row.areaId).filter(Boolean))], effectKind: oneTime ? 'unlock' : 'production', dependencies: item.reason ? [{ label: item.reason, met: !item.disabled }] : [], impact, maxLevel: oneTime ? 1 : null });
     }
-    const globalUpgrades = (expedition.catalog || E.catalog(state)).concat(upgrades.filter(item => item.action && item.action.type === 'buy').concat(research, refitUpgrades, legacyUpgrades, development.projects, development.chapter.projects, luck.research).map(globalDescriptor));
+    const globalUpgrades = (expedition.catalog || E.catalog(state)).concat(upgrades.filter(item => item.action && item.action.type === 'buy').concat(research, refitUpgrades, legacyUpgrades, development.projects, development.chapter.projects, luck.research).filter(item => item.visible !== false).map(globalDescriptor)).filter(item => item.visible !== false && Tiers.visible(state, item.action));
     const planning = {
       unlocked: planningOpen(state), reserves: ORDINARY.map(id => ({ id, name: find(C.RESOURCES, id).name, value: N.from(state.guild.plan.reserves[id]), formatted: N.format(state.guild.plan.reserves[id]) })), goal: clone(state.guild.plan.goal), priorities: clone(state.guild.plan.priorities), queue: state.guild.plan.queue.map(action => Object.assign({}, action, { name: taskDetails(state, action).name })), blockedReason: planBlockedReason(state), audit: clone(state.guild.audit), kit: state.guild.plan.kit, preparation: state.guild.plan.preparation, loadouts: state.guild.loadouts.map(entry => ({ id: entry.id, name: entry.name })),
       capabilities: C.CAPABILITIES.map(def => descriptor(def.id, def.name, def.description, { type: 'capability', id: def.id }, { [def.resource]: N.from(def.cost) }, !hasCapability(state, def.id) && (def.resource === 'notes' ? state.lifetime.refits > 0 : state.lifetime.charters >= def.at), { visible: def.resource === 'notes' ? state.lifetime.refits > 0 : state.lifetime.charters >= Math.max(1, def.at - 1), owned: hasCapability(state, def.id), maxed: hasCapability(state, def.id), reason: hasCapability(state, def.id) ? 'Learned permanently.' : undefined }))
     };
-    globalUpgrades.push(...planning.capabilities.map(globalDescriptor));
+    globalUpgrades.push(...planning.capabilities.filter(item => item.visible !== false).map(globalDescriptor));
     return {
-      development, expedition, globalUpgrades, planning, presentation: getPresentation(state), collection: Collection.view(state),
+      development, expedition, globalUpgrades, planning, presentation: getPresentation(state), collection: Collection.view(state), upgradeTiers: expedition.tiers,
       title: "Wayfarers’ Guild", resources, rooms, actions: upgrades.concat(refitUpgrades, legacyUpgrades), routes, modes, recipes, research, specialists, companions, doctrines, challenges, automations, refitUpgrades, legacyUpgrades, premium, luck, caravan,
       refit: getRefitPreview(state), charter: getCharterPreview(state), goal: getGoal(state), unlocks: state.rooms.slice(), events: state.events.slice(),
       progression: { routeId: current.id, routeIndex: current.index, routeName: current.name, realm: current.realm, realmName: current.realmName, routeProgress: N.format(state.route.progress), routeTarget: N.format(current.distance), routePercent: Math.min(1, ratio(state.route.progress, current.distance)), mode: state.route.mode, highestRoute: state.lifetime.highestRoute, frontier: state.lifetime.frontier, refits: state.lifetime.refits, charters: state.lifetime.charters, challenge: state.challenges.active, notes: N.format(state.resources.notes), mastery: clone(state.ranks), collections: state.collections.map(id => ({ id, name: find(C.REALMS, id).name, description: 'Permanent +8% production and travel.' })), specialists: state.crew.specialists.slice(), companion: state.crew.companion, doctrine: state.doctrine, materialTier: tier(state), meal: state.meal },
@@ -1886,6 +1903,23 @@
     };
   }
   P.setWorkRateProvider((state, ownership) => { if (ownership) premiumEntitlements.set(state, ownership); return getRates(state); });
+  Tiers.configure({ legacyDevelopments: LegacyE.tierDefinitions(), baseOpen: (state, action) => {
+    if (action.type === 'buy') { const def = find(C.UPGRADES, action.id); return !!def && upgradeOpen(state, def); }
+    if (action.type === 'research') { const def = find(C.RESEARCH, action.id); return !!def && unlocked(state, 'study') && state.lifetime.highestRoute + 1 >= def.at; }
+    if (action.type === 'luck-research') { const def = find(C.LUCK_RESEARCH, action.id); return !!def && unlocked(state, def.room || 'study'); }
+    if (action.type === 'refit-upgrade') return state.lifetime.refits > 0;
+    if (action.type === 'legacy-upgrade') return state.lifetime.charters > 0;
+    if (action.type === 'capability') { const def = find(C.CAPABILITIES, action.id); return !!def && (def.resource === 'notes' ? state.lifetime.refits > 0 : state.lifetime.charters >= def.at); }
+    if (action.type === 'project') return projectOpen(state, action.id);
+    if (action.type === 'expedition-development') {
+      // A funded commission occupies the research desk, but it does not revoke
+      // the earned readiness of another project or its saved notice.
+      const candidate = P.active(state) && state.expedition.commission ? Object.assign({}, state, { expedition: Object.assign({}, state.expedition, { commission: null }) }) : state;
+      return !!E.developmentTask(candidate, action.id)?.open;
+    }
+    return false;
+  } });
+  E.setTierProvider(Tiers.allows);
   E.setReserveProvider((state, resource = 'coins') => reservedCosts(state, { type: 'expedition-buy' }, { [resource]: N.zero() }, false)[resource]);
   E.setRateProvider((state, ownership) => {
     if (ownership) premiumEntitlements.set(state, ownership);

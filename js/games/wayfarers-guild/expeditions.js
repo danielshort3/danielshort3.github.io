@@ -7,6 +7,8 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (N, Collection) {
   'use strict';
   const EPS = 1e-8;
+  let tierProvider = () => true;
+  const setTierProvider = fn => { tierProvider = fn; };
   const KINDS = ['greenway', 'quarry', 'watchtower'];
   const REGIONS = ['Greenway', 'Copper Hills', 'Mistwood', 'Frostpass', 'Sunken Reach', 'Starfall Heights'];
   const TRACKS = {
@@ -539,7 +541,7 @@
   }
   function areaOffers(parent) {
     const x = parent.expedition;
-    return KINDS.flatMap(id => x.areas[id] ? TRACKS[id].filter(d => visible(x.areas[id], d.id) && rank(x.areas[id], d.id) < maxRank(x, id)).map(d => ({ areaId: id, id: d.id, cost: areaCost(x, id, d.id) })) : []);
+    return KINDS.flatMap(id => x.areas[id] ? TRACKS[id].filter(d => visible(x.areas[id], d.id) && tierProvider(parent, { type: 'expedition-buy', areaId: id, id: d.id }) && rank(x.areas[id], d.id) < maxRank(x, id)).map(d => ({ areaId: id, id: d.id, cost: areaCost(x, id, d.id) })) : []);
   }
   function worldNextEvent(parent, gains) {
     const x = parent.expedition;
@@ -625,6 +627,7 @@
     return { name: d.name, costs: Object.fromEntries(Object.entries(d.costs).map(([key, value]) => [key, N.from(value)])), open: !!(x && x.version === 2 && developmentDependencies(x, d, parent).every(item => item.met)), done: !!(x && x.version === 2 && ownsDevelopment(x, id)) };
   }
   function worldAct(parent, action) {
+    if (!tierProvider(parent, action)) return { ok: false, message: 'Unlock this ready upgrade tier first.' };
     const x = parent.expedition;
     if (!x || x.version !== 2) return act(parent, action);
     const id = action.areaId || x.selectedArea, a = x.areas[id];
@@ -738,7 +741,7 @@
       const impact = impactFor(parent, copy), cap = maxRank(x, id);
       const milestone = [3, 6, 10, 20, 30, 50, 75, 100, 150, 200].find(value => value > rank(a, d.id) && value <= cap);
       return { id: 'area:' + id + ':' + d.id, catalogId: 'area:' + id + ':' + d.id, trackId: d.id, areaId: id, name: d.label, label: d.label, icon: d.icon, group: 'area', effectKind: id === 'quarry' ? d.id === 'carts' ? 'transport' : 'throughput' : d.id === 'porters' ? 'allocation' : d.id === 'scouts' ? 'discovery' : 'throughput', sourceAreas: [id], targetAreas: [...new Set([id].concat(impact.map(item => item.areaId)))], dependencies: [], impact,
-        rank: rank(a, d.id), level: rank(a, d.id), maxRank: cap, maxLevel: cap, maxed: rank(a, d.id) >= cap, visible: visible(a, d.id), disabled: rank(a, d.id) >= cap || N.cmp(parent.resources.coins, price) < 0,
+        rank: rank(a, d.id), level: rank(a, d.id), maxRank: cap, maxLevel: cap, maxed: rank(a, d.id) >= cap, visible: visible(a, d.id) && tierProvider(parent, { type: 'expedition-buy', areaId: id, id: d.id }), disabled: rank(a, d.id) >= cap || N.cmp(parent.resources.coins, price) < 0,
         description: (d.id === 'lift' ? 'Construction capacity for expansions; a completed Tower keeps its capacity for future building projects' : d.effect) + '. Permanent area infrastructure; visiting another area never removes it.', effectText: d.id === 'lift' ? 'Expansion construction capacity' : d.effect, comparison: impact.length ? impact.slice(0, 2).map(item => item.label + ' ' + item.current + ' → ' + item.next + item.unit).join(' · ') : 'Capacity improves; another station currently limits output.',
         cost: [{ resource: 'coins', amount: price, text: N.format(price) + ' coins' }], nextMilestone: milestone ? { rank: milestone, remaining: milestone - rank(a, d.id), label: milestone === 3 ? d.milestone : 'Stronger permanent ' + d.label.toLowerCase() } : null,
         action: { type: 'expedition-buy', areaId: id, id: d.id } };
@@ -749,7 +752,7 @@
       const impact = owned ? [] : impactFor(parent, copy);
       if (!owned && ['allocation', 'recipe', 'parallel', 'automation', 'unlock'].includes(d.kind)) impact.unshift({ metric: 'behavior:' + d.id, label: d.name, current: 'Locked', next: 'Available', unit: '' });
       return { id: 'development:' + d.id, catalogId: 'development:' + d.id, name: d.name, label: d.name, icon: AREA_ICONS[d.to[0]], group: d.group, effectKind: d.kind, areaId: d.to[0], sourceAreas: d.from.slice(), targetAreas: d.to.slice(), dependencies, impact, description: d.description, effectText: d.description,
-        cost: costs, owned, maxed: owned, level: owned ? 1 : 0, maxLevel: 1, visible: d.at <= Math.max(x.index, x.cleared + 1) + 1, disabled: owned || dependencies.some(item => !item.met) || costs.some(item => N.cmp(parent.resources[item.resource], item.amount) < 0),
+        cost: costs, owned, maxed: owned, level: owned ? 1 : 0, maxLevel: 1, visible: owned || dependencies.every(item => item.met) && tierProvider(parent, { type: 'expedition-development', id: d.id }), disabled: owned || dependencies.some(item => !item.met) || costs.some(item => N.cmp(parent.resources[item.resource], item.amount) < 0),
         action: { type: 'expedition-development', id: d.id } };
     }));
   }
@@ -800,5 +803,5 @@
       dispatch: a.choices.dispatch, rates: { travel: r.travel, picks: r.picks, carts: r.carts, furnace: r.furnace, repair: r.repair, beacon: r.beacon, income: N.toNumber(r.income), maps: N.toNumber(r.maps), knowledge: N.toNumber(r.knowledge), materials: N.toNumber(r.materials) }, flows: { picks: r.actualPicks, carts: r.actualCarts, furnace: r.actualFurnace } });
     return result;
   }
-  return { create: createWorld, hydrate: hydrateWorld, validate: validateWorld, normalize: upgradeWorld, progress: worldProgress, targets: worldTargets, localRates: localWorldRates, rates: worldRates, contribution: worldContribution, nextEvent: worldNextEvent, tick: worldTick, finish: worldFinish, restart: beginProject, autoBuy: worldAutoBuy, act: worldAct, view: worldView, catalog: worldCatalog, impact: impactFor, developmentTask, stageName, setEntitlements, setReserveProvider, setRateProvider };
+  return { create: createWorld, hydrate: hydrateWorld, validate: validateWorld, normalize: upgradeWorld, progress: worldProgress, targets: worldTargets, localRates: localWorldRates, rates: worldRates, contribution: worldContribution, nextEvent: worldNextEvent, tick: worldTick, finish: worldFinish, restart: beginProject, autoBuy: worldAutoBuy, act: worldAct, view: worldView, catalog: worldCatalog, impact: impactFor, developmentTask, stageName, setEntitlements, setReserveProvider, setRateProvider, setTierProvider, tierDefinitions: () => DEVELOPMENTS };
 });

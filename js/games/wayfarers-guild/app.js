@@ -80,6 +80,8 @@
     let lastSave = Date.now();
     let lastSuccessfulSave = loaded.savedAt || null;
     let saveFailure = loaded.canSave === false || loaded.ok === false ? loaded.message : null;
+    let hardResetBusy = loaded.status === 'reset-pending';
+    let hardResetRequest = false;
     let pendingCatchup = loaded.offline && loaded.offline.pendingSeconds || 0;
     let notices = [];
     let lastGoal = view.goal.title;
@@ -88,7 +90,7 @@
     let billingSnapshot = billing ? billing.snapshot() : { native: false, available: false, configured: false, balance: 0, owned: [], products: [], message: 'Currency packs are available in the Google Play Android app.' };
     let billingBusy = false;
     const unsubscribeBilling = billing ? billing.subscribe(snapshot => {
-      if (disposed) return;
+      if (disposed || hardResetBusy) return;
       billingSnapshot = snapshot;
       advance();
       if (core.setPremiumEntitlements) core.setPremiumEntitlements(state, snapshot.owned);
@@ -166,7 +168,7 @@
     const rewarded = root.WayfarersRewarded ? root.WayfarersRewarded.createClient({ root }) : null;
     let rewardedSnapshot = rewarded ? rewarded.snapshot() : { native: false, available: false, configured: false, pending: false, state: 'unavailable', message: 'Rewarded ads are not configured. Your caravan will wait, or you can skip it.' };
     const unsubscribeRewarded = rewarded ? rewarded.subscribe(snapshot => {
-      if (disposed) return;
+      if (disposed || hardResetBusy) return;
       rewardedSnapshot = snapshot;
       caravanBusy = snapshot.state === 'showing';
       const receipts = snapshot.receipts || (snapshot.receipt ? [snapshot.receipt] : []);
@@ -190,6 +192,7 @@
       warning.textContent = message || '';
     }
     function save() {
+      if (hardResetBusy) return { ok: false, message: 'Finish the testing reset before continuing.' };
       if (awaitingPurchaseWallet) return { ok: false, message: 'Waiting for the purchase wallet before saving catch-up.' };
       const previousSeen = state.luck && state.luck.ledger ? state.luck.ledger.seen : null;
       if (pendingSeenSeq != null) core.act(state, { type: 'discovery-seen', seq: pendingSeenSeq });
@@ -203,7 +206,7 @@
       return result;
     }
     function advance() {
-      if (awaitingPurchaseWallet) return;
+      if (awaitingPurchaseWallet || hardResetBusy) return;
       const summary = core.advanceTo(state, Date.now());
       pendingCatchup = summary && summary.pendingSeconds || 0;
       if (summary && summary.events && summary.events.length) announce(summary.events.slice(-2).join(' '));
@@ -232,13 +235,15 @@
     }
     function perform(action) {
       if (!action) return { ok: false };
+      if (hardResetBusy) return { ok: false, message: 'Finish the testing reset in Settings before continuing.' };
       if (action.type === 'retry-save') {
         const result = save();
-        announce(result.ok ? 'Saved. Your collection result is secure.' : result.message);
+        announce(result.ok ? 'Progress saved.' : result.message);
         render();
         return result;
       }
-      const collectionAction = /^(collection-|deck-|card-|gear-)/.test(action.type);
+      const tierAction = /^upgrade-tier-/.test(action.type);
+      const collectionAction = /^(collection-|deck-|card-|gear-)/.test(action.type) || tierAction;
       if (collectionAction && saveFailure) {
         const message = 'Save your pending result before making another collection change. Retry save without spending again.';
         announce(message); render();
@@ -261,10 +266,12 @@
       const previousFocus = document.activeElement;
       advance();
       const collectionBeforeAck = action.type === 'collection-ack' ? JSON.parse(JSON.stringify(state.collection)) : null;
+      const beforeTier = tierAction ? JSON.parse(JSON.stringify(state)) : null;
       const result = core.act(state, action);
       const saved = result.ok ? save() : null;
       if (saved && !saved.ok && collectionAction) {
         if (collectionBeforeAck) state.collection = collectionBeforeAck;
+        if (beforeTier) { state = beforeTier; core.setPremiumEntitlements(state, billingSnapshot.owned); }
         announce('Your result is pending save. Retry save; no additional items will be spent.');
         render();
         return {ok:false,pendingSave:true,message:saved.message};
@@ -344,6 +351,7 @@
       q('[data-status]').dataset.visible = 'false';
     }
     async function billingAction(method, argument) {
+      if (hardResetBusy) return;
       if (!billing || billingBusy) return;
       billingBusy = true;
       if (awaitingPurchaseWallet) announce('Restoring the purchase wallet before calculating guild progress.');
@@ -1008,7 +1016,7 @@
       finally { caravanBusy = rewardedSnapshot.state === 'showing'; if (!disposed) render(); }
     }
     async function applyAdReceipt(receipt) {
-      if (!receipt || receiptsInFlight.has(receipt.receiptId) || awaitingPurchaseWallet || disposed) return;
+      if (!receipt || receiptsInFlight.has(receipt.receiptId) || awaitingPurchaseWallet || disposed || hardResetBusy) return;
       receiptsInFlight.add(receipt.receiptId);
       try {
         advance();
@@ -1166,7 +1174,7 @@
     }
 
     function setSheetFooter(primary, secondary) {
-      const hooks = ['data-perform', 'data-close-dialog', 'data-sheet-back', 'data-watch-caravan', 'data-skip-caravan', 'data-confirm-reset', 'data-confirm-challenge', 'data-confirm-import', 'data-cancel-import', 'data-goal-guide'];
+      const hooks = ['data-perform', 'data-close-dialog', 'data-sheet-back', 'data-watch-caravan', 'data-skip-caravan', 'data-confirm-reset', 'data-confirm-testing-reset', 'data-confirm-challenge', 'data-confirm-import', 'data-cancel-import', 'data-goal-guide'];
       [['[data-sheet-primary]', primary], ['[data-sheet-secondary]', secondary]].forEach(([selector, action]) => {
         const button = q(selector);
         hooks.forEach(hook => button.removeAttribute(hook));
@@ -1200,6 +1208,7 @@
       else if (kind === 'manage') { set('[data-dialog-title]', (tab === 'guild' ? (view.rooms.find(item => item.id === room) || {}).name : 'Trail') + ' upgrades'); reconcile('[data-all-upgrades]', currentActions, 'catalog'); }
       else if (kind === 'caravan') renderCaravan();
       else if (kind === 'settings') { renderSettings(); updateSaveStatus(); }
+      else if (kind === 'testing-reset') renderTestingReset();
       else if (kind === 'refit' || kind === 'charter') renderReset();
       else if (kind === 'challenge') renderChallenge();
       else if (kind === 'room') { q('[data-room-content]').appendChild(playPanel); set('[data-dialog-title]', (view.rooms.find(item => item.id === room) || {}).name || 'Guild room'); }
@@ -1250,7 +1259,42 @@
         '<label class="wg-dialog-label" for="wg-save-text">Backup text</label><textarea id="wg-save-text" spellcheck="false" autocomplete="off" placeholder="Paste an exported Wayfarers save here"></textarea>' +
         '<div class="wg-dialog-actions"><button type="button" class="wg-text-button" data-copy-save>Copy backup</button><button type="button" class="wg-button" data-review-import>Review import</button></div>' +
         '<label class="wg-dialog-label" for="wg-save-file">Or choose a save file</label><input id="wg-save-file" type="file" accept=".json,application/json,text/plain">' +
-        '<div data-import-preview hidden></div>' + (help.length ? '<details class="wg-details" data-unlocked-help><summary>Your unlocked features</summary>' + help.map(item => '<section class="wg-section"><h3>' + escapeHtml(item.label) + '</h3><p>' + escapeHtml(item.requirement || '') + '</p><p>' + escapeHtml(item.effect) + '</p></section>').join('') + '</details>' : '<p>Explore the trail and improve your boots. The next unlock explains what comes next.</p>');
+        '<div data-import-preview hidden></div><details class="wg-details" data-testing><summary>Testing</summary><button type="button" class="wg-button" data-open="testing-reset">Reset all game progress</button></details>' + (help.length ? '<details class="wg-details" data-unlocked-help><summary>Your unlocked features</summary>' + help.map(item => '<section class="wg-section"><h3>' + escapeHtml(item.label) + '</h3><p>' + escapeHtml(item.requirement || '') + '</p><p>' + escapeHtml(item.effect) + '</p></section>').join('') + '</details>' : '<p>Explore the trail and improve your boots. The next unlock explains what comes next.</p>');
+    }
+    function renderTestingReset() {
+      set('[data-dialog-title]', hardResetBusy ? 'Finish testing reset' : 'Reset all game progress?');
+      q('[data-dialog-body]').innerHTML = hardResetBusy
+        ? '<p>The reset is paused until all device saves are cleared. Retry resumes the same fresh guild.</p>'
+        : '<p>Erase this guild, earned currencies, upgrades, areas, cards, equipment and local recovery saves. Start again from the first upgrade.</p>' +
+          '<p>Downloaded backups, app settings, paid wallet and account purchases stay intact.</p>' +
+          '<button type="button" class="wg-button" data-reset-export>Download backup first</button>' +
+          '<label class="wg-dialog-label" for="wg-reset-confirm">Type RESET to erase this guild</label><input id="wg-reset-confirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">';
+      setSheetFooter({ hook: 'data-confirm-testing-reset', label: hardResetBusy ? 'Retry reset' : 'Erase guild & restart', disabled: !hardResetBusy || hardResetRequest },
+        { hook: 'data-close-dialog', label: hardResetBusy ? 'Close' : 'Keep my guild' });
+    }
+    async function resetGameForTesting() {
+      if (hardResetRequest) return;
+      if (!hardResetBusy && q('#wg-reset-confirm')?.value !== 'RESET') return;
+      if (!hardResetBusy && (caravanBusy || billingBusy || receiptsInFlight.size || awaitingPurchaseWallet || rewardedSnapshot.pending)) {
+        set('[data-dialog-notice]', 'Finish the pending purchase or reward before resetting.'); return;
+      }
+      hardResetBusy = true; hardResetRequest = true;
+      q('[data-confirm-testing-reset]').disabled = true;
+      let result;
+      try {
+        const run = () => store.resetForTesting();
+        result = navigator.locks ? await navigator.locks.request('wayfarers-guild-testing-reset', run) : await run();
+      } catch (error) { result = { ok: false, status: 'reset-pending', message: 'The reset was interrupted. Retry to finish.' }; }
+      hardResetRequest = false;
+      if (!result.ok) {
+        hardResetBusy = result.status === 'reset-pending' || !!store.pendingReset()?.text;
+        renderTestingReset(); set('[data-dialog-notice]', result.message); return;
+      }
+      state = result.state;
+      pendingFinds = []; pendingSeenSeq = null; pendingImport = null; feedbackFind = null; teaching = null;
+      set('[data-dialog-notice]', 'All game progress cleared. Starting a fresh guild…');
+      // Keep callbacks and lifecycle autosaves fenced until the new page mounts.
+      root.location.reload();
     }
     function renderResourceDetails() {
       set('[data-dialog-title]', 'Resources');
@@ -1384,6 +1428,16 @@
       else if (button.hasAttribute('data-confirm-reset')) {
         const kind = dialogKind;
         if (perform({ type: kind }).ok) { closeDialog(); tab = 'trail'; room = 'mine'; render(); }
+      } else if (button.hasAttribute('data-confirm-testing-reset')) await resetGameForTesting();
+      else if (button.hasAttribute('data-reset-export')) {
+        const exported = store.export(state);
+        if (exported.ok) {
+          if (root.WayfarersAndroid) { root.WayfarersAndroid.postMessage(JSON.stringify({ type: 'export', text: exported.text })); return; }
+          const url = URL.createObjectURL(new Blob([exported.text], { type: 'application/json' }));
+          const anchor = document.createElement('a'); anchor.href = url; anchor.download = exported.filename; anchor.click();
+          root.setTimeout(() => URL.revokeObjectURL(url), 1000);
+          set('[data-dialog-notice]', 'Backup downloaded. Your guild has not changed.');
+        } else set('[data-dialog-notice]', exported.message);
       } else if (button.hasAttribute('data-confirm-challenge')) {
         const result = perform(pendingChallenge);
         if (result.ok) { closeDialog(); showTab('trail'); }
@@ -1455,6 +1509,7 @@
       }
     }, { signal });
     element.addEventListener('input', event => {
+      if (event.target.id === 'wg-reset-confirm') q('[data-confirm-testing-reset]').disabled = event.target.value !== 'RESET' || hardResetRequest;
       if (event.target.id === 'wg-save-text') {
         pendingImport = null;
         q('[data-import-preview]').hidden = true;
@@ -1508,13 +1563,15 @@
         element:q('[data-game]'), perform, quiet,
         openLegacy:openDialog,
         overlayOpen:() => dialog.open || !q('[data-find-feedback]').hidden,
+        tierNoticeAllowed:() => !disposed && !dialog.open && !caravanBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,
         nativeOptions:() => q('.wg-exit').click()
       });
       scene.destroy();
     }
     if (!expeditionUI && loaded.offline && loaded.offline.seconds >= 60) renderReturnSummary(loaded.offline.summary, loaded.offline.seconds, loaded.offline.gains);
     render();
-    if (expeditionUI) expeditionUI.showReturn(loaded.offline);
+    if (expeditionUI && !hardResetBusy) expeditionUI.showReturn(loaded.offline);
+    if (hardResetBusy) openDialog('testing-reset');
     if (rewarded) rewarded.refresh().catch(() => announce('The caravan service could not connect. Saved deliveries will retry when it reconnects.'));
     if (billing && root.WayfarersPlayBilling) billingAction('refresh');
     if (loaded.status === 'new') save();
