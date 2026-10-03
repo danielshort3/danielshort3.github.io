@@ -1,6 +1,8 @@
 // Keep browser globals available before their dependent simulation and interface modules.
 import '../../js/games/wayfarers-guild/numbers.js';
 import '../../js/games/wayfarers-guild/content.js';
+import '../../js/games/wayfarers-guild/collection-content.js';
+import '../../js/games/wayfarers-guild/collections.js';
 import '../../js/games/wayfarers-guild/expeditions.js';
 import '../../js/games/wayfarers-guild/progression-content.js';
 import '../../js/games/wayfarers-guild/progression-modifiers.js';

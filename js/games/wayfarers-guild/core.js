@@ -1,12 +1,12 @@
 (function (root, factory) {
   'use strict';
   const common = typeof module === 'object' && module.exports;
-  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./content.js') : root.WayfarersContent, common ? require('./expeditions.js') : root.WayfarersExpeditions, common ? require('./progression.js') : root.WayfarersProgression, common ? require('./progression-purchases.js') : root.WayfarersProgressionPurchases);
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./content.js') : root.WayfarersContent, common ? require('./expeditions.js') : root.WayfarersExpeditions, common ? require('./progression.js') : root.WayfarersProgression, common ? require('./progression-purchases.js') : root.WayfarersProgressionPurchases, common ? require('./collections.js') : root.WayfarersCollections);
   if (common) module.exports = api;
   if (root) root.WayfarersCore = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, C, LegacyE, P, Purchases) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, C, LegacyE, P, Purchases, Collection) {
   'use strict';
-  const VERSION = 5;
+  const VERSION = 6;
   // Released runs keep the exact legacy formulas until a deliberate prestige.
   // New progression is dispatched by its own strictly validated nested version.
   const E = Object.fromEntries(Object.keys(LegacyE).map(key => [key, (...args) => {
@@ -82,6 +82,7 @@
     if (!object(state) || !Array.isArray(ids) || ids.some(id => typeof id !== 'string' || !find(C.PREMIUM_ITEMS, id))) return { ok: false, message: 'Invalid premium entitlements.' };
     premiumEntitlements.set(state, new Set(ids));
     E.setEntitlements(state, ids);
+    Collection.setEntitlements(state, ids);
     return { ok: true, message: 'Account ownership refreshed.' };
   }
   function premiumOwned(state, id) {
@@ -139,7 +140,7 @@
       lifetime: { work: N.zero(), coins: N.zero(), refits: 0, charters: 0, highestRoute: -1, frontier: 0 },
       crew: { owned: [], specialists: [null, null], companions: [], companion: null },
       meal: 'meal-none', doctrine: 'balanced', automations: { operations: false, equipment: false, routes: false },
-      challenges: { active: null, completed: [] }, collections: [], planner: 0, events: [], premium: createPremium(time), luck: createLuck(time), caravan: createCaravan(time), guild: createGuild(false), introductions: { seen: [] }, expedition: E.create()
+      challenges: { active: null, completed: [] }, collections: [], planner: 0, events: [], premium: createPremium(time), luck: createLuck(time), caravan: createCaravan(time), guild: createGuild(false), introductions: { seen: [] }, expedition: E.create(), collection: Collection.create(time)
     };
   }
 
@@ -231,6 +232,7 @@
       if (!exactKeys(state.introductions, ['seen'])) errors.push('Invalid presentation introductions.');
       else ids(state.introductions.seen, C.PRESENTATION_SYSTEMS, 'seen introductions');
     }
+    if (version >= 6 && !Collection.validate(state.collection, state)) errors.push('Invalid card and equipment collection.');
     return { valid: errors.length === 0, errors };
   }
 
@@ -240,19 +242,21 @@
     // Migration does not repair missing values, import premium ownership, or mint
     // rewards for historical play. Only the exact supported v1 schema is admitted.
     try {
-      if (!object(input) || ![1, 2, 3, 4].includes(input.schemaVersion) || !validateSchema(input, input.schemaVersion).valid) return null;
-      if (input.schemaVersion === 4) {
-        const keys = Object.keys(createState(input.createdAt));
+      if (!object(input) || ![1, 2, 3, 4, 5].includes(input.schemaVersion) || !validateSchema(input, input.schemaVersion).valid) return null;
+      if (input.schemaVersion >= 4) {
+        const keys = Object.keys(createState(input.createdAt)).filter(key => key !== 'collection');
         if (Object.keys(input).some(key => !keys.includes(key)) || keys.filter(key => !['expedition', 'introductions'].includes(key)).some(key => !own(input, key))) return null;
         const retained = clone(input); retained.schemaVersion = VERSION;
+        retained.collection = Collection.create(input.createdAt);
         return validateState(retained).valid ? retained : null;
       }
-      const keys = Object.keys(createState(input.createdAt)).filter(key => !['guild', 'introductions', 'expedition'].includes(key) && (input.schemaVersion >= 3 || !['luck', 'caravan'].includes(key)) && (input.schemaVersion !== 1 || key !== 'premium'));
+      const keys = Object.keys(createState(input.createdAt)).filter(key => !['guild', 'introductions', 'expedition', 'collection'].includes(key) && (input.schemaVersion >= 3 || !['luck', 'caravan'].includes(key)) && (input.schemaVersion !== 1 || key !== 'premium'));
       if (Object.keys(input).length !== keys.length || Object.keys(input).some(key => !keys.includes(key))) return null;
       const expected = { route: ['index', 'progress', 'mode'], run: ['id', 'completed', 'work', 'elapsed'], chapter: ['work', 'refits'], lifetime: ['work', 'coins', 'refits', 'charters', 'highestRoute', 'frontier'], crew: ['owned', 'specialists', 'companions', 'companion'], challenges: ['active', 'completed'], automations: C.AUTOMATIONS.map(x => x.id) };
       if (Object.keys(expected).some(key => Object.keys(input[key]).length !== expected[key].length || Object.keys(input[key]).some(field => !expected[key].includes(field)))) return null;
       const out = clone(input);
       out.schemaVersion = VERSION;
+      out.collection = Collection.create(input.createdAt);
       if (input.schemaVersion === 1) {
         out.resources.starshards = N.zero();
         out.premium = createPremium(out.createdAt);
@@ -745,6 +749,19 @@
     C.ROOMS.forEach(room => {
       if (unlocked(state, room.id)) xp[room.id] = N.mul(experience, room.id === 'forge' ? 0.3 * (1 + level(state, 'forge')) : room.id === 'kitchen' ? 0.3 * kitchenRatio : 0.3);
     });
+    if (!network) {
+      // Explicitly equipped collection items can be used in a preserved run.
+      // Its old production model has no new six-area queues, so descriptors
+      // disclose these compatible profession bonuses instead.
+      const m = Collection.modifiers(state), total = keys => 1 + keys.reduce((sum, key) => sum + (m[key] || 0), 0);
+      rates.coins = N.mul(rates.coins, total(['coins', 'cargo']));
+      rates.ore = N.mul(rates.ore, total(['picks', 'haul', 'smelt', 'oreYield']));
+      rates.herbs = N.mul(rates.herbs, total(['delving', 'recovery', 'artifacts']));
+      rates.provisions = N.mul(rates.provisions, total(['assembly', 'workshopYield', 'oreSaving']));
+      rates.knowledge = N.mul(rates.knowledge, total(['knowledge', 'research', 'interpretation']));
+      rates.maps = N.mul(rates.maps, total(['maps']));
+      travel = N.mul(travel, total(['travel', 'voyage']));
+    }
     return { gain: rates, drain, xp, travel, kitchenRatio, mealRatio };
   }
 
@@ -966,6 +983,7 @@
       const reserveEvents = {};
       let dt = remaining;
       if (state.expedition) dt = Math.min(dt, E.nextEvent(state, rates.gain));
+      dt = Math.min(dt, Collection.nextEvent(state));
       dt = Math.min(dt, luckEventTime(state, batch));
       const dispatch = !unlocked(state, 'cartography') || state.automations.routes && automationAvailable(state, 'routes');
       const repeat = state.route.index <= state.run.completed && !dispatch && !state.guild.prepared.kinds.length;
@@ -1022,6 +1040,7 @@
       C.ROOMS.forEach(room => { state.mastery[room.id] = N.add(state.mastery[room.id], N.mul(rates.xp[room.id], dt)); state.ranks[room.id] = masteryRank(state.mastery[room.id]); });
       state.planner += dt;
       advancePremium(state, dt, state.lastUpdate + elapsed * 1000);
+      Collection.tick(state, dt);
       if (state.expedition) { settleExpedition(state); E.autoBuy(state); }
       else if (repeat && N.cmp(state.route.progress, target) >= 0) {
         const laps = N.div(state.route.progress, target);
@@ -1029,6 +1048,7 @@
         // above mantissa precision the fractional lap is intentionally represented as zero.
         state.route.progress = laps.e > 13 ? N.zero() : N.mul(target, N.toNumber(laps) % 1);
       } else if (N.cmp(state.route.progress, target) >= 0 || routeTime <= dt + EPS) settleRoute(state);
+      Collection.syncUnlocks(state);
       if (!batch) tickLuck(state, dt, state.lastUpdate + (elapsed + dt) * 1000, luckEligible);
       if (state.planner >= 60 - EPS) { state.planner %= 60; if (state.planner > 60 - EPS) state.planner = 0; }
       if (planningTime <= dt + EPS) planPurchases(state, state.lastUpdate + (elapsed + dt) * 1000);
@@ -1088,7 +1108,7 @@
     copy.lifetime[type === 'charter' ? 'charters' : 'refits'] += 1;
     const starter = P.reset(copy, type);
     const capCredits = Object.entries(copy.expedition.areas).filter(([, area]) => area.cap > 100).map(([id, area]) => P.Content.AREAS.find(a => a.id === id).name + ' cap ' + area.cap);
-    preview.keeps = ['Every discovered area, compatible working choice and automation plan', 'Learned branches, blueprints, mastery, research and crew ownership', 'Earned rank-cap entitlements' + (capCredits.length ? ': ' + capCredits.join(', ') : ''), 'Crest legacy upgrades and all premium ownership, RNG, pity, receipts and reserved reward quotes'].concat(type === 'refit' ? ['Field notes and Notes improvements'] : []);
+    preview.keeps = ['Every discovered area, compatible working choice and automation plan', 'Learned branches, blueprints, mastery, research and crew ownership', 'Cards, named decks, Archive Ink, equipment enhancements, scrolls and collection discovery clocks', 'Earned rank-cap entitlements' + (capCredits.length ? ': ' + capCredits.join(', ') : ''), 'Crest legacy upgrades and all premium ownership, RNG, pity, receipts and reserved reward quotes'].concat(type === 'refit' ? ['Field notes and Notes improvements'] : []);
     preview.resets = ['This confirmed reset adopts the new six-area progression rules', 'All ordinary local, guild-operation and equipment ranks rebuild from zero', 'All ordinary stocks, production queues and unfinished run expansion work', 'Meals and route preparations'].concat(type === 'charter' ? ['Field notes and Notes improvement levels'] : []);
     preview.gains = [preview.rewardText, N.format(starter.starter) + ' starter coins: one earned ×' + starter.quantity + ' Pathfinding batch', 'Known areas keep producing at rank zero; learned choices stay available', 'Familiar first-three landmarks rebuild with 68% less expansion work', 'Previously reached local ranks cost 50% less to rebuild; new best ranks keep their normal price'].concat(preview.premiumGift ? [preview.premiumGift + ' earned Starshards · first reset gift, once only'] : []);
     preview.recovery = { seconds: null, text: 'Your current run keeps its released economy until you confirm. This reset begins the new progression; repeatable ranks and ordinary stocks rebuild.' };
@@ -1108,7 +1128,7 @@
     copy.expedition.areas.greenway.ranks.boots = 0;
     const starter = P.quote(copy, 'greenway', 'boots', count).costs.coins;
     return { available: requirements.every(r => r.met), reward, rewardText: N.format(reward) + ' ' + (charter ? 'guild crests' : 'field notes'), premiumGift: premiumGift(state, 'first-' + type), requirements,
-      keeps: ['Every discovered area, learned track, working plan and rank-cap entitlement', 'Funded research projects and their completed work', 'Permanent research, recipes, crew ownership, automation plans and reserves', 'Crest legacy improvements', 'Premium currencies, owned charms, RNG, pity and reserved reward quotes'].concat(charter ? [] : ['Field notes and Notes improvements']),
+      keeps: ['Every discovered area, learned track, working plan and rank-cap entitlement', 'Funded research projects and their completed work', 'Permanent research, recipes, crew ownership, automation plans and reserves', 'Cards, named decks, Archive Ink, equipment enhancements, scrolls and collection discovery clocks', 'Crest legacy improvements', 'Premium currencies, owned charms, RNG, pity and reserved reward quotes'].concat(charter ? [] : ['Field notes and Notes improvements']),
       resets: ['All ordinary local, guild-operation and equipment reinforcement ranks', 'Ordinary resource stockpiles and finite production queues', 'Current run expansion work, meals and route preparations'].concat(charter ? ['Field notes and Notes improvement levels'] : []),
       gains: [N.format(reward) + ' ' + (charter ? 'guild crests' : 'field notes'), N.format(starter) + ' starter coins: one earned ×' + count + ' Pathfinding batch', 'Every known area produces immediately at rank zero', 'Familiar first-three landmarks rebuild with 68% less expansion work', 'Previously reached local ranks cost 50% less to rebuild; new best ranks keep their normal price'].concat(type === 'refit' && !state.lifetime.refits ? ['Shared Focus and standing purchase plans', 'Exact ×5 purchases'] : []),
       purchases: resetAdvice(state, resource, reward).purchases, recovery: { seconds: null, text: 'Run investments rebuild with retained knowledge, open areas and earned bulk purchases. Review the exact reset list above.' }, planText: 'Focus charges and recharge progress are retained. A reset never refills Focus.', starter, batch: count };
@@ -1424,7 +1444,8 @@
     if (!object(action)) return { ok: false, message: 'Choose a valid guild action.' };
     const revision = state.expedition?.revision;
     const bulk = P.active(state) && ['buy', 'refit-upgrade', 'legacy-upgrade'].includes(action.type);
-    const result = bulk ? Purchases.commit(state, action, purchaseDependencies()) : performAction(state, action);
+    const collectionAction = ['collection-unlock', 'collection-ack', 'deck-select', 'deck-name', 'card-equip', 'card-fuse', 'card-recycle', 'card-craft', 'gear-equip', 'gear-forge', 'gear-reforge', 'gear-scroll'].includes(action.type);
+    const result = collectionAction ? Collection.act(state, action) : bulk ? Purchases.commit(state, action, purchaseDependencies()) : performAction(state, action);
     if (result.ok && result.equipmentRanks) {
       state.mastery.forge = N.add(state.mastery.forge, 30 * result.equipmentRanks);
       state.ranks.forge = masteryRank(state.mastery.forge);
@@ -1434,7 +1455,7 @@
       result.message = (action.type === 'charter' ? 'Guild Charter' : 'Refit') + ' complete. Repeatable ranks and ordinary stocks rebuild; discovered areas, learned branches, cap unlocks and saved plans remain. ' + N.format(started.starter) + ' starter coins fund one earned ×' + started.quantity + ' Pathfinding batch.';
     }
     else if (result.ok && state.expedition && action.type === 'challenge' && action.id !== null) E.restart(state, state.route.index);
-    if (result.ok && P.active(state) && state.expedition.revision === revision && !['expedition-select', 'expedition-seen', 'expedition-batch', 'discovery-seen', 'introduction-seen'].includes(action.type)) state.expedition.revision += 1;
+    if (result.ok && P.active(state) && state.expedition.revision === revision && !['expedition-select', 'expedition-seen', 'expedition-batch', 'discovery-seen', 'introduction-seen', 'collection-ack'].includes(action.type)) state.expedition.revision += 1;
     const identity = ['buy', 'refit-upgrade', 'legacy-upgrade'].includes(action.type) ? { type: action.type, id: action.id } : action;
     if (result.ok && validPlanAction(identity)) {
       const plan = state.guild.plan;
@@ -1442,6 +1463,7 @@
       if (plan.queue.length && canonical(plan.queue[0]) === canonical(identity)) plan.queue.shift();
       cleanPlan(state);
     }
+    if (result.ok) Collection.syncUnlocks(state);
     return result;
   }
   function purchaseDependencies() {
@@ -1856,7 +1878,7 @@
     };
     globalUpgrades.push(...planning.capabilities.map(globalDescriptor));
     return {
-      development, expedition, globalUpgrades, planning, presentation: getPresentation(state),
+      development, expedition, globalUpgrades, planning, presentation: getPresentation(state), collection: Collection.view(state),
       title: "Wayfarers’ Guild", resources, rooms, actions: upgrades.concat(refitUpgrades, legacyUpgrades), routes, modes, recipes, research, specialists, companions, doctrines, challenges, automations, refitUpgrades, legacyUpgrades, premium, luck, caravan,
       refit: getRefitPreview(state), charter: getCharterPreview(state), goal: getGoal(state), unlocks: state.rooms.slice(), events: state.events.slice(),
       progression: { routeId: current.id, routeIndex: current.index, routeName: current.name, realm: current.realm, realmName: current.realmName, routeProgress: N.format(state.route.progress), routeTarget: N.format(current.distance), routePercent: Math.min(1, ratio(state.route.progress, current.distance)), mode: state.route.mode, highestRoute: state.lifetime.highestRoute, frontier: state.lifetime.frontier, refits: state.lifetime.refits, charters: state.lifetime.charters, challenge: state.challenges.active, notes: N.format(state.resources.notes), mastery: clone(state.ranks), collections: state.collections.map(id => ({ id, name: find(C.REALMS, id).name, description: 'Permanent +8% production and travel.' })), specialists: state.crew.specialists.slice(), companion: state.crew.companion, doctrine: state.doctrine, materialTier: tier(state), meal: state.meal },
@@ -1868,6 +1890,13 @@
   E.setRateProvider((state, ownership) => {
     if (ownership) premiumEntitlements.set(state, ownership);
     return getRates(state).gain;
+  });
+  Collection.setRateProvider((state, ownership) => {
+    if (ownership) { premiumEntitlements.set(state, ownership); E.setEntitlements(state, ownership); }
+    const rates = getRates(state);
+    const raw = P.active(state) ? P.rawRates(state) : null;
+    const manifest = raw?.areas.harbor ? P.manifestPayout(state, raw) : null;
+    return { ...rates.gain, travel: rates.travel, ...(manifest ? { cargo: manifest.coins, mapCargo: manifest.maps, oreCargo: manifest.ore || N.zero(), provisionCargo: manifest.provisions || N.zero(), manifestSupply: N.from(raw.areas.harbor.supply), manifestReady: N.from(raw.areas.harbor.canLaunch ? 1 : 0) } : {}), ...(raw ? Object.fromEntries(Object.entries({ trailTravel: raw.areas.greenway?.travel, picks: raw.areas.quarry?.picks, haul: raw.areas.quarry?.carts, smelt: raw.areas.quarry?.furnace, assembly: raw.areas.workshop?.assembly, oreInput: raw.drain.ore, research: raw.researchRate, delving: raw.areas.ruins?.delving, recovery: raw.areas.ruins?.recovery, voyage: raw.areas.harbor?.voyagePace }).filter(([, value]) => value !== undefined).map(([id, value]) => [id, N.from(value)])) : {}) };
   });
   return { VERSION, MAX_TIME, Numbers: N, Content: C, format: N.format, createState, normalizeState, validateState, migrateState, setPremiumEntitlements, getRoute, getRates, upgradeCost, advance, advanceTo, act, getView, getPresentation, getGoal, getRefitPreview, getCharterPreview, getCaravanQuote, beginCaravanReward, cancelCaravanReward, grantCaravanReward };
 });

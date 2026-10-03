@@ -13,6 +13,7 @@
   const escape = value => String(value || '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
   Object.assign(ALIASES, { study:'knowledge',shipment:'supplies',surge:'time','prepare-mining':'miners','prepare-travel':'boot','use-kit':'backpack',industry:'tools',expedition:'boot',scholarship:'knowledge',frontier:'compass',discovery:'maps',pace:'boot',supply:'supplies',insight:'knowledge',foundations:'crests',curriculum:'knowledge',waystones:'compass',operations:'automation',routes:'maps','light-pack':'backpack','old-tools':'equipment','quiet-company':'quill','relic-found':'chest','caravan-reward':'caravan' });
   const PORTRAITS = { scout:3,prospector:4,naturalist:10,quartermaster:9,'crew-scholar':8,fox:14,owl:15,tortoise:16 };
+  const COLLECTION_ART = ["trail-courier","trail-cartographer","trail-stag","quarry-mole","quarry-hauler","quarry-salamander","tower-scribe","tower-signalist","tower-astronomer","workshop-tinker","workshop-smith","workshop-clockwork","ruins-delver","ruins-restorer","ruins-oracle","harbor-deckhand","harbor-navigator","harbor-leviathan","quarry-pick","clockwork-wrench","survey-hood","captain-hat","porter-coat","scholar-robe","trail-boots","deck-boots"];
   ALIASES.collection = 'banner-moon';
   Object.assign(ALIASES, { 'frost-compass': 'compass', 'archive-quill': 'quill', 'wayfarer-standard': 'banner-amber' });
   function markup(id, options) {
@@ -21,11 +22,15 @@
     const found = NAMES.indexOf(name);
     const index = found < 0 ? NAMES.indexOf('crate') : found;
     const accessibility = settings.label ? 'role="img" aria-label="' + escape(settings.label) + '"' : 'aria-hidden="true"';
+    if (COLLECTION_ART.includes(id) || id === 'cards') {
+      const artId = id === 'cards' ? 'trail-courier' : id;
+      return '<span class="wg-icon wg-collection-art ' + (id === 'cards' ? 'wg-card-symbol ' : '') + escape(settings.className) + '" ' + accessibility + ' data-icon="' + escape(id) + '" style="display:inline-block;width:1.75em;height:1.75em;flex-shrink:0;background-image:url(&quot;img/wayfarers-guild/' + artId + '.png?v=collections-1&quot;);background-size:contain;background-position:center;background-repeat:no-repeat;image-rendering:pixelated' + (id === 'cards' ? ';border:1px solid currentColor;border-radius:3px' : '') + '"></span>';
+    }
     if (Object.prototype.hasOwnProperty.call(PORTRAITS,id)) {
       const frame=PORTRAITS[id];
       return '<span class="wg-icon wg-portrait ' + escape(settings.className) + '" ' + accessibility + ' data-icon="' + escape(id) + '" style="display:inline-block;width:1.75em;height:1.75em;flex-shrink:0;background-image:url(&quot;img/wayfarers-guild/actors.png?v=51f333248522&quot;);background-size:400% 500%;background-position:' + (frame%4*100/3) + '% ' + (Math.floor(frame/4)*25) + '%;background-repeat:no-repeat;image-rendering:pixelated"></span>';
     }
     return '<span class="wg-icon ' + escape(settings.className) + '" ' + accessibility + ' data-icon="' + escape(id) + '" style="display:inline-block;width:1.75em;height:1.75em;flex-shrink:0;background-image:url(&quot;' + ATLAS + '&quot;);background-size:600% 600%;background-position:' + (index % 6 * 20) + '% ' + (Math.floor(index / 6) * 20) + '%;background-repeat:no-repeat;image-rendering:pixelated"></span>';
   }
-  return { ATLAS, NAMES, ALIASES, markup };
+  return { ATLAS, NAMES, ALIASES, COLLECTION_ART, markup };
 });

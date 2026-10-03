@@ -1,10 +1,10 @@
 (function (root, factory) {
   'use strict';
   const common = typeof module === 'object' && module.exports;
-  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./progression-content.js') : root.WayfarersProgressionContent, common ? require('./progression-modifiers.js') : root.WayfarersProgressionModifiers);
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./progression-content.js') : root.WayfarersProgressionContent, common ? require('./progression-modifiers.js') : root.WayfarersProgressionModifiers, common ? require('./collections.js') : root.WayfarersCollections);
   if (common) module.exports = api;
   if (root) root.WayfarersProgression = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, D, M) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, D, M, Collection) {
   'use strict';
   const EPS = 1e-8, RESOURCES = ['coins', 'ore', 'herbs', 'provisions', 'knowledge', 'maps'];
   const ids = D.AREAS.map(a => a.id), clone = x => JSON.parse(JSON.stringify(x));
@@ -86,6 +86,7 @@
   }
   function rawRates(state, options = {}) {
     const x = state.expedition, gain = empty(), drain = empty(), areas = {};
+    const equipment = Collection.modifiers(state), bonus = key => 1 + (equipment[key] || 0);
     const p = (id, track) => localPower(x, id, track), has = id => !!x.areas[id];
     const meta = (1 + Math.sqrt(state.lifetime.refits) * .28) * (1 + state.lifetime.charters * .65);
     const travelBonus = (1 + .2 * Math.sqrt(state.refitUpgrades.pace)) * (1 + .35 * Math.sqrt(state.legacy.waystones));
@@ -100,7 +101,7 @@
     const coord = has('watchtower') ? .1 * Math.max(0, p('watchtower', 'signals') - 1) * p('watchtower', 'crew') * (1 + .15 * Math.max(0, p('watchtower', 'relay-grid') - 1)) : 0;
     const machinery = has('workshop') ? .12 * (p('workshop', 'mechanisms') - 1) : 0;
     const resonance = has('ruins') && new Set(x.areas.ruins.plans.loadouts).size > 1 ? 1 + .12 * (p('ruins', 'resonance') - 1) : 1;
-    const restoration = has('ruins') ? .1 * (p('ruins', 'restoration') - 1) * p('ruins', 'attunement') * resonance : 0;
+    const restoration = has('ruins') ? .1 * (p('ruins', 'restoration') - 1) * p('ruins', 'attunement') * resonance * bonus('artifacts') : 0;
     const assignmentSlots = has('watchtower') ? 1 + (rank(x, 'watchtower', 'crew') >= 10 ? 1 : 0) + (learned(x, 'watchtower', 'relay-grid') && rank(x, 'watchtower', 'relay-grid') > 0 ? 1 : 0) : 0;
     const assignments = has('watchtower') ? x.areas.watchtower.plans.assignments.slice(0, assignmentSlots) : [];
     const allocation = name => assignments.filter(v => v === name).length / Math.max(1, assignments.length);
@@ -109,11 +110,12 @@
     const ruinTrade = relicRoles.includes('trade') && x.areas.ruins.discoveries.botanical > 0;
     const ruinIndustry = relicRoles.includes('industry') && x.areas.ruins.discoveries.metallic > 0;
     const g = x.areas.greenway, dispatch = g.choice;
-    const speed = p('greenway', 'boots') * boots * (1 + .08 * Math.sqrt(state.upgrades.preparation)) * (1 + .08 * Math.sqrt(state.ranks.trail)) * (inherited('paved-roads') ? 1.25 : 1) * (x.blueprints.includes('pathfinding') ? 1.15 : 1);
+    const speed = p('greenway', 'boots') * boots * (1 + .08 * Math.sqrt(state.upgrades.preparation)) * (1 + .08 * Math.sqrt(state.ranks.trail)) * (inherited('paved-roads') ? 1.25 : 1) * (x.blueprints.includes('pathfinding') ? 1.15 : 1) * bonus('travel');
     const parallel = learned(x, 'greenway', 'caravans') ? Math.max(0, p('greenway', 'caravans') - 1) * .35 : 0;
     const share = dispatch === 'freight' ? .55 : dispatch === 'survey' ? .4 : ['mixed', 'trade-survey'].includes(dispatch) ? .75 : dispatch === 'continental' ? .7 : 1;
     const freight = (dispatch === 'freight' ? .6 : dispatch === 'mixed' ? .35 : 0) * p('greenway', 'porters') + parallel + (learned(x, 'greenway', 'railways') ? .3 * p('greenway', 'railways') : 0);
     gain.coins = Math.sqrt(speed) * p('greenway', 'porters') * (1 + parallel) * share * (1 + coord * (.25 + allocation('trade'))) * (1 + (ruinTrade ? restoration : 0));
+    gain.coins *= bonus('coins');
     gain.maps = .008 * p('greenway', 'scouts') * (dispatch === 'survey' ? 3 : dispatch === 'trade-survey' ? 1.8 : 1);
     if (inherited('survey-charters') && ['survey', 'trade-survey'].includes(dispatch)) gain.knowledge += gain.maps * .75;
     gain.herbs = learned(x, 'greenway', 'waystations') ? .03 * p('greenway', 'waystations') : 0;
@@ -121,9 +123,9 @@
     if (has('quarry')) {
       const a = x.areas.quarry;
       const plan = a.choice === 'adaptive' ? a.buffers.input > EPS || a.buffers.output > EPS ? 'balanced' : 'precision' : a.choice;
-      const extraction = .12 * p('quarry', 'picks') * tools * (inherited('deep-veins') ? 1.2 : 1) * (inherited('trail-prospectors') && ['survey', 'trade-survey'].includes(dispatch) ? 1 + .08 * Math.sqrt(rank(x, 'greenway', 'scouts')) : 1) * (1 + (has('workshop') ? .1 * Math.max(0, p('workshop', 'toolmaking') - 1) : 0)) * (1 + (x.areas.workshop?.choice === 'extraction' ? machinery : 0)) * focus('quarry');
-      const haul = .1 * p('quarry', 'carts') * (1 + freight) * (1 + coord * (.2 + allocation('industry'))) * focus('quarry');
-      const refining = .09 * p('quarry', 'furnace') * (state.research.includes('efficient-smelting') ? 1.25 : 1) * focus('quarry');
+      const extraction = .12 * p('quarry', 'picks') * tools * (inherited('deep-veins') ? 1.2 : 1) * (inherited('trail-prospectors') && ['survey', 'trade-survey'].includes(dispatch) ? 1 + .08 * Math.sqrt(rank(x, 'greenway', 'scouts')) : 1) * (1 + (has('workshop') ? .1 * Math.max(0, p('workshop', 'toolmaking') - 1) : 0)) * (1 + (x.areas.workshop?.choice === 'extraction' ? machinery : 0)) * focus('quarry') * bonus('picks');
+      const haul = .1 * p('quarry', 'carts') * (1 + freight) * (1 + coord * (.2 + allocation('industry'))) * focus('quarry') * bonus('haul');
+      const refining = .09 * p('quarry', 'furnace') * (state.research.includes('efficient-smelting') ? 1.25 : 1) * focus('quarry') * bonus('smelt');
       const capacity = 10 + rank(x, 'quarry', 'carts') * .5 + (inherited('trail-depot') ? 24 : 0) + (learned(x, 'greenway', 'waystations') ? p('greenway', 'waystations') * 3 : 0);
       const rich = plan === 'rich', alloys = plan === 'alloy';
       const geologic = 1 + .12 * (p('quarry', 'geology') - 1), deep = learned(x, 'quarry', 'deepworks') ? .15 * p('quarry', 'deepworks') : 0;
@@ -133,7 +135,7 @@
       const furnaceFlow = a.buffers.output > EPS ? furnaceCap : Math.min(furnaceCap, cartFlow);
       if (a.buffers.output >= capacity - EPS) cartFlow = Math.min(cartFlow, furnaceFlow);
       const mineFlow = a.buffers.input >= capacity - EPS ? Math.min(mineCap, cartFlow) : mineCap;
-      const yieldRate = (rich ? 1.65 : alloys ? .8 : plan === 'precision' ? 1.4 : plan === 'mixed' ? 1.15 : plan === 'optics' ? .3 : 1) * geologic * (inherited('efficient-crucibles') ? 1.15 : 1) * (1 + .2 * (p('quarry', 'recovery') - 1)) * (1 + (ruinIndustry ? restoration : 0));
+      const yieldRate = (rich ? 1.65 : alloys ? .8 : plan === 'precision' ? 1.4 : plan === 'mixed' ? 1.15 : plan === 'optics' ? .3 : 1) * geologic * (inherited('efficient-crucibles') ? 1.15 : 1) * (1 + .2 * (p('quarry', 'recovery') - 1)) * (1 + (ruinIndustry ? restoration : 0)) * bonus('oreYield');
       gain.ore = furnaceFlow * yieldRate;
       if (built(x, 'guild-industry') && x.areas.workshop?.choice === 'integrated') gain.ore += Math.min(mineFlow - Math.min(mineFlow, furnaceFlow), furnaceFlow) * .4;
       gain.coins += furnaceFlow * .5;
@@ -152,16 +154,16 @@
     }
     if (has('workshop')) {
       const a = x.areas.workshop, efficient = a.choice === 'precision', slots = learned(x, 'workshop', 'replication') && rank(x, 'workshop', 'replication') > 0 ? 2 : 1;
-      const cap = .09 * p('workshop', 'assembly') * (1 + (a.choice === 'manufacture' || a.choice === 'integrated' ? machinery : 0)) * focus('workshop');
+      const cap = .09 * p('workshop', 'assembly') * (1 + (a.choice === 'manufacture' || a.choice === 'integrated' ? machinery : 0)) * focus('workshop') * bonus('assembly');
       const standardization = slots > 1 ? 1 + .12 * (p('workshop', 'replication') - 1) : 1;
-      const inputPerUnit = (efficient ? .45 / Math.sqrt(p('workshop', 'precision')) : .8) / standardization;
+      const inputPerUnit = (efficient ? .45 / Math.sqrt(p('workshop', 'precision')) : .8) / standardization * (1 - (equipment.oreSaving || 0));
       const relation = N.cmp(state.resources.ore, reserve(state, 'ore'));
       const available = relation > 0 ? Infinity : relation === 0 ? gain.ore : 0;
       const flow = Math.min(cap * (efficient ? .65 : 1), available / inputPerUnit);
       drain.ore = flow * inputPerUnit;
       const templates = a.plans.templates.slice(0, slots), lanes = [];
       for (const recipe of templates) {
-        const lane = flow / Math.max(1, templates.length), output = lane * (1 + (areas.quarry?.alloy || 0)) * p('workshop', 'metallurgy');
+        const lane = flow / Math.max(1, templates.length), output = lane * (1 + (areas.quarry?.alloy || 0)) * p('workshop', 'metallurgy') * bonus('workshopYield');
         if (recipe === 'supplies') gain.provisions += output;
         if (recipe === 'tools') { gain.ore += output * .55; gain.provisions += output * .25; }
         if (recipe === 'instruments') gain.knowledge += output * .75 * Math.sqrt(p('workshop', 'toolmaking'));
@@ -172,7 +174,7 @@
     }
     if (has('ruins')) {
       const a = x.areas.ruins, cap = 10 + rank(x, 'ruins', 'recovery-teams') * .4;
-      const delving = .07 * p('ruins', 'delving') * focus('ruins'), interpretation = .06 * p('ruins', 'archaeology') * focus('ruins'), recovery = .05 * p('ruins', 'recovery-teams') * (a.choice === 'survey' ? .75 : 1) * focus('ruins');
+      const delving = .07 * p('ruins', 'delving') * focus('ruins') * bonus('delving'), interpretation = .06 * p('ruins', 'archaeology') * focus('ruins') * bonus('interpretation'), recovery = .05 * p('ruins', 'recovery-teams') * (a.choice === 'survey' ? .75 : 1) * focus('ruins') * bonus('recovery');
       let read = a.buffers.input > EPS ? interpretation : Math.min(interpretation, delving);
       const recover = a.buffers.output > EPS ? recovery : Math.min(recovery, read);
       if (a.buffers.output >= cap - EPS) read = Math.min(read, recover);
@@ -188,7 +190,7 @@
     }
     if (has('harbor')) {
       const a = x.areas.harbor, forecast = 1 + .15 * (p('watchtower', 'forecasting') - 1), distant = a.choice === 'discovery';
-      const ship = p('harbor', 'shipbuilding'), sailing = p('harbor', 'seamanship') * forecast, cargo = p('harbor', 'stowage');
+      const ship = p('harbor', 'shipbuilding'), sailing = p('harbor', 'seamanship') * forecast * bonus('voyage'), cargo = p('harbor', 'stowage') * bonus('cargo');
       const fleet = learned(x, 'harbor', 'fleet-command') ? 1 + .12 * (p('harbor', 'fleet-command') - 1) : 1;
       const supply = 3 * ship * (1 + .25 * (cargo - 1)), available = N.cmp(state.resources.provisions, N.add(supply, reserve(state, 'provisions'))) >= 0;
       const fraction = a.voyages.length ? 1 : 0;
@@ -219,6 +221,8 @@
     gain.provisions *= foundation;
     gain.knowledge *= researchBonus;
     gain.maps *= researchBonus;
+    gain.knowledge *= bonus('knowledge');
+    gain.maps *= bonus('maps');
     const collections = Math.pow(1.08, state.collections.length);
     RESOURCES.forEach(key => { gain[key] *= collections; });
     if (x.blueprints.includes('caravan')) gain.coins *= 1.2;
@@ -226,7 +230,7 @@
     if (areas.harbor) {
       const payout = areas.harbor.payout;
       payout.coins *= foundation * collections * (1 + .08 * Math.sqrt(state.upgrades.boots)) * (x.blueprints.includes('caravan') ? 1.2 : 1);
-      payout.maps *= researchBonus * collections * (1 + .08 * Math.sqrt(state.upgrades.surveyors + state.upgrades['gear-instruments']));
+      payout.maps *= researchBonus * collections * (1 + .08 * Math.sqrt(state.upgrades.surveyors + state.upgrades['gear-instruments'])) * bonus('maps');
       if (payout.ore) payout.ore *= materialBonus * foundation * collections * (1 + .08 * Math.sqrt(state.upgrades.miners));
       if (payout.provisions) payout.provisions *= foundation * collections * (1 + .08 * Math.sqrt(state.upgrades.cooks));
     }
@@ -235,7 +239,7 @@
       for (const key of ['work', 'finale', 'research']) if (r[key]) r[key] *= mult;
       if (id in x.mastery) { const retained = 1 + .02 * Math.min(25, x.mastery[id]); r.work *= retained; r.finale *= retained; }
       if (id === 'greenway' || id === 'harbor') { r.work *= travelBonus; r.finale *= travelBonus; r.travel *= global * travelBonus; if (id === 'harbor') { r.voyagePace *= global * travelBonus; r.duration = r.voyageTarget / r.travel; } }
-      if (r.research) r.research *= researchBonus;
+      if (r.research) r.research *= researchBonus * bonus('research');
       if (id === 'quarry') { r.work *= materialBonus * foundation; r.finale *= materialBonus * foundation; }
       // Fast fleets consolidate departures into a convoy. This preserves the
       // earned throughput and full supply bill without subsecond offline events.
@@ -251,7 +255,7 @@
     RESOURCES.forEach(id => { gain[id] *= global; drain[id] *= global; });
     // Focus is shared, finite and affects the selected area's output only.
     if (!options.unboosted && x.focus.remaining > EPS && x.focus.active === 'greenway') gain.coins += areas.greenway.income * global * foundation * collections * (1 + .08 * Math.sqrt(state.upgrades.boots)) * (x.blueprints.includes('caravan') ? 1.2 : 1) * (D.FOCUS.multiplier - 1);
-    if (!options.unboosted && x.focus.remaining > EPS && x.focus.active === 'watchtower') gain.knowledge += areas.watchtower.knowledge * global * researchBonus * collections * (1 + .08 * Math.sqrt(state.upgrades.scholars + state.upgrades['gear-instruments'])) * (D.FOCUS.multiplier - 1);
+    if (!options.unboosted && x.focus.remaining > EPS && x.focus.active === 'watchtower') gain.knowledge += areas.watchtower.knowledge * global * researchBonus * collections * (1 + .08 * Math.sqrt(state.upgrades.scholars + state.upgrades['gear-instruments'])) * bonus('knowledge') * (D.FOCUS.multiplier - 1);
     const researchRate = Object.values(areas).reduce((sum, a) => sum + (a.research || 0), 0) * .6;
     const raw = { gain, drain, areas, researchRate, global };
     return !options.baseOnly && workRateProvider ? M.apply(state, raw, ownership.get(state), { rates: workRateProvider(state, ownership.get(state)) }) : raw;
@@ -632,5 +636,5 @@
     const t = targets(x);
     return x.work <= t.work + EPS && x.finaleWork <= t.finale + EPS && (x.work >= t.work - EPS || x.finaleWork === 0) && (!x.completed || x.work >= t.work - EPS && x.finaleWork >= t.finale - EPS && x.index <= x.cleared);
   }
-  return { Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, finish, restart, reset, autoBuy, act, view, catalog, impact, developmentTask, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider };
+  return { Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, finish, restart, reset, autoBuy, act, view, catalog, impact, developmentTask, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider };
 });

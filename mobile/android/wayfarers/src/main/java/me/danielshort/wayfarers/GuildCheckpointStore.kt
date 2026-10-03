@@ -53,7 +53,7 @@ class GuildCheckpointStore(private val file: File) {
     require(text.toByteArray(Charsets.UTF_8).size in 1 until GuildContentPolicy.MAX_SAVE_BYTES)
     val payload = JSONObject(text)
     val gameVersion = payload.getInt("version")
-    require(payload.getString("format") == "wayfarers-guild-save" && gameVersion in 1..5)
+    require(payload.getString("format") == "wayfarers-guild-save" && gameVersion in 1..6)
     val state = payload.getJSONObject("state")
     require(state.getInt("schemaVersion") == gameVersion)
     require(state.has("resources") && state.has("upgrades") && state.has("rooms"))

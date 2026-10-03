@@ -12,7 +12,7 @@ const old = require('./fixtures/wayfarers-v4-state.json');
 const expected = require('./fixtures/wayfarers-v4-expected.json');
 const clone = value => JSON.parse(JSON.stringify(value));
 const envelope = (state, version = state.schemaVersion, savedAt = state.lastUpdate) => JSON.stringify({ format: Storage.FORMAT, version, savedAt, state });
-const latestVersion = state => Object.assign(clone(state), { schemaVersion: 5 });
+const latestVersion = state => Object.assign(clone(state), { schemaVersion: Core.VERSION, collection: Core.createState(state.createdAt).collection });
 function fixture(initial = {}, time = old.lastUpdate) {
   const values = new Map(Object.entries(initial));
   const writes = [];
@@ -51,11 +51,11 @@ test('old source bytes remain the backup after first schema5 write and reloading
   const text = envelope(old), f = fixture({ [Storage.SAVE_KEY]: text });
   const loaded = f.store.load({ deferOffline: true });
   assert.equal(loaded.status, 'loaded');
-  assert.equal(loaded.state.schemaVersion, 5);
+  assert.equal(loaded.state.schemaVersion, Core.VERSION);
   assert.equal(f.writes.length, 0);
   assert.ok(f.store.save(loaded.state).ok);
   assert.equal(f.values.get(Storage.BACKUP_KEY), text);
-  assert.equal(JSON.parse(f.values.get(Storage.SAVE_KEY)).version, 5);
+  assert.equal(JSON.parse(f.values.get(Storage.SAVE_KEY)).version, Core.VERSION);
   assert.deepEqual(f.store.load({ deferOffline: true }).state, loaded.state);
 });
 
@@ -91,10 +91,10 @@ test('native bootstrap restores v4 then mirrors only canonical schema5 saved by 
   assert.equal(f.values.get(Storage.SAVE_KEY), text);
   const store = window.WayfarersStorage.createStore({ storage: f.storage, now: () => old.lastUpdate });
   const loaded = store.load({ deferOffline: true });
-  assert.equal(loaded.state.schemaVersion, 5);
+  assert.equal(loaded.state.schemaVersion, Core.VERSION);
   assert.ok(store.save(loaded.state).ok);
   assert.equal(messages.length, 1);
-  assert.equal(JSON.parse(messages[0].text).version, 5);
+  assert.equal(JSON.parse(messages[0].text).version, Core.VERSION);
   assert.equal(window.WayfarersCheckpoint.confirmed(), false);
   window.WayfarersAndroid.onmessage({ data: JSON.stringify({ type: 'checkpoint', ok: true, requestId: messages[0].requestId }) });
   assert.equal(window.WayfarersCheckpoint.confirmed(), true);

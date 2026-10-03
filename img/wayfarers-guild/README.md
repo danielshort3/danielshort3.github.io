@@ -6,6 +6,8 @@ The October 1, 2026 **C · Living Guild** composition (`c-living-guild-v3.png`) 
 
 ## Runtime files
 
+The October 3 collection adds eighteen individual card portraits and eight equipment icons. Each has its own transparent 96 × 96 PNG named after its stable content ID. [collection-art.json](collection-art.json) records every final prompt, original filename, source checksum and shipped checksum. The built-in ImageGen tool generated each asset separately; [process-wayfarers-collection-art.cjs](../../build/process-wayfarers-collection-art.cjs) applies only nearest-neighbor sizing and preserves source alpha. Card frames, rarity, ranks and inventory badges remain semantic HTML. `Icons.COLLECTION_ART` registers all twenty-six IDs, and the collection-art test checks uniqueness plus exact offline APK-bundle inclusion.
+
 | File | Layout | Purpose |
 | --- | --- | --- |
 | `actors.png` | 128 × 160; four columns, five rows; 32 × 32 transparent cells | Adventurer walk/idle/inspection, miner and smith work pairs, scholar/cook work pairs, forager, cartographer, leader, alchemist, fox, owl, tortoise |

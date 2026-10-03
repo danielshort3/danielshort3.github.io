@@ -232,6 +232,18 @@
     }
     function perform(action) {
       if (!action) return { ok: false };
+      if (action.type === 'retry-save') {
+        const result = save();
+        announce(result.ok ? 'Saved. Your collection result is secure.' : result.message);
+        render();
+        return result;
+      }
+      const collectionAction = /^(collection-|deck-|card-|gear-)/.test(action.type);
+      if (collectionAction && saveFailure) {
+        const message = 'Save your pending result before making another collection change. Retry save without spending again.';
+        announce(message); render();
+        return {ok:false,pendingSave:true,message};
+      }
       if (action.type === 'ui' || action.type === 'navigate') { navigate(action); return { ok: true }; }
       if (awaitingPurchaseWallet) {
         const message = 'Restoring your purchase wallet before calculating offline progress. Refresh it in Settings if it has not responded.';
@@ -248,7 +260,15 @@
       }
       const previousFocus = document.activeElement;
       advance();
+      const collectionBeforeAck = action.type === 'collection-ack' ? JSON.parse(JSON.stringify(state.collection)) : null;
       const result = core.act(state, action);
+      const saved = result.ok ? save() : null;
+      if (saved && !saved.ok && collectionAction) {
+        if (collectionBeforeAck) state.collection = collectionBeforeAck;
+        announce('Your result is pending save. Retry save; no additional items will be spent.');
+        render();
+        return {ok:false,pendingSave:true,message:saved.message};
+      }
       if (result.ok && action.type === 'buy') {
         const card = q('[data-main-actions] [data-item="' + action.id + '"]');
         if (card) {
@@ -257,8 +277,7 @@
           card.classList.add('wg-purchased');
         }
         announce((shortNames[action.id] || action.id) + ' upgraded');
-      } else if (!result.ok || !['expedition-select', 'expedition-seen', 'discovery-seen', 'introduction-seen'].includes(action.type)) announce(result.message);
-      if (result.ok) save();
+      } else if (!result.ok || !['expedition-select', 'expedition-seen', 'discovery-seen', 'introduction-seen', 'collection-ack'].includes(action.type)) announce(result.message);
       render();
       if (dialog.open && dialogKind === 'inspect') { if (descriptorLookup.has(inspectedKey)) renderInspect(); else backSheet(); }
       if (previousFocus && !previousFocus.isConnected) { const target = dialog.open ? q('.wg-dialog-heading [data-close-dialog]') : q('[data-goal-action]'); if (target && !target.hidden) target.focus({ preventScroll: true }); }
