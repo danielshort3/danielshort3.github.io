@@ -116,8 +116,8 @@
     root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
   } catch (_) {}
 })();</script>
-  <link rel="stylesheet" href="dist/styles.e630c3ed.css">
-  <link rel="stylesheet" href="css/components/privacy-page.css?v=3867078bb877">
+  <link rel="stylesheet" href="dist/styles.c1e77226.css">
+  <link rel="stylesheet" href="css/components/privacy-page.css?v=735c1692913a">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
@@ -132,13 +132,13 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.1069c15c.js"></script>
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.4d150ecd.css">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/privacy#webpage","url":"https://www.danielshort.me/privacy","name":"Privacy & Your Data | Daniel Short","description":"How Daniel Short's website and Android app handle local data, analytics, saved work, recordings, and your choices.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/personal-social-card.png"},"breadcrumb":{"@id":"https://www.danielshort.me/privacy#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/privacy#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Privacy & Your Data","item":"https://www.danielshort.me/privacy"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"about:privacy","path":"/privacy","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.e630c3ed.css","/css/components/privacy-page.css?v=3867078bb877","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.1069c15c.js","/dist/site-consent.0247f290.js","/dist/site-privacy.e394a51f.js"],"module":"about:privacy"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"about:privacy","path":"/privacy","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.c1e77226.css","/css/components/privacy-page.css?v=735c1692913a","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.7e88cd8b.js","/dist/site-consent.a6d261d1.js","/dist/site-privacy.b6327493.js"],"module":"about:privacy"}</script>
 </head>
 <body data-page="privacy" class="policy-page privacy-page site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="about" data-personal-item="privacy" data-personal-fit="viewport" data-site-route-id="about:privacy" data-site-route-category="about" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="about:privacy">
   <a href="/privacy#main" class="skip-link">Skip to main content</a>
@@ -281,58 +281,42 @@
         <form id="privacy-preferences-form">
           <div class="pref-grid" role="list">
             <div class="pref-option" data-pref="necessary" role="listitem">
-              <button type="button" class="pref-toggle" data-pref="necessary" aria-pressed="true" data-locked="true" disabled>
+              <button type="button" class="pref-toggle" data-pref="necessary" aria-pressed="true" data-locked="true" disabled aria-describedby="pref-desc-necessary">
                 <span class="pref-label">Strictly necessary</span>
-                <span class="pref-state" aria-hidden="true">On</span>
+                <span class="pref-state" aria-hidden="true">Always on</span>
               </button>
-              <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-necessary">
-                <span aria-hidden="true">?</span>
-                <span class="visually-hidden">Read what Strictly necessary cookies do</span>
-              </button>
-              <p id="pref-desc-necessary" class="pref-description" hidden>
-                Required for core site features and remembering your privacy choices.
+              <p id="pref-desc-necessary" class="pref-description">
+                Saves your privacy choice. Core tool storage works independently of optional choices.
               </p>
             </div>
 
             <div class="pref-option" data-pref="analytics" role="listitem">
-              <button type="button" class="pref-toggle" data-pref="analytics" aria-pressed="false">
+              <button type="button" class="pref-toggle" data-pref="analytics" aria-pressed="false" aria-describedby="pref-desc-analytics">
                 <span class="pref-label">Analytics</span>
                 <span class="pref-state" aria-hidden="true">Off</span>
               </button>
-              <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-analytics">
-                <span aria-hidden="true">?</span>
-                <span class="visually-hidden">Read what Analytics cookies do</span>
-              </button>
-              <p id="pref-desc-analytics" class="pref-description" hidden>
-                Measure visits and interactions to help improve the site.
+              <p id="pref-desc-analytics" class="pref-description">
+                Google Analytics measures visits, interactions and page performance to help improve the site.
               </p>
             </div>
 
             <div class="pref-option" data-pref="functional" role="listitem">
-              <button type="button" class="pref-toggle" data-pref="functional" aria-pressed="false">
+              <button type="button" class="pref-toggle" data-pref="functional" aria-pressed="false" aria-describedby="pref-desc-functional">
                 <span class="pref-label">Functional</span>
                 <span class="pref-state" aria-hidden="true">Off</span>
               </button>
-              <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-functional">
-                <span aria-hidden="true">?</span>
-                <span class="visually-hidden">Read what Functional cookies do</span>
-              </button>
-              <p id="pref-desc-functional" class="pref-description" hidden>
-                Remember optional settings, such as filters, where supported.
+              <p id="pref-desc-functional" class="pref-description">
+                No extra service is enabled today. Core tool settings and drafts work when this is off.
               </p>
             </div>
 
             <div class="pref-option" data-pref="advertising" role="listitem">
-              <button type="button" class="pref-toggle" data-pref="advertising" aria-pressed="false">
+              <button type="button" class="pref-toggle" data-pref="advertising" aria-pressed="false" aria-describedby="pref-desc-advertising">
                 <span class="pref-label">Advertising</span>
                 <span class="pref-state" aria-hidden="true">Off</span>
               </button>
-              <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-advertising">
-                <span aria-hidden="true">?</span>
-                <span class="visually-hidden">Read what Advertising cookies do</span>
-              </button>
-              <p id="pref-desc-advertising" class="pref-description" hidden>
-                Allow advertising measurement or personalization where used.
+              <p id="pref-desc-advertising" class="pref-description">
+                Allows Google ad storage, data use and personalization when Analytics is on. No separate ad service is loaded.
               </p>
             </div>
           </div>
@@ -374,7 +358,7 @@
       </nav>
     </div>
   </footer>
-  <script defer src="dist/site-consent.0247f290.js"></script>
-  <script defer src="dist/site-privacy.e394a51f.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
+  <script defer src="dist/site-privacy.b6327493.js"></script>
 </body>
 </html>

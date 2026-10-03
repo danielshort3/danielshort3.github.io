@@ -69,9 +69,10 @@ async function runKeyboardFocusVisibilityChecks({ browser, base, artifactDir, br
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => { if (new URL(request.url()).pathname === '/api/contact') submissions += 1; });
     try {
-      await ready(page, base + '/contact');
-      await page.locator('#contact-form-toggle').click();
+      await ready(page, base + '/portfolio/website');
+      await page.locator('.project-question-link').click();
       await page.locator('#contact-modal.active').waitFor();
+      await page.locator('#contact-message').fill('');
       const fields = [];
       for (const [id, text] of [['contact-name', 'Keyboard focus check'], ['contact-email', 'focus@example.test'], ['contact-message', 'Message visibility check']]) {
         await tabTo(page, `#${id}`);

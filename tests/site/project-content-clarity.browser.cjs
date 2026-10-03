@@ -60,7 +60,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
   try {
     await page.goto(`${base}/portfolio/handwritingRating`);
     await page.locator('.project-star').waitFor();
-    const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+    const essential = page.locator('#pcz-reject');
     if (await essential.isVisible()) await essential.click();
     await settle(page);
     assert.equal(await page.locator('body').getAttribute('data-audience'), 'personal',

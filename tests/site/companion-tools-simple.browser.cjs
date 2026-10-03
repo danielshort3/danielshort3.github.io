@@ -88,7 +88,7 @@ async function runCase({ browser, base, artifactDir }, tool, width) {
     await page.goto(`${base}/tools/${tool.slug}`, { waitUntil: 'domcontentloaded' });
     const input = page.locator(`#${tool.input}`);
     await input.waitFor();
-    const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+    const essential = page.locator('#pcz-reject');
     if (await essential.isVisible()) await essential.click();
     await page.evaluate(() => document.fonts.ready);
     assert.equal(await page.locator('#main [role="tab"]').count(), 0, 'Input and output no longer require tabs');

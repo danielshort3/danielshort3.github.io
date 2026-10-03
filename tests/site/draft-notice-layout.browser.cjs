@@ -121,10 +121,10 @@ async function main() {
         const discarded = await geometry(page);
         for (const field of ['original', 'after']) assert(Math.abs(discarded[field].y - before[field].y) <= 1, `${label}: dismissing notice does not move ${field}`);
         await page.evaluate(() => sessionStorage.setItem('ds:session-draft:v1:contact:personal', JSON.stringify({ updated: Date.now(), data: { name: 'Example Person', email: 'example@example.com', message: 'A message restored inside its dialog.' } })));
-        await page.goto(`${base}/contact`);
+        await page.goto(`${base}/portfolio/website`);
         if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
         await page.evaluate(fontPercent => { document.documentElement.style.fontSize = `${fontPercent}%`; }, fontPercent);
-        await page.locator('#contact-form-toggle').click();
+        await page.locator('.project-question-link').click();
         await expect(page.locator('#contact-modal.active .draft-recovery-notice')).toBeVisible();
         const contact = await geometry(page);
         assert.deepEqual(contact.collisions, [], `${label}: contact notice cannot cover a control`);
@@ -137,7 +137,7 @@ async function main() {
         assert(Math.abs(cleared.name.y - contact.name.y) <= 1, `${label}: Discard preserves dialog field placement (${JSON.stringify({ before: contact.name, after: cleared.name })})`);
         await page.locator('#contact-modal .modal-close').click();
         await expect(page.locator('#contact-modal.active')).toHaveCount(0);
-        await page.locator('#contact-form-toggle').click();
+        await page.locator('.project-question-link').click();
         assert.equal(await page.locator('#contact-modal .draft-recovery-slot').count(), 0, `${label}: closed notice releases its reserved space`);
         console.log(`Draft notice placement passed: ${label}, no covered controls or tool/editor/dialog shifts.`);
       } finally { await context.close(); }

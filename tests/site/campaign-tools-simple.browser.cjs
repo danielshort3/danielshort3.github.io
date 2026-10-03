@@ -215,7 +215,7 @@ async function runCampaignToolsSimpleChecks(options) {
       });
       try {
         await page.goto(`${options.base}/tools/${slug}`, { waitUntil: 'domcontentloaded' });
-        const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+        const essential = page.locator('#pcz-reject');
         if (await essential.isVisible()) await essential.click();
         await page.evaluate(() => document.fonts.ready);
         if (slug === 'oxford-comma-checker') await checkOxford(page);
