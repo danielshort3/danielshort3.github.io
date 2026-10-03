@@ -245,14 +245,12 @@
         render();
         return result;
       }
-      const tierAction = /^upgrade-tier-/.test(action.type);
-      const collectionAction = /^(collection-|deck-|card-|gear-)/.test(action.type) || tierAction || onboardingAction;
-      if (collectionAction && saveFailure) {
-        const message = onboardingAction || tierAction ? 'Save progress before continuing. Retry save, then try this step again.' : 'Save your pending result before making another collection change. Retry save without spending again.';
+      if (action.type === 'ui' || action.type === 'navigate') { navigate(action); return { ok: true }; }
+      if (saveFailure) {
+        const message = 'Save progress before continuing. Retry save without spending again.';
         announce(message); render();
         return {ok:false,pendingSave:true,message};
       }
-      if (action.type === 'ui' || action.type === 'navigate') { navigate(action); return { ok: true }; }
       if (awaitingPurchaseWallet) {
         const message = 'Restoring your purchase wallet before calculating offline progress. Refresh it in Settings if it has not responded.';
         announce(message);
@@ -268,16 +266,16 @@
       }
       const previousFocus = document.activeElement;
       advance();
-      const collectionBeforeAck = action.type === 'collection-ack' ? JSON.parse(JSON.stringify(state.collection)) : null;
-      const beforeTier = tierAction || onboardingAction ? JSON.parse(JSON.stringify(state)) : null;
+      // Lesson proof and its economic action form one durable transaction, even
+      // when the player uses an ordinary control rather than the coach wrapper.
+      const beforeAction = JSON.parse(JSON.stringify(state));
       const engineAction = onboardingAction ? { ...action } : action;
       if (onboardingAction) delete engineAction.onboardingEpoch;
       const result = core.act(state, engineAction);
       const saved = result.ok ? save() : null;
-      if (saved && !saved.ok && collectionAction) {
-        if (collectionBeforeAck && !saved.committed) state.collection = collectionBeforeAck;
-        if (beforeTier && !saved.committed) { state = beforeTier; core.setPremiumEntitlements(state, billingSnapshot.owned); }
-        announce(saved.committed ? saved.message : onboardingAction ? 'This step could not be saved. Retry save, then continue the guide.' : 'Your result is pending save. Retry save; no additional items will be spent.');
+      if (saved && !saved.ok) {
+        if (!saved.committed) { state = beforeAction; core.setPremiumEntitlements(state, billingSnapshot.owned); }
+        announce(saved.committed ? saved.message : 'This action could not be saved. Nothing was spent. Retry save, then try the action again.');
         render();
         return {ok:false,pendingSave:true,message:saved.message};
       }
@@ -1175,7 +1173,7 @@
       renderDevelopment();
       updateSaveStatus();
       renderIntroduction();
-      if (expeditionUI) expeditionUI.update(view, { quiet:quiet || motionQuery.matches, saveFailure, awaitingWallet:awaitingPurchaseWallet, onboardingEpoch });
+      if (expeditionUI) expeditionUI.update(view, { quiet:quiet || motionQuery.matches, saveFailure, awaitingWallet:awaitingPurchaseWallet, onboardingEpoch, legacySheetKind: dialog.open ? dialogKind : null });
     }
 
     function setSheetFooter(primary, secondary) {
@@ -1467,7 +1465,7 @@
       else if (button.hasAttribute('data-confirm-import')) {
         if (caravanBusy) { set('[data-dialog-notice]', 'Finish or close the ad before importing a guild.'); return; }
         if (awaitingPurchaseWallet) { set('[data-dialog-notice]', 'Reconnect the purchase wallet before importing. Your current guild has been kept.'); return; }
-        const result = store.replaceImport(pendingImport, { premiumEntitlements: billingSnapshot.owned });
+        const result = store.replaceImport(pendingImport, { premiumEntitlements: billingSnapshot.owned, preservePracticeFrom: state });
         if (!result.ok) { set('[data-dialog-notice]', result.message); return; }
         state = result.state;
         onboardingEpoch += 1;
@@ -1569,6 +1567,7 @@
       expeditionUI = root.WayfarersExpeditionUI.create({
         element:q('[data-game]'), perform, quiet,
         openLegacy:openDialog,
+        legacySheet:() => dialog.open && dialog.getClientRects().length ? { kind:dialogKind, element:dialog } : null,
         overlayOpen:() => dialog.open || !q('[data-find-feedback]').hidden,
         tierNoticeAllowed:() => !disposed && !dialog.open && !caravanBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,
         onboardingAllowed:() => !disposed && !dialog.open && !caravanBusy && !billingBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,

@@ -757,13 +757,18 @@
 .wx-sr-status { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .wx-guide { position:fixed; inset:0; width:100%; height:var(--android-webview-height,100dvh); max-width:none; max-height:none; padding:0; margin:0; border:0; overflow:hidden; background:transparent; color:#fff3d7; font:500 14px/1.45 system-ui,sans-serif; }
 .wx-guide::backdrop { background:transparent; }
+.wx-guide[data-interactive=true] { pointer-events:none; z-index:2147483000; box-sizing:border-box; }
+.wx-guide[data-interactive=true] .wx-guide-shade path { pointer-events:visiblePainted; }
+.wx-guide[data-interactive=true] .wx-guide-card { pointer-events:auto; }
+.wx-guide[data-interactive=true]::backdrop { pointer-events:none; }
+dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform:none!important; margin:0!important; width:100%!important; max-width:none!important; height:var(--android-webview-height,100dvh)!important; max-height:none!important; border-radius:0!important; box-sizing:border-box; }
 .wx-guide-shade { position:absolute; inset:0; width:100%; height:100%; fill:#04131ddd; pointer-events:none; }
 .wx-guide-ring { position:absolute; border:3px solid #ffdb70; border-radius:6px; box-shadow:0 0 0 2px #081b2e; pointer-events:none; }
 .wx-guide-card { position:absolute; display:flex; flex-direction:column; min-width:0; padding:14px; border:1px solid #7795a5; border-radius:12px; background:#122d40; box-shadow:0 5px 24px #0008; overflow:hidden; }
 .wx-guide-meta { display:flex; justify-content:space-between; gap:8px; color:#bdd0d7; font-size:11px; line-height:16px; }
 .wx-guide-meta [data-guide-area] { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.wx-guide-meta [data-guide-count] { white-space:nowrap; color:#ffe2a1; }
-.wx-guide h2 { color:#fff3d7; font:750 18px/1.25 system-ui,sans-serif; margin:7px 0 8px; }
+.wx-guide-meta [data-guide-count] { flex-shrink:0; white-space:nowrap; color:#ffe2a1; }
+.wx-guide h2 { min-width:0; max-width:100%; overflow-wrap:anywhere; white-space:normal; color:#fff3d7; font:750 18px/1.25 system-ui,sans-serif; margin:7px 0 8px; }
 .wx-guide-copy { min-height:0; overflow:auto; overscroll-behavior:contain; }
 .wx-guide p { margin:0 0 9px; font-size:14px; line-height:1.45; color:#d9e7e8; }
 .wx-guide .wx-guide-reward { color:#e7d598; font-size:12px; }
@@ -886,3 +891,7 @@
   .wx-upgrade-tools>.wx-batch { grid-column:4; grid-row:1; }
   .wx-toast { bottom:58px; }
 }
+.wx-lesson-reference { display:grid; gap:6px; padding:12px 0; border-bottom:1px solid #304757; }
+.wx-lesson-reference small { color:#b9cbd1; }
+.wx-lesson-reference p { margin:0; }
+.wx-world-label[data-arrived=true] { color:#fff0be; border-color:#e8ba52; box-shadow:inset 0 0 0 1px #e8ba52; }

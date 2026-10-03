@@ -248,7 +248,8 @@ test('a catch-up that opens the Forge cannot retroactively earn premium eligibil
 });
 
 test('offline automation and dispatch match live partitions, including a save/reload halfway', () => {
-  const a = stage(3);
+  const historical = stage(3);
+  const a = Core.normalizeState(historical, historical.lastUpdate);
   assert.ok(Core.act(a, { type: 'expedition-automation', enabled: true, priority: 'balanced', dispatch: true }).ok);
   const b = clone(a);
   advance(a, 3600);
@@ -265,8 +266,10 @@ test('save/export/backup preserve local progress and rare-reward schedules witho
   assert.ok(store.save(state).ok);
   const text = store.export(state).text;
   const restored = store.replaceImport(text).state;
-  const retained = clone(restored); delete retained.upgradeTiers; delete retained.onboarding;
-  assert.deepEqual(retained, state, 'Only additive tier knowledge changes the historical save');
+  const retained = clone(restored); delete retained.upgradeTiers; delete retained.onboarding; delete retained.trailDeliveries;
+  assert.deepEqual(retained, state, 'Only additive knowledge and empty delivery tracking change the historical save');
+  assert.equal(restored.trailDeliveries.sequence, 0);
+  assert.equal(restored.trailDeliveries.lifetimeCoins.m, 0);
   assert.deepEqual(store.load({ deferOffline: true }).state, restored);
   const previous = clone(state); advance(state, 10); assert.ok(store.save(state).ok);
   assert.deepEqual(JSON.parse(values.get(Storage.BACKUP_KEY)).state, Core.normalizeState(previous, previous.lastUpdate));

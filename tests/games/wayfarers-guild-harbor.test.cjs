@@ -32,6 +32,20 @@ test('selecting the next port changes neither saved cargo nor actual speed of sh
   }
 });
 
+test('arrival snaps accumulated sub-micro-work roundoff without delivering a visibly unfinished voyage', () => {
+  const rounded = departed(), unfinished = clone(rounded);
+  for (const voyage of rounded.expedition.areas.harbor.voyages) voyage.work = voyage.target - 2e-7;
+  for (const voyage of unfinished.expedition.areas.harbor.voyages) voyage.work = voyage.target - 0.01;
+  const before = clone(rounded.resources.coins), manifests = clone(rounded.expedition.areas.harbor.voyages);
+  P.tick(rounded, 1e-12); P.tick(unfinished, 1e-12);
+  assert.equal(rounded.expedition.areas.harbor.voyages.length, 0);
+  assert.equal(unfinished.expedition.areas.harbor.voyages.length, manifests.length);
+  const expected = manifests.reduce((total, voyage) => N.add(total, voyage.payout.coins), before);
+  assert.deepEqual(rounded.resources.coins, expected);
+  P.tick(rounded, 1e-12);
+  assert.deepEqual(rounded.resources.coins, expected, 'a snapped arrival cannot pay twice');
+});
+
 test('concurrent coastal and ocean manifests experience weather on their own saved routes', () => {
   const state = mature(), harbor = state.expedition.areas.harbor;
   harbor.voyages = []; harbor.elapsed = 0;
