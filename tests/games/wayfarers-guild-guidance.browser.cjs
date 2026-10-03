@@ -87,6 +87,21 @@ async function run(){
       await context.close();
     }
     report.flows.push('Real canvas drag preserves live offset into slide, arrows animate, first-area overswipe returns, Settings interrupts without ghost, currency scrolling never selects areas');
+    for(const lessonId of ['equipment','guild-upgrades'])for(const [width,height] of [[320,740],[915,390]]) {
+      const seed=H.mature();F.completeAreaGuides(seed);F.announceDiscoveries(seed);
+      if(lessonId==='equipment')assert(H.Core.act(seed,{type:'collection-unlock',kind:'equipment'}).ok);
+      const definition=H.Core.getView(seed).onboarding.guides.find(item=>item.id===lessonId);assert(H.Core.act(seed,definition.visitAction).ok);
+      const {context,page}=await open(width,height,seed);let witnessed=false;
+      for(let n=0;n<24&&await guide(page).count();n++){
+        await nextCurrency(page);const active=H.Core.getView(await stored(page)).onboarding.active;
+        if(active?.mode==='action'&&active.costCoverage==='guild'&&await page.locator('[data-wx-practice]').count()){
+          const quote=page.locator('[data-guide-quote]');assert.match(await quote.innerText(),/Guild supplies.*wallet unchanged/);assert(await quote.evaluate(n=>{const r=n.getBoundingClientRect(),c=n.closest('.wx-guide-card').getBoundingClientRect();return r.top>=c.top&&r.bottom<=c.bottom&&r.bottom<=innerHeight&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===n;}));assert.match(await page.locator('[data-wx-practice]').getAttribute('aria-describedby'),/wx-guide-quote/);if(lessonId==='equipment'){assert.match(await quote.innerText(),/Steady Scroll/);assert(!/\bfree\b/i.test(await page.locator('.wx-sheet-content,.wx-purchase-footer').allTextContents().then(a=>a.join(' '))));}await fit(page);await shot(page,lessonId+'-canonical-quote-'+width);witnessed=true;await page.locator('[data-wx-practice]').click();break;
+        }
+        await page.locator('[data-guide-target]').click();await page.clock.runFor(150);
+      }
+      assert(witnessed,lessonId+' canonical costs visibly reviewed at '+width);await context.close();
+    }
+    report.flows.push('Equipment Steady Scroll and intended Guild improvement practice show canonical normal costs, visible coverage and accessible quote at320/915');
     assert.deepEqual(report.errors,[]);
   }finally{fs.writeFileSync(path.join(out,'guidance-browser.json'),JSON.stringify(report,null,2));await browser.close();await new Promise(resolve=>server.close(resolve));}
   console.log(JSON.stringify({output:out,flows:report.flows.length,viewports:report.viewports.length,errors:report.errors}));
