@@ -6,6 +6,7 @@ import android.webkit.WebView
 import android.content.pm.ActivityInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
@@ -18,6 +19,65 @@ import java.util.concurrent.TimeUnit
 /** Reads the real bundled game and its normal autosave; never seeds or changes progression. */
 @RunWith(AndroidJUnit4::class)
 class GuildOfflineDeviceTest {
+  @Test fun persistentAreasAndGlobalCatalogUseTheRetainedGuild() {
+    // This mutation test is opt-in and is run only against the disposable
+    // emulator-5564 fixture. Ordinary connected tests never spend a real save.
+    assumeTrue("Requires the explicitly opted-in disposable mature fixture",
+      InstrumentationRegistry.getArguments().getString("guildMatureQa") == "true")
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val before = awaitReady(scenario)
+      assertEquals("All three permanent areas must exist in this QA fixture", 3, before.getInt("areaCount"))
+      val ranks = before.getString("areaRanks")
+      for (id in listOf("greenway", "watchtower", "quarry")) {
+        evaluate(scenario, "document.querySelector('[data-wx-area=\"$id\"]').click(); true")
+        val selected = awaitSnapshot(scenario, "Selecting $id should only navigate") {
+          it.optString("selectedArea") == id && it.optString("sceneKind") == id && it.optBoolean("rendered")
+        }
+        assertEquals("Navigation must retain every area's upgrade ranks", ranks, selected.getString("areaRanks"))
+      }
+      val start = readSnapshot(scenario)
+      evaluate(scenario, "document.querySelector('[data-wx-nav=\"upgrades\"]').click(); true")
+      val catalog = awaitSnapshot(scenario, "The canonical catalog must render") { it.optInt("catalogRows") > 0 }
+      assertTrue("Global menu must fit the viewport", catalog.getBoolean("noHorizontalOverflow"))
+      Thread.sleep(2200)
+      evaluate(scenario, "window.WayfarersAndroidUI.flush(); true")
+      val working = awaitSnapshot(scenario, "Hidden production should reach the normal checkpoint") {
+        it.optLong("lastUpdate") > start.getLong("lastUpdate")
+      }
+      for (id in listOf("greenway", "quarry", "watchtower")) {
+        assertTrue("Hidden $id must keep producing in the global menu",
+          working.getJSONObject("areaElapsed").getDouble(id) > start.getJSONObject("areaElapsed").getDouble(id))
+      }
+      evaluate(scenario, """
+        document.querySelector('[data-wx-upgrade="area:greenway:boots"] .wx-research-info').click(); true
+      """.trimIndent())
+      assertEquals("upgrade", readSnapshot(scenario).getString("sheetKind"))
+      evaluate(scenario, """
+        var offer = document.querySelector('.wx-sheet[open] .wx-confirm');
+        if (!offer || offer.disabled) throw new Error('Mature QA fixture needs one affordable Trail boot rank');
+        offer.click(); true
+      """.trimIndent())
+      val purchased = awaitSnapshot(scenario, "The targeted catalog purchase must be durable") {
+        it.optInt("boots") == before.getInt("boots") + 1 && it.optBoolean("nativeConfirmed")
+      }
+      assertEquals("Buying Trail boots must not change the selected Quarry", "quarry", purchased.getString("selectedArea"))
+      for (id in listOf("quarry", "watchtower")) {
+        assertEquals("A Trail purchase cannot change $id ranks",
+          JSONObject(ranks).getJSONObject(id).toString(),
+          JSONObject(purchased.getString("areaRanks")).getJSONObject(id).toString())
+      }
+      scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+      awaitSheet(scenario, "")
+      evaluate(scenario, "document.querySelector('[data-wx-area=\"quarry\"]').click(); true")
+      awaitReady(scenario)
+      scenario.recreate()
+      val restored = awaitReady(scenario)
+      assertEquals(purchased.getLong("createdAt"), restored.getLong("createdAt"))
+      assertEquals(purchased.getString("areaRanks"), restored.getString("areaRanks"))
+      assertEquals("quarry", restored.getString("selectedArea"))
+    }
+  }
+
   @Test fun firstBootAvailabilityAndPurchaseKeepThePlayfieldAnchored() {
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val opening = awaitReady(scenario)
@@ -154,6 +214,17 @@ class GuildOfflineDeviceTest {
     assertEquals("Native Back preserves the game's sheet hierarchy", expected, readSnapshot(scenario).optString("sheetKind"))
   }
 
+  private fun awaitSnapshot(scenario: ActivityScenario<MainActivity>, label: String, matches: (JSONObject) -> Boolean): JSONObject {
+    val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(8)
+    var snapshot = JSONObject()
+    while (System.nanoTime() < deadline) {
+      snapshot = readSnapshot(scenario)
+      if (matches(snapshot)) return snapshot
+      Thread.sleep(100)
+    }
+    throw AssertionError("$label: $snapshot")
+  }
+
   private fun awaitReady(scenario: ActivityScenario<MainActivity>, landscape: Boolean? = null): JSONObject {
     val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(35)
     var snapshot = JSONObject()
@@ -181,6 +252,9 @@ class GuildOfflineDeviceTest {
           var state = envelope && envelope.state;
           var expedition = state && state.expedition;
           var trail = expedition && (expedition.areas ? expedition.areas.greenway : expedition);
+          var areas = expedition && expedition.areas || {};
+          var areaRanks = {}, areaElapsed = {};
+          Object.keys(areas).forEach(function (id) { areaRanks[id] = areas[id].ranks; areaElapsed[id] = areas[id].elapsed; });
           var scene = document.querySelector('[data-wx-canvas]');
           var game = document.querySelector('.wx-game');
           var action = document.querySelector('[data-wx-buy="boots"]') || document.querySelector('[data-wx-buy]');
@@ -196,6 +270,10 @@ class GuildOfflineDeviceTest {
           return {url: location.href, scene: scene && scene.dataset.sceneStatus, saved: !!state,
             createdAt: state && state.createdAt, lastUpdate: state && state.lastUpdate,
             boots: trail && trail.ranks.boots,
+            areaCount: Object.keys(areas).length, selectedArea: expedition && expedition.selectedArea,
+            areaRanks: JSON.stringify(areaRanks), areaElapsed: areaElapsed,
+            sceneKind: scene && scene.dataset.sceneKind,
+            catalogRows: document.querySelectorAll('[data-wx-upgrade]').length,
             guildBoots: state && state.upgrades.boots,
             stageIndex: state && state.expedition && state.expedition.index,
             sheetKind: sheet ? sheet.dataset.kind : '', quiet: localStorage.getItem('wayfarers-guild-quiet'),
