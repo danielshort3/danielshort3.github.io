@@ -36,8 +36,11 @@ async function measure(page) {
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const browser=await chromium.launch({headless:true});
   try {
-    for(const ruleset of ['retained-E2','fresh-P3','rebuilt-P3']) for(const [width,height] of [[320,740],[390,844],[915,390]]) for(const fallback of [false,true]) {
-      const seed=ruleset==='retained-E2' ? H.Core.normalizeState(clone(source.state || source)) : ruleset==='fresh-P3' ? H.Core.createState(1000) : H.mature();
+    for(const ruleset of ['retained-E2','retained-E2-rank0','fresh-P3','rebuilt-P3']) for(const [width,height] of [[320,740],[390,844],[915,390]]) for(const fallback of [false,true]) {
+      const seed=ruleset.startsWith('retained-E2') ? H.Core.normalizeState(clone(source.state || source)) : ruleset==='fresh-P3' ? H.Core.createState(1000) : H.mature();
+      // A controlled zero-rank variant covers the E2 purchase descriptor, unlike
+      // the released invested fixture whose guide only inspects an owned rank.
+      if(ruleset==='retained-E2-rank0')seed.expedition.areas.greenway.ranks.boots=0;
       if(ruleset==='rebuilt-P3')assert(H.Core.act(seed,{type:'refit'}).ok);
       if(seed.expedition.selectedArea!=='greenway')assert(H.Core.act(seed,{type:'expedition-select',areaId:'greenway'}).ok);
       seed.lastUpdate=1000;
@@ -65,6 +68,14 @@ async function measure(page) {
         if(!observation.step.startsWith('currency:'))assert(observation.targetHit,'Actual required control is pointer-hit-testable: '+JSON.stringify(observation));
         assert(observation.coach.x>=0&&observation.coach.y>=0&&observation.coach.right<=width+1&&observation.coach.bottom<=height+1,'Coach fits viewport: '+JSON.stringify(observation));
         if(observation.step==='operate' && await page.locator('[data-guide-target][data-wx-close]').count())assert.match(observation.body,/Close this panel/,'Intermediate Close has a truthful instruction');
+        if(observation.step==='upgrade' && await page.locator('[data-wx-practice]').count()) {
+          const quote=page.locator('[data-guide-quote]'),label=await page.locator('[data-wx-practice]').getAttribute('aria-label');
+          const active=H.Core.getView(await saved(page)).onboarding.active;
+          assert.equal(active.practicePreview.quantity,1);assert.equal(active.practicePreview.rankAfter,1);
+          assert.match(await quote.innerText(),/^×1 · /);assert.match(label,/Buy exactly 1 ranks/);assert(!/undefined|NaN/.test((await quote.innerText())+' '+label));
+          for(const cost of active.practicePreview.cost)assert((await quote.innerText()).includes(cost.text),'Canonical E2/P3 price is visible');
+          assert(await quote.evaluate(node=>{const r=node.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===node;}),'Actual quote is unobscured');
+        }
         await page.locator(observation.step.startsWith('currency:') ? '[data-guide-next]' : '[data-guide-target]').tap();await page.clock.runFor(200);
       }
       const final=await saved(page);assert.equal(final.onboarding.practice.progress.greenway,3,'Real retained Trail practice completes');

@@ -32,6 +32,24 @@ test('fresh Trail requires actual information opening and a real supplied rank, 
   assert.deepEqual(s.onboarding.practice.supplies, ['greenway:upgrade']);
 });
 
+test('released E2 zero-rank practice quotes one real rank with unchanged canonical costs and effects', () => {
+  const exported = require('./fixtures/wayfarers-v5-retained.json');
+  const s = Core.normalizeState(clone(exported.state || exported));
+  // Diagnostic purchase-state variant of the released fixture, not player data.
+  s.expedition.areas.greenway.ranks.boots = 0;
+  valid(s); act(s, { type: 'expedition-select', areaId: 'greenway' });
+  act(s, { type: 'onboarding-visit', id: 'greenway' }); explain(s);
+  const before = clone(s), view = Core.getView(s), preview = view.onboarding.active.practicePreview;
+  const canonical = view.globalUpgrades.find(row => row.id === 'area:greenway:boots');
+  assert.equal(preview.quantity, 1); assert.equal(preview.rank, 0); assert.equal(preview.rankAfter, 1);
+  assert.deepEqual(preview.cost, canonical.cost); assert.deepEqual(preview.impact, canonical.impact);
+  assert.deepEqual(preview.action, canonical.action); assert.deepEqual(s, before, 'view is pure');
+  step(s); assert.equal(current(s).practicePreview.quantity, 1);
+  const wallet = clone(s.resources); step(s);
+  assert.equal(s.expedition.areas.greenway.ranks.boots, 1); assert.deepEqual(s.resources, wallet);
+  assert.equal(s.onboarding.practice.supplies.filter(id => id === 'greenway:upgrade').length, 1);
+});
+
 test('stale tokens, substitutions, replay and duplicate transactions cannot spend or grant', () => {
   const s = Core.createState(2); act(s, { type: 'onboarding-visit', id: 'greenway' }); step(s);
   const request = clone(current(s).practiceAction), wrong = clone(request); wrong.action.id = 'porters';
