@@ -46,6 +46,34 @@ function complete(state,id) {
   assert(H.Core.act(state,definition.visitAction).ok);
   for(let i=0;i<3-definition.progress;i++)assert(H.Core.act(state,H.Core.getView(state).onboarding.active.action).ok);
 }
+function firstQuarry(resume = false) {
+  const seed = H.Core.createState(1000);
+  const act = action => { const result = H.Core.act(seed, action); assert(result.ok, result.message); };
+  act({ type:'onboarding-visit', id:'greenway' });
+  for(let n=0;n<8 && H.Core.getView(seed).onboarding.active;n++) {
+    const lesson=H.Core.getView(seed).onboarding.active;
+    act(lesson.ackAction || lesson.practiceAction || lesson.inspectAction);
+  }
+  let elapsed=0;
+  while(!seed.expedition.areas.quarry && elapsed<3600) {
+    for(const tier of H.Core.getView(seed).upgradeTiers.ready.filter(row=>row.id.startsWith('area:greenway:')))act(tier.unlockAction);
+    const card=H.Core.getView(seed).expedition.cards.find(row=>row.rank<({boots:4,porters:3,scouts:1}[row.trackId] || 0) && !row.disabled);
+    if(card)act(card.action);
+    H.advance(seed,10);elapsed+=10;
+  }
+  assert(seed.expedition.areas.quarry,'Ordinary opening upgrades and production discover Quarry');
+  act({type:'expedition-next'});act({type:'expedition-select',areaId:'quarry'});
+  if(resume) {
+    act({type:'onboarding-visit',id:'quarry'});
+    while(H.Core.getView(seed).onboarding.active.stepId!=='operate') {
+      const lesson=H.Core.getView(seed).onboarding.active;
+      act(lesson.ackAction || lesson.practiceAction || lesson.inspectAction);
+    }
+  }
+  Fixtures.announceDiscoveries(seed);
+  return seed;
+}
+
 async function run() {
   fs.mkdirSync(output,{recursive:true});
   const files=path.join(output,'practice-bundle');bundle(files);
@@ -68,6 +96,83 @@ async function run() {
     return {context,page};
   }
   try {
+    for(const [width,height,resume] of [[320,740,false],[390,844,true]]) {
+      const seed=firstQuarry(resume), suppliedBefore=seed.onboarding.practice.supplies.slice();
+      const {context,page}=await open(width,height,seed);await page.clock.runFor(1000);
+      const trace=[];
+      for(let n=0;n<16 && (await state(page)).onboarding.practice.progress.quarry<3;n++) {
+        if(!await guide(page).count()) await page.clock.runFor(1000);
+        assert.equal(await guide(page).count(),1,'Quarry lesson resumes between real actions: '+JSON.stringify(trace));
+        await currencies(page);await geometry(page);
+        trace.push({step:await guide(page).getAttribute('data-step'),sheet:await sheet(page).count()?await sheet(page).getAttribute('data-kind'):null,target:await (await actualTarget(page)).getAttribute('data-wx-do')});
+        assert.equal(await page.locator('[data-guide-leave]:visible').count(),0,'First-use tutorial cannot be abandoned');
+        if(await guide(page).getAttribute('data-step')==='operate' && !(await sheet(page).count())) {
+          assert.equal(await page.locator('[data-wx-plans]').count(),1,'Processing exists with only the default plan');
+          assert.match(await guide(page).innerText(),/Processing/);
+          assert(!/choose the working plan/i.test(await guide(page).innerText()),'Inspection does not demand an unavailable alternative');
+          await shot(page,'quarry-first-processing-'+(resume?'resume':'new')+'-'+width);
+        }
+        await (await actualTarget(page)).click();await page.clock.runFor(250);
+      }
+      const result=await state(page);
+      assert.equal(result.onboarding.practice.progress.quarry,3,JSON.stringify(trace));
+      assert.equal(result.expedition.areas.quarry.ranks.picks,1);
+      assert.equal(result.onboarding.practice.supplies.filter(id=>id==='quarry:upgrade').length,1);
+      assert.deepEqual(result.onboarding.practice.supplies.filter(id=>id!=='quarry:upgrade'),suppliedBefore.filter(id=>id!=='quarry:upgrade'));
+      await page.reload();await page.locator('.wx-game').waitFor();await page.clock.runFor(1000);
+      assert.equal((await state(page)).onboarding.practice.progress.quarry,3,'Completed Processing receipt survives reload');
+      await context.close();
+    }
+    evidence.flows.push('Minimum-progress Quarry first visit and saved stuck step resume through a real persistent Processing control');
+    {
+      const Skills=require('../../js/games/wayfarers-guild/area-skills.js');
+      const seed=Fixtures.completeAreaGuides(H.mature());
+      for(let n=0;!Skills.eligible(seed,'express-routes') && n<100;n++)H.advance(seed,60);
+      assert(Skills.eligible(seed,'express-routes'));
+      assert(H.Core.act(seed,{type:'area-skill-unlock',id:'express-routes'}).ok);
+      assert(H.Core.act(seed,{type:'expedition-select',areaId:'greenway'}).ok);
+      assert(H.Core.act(seed,{type:'expedition-batch',count:100}).ok);Fixtures.announceDiscoveries(seed);
+      const {context,page}=await open(390,844,seed);await page.clock.runFor(1000);
+      await page.locator('[data-wx-options]').click();await page.getByRole('button',{name:/Field guide/}).click();
+      await page.getByRole('button',{name:/Improve an area technique/}).click();await page.clock.runFor(100);
+      await command(page,'lesson-start:techniques').click();await page.clock.runFor(250);
+      for(let n=0;n<12 && await guide(page).count();n++) {
+        await currencies(page);await geometry(page);
+        if(await page.locator('[data-wx-practice]').count()) {
+          assert.match(await page.locator('[data-guide-quote]').innerText(),/1/);await shot(page,'technique-supplied-one-rank-390');
+        }
+        await (await actualTarget(page)).click();await page.clock.runFor(250);
+      }
+      assert.equal((await state(page)).areaSkills.ranks['express-routes'],1);
+      assert.equal((await state(page)).expedition.batch,100);
+      assert.equal((await state(page)).onboarding.practice.progress.techniques,2);
+      if(await sheet(page).count())await page.locator('[data-wx-close]').click();
+      await page.locator('[data-wx-nav="upgrades"]').click();await command(page,'upgrade-scope:current').click();
+      const tile=page.locator('[data-wx-upgrade="skill:express-routes"]');
+      const module=tile.locator('xpath=ancestor::details');if(await module.count() && !(await module.evaluate(node=>node.open)))await module.locator('summary').click();
+      await command(page,'upgrade-detail:skill:express-routes').click();
+      assert(await command(page,'skill-config:express-routes:off').isDisabled());
+      await command(page,'skill-config:express-routes:express').click();await page.clock.runFor(250);
+      assert.equal((await state(page)).areaSkills.configs['express-routes'],'off','First use intercepts the click before applying its mode');
+      for(let n=0;n<8 && await guide(page).count();n++) {await geometry(page);await (await actualTarget(page)).click();await page.clock.runFor(250);}
+      assert.equal((await state(page)).areaSkills.configs['express-routes'],'express');
+      assert.equal((await state(page)).onboarding.practice.progress['technique-config'],2);
+      await page.reload();await page.locator('.wx-game').waitFor();await page.clock.runFor(1000);
+      assert.equal((await state(page)).areaSkills.configs['express-routes'],'express');await context.close();
+      evidence.flows.push('Voluntary technique Help supplies exactly one rank at x100 and first technique mode needs a real selected action');
+    }
+
+    {
+      const seed=H.Core.createState(1000);
+      assert(H.Core.act(seed,{type:'onboarding-visit',id:'greenway'}).ok);
+      H.advance(seed,900);
+      assert(H.Core.getView(seed).onboarding.notice?.items.length,'Waiting naturally earns queued discoveries');
+      const {context,page}=await open(390,844,seed);await page.clock.runFor(1500);
+      assert.equal(await guide(page).count(),1,'Mandatory Trail lesson keeps priority over queued discoveries');
+      assert.equal(await page.locator('.wx-sheet[data-kind="onboarding-notice"][open]').count(),0);
+      await currencies(page);assert.equal(await guide(page).getAttribute('data-step'),'inspect');await geometry(page);
+      await context.close();evidence.flows.push('A saved first-run Trail lesson retains priority when ordinary idle progress earns unrelated discoveries');
+    }
     for(const [width,height] of [[320,740],[390,844],[915,390]]) {
       const {context,page}=await open(width,height,H.Core.createState(1000));
       await page.clock.runFor(900);await currencies(page);
@@ -82,7 +187,7 @@ async function run() {
       assert.equal((await state(page)).expedition.areas.greenway.ranks.boots,1);
       assert.equal(await guide(page).getAttribute('data-step'),'operate');
       if(await sheet(page).count()) await page.locator('[data-wx-close]').click();
-      await page.locator('[data-wx-world-label]').click();await page.clock.runFor(100);
+      await (await actualTarget(page)).click();await page.clock.runFor(100);
       assert.equal(await guide(page).count(),0);
       assert.equal((await state(page)).onboarding.practice.progress.greenway,3);
       evidence.viewports.push({width,height});await context.close();
@@ -206,7 +311,8 @@ async function run() {
     }
 
     {
-      const seed=Fixtures.completeAreaGuides(H.Core.createState(1000));H.fund(seed);assert(H.Core.act(seed,H.Core.getView(seed).expedition.cards[0].action).ok);
+      const seed=Fixtures.completeAreaGuides(H.Core.createState(1000));H.fund(seed);for(let n=0;n<20 && !H.Core.getView(seed).upgradeTiers.ready.some(row=>row.id==='area:greenway:porters');n++){assert(H.Core.act(seed,{type:'expedition-buy',areaId:'greenway',id:'boots'}).ok);H.advance(seed,30);}
+      const otherNotices=H.Core.getView(seed).onboarding.inbox.entries.filter(item=>!item.announced && item.id!=='ready:area:greenway:porters').map(item=>item.id);if(otherNotices.length)assert(H.Core.act(seed,{type:'onboarding-announce',ids:otherNotices}).ok);
       const {context,page}=await open(320,740,seed);await page.clock.runFor(1000);
       assert.match(await sheet(page).innerText(),/Porters available/);
       await command(page,'onboarding-open:ready:area:greenway:porters').click();await page.clock.runFor(1000);assert.equal((await state(page)).onboarding.practice.active,'tiers');

@@ -210,7 +210,7 @@ test('field-missing v4 and historical migrations join the current stage without 
   for (const key of Object.keys(old)) assert.deepEqual(upgraded[key], old[key]);
   valid(upgraded);
   for (const version of [1, 2, 3]) {
-    const historical = Core.createState(0); delete historical.expedition; delete historical.guild; delete historical.introductions; delete historical.collection;
+    const historical = Core.createState(0); delete historical.expedition; delete historical.guild; delete historical.introductions; delete historical.collection; delete historical.areaSkills;
     historical.schemaVersion = version;
     if (version < 3) { delete historical.luck; delete historical.caravan; }
     else Core.Content.RELICS.filter(item => item.chapter > 0).forEach(item => delete historical.luck.duplicateProgress[item.id]);

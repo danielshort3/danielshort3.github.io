@@ -5,6 +5,8 @@ import '../../js/games/wayfarers-guild/collection-content.js';
 import '../../js/games/wayfarers-guild/collections.js';
 import '../../js/games/wayfarers-guild/expeditions.js';
 import '../../js/games/wayfarers-guild/progression-content.js';
+import '../../js/games/wayfarers-guild/area-skills-content.js';
+import '../../js/games/wayfarers-guild/area-skills.js';
 import '../../js/games/wayfarers-guild/progression-modifiers.js';
 import '../../js/games/wayfarers-guild/progression.js';
 import '../../js/games/wayfarers-guild/progression-purchases.js';

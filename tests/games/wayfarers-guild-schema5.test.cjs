@@ -8,11 +8,12 @@ const vm = require('node:vm');
 const Core = require('../../js/games/wayfarers-guild/core.js');
 const Storage = require('../../js/games/wayfarers-guild/persistence.js');
 const E = require('../../js/games/wayfarers-guild/expeditions.js');
+const Skills = require('../../js/games/wayfarers-guild/area-skills.js');
 const old = require('./fixtures/wayfarers-v4-state.json');
 const expected = require('./fixtures/wayfarers-v4-expected.json');
 const clone = value => JSON.parse(JSON.stringify(value));
 const envelope = (state, version = state.schemaVersion, savedAt = state.lastUpdate) => JSON.stringify({ format: Storage.FORMAT, version, savedAt, state });
-const latestVersion = state => Object.assign(clone(state), { schemaVersion: Core.VERSION, collection: Core.createState(state.createdAt).collection });
+const latestVersion = state => Object.assign(clone(state), { schemaVersion: Core.VERSION, collection: Core.createState(state.createdAt).collection, areaSkills: Skills.initial(state, true) });
 function fixture(initial = {}, time = old.lastUpdate) {
   const values = new Map(Object.entries(initial));
   const writes = [];

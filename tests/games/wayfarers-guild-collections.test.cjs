@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { Core, P, N, clone, advance, fund, mature } = require('./helpers/wayfarers-progression.cjs');
+const { Core, P, N, clone, advance, fund, mature, claimTiers } = require('./helpers/wayfarers-progression.cjs');
 const K = require('../../js/games/wayfarers-guild/collections.js');
 const Storage = require('../../js/games/wayfarers-guild/persistence.js');
 const near = (a, b, tolerance = 1e-9) => assert.ok(Math.abs(a - b) <= Math.max(1, Math.abs(a), Math.abs(b)) * tolerance, `${a} != ${b}`);
@@ -16,7 +16,7 @@ function collected() {
   return state;
 }
 function ownedCard(state, id, copies = 0) { state.collection.cards[id] = { rank: 1, copies }; }
-function stripCollection(state) { const copy = clone(state); copy.schemaVersion = 5; delete copy.collection; return copy; }
+function stripCollection(state) { const copy = clone(state); copy.schemaVersion = 5; delete copy.collection; delete copy.areaSkills; return copy; }
 
 for (const kind of ['network', 'retained']) {
   const fixture = require('./fixtures/wayfarers-v5-' + kind + '.json');
@@ -349,13 +349,13 @@ test('drop odds reflect the available pool and next pity draw; unequipped scroll
   near(odds.common + odds.rare + odds.epic, 100);
 });
 
-test('schema6 saves retain card inventories and reject future envelopes without sacrificing the old bytes', () => {
+test('current saves retain card inventories and reject future envelopes without sacrificing the old bytes', () => {
   const state = collected(), values = new Map(), storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
   const store = Storage.createStore({ storage, now: () => state.lastUpdate });
   assert.ok(store.save(state).ok);
-  assert.equal(JSON.parse(values.get(Storage.SAVE_KEY)).version, 6);
+  assert.equal(JSON.parse(values.get(Storage.SAVE_KEY)).version, Core.VERSION);
   assert.deepEqual(store.load({ deferOffline: true }).state, state);
-  const unsupported = JSON.stringify({ format: Storage.FORMAT, version: 7, savedAt: state.lastUpdate, state });
+  const unsupported = JSON.stringify({ format: Storage.FORMAT, version: Core.VERSION + 1, savedAt: state.lastUpdate, state });
   values.set(Storage.SAVE_KEY, unsupported);
   const protectedStore = Storage.createStore({ storage, now: () => state.lastUpdate });
   assert.equal(protectedStore.load({ deferOffline: true }).canSave, false);
@@ -376,12 +376,20 @@ test('old fresh saves unlock introductions from actual persistent areas rather t
 
 test('earned deck slots are gated and announce once without filling a new slot', () => {
   const state = Core.createState(0); fund(state);
-  while (!state.expedition.completed) { Core.act(state, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' }); advance(state, 30); }
+  while (!state.expedition.completed || !P.canAdvance(state)) {
+    claimTiers(state);
+    for (const id of state.expedition.areas.greenway.learned) Core.act(state, { type: 'expedition-buy', areaId: 'greenway', id });
+    advance(state, 30);
+  }
   act(state, { type: 'expedition-next' });
   act(state, { type: 'collection-unlock', kind: 'cards' });
   assert.equal(K.slots(state), 2);
   assert.equal(Core.act(state, { type: 'card-equip', deckId: 'deck-1', slot: 2, id: 'trail-courier' }).ok, false);
-  while (!state.expedition.completed) { for (const id of state.expedition.areas.quarry.learned) Core.act(state, { type: 'expedition-buy', areaId: 'quarry', id }); advance(state, 30); }
+  while (!state.expedition.completed || !P.canAdvance(state)) {
+    claimTiers(state);
+    for (const id of state.expedition.areas.quarry.learned) Core.act(state, { type: 'expedition-buy', areaId: 'quarry', id });
+    advance(state, 30);
+  }
   act(state, { type: 'expedition-next' });
   assert.equal(K.slots(state), 3);
   assert.equal(state.collection.recent.at(-1).delta.deckSlots, 3);

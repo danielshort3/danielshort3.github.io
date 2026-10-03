@@ -12,9 +12,9 @@
   const exact = (x, keys) => object(x) && Object.keys(x).length === keys.length && keys.every(k => own(x, k));
   const AREAS = D.AREAS.map(a => a.id);
   const PRIMARY = AREAS.concat('cards', 'equipment');
-  const OPTIONAL = ['tiers', 'expansion', 'plans', 'bulk', 'guild-upgrades', 'projects', 'focus', 'automation', 'reserves', 'crew', 'companions', 'relics', 'meals', 'kits', 'card-archive', 'card-craft', 'gear-craft', 'gear-repair', 'gear-reforge', 'specialization', 'configuration', 'supply', 'planner', 'playbooks', 'refit', 'charter', 'shop', 'caravan'];
+  const OPTIONAL = ['tiers', 'expansion', 'plans', 'bulk', 'guild-upgrades', 'projects', 'techniques', 'technique-config', 'focus', 'automation', 'reserves', 'crew', 'companions', 'relics', 'meals', 'kits', 'card-archive', 'card-craft', 'gear-craft', 'gear-repair', 'gear-reforge', 'specialization', 'configuration', 'supply', 'planner', 'playbooks', 'refit', 'charter', 'shop', 'caravan'];
   const IDS = PRIMARY.concat(OPTIONAL);
-  const TITLES = { greenway: 'Trail', quarry: 'Quarry', watchtower: 'Tower', workshop: 'Workshop', ruins: 'Ruins', harbor: 'Harbor', cards: 'Cards and decks', equipment: 'Equipment and scrolls', tiers: 'Unlock an upgrade tier', expansion: 'Expand the guild', plans: 'Choose a working plan', bulk: 'Buy an exact batch', 'guild-upgrades': 'Guild improvements', projects: 'Fund a connected project', focus: 'Use a Focus charge', automation: 'Set a standing plan', reserves: 'Protect a reserve', crew: 'Recruit and assign crew', companions: 'Choose a companion', relics: 'Equip a relic', meals: 'Choose a meal', kits: 'Prepare an expedition kit', 'card-archive': 'Archive a duplicate', 'card-craft': 'Craft a discovered card', 'gear-craft': 'Craft equipment', 'gear-repair': 'Restore a failed slot', 'gear-reforge': 'Review reforging', specialization: 'Assign a specialist track', configuration: 'Configure an operation', supply: 'Set provision demand', planner: 'Save an upgrade goal', playbooks: 'Save a guild playbook', refit: 'Review a Refit', charter: 'Review a Charter', shop: 'Review the Starshard shop', caravan: 'Review a caravan reward' };
+  const TITLES = { greenway: 'Trail', quarry: 'Quarry', watchtower: 'Tower', workshop: 'Workshop', ruins: 'Ruins', harbor: 'Harbor', cards: 'Cards and decks', equipment: 'Equipment and scrolls', tiers: 'Unlock an upgrade tier', expansion: 'Expand the guild', plans: 'Choose a working plan', bulk: 'Buy an exact batch', 'guild-upgrades': 'Guild improvements', projects: 'Fund a connected project', techniques: 'Improve an area technique', 'technique-config': 'Choose a technique mode', focus: 'Use a Focus charge', automation: 'Set a standing plan', reserves: 'Protect a reserve', crew: 'Recruit and assign crew', companions: 'Choose a companion', relics: 'Equip a relic', meals: 'Choose a meal', kits: 'Prepare an expedition kit', 'card-archive': 'Archive a duplicate', 'card-craft': 'Craft a discovered card', 'gear-craft': 'Craft equipment', 'gear-repair': 'Restore a failed slot', 'gear-reforge': 'Review reforging', specialization: 'Assign a specialist track', configuration: 'Configure an operation', supply: 'Set provision demand', planner: 'Save an upgrade goal', playbooks: 'Save a guild playbook', refit: 'Review a Refit', charter: 'Review a Charter', shop: 'Review the Starshard shop', caravan: 'Review a caravan reward' };
   const KEYS = Object.fromEntries(IDS.map(id => [id, AREAS.includes(id) ? ['inspect', 'upgrade', 'operate'] : id === 'cards' ? ['equip', 'fuse', 'deck', 'second-deck', 'return-deck'] : id === 'equipment' ? ['equip', 'scroll', 'result'] : id === 'bulk' ? ['quantity', 'purchase'] : ['inspect', 'practice']]));
   let contextProvider = null;
   let costProvider = null;
@@ -40,7 +40,7 @@
   };
   const currencyInfo = id => own(CURRENCIES, id) ? { id, name: CURRENCIES[id][0], label: CURRENCIES[id][0], icon: CURRENCIES[id][1], purpose: CURRENCIES[id][2], earnedFrom: CURRENCIES[id][3] } : null;
   const context = (state, supplied) => supplied || (contextProvider ? contextProvider(state) : {});
-  const TRIGGERS = { tiers: ['upgrade-tier-unlock', 'onboarding-open'], expansion: ['expedition-next'], plans: ['expedition-choice'], bulk: ['expedition-batch'], 'guild-upgrades': ['buy', 'refit-upgrade', 'legacy-upgrade', 'capability'], projects: ['expedition-development', 'project', 'research', 'luck-research'], focus: ['expedition-focus'], automation: ['automation', 'expedition-automation'], reserves: ['plan-reserve'], crew: ['recruit', 'specialist'], companions: ['companion', 'recruit'], relics: ['relic-equip', 'relic-hunt'], meals: ['recipe'], kits: ['kit-prepare', 'kit-use'], 'card-archive': ['card-recycle'], 'card-craft': ['card-craft'], 'gear-craft': ['gear-forge'], 'gear-repair': ['gear-scroll'], specialization: ['expedition-specialize'], configuration: ['expedition-config'], supply: ['supply-plan'], planner: ['plan-goal', 'plan-priority', 'plan-queue', 'plan-kit', 'plan-preparation'], playbooks: ['loadout-save', 'loadout-use'] };
+  const TRIGGERS = { tiers: ['upgrade-tier-unlock', 'onboarding-open'], expansion: ['expedition-next'], plans: ['expedition-choice'], bulk: ['expedition-batch'], 'guild-upgrades': ['buy', 'refit-upgrade', 'legacy-upgrade', 'capability'], projects: ['expedition-development', 'project', 'research', 'luck-research'], 'technique-config': ['area-skill-config'], focus: ['expedition-focus'], automation: ['automation', 'expedition-automation'], reserves: ['plan-reserve'], crew: ['recruit', 'specialist'], companions: ['companion', 'recruit'], relics: ['relic-equip', 'relic-hunt'], meals: ['recipe'], kits: ['kit-prepare', 'kit-use'], 'card-archive': ['card-recycle'], 'card-craft': ['card-craft'], 'gear-craft': ['gear-forge'], 'gear-repair': ['gear-scroll'], specialization: ['expedition-specialize'], configuration: ['expedition-config'], supply: ['supply-plan'], planner: ['plan-goal', 'plan-priority', 'plan-queue', 'plan-kit', 'plan-preparation'], playbooks: ['loadout-save', 'loadout-use'] };
   const initial = () => ({ version: 1, progress: { greenway: 0 }, active: null, bindings: {}, intentions: {}, proofs: [], supplies: [], rewards: [], helpRewards: [], currencyRead: [] });
   const ledger = state => state.onboarding?.practice;
   const hasArea = (s, id) => !!s.expedition?.areas?.[id];
@@ -54,6 +54,8 @@
     if (id === 'tiers') return (s.upgradeTiers?.pending.length || 0) > 0 || (s.upgradeTiers?.claimed.length || 0) > 1;
     if (id === 'expansion') return !!s.expedition?.completed || Object.keys(s.expedition?.areas || {}).length > 1;
     if (['plans', 'guild-upgrades'].includes(id)) return hasArea(s, 'quarry');
+    if (id === 'techniques') return !!s.areaSkills?.unlocked?.length;
+    if (id === 'technique-config') return !!s.areaSkills && Object.values(s.areaSkills.ranks || {}).some(rank => rank > 0);
     if (['projects', 'configuration'].includes(id)) return hasArea(s, 'watchtower');
     if (['bulk', 'focus'].includes(id)) return s.lifetime.refits > 0;
     if (id === 'automation') return s.lifetime.refits > 0 || s.rooms.includes('study');
@@ -117,13 +119,12 @@
       const dest = destination('expedition', { areaId: id });
       const bought = (state.expedition.areas[id].ranks[b.trackId] || 0) > 0;
       const buy = { type: 'expedition-buy', areaId: id, id: b.trackId, count: 1 };
-      let operate;
-      const choiceGroups = rows(c.expedition?.choices);
-      const choices = choiceGroups.flatMap(g => g.options || [g]).filter(row => row.action && row.visible !== false && !row.disabled);
-      const option = choices.find(row => !row.selected);
-      if (selected === id && option) operate = action('operate', 'area-plan-option', 'Apply a working plan', 'Choose this real plan, then compare the operation. You can change plans again at any time.', option.action, dest, { areaId: id, choiceId: option.id });
-      else if (id === 'greenway') operate = inspect('operate', 'area-goal', 'Find your next destination', 'Open the current objective. Completed landmarks keep producing while you choose the next expansion.', dest, { areaId: id, section: 'objective' });
-      else operate = inspect('operate', 'area-plans', 'Find the operation controls', 'Open Plans to see the currently earned choices. Later discoveries add real alternatives here.', dest, { areaId: id, section: 'plans' });
+      // First visits teach an always-available inspector. Choosing a different
+      // plan has its own real-action lesson when an alternative is earned.
+      // Keep the saved operate proof and target identity for stuck older saves.
+      const operate = id === 'greenway'
+        ? inspect('operate', 'area-goal', 'Find your next destination', 'Open the current objective. Completed landmarks keep producing while you choose the next expansion.', dest, { areaId: id, section: 'objective' })
+        : inspect('operate', 'area-plans', 'Open Processing', 'Open Processing to see this area’s working stages and what currently limits its output. New working plans appear here when you earn them.', dest, { areaId: id, section: 'plans' });
       return [inspect('inspect', 'area-upgrades', 'Open ' + (local?.name || 'an earned upgrade'), 'Open its comparison and price. The next step uses this real upgrade control.', dest, { areaId: id, trackId: b.trackId }), bought ? inspect('upgrade', 'area-upgrades', 'Review your existing investment', 'You already invested in this track. Inspect its earned rank and next effect; no extra purchase or reset is required.', dest, { areaId: id, trackId: b.trackId, mastered: true }) : action('upgrade', 'area-buy', 'Buy the first improvement', 'Use the upgrade button. The guild supplies this one practice rank; the improvement remains in your guild.', local ? buy : null, dest, { areaId: id, trackId: b.trackId }, { supply: 'rank', suppliesText: 'Guild supplies one first-rank purchase. Your saved resources are not spent.' }), operate];
     }
     if (id === 'cards') {
@@ -154,6 +155,17 @@
       return [state.expedition.batch === count ? inspect('quantity', 'batch-select', 'Inspect the selected quantity', 'This earned batch is already selected. Inspect its exact quantity before purchasing.', dest, { count, mastered: true }) : action('quantity', 'batch-select', 'Choose an exact quantity', 'Select the earned batch size. The price covers every rank; purchases never silently buy a partial batch.', mode?.action, dest, { count }), action('purchase', 'area-buy', 'Buy the quoted batch', 'Buy this exact batch. The guild supplies this first lesson purchase; future batches use your resources.', row && count ? { type: 'expedition-buy', areaId: selected, id: row.trackId || row.action.id, count } : null, dest, { areaId: selected, trackId: row?.trackId, count }, { supply: 'cost', suppliesText: 'Guild supplies this exact practice batch once.' })];
     }
     if (['guild-upgrades', 'projects'].includes(id)) { const r = select(rows(c.globalUpgrades).filter(row => id === 'projects' ? ['expedition-development', 'project', 'research'].includes(row.action?.type) : row.action?.type === 'buy')); a = r?.action; dest = destination('upgrades'); target = 'catalog-buy'; data = { catalogId: r?.id, actionId: a?.id }; }
+    if (id === 'techniques' || id === 'technique-config') {
+      const skills = rows(c.areaSkills?.items || c.areaSkills?.rows || c.globalUpgrades).filter(row => row.skillId);
+      const r = id === 'techniques'
+        ? skills.find(row => row.state === 'learned' && row.rank < row.maxRank)
+        : skills.find(row => rows(row.configuration?.options || row.options).some(option => option.action && !option.disabled && !option.selected));
+      const option = id === 'technique-config' && rows(r?.configuration?.options || r?.options).find(item => item.action && !item.disabled && !item.selected);
+      a = id === 'techniques' && r ? { type: 'area-skill-buy', id: r.skillId, count: 1 } : option?.action;
+      dest = destination('upgrades', { areaId: r?.areaId }); target = id === 'techniques' ? 'catalog-buy' : 'technique-config';
+      data = { catalogId: r?.catalogId || r?.id, skillId: r?.skillId, areaId: r?.areaId, value: option?.value ?? option?.id };
+      explanation = id === 'techniques' ? 'Inspect this earned technique, then use its real upgrade button. This lesson supplies one practice rank; future ranks use the displayed resources.' : 'Choose the highlighted mode. Its actual effect changes this area’s operation, and you can change modes again later.';
+    }
     if (id === 'focus') { a = select(c.expedition?.focus?.actions)?.action; dest = destination('expedition', { areaId: selected }); target = 'focus-action'; explanation = 'Use one guild-supplied practice charge on this operation. Your regular charges stay available. Production still needs its normal inputs.'; }
     if (id === 'automation') { a = select(c.automations)?.action; if (state.lifetime.refits && state.expedition.version === 3) a = { type: 'expedition-automation', enabled: !state.expedition.automation.enabled, priority: state.expedition.automation.priority, dispatch: state.expedition.automation.dispatch }; data.section = 'automation'; }
     if (id === 'reserves') { a = { type: 'plan-reserve', id: 'ore', amount: N.cmp(state.guild.plan.reserves.ore, 10) ? '10' : '20' }; data.resourceId = 'ore'; data.amount = a.amount; data.section = 'planning'; explanation = 'Enter ' + a.amount + ' for the ore reserve and Save. Automatic conversions and purchases protect it; you can edit it again.'; }
@@ -173,7 +185,7 @@
       return [inspect('inspect', target, TITLES[id], 'Review the current effects, costs and what remains. Opening this preview commits nothing.', dest, data), inspect('practice', target + '-details', 'Inspect the confirmation details', 'Read the actual current quote and its consequences. Only your separate explicit confirmation can reset, reforge, spend currency or request an ad.', dest, data)];
     }
     const intended = x?.intentions[id];
-    if (intended) { a = clone(intended); data.actionId = a.id; if(id === 'tiers') data.tierId = String(a.id).replace(/^ready:/, ''); if (['guild-upgrades', 'projects'].includes(id)) { const row = rows(c.globalUpgrades).find(row => row.action?.type === a.type && row.action?.id === a.id); if (row) data.catalogId = row.id; else delete data.catalogId; } if (['plans', 'specialization', 'configuration'].includes(id)) { data.choiceId = a.id; if (a.kind) data.kind = a.kind; if (a.slot !== undefined) data.slot = a.slot; } if (a.areaId) { data.areaId = a.areaId; dest = destination('expedition', { areaId: a.areaId }); } if (a.type.startsWith('card-')) { data.cardId = a.id; dest = destination('cards', { cardId: a.id }); } if (a.type.startsWith('gear-')) { data.itemId = a.id; dest = destination('equipment', { itemId: a.id }); } if (id === 'reserves') { data.resourceId = a.id; data.amount = a.amount; explanation = 'Enter ' + a.amount + ' as the ' + a.id + ' reserve and Save. You can edit it again.'; } }
+    if (intended) { a = clone(intended); data.actionId = a.id; if(id === 'tiers') data.tierId = String(a.id).replace(/^ready:/, ''); if (['guild-upgrades', 'projects'].includes(id)) { const row = rows(c.globalUpgrades).find(row => row.action?.type === a.type && row.action?.id === a.id); if (row) data.catalogId = row.id; else delete data.catalogId; } if (id === 'technique-config') { const row = rows(c.areaSkills?.items || c.areaSkills?.rows || c.globalUpgrades).find(item => item.skillId === a.id); data.skillId = a.id; data.value = a.value; data.catalogId = row?.catalogId || row?.id || 'skill:' + a.id; data.areaId = row?.areaId; dest = destination('upgrades', { areaId: row?.areaId }); } if (['plans', 'specialization', 'configuration'].includes(id)) { data.choiceId = a.id; if (a.kind) data.kind = a.kind; if (a.slot !== undefined) data.slot = a.slot; } if (a.areaId) { data.areaId = a.areaId; dest = destination('expedition', { areaId: a.areaId }); } if (a.type.startsWith('card-')) { data.cardId = a.id; dest = destination('cards', { cardId: a.id }); } if (a.type.startsWith('gear-')) { data.itemId = a.id; dest = destination('equipment', { itemId: a.id }); } if (id === 'reserves') { data.resourceId = a.id; data.amount = a.amount; explanation = 'Enter ' + a.amount + ' as the ' + a.id + ' reserve and Save. You can edit it again.'; } }
     supply = 'cost';
     return [inspect('inspect', target, TITLES[id], explanation, { ...dest, ...data }, data), action('practice', target, TITLES[id], explanation + ' The guild supplies the first practice cost; the real result remains.', a, { ...dest, ...data }, data, { supply, suppliesText: 'Guild supplies this first practice action’s exact inputs once.' })];
   }
@@ -234,7 +246,7 @@
         delete active.practiceAction; delete active.inspectAction;
       }
     }
-    return { guides, active, triggers: guides.filter(g => !g.complete && TRIGGERS[g.id]).flatMap(g => ['crew', 'companions'].includes(g.id) ? [{ id: g.id, actionTypes: TRIGGERS[g.id].filter(t => t !== 'recruit'), visitAction: g.visitAction }, { id: g.id, actionTypes: ['recruit'], match: { kind: g.id === 'crew' ? 'specialist' : 'companion' }, visitAction: g.visitAction }] : [{ id: g.id, actionTypes: TRIGGERS[g.id], ...(g.id === 'gear-repair' ? { match: { scrollId: 'restoration' } } : {}), visitAction: g.visitAction }]), helpQueue: guides.filter(g => g.optional && !g.complete && g.available).slice(0, 3) };
+    return { guides, active, triggers: guides.filter(g => !g.complete && g.available && TRIGGERS[g.id]).flatMap(g => ['crew', 'companions'].includes(g.id) ? [{ id: g.id, actionTypes: TRIGGERS[g.id].filter(t => t !== 'recruit'), visitAction: g.visitAction }, { id: g.id, actionTypes: ['recruit'], match: { kind: g.id === 'crew' ? 'specialist' : 'companion' }, visitAction: g.visitAction }] : [{ id: g.id, actionTypes: TRIGGERS[g.id], ...(g.id === 'gear-repair' ? { match: { scrollId: 'restoration' } } : {}), visitAction: g.visitAction }]), helpQueue: guides.filter(g => g.optional && !g.complete && g.available).slice(0, 3) };
   }
   function completeStep(state, id, step, supply = false) {
     const x = ledger(state), receipt = id + ':' + step.id;
@@ -264,6 +276,13 @@
     }
     if (action.type === 'onboarding-visit') {
       if (!(exact(action, ['type', 'id']) || exact(action, ['type', 'id', 'intendedAction']) && validIntention(action.id, action.intendedAction)) || !IDS.includes(action.id) || !earned(state, action.id) || !own(x.progress, action.id) || x.progress[action.id] >= KEYS[action.id].length || x.active && x.active !== action.id) return { ok: false, message: 'Open an earned unfinished lesson.' };
+      if (action.id === 'plans' && !steps(state, 'plans').some(step => step.requiredAction && step.mode === 'action')) return { ok: false, message: 'Working plans are taught when another plan is available.' };
+      if (action.id === 'technique-config' && action.intendedAction) {
+        const skills = context(state).areaSkills?.items || [];
+        const row = skills.find(item => item.skillId === action.intendedAction.id);
+        const option = rows(row?.configuration?.options || row?.options).find(item => item.action && !item.disabled && !item.selected && actionKey(item.action) === actionKey(cleanAction(action.intendedAction)));
+        if (!option) return { ok: false, message: 'Choose a different earned technique mode for this lesson.' };
+      }
       if (action.intendedAction) x.intentions[action.id] = cleanAction(action.intendedAction);
       else if (x.active !== action.id) delete x.intentions[action.id];
       if (!x.bindings[action.id]) x.bindings[action.id] = bind(state, action.id, context(state));

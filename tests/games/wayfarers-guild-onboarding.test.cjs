@@ -15,12 +15,14 @@ function finish(state, id) {
 function withoutGuidance(state) { const copy = clone(state); delete copy.onboarding; return copy; }
 function porters() {
   const state = Core.createState(0); fund(state);
-  act(state, { type: 'expedition-buy', id: 'boots' }); act(state, { type: 'expedition-buy', id: 'boots' });
+  for (let rank = 0; rank < 4; rank += 1) act(state, { type: 'expedition-buy', id: 'boots' });
+  for (let seconds = 0; !state.upgradeTiers.pending.includes('area:greenway:porters') && seconds < 600; seconds += 1) advance(state, 1);
+  assert.ok(state.upgradeTiers.pending.includes('area:greenway:porters'), 'Real Pathfinding ranks and three deliveries earn Porters');
   return state;
 }
 
 test('Unlock and go claims the real tier and acknowledges its resulting notice atomically', () => {
-  const state=porters(), entry=Core.getView(state).onboarding.notice.items.find(row=>row.kind==='tier-ready');
+  const state=porters(), entry=Core.getView(state).onboarding.notice.items.find(row=>row.id==='ready:area:greenway:porters');
   assert.equal(entry.id,'ready:area:greenway:porters'); assert.equal(entry.openLabel,'Unlock & go');
   const before=clone(state), result=act(state,entry.openAction);
   assert.deepEqual(result.destination,{type:'ui',screen:'expedition',areaId:'greenway',upgradeId:'porters'});
@@ -28,21 +30,22 @@ test('Unlock and go claims the real tier and acknowledges its resulting notice a
   assert.ok(state.onboarding.read.includes('ready:area:greenway:porters'));
   assert.ok(state.onboarding.read.includes('tier:area:greenway:porters'));
   assert.deepEqual(state.resources,before.resources); assert.deepEqual(state.expedition.areas.greenway.ranks,before.expedition.areas.greenway.ranks);
-  assert.equal(Core.getView(state).onboarding.notice,null);
+  assert.ok(!Core.getView(state).onboarding.notice?.items.some(row=>row.id.endsWith('area:greenway:porters')));
   const completed=clone(state); act(state,entry.openAction); assert.deepEqual(state,completed,'reopen does not claim or pay twice'); valid(state);
 });
 
 test('claiming outside a notice creates one truthful unlocked row and supersedes the ready row', () => {
   const state=porters(); act(state,{type:'upgrade-tier-unlock',id:'area:greenway:porters'});
   const notice=Core.getView(state).onboarding.notice;
-  assert.deepEqual(notice.items.map(row=>row.id),['tier:area:greenway:porters']);
-  assert.match(notice.items[0].label,/unlocked$/);
+  const relevant = notice.items.filter(row=>row.id.endsWith('area:greenway:porters'));
+  assert.deepEqual(relevant.map(row=>row.id),['tier:area:greenway:porters']);
+  assert.match(relevant[0].label,/unlocked$/);
   assert.ok(state.onboarding.read.includes('ready:area:greenway:porters'));
   act(state,notice.deferAction);
   assert.equal(Core.getView(state).onboarding.notice,null);
-  assert.equal(Core.getView(state).onboarding.inbox.unreadCount,1,'announced and read are different');
+  assert.equal(Core.getView(state).onboarding.inbox.entries.filter(row=>row.id==='tier:area:greenway:porters'&&!row.read).length,1,'announced and read are different');
   const loaded=Core.normalizeState(clone(state),state.lastUpdate);
-  assert.equal(Core.getView(loaded).onboarding.notice,null); assert.equal(Core.getView(loaded).onboarding.inbox.unreadCount,1); valid(loaded);
+  assert.equal(Core.getView(loaded).onboarding.notice,null); assert.equal(Core.getView(loaded).onboarding.inbox.entries.filter(row=>row.id==='tier:area:greenway:porters'&&!row.read).length,1); valid(loaded);
 });
 
 test('Later consumes only automatic prompting, preserves a ready tier and survives capped logs', () => {

@@ -36,7 +36,7 @@ function mature(options = {}) {
   const state = Core.createState(0);
   fund(state);
   for (let index = 0; index < 3; index += 1) {
-    while (!state.expedition.completed) {
+    while (!state.expedition.completed || index < 2 && !P.canAdvance(state)) {
       claimTiers(state);
       for (const [areaId, area] of Object.entries(state.expedition.areas)) for (const id of area.learned) {
         if (area.ranks[id] < 20) Core.act(state, { type: 'expedition-buy', areaId, id });
@@ -62,8 +62,21 @@ function mature(options = {}) {
   state.expedition.focus = { charges: 3, recharge: 0, active: null, remaining: 0, unlocked: true };
   fund(state);
   claimTiers(state);
-  for (const [areaId, area] of Object.entries(state.expedition.areas)) for (const id of area.learned) {
-    while (area.ranks[id] < 25) Core.act(state, { type: 'expedition-buy', areaId, id });
+  // New areas learn foundations from their own actual production. High funding
+  // buys ranks, but cannot stand in for completed voyages or recovered finds.
+  for (let pass = 0; pass < 720; pass += 1) {
+    for (const [areaId, area] of Object.entries(state.expedition.areas)) for (const id of area.learned.slice()) {
+      while (area.ranks[id] < 25) {
+        claimTiers(state);
+        if (!P.quote(state, areaId, id, 1).valid) break;
+        const bought = Core.act(state, { type: 'expedition-buy', areaId, id });
+        if (!bought.ok) throw new Error('Mature fixture purchase ' + areaId + '/' + id + ': ' + bought.message);
+      }
+    }
+    const established = P.Content.AREAS.filter(def => state.expedition.areas[def.id]).every(def => def.tracks.slice(0, 3).every(track => state.expedition.areas[def.id].ranks[track.id] >= 25) && state.expedition.areas[def.id].learned.every(id => state.expedition.areas[def.id].ranks[id] >= 25));
+    if (established) break;
+    advance(state, 60); claimTiers(state);
+    if (pass === 719) throw new Error('Mature fixture did not establish every area foundation.');
   }
   const validation = Core.validateState(state);
   if (!validation.valid) throw new Error(validation.errors.join('; '));
