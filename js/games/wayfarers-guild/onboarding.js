@@ -40,7 +40,7 @@
     const result = [];
     const add = (id, kind, label, extra = {}) => { if (!result.some(row => row.id === id)) result.push({ id, kind, label, ...extra }); };
     for (const area of D.AREAS) if (hasArea(state, area.id)) add('area:' + area.id, 'area', area.name, { areaId: area.id, destination: ui('expedition', { areaId: area.id }) });
-    for (const row of c.globalUpgrades || []) if (row.visible !== false) add('upgrade:' + row.id, 'upgrade', row.label || row.name, { areaId: row.areaId || null, itemId: row.id, destination: row.action?.type === 'expedition-buy' ? ui('expedition', { areaId: row.areaId, upgradeId: row.action.id }) : ui('upgrades', { catalogId: row.id }) });
+    for (const row of c.globalUpgrades || []) if (row.visible !== false && row.status !== 'locked' && row.state !== 'locked') add('upgrade:' + row.id, 'upgrade', row.label || row.name, { areaId: row.areaId || null, itemId: row.id, destination: row.action?.type === 'expedition-buy' ? ui('expedition', { areaId: row.areaId, upgradeId: row.action.id }) : ui('upgrades', { catalogId: row.id }) });
     for (const row of options) add('option:' + row.areaId + ':' + row.group + ':' + row.id, 'option', row.label, { areaId: row.areaId, itemId: row.id, group: row.group, destination: ui('expedition', { areaId: row.areaId, control: 'plans', group: row.group, optionId: row.id }) });
     for (const id of Object.keys(state.collection?.cards || {})) add('card:' + id, 'card', id, { itemId: id, destination: ui('cards', { cardId: id }) });
     for (const id of Object.keys(state.collection?.gear || {})) add('gear:' + id, 'gear', id, { itemId: id, destination: ui('equipment', { itemId: id }) });
@@ -156,14 +156,14 @@
       greenway: ['Inspect before upgrading', 'The upgrade name opens its next improvement and full price. Nothing is purchased during this guide.'],
       quarry: ['Upgrade the limiting station', 'Inspect an earned upgrade. More capacity helps most when that station is limiting the chain.'],
       watchtower: ['Choose your next improvement', legacy ? 'Inspect worker, lift or beacon upgrades as their tiers become available.' : 'Inspect Surveying first. Later claimed tiers add coordination and specialist capacity.'],
-      workshop: ['Choose a manufacturing plan', 'Plans choose what the Workshop makes. Compare the inputs and outputs before changing a template.'],
-      ruins: ['Choose what to discover', 'Plans select botanical, metallic or inscribed finds. Each changes what the recovery chain produces.'],
-      harbor: ['Plan the next departure', 'Plans set future cargo and destinations. Already funded voyages keep the costs and rewards they departed with.']
+      workshop: ['Inspect manufacturing', 'Processing shows the Workshop’s inputs and output. Earned plans let you choose a manufacturing template.'],
+      ruins: ['Inspect discovery recovery', 'Processing shows discovery, interpretation and recovery. Earned plans select which type of find to recover.'],
+      harbor: ['Inspect the next departure', 'Processing shows departure supplies, ships at sea and arriving cargo. Already funded voyages keep their original costs and rewards.']
     };
     if (id === 'cards') return [step('purpose', 'cards-introduction', 'Cards need a deck', 'Only cards in the active deck apply their effects. Owning a card alone gives no production bonus.', 'cards'), step('operation', 'cards-decks', 'Choose a saved deck', 'A card can occupy one slot in each deck. Only the active deck supplies its effects.', 'cards'), step('next-step', 'cards-library', 'Keep useful duplicates', 'Fusion spends duplicates for a guaranteed rank improvement. Card rarity stays unchanged.', 'cards')];
     if (id === 'equipment') return [step('purpose', 'equipment-introduction', 'Equipment is a lasting choice', 'Equipped items apply their base effects. Owning an item alone does not change production.', 'equipment'), step('operation', 'equipment-slots', 'Use the matching slot', 'Tool, head, coat and boots each hold one item. Inspect an item before replacing what is equipped.', 'equipment'), step('next-step', 'equipment-inventory', 'Improve an owned item', 'Open an owned item to choose a scroll. A failed attempt uses a slot but keeps the item and its bonuses.', 'equipment')];
     const plan = ['workshop', 'ruins', 'harbor'].includes(id);
-    const last = id === 'greenway' ? ['Follow the next goal', 'The goal names the next landmark or unlock. New upgrade tiers stay hidden until you choose to unlock them.']
+    const last = id === 'greenway' ? ['Follow the next goal', 'The goal names the next landmark or unlock. Three foundation skills show what to earn next. A ready skill becomes available when you choose Unlock.']
       : id === 'quarry' ? ['Keep earlier areas working', 'The Trail continues producing while you develop the Quarry. New projects can improve both areas.']
         : id === 'watchtower' ? ['Connect your areas', 'Fund unlocked research in Upgrades. Its result can add a new option or improve an earlier area.']
           : ['Invest in the current operation', 'Inspect an earned upgrade here. Its comparison shows which part of this operation will improve.'];

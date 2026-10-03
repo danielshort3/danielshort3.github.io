@@ -10,9 +10,9 @@
   const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
   const legacyTracks = { greenway: ['boots', 'porters', 'scouts'], quarry: ['picks', 'carts', 'furnace'], watchtower: ['crew', 'lift', 'beacon'] };
   const areaName = id => D.AREAS.find(area => area.id === id)?.name || 'Guild';
-  let baseOpen = () => false, legacyDevelopments = [];
+  let baseOpen = () => false, legacyDevelopments = [], foundationRequirement = null;
   const cache = new Map();
-  const configure = providers => { baseOpen = providers.baseOpen; legacyDevelopments = providers.legacyDevelopments || []; cache.clear(); };
+  const configure = providers => { baseOpen = providers.baseOpen; legacyDevelopments = providers.legacyDevelopments || []; foundationRequirement = providers.foundationRequirement || null; cache.clear(); };
   const initial = () => ({ version: 1, claimed: ['area:greenway:boots'], pending: [], prompted: [] });
   const identity = action => action.type + ':' + action.id;
   function definitions(state) {
@@ -124,12 +124,38 @@
     }
     return { ok: false, message: 'Choose a valid upgrade tier action.' };
   }
+  function foundationView(state) {
+    const x = state.upgradeTiers;
+    if (!x) return [];
+    return definitions(state).filter(row => row.local && row.index < 3 && state.expedition?.areas[row.areaId]).map(row => {
+      const area = state.expedition.areas[row.areaId], track = row.actions[0].id;
+      const claimed = x.claimed.includes(row.id), ready = x.pending.includes(row.id);
+      let requirements = [];
+      if (!claimed && !ready && row.index) {
+        const canonical = state.expedition.version === 3 && foundationRequirement?.(state, row.areaId, track);
+        if (canonical) requirements = canonical.requirements.map(requirement => ({ ...requirement }));
+        else {
+          const previous = definitions(state).find(item => item.id === row.previous), rank = area.ranks[previous.actions[0].id] || 0;
+          // Released E2 keeps its rank OR elapsed-time path. State both routes.
+          const elapsed = area.elapsed || 0, duration = row.index * 180;
+          requirements = [{ label: previous.tracks[0].label + ' rank 2 or ' + Math.ceil(duration / 60) + ' minutes here', icon: previous.icon, current: rank, required: 2, met: rank >= 2 || elapsed >= duration, alternate: { current: elapsed, required: duration, unit: 'seconds' } }];
+        }
+        if (row.previous && !x.claimed.includes(row.previous)) {
+          const previous = definitions(state).find(item => item.id === row.previous);
+          requirements.push({ label: 'Unlock ' + previous.tracks[0].label, icon: previous.icon, current: 0, required: 1, met: false });
+        }
+      }
+      return { id: row.id, tierId: row.id, areaId: row.areaId, trackId: track, name: row.tracks[0].label, label: row.tracks[0].label, icon: row.icon, effectText: row.shortEffect, rank: area.ranks[track] || 0, maxRank: area.cap || null,
+        status: claimed ? 'learned' : ready ? 'ready' : 'locked', requirements,
+        ...(ready ? { unlockAction: { type: 'upgrade-tier-unlock', id: row.id } } : {}) };
+    });
+  }
   function view(state) {
     const x = state.upgradeTiers;
-    if (!x) return { ready: [], notice: null, claimedCount: 0 };
+    if (!x) return { ready: [], notice: null, claimedCount: 0, foundations: [] };
     const ready = definitions(state).filter(row => x.pending.includes(row.id)).map(row => ({ id: row.id, areaId: row.areaId, tier: row.tier, label: row.label, shortEffect: row.shortEffect, icon: row.icon, tracks: row.tracks, status: 'ready', unlockAction: { type: 'upgrade-tier-unlock', id: row.id }, deferAction: { type: 'upgrade-tier-defer', ids: [row.id] } }));
     const unseen = ready.filter(row => !x.prompted.includes(row.id));
-    return { ready, claimedCount: x.claimed.length, notice: unseen.length ? { id: unseen.map(row => row.id).join('|'), title: unseen.length === 1 ? 'An upgrade tier is ready' : unseen.length + ' upgrade tiers are ready', items: unseen, deferAction: { type: 'upgrade-tier-defer', ids: unseen.map(row => row.id) } } : null };
+    return { ready, foundations: foundationView(state), claimedCount: x.claimed.length, notice: unseen.length ? { id: unseen.map(row => row.id).join('|'), title: unseen.length === 1 ? 'An upgrade tier is ready' : unseen.length + ' upgrade tiers are ready', items: unseen, deferAction: { type: 'upgrade-tier-defer', ids: unseen.map(row => row.id) } } : null };
   }
   function validate(value, state) {
     try {

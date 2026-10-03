@@ -32,6 +32,124 @@ test('fresh Trail requires actual information opening and a real supplied rank, 
   assert.deepEqual(s.onboarding.practice.supplies, ['greenway:upgrade']);
 });
 
+test('first Quarry visit exposes Processing inspection before any alternate plan exists', () => {
+  const s = Core.createState(12); finish(s, 'greenway');
+  let seconds = 0;
+  while (!s.expedition.areas.quarry && seconds < 3600) {
+    for (const tier of Core.getView(s).upgradeTiers.ready.filter(row => row.id.startsWith('area:greenway:'))) act(s, tier.unlockAction);
+    const card = Core.getView(s).expedition.cards.find(row => row.rank < ({ boots: 4, porters: 3, scouts: 1 }[row.trackId] || 0) && !row.disabled);
+    if (card) act(s, card.action);
+    advance(s, 10); seconds += 10;
+  }
+  assert.ok(s.expedition.areas.quarry, 'Quarry reached through ordinary opening upgrades and production');
+  act(s, { type: 'expedition-next' }); act(s, { type: 'expedition-select', areaId: 'quarry' });
+  act(s, { type: 'onboarding-visit', id: 'quarry' }); step(s); step(s);
+  assert.equal(s.expedition.areas.quarry.ranks.picks, 1);
+  assert.equal(current(s).stepId, 'operate'); assert.equal(current(s).mode, 'inspect');
+  assert.equal(current(s).target, 'area-plans'); assert.equal(current(s).heading, 'Open Processing');
+  assert.equal(current(s).canLeave, false);
+  assert.deepEqual(Core.getView(s).expedition.choices.filter(row => row.visible !== false).map(row => row.id), ['balanced']);
+  const saved = clone(s), resumed = Core.normalizeState(saved, s.lastUpdate);
+  assert.deepEqual(resumed.onboarding.practice.proofs, s.onboarding.practice.proofs);
+  assert.deepEqual(resumed.onboarding.practice.supplies, ['greenway:upgrade', 'quarry:upgrade']);
+  const before = clone(resumed.resources), result = step(resumed);
+  assert.equal(resumed.onboarding.practice.progress.quarry, 3);
+  assert.deepEqual(resumed.resources.coins, N.add(before.coins, result.reward.coins));
+  const settled = clone(resumed);
+  assert.equal(Core.act(resumed, current(s).inspectAction).ok, false); assert.deepEqual(resumed, settled);
+  const planGuide = Core.getView(resumed).onboarding.guides.find(guide => guide.id === 'plans');
+  assert.equal(planGuide.available, false);
+  assert.ok(!Core.getView(resumed).onboarding.triggers.some(trigger => trigger.id === 'plans'));
+  assert.equal(Core.act(resumed, { type: 'onboarding-visit', id: 'plans' }).ok, false);
+});
+
+test('every area teaches its first operation at its minimum earned skill state', () => {
+  const s = Core.createState(13), visited = [];
+  function visitNewAreas() {
+    for (const id of Object.keys(s.expedition.areas)) {
+      if (visited.includes(id)) continue;
+      act(s, { type: 'expedition-select', areaId: id });
+      assert.equal(Object.values(s.expedition.areas[id].ranks).reduce((a, b) => a + b, 0), 0, id + ' is inspected before ordinary investment');
+      act(s, { type: 'onboarding-visit', id }); step(s); step(s);
+      assert.equal(current(s).mode, 'inspect');
+      assert.equal(current(s).target, id === 'greenway' ? 'area-goal' : 'area-plans');
+      step(s); assert.equal(s.onboarding.practice.progress[id], 3); visited.push(id);
+    }
+  }
+  H.fund(s); visitNewAreas();
+  for (let index = 0; index < 3; index += 1) {
+    let attempts = 0;
+    while ((!s.expedition.completed || index < 2 && !H.P.canAdvance(s)) && attempts++ < 100) {
+      H.claimTiers(s);
+      for (const [areaId, area] of Object.entries(s.expedition.areas)) for (const id of area.learned.slice()) if (area.ranks[id] < 20) { H.claimTiers(s); act(s, { type: 'expedition-buy', areaId, id }); }
+      advance(s, 60); visitNewAreas();
+    }
+    assert.ok(s.expedition.completed, 'First three landmarks completed');
+    if (index < 2) act(s, { type: 'expedition-next' });
+  }
+  for (const definition of H.P.Content.PROJECTS) {
+    H.fund(s); H.claimTiers(s); act(s, { type: 'expedition-development', id: definition.id });
+    H.P.tick(s, definition.work / H.P.rawRates(s).researchRate + 1e-6); H.claimTiers(s); visitNewAreas();
+    if (visited.length === 6) break;
+  }
+  assert.deepEqual(visited, ['greenway', 'quarry', 'watchtower', 'workshop', 'ruins', 'harbor']);
+  valid(s);
+});
+
+test('three foundation descriptors keep readiness separate from inspection acknowledgement', () => {
+  const s = Core.createState(14), initial = clone(s);
+  const foundations = () => Core.getView(s).upgradeTiers.foundations.filter(row => row.areaId === 'greenway');
+  assert.deepEqual(foundations().map(row => row.status), ['learned', 'locked', 'locked']);
+  assert.ok(foundations().slice(1).every(row => row.requirements.length > 0 && !row.unlockAction));
+  assert.deepEqual(s, initial, 'Foundation descriptors are read-only');
+  H.fund(s);
+  for (let count = 0; count < 20 && foundations()[1].status !== 'ready'; count += 1) {
+    act(s, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' }); advance(s, 30);
+  }
+  const ready = foundations()[1]; assert.equal(ready.status, 'ready');
+  const attention = Core.getView(s).onboarding.attention.items.find(row => row.id === 'discovery:ready:' + ready.id);
+  assert.ok(attention?.inspectAction); act(s, attention.inspectAction);
+  act(s, { type: 'upgrade-tier-defer', ids: [ready.id] });
+  assert.equal(foundations()[1].status, 'ready', 'Looking at or deferring an unlock does not remove its ready state');
+  assert.equal(s.expedition.areas.greenway.ranks.porters, 0);
+  act(s, ready.unlockAction); assert.equal(foundations()[1].status, 'learned');
+  assert.equal(s.expedition.areas.greenway.ranks.porters, 0, 'Claiming does not grant a paid rank');
+  valid(s);
+});
+
+test('technique help supplies one real rank and the first mode lesson requires its actual selection', () => {
+  const Skills = require('../../js/games/wayfarers-guild/area-skills.js');
+  const s = mature();
+  for (let n = 0; !Skills.eligible(s, 'express-routes') && n < 100; n += 1) advance(s, 60);
+  assert.ok(Skills.eligible(s, 'express-routes'));
+  act(s, { type: 'area-skill-unlock', id: 'express-routes' });
+  act(s, { type: 'expedition-batch', count: 100 });
+  s.resources.coins = N.from(100);
+  assert.ok(!Core.getView(s).onboarding.triggers.some(trigger => trigger.actionTypes.includes('area-skill-buy') || trigger.actionTypes.includes('area-skill-unlock')), 'Familiar unlock and purchase controls do not repeat mandatory lessons');
+  const wallet = clone(s.resources), guide = Core.getView(s).onboarding.guides.find(row => row.id === 'techniques');
+  assert.ok(guide.available); act(s, guide.helpOpenAction);
+  finish(s, 'techniques');
+  assert.equal(s.areaSkills.ranks['express-routes'], 1); assert.equal(s.expedition.batch, 100);
+  assert.deepEqual(s.resources.coins, N.add(wallet.coins, 12));
+  for (const resource of Object.keys(wallet).filter(id => id !== 'coins')) assert.deepEqual(s.resources[resource], wallet[resource]);
+  assert.equal(s.onboarding.practice.supplies.filter(id => id === 'techniques:practice').length, 1);
+  const beforeNoOp = clone(s);
+  assert.equal(Core.act(s, { type: 'onboarding-visit', id: 'technique-config', intendedAction: { type: 'area-skill-config', id: 'express-routes', value: 'off' } }).ok, false);
+  assert.deepEqual(s, beforeNoOp, 'An already-selected mode cannot start a mandatory no-op lesson');
+  const option = Skills.view(s).items.find(row => row.skillId === 'express-routes').options.find(row => row.value === 'express');
+  act(s, { type: 'onboarding-visit', id: 'technique-config', intendedAction: option.action });
+  assert.equal(current(s).canLeave, false); assert.equal(current(s).targetData.catalogId, 'skill:express-routes');
+  step(s); assert.equal(current(s).mode, 'action');
+  assert.equal(Core.act(s, { type: 'onboarding-next', id: 'technique-config', stepId: 'practice' }).ok, false);
+  assert.equal(s.areaSkills.configs['express-routes'], 'off'); step(s);
+  assert.equal(s.areaSkills.configs['express-routes'], 'express');
+  assert.equal(s.onboarding.practice.progress['technique-config'], 2);
+  const saved = clone(s.onboarding.practice); act(s, { type: 'refit' });
+  assert.deepEqual(s.onboarding.practice.proofs, saved.proofs);
+  assert.deepEqual(s.onboarding.practice.supplies, saved.supplies);
+  valid(s);
+});
+
 test('released E2 zero-rank practice quotes one real rank with unchanged canonical costs and effects', () => {
   const exported = require('./fixtures/wayfarers-v5-retained.json');
   const s = Core.normalizeState(clone(exported.state || exported));
@@ -48,6 +166,18 @@ test('released E2 zero-rank practice quotes one real rank with unchanged canonic
   const wallet = clone(s.resources); step(s);
   assert.equal(s.expedition.areas.greenway.ranks.boots, 1); assert.deepEqual(s.resources, wallet);
   assert.equal(s.onboarding.practice.supplies.filter(id => id === 'greenway:upgrade').length, 1);
+});
+
+test('retained Quarry Processing reports canonical actual rates and queues without changing its economy', () => {
+  const exported = require('./fixtures/wayfarers-v5-retained.json');
+  const s = Core.normalizeState(clone(exported.state || exported));
+  assert.equal(s.expedition.version, 2);
+  act(s, { type: 'expedition-select', areaId: 'quarry' });
+  const before = clone(s), view = Core.getView(s).expedition;
+  assert.equal(view.operation.title, 'Processing');
+  assert.deepEqual(view.operation.stages.map(row => [row.actualRate, row.maxRate, row.buffer, row.capacity, row.status]), view.stations.map(row => [row.rate, row.maxRate, row.buffer, row.capacity, row.status]));
+  assert.ok(view.operation.stages.some(row => row.buffer > 0), 'Released fixture contains a real queued buffer');
+  assert.deepEqual(s, before, 'Inspection never repairs or advances retained production');
 });
 
 test('stale tokens, substitutions, replay and duplicate transactions cannot spend or grant', () => {
@@ -172,12 +302,14 @@ test('offline time never completes lessons, opens Help, or spends practice recei
 });
 
 test('first-use Unlock and go both teaches the real tier claim and consumes its duplicate notice', () => {
-  const s = Core.createState(44); H.fund(s); act(s, { type: 'expedition-buy', id: 'boots' }); act(s, { type: 'expedition-buy', id: 'boots' });
+  const s = Core.createState(44); H.fund(s);
+  for (let n = 0; n < 20 && !Core.getView(s).upgradeTiers.ready.some(row => row.id === 'area:greenway:porters'); n += 1) { act(s, { type: 'expedition-buy', id: 'boots' }); advance(s, 30); }
   const entry = Core.getView(s).onboarding.inbox.entries.find(r => r.id === 'ready:area:greenway:porters');
+  assert.ok(entry);
   act(s, { type: 'onboarding-visit', id: 'tiers', intendedAction: entry.openAction }); step(s);
   const result = step(s); assert.equal(result.destination.upgradeId, 'porters');
   assert.ok(s.upgradeTiers.claimed.includes('area:greenway:porters'));
-  assert.ok(s.onboarding.read.includes('tier:area:greenway:porters')); assert.equal(Core.getView(s).onboarding.notice, null);
+  assert.ok(s.onboarding.read.includes('tier:area:greenway:porters')); assert.ok(!(Core.getView(s).onboarding.notice?.items || []).some(item => /^(ready|tier):area:greenway:porters$/.test(item.id)), 'This tier has no duplicate notice; unrelated discoveries remain available');
 });
 
 test('a supplied permanent project starts with zero stock and preserves its funded work across Refit', () => {

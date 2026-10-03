@@ -917,3 +917,111 @@ dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform
 .wx-lesson-reference small { color:#b9cbd1; }
 .wx-lesson-reference p { margin:0; }
 .wx-world-label[data-arrived=true] { color:#fff0be; border-color:#e8ba52; box-shadow:inset 0 0 0 1px #e8ba52; }
+
+/* Approved C: a living operation above three stable foundation tiles. */
+.wx-game { --wx-ink:#081c2c; --wx-panel:#0d304e; --wx-border:#377da7; --wx-muted:#b8d1e9; --wx-gold:#ffd360; background:#081c2c; color:#eff4ff; }
+.wx-header { background:#071c2e; border-bottom-color:#326d94; }
+.wx-objective { padding-inline:12px; background:linear-gradient(110deg,#123d5c,#0b2943); border-bottom-color:#34769e; }
+.wx-objective strong { font-size:21px; font-weight:800; letter-spacing:.2px; }
+.wx-objective [data-wx-stage-name] { text-transform:none; letter-spacing:.3px; font-size:10px; }
+.wx-objective progress::-webkit-progress-value { background:#46d5d4; }
+.wx-game .wx-play { grid-template-rows:minmax(120px,1fr) 280px; }
+.wx-game .wx-world { overflow:hidden; background:#0c2b44; }
+.wx-game .wx-world canvas { height:100%; }
+.wx-header .wx-currency { padding-right:16px; }
+.wx-header .wx-currency[data-wx-unseen]::after { right:3px; top:4px; }
+.wx-flow-strip { position:absolute; z-index:1; top:60px; bottom:calc(var(--wx-art-height,170px) + 36px); left:10px; right:10px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-content:center; gap:5px; pointer-events:none; }
+.wx-flow-strip>div { position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0; padding:7px 2px; border-top:1px solid #3a7492; border-bottom:1px solid #3a7492; background:linear-gradient(#153d5688,#0c2945); }
+.wx-flow-strip>div:not(:last-child)::after { content:'›'; position:absolute; right:-7px; top:50%; z-index:1; font:700 22px/1 system-ui; color:#ffd360; }
+.wx-flow-strip .wg-icon { width:28px!important; height:28px!important; }
+.wx-flow-strip strong { font:700 12px/15px system-ui,sans-serif; color:#cbeff8; }
+.wx-flow-strip small { font:600 11px/14px system-ui,sans-serif; text-align:center; color:#fff0c2; }
+.wx-flow-strip .wx-flow-queue { color:#adc8d9; font-weight:400; }
+.wx-world:has([data-wx-world-label][hidden]) .wx-flow-strip { top:12px; }
+.wx-game .wx-network-link { top:auto!important; bottom:38px; left:auto!important; right:8px!important; max-width:48px!important; width:48px; justify-content:center; padding:4px; background:#092135e8; }
+.wx-game .wx-network-link>span { display:none; }
+.wx-game .wx-network-link::before { content:'↔'; font-size:24px; line-height:1; }
+@media(max-height:760px) and (orientation:portrait) { .wx-flow-strip { top:55px; } .wx-flow-strip>div { padding:3px 1px; gap:1px; } .wx-flow-strip .wg-icon { width:20px!important; height:20px!important; } .wx-flow-strip .wx-flow-queue { display:none; } }
+@media(orientation:landscape) { .wx-flow-strip { display:none; } }
+.wx-game .wx-dock { grid-template-rows:32px minmax(0,1fr) 58px; background:#09253c; border-top:1px solid #367ca5; padding:0 8px; }
+.wx-game .wx-dock:has([data-wx-batch]:not([hidden])),.wx-game .wx-dock:has([data-wx-tier-ready]:not([hidden])) { grid-template-rows:48px minmax(0,1fr) 58px; }
+.wx-game .wx-dock-heading { position:static; padding:0; height:auto; }
+.wx-game .wx-dock-heading>strong { font-size:11px; letter-spacing:.6px; color:#b6d2e7; }
+.wx-game .wx-dock .wx-tray { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); grid-auto-rows:minmax(0,1fr); justify-content:stretch; align-items:stretch; padding:0; gap:7px; overflow:visible; }
+.wx-game .wx-skill-tile { position:relative; display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(88px,1fr) auto; gap:3px; min-width:0; min-height:158px; height:auto; padding:5px; border:1px solid #367fa8; border-radius:7px; background:linear-gradient(135deg,#164d72,#0b2945); box-shadow:inset 0 0 0 2px #0a2135; }
+.wx-game .wx-skill-tile .wx-upgrade-info { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:0; min-height:80px; width:100%; text-align:center; background:transparent; border:0; }
+.wx-game .wx-skill-tile .wx-upgrade-info strong { display:flex; align-items:center; justify-content:center; font-size:12px; line-height:15px; min-height:30px; max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+.wx-game .wx-skill-tile .wx-upgrade-info>.wg-icon { width:42px!important; height:42px!important; font-size:24px; }
+.wx-game .wx-skill-tile .wx-upgrade-info>.wx-prop { width:42px; height:42px; }
+.wx-game .wx-dock .wx-upgrade-info>.wg-icon,.wx-game .wx-dock .wx-upgrade-info>.wx-prop { width:64px!important; height:64px!important; }
+.wx-game .wx-dock .wx-upgrade-info strong { font:700 13px/17px system-ui,sans-serif; min-height:17px; }
+.wx-game .wx-skill-tile [data-wx-rank] { font:600 12px/16px system-ui,sans-serif; color:#c6e8f0; }
+.wx-game .wx-skill-tile .wx-price { width:100%; min-height:48px; padding:4px 2px; font-size:12px; line-height:15px; border:1px solid #ecca66; background:linear-gradient(#236ea1,#164774); color:#fff3d8; border-radius:5px; box-shadow:inset 0 0 0 1px #0f324b; }
+.wx-game .wx-skill-tile .wx-price:disabled { background:#33485b; color:#bbc9d5; border-color:#65839a; }
+.wx-game .wx-skill-tile .wx-price .wg-icon { font-size:12px; }
+.wx-game .wx-skill-tile[data-state="locked"] { background:linear-gradient(140deg,#16324a,#10273c); border-color:#46637a; }
+.wx-game .wx-skill-tile[data-state="locked"] .wx-upgrade-info>.wg-icon,.wx-game .wx-skill-tile[data-state="locked"] .wx-upgrade-info>.wx-prop { filter:grayscale(1); opacity:.62; }
+.wx-lock .wg-icon { display:inline-block; width:20px; height:20px; color:#d6e0e7; }
+.wx-game .wx-requirements { display:grid; gap:3px; min-height:48px; width:100%; padding:3px 0; border:0; background:transparent; color:#bfcee5; font-size:10px; line-height:13px; text-align:left; }
+.wx-skill-requirement { display:flex; align-items:center; gap:4px; min-width:0; }
+.wx-skill-requirement>.wg-icon { width:21px!important; height:21px!important; flex:0 0 21px; }
+.wx-skill-requirement>span { min-width:0; overflow-wrap:anywhere; }
+.wx-skill-requirement b { display:block; color:#d5edfb; font:650 11px/14px system-ui,sans-serif; }
+.wx-skill-requirement[data-met="true"] b { color:#80d8c3; }
+.wx-skill-requirements { display:grid; gap:12px; margin:16px 0; }
+.wx-skill-requirements .wx-skill-requirement { font-size:14px; }
+.wx-game .wx-skill-tile[data-state="ready"] { border-color:#ffe181; box-shadow:inset 0 0 0 1px #ffe181,0 0 12px #efbf3b40; }
+.wx-game .wx-skill-tile[data-state="ready"]::after { content:""; pointer-events:none; position:absolute; inset:3px; border:1px solid #ffe381; border-radius:5px; animation:wx-skill-ready 1.9s ease-in-out infinite; }
+.wx-game .wx-skill-tile .wx-skill-unlock { background:linear-gradient(#ffe89a,#edb939); border-color:#ffe79b; color:#0b2237; font-weight:800; }
+@keyframes wx-skill-ready { 0%,100% { opacity:.4; box-shadow:0 0 2px #ffd85b40; } 50% { opacity:1; box-shadow:0 0 13px #ffce5c90; } }
+.wx-game[data-quiet="true"] .wx-skill-tile[data-state="ready"]::after { animation:none; opacity:.8; }
+.wx-game .wx-world-actions { position:static; min-height:0; align-items:center; gap:7px; padding:4px 0; }
+.wx-game .wx-world-actions .wx-world-button { min-width:0; flex:1; min-height:48px; height:48px; padding:5px 8px; border:1px solid #76a6c8; background:linear-gradient(#174868,#0b2c47); font-size:12px; }
+.wx-game .wx-world-actions .wx-operation-button { border-color:#f1d17a; color:#ffe8a4; }
+.wx-game .wx-world-actions .wx-gold { background:linear-gradient(#ffe598,#eabe51); color:#13243b; border-color:#fff0bb; }
+.wx-game .wx-world-actions .wx-develop { min-width:86px; flex:0 0 auto; }
+.wx-nav { gap:4px; padding:4px 8px; background:#071d30; border-top:1px solid #397a9c; }
+.wx-nav button { border:1px solid #275a7c; border-radius:5px; background:linear-gradient(#153a54,#0b2136); font-size:12px; }
+.wx-nav button[aria-current="page"] { box-shadow:inset 0 0 0 1px #edcc76; border-color:#efcc74; color:#fff1ca; background:linear-gradient(#344e58,#163148); }
+.wx-destination { padding:8px 9px 18px; background:linear-gradient(#0c2b45,#071b2a); }
+.wx-scope-tabs { display:grid; grid-template-columns:1fr 1fr; padding:3px; gap:3px; border:1px solid #327dae; border-radius:7px; background:#09243a; }
+.wx-game .wx-scope-tab { min-height:48px; font-size:15px; background:transparent; border:1px solid transparent; color:#bbd2f4; border-radius:4px; }
+.wx-game .wx-scope-tab[aria-pressed="true"] { background:linear-gradient(#1b7ab7,#115995); border-color:#65bee9; color:#fff; box-shadow:inset 0 0 0 1px #348fc1; }
+.wx-skill-toolbar { display:flex; align-items:center; min-height:48px; gap:6px; }
+.wx-skill-toolbar>strong { flex:1; color:#b4cee8; font-size:11px; font-weight:600; letter-spacing:.3px; }
+.wx-game .wx-skill-filter { width:48px; min-width:48px; height:48px; min-height:48px; padding:4px; border:0; background:transparent; }
+.wx-stage-roles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0 0 7px; }
+.wx-stage-roles>span { position:relative; display:flex; align-items:center; justify-content:center; gap:5px; color:#d8f1f6; min-width:0; font-size:12px; }
+.wx-stage-roles>span:not(:last-child)::after { content:"→"; position:absolute; right:-10px; color:#ffd56f; }
+.wx-stage-roles .wg-icon { font-size:16px; }
+.wx-skill-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+.wx-role-columns { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+.wx-role-column { display:flex; flex-direction:column; gap:7px; min-width:0; }
+.wx-role-column>.wx-skill-tile { min-height:154px; flex:0 0 154px; }
+.wx-destination .wx-group { margin:10px 0; }
+.wx-destination .wx-group h3 { margin:9px 0 6px; color:#eaf2ff; font-size:13px; text-transform:none; letter-spacing:0; }
+.wx-skill-module { margin-top:8px; border:1px solid #32719b; border-radius:5px; background:#0b2943; }
+.wx-skill-module>summary { display:flex; align-items:center; gap:7px; min-height:48px; padding:5px 8px; list-style:none; cursor:pointer; }
+.wx-skill-module>summary::-webkit-details-marker { display:none; }
+.wx-skill-module>summary strong { flex:1; font-size:13px; }
+.wx-skill-module>summary small { color:#bdd4e7; font-size:11px; }
+.wx-skill-module>.wx-skill-grid { padding:0 5px 6px; }
+.wx-operation-chain { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:8px 0; }
+.wx-operation-chain>article { display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0; padding:10px 5px; background:#10324b; border:1px solid #357ca2; border-radius:5px; text-align:center; }
+.wx-operation-chain strong { font-size:13px; }
+.wx-operation-chain small { color:#c0d8e7; font-size:11px; }
+.wx-operation-chain progress { width:100%; height:7px; max-width:100%; accent-color:#52ced8; }
+.wx-sheet .wx-fit-quantity { width:100%; min-height:48px; margin-top:6px; background:#17496c; border-color:#70add2; font-size:13px; }
+.wx-operation-status { color:#c5dfea; font-size:12px; }
+@media(max-width:359px) { .wx-game .wx-dock { padding-inline:6px; } .wx-game .wx-dock .wx-tray,.wx-skill-grid { gap:5px; } .wx-game .wx-skill-tile { padding:4px; } .wx-game .wx-skill-tile .wx-upgrade-info strong { font-size:11px; line-height:14px; } .wx-skill-requirement { gap:2px; } .wx-skill-requirement>.wg-icon { flex-basis:17px; width:17px!important; height:17px!important; } }
+@media(max-height:550px) and (orientation:landscape) { .wx-game .wx-play { grid-template-rows:minmax(0,1fr); grid-template-columns:minmax(0,1fr) minmax(350px,43%); } .wx-game .wx-dock { grid-template-rows:24px minmax(0,1fr) 56px; } .wx-game .wx-dock:has([data-wx-batch]:not([hidden])),.wx-game .wx-dock:has([data-wx-tier-ready]:not([hidden])) { grid-template-rows:48px minmax(0,1fr) 56px; } .wx-game .wx-dock .wx-skill-tile { min-height:0; grid-template-rows:minmax(62px,1fr) 48px; } .wx-game .wx-dock .wx-upgrade-info { min-height:58px; gap:0; } .wx-game .wx-dock .wx-upgrade-info strong { min-height:16px; } .wx-game .wx-dock .wx-upgrade-info>.wg-icon,.wx-game .wx-dock .wx-upgrade-info>.wx-prop { width:26px!important; height:26px!important; } .wx-game .wx-dock .wx-requirements { font-size:9px; line-height:11px; } .wx-game .wx-dock .wx-requirements b { font-size:10px; line-height:11px; } .wx-game .wx-dock .wx-requirements .wg-icon { width:15px!important; height:15px!important; flex-basis:15px; } .wx-scope-tabs { position:sticky; top:-8px; z-index:2; } .wx-skill-toolbar { min-height:48px; } }
+@media(prefers-reduced-motion:reduce) { .wx-game .wx-skill-tile[data-state="ready"]::after { animation:none; opacity:.8; } }
+@media(max-height:550px) and (orientation:landscape) {
+  .wx-destination:has(.wx-scope-tabs) { position:relative; }
+  .wx-scope-tabs { width:calc(100% - 184px); margin-bottom:5px; padding:0; min-height:48px; }
+  .wx-skill-toolbar { position:absolute; top:8px; right:9px; width:176px; justify-content:flex-end; }
+  .wx-skill-toolbar>strong { display:none; }
+  .wx-stage-roles { margin-bottom:5px; height:24px; }
+  .wx-stage-roles .wg-icon { width:20px!important; height:20px!important; }
+  .wx-role-column>.wx-skill-tile { min-height:140px; flex-basis:140px; }
+}

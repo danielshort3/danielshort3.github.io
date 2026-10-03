@@ -22,6 +22,7 @@ function legacyState(version) {
   delete state.guild;
   delete state.introductions;
   delete state.collection;
+  delete state.areaSkills;
   if (version < 3) { delete state.luck; delete state.caravan; }
   else Core.Content.RELICS.filter(item => item.chapter > 0).forEach(item => delete state.luck.duplicateProgress[item.id]);
   if (version === 1) { delete state.premium; delete state.resources.starshards; }

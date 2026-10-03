@@ -8,7 +8,7 @@ import org.junit.rules.TemporaryFolder
 
 class GuildCheckpointStoreTest {
   @get:Rule val temporary = TemporaryFolder()
-  private fun envelope(createdAt: Long = 1000, savedAt: Long = 2000, boots: Int = 1, version: Int = 6): String = JSONObject()
+  private fun envelope(createdAt: Long = 1000, savedAt: Long = 2000, boots: Int = 1, version: Int = 7): String = JSONObject()
     .put("format", "wayfarers-guild-save").put("version", version).put("savedAt", savedAt)
     .put("state", JSONObject().put("schemaVersion", version).put("createdAt", createdAt).put("lastUpdate", savedAt)
       .put("resources", JSONObject()).put("upgrades", JSONObject().put("boots", boots)).put("rooms", JSONObject())).toString()
@@ -38,14 +38,14 @@ class GuildCheckpointStoreTest {
     assertTrue(store.write(original))
     assertFalse(store.write(envelope(savedAt = 1999)))
     assertFalse(store.write("{}"))
-    assertFalse(store.write(envelope().replace("\"version\":6", "\"version\":5")))
-    assertFalse(store.write(envelope(version = 7)))
+    assertFalse(store.write(envelope().replace("\"version\":7", "\"version\":6")))
+    assertFalse(store.write(envelope(version = 8)))
     assertFalse(store.write(envelope(version = 0)))
     assertEquals(original, store.read()!!.text)
   }
 
   @Test fun supportedOldCheckpointsSurviveUntilCanonicalMigrationIsSaved() {
-    for (version in 1..5) {
+    for (version in 1..6) {
       val file = temporary.newFile("guild-v$version.json")
       val old = envelope(version = version, boots = 19)
       assertTrue(GuildCheckpointStore(file).write(old))

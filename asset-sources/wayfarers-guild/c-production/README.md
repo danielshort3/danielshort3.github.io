@@ -1,0 +1,9 @@
+# Living production chain assets
+
+These seven transparent/landscape PNG atlases were generated with the built-in `image_gen` tool for the approved C direction. They are production source art, not game screenshots. No competitor artwork was copied. The game retains its own Trail, Quarry, Tower, Workshop, Ruins and Harbor identities.
+
+Each area atlas contains fifteen distinct pixel symbols on a transparent 3-column, 5-row grid. Reading order is the six foundation/advanced tracks in `progression-content.js`, followed by that area's nine techniques in `area-skills-content.js`. The shared brief specified a consistent orthographic pixel silhouette, dark navy outline, restrained blue/teal palette, warm gold highlights, no words, no tiles or interface chrome, and generous transparent margins. Individual subjects follow the canonical skill names: for example Quarry tools, carts, furnaces, stockpiles, sorters and parallel kilns. Trail uses travel/cargo objects, Tower uses instruments/signals, Workshop uses manufacturing tools, Ruins uses archaeology, and Harbor uses vessels and manifests.
+
+`scenes.png` contains six distinct landscape pixel dioramas in a 2-column, 3-row grid in area order. The shared scene brief specified clean navy night skies, readable blue platforms, warm working lights and space for runtime actors. Scenes are decorative environments: actual production, queues and motion are driven by the game state in `expedition-scene.js`.
+
+Run `node build/process-wayfarers-c-art.cjs` from the repository root to export the 90 lossless transparent icons and six scene crops into `img/wayfarers-guild/`. `c-art.json` records each source cell and exported SHA-256. The processor performs deterministic extraction and nearest-neighbor sizing only. The masters remain outside the deployed asset tree; web and Android use the same exported files.

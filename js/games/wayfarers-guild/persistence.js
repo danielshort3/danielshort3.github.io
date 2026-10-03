@@ -11,7 +11,7 @@
   const BACKUP_KEY = SAVE_KEY + '-backup';
   const RESET_KEY = SAVE_KEY + '-reset';
   const FORMAT = 'wayfarers-guild-save';
-  const VERSION = 6;
+  const VERSION = 7;
   const MAX_BYTES = 1024 * 1024;
   const MAX_TIME = 8.64e15;
   const STORAGE_MESSAGE = 'Progress is safe in this open game, but this browser could not save it. Export a save in Settings before closing, then allow browser storage or free some space.';
@@ -120,7 +120,7 @@
           return value;
         });
         if (!isRecord(payload) || payload.format !== FORMAT) return result(false, 'invalid', 'This file is not a Wayfarers save.');
-        if (![1, 2, 3, 4, 5, VERSION].includes(payload.version)) {
+        if (![1, 2, 3, 4, 5, 6, VERSION].includes(payload.version)) {
           return result(false, typeof payload.version === 'number' ? 'unsupported' : 'invalid', UNSUPPORTED_MESSAGE);
         }
         if (!validTime(payload.savedAt)) return result(false, 'invalid', 'The save is missing a valid save date.');

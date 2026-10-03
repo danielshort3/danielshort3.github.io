@@ -1,10 +1,10 @@
 (function (root, factory) {
   'use strict';
   const common = typeof module === 'object' && module.exports;
-  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./progression-content.js') : root.WayfarersProgressionContent, common ? require('./progression-modifiers.js') : root.WayfarersProgressionModifiers, common ? require('./collections.js') : root.WayfarersCollections);
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./progression-content.js') : root.WayfarersProgressionContent, common ? require('./progression-modifiers.js') : root.WayfarersProgressionModifiers, common ? require('./collections.js') : root.WayfarersCollections, common ? require('./area-skills.js') : root.WayfarersAreaSkills);
   if (common) module.exports = api;
   if (root) root.WayfarersProgression = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, D, M, Collection) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, D, M, Collection, Skills) {
   'use strict';
   const EPS = 1e-8, RESOURCES = ['coins', 'ore', 'herbs', 'provisions', 'knowledge', 'maps'];
   const ids = D.AREAS.map(a => a.id), clone = x => JSON.parse(JSON.stringify(x));
@@ -32,7 +32,7 @@
   const setReserveProvider = fn => { reserveProvider = fn; };
   const setRateProvider = fn => { rateProvider = fn; };
   const setWorkRateProvider = fn => { workRateProvider = fn; };
-  function detached(state) { const copy = Object.assign({}, state, { expedition: clone(state.expedition) }); if (ownership.has(state)) ownership.set(copy, ownership.get(state)); return copy; }
+  function detached(state) { const copy = Object.assign({}, state, { expedition: clone(state.expedition), ...(state.areaSkills ? { areaSkills: clone(state.areaSkills) } : {}) }); if (ownership.has(state)) ownership.set(copy, ownership.get(state)); return copy; }
   const empty = () => Object.fromEntries(RESOURCES.map(id => [id, 0]));
   function makeArea(id) {
     const tracks = areaDef(id).tracks;
@@ -89,6 +89,8 @@
   }
   function rawRates(state, options = {}) {
     const x = state.expedition, gain = empty(), drain = empty(), areas = {};
+    const sk = id => Skills.value(state, id), on = id => Skills.enabled(state, id), mode = id => Skills.mode(state, id), rt = state.areaSkills?.runtime;
+    let delayedOre = 0, delayedProvisions = 0;
     const equipment = Collection.modifiers(state), bonus = key => 1 + (equipment[key] || 0);
     const p = (id, track) => localPower(x, id, track), has = id => !!x.areas[id];
     const meta = (1 + Math.sqrt(state.lifetime.refits) * .28) * (1 + state.lifetime.charters * .65);
@@ -103,11 +105,16 @@
     const boots = state.challenges.active === 'old-tools' ? 1 : 1 + .12 * Math.sqrt(state.upgrades['gear-boots']);
     const coord = has('watchtower') ? .1 * Math.max(0, p('watchtower', 'signals') - 1) * p('watchtower', 'crew') * (1 + .15 * Math.max(0, p('watchtower', 'relay-grid') - 1)) : 0;
     const machinery = has('workshop') ? .12 * (p('workshop', 'mechanisms') - 1) : 0;
-    const resonance = has('ruins') && new Set(x.areas.ruins.plans.loadouts).size > 1 ? 1 + .12 * (p('ruins', 'resonance') - 1) : 1;
+    const resonance = has('ruins') && new Set(x.areas.ruins.plans.loadouts).size > 1 ? (1 + .12 * (p('ruins', 'resonance') - 1)) * Skills.throughput(sk('resonant-pairings')) : 1;
     const restoration = has('ruins') ? .1 * (p('ruins', 'restoration') - 1) * p('ruins', 'attunement') * resonance * bonus('artifacts') : 0;
     const assignmentSlots = has('watchtower') ? 1 + (rank(x, 'watchtower', 'crew') >= 10 ? 1 : 0) + (learned(x, 'watchtower', 'relay-grid') && rank(x, 'watchtower', 'relay-grid') > 0 ? 1 : 0) : 0;
     const assignments = has('watchtower') ? x.areas.watchtower.plans.assignments.slice(0, assignmentSlots) : [];
-    const allocation = name => assignments.filter(v => v === name).length / Math.max(1, assignments.length);
+    const weakest = assignments.slice().sort((a, b) => {
+      const area = key => ({ trade: 'greenway', industry: 'quarry', survey: 'watchtower', discovery: 'ruins' }[key]);
+      const total = key => Object.values(x.areas[area(key)]?.ranks || {}).reduce((s, n) => s + n, 0);
+      return total(a) - total(b) || a.localeCompare(b);
+    })[0];
+    const allocation = name => assignments.filter(v => v === name).length / Math.max(1, assignments.length) * Skills.throughput(weakest === name ? sk('long-signals') : 0) + (mode('dispatch-codes') === name && !assignments.includes(name) ? sk('dispatch-codes') : 0);
     const relicSlots = learned(x, 'ruins', 'resonance') && rank(x, 'ruins', 'resonance') > 0 ? 2 : 1;
     const relicRoles = has('ruins') ? x.areas.ruins.plans.loadouts.slice(0, relicSlots) : [];
     const ruinTrade = relicRoles.includes('trade') && x.areas.ruins.discoveries.botanical > 0;
@@ -115,45 +122,55 @@
     const g = x.areas.greenway, dispatch = g.choice;
     const speed = p('greenway', 'boots') * boots * (1 + .08 * Math.sqrt(state.upgrades.preparation)) * (1 + .08 * Math.sqrt(state.ranks.trail)) * (inherited('paved-roads') ? 1.25 : 1) * (x.blueprints.includes('pathfinding') ? 1.15 : 1) * bonus('travel');
     const parallel = learned(x, 'greenway', 'caravans') ? Math.max(0, p('greenway', 'caravans') - 1) * .35 : 0;
-    const share = dispatch === 'freight' ? .55 : dispatch === 'survey' ? .4 : ['mixed', 'trade-survey'].includes(dispatch) ? .75 : dispatch === 'continental' ? .7 : 1;
-    const freight = (dispatch === 'freight' ? .6 : dispatch === 'mixed' ? .35 : 0) * p('greenway', 'porters') + parallel + (learned(x, 'greenway', 'railways') ? .3 * p('greenway', 'railways') : 0);
+    let share = dispatch === 'freight' ? .55 + .45 * sk('caravan-escorts') : dispatch === 'survey' ? .4 : ['mixed', 'trade-survey'].includes(dispatch) ? .75 : dispatch === 'continental' ? .7 : 1;
+    const secondaryDispatch = dispatch === 'continental' ? mode('continental-logistics') : 'off';
+    if (secondaryDispatch === 'trade') share += sk('continental-logistics');
+    const railFreight = learned(x, 'greenway', 'railways') ? .3 * p('greenway', 'railways') : 0;
+    const freight = (dispatch === 'freight' ? .6 : dispatch === 'mixed' ? .35 : 0) * p('greenway', 'porters') + parallel + railFreight + (secondaryDispatch === 'freight' ? .6 * p('greenway', 'porters') * sk('continental-logistics') : 0);
     gain.coins = Math.sqrt(speed) * p('greenway', 'porters') * (1 + parallel) * share * (1 + coord * (.25 + allocation('trade'))) * (1 + (ruinTrade ? restoration : 0));
     gain.coins *= bonus('coins');
+    if (on('bonded-routes') || rt?.voyageReceipts.some(v => v.bonded)) gain.coins *= .8;
     gain.maps = .008 * p('greenway', 'scouts') * (dispatch === 'survey' ? 3 : dispatch === 'trade-survey' ? 1.8 : 1);
+    if (secondaryDispatch === 'survey') gain.maps += .024 * p('greenway', 'scouts') * sk('continental-logistics');
     if (inherited('survey-charters') && ['survey', 'trade-survey'].includes(dispatch)) gain.knowledge += gain.maps * .75;
     gain.herbs = learned(x, 'greenway', 'waystations') ? .03 * p('greenway', 'waystations') : 0;
-    areas.greenway = { work: speed, finale: speed * .8 + p('greenway', 'scouts') * .3, income: gain.coins, travel: speed, freight, research: .015 * p('greenway', 'scouts'), capacity: 10 * p('greenway', 'porters'), flow: speed };
+    areas.greenway = { work: speed, finale: speed * .8 + p('greenway', 'scouts') * .3, income: gain.coins, travel: speed, freight, railFreight, research: .015 * p('greenway', 'scouts'), skillMaps: .008 * p('greenway', 'scouts'), skillResearch: .015 * p('greenway', 'scouts'), capacity: 10 * p('greenway', 'porters'), flow: speed };
     if (has('quarry')) {
       const a = x.areas.quarry;
       const plan = a.choice === 'adaptive' ? a.buffers.input > EPS || a.buffers.output > EPS ? 'balanced' : 'precision' : a.choice;
-      const extraction = .12 * p('quarry', 'picks') * tools * (inherited('deep-veins') ? 1.2 : 1) * (inherited('trail-prospectors') && ['survey', 'trade-survey'].includes(dispatch) ? 1 + .08 * Math.sqrt(rank(x, 'greenway', 'scouts')) : 1) * (1 + (has('workshop') ? .1 * Math.max(0, p('workshop', 'toolmaking') - 1) : 0)) * (1 + (x.areas.workshop?.choice === 'extraction' ? machinery : 0)) * focus('quarry') * bonus('picks');
-      const haul = .1 * p('quarry', 'carts') * (1 + freight) * (1 + coord * (.2 + allocation('industry'))) * focus('quarry') * bonus('haul');
-      const refining = .09 * p('quarry', 'furnace') * (state.research.includes('efficient-smelting') ? 1.25 : 1) * focus('quarry') * bonus('smelt');
-      const capacity = 10 + rank(x, 'quarry', 'carts') * .5 + (inherited('trail-depot') ? 24 : 0) + (learned(x, 'greenway', 'waystations') ? p('greenway', 'waystations') * 3 : 0);
+      const extraction = .12 * p('quarry', 'picks') * tools * (inherited('deep-veins') ? 1.2 : 1) * (inherited('trail-prospectors') && ['survey', 'trade-survey'].includes(dispatch) ? 1 + .08 * Math.sqrt(rank(x, 'greenway', 'scouts')) : 1) * (1 + (has('workshop') ? .1 * Math.max(0, p('workshop', 'toolmaking') - 1) : 0)) * (1 + (x.areas.workshop?.choice === 'extraction' ? machinery : 0)) * focus('quarry') * bonus('picks') * Skills.throughput(mode('standard-tools') === 'extraction' ? sk('standard-tools') : 0) * (rt?.drillRemaining > EPS && sk('resonant-drills') ? 2 : 1);
+      const haul = .1 * p('quarry', 'carts') * (1 + freight) * (1 + coord * (.2 + allocation('industry'))) * focus('quarry') * bonus('haul') * Skills.throughput(mode('spare-parts') === 'hauling' ? sk('spare-parts') : 0, Skills.domesticSupport(state)) * (on('ore-sorting') ? .8 : 1);
+      const refining = .09 * p('quarry', 'furnace') * (state.research.includes('efficient-smelting') ? 1.25 : 1) * focus('quarry') * bonus('smelt') * Skills.throughput(mode('spare-parts') === 'refining' ? sk('spare-parts') : 0, railFreight * sk('rail-transfer'));
+      const capacity = (10 + rank(x, 'quarry', 'carts') * .5 + (inherited('trail-depot') ? 24 : 0) + (learned(x, 'greenway', 'waystations') ? p('greenway', 'waystations') * 3 : 0)) * (1 + sk('stockpiles') + (learned(x, 'greenway', 'waystations') ? sk('supply-depots') : 0) + (assignments.includes('industry') ? sk('logistics-charts') : 0));
       const rich = plan === 'rich', alloys = plan === 'alloy';
       const geologic = 1 + .12 * (p('quarry', 'geology') - 1), deep = learned(x, 'quarry', 'deepworks') ? .15 * p('quarry', 'deepworks') : 0;
-      const mineCap = extraction * (rich ? .7 : 1) + extraction * deep;
-      const cartCap = haul, furnaceCap = refining * (alloys ? .7 : plan === 'precision' ? .6 : plan === 'mixed' ? .8 : 1);
+      const mineCap = extraction * (rich ? sk('mineral-cartography') || .7 : 1) + extraction * deep;
+      const secondaryFurnace = on('parallel-furnaces') && mode('parallel-furnaces') !== plan ? sk('parallel-furnaces') : 0;
+      const cartCap = haul, furnaceCap = refining * ((alloys ? .7 : plan === 'precision' ? .6 : plan === 'mixed' ? .8 : 1) + secondaryFurnace);
       let cartFlow = a.buffers.input > EPS ? cartCap : Math.min(cartCap, mineCap);
       const furnaceFlow = a.buffers.output > EPS ? furnaceCap : Math.min(furnaceCap, cartFlow);
       if (a.buffers.output >= capacity - EPS) cartFlow = Math.min(cartFlow, furnaceFlow);
       const mineFlow = a.buffers.input >= capacity - EPS ? Math.min(mineCap, cartFlow) : mineCap;
-      const yieldRate = (rich ? 1.65 : alloys ? .8 : plan === 'precision' ? 1.4 : plan === 'mixed' ? 1.15 : plan === 'optics' ? .3 : 1) * geologic * (inherited('efficient-crucibles') ? 1.15 : 1) * (1 + .2 * (p('quarry', 'recovery') - 1)) * (1 + (ruinIndustry ? restoration : 0)) * bonus('oreYield');
+      const secondYield = mode('parallel-furnaces') === 'rich' ? 1.65 : mode('parallel-furnaces') === 'alloy' ? .8 : 1;
+      const yieldRate = ((rich ? 1.65 : alloys ? .8 : plan === 'precision' ? 1.4 : plan === 'mixed' ? 1.15 : plan === 'optics' ? .3 : 1) + secondaryFurnace * secondYield) / (1 + secondaryFurnace) * geologic * (inherited('efficient-crucibles') ? 1.15 : 1) * (1 + .2 * (p('quarry', 'recovery') - 1)) * (1 + (ruinIndustry ? restoration : 0)) * bonus('oreYield') * Skills.throughput(on('ore-sorting') ? sk('ore-sorting') : 0, on('batch-kilns') ? sk('batch-kilns') : 0);
       gain.ore = furnaceFlow * yieldRate;
+      const slag = furnaceFlow * sk('slag-processing'); gain.provisions += slag;
+      if (on('batch-kilns')) { delayedOre = gain.ore; delayedProvisions = slag; }
       if (built(x, 'guild-industry') && x.areas.workshop?.choice === 'integrated') gain.ore += Math.min(mineFlow - Math.min(mineFlow, furnaceFlow), furnaceFlow) * .4;
       gain.coins += furnaceFlow * .5;
       if (plan === 'optics') gain.knowledge += furnaceFlow * .35;
       if (inherited('recovery-chutes') && a.buffers.input >= capacity - EPS) gain.coins += Math.max(0, mineCap - cartFlow) * .15;
-      areas.quarry = { work: furnaceFlow * 10, finale: furnaceFlow * 9, picks: mineCap, carts: cartCap, furnace: furnaceCap, actualPicks: mineFlow, actualCarts: cartFlow, actualFurnace: furnaceFlow, capacity, input: mineFlow - cartFlow, output: cartFlow - furnaceFlow, materials: gain.ore, alloy: alloys ? .8 * geologic : built(x, 'industrial-supports') ? .3 * geologic : .1, bottleneck: mineCap <= cartCap && mineCap <= furnaceCap ? 'picks' : cartCap <= furnaceCap ? 'carts' : 'furnace', flow: furnaceFlow };
+      areas.quarry = { work: furnaceFlow * 10, finale: furnaceFlow * 9, picks: mineCap, carts: cartCap, furnace: furnaceCap, actualPicks: mineFlow, actualCarts: cartFlow, actualFurnace: furnaceFlow, capacity, input: mineFlow - cartFlow, output: cartFlow - furnaceFlow, materials: gain.ore, alloy: (alloys ? .8 * geologic : built(x, 'industrial-supports') ? .3 * geologic : .1) + (rich ? sk('reinforced-shafts') : 0) + (secondaryFurnace && mode('parallel-furnaces') === 'alloy' ? .8 * geologic * secondaryFurnace : 0), bottleneck: mineCap <= cartCap && mineCap <= furnaceCap ? 'picks' : cartCap <= furnaceCap ? 'carts' : 'furnace', flow: furnaceFlow };
     }
     if (has('watchtower')) {
       const surveys = p('watchtower', 'beacon'), optics = 1 + .25 * (p('watchtower', 'optics') - 1), relay = 1 + .15 * (p('watchtower', 'relay-grid') - 1);
       const target = x.areas.watchtower.plans.target;
-      const research = surveys * optics * (.65 + allocation('survey') * .35) * (target === 'deep' ? 1.5 : target === 'ocean' ? .75 : 1);
+      const secondaryTarget = mode('celestial-calendar'), secondary = secondaryTarget !== 'off' && secondaryTarget !== target ? sk('celestial-calendar') : 0;
+      const research = surveys * optics * (.65 + allocation('survey') * .35) * ((target === 'deep' ? 1.5 : target === 'ocean' ? .75 : 1) + secondary * (secondaryTarget === 'deep' ? 1.5 : secondaryTarget === 'ocean' ? .75 : 1)) * Skills.throughput(on('triangulation') ? sk('triangulation') : 0);
       gain.knowledge += .025 * research * relay;
-      gain.maps += .016 * surveys * p('watchtower', 'signals') * (1 + .1 * (p('watchtower', 'crew') - 1)) * (target === 'deep' ? .55 : target === 'ocean' ? 1.8 : 1);
+      gain.maps += .016 * surveys * p('watchtower', 'signals') * (1 + .1 * (p('watchtower', 'crew') - 1)) * ((target === 'deep' ? .55 + .45 * sk('research-exchanges') : target === 'ocean' ? 1.8 : 1) + secondary * (secondaryTarget === 'deep' ? .55 : secondaryTarget === 'ocean' ? 1.8 : 1)) * (on('triangulation') ? .75 : 1);
       if (built(x, 'guild-discovery') && assignments.includes('discovery')) { gain.maps *= 1.2; gain.knowledge *= 1.2; }
-      areas.watchtower = { work: research * 1.6, finale: research, research, knowledge: .025 * research * relay, capacity: assignmentSlots, assignments: assignments.slice(), target, coordination: coord * relay, workers: { repair: 2 + rank(x, 'watchtower', 'crew'), protection: 1, total: 3 + rank(x, 'watchtower', 'crew') }, repair: research * 1.6, beacon: research, flow: research };
+      areas.watchtower = { work: research * 1.6, finale: research, research, baseSurvey: research, unboostedResearch: research * researchBonus * bonus('research') * global, knowledge: .025 * research * relay, capacity: assignmentSlots, assignments: assignments.slice(), target, coordination: coord * relay, workers: { repair: 2 + rank(x, 'watchtower', 'crew'), protection: 1, total: 3 + rank(x, 'watchtower', 'crew') }, repair: research * 1.6, beacon: research, flow: research };
     }
     if (has('workshop')) {
       const a = x.areas.workshop, efficient = a.choice === 'precision', slots = learned(x, 'workshop', 'replication') && rank(x, 'workshop', 'replication') > 0 ? 2 : 1;
@@ -161,54 +178,72 @@
       const standardization = slots > 1 ? 1 + .12 * (p('workshop', 'replication') - 1) : 1;
       const inputPerUnit = (efficient ? .45 / Math.sqrt(p('workshop', 'precision')) : .8) / standardization * (1 - (equipment.oreSaving || 0));
       const relation = N.cmp(state.resources.ore, reserve(state, 'ore'));
-      const available = relation > 0 ? Infinity : relation === 0 ? gain.ore : 0;
-      const flow = Math.min(cap * (efficient ? .65 : 1), available / inputPerUnit);
-      drain.ore = flow * inputPerUnit;
+      const hopperAvailable = on('material-hoppers') && rt?.hopper > EPS;
+      const available = hopperAvailable || relation > 0 ? Infinity : relation === 0 ? Math.max(0, gain.ore - delayedOre) : 0;
+      const flow = Math.min(cap * (efficient ? .65 + .35 * sk('precision-fixtures') : 1), available / inputPerUnit);
+      const hopperDrain = hopperAvailable ? flow * inputPerUnit : 0;
+      drain.ore = Math.max(0, flow * inputPerUnit - hopperDrain);
+      gain.ore += flow * inputPerUnit * Skills.refund(sk('offcut-recovery'));
       const templates = a.plans.templates.slice(0, slots), lanes = [];
-      for (const recipe of templates) {
-        const lane = flow / Math.max(1, templates.length), output = lane * (1 + (areas.quarry?.alloy || 0)) * p('workshop', 'metallurgy') * bonus('workshopYield');
-        if (recipe === 'supplies') gain.provisions += output;
-        if (recipe === 'tools') { gain.ore += output * .55; gain.provisions += output * .25; }
-        if (recipe === 'instruments') gain.knowledge += output * .75 * Math.sqrt(p('workshop', 'toolmaking'));
+      const allocationParts = Math.max(3, Math.round(sk('modular-frames'))), primaryShare = on('modular-frames') && templates.length > 1 ? (mode('modular-frames') === 'primary-heavy' ? allocationParts - 1 : 1) / allocationParts : 1 / Math.max(1, templates.length);
+      const supportShare = on('standard-tools') || on('spare-parts') ? .8 : 1, packagingShare = on('export-crates') ? .9 : 1;
+      const reclaim = ruinIndustry && x.areas.ruins?.plans.discovery === 'metallic' ? sk('reclaimed-alloys') : 0;
+      for (const [index, recipe] of templates.entries()) {
+        const lane = flow * (index === 0 ? primaryShare : 1 - primaryShare), output = lane * (1 + (areas.quarry?.alloy || 0) + reclaim) * p('workshop', 'metallurgy') * bonus('workshopYield') * supportShare;
+        if (recipe === 'supplies') gain.provisions += output * packagingShare;
+        if (recipe === 'tools') { gain.ore += output * .55; gain.provisions += output * .25 * packagingShare; }
+        if (recipe === 'instruments') { gain.knowledge += output * .75 * Math.sqrt(p('workshop', 'toolmaking')); gain.provisions += output * sk('instrument-cases') * packagingShare; }
         lanes.push({ recipe, flow: lane, input: lane * inputPerUnit, output });
       }
       if (built(x, 'guild-industry') && a.choice === 'integrated') gain.provisions += flow * .35;
-      areas.workshop = { work: flow * 14, finale: flow * 12, assembly: cap, flow, demand: drain.ore, materials: gain.provisions, capacity: slots, templates: lanes, input: 0, output: 0, research: .05 * p('workshop', 'toolmaking') * (1 + .2 * p('workshop', 'precision')) };
+      areas.workshop = { work: flow * 14, finale: flow * 12, assembly: cap, flow, demand: drain.ore, inputPerUnit, hopperDrain, hopperTarget: cap * inputPerUnit * sk('material-hoppers'), materials: gain.provisions, capacity: slots, templates: lanes, input: 0, output: 0, research: .05 * p('workshop', 'toolmaking') * (1 + .2 * p('workshop', 'precision')) };
     }
     if (has('ruins')) {
-      const a = x.areas.ruins, cap = 10 + rank(x, 'ruins', 'recovery-teams') * .4;
-      const delving = .07 * p('ruins', 'delving') * focus('ruins') * bonus('delving'), interpretation = .06 * p('ruins', 'archaeology') * focus('ruins') * bonus('interpretation'), recovery = .05 * p('ruins', 'recovery-teams') * (a.choice === 'survey' ? .75 : 1) * focus('ruins') * bonus('recovery');
+      const a = x.areas.ruins, cap = (10 + rank(x, 'ruins', 'recovery-teams') * .4) * (1 + sk('field-camps') + (learned(x, 'greenway', 'waystations') ? sk('supply-depots') : 0));
+      const delving = .07 * p('ruins', 'delving') * focus('ruins') * bonus('delving'), interpretation = .06 * p('ruins', 'archaeology') * focus('ruins') * bonus('interpretation'), recovery = .05 * p('ruins', 'recovery-teams') * (a.choice === 'survey' ? .75 : 1) * focus('ruins') * bonus('recovery') * (on('careful-recovery') ? .8 : 1);
       let read = a.buffers.input > EPS ? interpretation : Math.min(interpretation, delving);
       const recover = a.buffers.output > EPS ? recovery : Math.min(recovery, read);
       if (a.buffers.output >= cap - EPS) read = Math.min(read, recover);
       const delve = a.buffers.input >= cap - EPS ? Math.min(delving, read) : delving;
       const discovery = a.plans.discovery;
-      if (discovery === 'botanical') gain.herbs += recover * 2 * (a.choice === 'trade' ? 1.35 : 1);
-      if (discovery === 'metallic') gain.ore += recover * 1.5 * (a.choice === 'industry' ? 1.35 : 1);
-      if (discovery === 'inscribed') gain.knowledge += recover * 1.2;
-      if (built(x, 'deepwater-equipment')) gain.herbs += Math.min(delving * .3, recovery * .5);
+      const recoveredYield = recover * Skills.throughput(on('careful-recovery') ? sk('careful-recovery') : 0) * (on('archive-network') && x.commission ? .8 : 1);
+      if (discovery === 'botanical') { gain.herbs += recoveredYield * 2 * (a.choice === 'trade' ? 1.35 : 1); gain.provisions += recover * sk('botanical-remedies'); }
+      if (discovery === 'metallic') gain.ore += recoveredYield * 1.5 * (a.choice === 'industry' ? 1.35 : 1);
+      if (discovery === 'inscribed') { gain.knowledge += recoveredYield * 1.2; gain.maps += recover * sk('survey-tablets'); }
+      if (built(x, 'deepwater-equipment')) gain.herbs += Math.min(delving * .3, recovery * .5) + Math.max(0, interpretation - read) * sk('expedition-rigs');
       gain.knowledge += recover * .5 * p('ruins', 'restoration');
       const insight = (a.choice === 'survey' ? 2 : 1) * (relicRoles.includes('survey') && a.discoveries.inscribed ? 1 + restoration : 1) * (built(x, 'guild-discovery') && assignments.includes('discovery') ? 1.4 : 1);
-      areas.ruins = { work: recover * 20, finale: read * 18, delving, interpretation, recovery, flow: recover, capacity: cap, input: delve - read, output: read - recover, research: read * insight, artifacts: restoration, discovery, discoveryWork: a.discoveryWork, loadouts: relicRoles.slice(), discoveries: clone(a.discoveries) };
+      areas.ruins = { work: recover * 20, finale: read * 18, delving, interpretation, recovery, actualDelving: delve, actualInterpretation: read, actualRecovery: recover, flow: recover, capacity: cap, input: delve - read, output: read - recover, research: read * insight + (on('archive-network') && x.commission ? recover * .2 * sk('archive-network') : 0), artifacts: restoration, discovery, discoveryWork: a.discoveryWork, loadouts: relicRoles.slice(), discoveries: clone(a.discoveries) };
     }
     if (has('harbor')) {
-      const a = x.areas.harbor, forecast = 1 + .15 * (p('watchtower', 'forecasting') - 1), distant = a.choice === 'discovery';
+      const a = x.areas.harbor, choice = options.manifest || a.choice, forecast = 1 + .15 * (p('watchtower', 'forecasting') - 1), distant = choice === 'discovery';
       const ship = p('harbor', 'shipbuilding'), sailing = p('harbor', 'seamanship') * forecast * bonus('voyage'), cargo = p('harbor', 'stowage') * bonus('cargo');
       const fleet = learned(x, 'harbor', 'fleet-command') ? 1 + .12 * (p('harbor', 'fleet-command') - 1) : 1;
-      const supply = 3 * ship * (1 + .25 * (cargo - 1)), available = N.cmp(state.resources.provisions, N.add(supply, reserve(state, 'provisions'))) >= 0;
+      const supply = 3 * ship * (1 + .25 * (cargo - 1)) * (1 - Skills.refund(sk('provision-packing'), on('export-crates') ? sk('export-crates') : 0)), available = N.cmp(state.resources.provisions, N.add(supply, reserve(state, 'provisions'))) >= 0;
       const fraction = a.voyages.length ? 1 : 0;
       const navigation = 1 + .2 * (p('harbor', 'navigation') - 1);
       const contracts = 1 + .2 * (p('harbor', 'contracts') - 1), trailSupply = 1 + .1 * freight + (dispatch === 'continental' ? .5 * p('greenway', 'porters') : 0);
       const flow = ship * Math.sqrt(sailing) * cargo * fraction * trailSupply * fleet;
       const weather = Math.floor(a.elapsed / 10800) % 3;
-      const port = a.plans.port, condition = weather === 2 && port === 'ocean' ? .65 : weather === 1 && port === 'coast' ? .85 : 1;
+      const conditionFor = port => weather === 2 && port === 'ocean' ? .65 : weather === 1 && port === 'coast' ? .85 : 1;
+      const ports = ['coast'].concat(learned(x, 'harbor', 'navigation') ? ['ruins'] : []).concat(learned(x, 'watchtower', 'forecasting') ? ['ocean'] : []);
+      const port = on('weather-routing') ? ports.slice().sort((u, v) => conditionFor(v) - conditionFor(u) || (u === a.plans.port ? -1 : v === a.plans.port ? 1 : ports.indexOf(u) - ports.indexOf(v)))[0] : a.plans.port;
+      const condition = 1 - (1 - conditionFor(port)) * (1 - sk('weather-stations'));
       const travel = sailing * navigation * condition;
       const far = port === 'ocean' ? 2.5 : port === 'ruins' ? 1.7 : 1;
       const payout = { coins: 30 * ship * cargo * trailSupply * contracts * (distant ? .3 : 1) * far * fleet, maps: ship * cargo * navigation * (distant ? 3 : .5) * far * fleet };
-      if (a.choice === 'materials') { payout.coins *= .55; payout.maps *= .75; payout.ore = 8 * ship * cargo * contracts; }
-      if (a.choice === 'commerce') { payout.provisions = supply * .5; payout.maps *= 1.5; }
+      const materialOre = 8 * ship * cargo * contracts;
+      if (choice === 'materials') { payout.coins *= .55; payout.maps *= .75 + .25 * sk('deepwater-holds'); payout.ore = materialOre; }
+      if (choice === 'trade' && sk('mixed-holds')) payout.ore = materialOre * sk('mixed-holds');
+      if (choice === 'discovery' && sk('salvage-nets')) payout.ore = materialOre * sk('salvage-nets');
+      if (choice === 'commerce') { payout.provisions = supply * .5; payout.maps *= 1.5; }
+      const tender = port === 'coast' && on('coastal-tenders');
+      const payoutBonus = Skills.throughput(on('bonded-routes') ? sk('bonded-routes') : 0, rt?.convoyReady ? sk('scheduled-convoys') : 0) * (tender ? .85 : 1) * (on('weather-routing') ? 1 - sk('weather-routing') : 1);
+      Object.keys(payout).forEach(key => { payout[key] *= payoutBonus; });
+      if (on('exchange-houses')) payout.coins *= .85;
+      const voyageTarget = 900 * far * (tender ? 1 - sk('coastal-tenders') : 1);
       const slots = learned(x, 'harbor', 'fleet-command') && rank(x, 'harbor', 'fleet-command') > 0 ? 2 : 1;
-      areas.harbor = { work: Math.max(.2, flow), finale: Math.max(.2, flow), flow, capacity: slots, cargo, travel, voyagePace: sailing * navigation, convoy: 1, duration: 900 * far / travel, voyageTarget: 900 * far, supply, canLaunch: available, payout, demand: 0, materials: 0, weather, port, research: distant ? flow * .1 : flow * .02 };
+      areas.harbor = { work: Math.max(.2, flow), finale: Math.max(.2, flow), flow, capacity: slots, cargo, travel, voyagePace: sailing * navigation, convoy: 1, duration: voyageTarget / travel, voyageTarget, supply, canLaunch: available, payout, demand: 0, materials: 0, weather, weatherRelief: sk('weather-stations'), port, research: distant ? flow * .1 : flow * .02 };
     }
     // Retained guild equipment/professions remain auxiliary investments in the
     // actual network, never an independent exponential stream bypassing it.
@@ -256,11 +291,21 @@
       if (id === 'harbor') { r.travel *= focus(id); r.voyagePace *= focus(id); r.duration /= focus(id); }
     }
     RESOURCES.forEach(id => { gain[id] *= global; drain[id] *= global; });
+    if (areas.workshop) areas.workshop.hopperDrain *= global;
+    if (on('batch-kilns') && areas.quarry) {
+      const oreMultiplier = materialBonus * foundation * collections * (1 + .08 * Math.sqrt(state.upgrades.miners)) * (x.blueprints.includes('engineering') ? 1.15 : 1) * global;
+      const provisionMultiplier = foundation * collections * (1 + .08 * Math.sqrt(state.upgrades.cooks)) * (x.blueprints.includes('engineering') ? 1.15 : 1) * global;
+      areas.quarry.batchRates = { ore: delayedOre * oreMultiplier, provisions: delayedProvisions * provisionMultiplier };
+      gain.ore = Math.max(0, gain.ore - areas.quarry.batchRates.ore);
+      gain.provisions = Math.max(0, gain.provisions - areas.quarry.batchRates.provisions);
+    }
     // Focus is shared, finite and affects the selected area's output only.
     if (!options.unboosted && x.focus.remaining > EPS && x.focus.active === 'greenway') gain.coins += areas.greenway.income * global * foundation * collections * (1 + .08 * Math.sqrt(state.upgrades.boots)) * (x.blueprints.includes('caravan') ? 1.2 : 1) * (D.FOCUS.multiplier - 1);
     if (!options.unboosted && x.focus.remaining > EPS && x.focus.active === 'watchtower') gain.knowledge += areas.watchtower.knowledge * global * researchBonus * collections * (1 + .08 * Math.sqrt(state.upgrades.scholars + state.upgrades['gear-instruments'])) * bonus('knowledge') * (D.FOCUS.multiplier - 1);
     const researchRate = Object.values(areas).reduce((sum, a) => sum + (a.research || 0), 0) * .6;
-    const raw = { gain, drain, areas, researchRate, global };
+    areas.greenway.skillMaps *= researchBonus * collections * (1 + .08 * Math.sqrt(state.upgrades.surveyors + state.upgrades['gear-instruments'])) * bonus('maps') * global;
+    areas.greenway.skillResearch *= researchBonus * bonus('research') * global;
+    const raw = { gain, drain, areas, researchRate, global, commissionId: x.commission?.id || null };
     return !options.baseOnly && workRateProvider ? M.apply(state, raw, ownership.get(state), { rates: workRateProvider(state, ownership.get(state)) }) : raw;
   }
   function contribution() { return { coins: N.zero(), ore: N.zero(), knowledge: N.zero(), maps: N.zero(), production: 1, travel: 1 }; }
@@ -272,7 +317,7 @@
     if (x.automation.enabled) next = Math.min(next, Math.max(EPS, 60 - x.automation.clock));
     if (x.focus.unlocked && x.focus.charges < D.FOCUS.capacity) next = Math.min(next, Math.max(EPS, D.FOCUS.recharge - x.focus.recharge));
     if (x.focus.remaining > EPS) next = Math.min(next, x.focus.remaining);
-    for (const [id, area] of Object.entries(x.areas)) for (let i = 1; i < 3; i += 1) if (!area.learned.includes(areaDef(id).tracks[i].id)) next = Math.min(next, Math.max(EPS, i * 180 - area.elapsed));
+    next = Math.min(next, Skills.nextEvent(state, r));
     for (const id of ['quarry', 'ruins']) if (x.areas[id]) for (const key of ['input', 'output']) {
       const flow = r.areas[id][key], amount = x.areas[id].buffers[key];
       if (flow > EPS) next = Math.min(next, Math.max(EPS, (r.areas[id].capacity - amount) / flow));
@@ -293,7 +338,7 @@
   function learnIntro(state, id) {
     const x = state.expedition;
     const a = x.areas[id], defs = areaDef(id).tracks;
-    for (let i = 1; i < 3; i += 1) if (!a.learned.includes(defs[i].id) && (a.ranks[defs[i - 1].id] >= 2 || a.elapsed >= i * 180)) {
+    for (let i = 1; i < 3; i += 1) if (!a.learned.includes(defs[i].id) && Skills.foundationRequirement(state, id, i).met) {
       a.learned.push(defs[i].id);
       // New tier notices have their own durable ledger. Do not also announce a
       // capped transient event as though this purchase had already been claimed.
@@ -314,6 +359,13 @@
   }
   function tick(state, seconds) {
     const x = state.expedition, r = rawRates(state), t = targets(x);
+    // Deferred ore keeps canonical wallet multipliers. A shadow without
+    // deferral exposes the ratio even when continuous ore income is zero.
+    if (r.areas.quarry?.batchRates && workRateProvider) {
+      const comparison = detached(state); comparison.areaSkills.configs['batch-kilns'] = 'off';
+      const base = rawRates(comparison, { baseOnly: true }), canonical = workRateProvider(comparison, ownership.get(state));
+      for (const key of Object.keys(r.areas.quarry.batchRates)) if (base.gain[key] > EPS) r.areas.quarry.batchRates[key] *= N.toNumber(N.div(canonical.gain[key], base.gain[key]));
+    }
     for (const [id, a] of Object.entries(x.areas)) {
       a.elapsed += seconds;
       for (const key of ['input', 'output']) {
@@ -338,6 +390,7 @@
         // partitions and one offline interval pay the same boundary arrival.
         if (voyage.work >= voyage.target - Math.max(EPS, voyage.target * 1e-9)) {
           Object.entries(voyage.payout).forEach(([key, value]) => { state.resources[key] = N.add(state.resources[key], value); if (key === 'coins') state.lifetime.coins = N.add(state.lifetime.coins, value); });
+          Skills.voyageArrived(state, voyage, N.toNumber(N.add(r.areas.harbor.supply, reserve(state, 'provisions'))));
           event(x, 'stage', 'Voyage delivered', voyage.port + ' cargo arrived automatically. Supplies were paid when the ship departed.', 'harbor');
         } else remaining.push(voyage);
       }
@@ -357,21 +410,41 @@
     }
     x.focus.remaining = Math.max(0, x.focus.remaining - seconds);
     if (x.focus.remaining <= EPS) { if (x.focus.active !== null) x.revision += 1; x.focus.remaining = 0; x.focus.active = null; }
+    Skills.tick(state, seconds, r);
+    sync(state);
   }
+  function sync(state) {
+    if (!active(state)) return;
+    for (const id of Object.keys(state.expedition.areas)) learnIntro(state, id);
+    releaseAreas(state);
+  }
+  function releaseAreas(state) {
+    const x = state.expedition;
+    for (let i = 0; i < 2; i += 1) {
+      const from = ids[i], to = ids[i + 1], a = x.areas[from], third = areaDef(from).tracks[2].id;
+      if (x.cleared >= i && a && a.ranks[third] >= 1 && a.learned.includes(third) && tierProvider(state, { type: 'expedition-buy', areaId: from, id: third }) && !x.areas[to]) {
+        x.areas[to] = makeArea(to); x.revision += 1;
+        event(x, 'development', areaDef(to).name + ' unlocked', 'Your established ' + areaDef(from).name + ' continues producing.', to);
+      }
+    }
+  }
+  function canAdvance(state) { const x = state.expedition; return !!x?.completed && (x.index >= 2 || !!x.areas[ids[x.index + 1]]); }
   function finish(state) {
     const x = state.expedition, t = targets(x);
+    releaseAreas(state);
     if (x.completed || x.work < t.work - EPS || x.finaleWork < t.finale - EPS) return false;
     x.work = t.work; x.finaleWork = t.finale; x.completed = true; x.cleared = Math.max(x.cleared, x.index);
-    if (x.index === 0 && !x.areas.quarry) x.areas.quarry = makeArea('quarry');
-    if (x.index === 1 && !x.areas.watchtower) x.areas.watchtower = makeArea('watchtower');
+    releaseAreas(state);
     x.revision += 1; event(x, 'stage', stageName(x) + ' completed', 'Every discovered area keeps producing.', x.projectArea); return true;
   }
   function restart(state, index, select) {
     const x = state.expedition, opened = ids.filter(id => x.areas[id]);
+    if (index > 0 && index < 3 && !x.areas[ids[index]]) return false;
     x.index = index; x.completed = false; x.work = 0; x.finaleWork = 0;
     x.projectArea = index < 3 ? ids[Math.min(index, opened.length - 1)] : opened[(index - 3) % opened.length];
     if (select !== false) x.selectedArea = x.projectArea;
     x.revision += 1;
+    return true;
   }
   function projectDependencies(state, d) {
     const x = state.expedition;
@@ -395,14 +468,14 @@
       Object.entries(q.costs).forEach(([key, value]) => { state.resources[key] = N.sub(state.resources[key], value); });
       const before = a.ranks[action.id]; a.ranks[action.id] = q.rankAfter; a.purchases += q.count; x.purchases += q.count; x.revision += 1;
       for (const milestone of [3, 10, 25, 50, 100, 250, 1000]) if (before < milestone && q.rankAfter >= milestone && a.highRanks[action.id] < milestone) event(x, 'milestone', trackDef(id, action.id).name + ' ' + milestone, milestone === 25 ? 'A specialist plan is now learned permanently.' : '+' + Math.round(((milestoneBonus[milestone] || 1) - 1) * 100) + '% extra rank capacity at this milestone.', id);
-      a.highRanks[action.id] = Math.max(a.highRanks[action.id], q.rankAfter); learnIntro(state, id);
+      a.highRanks[action.id] = Math.max(a.highRanks[action.id], q.rankAfter); learnIntro(state, id); releaseAreas(state);
       return { ok: true, message: trackDef(id, action.id).name + ' +' + q.count + ' · rank ' + q.rankAfter, quantity: q.count };
     }
     if (action.type === 'expedition-development') {
       const d = projectDef(action.id), task = developmentTask(state, action.id);
       if (!d || !task.open || task.done || !Object.entries(task.costs).every(([k, v]) => N.cmp(state.resources[k], v) >= 0)) return { ok: false, message: 'Finish the listed prerequisites and fund this project first.' };
       Object.entries(task.costs).forEach(([k, v]) => { state.resources[k] = N.sub(state.resources[k], v); });
-      x.commission = { id: d.id, work: 0 }; x.revision += 1; return { ok: true, message: d.name + ' started. Research continues while you are away.' };
+      x.commission = { id: d.id, work: 0 }; Skills.fundCommission(state, d); x.revision += 1; return { ok: true, message: d.name + ' started. Research continues while you are away.' };
     }
     if (action.type === 'expedition-choice') {
       if (!a || !choices(state, id).some(c => c.id === action.id && !c.disabled)) return { ok: false, message: 'Learn that working plan first.' };
@@ -439,6 +512,13 @@
   }
   function autoBuy(state) {
     const x = state.expedition;
+    releaseAreas(state);
+    if (Skills.enabled(state, 'material-hoppers') && x.areas.workshop) {
+      const r = rawRates(state).areas.workshop, rt = state.areaSkills.runtime;
+      const available = N.max(0, N.sub(state.resources.ore, reserve(state, 'ore')));
+      const fill = N.toNumber(N.min(available, Math.max(0, r.hopperTarget - rt.hopper)));
+      if (fill > EPS) { state.resources.ore = N.sub(state.resources.ore, fill); rt.hopper += fill; }
+    }
     launchVoyages(state);
     if (!x.automation.enabled || !state.lifetime.refits || x.automation.clock < 60 - EPS) return;
     x.automation.clock = 0;
@@ -460,18 +540,23 @@
   }
   function launchVoyages(state) {
     const x = state.expedition, area = x.areas.harbor; if (!area) return;
-    const raw = rawRates(state), r = raw.areas.harbor;
-    for (let i = area.voyages.length; i < r.capacity; i += 1) {
+    const capacity = rawRates(state).areas.harbor.capacity;
+    for (let i = area.voyages.length; i < capacity; i += 1) {
+      const twin = i === 1 && Skills.enabled(state, 'twin-manifests');
+      const raw = rawRates(state, twin ? { manifest: Skills.mode(state, 'twin-manifests') } : {}), r = raw.areas.harbor;
       if (N.cmp(state.resources.provisions, N.add(r.supply, reserve(state, 'provisions'))) < 0) break;
       state.resources.provisions = N.sub(state.resources.provisions, r.supply);
       const payout = manifestPayout(state, raw);
       // The second fleet slot may carry discovery alongside a trade voyage.
-      if (i === 1) { payout.coins = N.mul(payout.coins, .5); payout.maps = N.mul(payout.maps, 2); }
-      area.voyages.push({ work: 0, target: r.voyageTarget, port: area.plans.port, supplies: r.supply, convoy: r.convoy, payout });
+      if (i === 1 && !twin) { payout.coins = N.mul(payout.coins, .5); payout.maps = N.mul(payout.maps, 2); }
+      if (twin) Object.keys(payout).forEach(key => { payout[key] = N.mul(payout[key], Skills.value(state, 'twin-manifests')); });
+      const voyage = { work: 0, target: r.voyageTarget, port: r.port, supplies: r.supply, convoy: r.convoy, payout };
+      area.voyages.push(voyage); Skills.voyageLaunched(state, voyage);
     }
   }
   function voyageRate(harbor, voyage) {
-    const condition = harbor.weather === 2 && voyage.port === 'ocean' ? .65 : harbor.weather === 1 && voyage.port === 'coast' ? .85 : 1;
+    const baseCondition = harbor.weather === 2 && voyage.port === 'ocean' ? .65 : harbor.weather === 1 && voyage.port === 'coast' ? .85 : 1;
+    const condition = 1 - (1 - baseCondition) * (1 - (harbor.weatherRelief || 0));
     return harbor.voyagePace * condition / voyage.convoy;
   }
   function manifestPayout(state, raw) {
@@ -533,7 +618,9 @@
       if (q.valid) copy.expedition.areas[id].ranks[d.id] = q.rankAfter;
       const effects = q.valid ? impact(state, copy) : [];
       const nextMilestone = [3, 10, 25, 50, 100, 250, 1000].find(r => r > a.ranks[d.id] && r <= a.cap);
+      const layout = Skills.Content.TRACK_LAYOUT[id][d.id], module = layout[0], role = layout[1];
       rows.push({ id: 'area:' + id + ':' + d.id, catalogId: 'area:' + id + ':' + d.id, trackId: d.id, areaId: id, name: d.name, label: d.name, icon: d.icon, group: 'area', rank: a.ranks[d.id], level: a.ranks[d.id], maxRank: a.cap, maxLevel: a.cap, maxed: a.ranks[d.id] === a.cap, visible: true, disabled: !q.valid || !q.affordable, reason: q.reason, quantity: x.batch, rankAfter: q.rankAfter,
+        module, moduleLabel: ['Foundations', 'Operations', 'Connections', 'Industry', 'Mastery'][module], role, functionalRole: Skills.Content.AREA[id].roles[role], order: d.index,
         description: d.effect + '. Ranks rebuild after a reset; learned branches and rank ceilings stay.', effectText: d.effect, cost: Object.entries(q.costs).map(([resource, amount]) => ({ resource, amount, text: N.format(amount) + ' ' + resource })), impact: effects, comparison: effects.slice(0, 2).map(e => e.label + ' ' + e.current + ' → ' + e.next + e.unit).join(' · '), sourceAreas: [id], targetAreas: [...new Set([id].concat(effects.map(e => e.areaId).filter(Boolean)))], dependencies: [],
         nextMilestone: nextMilestone ? { rank: nextMilestone, remaining: nextMilestone - a.ranks[d.id], label: nextMilestone === 25 ? 'Specialist plan' : d.name + ' mastery' } : null,
         action: { type: 'expedition-buy', areaId: id, id: d.id, count: x.batch, quote: q.token } });
@@ -567,19 +654,31 @@
     const focusImpact = impact(state, focusPreview);
     const focusedRates = rawRates(focusPreview), focusInputs = RESOURCES.filter(key => focusedRates.drain[key] > EPS).map(key => ({ resource: key, current: raw.drain[key], next: focusedRates.drain[key], unit: '/s' }));
     const focusContext = id === 'quarry' ? 'Current deposit: ' + a.choice + '. Mining, hauling and refining accelerate together; finite queues still apply.' : id === 'workshop' ? 'Current templates: ' + a.plans.templates.join(' + ') + '. Ore demand rises with actual assembly; reserves remain protected.' : id === 'ruins' ? 'Selected discovery: ' + a.plans.discovery + '. Delving, interpretation and recovery accelerate together.' : id === 'harbor' ? 'Advance ' + a.voyages.length + ' already funded voyage(s); frozen cargo and normal launch supply bills stay unchanged.' : id === 'watchtower' ? 'Current survey target: ' + a.plans.target + '. Concentrate its knowledge and research work.' : 'Concentrate Trail deliveries and expansion work; other area income is unchanged.';
+    const stations = operationStages(state, raw, id);
     return { local: true, networkVersion: 3, legacy: false, sequence: x.sequence, stage: { id: id + ':' + x.index, name: areaDef(id).name, kind: id, areaId: id, index: x.index, region: 'Guild chapter ' + Math.max(1, Math.min(7, Math.floor(x.projects.length / 4) + 1)), completed: current ? x.completed : true, progress: current ? p : 1, work: current ? x.work : t.work, target: t.work, finaleWork: current ? x.finaleWork : t.finale, finaleTarget: t.finale, phase: current && !x.completed ? x.work < t.work ? 'Build' : 'Capstone' : 'Producing', progressText: current && !x.completed ? Math.floor(p * 100) + '%' : 'Producing', goal: current && !x.completed ? stageName(x) : 'Develop the network', objective: current && !x.completed ? stageName(x) : 'Develop the network', checkpoint: { label: current && !x.completed ? x.work < t.work ? 'Expand infrastructure' : 'Complete the landmark' : 'All areas keep working', progress: p } },
       cards: list.filter(row => row.group === 'area' && row.areaId === id), catalog: list, areas: areaRows, choices: workingChoices, configurations: configurationsView, blueprints: [], milestones: x.recent.slice(), recent: x.recent.slice(), events: x.recent.slice(), unseen: x.recent.filter(e => e.sequence > x.seen),
       batch: { selected: x.batch, options: batchModes(state) },
       specializations: [{ id: null, label: 'Balanced tracks', selected: a.specialization === null, action: { type: 'expedition-specialize', areaId: id, id: null } }].concat(areaDef(id).tracks.filter(d => a.highRanks[d.id] >= 25).map(d => ({ id: d.id, label: d.name, effect: '+35% of the rank bonus; other tracks −10% of their rank bonus', selected: a.specialization === d.id, action: { type: 'expedition-specialize', areaId: id, id: d.id } }))).map(o => Object.assign({}, o, { visible: true, disabled: false, impact: comparison(o.action) })),
       focus: { unlocked: x.focus.unlocked, charges: x.focus.charges, max: D.FOCUS.capacity, nextChargeSeconds: x.focus.charges < D.FOCUS.capacity ? D.FOCUS.recharge - x.focus.recharge : 0, active: x.focus.active, remaining: x.focus.remaining, actions: [{ id: 'priority', label: { greenway: 'Priority delivery', quarry: 'Target deposit', watchtower: 'Focus survey', workshop: 'Rush order', ruins: 'Study discovery', harbor: 'Advance voyage' }[id], description: 'Spend one shared Focus for 90 seconds. ' + focusContext, inputs: focusInputs, impact: focusImpact, disabled: !x.focus.unlocked || !x.focus.charges || x.focus.remaining > 0 || !focusImpact.length || id === 'harbor' && !a.voyages.length || id === 'workshop' && !(r.flow > EPS), action: { type: 'expedition-focus', areaId: id, id: 'priority' } }] },
-      next: { label: 'Expand ' + areaDef(x.index + 1 < 3 ? ids[x.index + 1] : ids.filter(key => x.areas[key])[(x.index - 2) % Object.keys(x.areas).length]).name, description: 'All discovered areas remain available and keep producing.', disabled: !x.completed, action: { type: 'expedition-next' } },
+      next: { label: 'Expand ' + areaDef(x.index + 1 < 3 ? ids[x.index + 1] : ids.filter(key => x.areas[key])[(x.index - 2) % Object.keys(x.areas).length]).name, description: canAdvance(state) ? 'All discovered areas remain available and keep producing.' : 'Finish this area and buy the first rank of its third foundation.', disabled: !canAdvance(state), action: { type: 'expedition-next' } },
       automation: Object.assign({ unlocked: state.lifetime.refits > 0, choices: ['balanced', 'progress', 'income', 'materials'].map(key => ({ id: key, label: key, action: { type: 'expedition-automation', enabled: true, priority: key } })) }, x.automation),
       commission: x.commission ? { id: x.commission.id, name: projectDef(x.commission.id).name, progress: x.commission.work / projectDef(x.commission.id).work, seconds: (projectDef(x.commission.id).work - x.commission.work) / raw.researchRate } : null,
-      stations: id === 'quarry' ? [['picks', 'Mine', r.actualPicks, r.picks, a.buffers.input], ['carts', 'Cart', r.actualCarts, r.carts, a.buffers.output], ['furnace', 'Furnace', r.actualFurnace, r.furnace, 0]].map(([key, label, rate, maxRate, buffer]) => ({ id: key, label, rate, maxRate, rateText: rate.toFixed(2) + '/s', buffer, capacity: r.capacity, bottleneck: key === r.bottleneck, status: rate < maxRate - EPS ? 'Waiting for supply' : 'Working' })) : [],
+      stations, foundations: Skills.foundations(state, id), operation: { areaId: id, name: areaDef(id).name, stages: stations, active: operationStatus(id), mode: a.choice, configurations: Skills.view(state).operations.filter(o => o.areaId === id) },
       scene: { ruleset: 'progression', kind: id, index: x.index, region: 'greenway', progress: current ? p : 1, completed: current ? x.completed : true, established: ids.indexOf(id) > 2 || x.cleared >= ids.indexOf(id), ranks: clone(a.ranks), unlocked: a.learned.slice(), developments: x.projects.slice(), route: a.choice, dispatch: a.choice, allocation: a.choice, quality: a.choice, oreBuffer: a.buffers.input, smeltBuffer: a.buffers.output, buffers: clone(a.buffers), capacity: r.capacity, bottleneck: r.bottleneck, workers: r.workers || { total: 3, repair: 2, protection: 1 }, beacon: p, rates: Object.assign({}, r), flows: { picks: r.actualPicks ?? r.flow, carts: r.actualCarts ?? r.flow, furnace: r.actualFurnace ?? r.flow, production: r.flow }, templates: r.templates, discoveries: r.discoveries, assignments: r.assignments, voyage: id === 'harbor' ? { progress: a.voyages[0] ? a.voyages[0].work / a.voyages[0].target : 0, duration: r.duration, ships: a.voyages.length, capacity: r.capacity, cargo: r.cargo, manifests: clone(a.voyages), weather: r.weather } : null, focus: x.focus.active === id && x.focus.remaining > 0 } };
+  }
+  function operationStages(state, raw, id) {
+    const a = state.expedition.areas[id], r = raw.areas[id], defs = areaDef(id).tracks;
+    const rows = id === 'quarry' ? [['picks', 'Mine', r.actualPicks, r.picks, a.buffers.input], ['carts', 'Move', r.actualCarts, r.carts, a.buffers.output], ['furnace', 'Refine', r.actualFurnace, r.furnace, 0]]
+      : id === 'ruins' ? [['delving', 'Delve', r.actualDelving, r.delving, a.buffers.input], ['archaeology', 'Interpret', r.actualInterpretation, r.interpretation, a.buffers.output], ['recovery-teams', 'Recover', r.actualRecovery, r.recovery, 0]]
+      : id === 'workshop' ? [['assembly', 'Assemble', r.flow, r.assembly, state.areaSkills?.runtime.hopper || 0], ['toolmaking', 'Equip', r.research, r.research, 0], ['metallurgy', 'Convert', r.templates.reduce((n, row) => n + row.output, 0), r.templates.reduce((n, row) => n + row.output, 0), 0]]
+      : id === 'watchtower' ? [['beacon', 'Survey', r.research, r.research, state.areaSkills?.runtime.notebook || 0], ['signals', 'Signal', r.coordination, r.coordination, 0], ['crew', 'Command', r.assignments.length, r.capacity, 0, 'assignments']]
+      : id === 'harbor' ? [['shipbuilding', 'Build', a.voyages.length, r.capacity, 0, 'voyages'], ['seamanship', 'Sail', r.travel, r.travel, 0], ['stowage', 'Stow', r.cargo, r.cargo, 0, 'cargo']]
+      : [['boots', 'Travel', r.travel, r.travel, 0], ['porters', 'Carry', r.capacity, r.capacity, 0, 'cargo'], ['scouts', 'Discover', r.skillMaps, r.skillMaps, 0]];
+    return rows.map(([key, label, rate, maxRate, buffer, unit]) => ({ id: key, label, icon: defs.find(d => d.id === key)?.icon || areaDef(id).icon, rate, maxRate, rateText: unit ? N.format(rate) + ' ' + unit : N.format(rate) + '/s', buffer, bufferText: buffer > EPS ? N.format(buffer) + ' buffered' : '', capacity: r.capacity, bottleneck: key === r.bottleneck, status: rate <= EPS ? 'Waiting for supply' : rate < maxRate - EPS ? 'Below capacity' : 'Working' }));
   }
   function reset(state, type) {
     const old = state.expedition;
+    Skills.reset(state);
     if (!active(state)) {
       const x = create(); x.cleared = state.lifetime.highestRoute;
       for (const id of ids.slice(0, 3)) if (old?.areas?.[id] || ids.indexOf(id) <= state.lifetime.highestRoute + 1) {
@@ -654,5 +753,5 @@
     const t = targets(x);
     return x.work <= t.work + EPS && x.finaleWork <= t.finale + EPS && (x.work >= t.work - EPS || x.finaleWork === 0) && (!x.completed || x.work >= t.work - EPS && x.finaleWork >= t.finale - EPS && x.index <= x.cleared);
   }
-  return { attentionOptions, Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, finish, restart, reset, autoBuy, act, view, catalog, impact, developmentTask, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider, setTierProvider };
+  return { attentionOptions, Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, sync, finish, restart, reset, autoBuy, act, view, catalog, impact, operationStages, developmentTask, canAdvance, releaseAreas, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider, setTierProvider };
 });

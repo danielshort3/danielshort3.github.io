@@ -11,14 +11,26 @@ const act = (state, action) => { const result = Core.act(state,action); assert(r
 function ready() {
   const state = Core.createState(0); advance(state,6);
   act(state,{type:'expedition-buy',id:'boots'}); fund(state);
-  act(state,{type:'expedition-buy',id:'boots'}); return state;
+  while (state.expedition.areas.greenway.ranks.boots < 4) act(state,{type:'expedition-buy',id:'boots'});
+  for(let seconds=0;!state.upgradeTiers.pending.includes('area:greenway:porters') && seconds<600;seconds+=1) advance(state,1);
+  assert(state.upgradeTiers.pending.includes('area:greenway:porters'),'Ranks and actual deliveries earn Porters');
+  return state;
+}
+function discoverQuarry(state) {
+  for(let seconds=0;!state.expedition.areas.quarry && seconds<3600;seconds+=10) {
+    for(const row of T.view(state).ready.filter(row=>row.areaId==='greenway' && row.id.startsWith('area:'))) act(state,row.unlockAction);
+    for(const [id,target] of Object.entries({boots:4,porters:3,scouts:1})) if(T.allows(state,{type:'expedition-buy',areaId:'greenway',id}) && state.expedition.areas.greenway.ranks[id]<target) act(state,{type:'expedition-buy',areaId:'greenway',id});
+    advance(state,10);
+  }
+  assert(state.expedition.areas.quarry,'All three paid foundation skills establish the next area');
+  act(state,{type:'expedition-next'});
 }
 const cardIds = state => Core.getView(state).expedition.cards.filter(card=>card.visible!==false).map(card=>card.trackId || card.id);
 
 test('fresh games have one purchase and readiness alone does not expose or buy Porters', () => {
   const state = ready(), before = clone(state);
   assert.deepEqual(cardIds(state),['boots']);
-  assert.equal(T.view(state).ready[0].id,'area:greenway:porters');
+  assert(T.view(state).ready.some(row=>row.id==='area:greenway:porters'));
   assert(!Core.getView(state).globalUpgrades.some(row=>row.trackId==='porters'));
   assert.equal(P.quote(state,'greenway','porters',1).valid,false);
   for(const purchase of [Core.act,P.act]) assert.equal(purchase(state,{type:'expedition-buy',areaId:'greenway',id:'porters'}).ok,false);
@@ -49,6 +61,7 @@ test('ready tiers persist outside the capped event log and Later survives save/r
   assert.deepEqual(restored.upgradeTiers,state.upgradeTiers); assert.equal(T.view(restored).notice,null); assert(T.view(restored).ready.length>0);
   advance(restored,7200); assert.equal(T.view(restored).notice,null,'No repeated notice from elapsed time');
   act(restored,{type:'upgrade-tier-unlock',id:'area:greenway:porters'});
+  for(let rank=0;rank<3;rank+=1) act(restored,{type:'expedition-buy',id:'porters'});
   assert(T.view(restored).ready.some(row=>row.id==='area:greenway:scouts')); valid(restored);
 });
 
@@ -60,16 +73,17 @@ test('views are pure and offline partitions produce identical tier entitlement a
 });
 
 test('new areas stage their tracks while a fresh local baseline remains immediately usable', () => {
-  const state=ready(); advance(state,7200); act(state,{type:'expedition-next'});
+  const state=ready(); discoverQuarry(state);
   assert.deepEqual(cardIds(state),['picks']);
-  fund(state); act(state,{type:'expedition-buy',areaId:'quarry',id:'picks'}); act(state,{type:'expedition-buy',areaId:'quarry',id:'picks'});
+  fund(state); for(let rank=0;rank<4;rank+=1) act(state,{type:'expedition-buy',areaId:'quarry',id:'picks'});
+  for(let seconds=0;!T.view(state).ready.some(row=>row.id==='area:quarry:carts') && seconds<600;seconds+=1) advance(state,1);
   assert(T.view(state).ready.some(row=>row.id==='area:quarry:carts'));
   assert.equal(Core.act(state,{type:'expedition-buy',areaId:'quarry',id:'carts'}).ok,false);
   act(state,{type:'upgrade-tier-unlock',id:'area:quarry:carts'}); assert.deepEqual(cardIds(state),['picks','carts']); valid(state);
 });
 
 test('global project tiers enforce direct, catalog and planned purchase gates without hiding funded research', () => {
-  const state=ready(); advance(state,7200); act(state,{type:'expedition-next'}); fund(state);
+  const state=ready(); discoverQuarry(state); fund(state);
   const id='development:p:wheelworks'; assert(T.view(state).ready.some(row=>row.id===id));
   assert(!Core.getView(state).globalUpgrades.some(row=>row.id==='development:wheelworks'));
   const before=clone(state); assert.equal(Core.act(state,{type:'expedition-development',id:'wheelworks'}).ok,false); assert.equal(P.act(state,{type:'expedition-development',id:'wheelworks'}).ok,false); assert.deepEqual(state,before);

@@ -17,6 +17,10 @@ test('the opening is one track, buys at six seconds and unlocks tracks through l
   advance(state, 1);
   act(state, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' });
   fund(state); act(state, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' });
+  assert.deepEqual(state.expedition.areas.greenway.learned, ['boots']);
+  act(state, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' });
+  act(state, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' });
+  while (state.trailDeliveries.deliveries < 3) advance(state, 30);
   assert.deepEqual(state.expedition.areas.greenway.learned, ['boots', 'porters']);
   valid(state);
 });
@@ -283,7 +287,7 @@ test('the first Refit takes 30–45 minutes and sustained prior production retur
           act(state, { type: 'refit-upgrade', id: 'pace' });
           act(state, { type: 'expedition-automation', enabled: true, priority: 'balanced', dispatch: false });
         } else if (refits.length === 1) refits.push(time);
-      } else act(state, { type: 'expedition-next' });
+      } else if (P.canAdvance(state)) act(state, { type: 'expedition-next' });
     }
     const project = P.Content.PROJECTS.find(definition => {
       const task = P.developmentTask(state, definition.id);

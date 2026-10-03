@@ -97,6 +97,7 @@
     let hotspots = [];
     let actorImage = null;
     let optionalArt = null;
+    const productionArt = {};
     let pendingImages = [];
     let pointerStart = null;
     let deliveredFlash = 0;
@@ -774,6 +775,66 @@
     }
     function reduced() { return quiet || !!(motion && motion.matches); }
     function visible() { return !disposed && inView && !document.hidden && canvas.getClientRects().length > 0; }
+    function drawProductionScene() {
+      const art=productionArt[view.kind];
+      if(!art)return false;
+      rectangle(0,0,width,viewportHeight,'#082a48');
+      const artHeight=Math.min(height,Math.round(width*art.naturalHeight/art.naturalWidth));
+      const top=Math.max(0,height-artHeight);
+      paint.drawImage(art,0,0,art.naturalWidth,art.naturalHeight,0,top,width,artHeight);
+      const floor=Math.round(top+artHeight*.81);
+      const flow=finite(view.flows?.production ?? view.rates.flow ?? view.rates.research ?? view.rates.travel);
+      const working=flow>0;
+      const phase=reduced() || !working ? .35 : (animation*.06*Math.min(2.5,Math.sqrt(flow+1)))%1;
+      if(view.kind==='greenway') {
+        const p=view.delivery?.active ? clamp(view.delivery.progress,0,1) : view.progress;
+        actor(width*(.14+p*.67),floor+2,'explorer',working && view.delivery?.phase!=='arrived',1);
+        companion(width*(.14+p*.67)-14,floor+3);
+        bar(width*.13,floor+18,width*.68,p,view.delivery?.phase==='arrived' ? GOLD : '#66d5d8');
+        label(view.delivery?.phase==='arrived' ? 'Arrived' : 'Travel',width*.2,height+7);
+        label('Cargo',width*.51,height+7);label('Outpost',width*.82,height+7);
+      } else if(view.kind==='quarry') {
+        const haul=haulRate(),p=reduced() || !haul ? .35 : cartPhase%1,distance=p<.5?p*2:(1-p)*2;
+        actor(width*.2,floor,'miner',finite(view.flows?.picks)>0,-1);
+        cart(width*(.36+distance*.34),floor-1,haul>0 && p<.55 ? .65 : 0,false);
+        pile(width*.34,floor+2,view.oreBuffer,'#d1b9a0',view.capacity);
+        bar(width*.28,floor+12,width*.18,view.oreBuffer/view.capacity,'#79d7e0');
+        bar(width*.72,floor+12,width*.18,view.smeltBuffer/view.capacity,'#edb665');
+        arrow(width*.36,floor-22,haul>0);arrow(width*.68,floor-22,finite(view.flows?.furnace)>0);
+        if(!finite(view.flows?.furnace))rectangle(width*.875,top+artHeight*.55,width*.067,artHeight*.16,'#142233bb');
+        label('Mine',width*.17,height+7);label('Move',width*.52,height+7);label('Refine',width*.86,height+7);
+      } else if(view.kind==='watchtower') {
+        actor(width*(.22+phase*.43),floor+1,'explorer',working,phase<.5?1:-1);
+        bar(width*.15,floor+13,width*.22,view.progress,'#77dad7');
+        (view.assignments || []).forEach((assignment,index)=>{rectangle(width*(.47+index*.055),top+artHeight*.34,4,4,working?'#ffdd74':'#58667b');});
+        label('Survey',width*.18,height+7);label('Signal',width*.51,height+7);label('Command',width*.84,height+7);
+      } else if(view.kind==='workshop') {
+        crate(width*(.18+phase*.64),floor+2,10);
+        actor(width*.54,floor,'miner',working,-1);
+        const amount=finite(view.buffers?.input),capacity=Math.max(1,finite(view.rates.capacity || view.capacity));
+        bar(width*.12,floor+13,width*.22,amount/capacity,'#79d7e0');
+        label('Assemble',width*.19,height+7);label('Equip',width*.52,height+7);label('Convert',width*.84,height+7);
+      } else if(view.kind==='ruins') {
+        actor(width*(.2+phase*.54),floor+1,'explorer',working,phase<.5?1:-1);
+        bar(width*.12,floor+13,width*.22,finite(view.buffers.input)/Math.max(1,view.capacity),'#7ae2d9');
+        bar(width*.66,floor+13,width*.22,finite(view.buffers.output)/Math.max(1,view.capacity),'#9dacf1');
+        label('Delve',width*.18,height+7);label('Interpret',width*.52,height+7);label('Recover',width*.84,height+7);
+      } else {
+        if(view.voyage.ships>0) {
+          const x=width*(.35+clamp(view.voyage.progress,0,1)*.35),y=top+artHeight*.6;
+          polygon([[x-13,y],[x+15,y],[x+10,y+6],[x-8,y+6]],'#aa7042');rectangle(x,y-17,2,18,'#eac79e');polygon([[x+2,y-17],[x+2,y-1],[x+13,y-1]],'#e5c478');
+          if(view.voyage.ships>1){rectangle(x-22,y+9,18,4,'#8b693e');rectangle(x-14,y,2,10,'#dfc284');}
+          bar(width*.34,floor+13,width*.34,view.voyage.progress,'#79d7e0');
+        }
+        actor(width*.25,floor+1,'miner',view.voyage.ships>0,1);
+        label('Build',width*.18,height+7);label('Sail',width*.52,height+7);label('Stow',width*.84,height+7);
+      }
+      if(view.kind!=='greenway')companion(width*.11,floor+2);
+      guildBanner(width*.94,floor-6);
+      const tracks=({greenway:['boots','porters','scouts'],quarry:['picks','carts','furnace'],watchtower:view.ruleset==='progression'?['beacon','signals','crew']:['crew','lift','beacon'],workshop:['assembly','toolmaking','metallurgy'],ruins:['delving','archaeology','recovery-teams'],harbor:['shipbuilding','seamanship','stowage']})[view.kind];
+      tracks.forEach((id,index)=>hotspot(id,'upgrade','Inspect '+id,width*(index/3),top+artHeight*.35,width/3,artHeight*.6));
+      return true;
+    }
     function draw(now) {
       const bounds = canvas.getBoundingClientRect();
       if (bounds.width < 1 || bounds.height < 1) return;
@@ -781,7 +842,10 @@
       const physicalWidth = Math.round(bounds.width * dpr);
       const physicalHeight = Math.round(bounds.height * dpr);
       const worldHeight = canvas.parentElement?.getBoundingClientRect().height || bounds.height;
-      const safeBottom = 70 + Math.max(0,bounds.height - worldHeight);
+      // The approved chain layout places Operations below the foundation tiles;
+      // the scene only reserves a small lower gutter for station labels.
+      const safeBottom = 36 + Math.max(0,bounds.height - worldHeight);
+      canvas.parentElement?.style.setProperty('--wx-art-height', Math.round(bounds.width * .442) + 'px');
       // Each logical art pixel maps to an integer number of device pixels.
       // A narrow, centered margin absorbs any non-divisible remainder.
       const widthScale = Math.max(1, Math.round(Math.max(1, Math.round(bounds.width / 192)) * dpr));
@@ -800,7 +864,8 @@
       hotspots = [];
       const palette = PALETTES[view.region];
       rectangle(0, 0, width, viewportHeight, view.kind === 'quarry' ? '#38434a' : palette.light);
-      if (view.kind === 'quarry') drawQuarry(palette);
+      if (drawProductionScene()) { /* The real-state overlays above own the scene. */ }
+      else if (view.kind === 'quarry') drawQuarry(palette);
       else if (view.kind === 'watchtower') { if (view.ruleset === 'progression') drawSurveyTower(palette); else drawWatchtower(palette); }
       else if (view.kind === 'workshop') drawWorkshop();
       else if (view.kind === 'ruins') drawRuins(palette);
@@ -868,6 +933,7 @@
     const base = String(settings.assetBase || 'img/wayfarers-guild/').replace(/\/?$/, '/');
     loadImage(base + 'actors.png?v=51f333248522', image => { actorImage = image; });
     loadImage(settings.art || base + 'expedition-props.png?v=a86c28a4803c', image => { optionalArt = image; });
+    ['greenway','quarry','watchtower','workshop','ruins','harbor'].forEach(kind=>loadImage(base+'c-scene-'+kind+'.webp',image=>{productionArt[kind]=image;}));
     document.addEventListener('visibilitychange', onVisibility);
     if (motion && motion.addEventListener) motion.addEventListener('change', onMotion);
     canvas.addEventListener('pointerdown', beginPointer);

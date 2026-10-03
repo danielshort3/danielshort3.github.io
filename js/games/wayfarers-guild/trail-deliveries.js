@@ -1,9 +1,10 @@
 (function (root, factory) {
   'use strict';
-  const api = factory(typeof module === 'object' && module.exports ? require('./numbers.js') : root.WayfarersNumbers);
+  const common = typeof module === 'object' && module.exports;
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./area-skills.js') : root.WayfarersAreaSkills);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.WayfarersTrailDeliveries = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, Skills) {
   'use strict';
   const WORK = 30;
   const HOLD = 1.2;
@@ -30,15 +31,16 @@
     if (value.phase === 'travel' ? value.work >= WORK || value.hold !== 0 : value.work !== WORK || value.hold <= 0 || value.cargo.m !== 0) return false;
     return N.cmp(value.lastReward, value.lifetimeCoins) <= 0;
   }
-  function speed(rates) { return Math.max(1, Math.min(8, Math.sqrt(Math.max(0, Number(rates.travel) || 0)))); }
+  function speed(rates, state) { return Math.max(1, Math.min(8, Math.sqrt(Math.max(0, Number(rates.travel) || 0)))) * Skills.trailSettings(state).speed; }
   function active(state, rates) { return established(state) && Number(rates.travel) > 0; }
   function nextEvent(state, rates) {
     if (!active(state, rates)) return Infinity;
     const x = state.trailDeliveries;
-    return x.phase === 'arrived' ? x.hold : (WORK - x.work) / speed(rates);
+    return x.phase === 'arrived' ? x.hold : (WORK - x.work) / speed(rates, state);
   }
   function credit(state, amount, kind, count = 1) {
     const x = state.trailDeliveries;
+    if (kind === 'delivery') amount = N.mul(amount, Skills.trailSettings(state).cargo);
     const total = N.mul(amount, count);
     state.resources.coins = N.add(state.resources.coins, total);
     state.lifetime.coins = N.add(state.lifetime.coins, total);
@@ -59,11 +61,13 @@
       // interval, whole empty-start trips can be settled in constant time.
       // Preserve the individual last award and exact final partial-trip phase.
       if (x.phase === 'travel' && x.work === 0 && x.cargo.m === 0) {
-        const duration = WORK / speed(rates), cycle = duration + HOLD;
+        Skills.trailStarted(state);
+        const duration = WORK / speed(rates, state), cycle = duration + HOLD;
         const cycles = Math.floor(remaining / cycle);
         if (cycles >= 2) {
           credit(state, N.max(6, N.mul(rates.coins, duration * 0.4)), 'delivery', cycles);
           x.deliveries += cycles;
+          Skills.trailArrived(state, cycles, rates);
           remaining = Math.max(0, remaining - cycles * cycle);
           continue;
         }
@@ -75,11 +79,13 @@
         x.hold = Math.max(0, x.hold - dt);
         if (x.hold < EPS) { x.phase = 'travel'; x.work = 0; x.hold = 0; }
       } else {
-        x.work = Math.min(WORK, x.work + speed(rates) * dt);
+        Skills.trailStarted(state);
+        x.work = Math.min(WORK, x.work + speed(rates, state) * dt);
         x.cargo = N.add(x.cargo, N.mul(rates.coins, dt * 0.4));
         if (WORK - x.work < EPS) {
           credit(state, N.max(6, x.cargo), 'delivery');
           x.cargo = N.zero(); x.deliveries += 1; x.work = WORK; x.phase = 'arrived'; x.hold = HOLD;
+          Skills.trailArrived(state, 1, rates);
         }
       }
     }
@@ -94,13 +100,14 @@
   function resetTrip(state) {
     const x = state.trailDeliveries;
     x.work = 0; x.hold = 0; x.cargo = N.zero(); x.phase = 'travel';
+    if (state.areaSkills) state.areaSkills.runtime.trip = null;
   }
   function view(state, rates) {
     const x = state.trailDeliveries;
     const enabled = active(state, rates);
     const eta = enabled ? nextEvent(state, rates) : null;
     return { active: enabled, phase: x.phase, progress: x.work / WORK, eta, deliveries: x.deliveries,
-      reward: N.max(6, N.add(x.cargo, N.mul(rates.coins, (WORK - x.work) / speed(rates) * 0.4))),
+      reward: N.mul(N.max(6, N.add(x.cargo, N.mul(rates.coins, (WORK - x.work) / speed(rates, state) * 0.4))), Skills.trailSettings(state).cargo),
       lastReward: N.from(x.lastReward), sequence: x.sequence, lastKind: x.lastKind, destination: 'Trail outpost' };
   }
   return { initial, validate, nextEvent, tick, landmark, resetTrip, view };

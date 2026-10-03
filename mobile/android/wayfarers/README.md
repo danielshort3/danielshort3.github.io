@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.10.0`, version code `13` |
+| Default candidate | `0.11.0`, version code `14` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 
@@ -22,7 +22,7 @@ The runtime is under `src/main/java/me/danielshort/wayfarers/`. Its activity and
 
 `shareUpdaterSources` copies the canonical `app/src/main/java/me/danielshort/app/updates/*.kt` and `data/AppSettings.kt` into an ignored generated source set without rewriting them. It excludes only `AutomaticInstallReceiver.kt`, whose application cast is specific to the main app. `shareUpdaterTests` compiles the original updater JVM tests in this module too. Changes to signatures, exact APK identity, patch verification, download bounds or installer recovery remain owned by the original updater sources; do not fork them here. The main application build configuration is unchanged.
 
-The game envelope now uses schema 6, adding an initially inactive card and equipment collection. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 6, so an older checkpoint can reach the canonical migration code. Retained expedition-version-2 runs keep their released economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-6 envelope; the WebView backup retains the previous valid bytes. [Collection contracts](../../../docs/games/wayfarers-collections.md) describe permanent inventory, named decks, scroll outcomes and schema compatibility.
+The game envelope uses schema 7, adding initially inactive area techniques while preserving the schema 6 card and equipment collection. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 7, so an older checkpoint can reach the canonical migration code. Retained expedition-version-2 runs keep their released economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-6 envelope; the WebView backup retains the previous valid bytes. [Collection contracts](../../../docs/games/wayfarers-collections.md) describe permanent inventory, named decks, scroll outcomes and schema compatibility.
 
 The additive [onboarding metadata](../../../docs/games/wayfarers-onboarding.md) retains first-visit action lessons, discovery notices, consumed practice supplies and once-only help rewards in the same checkpoint. Lessons use real controls and advance after a successful saved action or opening the specified information. Existing saves keep their production and ownership. Interrupted lessons resume; completed lessons can be replayed without another reward. Testing reset clears these fields with the guild, while normal Refit and Charter retain them. Trail delivery progress uses the simulation clock; reaching the outpost pays a coin bonus online or offline. Prestige clears unfinished cargo while keeping the delivery history.
 

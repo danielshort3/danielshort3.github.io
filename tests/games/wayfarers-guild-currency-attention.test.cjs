@@ -10,6 +10,12 @@ const valid = s => assert.deepEqual(Core.validateState(s), { valid: true, errors
 const act = (s, action) => { const result = Core.act(s, action); assert.ok(result.ok, JSON.stringify(action) + ': ' + result.message); valid(s); return result; };
 const view = s => Core.getView(s).onboarding;
 const active = s => view(s).active;
+function readyPorters(s) {
+  fund(s);
+  while (s.expedition.areas.greenway.ranks.boots < 4) act(s, { type: 'expedition-buy', id: 'boots' });
+  for (let i = 0; i < 100 && s.trailDeliveries.deliveries < 3; i += 1) advance(s, 30);
+  assert.ok(s.trailDeliveries.deliveries >= 3);
+}
 const explain = s => { const ids = []; while (active(s)?.mode === 'currency') { ids.push(active(s).currencyInfo.id); act(s, active(s).ackAction); } return ids; };
 function memory() { const map = new Map(); return { getItem: k => map.get(k) || null, setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k) }; }
 
@@ -80,7 +86,7 @@ test('opening an actual currency sheet records learning while a tutorial overlay
 });
 
 test('new upgrade claims and earlier-area options get badges without leaking locked future tracks', () => {
-  const s = Core.createState(13); fund(s); act(s, { type: 'expedition-buy', id: 'boots' }); act(s, { type: 'expedition-buy', id: 'boots' });
+  const s = Core.createState(13); readyPorters(s);
   assert.ok(!view(s).attention.items.some(r => r.id === 'upgrade:area:greenway:porters'));
   act(s, { type: 'upgrade-tier-unlock', id: 'area:greenway:porters' }); assert.ok(view(s).attention.items.some(r => r.id === 'upgrade:area:greenway:porters' && r.unseen));
   const m = mature(); const options = view(m).attention.items.filter(r => r.kind === 'option');
@@ -96,7 +102,7 @@ test('migration baselines old visible content but preserves pending discoveries 
   assert.ok(rows.filter(r => r.kind === 'upgrade').every(r => !r.unseen));
   const eventCards = s.collection.recent.filter(r => r.id > s.collection.seen && r.cardId).map(r => r.cardId);
   assert.ok(eventCards.length); for (const id of eventCards) assert.ok(rows.find(r => r.id === 'card:' + id).unseen);
-  const pending = Core.createState(14); fund(pending); act(pending, { type: 'expedition-buy', id: 'boots' }); act(pending, { type: 'expedition-buy', id: 'boots' }); delete pending.onboarding.attention;
+  const pending = Core.createState(14); readyPorters(pending); delete pending.onboarding.attention;
   const migrated = Core.normalizeState(pending, pending.lastUpdate); assert.ok(view(migrated).attention.items.find(r => r.id === 'discovery:ready:area:greenway:porters').unseen);
 });
 
