@@ -1,6 +1,8 @@
 package me.danielshort.wayfarers
 
 import android.content.pm.ActivityInfo
+import android.os.SystemClock
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
@@ -19,6 +21,44 @@ import java.util.concurrent.TimeUnit
 /** Explicit disposable-device opt-in; no save replacement or progression injection. */
 @RunWith(AndroidJUnit4::class)
 class GuildOnboardingDeviceTest {
+  @Test fun retainedE2PlanUsesVisibleRealControlsAndPersistsItsChoice() {
+    assumeTrue("Requires an explicitly imported disposable retained E2 save",
+      InstrumentationRegistry.getArguments().getString("guildRetainedE2Qa") == "true")
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val opening = awaitSnapshot(scenario, "The retained E2 Trail lesson must be active") {
+        it.optInt("expeditionVersion") == 2 && it.optString("guide") == "greenway" && it.optBoolean("nativeConfirmed")
+      }
+      assertTrue(opening.getInt("progress") in 0..2)
+      val originalClaims = opening.getInt("claimCount")
+      if (opening.getInt("progress") == 0) performHighlightedStep(scenario, "inspect")
+      if (snapshot(scenario).getInt("progress") == 1) performHighlightedStep(scenario, "upgrade")
+      val beforePlan = awaitGuide(scenario, "greenway", "operate")
+      assertEquals(1, beforePlan.getInt("boots"))
+      assertEquals(1, beforePlan.getInt("supplyCount"))
+      assertEquals("short", beforePlan.getString("routeChoice"))
+      assertEquals(2, beforePlan.getInt("proofCount"))
+      scenario.recreate()
+      awaitGuide(scenario, "greenway", "operate")
+      performHighlightedStep(scenario, "operate", nativeTouch = true)
+      val complete = awaitSnapshot(scenario, "The real legacy plan choice must persist without a repeat reward") {
+        it.optInt("progress") == 3 && it.optString("routeChoice") == "supply" && it.optBoolean("nativeConfirmed")
+      }
+      assertEquals(originalClaims, complete.getInt("claimCount"))
+      assertEquals(1, complete.getInt("boots"))
+      assertEquals(1, complete.getInt("supplyCount"))
+      assertEquals(3, complete.getInt("proofCount"))
+      scenario.recreate()
+      val restored = awaitSnapshot(scenario, "The retained legacy plan and receipts must survive recreation") {
+        it.optInt("progress") == 3 && it.optString("routeChoice") == "supply" && it.optBoolean("nativeConfirmed")
+      }
+      assertEquals(opening.getLong("createdAt"), restored.getLong("createdAt"))
+      assertEquals(originalClaims, restored.getInt("claimCount"))
+      assertEquals(1, restored.getInt("boots"))
+      assertEquals(1, restored.getInt("supplyCount"))
+      assertEquals(3, restored.getInt("proofCount"))
+    }
+  }
+
   @Test fun freshTrailPracticeResumesAndItsFreeRankCannotRepeat() {
     assumeTrue("Requires an explicitly reset disposable guild",
       InstrumentationRegistry.getArguments().getString("guildOnboardingQa") == "true")
@@ -136,7 +176,7 @@ class GuildOnboardingDeviceTest {
     assertTrue("The coach and its visible 48dp exit must fit", snapshot.getBoolean("coachFits"))
     assertTrue("The highlighted real control must be visible", snapshot.getBoolean("spotlightVisible"))
     assertTrue("The real highlighted control must be operable and at least 48dp", snapshot.getBoolean("targetOperable"))
-    assertTrue("The coach must not intercept its required game control", snapshot.getBoolean("targetReceivesHit"))
+    assertTrue("The coach must not intercept its required game control: $snapshot", snapshot.getBoolean("targetReceivesHit"))
     assertTrue("Unrelated controls must not receive click-through", snapshot.getBoolean("backgroundBlocked"))
     assertTrue("Keyboard focus stays in the allowed target, coach or sheet exit: $snapshot", snapshot.getBoolean("focusAllowed"))
     assertTrue("The guide has an accessible name and description", snapshot.getBoolean("accessible"))
@@ -144,12 +184,14 @@ class GuildOnboardingDeviceTest {
     assertTrue("The game must not acquire horizontal overflow", snapshot.getBoolean("noOverflow"))
   }
 
-  private fun performHighlightedStep(scenario: ActivityScenario<MainActivity>, step: String) {
+  private fun performHighlightedStep(scenario: ActivityScenario<MainActivity>, step: String, nativeTouch: Boolean = false) {
     repeat(8) {
       val before = snapshot(scenario)
       if (!before.optBoolean("guideOpen") || before.optString("step") != step) return
+      if (before.optInt("expeditionVersion") == 2) println("RETAINED_E2_RENDER $before")
       assertCoach(before)
-      evaluate(scenario, "var target=Array.from(document.querySelectorAll('[aria-describedby~=\"wx-guide-body\"]')).find(function(node){return !node.classList.contains('wx-guide');}); if(!target || target.disabled || target.closest('[inert]')) throw new Error('The actual lesson target is not operable'); target.click(); true")
+      if (nativeTouch) touchHighlightedControl(scenario, before)
+      else evaluate(scenario, "var target=Array.from(document.querySelectorAll('[aria-describedby~=\"wx-guide-body\"]')).find(function(node){return !node.classList.contains('wx-guide');}); if(!target || target.disabled || target.closest('[inert]')) throw new Error('The actual lesson target is not operable'); target.click(); true")
       awaitSnapshot(scenario, "The actual control must navigate or complete $step") {
         !it.optBoolean("guideOpen") || it.optString("step") != step || it.optString("targetKey") != before.optString("targetKey") || it.optString("sheetKind") != before.optString("sheetKind")
       }
@@ -157,6 +199,32 @@ class GuildOnboardingDeviceTest {
     val after = snapshot(scenario)
     if (!after.optBoolean("guideOpen") || after.optString("step") != step) return
     fail("The lesson did not complete $step after its real controls were used: $after")
+  }
+
+  private fun touchHighlightedControl(scenario: ActivityScenario<MainActivity>, snapshot: JSONObject) {
+    val rect = snapshot.getJSONObject("renderDiagnostics").getJSONObject("target").getJSONObject("rect")
+    var x = 0f
+    var y = 0f
+    scenario.onActivity { activity ->
+      val webView = findWebView(activity.window.decorView)!!
+      val location = IntArray(2)
+      webView.getLocationOnScreen(location)
+      val scale = webView.width / snapshot.getDouble("viewportExactWidth")
+      x = (location[0] + (rect.getDouble("x") + rect.getDouble("width") / 2) * scale).toFloat()
+      y = (location[1] + (rect.getDouble("y") + rect.getDouble("height") / 2) * scale).toFloat()
+    }
+    val instrumentation = InstrumentationRegistry.getInstrumentation()
+    val downAt = SystemClock.uptimeMillis()
+    val down = MotionEvent.obtain(downAt, downAt, MotionEvent.ACTION_DOWN, x, y, 0)
+    try {
+      instrumentation.sendPointerSync(down)
+      SystemClock.sleep(40)
+      val up = MotionEvent.obtain(downAt, SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, x, y, 0)
+      try { instrumentation.sendPointerSync(up) } finally { up.recycle() }
+      instrumentation.waitForIdleSync()
+    } finally {
+      down.recycle()
+    }
   }
 
   private fun dismissNotice(scenario: ActivityScenario<MainActivity>) {
@@ -193,14 +261,18 @@ class GuildOnboardingDeviceTest {
         function box(el){return el && el.getBoundingClientRect();}
         function fits(el,action){var r=box(el);return !!r && r.width >= (action?47:1) && r.height >= (action?47:1) && r.left>=-1 && r.top>=-1 && r.right<=innerWidth+1 && r.bottom<=innerHeight+1;}
         function receivesHit(el){var r=box(el),hit=r && document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return !!el && (el===hit || el.contains(hit));}
+        function renderInfo(el){if(!el)return null;var r=box(el),c=getComputedStyle(el),pop=false;try{pop=el.matches(':popover-open');}catch(error){}return {tag:el.tagName,classes:el.className,parent:el.parentElement?.className,popover:el.getAttribute('popover'),popoverOpen:pop,transform:c.transform,overflow:c.overflow,position:c.position,rect:{x:r.x,y:r.y,width:r.width,height:r.height}};}
         var focused=document.activeElement, wallet=document.querySelector('[data-wx-wallet]');
         var exits=sheet ? Array.from(sheet.querySelectorAll('[data-wx-close],[data-wx-back]')) : [];
-        var capacity=state && window.WayfarersProgression ? window.WayfarersProgression.rawRates(state).areas.greenway.travel : 0;
+        var capacity=state && state.expedition.version===3 && window.WayfarersProgression ? window.WayfarersProgression.rawRates(state).areas.greenway.travel : 0;
         return {createdAt:state && state.createdAt,areaCount:state ? Object.keys(state.expedition.areas).length : 0,progress:practice && practice.progress.greenway,claimCount:o ? o.rewardClaims.filter(function(id){return id==='greenway';}).length : 0,
           proofCount:practice ? practice.proofs.filter(function(id){return id.startsWith('greenway:');}).length : 0,
           supplyCount:practice ? practice.supplies.filter(function(id){return id==='greenway:upgrade';}).length : 0,travelCapacity:capacity,
           boots:state && state.expedition.areas.greenway.ranks.boots,guideOpen:!!guide,guide:guide && guide.dataset.guide,step:guide && guide.dataset.step,replay:!!guide && guide.dataset.replay==='true',
+          expeditionVersion:state && state.expedition.version,routeChoice:state && state.expedition.areas.greenway.choices.route,
+          renderDiagnostics:{popoverSupported:typeof HTMLElement.prototype.showPopover==='function',guide:renderInfo(guide),parent:renderInfo(guide?.parentElement),sheet:renderInfo(sheet),target:renderInfo(target)},
           sheetKind:sheet ? sheet.dataset.kind:'',width:innerWidth,height:innerHeight,
+          viewportExactWidth:visualViewport ? visualViewport.width : innerWidth,
           replayAvailable:!!sheet && !!sheet.querySelector('[data-wx-do="guide-replay:greenway"]'),
           referenceSteps:sheet ? sheet.querySelectorAll('.wx-lesson-reference').length:0,
           referenceReadOnly:!!sheet && !sheet.querySelector('[data-wx-practice],[data-wx-do^="lesson-start:"]'),

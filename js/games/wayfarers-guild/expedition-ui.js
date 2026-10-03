@@ -612,7 +612,25 @@
       return {element:q('[data-wx-objective]'),kind:multiple ? 'areas' : 'objective'};
     }
     function contextualGuide(model) {
-      if (model?.mode) return model;
+      if (model?.mode) {
+        if (model.target==='area-goal' && dialog.open && !['objective','finale'].includes(sheet?.kind)) {
+          model.context='close-before-objective';
+          model.heading='Return to your area';
+          model.body='Close this panel, then open the highlighted objective to see your next destination.';
+        }
+        if (['area-plans','area-plan-option','area-configuration','area-specialization'].includes(model.target)) {
+          if (dialog.open && !['choice','plan-choice','configuration','specialization'].includes(sheet?.kind)) {
+            model.context='close-before-plans';
+            model.heading='Return to your area';
+            model.body='Close this panel, then open Area plans to apply the highlighted working plan.';
+          } else if (!dialog.open) {
+            model.context='open-area-plans';
+            model.heading='Open Area plans';
+            model.body='Open the highlighted Plans button. Then choose the working plan for this lesson.';
+          }
+        }
+        return model;
+      }
       if (model?.target !== 'area-goal') return model;
       const goal=guideGoal();
       model.context=goal.kind + ':' + (goal.label || '');

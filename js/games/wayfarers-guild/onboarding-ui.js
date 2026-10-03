@@ -75,7 +75,11 @@
       const nextTarget = found?.element || found;
       if (interactive) {
         const parent=nextTarget?.closest('dialog[open]') || options.parent;
-        const fallback=!dialog.hasAttribute('popover') && parent !== options.parent ? parent : null;
+        // Some Android WebViews still clip a nested popover to a transformed
+        // modal. Keep that real modal viewport-sized while its lesson is active.
+        // Retain the framing once applied so removing its transform cannot
+        // alternate the class on every ResizeObserver pass.
+        const fallback=parent !== options.parent && (!dialog.hasAttribute('popover') || fallbackSurface===parent || root.getComputedStyle(parent).transform!=='none') ? parent : null;
         if (fallbackSurface !== fallback) {
           fallbackSurface?.classList.remove('wx-guide-surface');
           fallbackSurface=fallback;
