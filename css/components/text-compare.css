@@ -591,6 +591,7 @@
   }
   body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-results-card .tool-workspace-header {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 4px;
     margin-bottom: 10px;
   }
@@ -603,6 +604,14 @@
   }
   body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-summary { margin: 0; }
   body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-copy-status:empty { display: none; }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-results-actions {
+    margin-top: 12px;
+  }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-saving-note {
+    margin: 18px 0 0;
+    max-width: 70ch;
+  }
+  body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-field { scroll-margin-top: 16px; }
   body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-results-card { scroll-margin-top: 16px; }
   body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-output {
     box-sizing: border-box;
@@ -657,5 +666,8 @@
       line-height: 1.5;
     }
     body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-results-actions { flex-wrap: wrap; }
+    body[data-page="text-compare"][data-tools-layout] .tool-workspace .textcompare-primary-actions > button {
+      flex: 1 1 110px;
+    }
   }
 }

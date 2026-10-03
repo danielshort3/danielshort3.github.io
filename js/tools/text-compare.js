@@ -9,6 +9,7 @@
   const comparisonEl = $('#textcompare-view-comparison');
   const summaryEl = $('#textcompare-summary');
   const clearBtn = $('#textcompare-clear');
+  const returnBtn = $('#textcompare-return');
   const swapBtn = $('#textcompare-swap');
   const copyBtn = $('#textcompare-copy');
   const copyStatus = $('#textcompare-copy-status');
@@ -100,7 +101,10 @@
     const showingExample = !hasUserText();
     originalEl.placeholder = showingExample ? ORIGINAL_EXAMPLE : 'Paste the text before changes';
     revisedEl.placeholder = showingExample ? REVISED_EXAMPLE : 'Paste the text after changes';
-    resizeEditors(sizingOptions);
+    // A single multiline paste may emit one input event per line. Measure once
+    // on the next frame instead of laying out the full draft for every event.
+    if (sizingOptions?.deferSizing) queueEditorSizing();
+    else resizeEditors(sizingOptions);
   };
   updateExamplePreview();
 
@@ -444,10 +448,19 @@
     }
   };
 
-  window.SiteRoutes?.addCleanup?.(() => {
+  const cancelPendingComparison = ({ stopWorker = false } = {}) => {
     latestCompareRequestId += 1;
     window.clearTimeout(refreshTimer);
-  });
+    if (stopWorker || compareRequests.size) {
+      const worker = compareWorker;
+      compareWorker = null;
+      try { worker?.terminate(); } catch {}
+    }
+    compareRequests.forEach((pending) => pending.reject(new Error('Comparison cancelled.')));
+    compareRequests.clear();
+    comparisonEl?.setAttribute('aria-busy', 'false');
+  };
+  window.SiteRoutes?.addCleanup?.(() => cancelPendingComparison({ stopWorker: true }));
 
   const getSelectedMode = () => {
     const selected = modeInputs.find((input) => input.checked);
@@ -471,8 +484,10 @@
     if (workerUnavailable || typeof Worker !== 'function') return null;
     if (compareWorker) return compareWorker;
     try {
-      compareWorker = new Worker(COMPARE_WORKER_PATH);
-      compareWorker.addEventListener('message', (event) => {
+      const worker = new Worker(COMPARE_WORKER_PATH);
+      compareWorker = worker;
+      worker.addEventListener('message', (event) => {
+        if (compareWorker !== worker) return;
         const data = event?.data || {};
         const pending = compareRequests.get(data.requestId);
         if (!pending) return;
@@ -483,7 +498,8 @@
         }
         pending.resolve(data);
       });
-      compareWorker.addEventListener('error', (event) => {
+      worker.addEventListener('error', (event) => {
+        if (compareWorker !== worker) return;
         workerUnavailable = true;
         const error = new Error(event?.message || 'Background compare failed.');
         compareRequests.forEach((pending) => pending.reject(error));
@@ -535,24 +551,33 @@
     if (legendEl) legendEl.hidden = !result?.counts?.hasChanges;
     outputEl.innerHTML = renderOutput(lastRuns) || '<p class="textcompare-empty">No output.</p>';
     summaryEl.textContent = formatCompareSummary(result?.counts);
+    comparisonEl?.setAttribute('aria-busy', 'false');
     setWarningStatus(warnings.join(' '), warnings.length ? 'info' : '');
     markSessionDirty();
   };
 
+  const scrollToWorkspacePart = (element) => {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    element?.scrollIntoView?.({ block: 'start', behavior: reduceMotion ? 'instant' : 'smooth' });
+  };
+
   const revealExplicitComparison = () => {
-    if (typeof comparisonEl?.scrollIntoView !== 'function' || typeof outputEl.getBoundingClientRect !== 'function') return;
+    if (typeof comparisonEl?.getBoundingClientRect !== 'function' || typeof outputEl.getBoundingClientRect !== 'function') return;
     const viewport = comparisonEl.closest('[data-site-frame-viewport]');
+    const masthead = document.querySelector('[data-mobile-site-masthead]');
+    const visibleTop = Math.max(viewport?.getBoundingClientRect().top || 0, masthead?.getBoundingClientRect().bottom || 0);
     const visibleBottom = Math.min(viewport?.getBoundingClientRect().bottom || window.innerHeight, window.innerHeight);
     const dock = document.querySelector('.mobile-section-nav:not([hidden]), .mobile-site-dock:not([hidden])');
     const dockTop = dock?.getClientRects().length ? dock.getBoundingClientRect().top : null;
     const limit = Number.isFinite(dockTop) && dockTop > 0 ? Math.min(visibleBottom, dockTop) : visibleBottom;
-    if (outputEl.getBoundingClientRect().top < limit - 120) return;
-    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    comparisonEl.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'instant' : 'smooth' });
+    if (comparisonEl.getBoundingClientRect().top >= visibleTop && outputEl.getBoundingClientRect().top < limit - 120) return;
+    // Start at the result heading, even when a long diff is taller than the viewport.
+    scrollToWorkspacePart(comparisonEl);
   };
 
   const runCompare = ({ reportOutcome = false } = {}) => {
-    window.clearTimeout(refreshTimer);
+    if (editorSizingDisposed) return;
+    cancelPendingComparison();
     comparisonStarted = true;
     lastRuns = null;
     if (copyBtn) copyBtn.disabled = true;
@@ -572,12 +597,17 @@
       lastRevisedText = '';
       latestCompareRequestId += 1;
       setWarningStatus('', '');
+      comparisonEl?.setAttribute('aria-busy', 'false');
       markSessionDirty();
-      if (reportOutcome) reportRunError('validation');
+      if (reportOutcome) {
+        revealExplicitComparison();
+        reportRunError('validation');
+      }
       return;
     }
 
     summaryEl.textContent = 'Comparing…';
+    comparisonEl?.setAttribute('aria-busy', 'true');
     setEmpty('Comparing…');
     const requestId = latestCompareRequestId + 1;
     latestCompareRequestId = requestId;
@@ -607,8 +637,12 @@
               lastRuns = null;
               lastRevisedText = '';
               setWarningStatus('', '');
+              comparisonEl?.setAttribute('aria-busy', 'false');
               markSessionDirty();
-              if (reportOutcome) reportRunError('validation');
+              if (reportOutcome) {
+                revealExplicitComparison();
+                reportRunError('validation');
+              }
               return;
             }
           }
@@ -637,7 +671,9 @@
             summaryEl.textContent = 'Unable to compare these drafts.';
             setEmpty('Comparison failed. Please try smaller sections.');
             setWarningStatus('The comparison could not be completed.', 'error');
+            comparisonEl?.setAttribute('aria-busy', 'false');
             markSessionDirty();
+            if (reportOutcome) revealExplicitComparison();
           }
           if (reportOutcome) reportRunError('processing');
         }
@@ -661,11 +697,10 @@
   });
 
   clearBtn?.addEventListener('click', () => {
-    window.clearTimeout(refreshTimer);
+    cancelPendingComparison({ stopWorker: true });
     comparisonStarted = false;
     if (copyBtn) copyBtn.disabled = true;
     if (legendEl) legendEl.hidden = true;
-    latestCompareRequestId += 1;
     originalEl.value = '';
     revisedEl.value = '';
     updateExamplePreview({ allowShrink: true });
@@ -679,6 +714,11 @@
     originalEl.focus();
   });
 
+  returnBtn?.addEventListener('click', () => {
+    originalEl.focus({ preventScroll: true });
+    scrollToWorkspacePart(originalEl.closest('.textcompare-field') || originalEl);
+  });
+
   swapBtn?.addEventListener('click', () => {
     const a = originalEl.value;
     originalEl.value = revisedEl.value;
@@ -689,14 +729,14 @@
 
   copyBtn?.addEventListener('click', copyFormatted);
   const queueComparison = () => {
-    latestCompareRequestId += 1;
-    window.clearTimeout(refreshTimer);
+    cancelPendingComparison();
     lastRuns = null;
     lastRevisedText = '';
     if (copyBtn) copyBtn.disabled = true;
     if (legendEl) legendEl.hidden = true;
     setCopyStatus('');
     setWarningStatus('', '');
+    comparisonEl?.setAttribute('aria-busy', 'false');
     if (!comparisonStarted) {
       setEmpty(hasUserText() ? 'Click Compare to see the changes.' : 'Compare the example, or enter your own text.');
       return;
@@ -706,7 +746,7 @@
     refreshTimer = window.setTimeout(() => runCompare(), 450);
   };
   [originalEl, revisedEl].forEach(field => field.addEventListener('input', () => {
-    updateExamplePreview();
+    updateExamplePreview({ deferSizing: true });
     queueComparison();
   }));
   modeInputs.forEach((input) => input.addEventListener('change', queueComparison));
@@ -734,7 +774,7 @@
     ].includes(text);
   };
 
-  document.addEventListener('tools:session-capture', (event) => {
+  const captureSession = (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
     const payload = detail?.payload;
@@ -751,19 +791,18 @@
     const content = String(outputEl?.textContent || '').trim();
     const { text, truncated } = clampText(content, MAX_SAVED_OUTPUT_TEXT_CHARS);
     payload.output = { kind: 'text', text, summary, truncated };
-  });
+  };
 
-  document.addEventListener('tools:session-applied', (event) => {
+  const applySession = (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
     const snapshot = detail?.snapshot;
     const output = snapshot?.output;
     // Legacy view preferences no longer hide drafts or results.
     updateExamplePreview();
-    window.clearTimeout(refreshTimer);
+    cancelPendingComparison();
     setCopyStatus('');
     setWarningStatus('', '');
-    latestCompareRequestId += 1;
     lastRuns = null;
     lastRevisedText = '';
     if (copyBtn) copyBtn.disabled = true;
@@ -793,5 +832,11 @@
         ? `<pre>${escapeHtml(raw)}</pre>`
         : '<p class="textcompare-empty">No output.</p>';
     }
+  };
+  document.addEventListener('tools:session-capture', captureSession);
+  document.addEventListener('tools:session-applied', applySession);
+  window.SiteRoutes?.addCleanup?.(() => {
+    document.removeEventListener('tools:session-capture', captureSession);
+    document.removeEventListener('tools:session-applied', applySession);
   });
 })();

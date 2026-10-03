@@ -160,7 +160,7 @@ function installAudit() {
     assert.equal(await page.locator('.av-header img').count(), 0);
     assert.doesNotMatch(await page.locator('body').textContent(), /Cedar Valley|Visit Grand Junction/);
     assert.equal(await page.evaluate(() => isSecureContext && !!crypto.subtle), true);
-    const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+    const essential = page.locator('#pcz-reject');
     if (await essential.isVisible()) await essential.click();
     assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex/);
     await assertControls(); await capture('01-project-ready');
