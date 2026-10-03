@@ -2000,7 +2000,19 @@
       expedition.delivery = delivery;
       if (expedition.scene) expedition.scene.delivery = delivery;
     }
-    if (!options.skipOnboarding) { view.onboarding = Onboarding.view(state, view); expedition.onboarding = view.onboarding; }
+    if (!options.skipOnboarding) {
+      view.onboarding = Onboarding.view(state, view); expedition.onboarding = view.onboarding;
+      const lesson = view.onboarding.active;
+      const practice = lesson?.requiredAction?.type === 'expedition-buy' ? lesson.requiredAction : lesson?.steps?.slice(lesson.index).find(step => step.requiredAction?.type === 'expedition-buy')?.requiredAction;
+      if (practice) {
+        // The global selector can be ×100 while an area lesson supplies exactly
+        // one rank. Price and compare the actual practice action on a pure copy.
+        const previewState = clone(state);
+        if (premiumEntitlements.has(state)) setPremiumEntitlements(previewState, [...premiumEntitlements.get(state)]);
+        if (P.active(previewState)) previewState.expedition.batch = practice.count || 1;
+        lesson.practicePreview = E.catalog(previewState).find(row => row.action?.type === 'expedition-buy' && row.areaId === practice.areaId && row.action.id === practice.id) || null;
+      }
+    }
     return view;
   }
   Onboarding.setContextProvider(state => getView(state, { skipOnboarding: true }));

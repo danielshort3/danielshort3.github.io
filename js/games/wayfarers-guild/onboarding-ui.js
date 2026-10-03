@@ -158,7 +158,7 @@
           {room:safe.bottom-box.bottom-12,axis:'y',x:(box.left+box.right-size.width)/2,y:box.bottom+12},
           {room:box.left-safe.left-12,axis:'x',x:box.left-size.width-12,y:(box.top+box.bottom-size.height)/2},
           {room:safe.right-box.right-12,axis:'x',x:box.right+12,y:(box.top+box.bottom-size.height)/2}
-        ];
+        ].flatMap(candidate=>candidate.axis==='x' ? [candidate,Object.assign({},candidate,{y:safe.top}),Object.assign({},candidate,{y:safe.bottom-size.height})] : [candidate]);
         const fits = candidate => {
           if (candidate.room < (candidate.axis === 'y' ? size.height : size.width)) return false;
           if (!interactive) return true;

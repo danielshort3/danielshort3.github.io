@@ -235,3 +235,19 @@ test('first deliberate Help opening still pays once after action mastery and sur
   assert.equal(Core.act(restored.state, guide.helpOpenAction).ok, false);
   assert.deepEqual(restored.state.resources.coins, beforeHelp.resources.coins);
 });
+
+test('a first-rank lesson previews exactly one rank while the retained global selector stays at100', () => {
+  const s = mature(); s.expedition.areas.quarry.ranks.picks = 0;
+  act(s, { type: 'expedition-select', areaId: 'quarry' }); act(s, { type: 'expedition-batch', count: 100 });
+  Core.setPremiumEntitlements(s, ['compass']);
+  act(s, { type: 'onboarding-visit', id: 'quarry' });
+  const original = clone(s), shown = current(s).practicePreview;
+  assert.equal(shown.quantity, 1); assert.equal(shown.rankAfter, 1); assert.equal(shown.rank, 0);
+  assert.deepEqual(s, original, 'preview cannot change live batch, wallet, ranks or proof');
+  const expected = clone(s); expected.expedition.batch = 1; Core.setPremiumEntitlements(expected, ['compass']);
+  const exact = Core.getView(expected, { skipOnboarding: true }).globalUpgrades.find(row => row.id === shown.id);
+  assert.deepEqual(shown.cost, exact.cost); assert.deepEqual(shown.impact, exact.impact);
+  assert.equal(Core.getView(s).globalUpgrades.find(row => row.id === shown.id).quantity, 100);
+  step(s); assert.equal(current(s).practicePreview.quantity, 1); const wallet = clone(s.resources); step(s);
+  assert.equal(s.expedition.areas.quarry.ranks.picks, 1); assert.equal(s.expedition.batch, 100); assert.deepEqual(s.resources, wallet);
+});
