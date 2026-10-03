@@ -265,7 +265,7 @@ test('save/export/backup preserve local progress and rare-reward schedules witho
   assert.ok(store.save(state).ok);
   const text = store.export(state).text;
   const restored = store.replaceImport(text).state;
-  const retained = clone(restored); delete retained.upgradeTiers;
+  const retained = clone(restored); delete retained.upgradeTiers; delete retained.onboarding;
   assert.deepEqual(retained, state, 'Only additive tier knowledge changes the historical save');
   assert.deepEqual(store.load({ deferOffline: true }).state, restored);
   const previous = clone(state); advance(state, 10); assert.ok(store.save(state).ok);

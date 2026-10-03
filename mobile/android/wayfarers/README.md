@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.6.0`, version code `8` |
+| Default candidate | `0.8.0`, version code `10` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 
@@ -23,6 +23,8 @@ The runtime is under `src/main/java/me/danielshort/wayfarers/`. Its activity and
 `shareUpdaterSources` copies the canonical `app/src/main/java/me/danielshort/app/updates/*.kt` and `data/AppSettings.kt` into an ignored generated source set without rewriting them. It excludes only `AutomaticInstallReceiver.kt`, whose application cast is specific to the main app. `shareUpdaterTests` compiles the original updater JVM tests in this module too. Changes to signatures, exact APK identity, patch verification, download bounds or installer recovery remain owned by the original updater sources; do not fork them here. The main application build configuration is unchanged.
 
 The game envelope now uses schema 6, adding an initially inactive card and equipment collection. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 6, so an older checkpoint can reach the canonical migration code. Retained expedition-version-2 runs keep their released economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-6 envelope; the WebView backup retains the previous valid bytes. [Collection contracts](../../../docs/games/wayfarers-collections.md) describe permanent inventory, named decks, scroll outcomes and schema compatibility.
+
+The additive [onboarding metadata](../../../docs/games/wayfarers-onboarding.md) retains first-visit walkthrough steps, discovery notices and once-only learning rewards in the same checkpoint. Existing saves keep their production and ownership. Area guides resume after an interrupted visit; completed guides can be replayed without another reward. Testing reset clears these fields with the guild, while normal Refit and Charter retain them.
 
 ## Local builds and signing
 
@@ -64,11 +66,14 @@ Focused game checks run from the repository root:
 npm run test:wayfarers-guild:expeditions
 npm run test:wayfarers-guild:progression:browser
 npm run test:wayfarers-guild:collections:browser
+npm run test:wayfarers-guild:onboarding:browser
 node tests/games/wayfarers-guild-expedition.browser.cjs
 node --test mobile/android/scripts/wayfarers-bundle.test.cjs
 ```
 
-Both browser checks build the same offline assets as the APK. The expedition suite checks retained published runs; the progression suite checks the new opening, six-area navigation, exact bulk transactions, cap remainders, gestures and bounded layouts. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, six-area controls and native checkpoint acknowledgement. Run first-boot and opted-in mature fixtures only on a disposable emulator; never clear an existing player's data to make a case run.
+These browser checks build the same offline assets as the APK. The expedition suite checks retained published runs; the progression suite checks the new opening, six-area navigation, exact bulk transactions, cap remainders, gestures and bounded layouts. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, six-area controls and native checkpoint acknowledgement. Run first-boot and opted-in mature fixtures only on a disposable emulator; never clear an existing player's data to make a case run.
+
+`GuildOnboardingDeviceTest` requires `guildOnboardingQa=true` and an explicitly reset disposable guild. It exercises the actual guide controls, saved step resume, Android Back, rotation, enlarged text, native checkpoint acknowledgment and rewardless replay. Legacy interaction tests can explicitly acknowledge guides with `guildGuideAcknowledgementQa=true`; those tests isolate established gameplay controls and do not replace first-visit coverage. Run the fresh-guide class separately so test ordering cannot consume its initial state.
 
 ## Testing reset
 

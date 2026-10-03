@@ -81,6 +81,101 @@ test('stale tabs cannot overwrite, import or reset the new generation', () => {
   assert.deepEqual(Array.from(storage.data), snapshot);
 });
 
+for (const mirrorKey of [Storage.SAVE_KEY, Storage.BACKUP_KEY]) test('a failed compatibility mirror cannot roll back a committed tutorial reward: ' + mirrorKey, () => {
+  const { storage, store, make } = setup();
+  const reset = store.resetForTesting();
+  assert(reset.ok);
+  const state = reset.state;
+  assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
+  for (const stepId of ['purpose', 'operation']) assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId }).ok);
+  assert(store.save(state).ok);
+  const write = storage.setItem;
+  storage.setItem = (key, value) => {
+    if (key === mirrorKey) throw new Error('Compatibility mirror unavailable');
+    write(key, value);
+  };
+  assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok);
+  assert.equal(store.save(state).ok, true, 'The canonical generation holds the committed completion');
+  assert.equal(store.save(state).ok, true, 'A subsequent save does not conflict with its own write');
+  const reopened = make().load().state;
+  assert.equal(reopened.onboarding.progress.greenway, 3);
+  assert.equal(Core.Numbers.toNumber(reopened.resources.coins), 12);
+  assert.equal(Core.act(reopened, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok, false);
+  assert.equal(Core.Numbers.toNumber(reopened.resources.coins), 12);
+});
+
+test('a failed canonical generation write remains retryable without claiming a tutorial reward', () => {
+  const { storage, store, make } = setup();
+  const reset = store.resetForTesting();
+  const state = reset.state;
+  assert(reset.ok);
+  assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
+  for (const stepId of ['purpose', 'operation']) assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId }).ok);
+  assert(store.save(state).ok);
+  const before = JSON.parse(JSON.stringify(state));
+  const write = storage.setItem;
+  const canonical = Storage.SAVE_KEY + '-generation-' + store.pendingReset().id;
+  storage.setItem = (key, value) => {
+    if (key === canonical) throw new Error('Canonical save unavailable');
+    write(key, value);
+  };
+  assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok);
+  assert.equal(store.save(state).ok, false);
+  assert.equal(make().load().state.onboarding.progress.greenway, 2);
+  storage.setItem = write;
+  assert(store.save(before).ok, 'The app can save its rolled-back step before another explicit attempt');
+  assert(Core.act(before, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok);
+  assert(store.save(before).ok);
+  assert.equal(Core.Numbers.toNumber(make().load().state.resources.coins), 12);
+});
+
+test('a post-write fence read failure keeps the committed tutorial result and retries without conflict', () => {
+  const { storage, store, make } = setup();
+  const state = store.resetForTesting().state;
+  assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
+  for (const stepId of ['purpose', 'operation']) assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId }).ok);
+  assert(store.save(state).ok);
+  const read = storage.getItem;
+  let markerReads = 0;
+  storage.getItem = key => {
+    if (key === Storage.RESET_KEY && ++markerReads === 2) throw new Error('Transient final fence read');
+    return read(key);
+  };
+  assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok);
+  const saved = store.save(state);
+  assert.equal(saved.ok, false);
+  assert.equal(saved.committed, true, 'Caller must retain this exact pending result, not roll it back');
+  assert.equal(saved.status, 'unavailable');
+  assert(store.save(state).ok);
+  assert.equal(make().load().state.onboarding.progress.greenway, 3);
+  assert.equal(Core.Numbers.toNumber(make().load().state.resources.coins), 12);
+});
+
+test('a reset during the final save fence still blocks the old generation despite its committed write', () => {
+  const { storage, store, make } = setup();
+  const state = store.resetForTesting().state;
+  assert(store.save(state).ok);
+  const oldGeneration = store.pendingReset().id;
+  const write = storage.setItem;
+  let replacement;
+  storage.setItem = (key, value) => {
+    write(key, value);
+    if (!replacement && key === Storage.SAVE_KEY + '-generation-' + oldGeneration) {
+      replacement = { pending: true };
+      const other = make(); other.load(); replacement = other.resetForTesting();
+      assert(replacement.ok);
+    }
+  };
+  Core.advance(state, 5);
+  const saved = store.save(state);
+  assert.equal(saved.ok, false);
+  assert.equal(saved.status, 'conflict');
+  assert.equal(saved.committed, true);
+  assert.equal(store.save(state).status, 'conflict');
+  assert.equal(make().load().state.createdAt, replacement.state.createdAt);
+  assert.notEqual(replacement.state.createdAt, state.createdAt);
+});
+
 test('two resets at an identical clock time have distinct generations and fresh identities', () => {
   const { store } = setup();
   const first = store.resetForTesting();

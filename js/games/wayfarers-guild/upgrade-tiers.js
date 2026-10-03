@@ -147,5 +147,6 @@
     return value.claimed.includes('area:greenway:boots');
     } catch (_) { return false; }
   }
-  return { initial, configure, migrate, sync, adopt, allows, visible, readyFor, act, view, validate };
+  const describe = state => definitions(state).map(row => JSON.parse(JSON.stringify(row)));
+  return { initial, configure, migrate, sync, adopt, allows, visible, readyFor, act, view, validate, describe };
 });

@@ -9,6 +9,7 @@ const http = require('node:http');
 const { chromium } = require('playwright');
 const { bundle } = require('../../build/bundle-wayfarers-android.cjs');
 const H = require('./helpers/wayfarers-progression.cjs');
+const Onboarding = require('./helpers/wayfarers-onboarding.cjs');
 const Storage = require('../../js/games/wayfarers-guild/persistence');
 const output = path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.join(os.tmpdir(),'guild-tiers-')));
 const evidence = { viewports:[], flows:[], errors:[], browser:'Browser plugin not available; existing Playwright workflow used.' };
@@ -61,6 +62,7 @@ async function run() {
   async function open(width,height,state,offlineSeconds=0) {
     const context = await browser.newContext({viewport:{width,height},hasTouch:true,reducedMotion:'reduce'});
     state = clone(state); state.lastUpdate = 1000;
+    Onboarding.completeAreaGuides(state);
     H.Core.act(state,{type:'introduction-seen',ids:H.Core.getPresentation(state).introductions.map(item => item.id)});
     H.Core.act(state,{type:'discovery-seen',seq:state.luck.ledger.seq});
     const record = Storage.createStore({storage:null,now:()=>1000}).export(state); assert(record.ok,record.message);
@@ -81,15 +83,15 @@ async function run() {
       assert.equal(await page.locator('.wx-upgrade').count(),1,'Readiness does not reveal the unclaimed row');
       assert.deepEqual(await bounds(page),anchors,'Readiness keeps world and dock fixed');
       await page.clock.runFor(1500);
-      assert.equal(await sheet(page).getAttribute('data-kind'),'tier');
+      assert.equal(await sheet(page).getAttribute('data-kind'),'onboarding-notice');
       await geometry(page); await shot(page,'tier-ready-'+width);
-      await key(page,'tier-later').click(); await page.clock.runFor(3000);
+      await key(page,'onboarding-later').click(); await page.clock.runFor(3000);
       assert.equal(await sheet(page).count(),0,'Later does not immediately reopen');
       assert.equal(await page.locator('[data-wx-tier-ready]:visible').count(),1);
       await page.reload(); await page.locator('.wx-game').waitFor(); await page.clock.runFor(3000);
       assert.equal(await sheet(page).count(),0,'Durable prompted state survives reload');
       await page.locator('[data-wx-tier-ready]').click();
-      await page.locator('[data-wx-do^="tier-unlock:"]').click();
+      await page.locator('[data-wx-do^="onboarding-open:ready:"]').click();
       assert.equal(await sheet(page).count(),0);
       assert.equal(await page.locator('.wx-upgrade').count(),2);
       assert.deepEqual(await bounds(page),anchors,'Explicit tier unlock keeps world and dock fixed');
@@ -98,8 +100,8 @@ async function run() {
       assert.equal((await save(page)).expedition.areas.greenway.ranks.porters,1);
       await geometry(page); await shot(page,'tier-unlocked-'+width); evidence.viewports.push({width,height,geometry:await geometry(page)});
       await page.locator('[data-wx-buy="porters"]').click(); await page.clock.runFor(1500);
-      assert.equal(await sheet(page).getAttribute('data-kind'),'tier','Real new player investment re-arms the next earned tier in the same session');
-      assert.match(await sheet(page).innerText(),/Scouting/); await shot(page,'new-investment-tier-'+width); await key(page,'tier-later').click();
+      assert.equal(await sheet(page).getAttribute('data-kind'),'onboarding-notice','Real new player investment re-arms the next earned tier in the same session');
+      assert.match(await sheet(page).innerText(),/Scouting/); await shot(page,'new-investment-tier-'+width); await key(page,'onboarding-later').click();
       await context.close();
     }
     evidence.flows.push('actual first-tier readiness, Later, reload, explicit unlock and new purchase preserve world geometry; later real investment re-arms a new notice in the same session');
@@ -107,7 +109,7 @@ async function run() {
     const {context,page} = await open(390,844,waiting);
     await page.locator('[data-wx-options]').click(); await page.clock.runFor(4000);
     assert.equal(await sheet(page).getAttribute('data-kind'),'options','Readiness never interrupts an existing sheet');
-    await close(page); await page.clock.runFor(2000); assert.equal(await sheet(page).getAttribute('data-kind'),'tier');
+    await close(page); await page.clock.runFor(2000); assert.equal(await sheet(page).getAttribute('data-kind'),'onboarding-notice');
     await page.keyboard.press('Escape'); await page.clock.runFor(3000); assert.equal(await sheet(page).count(),0,'Android/keyboard Back behaves like Later');
     await context.close(); evidence.flows.push('open sheet and Back protection');
     for (const [width,height] of [[320,740],[915,390]]) {
@@ -116,12 +118,12 @@ async function run() {
       await p.clock.runFor(1500);
       assert.equal(await sheet(p).getAttribute('data-kind'),'return','Offline return takes priority');
       await key(p,'return-close').click(); await p.clock.runFor(2000);
-      assert.equal(await sheet(p).getAttribute('data-kind'),'tiers');
+      assert.equal(await sheet(p).getAttribute('data-kind'),'onboarding-notice');
       const state = await save(p);
       assert(ready(state).length > 1,'Real offline work creates a multi-tier backlog');
-      assert.equal(await p.locator('.wx-tier-ready-list .wx-menu').count(),ready(state).length);
+      assert(await p.locator('.wx-inbox-list .wx-menu').count() >= ready(state).length);
       await geometry(p); await shot(p,'offline-ready-summary-'+width);
-      await key(p,'tier-later').click(); await p.clock.runFor(5000); assert.equal(await sheet(p).count(),0,'No popup storm after the coalesced summary');
+      await key(p,'onboarding-later').click(); await p.clock.runFor(5000); assert.equal(await sheet(p).count(),0,'No popup storm after the coalesced summary');
       await p.reload(); await p.locator('.wx-game').waitFor(); await p.clock.runFor(2000);
       assert.equal(await sheet(p).count(),0,'Backlog acknowledgement is durable');
       await p.locator('[data-wx-nav="upgrades"]').click();
@@ -132,8 +134,9 @@ async function run() {
       await shot(p,'hidden-future-search-'+width);
       await p.locator('[data-wx-search]').fill(''); await key(p,'ready-tiers').click();
       const quarry = ready(await save(p)).find(item => item.id === 'area:quarry:carts'); assert(quarry);
-      await key(p,'tier-review:'+quarry.id).click(); await geometry(p); await shot(p,'quarry-tier-'+width);
-      await key(p,'tier-unlock:'+quarry.id).click();
+      await geometry(p); await shot(p,'quarry-tier-'+width);
+      await key(p,'onboarding-open:ready:'+quarry.id).click();
+      await Onboarding.finishCurrentGuide(p);
       assert(!ready(await save(p)).some(item => item.id === quarry.id));
       await p.locator('[data-wx-nav="expedition"]').click();
       await p.clock.runFor(4000);
@@ -152,16 +155,16 @@ async function run() {
     }
     evidence.flows.push('offline backlog coalescing; deferred direct route; later Quarry tier; invisible future search/filter; legacy expedition2 migration');
     const failure = await open(390,844,firstReady()); const p = failure.page;
-    await p.clock.runFor(1600); assert.equal(await sheet(p).getAttribute('data-kind'),'tier');
+    await p.clock.runFor(1600); assert.equal(await sheet(p).getAttribute('data-kind'),'onboarding-notice');
     const before = await save(p);
     await p.evaluate(() => { window.tierSetItem=Storage.prototype.setItem; Storage.prototype.setItem=function(key,value) { if (key.startsWith('wayfarers-guild-save')) throw new DOMException('Quota full','QuotaExceededError'); return window.tierSetItem.call(this,key,value); }; });
-    await p.locator('[data-wx-do^="tier-unlock:"]').click();
+    await p.locator('[data-wx-do^="onboarding-open:ready:"]').click();
     assert.equal(await p.locator('.wx-upgrade').count(),1,'Failed durable claim does not leak newly buyable rows');
-    assert(await key(p,'tier-retry').isVisible()); assert(await p.locator('[data-wx-buy="boots"]').isDisabled());
+    assert(await key(p,'onboarding-retry').isVisible()); assert(await p.locator('[data-wx-buy="boots"]').isDisabled());
     await shot(p,'failed-tier-save');
-    await p.evaluate(() => { Storage.prototype.setItem=window.tierSetItem; }); await key(p,'tier-retry').click();
+    await p.evaluate(() => { Storage.prototype.setItem=window.tierSetItem; }); await key(p,'onboarding-retry').click();
     assert.equal(await p.locator('.wx-upgrade').count(),1,'Retry keeps the rolled-back claim unpurchased');
-    await p.locator('[data-wx-do^="tier-unlock:"]').click();
+    await p.locator('[data-wx-do^="onboarding-open:ready:"]').click();
     assert.equal(await p.locator('.wx-upgrade').count(),2);
     const after = await save(p); assert.equal(after.upgradeTiers.claimed.length,before.upgradeTiers.claimed.length+1);
     await p.reload(); await p.locator('.wx-game').waitFor(); assert.equal(await p.locator('.wx-upgrade').count(),2); await failure.context.close();
@@ -177,7 +180,7 @@ async function run() {
     assert.equal(unacknowledged.prompted.length,0);
     await np.evaluate(() => { Storage.prototype.setItem=window.tierSetItem; }); await np.locator('[data-wx-save-alert]').click();
     assert.equal(await np.locator('.wx-sheet[open][data-kind="collection-result"]').count(),0,'Tier retry never opens unrelated older collection feedback');
-    await np.clock.runFor(1500); assert.equal(await sheet(np).getAttribute('data-kind'),'tiers'); await geometry(np); await shot(np,'notice-ack-recovered'); await noticeFailure.context.close();
+    await np.clock.runFor(1500); assert.equal(await sheet(np).getAttribute('data-kind'),'onboarding-notice'); await geometry(np); await shot(np,'notice-ack-recovered'); await noticeFailure.context.close();
     evidence.flows.push('failed automatic notice acknowledgement stays unseen; retry preserves tiers and does not open unrelated collection feedback');
     assert.deepEqual(evidence.errors,[]);
   } finally {

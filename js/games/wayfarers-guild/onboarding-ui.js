@@ -1,0 +1,165 @@
+(function (root) {
+  'use strict';
+  function create(options) {
+    const abort = new AbortController();
+    const dialog = document.createElement('dialog');
+    dialog.className = 'wx-guide';
+    dialog.setAttribute('aria-labelledby','wx-guide-heading');
+    dialog.setAttribute('aria-describedby','wx-guide-body');
+    dialog.innerHTML = '<svg class="wx-guide-shade" aria-hidden="true"><path fill-rule="evenodd"></path></svg><div class="wx-guide-ring" aria-hidden="true"></div><span class="wx-guide-announcement" aria-live="polite" aria-atomic="true" data-guide-announcement></span><section class="wx-guide-card"><div class="wx-guide-meta"><span data-guide-area></span><span data-guide-count></span></div><h2 id="wx-guide-heading"></h2><div class="wx-guide-copy"><p id="wx-guide-body"></p><p class="wx-guide-reward" data-guide-reward hidden></p><p class="wx-guide-recovery" data-guide-recovery hidden></p></div><footer><button type="button" data-guide-leave>Leave area</button><button type="button" data-guide-next>Next</button></footer></section>';
+    options.parent.append(dialog);
+    const q = selector => dialog.querySelector(selector);
+    let model = null;
+    let signature = '';
+    let previousFocus = null;
+    let frame = 0;
+    let disposed = false;
+    let missing = false;
+    let submitting = false;
+    let target = null;
+    const observer = new ResizeObserver(schedule);
+    observer.observe(dialog);
+    observer.observe(q('.wx-guide-card'));
+    function schedule() {
+      if (disposed || !dialog.open || frame) return;
+      frame = root.requestAnimationFrame(() => { frame = 0; layout(); });
+    }
+    function rect(node) {
+      if (!node || !node.isConnected || !node.getClientRects().length) return null;
+      const box = node.getBoundingClientRect();
+      return box.width >= 1 && box.height >= 1 ? box : null;
+    }
+    function layout() {
+      if (!model || !dialog.open) return;
+      const found = options.resolveTarget(model.target,model.fallbackTarget);
+      const nextTarget = found?.element || found;
+      if (target !== nextTarget) {
+        if (target) observer.unobserve(target);
+        target = nextTarget;
+        if (target) observer.observe(target);
+      }
+      const viewport = dialog.getBoundingClientRect();
+      const visual = root.visualViewport;
+      const left = Math.max(viewport.left,visual?.offsetLeft || 0);
+      const top = Math.max(viewport.top,visual?.offsetTop || 0);
+      const right = Math.min(viewport.right,(visual?.offsetLeft || 0) + (visual?.width || root.innerWidth));
+      const bottom = Math.min(viewport.bottom,(visual?.offsetTop || 0) + (visual?.height || root.innerHeight));
+      const pad = 12;
+      const safe = { left:left-viewport.left+pad, top:top-viewport.top+pad, right:right-viewport.left-pad, bottom:bottom-viewport.top-pad };
+      const clip = rect(found?.clip);
+      let box = rect(target);
+      if (box && found?.scroll && clip && (box.top < clip.top || box.bottom > clip.bottom)) {
+        // A tall library cannot fit both edges. Keep its visible intersection
+        // instead of alternating between top and bottom on every layout pass.
+        if (box.height > clip.height) {
+          if (box.bottom <= clip.top || box.top >= clip.bottom) found.scroll.scrollTop += box.top-clip.top;
+        } else found.scroll.scrollTop += box.top < clip.top ? box.top-clip.top-5 : box.bottom-clip.bottom+5;
+        box = rect(target);
+      }
+      if (box) {
+        box = {left:Math.max(box.left,clip?.left ?? left,left)-viewport.left,top:Math.max(box.top,clip?.top ?? top,top)-viewport.top,right:Math.min(box.right,clip?.right ?? right,right)-viewport.left,bottom:Math.min(box.bottom,clip?.bottom ?? bottom,bottom)-viewport.top};
+        if (box.right-box.left < 12 || box.bottom-box.top < 12) box = null;
+      }
+      missing = !box;
+      dialog.dataset.missing = String(missing);
+      const recovery = q('[data-guide-recovery]');
+      recovery.hidden = !missing && !model.saveFailure;
+      recovery.textContent = model.saveFailure ? 'Save needs attention. Retry to keep your place.' : missing ? 'This control is not visible yet. Retry, or leave and resume here later.' : '';
+      q('[data-guide-next]').textContent = model.saveFailure || missing ? 'Retry' : model.ackLabel || 'Next';
+      q('[data-guide-next]').disabled = submitting || !!model.disabled;
+      q('[data-guide-leave]').disabled = submitting;
+      const shade = q('svg');
+      shade.setAttribute('viewBox','0 0 ' + viewport.width + ' ' + viewport.height);
+      let path = 'M0 0H' + viewport.width + 'V' + viewport.height + 'H0Z';
+      const ring = q('.wx-guide-ring');
+      ring.hidden = missing;
+      if (box) {
+        const gap = 4;
+        box.left = Math.max(3,box.left-gap); box.right = Math.min(viewport.width-3,box.right+gap);
+        box.top = Math.max(3,box.top-gap); box.bottom = Math.min(viewport.height-3,box.bottom+gap);
+        path += 'M' + box.left + ' ' + box.top + 'H' + box.right + 'V' + box.bottom + 'H' + box.left + 'Z';
+        Object.assign(ring.style,{left:box.left+'px',top:box.top+'px',width:box.right-box.left+'px',height:box.bottom-box.top+'px'});
+      }
+      shade.querySelector('path').setAttribute('d',path);
+      const card = q('.wx-guide-card');
+      const availableWidth = Math.max(0,safe.right-safe.left);
+      card.style.width = Math.min(320,availableWidth) + 'px';
+      card.style.maxHeight = Math.max(120,safe.bottom-safe.top) + 'px';
+      const size = card.getBoundingClientRect();
+      let x = (safe.left+safe.right-size.width)/2;
+      let y = (safe.top+safe.bottom-size.height)/2;
+      if (box) {
+        const spaces = [
+          {room:box.top-safe.top-12,axis:'y',x:(box.left+box.right-size.width)/2,y:box.top-size.height-12},
+          {room:safe.bottom-box.bottom-12,axis:'y',x:(box.left+box.right-size.width)/2,y:box.bottom+12},
+          {room:box.left-safe.left-12,axis:'x',x:box.left-size.width-12,y:(box.top+box.bottom-size.height)/2},
+          {room:safe.right-box.right-12,axis:'x',x:box.right+12,y:(box.top+box.bottom-size.height)/2}
+        ];
+        const best = spaces.filter(candidate => candidate.room >= (candidate.axis === 'y' ? size.height : size.width)).sort((a,b) => b.room-a.room)[0];
+        if (best) { x=best.x; y=best.y; }
+        else y = box.top > (safe.top+safe.bottom)/2 ? safe.top : safe.bottom-size.height;
+      }
+      card.style.left = Math.max(safe.left,Math.min(x,safe.right-size.width)) + 'px';
+      card.style.top = Math.max(safe.top,Math.min(y,safe.bottom-size.height)) + 'px';
+    }
+    function show(next) {
+      model = next;
+      if (!model) { hide(); return; }
+      const nextSignature = [model.guideId,model.stepId,model.index,model.replay,model.epoch].join(':');
+      const changed = nextSignature !== signature;
+      signature = nextSignature;
+      dialog.dataset.guide = model.guideId || '';
+      dialog.dataset.step = model.stepId || '';
+      dialog.dataset.replay = String(!!model.replay);
+      q('[data-guide-area]').textContent = (model.replay ? 'Replay · ' : '') + (model.title || 'Area guide');
+      q('[data-guide-count]').textContent = (model.index+1) + ' / ' + model.total;
+      q('#wx-guide-heading').textContent = model.heading;
+      q('#wx-guide-body').textContent = model.body;
+      q('[data-guide-leave]').textContent = model.replay ? 'Close replay' : model.leaveLabel || 'Leave area';
+      const reward = q('[data-guide-reward]');
+      reward.hidden = !model.rewardText;
+      reward.textContent = model.rewardText || '';
+      if (!dialog.open) { previousFocus=document.activeElement; dialog.showModal(); }
+      layout();
+      if (changed) {
+        q('.wx-guide-copy').scrollTop=0;
+        q('[data-guide-next]').focus({preventScroll:true});
+        q('[data-guide-announcement]').textContent = (model.title || 'Area guide') + '. Step ' + (model.index+1) + ' of ' + model.total + '. ' + model.heading + '. ' + model.body;
+      }
+    }
+    function hide() {
+      if (target) observer.unobserve(target);
+      model = null; signature = ''; target = null;
+      if (frame) root.cancelAnimationFrame(frame);
+      frame = 0;
+      if (dialog.open) dialog.close();
+      if (previousFocus?.isConnected && previousFocus.getClientRects().length) previousFocus.focus({preventScroll:true});
+      previousFocus = null;
+    }
+    function leave() { if (model && !submitting) options.onLeave(model); }
+    q('[data-guide-leave]').addEventListener('click',leave,{signal:abort.signal});
+    q('[data-guide-next]').addEventListener('click',() => {
+      if (!model || submitting) return;
+      if (missing && !model.saveFailure) { layout(); return; }
+      submitting = true;
+      try { model.saveFailure ? options.onRetry(model) : options.onNext(model); }
+      finally { submitting = false; if (dialog.open) layout(); }
+    },{signal:abort.signal});
+    dialog.addEventListener('cancel',event => { event.preventDefault(); leave(); },{signal:abort.signal});
+    dialog.addEventListener('keydown',event => {
+      if (event.key !== 'Tab') return;
+      const buttons=Array.from(dialog.querySelectorAll('button:not(:disabled)')).filter(node=>node.getClientRects().length);
+      if (!buttons.length) { event.preventDefault(); return; }
+      const first=buttons[0],last=buttons[buttons.length-1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus({preventScroll:true}); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus({preventScroll:true}); }
+    },{signal:abort.signal});
+    dialog.addEventListener('click',event => event.stopPropagation(),{signal:abort.signal});
+    root.addEventListener('resize',schedule,{signal:abort.signal});
+    root.visualViewport?.addEventListener('resize',schedule,{signal:abort.signal});
+    root.visualViewport?.addEventListener('scroll',schedule,{signal:abort.signal});
+    document.addEventListener('scroll',schedule,{capture:true,passive:true,signal:abort.signal});
+    return {show,hide,refresh:schedule,isOpen:()=>dialog.open,handleBack() { if (!dialog.open) return false; leave(); return true; },dispose() { hide(); disposed=true; observer.disconnect(); abort.abort(); dialog.remove(); }};
+  }
+  root.WayfarersOnboardingUI = {create};
+}(typeof window !== 'undefined' ? window : globalThis));

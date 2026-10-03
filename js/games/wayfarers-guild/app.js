@@ -46,6 +46,7 @@
     let state = loaded.state || core.createState(Date.now());
     let view = core.getView(state);
     let expeditionUI = null;
+    let onboardingEpoch = 0;
     let tab = 'trail';
     let room = 'mine';
     let overview = false;
@@ -197,7 +198,7 @@
       const previousSeen = state.luck && state.luck.ledger ? state.luck.ledger.seen : null;
       if (pendingSeenSeq != null) core.act(state, { type: 'discovery-seen', seq: pendingSeenSeq });
       const result = store.save(state);
-      if (!result.ok && previousSeen != null) state.luck.ledger.seen = previousSeen;
+      if (!result.ok && !result.committed && previousSeen != null) state.luck.ledger.seen = previousSeen;
       if (result.ok) { pendingSeenSeq = null; lastSuccessfulSave = Date.now(); saveFailure = null; } else saveFailure = result.message;
       lastSave = Date.now();
       updateSaveStatus();
@@ -236,6 +237,8 @@
     function perform(action) {
       if (!action) return { ok: false };
       if (hardResetBusy) return { ok: false, message: 'Finish the testing reset in Settings before continuing.' };
+      const onboardingAction = /^onboarding-/.test(action.type);
+      if (onboardingAction && action.onboardingEpoch !== undefined && action.onboardingEpoch !== onboardingEpoch) return { ok: false, message: 'This guide belongs to the previous save. Open the current guide to continue.' };
       if (action.type === 'retry-save') {
         const result = save();
         announce(result.ok ? 'Progress saved.' : result.message);
@@ -243,9 +246,9 @@
         return result;
       }
       const tierAction = /^upgrade-tier-/.test(action.type);
-      const collectionAction = /^(collection-|deck-|card-|gear-)/.test(action.type) || tierAction;
+      const collectionAction = /^(collection-|deck-|card-|gear-)/.test(action.type) || tierAction || onboardingAction;
       if (collectionAction && saveFailure) {
-        const message = 'Save your pending result before making another collection change. Retry save without spending again.';
+        const message = onboardingAction || tierAction ? 'Save progress before continuing. Retry save, then try this step again.' : 'Save your pending result before making another collection change. Retry save without spending again.';
         announce(message); render();
         return {ok:false,pendingSave:true,message};
       }
@@ -266,13 +269,15 @@
       const previousFocus = document.activeElement;
       advance();
       const collectionBeforeAck = action.type === 'collection-ack' ? JSON.parse(JSON.stringify(state.collection)) : null;
-      const beforeTier = tierAction ? JSON.parse(JSON.stringify(state)) : null;
-      const result = core.act(state, action);
+      const beforeTier = tierAction || onboardingAction ? JSON.parse(JSON.stringify(state)) : null;
+      const engineAction = onboardingAction ? { ...action } : action;
+      if (onboardingAction) delete engineAction.onboardingEpoch;
+      const result = core.act(state, engineAction);
       const saved = result.ok ? save() : null;
       if (saved && !saved.ok && collectionAction) {
-        if (collectionBeforeAck) state.collection = collectionBeforeAck;
-        if (beforeTier) { state = beforeTier; core.setPremiumEntitlements(state, billingSnapshot.owned); }
-        announce('Your result is pending save. Retry save; no additional items will be spent.');
+        if (collectionBeforeAck && !saved.committed) state.collection = collectionBeforeAck;
+        if (beforeTier && !saved.committed) { state = beforeTier; core.setPremiumEntitlements(state, billingSnapshot.owned); }
+        announce(saved.committed ? saved.message : onboardingAction ? 'This step could not be saved. Retry save, then continue the guide.' : 'Your result is pending save. Retry save; no additional items will be spent.');
         render();
         return {ok:false,pendingSave:true,message:saved.message};
       }
@@ -284,7 +289,7 @@
           card.classList.add('wg-purchased');
         }
         announce((shortNames[action.id] || action.id) + ' upgraded');
-      } else if (!result.ok || !['expedition-select', 'expedition-seen', 'discovery-seen', 'introduction-seen', 'collection-ack'].includes(action.type)) announce(result.message);
+      } else if (!result.ok || !onboardingAction && !['expedition-select', 'expedition-seen', 'discovery-seen', 'introduction-seen', 'collection-ack'].includes(action.type)) announce(result.message);
       render();
       if (dialog.open && dialogKind === 'inspect') { if (descriptorLookup.has(inspectedKey)) renderInspect(); else backSheet(); }
       if (previousFocus && !previousFocus.isConnected) { const target = dialog.open ? q('.wg-dialog-heading [data-close-dialog]') : q('[data-goal-action]'); if (target && !target.hidden) target.focus({ preventScroll: true }); }
@@ -1170,7 +1175,7 @@
       renderDevelopment();
       updateSaveStatus();
       renderIntroduction();
-      if (expeditionUI) expeditionUI.update(view, { quiet:quiet || motionQuery.matches, saveFailure, awaitingWallet:awaitingPurchaseWallet });
+      if (expeditionUI) expeditionUI.update(view, { quiet:quiet || motionQuery.matches, saveFailure, awaitingWallet:awaitingPurchaseWallet, onboardingEpoch });
     }
 
     function setSheetFooter(primary, secondary) {
@@ -1279,6 +1284,7 @@
         set('[data-dialog-notice]', 'Finish the pending purchase or reward before resetting.'); return;
       }
       hardResetBusy = true; hardResetRequest = true;
+      onboardingEpoch += 1;
       q('[data-confirm-testing-reset]').disabled = true;
       let result;
       try {
@@ -1464,6 +1470,7 @@
         const result = store.replaceImport(pendingImport, { premiumEntitlements: billingSnapshot.owned });
         if (!result.ok) { set('[data-dialog-notice]', result.message); return; }
         state = result.state;
+        onboardingEpoch += 1;
         if (result.persisted) { lastSuccessfulSave = Date.now(); saveFailure = null; } else saveFailure = result.message;
         if (core.setPremiumEntitlements) core.setPremiumEntitlements(state, billingSnapshot.owned);
         view = core.getView(state);
@@ -1564,6 +1571,7 @@
         openLegacy:openDialog,
         overlayOpen:() => dialog.open || !q('[data-find-feedback]').hidden,
         tierNoticeAllowed:() => !disposed && !dialog.open && !caravanBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,
+        onboardingAllowed:() => !disposed && !dialog.open && !caravanBusy && !billingBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,
         nativeOptions:() => q('.wg-exit').click()
       });
       scene.destroy();

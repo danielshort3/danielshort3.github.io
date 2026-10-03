@@ -7,6 +7,7 @@ const http = require('node:http');
 const { chromium } = require('playwright');
 const { bundle } = require('../../build/bundle-wayfarers-android.cjs');
 const H = require('./helpers/wayfarers-progression.cjs');
+const Onboarding = require('./helpers/wayfarers-onboarding.cjs');
 const Storage = require('../../js/games/wayfarers-guild/persistence.js');
 const output = path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.join(os.tmpdir(), 'guild-reset-')));
 (async () => {
@@ -30,6 +31,7 @@ const output = path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.
     for (const [width, height] of [[320, 740], [390, 844], [915, 390]]) {
       const state = H.mature(); state.lastUpdate = 2000000;
       for (const kind of ['cards', 'equipment']) H.Core.act(state, { type: 'collection-unlock', kind });
+      Onboarding.announceDiscoveries(Onboarding.completeAreaGuides(state));
       const value = Storage.createStore({ storage: null, now: () => 2000000 }).export(state).text;
       const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
       await context.addInitScript(({ key, value }) => {
@@ -101,6 +103,7 @@ const output = path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.
     const pendingState = H.Core.createState(2000000); H.fund(pendingState);
     for (let i = 0; i < 2; i += 1) assert(H.Core.act(pendingState, H.Core.getView(pendingState).expedition.cards[0].action).ok);
     const oldNotice = H.Core.getView(pendingState).expedition.tiers.notice;
+    Onboarding.completeAreaGuides(pendingState);
     assert(oldNotice?.items.length, 'An actual earned notice exists before reset');
     const pendingContext = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
     const pendingValue = Storage.createStore({ storage: null, now: () => 2000000 }).export(pendingState).text;

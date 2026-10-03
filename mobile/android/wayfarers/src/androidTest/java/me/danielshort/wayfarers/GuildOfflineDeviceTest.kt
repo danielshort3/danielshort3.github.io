@@ -280,6 +280,15 @@ class GuildOfflineDeviceTest {
       if (snapshot.optString("sheetKind") in listOf("return", "finale")) {
         evaluate(scenario, "document.querySelector('.wx-sheet [data-wx-close]').click(); true")
       }
+      if (snapshot.optString("sheetKind") in listOf("onboarding-notice", "onboarding-inbox")) {
+        evaluate(scenario, "document.querySelector('.wx-sheet [data-wx-do=\"onboarding-later\"]').click(); true")
+      }
+      // Legacy geometry/economy cases can explicitly acknowledge real controls
+      // on disposable fixtures. The separate guide suite owns step/resume tests.
+      if (snapshot.optBoolean("guideOpen") && InstrumentationRegistry.getArguments()
+          .getString("guildGuideAcknowledgementQa") == "true") {
+        evaluate(scenario, "document.querySelector('.wx-guide[open] [data-guide-next]').click(); true")
+      }
       val orientationMatches = landscape == null || (snapshot.optInt("viewportWidth") > snapshot.optInt("viewportHeight")) == landscape
       if (snapshot.optString("scene") == "ready" && snapshot.optBoolean("saved") && snapshot.optBoolean("rendered") && orientationMatches) return snapshot
       Thread.sleep(150)
@@ -328,6 +337,7 @@ class GuildOfflineDeviceTest {
             guildBoots: state && state.upgrades.boots,
             stageIndex: state && state.expedition && state.expedition.index,
             sheetKind: sheet ? sheet.dataset.kind : '', quiet: localStorage.getItem('wayfarers-guild-quiet'),
+            guideOpen: !!document.querySelector('.wx-guide[open]'),
             nativeConfirmed: !!(window.WayfarersCheckpoint && window.WayfarersCheckpoint.confirmed()),
             canBuyBoots: action && !action.disabled,
             sceneTop: sceneBox && sceneBox.top, sceneHeight: sceneBox && sceneBox.height,

@@ -89,9 +89,10 @@
     "test:starfall:icons": "node tests/project-starfall/project-starfall-icon-loading.test.js",
     "test:wayfarers-guild:expeditions": "node --test tests/games/wayfarers-guild-expeditions.test.cjs tests/games/wayfarers-guild-opening.test.cjs && npm run test:wayfarers-guild:progression && npm run test:wayfarers-guild:collections",
     "test:wayfarers-guild:expedition:browser": "node tests/games/wayfarers-guild-expedition.browser.cjs",
-    "test:wayfarers-guild:progression": "node --test tests/games/wayfarers-guild-upgrade-tiers.test.cjs tests/games/wayfarers-guild-testing-reset.test.cjs tests/games/wayfarers-guild-progression.test.cjs tests/games/wayfarers-guild-schema5.test.cjs tests/games/wayfarers-guild-modifiers.test.cjs tests/games/wayfarers-guild-purchases.test.cjs tests/games/wayfarers-guild-reset-rewards.test.cjs tests/games/wayfarers-guild-harbor.test.cjs mobile/android/scripts/wayfarers-bundle.test.cjs",
+    "test:wayfarers-guild:progression": "node --test tests/games/wayfarers-guild-onboarding.test.cjs tests/games/wayfarers-guild-upgrade-tiers.test.cjs tests/games/wayfarers-guild-testing-reset.test.cjs tests/games/wayfarers-guild-progression.test.cjs tests/games/wayfarers-guild-schema5.test.cjs tests/games/wayfarers-guild-modifiers.test.cjs tests/games/wayfarers-guild-purchases.test.cjs tests/games/wayfarers-guild-reset-rewards.test.cjs tests/games/wayfarers-guild-harbor.test.cjs mobile/android/scripts/wayfarers-bundle.test.cjs",
     "test:wayfarers-guild:progression:browser": "node tests/games/wayfarers-guild-progression.browser.cjs",
     "test:wayfarers-guild:collections": "node --test tests/games/wayfarers-guild-collections.test.cjs tests/games/wayfarers-guild-collection-art.test.cjs",
+    "test:wayfarers-guild:onboarding:browser": "node tests/games/wayfarers-guild-onboarding.browser.cjs",
     "test:wayfarers-guild:tiers:browser": "node tests/games/wayfarers-guild-tiers.browser.cjs",
     "test:wayfarers-guild:testing-reset:browser": "node tests/games/wayfarers-guild-testing-reset.browser.cjs",
     "test:wayfarers-guild:collections:browser": "node tests/games/wayfarers-guild-collection.browser.cjs"
