@@ -2036,7 +2036,10 @@
         const previewState = clone(state);
         if (premiumEntitlements.has(state)) setPremiumEntitlements(previewState, [...premiumEntitlements.get(state)]);
         if (P.active(previewState)) previewState.expedition.batch = practice.count || 1;
-        lesson.practicePreview = E.catalog(previewState).find(row => row.action?.type === 'expedition-buy' && row.areaId === practice.areaId && row.action.id === practice.id) || null;
+        const quoted = E.catalog(previewState).find(row => row.action?.type === 'expedition-buy' && row.areaId === practice.areaId && row.action.id === practice.id);
+        // Released E2 catalogs describe one-rank purchases without batch fields.
+        // Normalize that display contract without changing the canonical quote.
+        lesson.practicePreview = quoted ? Object.assign({}, quoted, { quantity: quoted.quantity ?? (practice.count || 1), rankAfter: quoted.rankAfter ?? quoted.rank + (practice.count || 1) }) : null;
       }
     }
     return view;
