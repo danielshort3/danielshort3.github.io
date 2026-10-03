@@ -273,7 +273,14 @@
     }
     function renderCurrencies() {
       const rail=q('[data-wx-currencies]');
-      markup(rail,currencies().map(item=>'<button type="button" class="wx-currency" data-wx-currency="'+esc(item.id)+'" aria-label="'+esc((item.name || item.label)+': '+(item.formatted || compact(item.value))+'. Currency details')+'">'+icon(item.icon || item.id)+'<span><strong>'+esc(compact(item.value))+'</strong><small>'+esc(item.name || item.label)+'</small></span></button>').join(''));
+      const items=currencies();
+      for(const node of Array.from(rail.children))if(!items.some(item=>item.id===node.dataset.wxCurrency))node.remove();
+      for(const item of items) {
+        let node=Array.from(rail.children).find(button=>button.dataset.wxCurrency===item.id);
+        if(!node){node=document.createElement('button');node.type='button';node.className='wx-currency';node.dataset.wxCurrency=item.id;node.innerHTML=icon(item.icon || item.id)+'<span><strong></strong><small></small></span>';rail.append(node);}
+        text(node.querySelector('strong'),compact(item.value));text(node.querySelector('small'),item.name || item.label);
+        node.setAttribute('aria-label',(item.name || item.label)+': '+(item.formatted || compact(item.value))+'. Currency details');
+      }
       currencyOverflow();
     }
     function collectionItem(kind, id) { return (kind === 'card' ? view.collection?.cards : view.collection?.equipment?.items)?.find(item => item.id === id); }
@@ -357,7 +364,7 @@
         const current=collection.equipment.items.find(gear => gear.slot === item.slot && gear.equipped);
         html = collectionHero(item,item.slot + ' · ' + (item.equipped ? 'Equipped' : item.owned ? 'Owned' : 'Not forged')) + '<p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
         if (item.owned) {
-          html += '<div class="wx-gear-attempts"><strong>+' + item.points + ' points</strong><span>' + (item.slotsMax-item.slotsUsed) + ' / ' + item.slotsMax + ' free attempts</span><span>' + item.failedSlots + ' recoverable</span></div><p class="wx-muted">Current ' + esc(item.slot) + ': ' + esc(current?.name || 'Empty') + '</p><div class="wx-impact">' + collectionImpacts(item) + '</div>';
+          html += '<div class="wx-gear-attempts"><strong>+' + item.points + ' points</strong><span>' + (item.slotsMax-item.slotsUsed) + ' / ' + item.slotsMax + ' open slots</span><span>' + item.failedSlots + ' recoverable</span></div><p class="wx-muted">Current ' + esc(item.slot) + ': ' + esc(current?.name || 'Empty') + '</p><div class="wx-impact">' + collectionImpacts(item) + '</div>';
           html += section('Enhance with a scroll','<div class="wx-scroll-list">' + item.scrolls.map(scroll => button('<span><strong>' + esc(scroll.name) + '</strong><small>' + (scroll.id === 'restoration' ? 'Recover 1 failed slot' : scroll.successPercent + '% success · +' + scroll.points + ' points') + '</small></span><b>' + scroll.count + '</b>',()=>open({kind:'collection-transaction',entity:'gear',id:item.id,operation:'scroll',scrollId:scroll.id}),{key:'scroll:' + scroll.id,className:'wx-menu'})).join('') + '</div>');
           if(item.reforge?.visible) html += menu('Reforge equipment','Clear all enhancements; keep the base item','forge',{kind:'collection-transaction',entity:'gear',id:item.id,operation:'reforge'});
           collectionFooter(item.equipped ? 'Unequip' : 'Equip ' + item.slot,item.equipped ? collection.equipment.slots.find(slot => slot.id === item.slot).clearAction : item.equipAction,false,item.equipped ? 'Returns to your satchel' : 'Replaces ' + (current?.name || 'empty slot'));
@@ -366,7 +373,7 @@
         const item=collectionItem(model.entity,model.id);
         const preview=model.operation === 'scroll' ? item.scrolls.find(scroll => scroll.id === model.scrollId) : item[model.operation];
         title=model.operation === 'fusion' ? 'Fuse ' + item.name : model.operation === 'recycle' ? 'Recycle duplicate' : model.operation === 'craft' ? 'Craft duplicate' : model.operation === 'reforge' ? 'Reforge ' + item.name : preview.name;
-        html=collectionHero(item,model.entity === 'card' ? 'Rank ' + item.rank + ' · ' + item.copies + ' duplicates' : '+' + item.points + ' points · ' + (item.slotsMax-item.slotsUsed) + ' free attempts');
+        html=collectionHero(item,model.entity === 'card' ? 'Rank ' + item.rank + ' · ' + item.copies + ' duplicates' : '+' + item.points + ' points · ' + (item.slotsMax-item.slotsUsed) + ' open slots');
         let summary='';
         if(model.operation === 'fusion') {
           summary='Consume ' + preview.costCopies + ' duplicates';
@@ -375,7 +382,7 @@
         else if(model.operation === 'craft') { summary='Consume ' + preview.costInk + ' Archive Ink'; html += '<p class="wx-effect">+1 duplicate of ' + esc(item.name) + '</p>'; }
         else if(model.operation === 'reforge') {
           summary='Consume ' + preview.scrollCost + ' Restoration Scrolls · ' + collectionCost(preview.cost);
-          html += '<p class="wx-effect">Lose all ' + preview.pointsLost + ' enhancement points → 0</p><div class="wx-impact"><div><span>Free attempt slots</span><strong>' + (item.slotsMax-item.slotsUsed) + ' → ' + preview.slotsAfter + '</strong></div></div><p>' + esc(preview.currentEffectText) + ' → ' + esc(preview.nextEffectText) + '</p><p class="wx-muted">Guaranteed reset. Keep this item, its base bonuses and its equipped slot. All successful enhancements and failed slots are cleared.</p>';
+          html += '<p class="wx-effect">Lose all ' + preview.pointsLost + ' enhancement points → 0</p><div class="wx-impact"><div><span>Open attempt slots</span><strong>' + (item.slotsMax-item.slotsUsed) + ' → ' + preview.slotsAfter + '</strong></div></div><p>' + esc(preview.currentEffectText) + ' → ' + esc(preview.nextEffectText) + '</p><p class="wx-muted">Guaranteed reset. Keep this item, its base bonuses and its equipped slot. All successful enhancements and failed slots are cleared.</p>';
         }
         else { summary='Consume 1 ' + preview.name + (model.scrollId === 'restoration' ? '' : ' + 1 attempt slot'); html += '<div class="wx-scroll-odds"><strong>' + preview.successPercent + '%</strong><span>' + (model.scrollId === 'restoration' ? 'restore one failed slot' : 'chance of +' + preview.points + ' points') + '</span></div><p class="wx-effect">' + esc(preview.currentEffectText || item.effectText) + (preview.nextEffectText && preview.nextEffectText !== preview.currentEffectText ? ' → ' + esc(preview.nextEffectText) : '') + '</p><p class="wx-muted">' + esc(preview.failureText) + '</p><p class="wx-muted">Restoration repairs failed slots. Reforge clears all enhancements' + (item.reforge?.visible ? '.' : ' after the Workshop unlocks.') + '</p>'; }
         const comparison=collectionImpacts(preview);
@@ -528,7 +535,7 @@
       if (model.suppliesText) {
         node.disabled=!!currentContext.saveFailure || !!currentContext.awaitingWallet;
         if(model.supply==='rank' && model.practicePreview) node.innerHTML=node.hasAttribute('data-wx-buy') ? purchaseLabel(model.practicePreview,true) : 'Buy ×'+(model.practicePreview.quantity || 1);
-        node.setAttribute('aria-label',model.heading+'. '+model.suppliesText);
+        if(model.practicePreview)node.setAttribute('aria-label','Buy exactly '+model.practicePreview.quantity+' ranks of '+(model.practicePreview.label || model.practicePreview.name)+', '+(model.practicePreview.cost || []).map(cost=>cost.text).join(', '));
       }
       return node;
     }
@@ -765,7 +772,7 @@
       if (!active || !active.mode && (active.guideId || active.areaId) !== guideScopeId()) return null;
       const definition = data.guides?.find(item => item.id === (active.guideId || active.id) || item.areaId === active.areaId);
       const step = definition?.steps?.find(item => item.id === active.stepId) || {};
-      return contextualGuide(Object.assign({},step,active,{guideId:active.guideId || active.id || definition?.id,title:active.title || definition?.title,index:active.index ?? definition?.progress ?? 0,total:active.total || definition?.steps?.length || 3,epoch:onboardingIdentity,saveFailure:currentContext.saveFailure,disabled:currentContext.awaitingWallet,leaveLabel:currentContext.saveFailure || (view.expedition.areas || []).filter(area => area.unlocked).length === 1 ? 'Game options' : screen === 'guild' ? 'Guild overview' : 'Leave area'}));
+      return contextualGuide(Object.assign({},step,active,{guideId:active.guideId || active.id || definition?.id,title:active.title || definition?.title,index:active.index ?? definition?.progress ?? 0,total:active.total || definition?.steps?.length || 3,epoch:onboardingIdentity,saveFailure:currentContext.saveFailure,disabled:currentContext.awaitingWallet}));
     }
     function onboardingSafe() {
       return !disposed && !onboardingBusy && !!guideScopeId() && !dialog.open && !guide?.isOpen() && !document.hidden && !swipe && !activePointers.size && !options.overlayOpen() && !currentContext.saveFailure && !currentContext.awaitingWallet && (!options.onboardingAllowed || options.onboardingAllowed());
@@ -779,7 +786,14 @@
       if (!model || !guide) return;
       if(model.mode==='currency' && dialog.open)close();
       if (!model.replay && model.index === model.total-1 && model.rewardPreview?.available) model.rewardText=model.rewardPreview.text;
-      if(model.suppliesText && !(model.practicePreview && model.mode==='action')) model.rewardText=model.suppliesText;
+      if(model.mode==='action' && model.costCoverage==='guild') {
+        const quote=model.practicePreview;
+        const labels={copies:'duplicate cards',steady:'Steady Scroll',bold:'Bold Scroll',brilliant:'Brilliant Scroll',restoration:'Restoration Scroll',focus:'Focus charge',ink:'Archive Ink'};
+        const costs=quote ? (quote.cost || []).map(cost=>cost.text) : Object.entries(model.suppliedCost || {}).filter(([,amount])=>root.WayfarersCore.Numbers.cmp(amount,0)>0).map(([id,amount])=>root.WayfarersCore.format(amount)+' '+(labels[id] || id));
+        if(costs.length)model.quoteText=(quote ? '×'+quote.quantity+' · ' : 'Normal price: ')+costs.join(' · ')+'\nGuild supplies · wallet unchanged';
+        if(quote)model.body='Use the highlighted upgrade button. This improvement remains in your guild.';
+        if(!model.quoteText && model.suppliesText)model.rewardText=model.suppliesText;
+      } else if(model.suppliesText) model.rewardText=model.suppliesText;
       cancelSwipe(); suppressSceneTapUntil=root.performance.now()+500;
       if (!guideScroll) guideScroll={scope:guideScopeId(),destination:screen !== 'expedition',top:q(screen !== 'expedition' ? '[data-wx-destination]' : '[data-wx-tray]').scrollTop};
       guide.show(model);

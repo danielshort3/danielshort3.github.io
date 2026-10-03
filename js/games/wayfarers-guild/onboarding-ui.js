@@ -6,7 +6,7 @@
     dialog.className = 'wx-guide';
     dialog.setAttribute('aria-labelledby','wx-guide-heading');
     dialog.setAttribute('aria-describedby','wx-guide-body');
-    dialog.innerHTML = '<svg class="wx-guide-shade" aria-hidden="true"><path fill-rule="evenodd"></path></svg><div class="wx-guide-ring" aria-hidden="true"></div><span class="wx-guide-announcement" aria-live="polite" aria-atomic="true" data-guide-announcement></span><section class="wx-guide-card"><div class="wx-guide-meta"><span data-guide-area></span><span data-guide-count></span><button type="button" data-guide-settings aria-label="Settings and recovery">⚙</button></div><h2 id="wx-guide-heading"></h2><div class="wx-guide-copy"><p id="wx-guide-body"></p><p class="wx-guide-reward" data-guide-reward hidden></p><p class="wx-guide-recovery" data-guide-recovery hidden></p></div><footer><button type="button" data-guide-leave>Close</button><button type="button" data-guide-next>Next</button></footer></section>';
+    dialog.innerHTML = '<svg class="wx-guide-shade" aria-hidden="true"><path fill-rule="evenodd"></path></svg><div class="wx-guide-ring" aria-hidden="true"></div><span class="wx-guide-announcement" aria-live="polite" aria-atomic="true" data-guide-announcement></span><section class="wx-guide-card"><div class="wx-guide-meta"><span data-guide-area></span><span data-guide-count></span><button type="button" data-guide-settings aria-label="Settings and recovery">⚙</button></div><h2 id="wx-guide-heading"></h2><div class="wx-guide-copy"><p id="wx-guide-body"></p><p class="wx-guide-reward" data-guide-reward hidden></p><p class="wx-guide-recovery" data-guide-recovery hidden></p></div><p id="wx-guide-quote" class="wx-guide-quote" data-guide-quote hidden></p><footer><button type="button" data-guide-leave>Close</button><button type="button" data-guide-next>Next</button></footer></section>';
     options.parent.append(dialog);
     const q = selector => dialog.querySelector(selector);
     let model = null;
@@ -57,7 +57,7 @@
       Array.from(document.body.children).forEach(visit);
       if (target) {
         describedTarget=target; priorDescription=target.getAttribute('aria-describedby');
-        target.setAttribute('aria-describedby',[(priorDescription || ''),'wx-guide-heading','wx-guide-body'].filter(Boolean).join(' '));
+        target.setAttribute('aria-describedby',[(priorDescription || ''),'wx-guide-heading','wx-guide-body',model.quoteText ? 'wx-guide-quote' : null].filter(Boolean).join(' '));
       }
     }
     function allowedNode(node) {
@@ -219,6 +219,8 @@
       q('[data-guide-count]').textContent = (model.index+1) + ' / ' + model.total;
       q('#wx-guide-heading').textContent = model.heading;
       q('#wx-guide-body').textContent = model.body;
+      q('[data-guide-quote]').hidden=!model.quoteText;
+      q('[data-guide-quote]').textContent=model.quoteText || '';
       q('[data-guide-leave]').textContent = model.saveFailure ? 'Game options' : model.replay ? 'Close replay' : 'Close';
       const reward = q('[data-guide-reward]');
       reward.hidden = !model.rewardText;
@@ -235,7 +237,7 @@
         q('.wx-guide-copy').scrollTop=0;
         pendingStepFocus = true;
         focusStep();
-        q('[data-guide-announcement]').textContent = (model.title || 'Area guide') + '. Step ' + (model.index+1) + ' of ' + model.total + '. ' + model.heading + '. ' + model.body;
+        q('[data-guide-announcement]').textContent = (model.title || 'Area guide') + '. Step ' + (model.index+1) + ' of ' + model.total + '. ' + model.heading + '. ' + model.body + (model.quoteText ? '. '+model.quoteText : '');
       }
     }
     function focusStep() {
