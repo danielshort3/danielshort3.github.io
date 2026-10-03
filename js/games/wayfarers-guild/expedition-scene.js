@@ -30,10 +30,12 @@
 
   function normalizeView(input) {
     const source = input && (input.scene || input.expedition && input.expedition.scene || input) || {};
-    const kind = ['greenway', 'quarry', 'watchtower'].includes(source.kind) ? source.kind : 'greenway';
+    const kind = ['greenway', 'quarry', 'watchtower', 'workshop', 'ruins', 'harbor'].includes(source.kind) ? source.kind : 'greenway';
     const region = String(source.region || '').toLowerCase().replace(/[-\s]/g, '').replace('starfallheights','starfall');
     return {
       kind,
+      ruleset: source.ruleset || '',
+      plan: String(source.allocation || source.route || source.quality || ''),
       index: Math.floor(finite(source.index)),
       region: PALETTES[region] ? region : 'greenway',
       progress: clamp(source.progress, 0, 1),
@@ -44,9 +46,14 @@
       ranks: source.ranks || {},
       rates: source.rates || {},
       flows: source.flows || null,
+      templates: source.templates || [],
+      assignments: source.assignments || [],
+      discoveries: source.discoveries || {},
+      buffers: source.buffers || {input:0,output:0},
+      voyage: source.voyage || {progress:0,duration:0,ships:0,cargo:0},
       unlocked: Array.isArray(source.unlocked) ? source.unlocked : null,
       route: source.route === 'supply' ? 'supply' : 'short',
-      dispatch: ['trade','freight','survey','relay','trade-survey'].includes(source.dispatch) ? source.dispatch : 'trade',
+      dispatch: ['trade','freight','survey','relay','trade-survey','mixed','continental'].includes(source.dispatch) ? source.dispatch : 'trade',
       oreBuffer: finite(source.oreBuffer),
       smeltBuffer: finite(source.smeltBuffer),
       capacity: Math.max(1, finite(source.capacity)),
@@ -223,7 +230,10 @@
       hotspots.push({ id, kind, label: labelText, x: x / width, y: y / viewportHeight, width: w / width, height: h / viewportHeight });
     }
     function rank(id) { return finite(view.ranks[id]); }
-    function developed(id) { return view.developments.includes(id); }
+    function developed(id) {
+      const equivalents = { 'trail-caravans':'wheelworks', 'trail-depot':'tower-surveys', 'paved-roads':'rail-network', 'tower-survey':'tower-surveys', 'quarry-precision':'sorting-lines', 'relay-network':'ruins-resonators' };
+      return view.developments.includes(id) || view.ruleset === 'progression' && !!equivalents[id] && view.developments.includes(equivalents[id]);
+    }
     function unlocked(id) { return !view.unlocked || view.unlocked.includes(id); }
     function haulRate() { return view.flows ? finite(view.flows.carts) : finite(view.rates.carts) || 0.4 + rank('carts') * 0.2; }
     function haulPeriod() { return clamp(10 / Math.sqrt(Math.max(0.1, haulRate())), 2, 12); }
@@ -254,7 +264,7 @@
     }
 
     function drawGreenway(palette) {
-      rectangle(0, 0, width, height, palette.grass);
+      rectangle(0, 0, width, viewportHeight, palette.grass);
       const floor = height * 0.82;
       const junction = [width * 0.38, height * 0.47];
       const bridgeY = height * 0.33;
@@ -598,6 +608,161 @@
       hotspot('beacon', 'upgrade', 'Inspect beacon', towerX - 17, beaconY - 21, 34, 35);
     }
 
+    function drawSurveyTower(palette) {
+      const floor = Math.max(76,height * .78), tx = width * .49;
+      const working = finite(view.rates.research) > 0;
+      rectangle(0,0,width,viewportHeight,palette.light);
+      rectangle(0,0,width,floor * .45,palette.sky);
+      polygon([[0,floor * .52],[width * .22,floor * .31],[width * .44,floor * .57],[width * .77,floor * .26],[width,floor * .48],[width,floor],[0,floor]],'#719883');
+      const towerH = Math.min(91,Math.max(53,floor - 28)), top = floor - towerH;
+      rectangle(tx - 17,top,35,towerH,'#566f76'); rectangle(tx - 12,top + 4,25,towerH - 4,'#a9b7a5');
+      for (let y = top + 15; y < floor; y += 13) { rectangle(tx - 12,y,25,1,'#80928b'); rectangle(tx + ((y - top) % 2 ? -5 : 4),y - 12,1,12,'#85998e'); }
+      rectangle(tx - 21,top - 4,43,6,'#d0cfaa'); rectangle(tx - 8,floor - 21,15,21,INK);
+      // Survey lenses and a live signal line make the operating role visible.
+      const angle = reduced() ? -.4 : -.45 + Math.sin(animation * .25) * .12;
+      const lensX = tx + Math.cos(angle) * 15, lensY = top - 18 + Math.sin(angle) * 15;
+      line([[tx - 1,top - 17],[lensX,lensY]],'#34586c',7); line([[tx - 1,top - 18],[lensX,lensY - 1]],'#c5b87e',3);
+      rectangle(tx - 1,top - 16,3,12,'#756546'); rectangle(lensX - 2,lensY - 4,5,8,'#b9dfdf');
+      hotspot('beacon','upgrade','Surveying',tx - 26,top - 30,55,42);
+      const deskX = width * .2, deskY = floor + 3;
+      rectangle(deskX - 15,deskY - 16,31,5,'#9d794d'); rectangle(deskX - 12,deskY - 11,3,11,'#6a553d'); rectangle(deskX + 10,deskY - 11,3,11,'#6a553d');
+      rectangle(deskX - 12,deskY - 22,25,6,'#e0d5ac'); line([[deskX - 9,deskY - 20],[deskX - 3,deskY - 18],[deskX + 7,deskY - 20]],'#769889',1);
+      actor(deskX - 8,deskY + 5,'smith',working,1); label('SURVEY',tx,floor + 11);
+      if (unlocked('signals')) {
+        const sx = width * .8, sy = floor - 5;
+        rectangle(sx,sy - 45,3,45,'#735d3f'); rectangle(sx - 8,sy - 45,19,5,'#afb59a');
+        rectangle(sx - 6,sy - 40,15,11,'#416576'); rectangle(sx - 3,sy - 38,9,6,finite(view.rates.coordination) > 0 ? GOLD : '#7a9f9c');
+        line([[tx + 21,top + 4],[sx,sy - 44]],'#ccd5a8',1); label('SIGNALS',sx,sy + 14);
+        hotspot('signals','upgrade','Signals',sx - 20,sy - 48,40,64);
+      }
+      if (unlocked('crew')) {
+        const count = Math.min(4,Math.floor(finite(view.rates.capacity)));
+        for (let i = 0; i < count; i += 1) { const x = width * .35 + i * 13; rectangle(x,floor + 31,9,7,'#25434d'); rectangle(x + 2,floor + 32,5,4,({survey:'#a2cfb1',industry:'#91b5c4',trade:'#f0c96d',discovery:'#c7a8d7'})[view.assignments[i]] || '#607c76'); }
+        hotspot('crew','upgrade','Command',width * .33,floor + 25,width * .32,18);
+      }
+      if (unlocked('optics')) { rectangle(tx - 4,top - 35,10,5,'#a9d7ce'); rectangle(tx - 2,top - 39,5,4,'#e0e4ba'); }
+      if (unlocked('forecasting')) { rectangle(width * .9,top + 8,2,18,'#625d46'); line([[width * .9 - 7,top + 12],[width * .9 + 8,top + 12]],'#dfcd8e',2); }
+      if (unlocked('relay-grid')) { rectangle(tx - 33,top + 16,3,26,'#55786f'); rectangle(tx - 37,top + 15,11,5,GOLD); line([[tx - 30,top + 17],[tx - 17,top + 7]],'#d5dcac',1); }
+      guildBanner(tx + 13,floor - 27); companion(deskX - 20,deskY + 9);
+    }
+    function cog(x, y, radius, active) {
+      const phase = active && !reduced() ? animation * .8 : 0;
+      rectangle(x - radius, y - radius + 2, radius * 2, radius * 2 - 4, '#c0a26b');
+      rectangle(x - radius + 2, y - radius, radius * 2 - 4, radius * 2, '#c0a26b');
+      rectangle(x - 2, y - 2, 4, 4, INK);
+      for (let i = 0; i < 4; i += 1) {
+        const angle = phase + i * Math.PI / 2;
+        rectangle(x + Math.cos(angle) * radius - 2, y + Math.sin(angle) * radius - 2, 4, 4, '#e8cd8e');
+      }
+    }
+    function drawWorkshop() {
+      const floor = Math.max(65, height * .72);
+      const left = width * .18, center = width * .49, right = width * .79;
+      const flow = finite(view.flows?.production ?? view.rates.flow);
+      const working = flow > 0;
+      rectangle(0, 0, width, viewportHeight, '#536365');
+      rectangle(0, 0, width, floor - 5, '#8f9a83');
+      rectangle(9, Math.max(28,floor - 67), width - 18, 4, '#4d463e');
+      for (const x of [12,width / 2,width - 15]) rectangle(x, Math.max(28,floor - 67), 3, floor - 28, '#72634d');
+      rectangle(0, floor, width, 5, '#aa8658');
+      rectangle(0, floor + 5, width, viewportHeight - floor, '#55524c');
+      // Input crates and the conveyor are a direct view of real queue contents.
+      pile(left - 12, floor - 1, finite(view.buffers.input), '#8aadc0', view.capacity);
+      rectangle(left, floor - 14, right - left, 5, '#263d46');
+      for (let x = left + 5; x < right; x += 13) rectangle(x, floor - 9, 3, 8, '#ae9163');
+      if (working || finite(view.buffers.input) > 0) {
+        const phase = reduced() ? .35 : (animation * Math.min(1.5,.1 + Math.sqrt(flow) * .07)) % 1;
+        for (let i = 0; i < 3; i += 1) { const x = left + ((phase + i / 3) % 1) * (center - left); rectangle(x,floor - 19,7,5,'#a8c2c8'); }
+      }
+      const pressY = floor - 23 + (working && !reduced() ? Math.round(Math.sin(animation * 3) * 2) : 0);
+      rectangle(center - 12,floor - 48,5,33,'#345567'); rectangle(center + 8,floor - 48,5,33,'#345567');
+      rectangle(center - 12,floor - 51,25,6,'#bfd0c5'); rectangle(center - 3,floor - 44,7,20,'#708f9c');
+      rectangle(center - 9,pressY,20,5,'#d5c48e');
+      actor(center - 22,floor,'smith',working,1);
+      label('ASSEMBLY',center,floor + 10); bar(center - 20,floor - 58,40,finite(view.buffers.input) / view.capacity,'#afd0b2');
+      hotspot('assembly','upgrade','Assembly',center - 24,floor - 59,48,76);
+      if (unlocked('toolmaking')) {
+        rectangle(right - 11,floor - 29,23,5,'#cbab6e'); rectangle(right - 9,floor - 24,3,20,'#654c36'); rectangle(right + 7,floor - 24,3,20,'#654c36');
+        rectangle(right - 5,floor - 40,4,12,'#b29a6b'); rectangle(right - 9,floor - 41,13,4,'#8ba5af');
+        label('TOOLS',right,floor + 10); hotspot('toolmaking','upgrade','Toolmaking',right - 20,floor - 48,40,65);
+      }
+      if (unlocked('metallurgy')) {
+        const fx = width * .13, fy = Math.max(48,floor - 30);
+        rectangle(fx - 12,fy - 25,24,25,'#594b44'); rectangle(fx - 8,fy - 18,16,18,'#1c313a');
+        rectangle(fx - 6,fy - 9,12,8,working ? '#e09d51' : '#697169'); rectangle(fx + 4,fy - 43,6,18,'#a3a48b');
+        hotspot('metallurgy','upgrade','Metallurgy',fx - 15,fy - 45,30,47);
+      }
+      if (unlocked('mechanisms')) cog(center + 20,floor - 42,7,working);
+      if (unlocked('precision')) { rectangle(right - 8,floor - 46,18,3,'#a7dbca'); rectangle(right - 1,floor - 53,3,7,'#d5e2d4'); }
+      if (finite(view.rates.capacity) > 1) { rectangle(center - 8,floor + 34,22,3,'#92beb6'); rectangle(center - 6,floor + 25,5,9,'#d2c896'); rectangle(center + 4,floor + 25,5,9,'#d2c896'); }
+      for (let i = 0; i < Math.min(2,view.templates.length); i += 1) { const lane = view.templates[i], x = center - 10 + i * 15; rectangle(x,floor + 29,8,5,({supplies:'#d8bd79',tools:'#a7bec5',instruments:'#99c9bb'})[lane.recipe] || '#8b9d8c'); }
+      guildBanner(width - 16,Math.max(45,floor - 38)); companion(left + 4,floor + 10);
+      if (!working) label('WAITING',left,floor + 30);
+    }
+    function drawRuins(palette) {
+      const floor = Math.max(70,height * .72), center = width * .48;
+      const flow = finite(view.flows?.production ?? view.rates.flow);
+      rectangle(0,0,width,viewportHeight,'#667c70');
+      rectangle(0,0,width,Math.max(24,floor - 45),'#9ab1a1');
+      polygon([[0,floor - 50],[width * .24,floor - 70],[width * .46,floor - 47],[width * .7,floor - 80],[width,floor - 54],[width,floor],[0,floor]],'#557269');
+      rectangle(0,floor,width,viewportHeight - floor,'#8d9677');
+      const archX = width * .27;
+      rectangle(archX - 20,floor - 48,9,48,'#b5b7a0'); rectangle(archX + 13,floor - 48,9,48,'#989f91');
+      rectangle(archX - 20,floor - 53,42,10,'#bec2a8'); rectangle(archX - 13,floor - 42,28,42,'#243f43');
+      rectangle(archX - 20,floor - 22,7,3,'#788c76'); rectangle(archX + 14,floor - 36,7,3,'#788c76');
+      const walking = flow > 0;
+      const phase = reduced() || !walking ? .4 : (animation * .08 * Math.min(3,Math.sqrt(flow) + 1)) % 1;
+      actor(archX + 16 + phase * width * .12,floor + 7,'explorer',walking,phase < .5 ? 1 : -1);
+      label('DELVE',archX,floor + 15); hotspot('delving','upgrade','Delving',archX - 25,floor - 55,50,78);
+      const desk = width * .7;
+      if (unlocked('archaeology')) {
+        rectangle(desk - 14,floor - 22,29,5,'#b2905b'); rectangle(desk - 12,floor - 17,3,17,'#594e3a'); rectangle(desk + 10,floor - 17,3,17,'#594e3a');
+        rectangle(desk - 10,floor - 27,19,5,'#e5d4a6'); line([[desk - 7,floor - 24],[desk + 5,floor - 24]],'#84947a',1);
+        actor(desk + 21,floor,'smith',walking,-1); label('STUDY',desk,floor + 15); hotspot('archaeology','upgrade','Archaeology',desk - 23,floor - 45,46,68);
+      }
+      if (unlocked('recovery-teams')) { crate(center - 4,floor + 7,11); pile(center + 6,floor + 7,finite(view.buffers.input),'#c5bb83',view.capacity); }
+      if (unlocked('restoration')) {
+        const column = Math.min(4,1 + Math.floor(rank('restoration') / 20));
+        rectangle(width * .91,floor - 12 - column * 5,10,12 + column * 5,'#c1c6ab'); rectangle(width * .91 - 2,floor - 16 - column * 5,14,4,'#d3d6b7');
+      }
+      if (unlocked('attunement')) { rectangle(desk - 4,floor - 38,9,10,({botanical:'#93b06a',metallic:'#a3bdc8',inscribed:'#bd9ecc'})[view.rates.discovery] || '#799fba'); rectangle(desk - 1,floor - 36,3,5,'#e0dca5'); }
+      if (unlocked('resonance')) { line([[archX + 23,floor - 40],[desk,floor - 38],[width * .91 + 5,floor - 40]],'#a5d6c5',1); }
+      bar(center - 20,Math.max(25,floor - 65),40,finite(view.buffers.output) / view.capacity,'#bbd1a9');
+      guildBanner(width * .1,floor - 8); companion(archX + 9,floor + 11);
+    }
+    function ship(x, y, cargo, active, scale) {
+      const s = scale || 1;
+      polygon([[x - 17*s,y - 6*s],[x + 20*s,y - 6*s],[x + 12*s,y + 3*s],[x - 11*s,y + 3*s]],'#65462f');
+      rectangle(x - 16*s,y - 7*s,35*s,3*s,'#d8b573'); rectangle(x,y - 32*s,2*s,27*s,'#65513c');
+      if (active) polygon([[x + 3*s,y - 31*s],[x + 17*s,y - 10*s],[x + 3*s,y - 10*s]],'#f0e4c1');
+      else rectangle(x + 3*s,y - 29*s,5*s,19*s,'#dbd7b2');
+      if (cargo > 0) { rectangle(x - 10*s,y - 13*s,7*s,6*s,'#ac854e'); rectangle(x - 9*s,y - 12*s,1*s,4*s,'#dec789'); }
+    }
+    function drawHarbor() {
+      const shore = Math.max(50,height * .44), dock = Math.max(82,height * .72);
+      const p = clamp(view.voyage.progress,0,1), ships = finite(view.voyage.ships), flow = finite(view.flows?.production ?? view.rates.flow);
+      rectangle(0,0,width,viewportHeight,'#4b93a6'); rectangle(0,0,width,shore,'#9ac4ca');
+      polygon([[0,shore],[width * .14,shore - 14],[width * .26,shore],[width * .52,shore - 18],[width * .62,shore],[width,shore]],'#668e87');
+      for (let row = 0; row < 4; row += 1) {
+        const y = shore + 13 + row * 20;
+        for (let x = 4; x < width; x += 40) rectangle(x + (!reduced() ? Math.floor(animation + row) % 8 : 0),y,15,1,'#7ab4bf');
+      }
+      rectangle(width * .67,dock - 5,width * .33,10,'#b98e57');
+      for (let x = width * .7; x < width; x += 16) { rectangle(x,dock + 4,3,16,'#6b5b42'); rectangle(x - 1,dock - 7,5,3,'#d4b478'); }
+      const distance = Math.sin(p * Math.PI);
+      const shipX = width * .58 - distance * width * .37;
+      ship(shipX,dock - 2,finite(view.voyage.cargo),ships > 0,.85);
+      if (ships > 1) ship(width * .37,shore + 13,finite(view.voyage.cargo),true,.55);
+      if (ships > 2) ship(width * .67,shore + 22,finite(view.voyage.cargo),true,.5);
+      bar(width * .12,dock + 22,width * .52,p,'#e6d289'); label('VOYAGE',width * .38,dock + 30);
+      hotspot('shipbuilding','upgrade','Shipbuilding',shipX - 22,dock - 37,44,48);
+      if (unlocked('stowage')) { crate(width * .83,dock - 5,11); if (finite(view.voyage.cargo) > 1) crate(width * .88,dock - 5,9); }
+      if (unlocked('seamanship')) actor(width * .73,dock - 5,'explorer',flow > 0,-1);
+      if (unlocked('contracts')) { rectangle(width * .91,dock - 37,2,32,'#70583d'); rectangle(width * .85,dock - 36,17,15,'#dfcea0'); rectangle(width * .87,dock - 32,10,2,'#7b886f'); }
+      if (unlocked('navigation')) { rectangle(width * .12,shore - 23,6,23,'#c8cbb0'); rectangle(width * .1,shore - 28,14,5,'#436774'); rectangle(width * .12,shore - 27,6,3,'#f2da8e'); }
+      if (unlocked('fleet-command')) { line([[width * .45,shore + 1],[width * .13,shore - 9]],'#d7d9ad',1); flag(width * .45,shore,true); }
+      guildBanner(width * .95,dock - 14); companion(width * .8,dock + 5);
+    }
     function reduced() { return quiet || !!(motion && motion.matches); }
     function visible() { return !disposed && inView && !document.hidden && canvas.getClientRects().length > 0; }
     function draw(now) {
@@ -606,17 +771,19 @@
       const dpr = clamp(root.devicePixelRatio || 1, 1, 3);
       const physicalWidth = Math.round(bounds.width * dpr);
       const physicalHeight = Math.round(bounds.height * dpr);
+      const worldHeight = canvas.parentElement?.getBoundingClientRect().height || bounds.height;
+      const safeBottom = 70 + Math.max(0,bounds.height - worldHeight);
       // Each logical art pixel maps to an integer number of device pixels.
       // A narrow, centered margin absorbs any non-divisible remainder.
       const widthScale = Math.max(1, Math.round(Math.max(1, Math.round(bounds.width / 192)) * dpr));
-      const heightScale = Math.max(1, Math.floor(Math.max(1, physicalHeight - 70 * dpr) / 112));
+      const heightScale = Math.max(1, Math.floor(Math.max(1, physicalHeight - safeBottom * dpr) / 112));
       const scale = Math.min(widthScale, heightScale);
       width = Math.max(96, Math.floor(physicalWidth / scale));
       viewportHeight = Math.max(1, Math.floor(physicalHeight / scale));
       // The host's one-thumb choice button occupies the bottom of the world.
       // Reserve its space from the first frame so later unlocks cannot cover
       // workers/queues or force the scene composition to jump.
-      height = Math.max(48, viewportHeight - Math.ceil(70 * dpr / scale));
+      height = Math.max(48, viewportHeight - Math.ceil(safeBottom * dpr / scale));
       if (canvas.width !== physicalWidth || canvas.height !== physicalHeight) { canvas.width = physicalWidth; canvas.height = physicalHeight; }
       if (buffer.width !== width || buffer.height !== viewportHeight) { buffer.width = width; buffer.height = viewportHeight; }
       paint.imageSmoothingEnabled = false;
@@ -625,7 +792,10 @@
       const palette = PALETTES[view.region];
       rectangle(0, 0, width, viewportHeight, view.kind === 'quarry' ? '#38434a' : palette.light);
       if (view.kind === 'quarry') drawQuarry(palette);
-      else if (view.kind === 'watchtower') drawWatchtower(palette);
+      else if (view.kind === 'watchtower') { if (view.ruleset === 'progression') drawSurveyTower(palette); else drawWatchtower(palette); }
+      else if (view.kind === 'workshop') drawWorkshop();
+      else if (view.kind === 'ruins') drawRuins(palette);
+      else if (view.kind === 'harbor') drawHarbor();
       else drawGreenway(palette);
       context.fillStyle = view.kind === 'quarry' ? '#243343' : palette.grass;
       context.fillRect(0, 0, physicalWidth, physicalHeight);

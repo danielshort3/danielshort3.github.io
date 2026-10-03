@@ -52,12 +52,14 @@ class GuildCheckpointStore(private val file: File) {
   private fun parse(text: String, replacesCreatedAt: Double?): Checkpoint {
     require(text.toByteArray(Charsets.UTF_8).size in 1 until GuildContentPolicy.MAX_SAVE_BYTES)
     val payload = JSONObject(text)
-    require(payload.getString("format") == "wayfarers-guild-save" && payload.getInt("version") == 4)
+    val gameVersion = payload.getInt("version")
+    require(payload.getString("format") == "wayfarers-guild-save" && gameVersion in 1..5)
     val state = payload.getJSONObject("state")
-    require(state.getInt("schemaVersion") == 4)
+    require(state.getInt("schemaVersion") == gameVersion)
     require(state.has("resources") && state.has("upgrades") && state.has("rooms"))
-    // Full semantic validation is also performed by the canonical game parser
-    // before sending and before restoring. No storage outside this envelope is copied.
+    // Keep older envelopes readable so the canonical parser can migrate them.
+    // The checkpoint record version is independent of the game schema. Full
+    // semantic validation runs before sending and restoring this envelope.
     val createdAt = state.getDouble("createdAt")
     val savedAt = payload.getDouble("savedAt")
     val lastUpdate = state.getDouble("lastUpdate")

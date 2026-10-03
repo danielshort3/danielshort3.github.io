@@ -1,8 +1,10 @@
 # Wayfarers' Guild economy and save contracts
 
-Wayfarers' Guild is an automatic incremental adventure game with progressively discovered, interconnected operations. `js/games/wayfarers-guild/content.js` defines guild content, `numbers.js` implements scientific quantities, and `core.js` integrates production, spending, random rewards and reset rules. `expeditions.js` owns the persistent Trail, Quarry and Tower, their production chains, regional expansions, local investments and cross-area developments. Presentation never awards resources. The modules expose both CommonJS exports and browser namespaces.
+The current six-area economy, bulk purchases, reset ownership and schema-5 migration are documented in [Connected progression](wayfarers-progression.md). The historical progression and reset sections below document the released 0.4 economy. An existing published run keeps its production formulas until its next confirmed prestige; that reset adopts the current reset contract. The premium, reward, account and numerical contracts continue to apply to both engines.
 
-## Progression and professions
+Wayfarers' Guild is an automatic incremental adventure game with progressively discovered, interconnected operations. `js/games/wayfarers-guild/content.js` defines shared guild content, `progression-content.js` defines the six-area network, `numbers.js` implements scientific quantities, and `core.js` integrates production, spending, random rewards and reset rules. `progression.js` owns new expeditions; `expeditions.js` retains compatibility with published runs. Presentation never awards resources. The modules expose both CommonJS exports and browser namespaces.
+
+## Released progression and professions
 
 The opening exposes one local Boots purchase, the shared coin wallet, and Old Footpath. Porters and Scouts reveal after the player has learned the first track. Undiscovered areas and their resource controls remain hidden. Local repeatable tracks continue beyond the opening milestones; later development is not limited to twelve purchases per track.
 
@@ -47,7 +49,7 @@ The eight professions are adventuring (Trail), mining (Mine), smithing (Forge), 
 - Three challenges temporarily prohibit meals, equipment effects, or crew effects. Starting one resets the expedition without awarding prestige; route selection must follow that fresh expedition's sequential progress, even when later routes were discovered previously. Completing its target grants a one-time permanent benefit. Leaving a challenge restores ordinary rules without claiming its reward.
 - Realm landmarks grant permanent collection bonuses. Frontier distance, reinforcement levels, profession mastery, and repeatable prestige improvements continue beyond the authored landmarks.
 
-## Progressive presentation and introductions
+## Released presentation and shared introductions
 
 The interface starts with a portrait pixel scene, the shared coin balance and its total rate, a local checkpoint meter and one Boots purchase. A fixed-height destination bar progressively reveals Trail, Quarry, Tower, Upgrades and Guild, with undiscovered operations absent. Switching areas retains their state and does not change the simulation. The three primary local tracks stay in a compact bottom tray; advanced developments live in the shared Upgrades catalog. Its short rows expose the next effect and complete price, while deliberate inspection shows dependencies and cross-area consequences. Crew, plans, renewal previews and the regional atlas remain under Guild.
 
@@ -80,9 +82,9 @@ Schema 4 admits one optional non-economic record, `introductions:{seen:[systemId
 
 `{type:'introduction-seen',ids:[...]}` acknowledges only currently earned IDs. It is idempotent and changes only the introduction record, leaving resources, random state, simulation time and ad receipts intact. Reading a view never acknowledges anything. The host saves acknowledgment before showing a contextual introduction; if saving fails it restores the prior seen list and keeps the introduction pending. Several unlocks, including an offline return, are summarized together rather than creating a mandatory queue of dialogs. The record survives Refit, Charter and export/import, while the same descriptions remain available as contextual help.
 
-## Persistent area save and simulation contract
+## Released persistent-area save contract
 
-Schema 4 additionally admits an optional `expedition` record. New saves contain nested expedition version 2. The outer envelope remains version 4 so Android checkpoints retain their storage identity. Strict migration accepts valid published expedition-version-1 records, preserves their active area's exact ranks, choices, work and buffers, and creates the already discovered earlier operations. Past ranks already discarded by version 1 cannot be reconstructed. Migration preserves the old outpost benefits without replaying route rewards, equipment gifts or premium milestones. Supplied malformed state is rejected before normalization.
+Schema 4 admitted an optional `expedition` record; the 0.4 release created nested expedition version 2. Current new saves use outer schema 5 and nested version 3, while migrated version-2 runs keep their current economy. Strict migration also accepts valid published expedition-version-1 records, preserves their active area's exact ranks, choices, work and buffers, and creates the already discovered earlier operations. Past ranks already discarded by version 1 cannot be reconstructed. Migration preserves the old outpost benefits without replaying route rewards, equipment gifts or premium milestones. Supplied malformed state is rejected before normalization.
 
 The record separates frontier progress from `selectedArea`. Its `areas` map holds durable `greenway`, `quarry` and `watchtower` operations with their own ranks, choices, finite buffers and clocks. Developments, blueprints, family mastery, automation and bounded acknowledged events remain part of the network state. Area-specific purchase and choice actions carry `areaId`; changing the viewed screen cannot retarget a previously opened purchase. Only a new frontier capstone awards canonical route completion. Established production and revisiting a region never regrant it.
 
@@ -92,7 +94,7 @@ Area rates expose both station capacity and actual flow; scene motion follows ac
 
 Run `node --test tests/games/wayfarers-guild-expeditions.test.cjs tests/games/wayfarers-guild-opening.test.cjs` for the new opening and local-engine acceptance checks. The older core/overhaul suites also retain fixtures without the optional field to verify the historical profession formulas independently; persistence tests exercise migration into the new system.
 
-## Two distinct resets
+## Historical reset contracts before six-area adoption
 
 Every preview is calculated from the same state and formula used by the action. No prestige is performed automatically.
 
@@ -171,7 +173,7 @@ One-time progression gifts complement the rare finds: **3 Starshards for the fir
 
 Each item has one ownership level. Charm effects apply automatically, and one owned banner can be selected at a time. `premium-buy` spends the exported **earned** Starshard wallet; it rejects already owned items. Account purchases are owned and verified by the separate native/server billing integration. The engine accepts their item IDs through `setPremiumEntitlements(state, ids)` in an ephemeral `WeakMap`; they never mint earned Starshards or become local earned ownership. Effects use the union of earned and account ownership, never a stacked duplicate. Replacing or normalizing a state discards runtime account entitlements, so the host must reapply its verified account snapshot. A paid banner's saved selection is only a preference: it remains inactive until ownership is verified again. Local exports are not billing receipts or authoritative purchased balances.
 
-Schema version 2 introduced `resources.starshards` and `premium: {rng, eligibleSeconds, untilDrop, drops, claimedMilestones, owned, equipped}`. `owned` records only earned purchases. The current schema is version 4. `migrateState(v1)`, `migrateState(v2)`, and `migrateState(v3)` strictly validate the historical shape, preserve all original nested values, and add only missing later-schema fields. Version 3 migrations retain existing random clocks, pity, ownership, discoveries, active effects, receipt IDs, and exact locked/pending quotes; new relic progress keys start at zero. Malformed, enriched, missing-field, or unsupported legacy states return `null`. A v1 migration starts the earned wallet and eligible time at zero, preserves ordinary progress, and marks already achieved milestone gifts claimed without retroactive currency. Migration is pure and cannot import supplied premium data into a v1 save.
+Schema version 2 introduced `resources.starshards` and `premium: {rng, eligibleSeconds, untilDrop, drops, claimedMilestones, owned, equipped}`. `owned` records only earned purchases. The current schema is version 5. `migrateState` strictly validates historical versions 1–4, preserves original nested values, and adds only required later-schema fields. Version 3 migrations retain existing random clocks, pity, ownership, discoveries, active effects, receipt IDs, and exact locked/pending quotes; new relic progress keys start at zero. Malformed, enriched, missing-field, or unsupported legacy states return `null`. A v1 migration starts the earned wallet and eligible time at zero, preserves ordinary progress, and marks already achieved milestone gifts claimed without retroactive currency. Migration is pure and cannot import supplied premium data into a v1 save.
 
 ## Discoveries, relics, and kits
 
@@ -231,7 +233,7 @@ A defensive 2,048-economy-event budget prevents pathological imported states or 
 
 ## Public engine API
 
-- `createState(now)` creates schema version 4. `validateState(input)` returns `{valid,errors}` and accepts only v4. `migrateState(v1orV2orV3)` returns a validated v4 state or `null`. `normalizeState(input,now)` returns a whitelisted clone of valid v4 input, otherwise a fresh state; persistence must migrate supported legacy input and reject invalid imports before normalizing.
+- `createState(now)` creates schema version 5. `validateState(input)` returns `{valid,errors}` and accepts only v5. `migrateState(v1orV2orV3orV4)` returns a validated v5 state or `null`. `normalizeState(input,now)` returns a whitelisted clone of valid v5 input, otherwise a fresh state; persistence must migrate supported legacy input and reject invalid imports before normalizing.
 - `advance(state,seconds)` and `advanceTo(state,now)` mutate state and return `{seconds,pendingSeconds,gained,events,summary}`. Invalid or backward intervals do not advance time. Gains are nonnegative wallet changes; consumed resources are represented by current balances and production/drain rates, not negative offline rewards.
 - `act(state,action)` mutates only after checking the action's prerequisites and affordability, returning `{ok,message}`.
 - Premium actions are `{type:'premium-buy',id}` and `{type:'premium-equip',id}`; `id:null` restores the default banner. `setPremiumEntitlements(state,ids)` replaces verified runtime account ownership and returns `{ok,message}`; invalid IDs leave the previous set untouched.
@@ -245,7 +247,7 @@ The durable state separates resources, upgrades, research, Refit upgrades, legac
 
 ## Balance and validation
 
-Run `node tests/games/wayfarers-guild-overhaul.test.js`, `node tests/games/wayfarers-guild-core.test.js`, and `node tests/games/wayfarers-guild-persistence.test.js`. The retained core suite explicitly exercises grandfathered economy scenarios; the overhaul suite exercises fresh v4 staged progression and its new systems separately. Both run against the same current engine.
+Run `npm run test:wayfarers-guild:expeditions` for both the explicitly retained v4 fixtures and current progression, storage, reward and transaction checks. Run `npm run test:wayfarers-guild:progression:browser` for the six-area interface. The following price notes describe the historical profession economy, not the new local-track price curve.
 
 For new guilds, starter boots, mining teams and the first two equipment types have a rank-based price discount: multiply the ordinary price by `(firstCost/base)^(1−rank/untilRank)` until the specified rank. Boots start at 2.4 coins and meet the ordinary curve at rank 16; miners start at 12 coins, mining tools at 1 ore and forged boots at 2 ore, all meeting their ordinary curves at rank 8. This creates a continuous geometric price curve, without a timer, expiring bonus, special currency, or purchase prompt. Other upgrades retain their ordinary prices. The later price multiplier uses exponent `x²/(1+x/40)` where `x=max(0,level−8)`, on base 1.025. Its tail becomes linear in level instead of becoming indefinitely steeper. Migrated saves keep base 1.045 with the old quadratic exponent.
 

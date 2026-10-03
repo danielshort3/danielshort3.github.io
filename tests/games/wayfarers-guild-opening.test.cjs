@@ -3,7 +3,9 @@
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const Core = require('../../js/games/wayfarers-guild/core.js');
+const CurrentCore = require('../../js/games/wayfarers-guild/core.js');
+// These witnesses cover a released v4 run before explicit economy adoption.
+const Core = Object.assign({}, CurrentCore, { createState(now = 0) { const state = CurrentCore.migrateState(require('./fixtures/wayfarers-v4-fresh.json')); state.createdAt = now; state.lastUpdate = now; return state; } });
 const N = Core.Numbers;
 const E = require('../../js/games/wayfarers-guild/expeditions.js');
 const previousState = () => { const state = Core.createState(0); delete state.expedition; return state; };

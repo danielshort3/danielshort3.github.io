@@ -8,9 +8,9 @@ import org.junit.rules.TemporaryFolder
 
 class GuildCheckpointStoreTest {
   @get:Rule val temporary = TemporaryFolder()
-  private fun envelope(createdAt: Long = 1000, savedAt: Long = 2000, boots: Int = 1): String = JSONObject()
-    .put("format", "wayfarers-guild-save").put("version", 4).put("savedAt", savedAt)
-    .put("state", JSONObject().put("schemaVersion", 4).put("createdAt", createdAt).put("lastUpdate", savedAt)
+  private fun envelope(createdAt: Long = 1000, savedAt: Long = 2000, boots: Int = 1, version: Int = 5): String = JSONObject()
+    .put("format", "wayfarers-guild-save").put("version", version).put("savedAt", savedAt)
+    .put("state", JSONObject().put("schemaVersion", version).put("createdAt", createdAt).put("lastUpdate", savedAt)
       .put("resources", JSONObject()).put("upgrades", JSONObject().put("boots", boots)).put("rooms", JSONObject())).toString()
 
   @Test fun exactEnvelopeSurvivesASeparateStoreInstance() {
@@ -38,8 +38,25 @@ class GuildCheckpointStoreTest {
     assertTrue(store.write(original))
     assertFalse(store.write(envelope(savedAt = 1999)))
     assertFalse(store.write("{}"))
-    assertFalse(store.write(envelope().replace("\"version\":4", "\"version\":5")))
+    assertFalse(store.write(envelope().replace("\"version\":5", "\"version\":4")))
+    assertFalse(store.write(envelope(version = 6)))
+    assertFalse(store.write(envelope(version = 0)))
     assertEquals(original, store.read()!!.text)
+  }
+
+  @Test fun supportedOldCheckpointsSurviveUntilCanonicalMigrationIsSaved() {
+    for (version in 1..4) {
+      val file = temporary.newFile("guild-v$version.json")
+      val old = envelope(version = version, boots = 19)
+      assertTrue(GuildCheckpointStore(file).write(old))
+      val reopened = GuildCheckpointStore(file)
+      assertEquals(old, reopened.read()!!.text)
+      val migrated = envelope(savedAt = 2100, boots = 19)
+      assertTrue(reopened.write(migrated))
+      assertEquals(migrated, GuildCheckpointStore(file).read()!!.text)
+      assertFalse(reopened.write(old))
+      assertEquals(migrated, reopened.read()!!.text)
+    }
   }
 
   @Test fun differentGuildNeedsReviewedReplacementIdentity() {

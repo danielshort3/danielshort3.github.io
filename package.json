@@ -87,8 +87,10 @@
     "test:starfall:map-visuals": "node tests/project-starfall/project-starfall-ramp-scenery.browser.cjs",
     "compare:starfall:training": "node build/compare-project-starfall-training.js",
     "test:starfall:icons": "node tests/project-starfall/project-starfall-icon-loading.test.js",
-    "test:wayfarers-guild:expeditions": "node --test tests/games/wayfarers-guild-expeditions.test.cjs tests/games/wayfarers-guild-opening.test.cjs",
-    "test:wayfarers-guild:expedition:browser": "node tests/games/wayfarers-guild-expedition.browser.cjs"
+    "test:wayfarers-guild:expeditions": "node --test tests/games/wayfarers-guild-expeditions.test.cjs tests/games/wayfarers-guild-opening.test.cjs && npm run test:wayfarers-guild:progression",
+    "test:wayfarers-guild:expedition:browser": "node tests/games/wayfarers-guild-expedition.browser.cjs",
+    "test:wayfarers-guild:progression": "node --test tests/games/wayfarers-guild-progression.test.cjs tests/games/wayfarers-guild-schema5.test.cjs tests/games/wayfarers-guild-modifiers.test.cjs tests/games/wayfarers-guild-purchases.test.cjs tests/games/wayfarers-guild-reset-rewards.test.cjs tests/games/wayfarers-guild-harbor.test.cjs mobile/android/scripts/wayfarers-bundle.test.cjs",
+    "test:wayfarers-guild:progression:browser": "node tests/games/wayfarers-guild-progression.browser.cjs"
   },
   "engines": {
     "node": "22.x"
