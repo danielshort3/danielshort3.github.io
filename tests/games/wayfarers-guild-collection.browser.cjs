@@ -38,11 +38,12 @@ async function geometry(page) {
     const dialog=document.querySelector('.wx-sheet[open]');
     const controls=[...(dialog || document.querySelector('.wx-game')).querySelectorAll('button')].filter(node=>node.getClientRects().length).map(node=>({label:node.getAttribute('aria-label')||node.textContent.trim(),w:node.getBoundingClientRect().width,h:node.getBoundingClientRect().height}));
     const footer=dialog?.querySelector('.wx-purchase-footer:not([hidden])')?.getBoundingClientRect();
-    return {overflow:document.documentElement.scrollWidth-innerWidth,height:document.body.scrollHeight-innerHeight,controls,footer:footer?{bottom:footer.bottom,top:footer.top}:null,viewport:innerHeight};
+    return {overflow:document.documentElement.scrollWidth-innerWidth,height:document.body.scrollHeight-innerHeight,controls,footer:footer?{bottom:footer.bottom,top:footer.top}:null,viewport:innerHeight,sheetKind:dialog?.dataset.kind,sheetText:dialog?.innerText || ''};
   });
   assert(result.overflow<=1 && result.height<=1,'Viewport fits '+JSON.stringify(result));
   assert.deepEqual(result.controls.filter(item=>item.w<47.5 || item.h<47.5),[],'48px target contract');
   if(result.footer) assert(result.footer.bottom<=result.viewport+1 && result.footer.top>=0,'Action footer remains visible');
+  if(['collection-gear','collection-transaction'].includes(result.sheetKind))assert(!/\bfree\b/i.test(result.sheetText),'Equipment and purchase reviews use clear prices and open-slot wording');
   return result;
 }
 function collected(all=false) {

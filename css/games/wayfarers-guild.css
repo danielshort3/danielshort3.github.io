@@ -792,6 +792,7 @@ dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform
 .wx-guide-copy { min-height:0; overflow:auto; overscroll-behavior:contain; }
 .wx-guide p { margin:0 0 9px; font-size:14px; line-height:1.45; color:#d9e7e8; }
 .wx-guide .wx-guide-reward { color:#e7d598; font-size:12px; }
+.wx-guide .wx-guide-quote { flex-shrink:0; margin:5px 0 0; color:#ffe2a1; font-size:12px; font-weight:700; white-space:pre-line; }
 .wx-guide .wx-guide-recovery { color:#ffcf99; font-size:12px; }
 .wx-guide footer { display:flex; gap:8px; flex-shrink:0; padding-top:9px; }
 .wx-guide button { min-width:48px; min-height:48px; flex:1; padding:7px 9px; border:1px solid #728c9c; border-radius:5px; background:#193b50; color:#e6eceb; font:650 13px/1.2 system-ui,sans-serif; }

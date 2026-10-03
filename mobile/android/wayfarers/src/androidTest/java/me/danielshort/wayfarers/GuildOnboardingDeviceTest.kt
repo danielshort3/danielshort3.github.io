@@ -83,6 +83,8 @@ class GuildOnboardingDeviceTest {
       assertCoach(opening)
       performHighlightedStep(scenario, "inspect")
       val second = awaitGuide(scenario, "greenway", "upgrade")
+      assertCoach(second)
+      assertTrue("The normal first quote remains visible", second.getString("quoteText").contains("6 Coins", ignoreCase = true))
       assertEquals(1, second.getInt("progress"))
       assertEquals("Inspection must not buy the required practice rank", 0, second.getInt("boots"))
       assertEquals(1, second.getInt("proofCount"))
@@ -194,6 +196,14 @@ class GuildOnboardingDeviceTest {
     assertTrue("The highlighted real control must be visible", snapshot.getBoolean("spotlightVisible"))
     assertTrue("The real highlighted control must be operable and at least 48dp", snapshot.getBoolean("targetOperable"))
     assertTrue("The coach must not intercept its required game control: $snapshot", snapshot.getBoolean("targetReceivesHit"))
+    if (snapshot.optString("step") == "upgrade") {
+      assertTrue("The canonical price and coverage must be unoccluded", snapshot.getBoolean("quoteVisible"))
+      assertTrue("The real control must describe its canonical quote", snapshot.getBoolean("quoteDescribed"))
+      assertTrue("The changed-step announcement includes the quote", snapshot.getBoolean("quoteAnnounced"))
+      assertTrue(snapshot.getString("quoteText").contains("×1"))
+      assertTrue(snapshot.getString("quoteText").contains("Guild supplies"))
+      assertTrue(snapshot.getString("quoteText").contains("wallet unchanged"))
+    }
   }
 
   private fun assertCurrencyCoach(snapshot: JSONObject) {
@@ -312,10 +322,12 @@ class GuildOnboardingDeviceTest {
         var leave=guide && guide.querySelector('[data-guide-leave]');
         var recovery=guide && guide.querySelector('[data-guide-settings]');
         var currencyNext=guide && guide.querySelector('[data-guide-next]');
+        var quote=guide && guide.querySelector('[data-guide-quote]');
         var target=Array.from(document.querySelectorAll('[aria-describedby~="wx-guide-body"]')).find(function(node){return !node.classList.contains('wx-guide');});
         function box(el){return el && el.getBoundingClientRect();}
         function fits(el,action){var r=box(el);return !!r && r.width >= (action?47:1) && r.height >= (action?47:1) && r.left>=-1 && r.top>=-1 && r.right<=innerWidth+1 && r.bottom<=innerHeight+1;}
         function receivesHit(el){var r=box(el),hit=r && document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return !!el && (el===hit || el.contains(hit));}
+        function inside(el,parent){var a=box(el),b=box(parent);return !!a && !!b && a.left>=b.left-1 && a.right<=b.right+1 && a.top>=b.top-1 && a.bottom<=b.bottom+1;}
         function renderInfo(el){if(!el)return null;var r=box(el),c=getComputedStyle(el),pop=false;try{pop=el.matches(':popover-open');}catch(error){}return {tag:el.tagName,classes:el.className,parent:el.parentElement?.className,popover:el.getAttribute('popover'),popoverOpen:pop,transform:c.transform,overflow:c.overflow,position:c.position,rect:{x:r.x,y:r.y,width:r.width,height:r.height}};}
         var focused=document.activeElement, unrelated=document.querySelector('[data-wx-nav="guild"]');
         var exits=sheet ? Array.from(sheet.querySelectorAll('[data-wx-close],[data-wx-back]')) : [];
@@ -337,6 +349,10 @@ class GuildOnboardingDeviceTest {
           recoveryOperable:fits(recovery,true) && !recovery.hidden && !recovery.disabled && !recovery.closest('[inert]') && receivesHit(recovery),
           currencyNextOperable:fits(currencyNext,true) && !currencyNext.hidden && !currencyNext.disabled && receivesHit(currencyNext),
           currencyNextLabel:currencyNext?.textContent.trim() || '',
+          quoteText:quote?.textContent || '',
+          quoteVisible:fits(quote,false) && !quote.hidden && inside(quote,card) && quote.scrollWidth<=quote.clientWidth+1 && receivesHit(quote),
+          quoteDescribed:!!quote && !!target && (target.getAttribute('aria-describedby') || '').split(' ').includes(quote.id),
+          quoteAnnounced:!!quote && !!quote.textContent && (guide.querySelector('[data-guide-announcement]')?.textContent || '').includes(quote.textContent),
           normalPurchaseCopy:!Array.from(document.querySelectorAll('[data-wx-practice],.wx-guide[open],.wx-sheet[open]')).some(function(node){return /\bfree\b/i.test(node.textContent);}),
           spotlightVisible:fits(ring,false) && !ring.hidden,
           targetOperable:fits(target,true) && !target.disabled && !target.closest('[inert]'),targetReceivesHit:receivesHit(target),
