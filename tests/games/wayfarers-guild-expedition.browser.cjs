@@ -300,6 +300,7 @@ async function run() {
         await p.locator('[data-wx-search]').fill(item.name || item.label);
         await p.locator('[data-wx-upgrade="development:' + id + '"] .wx-research-info').click();
         assert.match(await p.locator('.wx-sheet').innerText(),new RegExp('Earn ' + (index + 1) + ' Guild Charter'));
+        assert.equal(await p.locator('.wx-sheet .wx-detail-hero strong').innerText(),'Locked','locked Charter capability must not advertise availability');
         assert(await p.locator('.wx-sheet .wx-confirm').isDisabled(),'Charter-only capability cannot be bought early');
         await layout(p,'Charter requirement ' + id); await screen(p,'network-charter-gate-' + (index + 1)); await closeSheet(p);
       }

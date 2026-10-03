@@ -244,7 +244,8 @@
     }
     function detailBody(item, local) {
       if (!item) return '<p>This upgrade is no longer available.</p>';
-      let html = '<div class="wx-detail-hero">' + icon(item.icon || item.trackId || item.id) + '<strong>' + esc(local ? 'Rank ' + (item.rank ?? item.level ?? 0) + ' / ' + (item.maxRank ?? item.maxLevel) : item.selected ? 'Active' : completedUpgrade(item) ? 'Complete' : item.level ? 'Rank ' + item.level : 'Available') + '</strong></div><p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
+      const unmet = (item.dependencies || []).some(dependency => !dependency.met);
+      let html = '<div class="wx-detail-hero">' + icon(item.icon || item.trackId || item.id) + '<strong>' + esc(local ? 'Rank ' + (item.rank ?? item.level ?? 0) + ' / ' + (item.maxRank ?? item.maxLevel) : item.selected ? 'Active' : completedUpgrade(item) ? 'Complete' : unmet ? 'Locked' : item.level ? 'Rank ' + item.level : item.disabled ? 'Save up' : 'Available') + '</strong></div><p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
       if (item.description && item.effectText && item.description !== item.effectText) html += '<p class="wx-muted">' + esc(item.description) + '</p>';
       html += areaLinks(item);
       if ((item.impact || []).length) html += '<div class="wx-impact">' + impacts(item) + '</div>';
