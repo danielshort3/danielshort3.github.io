@@ -18,7 +18,7 @@ async function runBackgroundRemoverSimpleChecks({ browser, base, artifactDir }) 
     page.on('pageerror', error => errors.push(error.message));
     try {
       await page.goto(base + '/tools/background-remover', { waitUntil: 'networkidle' });
-      const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+      const essential = page.locator('#pcz-reject');
       if (await essential.isVisible()) await essential.click();
       await page.locator('#bgtool-method').selectOption('colorkey');
       assert(await page.locator('.bgtool-detail-options').isHidden(), 'Color removal does not show empty AI options.');

@@ -94,7 +94,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     await page.goto(base + '/tools/screen-recorder', { waitUntil: 'networkidle' });
     await control('start-capture').waitFor();
     assert(await control('support-notice').isHidden(), 'Supported browsers do not show a capability warning, including at narrow widths.');
-    const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+    const essential = page.locator('#pcz-reject');
     if (await essential.isVisible()) await essential.click();
     assert.equal(await page.locator('[data-screenrec="test-capture"], [data-screenrec="delay-record"], [data-screenrec="countdown"]').count(), 0, 'Removed test/countdown controls should not remain in the page');
     assert(await control('start-record').isDisabled(), 'Recording requires an active capture');
@@ -219,7 +219,7 @@ async function checkUnavailable({ browser, base, artifactDir }, viewport, missin
     await page.goto(base + '/tools/screen-recorder', { waitUntil: 'networkidle' });
     assert.equal(new URL(page.url()).pathname, '/tools/screen-recorder');
     assert.match(await page.title(), /^Screen Recorder/);
-    const essential = page.getByRole('button', { name: 'Essential only', exact: true });
+    const essential = page.locator('#pcz-reject');
     if (await essential.isVisible()) await essential.click();
     await page.evaluate(() => document.fonts.ready);
     const notice = page.locator('[data-screenrec="support-notice"]');

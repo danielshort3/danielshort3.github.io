@@ -608,16 +608,12 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     !ordinaryMap.includes('data-home-contact-map-src') && !ordinaryMap.includes('data-contact-map-slot') &&
     ordinaryMap.includes('surface-band reveal location-section'),
   'ordinary location maps should retain their existing lazy iframe loading');
-  const contactMapSection = readJson('content/pages/contact.json').sections.find((entry) => entry.type === 'map');
-  const persistentContactMap = renderVisualPageBody({ sections: [contactMapSection] });
-  const persistentContactFrame = persistentContactMap.match(/<iframe\b[^>]*>/)?.[0] || '';
-  assert(contactMapSection.props.persist === true &&
-    persistentContactMap.includes('class="location-map-shell" data-contact-map-slot') &&
-    persistentContactFrame.includes('data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed"') &&
-    !/\ssrc\s*=|\ssrcdoc\s*=/.test(persistentContactFrame) &&
-    !persistentContactMap.includes('data-google-maps-iframe') &&
-    persistentContactMap.includes('surface-band location-section') && !persistentContactMap.includes('reveal'),
-  'standalone Contact and its inherited professional views should defer to the same persistent map without loading another iframe');
+  const contactWorkspace = readJson('content/pages/contact.json').sections.find((entry) => entry.type === 'contact-workspace');
+  const contactDetail = renderVisualPageBody({ sections: [contactWorkspace] });
+  assert(contactDetail.includes('data-contact-inline') && contactDetail.includes('Open in Maps') &&
+    contactDetail.includes('Delta, Colorado') && contactDetail.includes('https://github.com/danielshort3') &&
+    !contactDetail.includes('<iframe') && !contactDetail.includes('id="contact-modal"'),
+  'Contact detail should share an inline form with compact Delta map link and preserve direct email/GitHub');
 
   assert(count(html, /data-home-accordion-item=/g) === 5 &&
     count(html, /data-home-accordion-trigger=/g) === 5 &&

@@ -114,8 +114,8 @@
     root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
   } catch (_) {}
 })();</script>
-  <link rel="stylesheet" href="dist/styles.e630c3ed.css">
-  <link rel="stylesheet" href="css/components/contact-layout.css?v=13254e59896f">
+  <link rel="stylesheet" href="dist/styles.c1e77226.css">
+  <link rel="stylesheet" href="css/components/contact-layout.css?v=631bde1f4dad">
   <link rel="stylesheet" href="css/components/contact-card.css?v=3fa560246115">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
@@ -124,14 +124,14 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png?v=ecc0b34a9649">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png?v=49674505c1c5">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png?v=02cddde9a923">
-  <script defer src="dist/site-shell.1069c15c.js"></script>
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
 
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="stylesheet" href="dist/styles-personal-accordion.4d150ecd.css">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"ContactPage","@id":"https://www.danielshort.me/contact#webpage","url":"https://www.danielshort.me/contact","name":"Contact | Daniel Short","description":"Send Daniel Short a note about projects, tools, ideas, or questions.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/personal-social-card.png"},"breadcrumb":{"@id":"https://www.danielshort.me/contact#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/contact#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Contact","item":"https://www.danielshort.me/contact"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"contact:contact","path":"/contact","category":"contact","view":"detail","navigation":"soft","styles":["/dist/styles.e630c3ed.css","/css/components/contact-layout.css?v=13254e59896f","/css/components/contact-card.css?v=3fa560246115","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/dist/site-shell.1069c15c.js","/dist/site-contact.172cfb43.js","/dist/site-consent.0247f290.js"],"module":"contact:contact"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"contact:contact","path":"/contact","category":"contact","view":"detail","navigation":"soft","styles":["/dist/styles.c1e77226.css","/css/components/contact-layout.css?v=631bde1f4dad","/css/components/contact-card.css?v=3fa560246115","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/dist/site-shell.7e88cd8b.js","/dist/site-contact.32d66ff2.js","/dist/site-consent.a6d261d1.js"],"module":"contact:contact"}</script>
 </head>
 <body data-page="contact" class="contact-page site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="contact" data-personal-item="contact" data-personal-fit="viewport" data-site-route-id="contact:contact" data-site-route-category="contact" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="contact:contact">
   <a href="/contact#main" class="skip-link">Skip to main content</a>
@@ -203,90 +203,62 @@
             <h1>Let's Connect</h1>
             <p class="hero-tagline">Send a note about a project, tool, idea, or question. I’ll reply when I can.</p>
           </div>
-          <div class="cta-group" data-page-masthead-actions>
-            <button id="contact-form-toggle" class="btn-primary hero-cta"><img src="/img/icons/contact-message-v2.png" alt="" width="256" height="256" decoding="async">Send a Message</button>
-          </div>
         </div>
       </div>
     </section>
 
-  <div id="contact-modal" class="modal">
-      <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
-        <div class="modal-title-strip"><h3 class="modal-title" id="contact-modal-title">Send a Message</h3></div>
-        <div class="modal-body">
-          <form id="contact-form" class="contact-form" method="post" action="/api/contact" data-endpoint="/api/contact" novalidate>
-            <div class="form-field">
-              <label for="contact-name">Name <span class="field-required" id="contact-name-required" hidden>- Required</span></label>
-              <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" placeholder="Jane Doe" aria-describedby="contact-name-required">
-            </div>
-            <div class="form-field">
-              <label for="contact-email">Email <span class="field-required" id="contact-email-required" hidden>- Required</span></label>
-              <input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="contact-email-required">
-            </div>
-            <div class="form-field">
-              <label for="contact-message">How can I help? <span class="field-required" id="contact-message-required" hidden>- Required</span></label>
-              <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, idea, or question." aria-describedby="contact-message-required"></textarea>
-            </div>
-            <div class="form-field honeypot" aria-hidden="true">
-              <label for="contact-company">Company</label>
-              <input id="contact-company" name="company" type="text" tabindex="-1" autocomplete="off">
-            </div>
-            <p id="contact-status" class="contact-form-status" role="status" aria-live="polite" tabindex="-1"></p>
-            <div id="contact-alt" class="contact-form-alt" hidden>
-              <a href="mailto:daniel@danielshort.me" class="btn-ghost">Email me directly</a>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn-primary">
-                <span class="btn-spinner" aria-hidden="true"></span>
-                <span class="btn-label">Send Message</span>
-              </button>
-            </div>
-          </form>
-          <div class="contact-form-success" id="contact-success" hidden tabindex="-1" role="status" aria-live="polite">
-            <span class="success-icon" aria-hidden="true"></span>
-            <h4>Message sent</h4>
-            <p>Thanks for reaching out. I received your note and will reply shortly. If it’s urgent, feel free to send a direct email as well.</p>
-            <div class="form-actions">
-              <button type="button" class="btn-primary" data-contact-new>Start another message</button>
-              <a href="mailto:daniel@danielshort.me" class="btn-secondary">Email me directly</a>
-            </div>
-          </div>
-        </div>
+  <section class="contact-workspace" aria-label="Contact Daniel Short">
+    <div class="contact-direct" id="contact-options">
+      <h2>Other ways to connect</h2>
+      <div class="contact-grid">
+        <a href="mailto:daniel@danielshort.me" class="contact-card"><span class="contact-card__icon" aria-hidden="true"><img src="/img/icons/contact-email-v2.png" alt="" width="256" height="256" decoding="async"></span><span class="contact-card__copy"><strong>Email me directly</strong><small>daniel@danielshort.me</small></span><span class="contact-card__arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span></a>
+        <a href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" class="contact-card"><span class="contact-card__icon" aria-hidden="true"><img src="/img/icons/github-icon.png" alt="" width="256" height="256" decoding="async"></span><span class="contact-card__copy"><strong>GitHub</strong><small>github.com/danielshort3</small></span><span class="contact-card__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="20" height="20" decoding="async"></span></a>
       </div>
+      <p class="contact-location"><span>Delta, Colorado</span><a href="https://www.google.com/maps/search/?api=1&amp;query=Delta%2C%20CO" target="_blank" rel="noopener noreferrer">Open in Maps <span aria-hidden="true">↗</span></a></p>
     </div>
-
-  <section id="contact-options" class="surface-band reveal">
-      <div class="wrapper">
-        <div class="contact-options-heading">
-          <h2 class="section-title">Other ways to connect</h2>
-          <p class="section-subtitle">Email is fastest. I’m based in Delta, Colorado.</p>
+  <section id="contact-inline" class="contact-inline" data-contact-inline aria-labelledby="contact-inline-title"><h2 id="contact-inline-title">Send a message</h2><div data-contact-form-body>
+      <form id="contact-form" class="contact-form" method="post" action="/api/contact" data-endpoint="/api/contact" novalidate>
+        <div id="contact-errors" class="contact-error-summary" tabindex="-1" role="alert" hidden>
+          <h3>Check the following</h3>
+          <ul data-contact-error-list></ul>
         </div>
-        <div class="contact-grid contact-big">
-          <a href="mailto:daniel@danielshort.me" class="contact-card">
-            <span class="contact-card__icon" aria-hidden="true"><img src="/img/icons/contact-email-v2.png" alt="" width="256" height="256" decoding="async"></span>
-            <span class="contact-card__copy"><strong>Email</strong><small>daniel@danielshort.me</small></span>
-            <span class="contact-card__arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-contact-right.webp" alt="" width="20" height="20" decoding="async"></span>
-          </a>
-          <a href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" class="contact-card">
-            <span class="contact-card__icon" aria-hidden="true"><img src="/img/icons/github-icon.png" alt="" width="256" height="256" decoding="async"></span>
-            <span class="contact-card__copy"><strong>GitHub</strong><small>github.com/danielshort3</small></span>
-            <span class="contact-card__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="20" height="20" decoding="async"></span>
-          </a>
+        <div class="form-field">
+          <label for="contact-name">Name <span class="contact-required">(required)</span></label>
+          <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" aria-describedby="contact-name-required">
+          <p class="contact-field-error" id="contact-name-required" hidden></p>
         </div>
-      </div>
-    </section>
-
-  <section id="grand-junction-location" class="surface-band location-section">
-    <div class="wrapper location-section-inner">
-      <div class="location-section-copy">
-        <h2 class="section-title">Delta, Colorado</h2>
-        <p class="section-subtitle">My home base in western Colorado.</p>
-      </div>
-      <div class="location-map-shell" data-contact-map-slot>
-        <iframe class="location-map-iframe" title="Map of Delta, CO" data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" data-google-maps-address="Delta, CO" data-google-maps-zoom="10"></iframe>
-      </div>
-    </div>
+        <div class="form-field">
+          <label for="contact-email">Email <span class="contact-required">(required)</span></label>
+          <input id="contact-email" name="email" type="email" autocomplete="email" required maxlength="254" aria-describedby="contact-email-required">
+          <p class="contact-field-error" id="contact-email-required" hidden></p>
+        </div>
+        <div class="form-field">
+          <label for="contact-message">Message <span class="contact-required">(required)</span></label>
+          <textarea id="contact-message" name="message" rows="5" maxlength="4000" required aria-describedby="contact-message-required contact-form-note"></textarea>
+          <p class="contact-field-error" id="contact-message-required" hidden></p>
+        </div>
+        <p id="contact-form-note" class="contact-form-note">Used to reply to your message. <a href="/privacy">Privacy details</a></p>
+        <div class="form-field honeypot" aria-hidden="true">
+          <label for="contact-company">Company</label>
+          <input id="contact-company" name="company" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <p id="contact-status" class="contact-form-status" role="status" aria-live="polite" tabindex="-1"></p>
+        <div id="contact-alt" class="contact-form-alt" hidden>
+          <a href="mailto:daniel@danielshort.me" class="btn-ghost">Email me directly</a>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary"><span class="btn-spinner" aria-hidden="true"></span><span class="btn-label">Send message</span></button>
+        </div>
+      </form>
+      <div class="contact-form-success" id="contact-success" hidden tabindex="-1" role="status" aria-live="polite">
+        <span class="success-icon" aria-hidden="true"></span>
+        <h3>Message sent</h3>
+        <p>Thanks for reaching out. Your message was sent. I’ll reply when I can.</p>
+        <div class="form-actions">
+          <button type="button" class="btn-primary" data-contact-new>Start another message</button>
+          <a href="mailto:daniel@danielshort.me" class="btn-secondary">Email me directly</a>
+        </div>
+      </div></div></section>
   </section>
   </main>
         <!-- personal-accordion-content:end -->
@@ -307,7 +279,7 @@
       </nav>
     </div>
   </footer>
-  <script defer src="dist/site-contact.172cfb43.js"></script>
-  <script defer src="dist/site-consent.0247f290.js"></script>
+  <script defer src="dist/site-contact.32d66ff2.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>
 </html>
