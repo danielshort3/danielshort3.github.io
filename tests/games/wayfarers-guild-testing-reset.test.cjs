@@ -87,14 +87,15 @@ for (const mirrorKey of [Storage.SAVE_KEY, Storage.BACKUP_KEY]) test('a failed c
   assert(reset.ok);
   const state = reset.state;
   assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
-  for (const stepId of ['purpose', 'operation']) assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId }).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.practiceAction).ok);
   assert(store.save(state).ok);
   const write = storage.setItem;
   storage.setItem = (key, value) => {
     if (key === mirrorKey) throw new Error('Compatibility mirror unavailable');
     write(key, value);
   };
-  assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
   assert.equal(store.save(state).ok, true, 'The canonical generation holds the committed completion');
   assert.equal(store.save(state).ok, true, 'A subsequent save does not conflict with its own write');
   const reopened = make().load().state;
@@ -110,7 +111,8 @@ test('a failed canonical generation write remains retryable without claiming a t
   const state = reset.state;
   assert(reset.ok);
   assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
-  for (const stepId of ['purpose', 'operation']) assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId }).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.practiceAction).ok);
   assert(store.save(state).ok);
   const before = JSON.parse(JSON.stringify(state));
   const write = storage.setItem;
@@ -119,12 +121,12 @@ test('a failed canonical generation write remains retryable without claiming a t
     if (key === canonical) throw new Error('Canonical save unavailable');
     write(key, value);
   };
-  assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
   assert.equal(store.save(state).ok, false);
-  assert.equal(make().load().state.onboarding.progress.greenway, 2);
+  assert.equal(make().load().state.onboarding.practice.progress.greenway, 2);
   storage.setItem = write;
   assert(store.save(before).ok, 'The app can save its rolled-back step before another explicit attempt');
-  assert(Core.act(before, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok);
+  assert(Core.act(before, Core.getView(before).onboarding.active.inspectAction).ok);
   assert(store.save(before).ok);
   assert.equal(Core.Numbers.toNumber(make().load().state.resources.coins), 12);
 });
@@ -133,7 +135,8 @@ test('a post-write fence read failure keeps the committed tutorial result and re
   const { storage, store, make } = setup();
   const state = store.resetForTesting().state;
   assert(Core.act(state, { type: 'onboarding-visit', id: 'greenway' }).ok);
-  for (const stepId of ['purpose', 'operation']) assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId }).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.practiceAction).ok);
   assert(store.save(state).ok);
   const read = storage.getItem;
   let markerReads = 0;
@@ -141,7 +144,7 @@ test('a post-write fence read failure keeps the committed tutorial result and re
     if (key === Storage.RESET_KEY && ++markerReads === 2) throw new Error('Transient final fence read');
     return read(key);
   };
-  assert(Core.act(state, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' }).ok);
+  assert(Core.act(state, Core.getView(state).onboarding.active.inspectAction).ok);
   const saved = store.save(state);
   assert.equal(saved.ok, false);
   assert.equal(saved.committed, true, 'Caller must retain this exact pending result, not roll it back');

@@ -86,6 +86,11 @@
     let tierNoticeSuppressed = new Set();
     let onboardingTimer = null;
     let onboardingIdentity = null;
+    let practiceReceiptToken = null;
+    let practiceControl = null;
+    let deliberateHelp = null;
+    let deliverySequence = null;
+    let practiceControlOriginal = null;
     let onboardingBusy = false;
     let onboardingReplay = null;
     let onboardingNoticePresented = false;
@@ -115,6 +120,8 @@
     const guide = root.WayfarersOnboardingUI?.create({
       parent:host.parentElement, resolveTarget:resolveGuideTarget,
       onNext:advanceGuide, onLeave:leaveGuide,
+      onBack(model) { if (model.mode && dialog.open) { back(); syncOnboarding(); } else leaveGuide(model); },
+      onLocate:routePractice,
       onRetry() { execute({type:'retry-save'}); syncOnboarding(); }
     });
     function markup(node, html) {
@@ -396,6 +403,201 @@
     function selectedAreaId() { return view?.expedition.areas?.find(area => area.selected)?.id || view?.expedition.stage.kind; }
     function guideScopeId() { return screen === 'expedition' ? selectedAreaId() : screen === 'guild' && ['cards','equipment'].includes(guildPage) && view.collection?.[guildPage === 'cards' ? 'cardsUnlocked' : 'equipmentUnlocked'] ? guildPage : null; }
     function guideForArea(areaId) { return areaId ? onboarding()?.guides?.find(item => item.areaId === areaId || item.id === areaId) : null; }
+    function practice() { const active=onboarding()?.active; return active?.mode && !onboardingReplay ? active : null; }
+    function practiceKey(action) {
+      const clean=value=>Array.isArray(value) ? value.map(clean) : value && typeof value==='object' ? Object.fromEntries(Object.keys(value).filter(key=>!['quote','onboardingEpoch'].includes(key)).sort().map(key=>[key,clean(value[key])])) : value;
+      return JSON.stringify(clean(action));
+    }
+    function samePracticeAction(action,model) {
+      if (!action || typeof action==='function' || !model?.requiredAction) return false;
+      const actual=Object.assign({},action),wanted=Object.assign({},model.requiredAction);
+      if (actual.type==='expedition-buy') { actual.areaId ||= selectedAreaId(); actual.count ||= view.expedition.batch?.selected || 1; if(model.supply==='rank') actual.count=wanted.count; }
+      if (actual.type==='expedition-automation' && actual.dispatch==null) actual.dispatch=view.expedition.automation?.dispatch;
+      if(['plan-goal','plan-queue'].includes(actual.type) && actual.action && wanted.action) actual.action={type:actual.action.type,id:actual.action.id};
+      return practiceKey(actual)===practiceKey(wanted);
+    }
+    function practiceCommand(key,scope) { return Array.from((scope || (dialog.open ? dialog : shell)).querySelectorAll('[data-wx-do]')).find(node=>node.dataset.wxDo===key && node.getClientRects().length); }
+    function practiceMenu(model) { return practiceCommand('menu:'+JSON.stringify(model)); }
+    function practiceActionControl(model) {
+      return Array.from((dialog.open ? dialog : shell).querySelectorAll('[data-wx-do],[data-wx-buy]')).find(node=>node.getClientRects().length && samePracticeAction(node.dataset.wxBuy ? view.expedition.cards.find(card=>card.id===node.dataset.wxBuy)?.action : commands.get(node.dataset.wxDo),model));
+    }
+    function restorePracticeControl() {
+      if (practiceControl?.isConnected && practiceControlOriginal) {
+        practiceControl.innerHTML=practiceControlOriginal.html;
+        practiceControl.disabled=practiceControlOriginal.disabled;
+        if (practiceControlOriginal.label==null) practiceControl.removeAttribute('aria-label'); else practiceControl.setAttribute('aria-label',practiceControlOriginal.label);
+        delete practiceControl.dataset.wxPractice;
+      }
+      practiceControl=null; practiceControlOriginal=null;
+    }
+    function bindPracticeControl(node,model) {
+      if (!node || model.mode!=='action' || !model.practiceAction) return node;
+      practiceControl=node;
+      practiceControlOriginal={html:node.innerHTML,disabled:node.disabled,label:node.getAttribute('aria-label')};
+      node.dataset.wxPractice=model.token;
+      if (model.suppliesText) {
+        node.disabled=!!currentContext.saveFailure || !!currentContext.awaitingWallet;
+        node.textContent=model.supply==='rank' ? 'Practice ×1 · Free' : model.supply==='copies' ? 'Practice fusion · Free' : model.supply==='scroll' ? 'Practice scroll · Free' : 'Practice · Free';
+        node.setAttribute('aria-label',model.heading+'. '+model.suppliesText);
+      }
+      return node;
+    }
+    function practiceDestinationControl(model) {
+      const destination=model.destination || {};
+      if (destination.screen==='cards' || destination.screen==='equipment') {
+        if (screen!=='guild' || guildPage!==destination.screen) return q('[data-wx-collection="'+destination.screen+'"]');
+      } else if (destination.screen==='upgrades' && screen!=='upgrades') return q('[data-wx-nav="upgrades"]');
+      else if (destination.screen==='guild' && !['guild','atlas'].includes(screen)) return q('[data-wx-nav="guild"]');
+      else if (destination.screen==='expedition') {
+        if(screen!=='expedition') return q('[data-wx-nav="expedition"]');
+        if(destination.areaId && destination.areaId!==selectedAreaId()) return dialog.open && sheet?.kind==='areas' ? dialog.querySelector('[data-wx-area="'+destination.areaId+'"]') : q('[data-wx-objective]');
+      }
+      return null;
+    }
+    function practiceSection(model) {
+      const data=model.targetData || {},id=model.guideId;
+      if (['automation','planning'].includes(data.section)) return id==='reserves' ? {kind:'reserve',id:data.resourceId || 'ore'} : id==='playbooks' ? {kind:'loadouts'} : {kind:'planning'};
+      if(data.section==='crew') return {kind:id==='companions' ? 'companions' : 'crew'};
+      if(data.section==='discoveries') return {kind:'relics'};
+      if(['kitchen','expedition'].includes(data.section)) return {kind:'supplies'};
+      return {kind:'planning'};
+    }
+    function routePractice(model) {
+      if (!model || model.epoch && model.epoch!==onboardingIdentity) return;
+      const destination=model.destination || {};
+      if (destination.screen==='cards' || destination.screen==='equipment') showGuildPage(destination.screen);
+      else if(destination.screen==='upgrades') showUpgrades();
+      else if(destination.screen==='guild') { close();screen='guild';guildPage='overview';update(view); }
+      else if(destination.areaId && destination.areaId!==selectedAreaId()) selectArea(destination.areaId);
+      else { close();screen='expedition';update(view); }
+      syncOnboarding();
+    }
+    function practiceTarget(model) {
+      restorePracticeControl();
+      const data=model.targetData || {},target=model.target;
+      const operation=model.requiredAction ? model : (model.steps || []).find(step=>step.mode==='action' && step.target===target) || model;
+      const targetModel=model.mode==='action' && ['plan-goal','plan-queue'].includes(model.requiredAction?.type) ? Object.assign({},model,{destination:{screen:'upgrades'}}) : model;
+      let node=practiceDestinationControl(targetModel),finalAction=false;
+      const inSheet=dialog.open,footer=()=>dialog.querySelector('.wx-purchase-footer .wx-confirm');
+      const closeButton=()=>dialog.querySelector('[data-wx-close]');
+      const card=()=>practiceCommand('card:'+data.cardId,shell),gear=()=>practiceCommand('gear:'+data.itemId,shell);
+      if (!node && model.mode==='action') { node=practiceActionControl(model);finalAction=!!node; }
+      if (!node && ['area-upgrades','area-buy'].includes(target)) {
+        if(inSheet && sheet?.kind==='local' && sheet.id===data.trackId) { node=target==='area-buy' ? footer() : closeButton();finalAction=target==='area-buy'; }
+        else node=q('[data-upgrade="'+data.trackId+'"] '+(target==='area-buy' ? '[data-wx-buy]' : '.wx-upgrade-info'));
+        if(target==='area-buy' && node) finalAction=true;
+      }
+      if (!node && ['area-plans','area-plan-option','area-configuration','area-specialization'].includes(target)) {
+        if(!inSheet) node=q('[data-wx-plans]');
+        else if (sheet?.kind==='choice') {
+          const choices=visible(view.expedition.choices || []),configs=visible(view.expedition.configurations || []);
+          const group=choices.find(item=>(item.options || []).some(option=>samePracticeAction(option.action,operation)));
+          const config=configs.find(item=>(item.slotOptions || [{options:item.options}]).some(slot=>(slot.options || []).some(option=>samePracticeAction(option.action,operation))));
+          node=target==='area-specialization' ? practiceMenu({kind:'specialization'}) : group ? practiceMenu({kind:'plan-choice',id:group.id}) : config ? practiceMenu({kind:'configuration',id:config.id,slot:0}) : closeButton();
+        } else if(sheet?.kind==='configuration' && operation.requiredAction?.slot!=null && sheet.slot!==operation.requiredAction.slot)node=practiceCommand('config-slot:'+operation.requiredAction.slot);
+        else node=closeButton();
+      }
+      if(!node && target==='area-goal') node=inSheet ? closeButton() : q('[data-wx-world-label]:not([hidden])') || q('[data-wx-objective]');
+      if(!node && target==='area-expand') node=inSheet ? closeButton() : q('[data-wx-expand]') || q('[data-wx-objective]');
+      if(!node && target==='batch-select') node=inSheet ? closeButton() : q('[data-wx-batch]');
+      if(!node && target==='focus-action') node=inSheet ? closeButton() : q('[data-wx-focus]');
+      if(!node && target==='tier-unlock') {
+        if(inSheet) { node=practiceCommand('onboarding-open:ready:'+data.tierId) || practiceCommand('tier-unlock:'+data.tierId) || closeButton();finalAction=model.mode==='action' && node!==closeButton(); }
+        else node=q('[data-wx-tier-ready]:not([hidden])') || practiceCommand('ready-tiers');
+      }
+      if(!node && target==='catalog-buy') {
+        const entry=(view.globalUpgrades || []).find(item=>item.id===data.catalogId || samePracticeAction(item.action,operation));
+        node=inSheet ? closeButton() : entry && q('[data-wx-upgrade="'+entry.id+'"] .wx-research-info');
+        if(!node && entry) node=practiceCommand('upgrade-detail:'+entry.id,shell);
+      }
+      if(!node && ['card-equip','card-fuse','card-detail','cards-decks','deck-select','card-recycle','card-craft'].includes(target)) {
+        if(target==='deck-select') node=practiceCommand('deck:'+data.deckId,shell);
+        else if(inSheet && sheet?.kind==='card-equip' && sheet.id===data.cardId) {node=model.mode==='action' ? footer() : closeButton();finalAction=model.mode==='action';}
+        else if(inSheet && sheet?.kind==='card-slot') node=practiceCommand('choose-card:'+data.cardId);
+        else if(inSheet && sheet?.kind==='collection-card' && sheet.id===data.cardId) {
+          node=target==='card-equip' ? practiceCommand('equip-card-slot:'+data.slot) : target==='card-fuse' ? practiceMenu({kind:'collection-transaction',entity:'card',id:data.cardId,operation:'fusion'}) : ['card-recycle','card-craft'].includes(target) ? practiceMenu({kind:'card-ink',id:data.cardId}) : closeButton();
+        } else if(inSheet && sheet?.kind==='card-ink') node=practiceMenu({kind:'collection-transaction',entity:'card',id:data.cardId,operation:target==='card-recycle' ? 'recycle' : 'craft'});
+        else if(inSheet) node=closeButton();
+        else node=target==='cards-decks' ? practiceCommand('card-slot:'+data.deckId+':'+data.slot,shell) : card();
+      }
+      if(!node && ['gear-equip','gear-scroll','gear-detail','equipment-slots','gear-forge','gear-reforge-review','gear-reforge-review-details'].includes(target)) {
+        if(inSheet && sheet?.kind==='gear-slot') node=practiceCommand('gear-choice:'+data.itemId);
+        else if(inSheet && sheet?.kind==='collection-gear' && sheet.id===data.itemId) {
+          if(target==='gear-equip' || target==='gear-forge') {node=footer();finalAction=model.mode==='action';}
+          else if(target==='gear-scroll') node=practiceCommand('scroll:'+data.scrollId);
+          else if(target.startsWith('gear-reforge')) node=practiceMenu({kind:'collection-transaction',entity:'gear',id:data.itemId,operation:'reforge'});
+          else node=closeButton();
+        } else if(inSheet) node=closeButton();
+        else node=target==='equipment-slots' ? practiceCommand('gear-slot:'+data.slot,shell) : gear();
+      }
+      if(!node && target==='guild-action') {
+        if(model.requiredAction?.type==='plan-reserve' && inSheet && sheet?.kind==='reserve') {node=practiceCommand('save-reserve');finalAction=true;}
+        else if(operation.requiredAction?.type==='specialist' && sheet?.kind==='crew') node=practiceCommand('crew-slot:'+operation.requiredAction.slot);
+        else if(model.guideId==='reserves' && sheet?.kind==='planning') node=practiceMenu({kind:'reserves'});
+        else if(model.guideId==='reserves' && sheet?.kind==='reserves') node=practiceMenu({kind:'reserve',id:data.resourceId || 'ore'});
+        else if(model.mode==='action' && model.guideId==='planner' && operation.requiredAction?.action) {
+          const entry=(view.globalUpgrades || []).find(item=>item.action?.id===operation.requiredAction.action.id && item.action.type===operation.requiredAction.action.type);
+          node=inSheet ? closeButton() : screen!=='upgrades' ? q('[data-wx-nav="upgrades"]') : entry && practiceCommand('upgrade-detail:'+entry.id,shell);
+        }
+        else if(inSheet) node=practiceMenu(practiceSection(model)) || closeButton();
+        else node=practiceMenu(practiceSection(model)) || (data.section==='crew' ? practiceMenu({kind:'crew'}) : data.section==='discoveries' ? practiceCommand('guild-atlas') : practiceMenu({kind:'planning'}));
+      }
+      if(!node && /^(refit|charter|shop|caravan)-review/.test(target)) {
+        const kind=data.section;
+        if(inSheet && sheet?.kind==='reset') node=practiceCommand('review:'+kind);
+        else if(inSheet) node=practiceMenu({kind:'reset',reset:kind}) || practiceCommand(kind) || practiceCommand('caravan-options') || closeButton();
+        else node=kind==='shop' || kind==='caravan' ? q('[data-wx-options]') : practiceMenu({kind:'renewals'}) || practiceCommand('guild-atlas');
+      }
+      if(inSheet && node && !dialog.contains(node)) {node=closeButton();finalAction=false;}
+      if (node && finalAction) bindPracticeControl(node,model);
+      const container=node?.closest('.wx-sheet-content,[data-wx-destination],[data-wx-tray]');
+      const allowed=inSheet ? Array.from(dialog.querySelectorAll('[data-wx-close],[data-wx-back]')).filter(button=>!button.hidden) : [q('[data-wx-options]'),q('[data-wx-save-alert]:not([hidden])')].filter(Boolean);
+      if(model.requiredAction?.type==='plan-reserve' && inSheet) {const input=dialog.querySelector('[data-wx-reserve]');if(input){allowed.push(input);if(finalAction && input.value!==String(model.requiredAction.amount)){node=input;restorePracticeControl();}}}
+      return {element:node,clip:container,scroll:container,allowed};
+    }
+    function practiceInspectionMatches(model) {
+      if(model?.mode!=='inspect') return false;
+      const data=model.targetData || {},target=model.target;
+      const legacySheet=options.legacySheet?.();
+      if(/^(refit|charter|shop|caravan)-review-details$/.test(target)) return legacySheet?.kind===data.section && !!legacySheet.element?.getClientRects().length;
+      if(!dialog.open || !dialog.getClientRects().length || !sheet) return false;
+      if(target==='area-upgrades') return sheet.kind==='local' && sheet.id===data.trackId && (!sheet.areaId || sheet.areaId===data.areaId);
+      if(target==='area-goal') return sheet.kind==='objective';
+      if(['area-plans','area-plan-option'].includes(target)) return ['choice','plan-choice'].includes(sheet.kind);
+      if(target==='area-configuration') return sheet.kind==='configuration';
+      if(target==='area-specialization') return sheet.kind==='specialization';
+      if(target==='cards-decks') return sheet.kind==='card-equip' && sheet.id===data.cardId;
+      if(target==='card-detail') return ['collection-card','card-equip'].includes(sheet.kind) && sheet.id===data.cardId;
+      if(['card-fuse','card-recycle','card-craft'].includes(target)) return sheet.kind==='collection-transaction' && sheet.id===data.cardId && sheet.operation===({'card-fuse':'fusion','card-recycle':'recycle','card-craft':'craft'}[target]);
+      if(['equipment-slots','gear-detail','gear-forge','gear-reforge-review'].includes(target)) return sheet.kind==='collection-gear' && sheet.id===data.itemId;
+      if(target==='gear-scroll') return sheet.kind==='collection-transaction' && sheet.id===data.itemId && sheet.scrollId===data.scrollId;
+      if(target==='gear-reforge-review-details') return sheet.kind==='collection-transaction' && sheet.id===data.itemId && sheet.operation==='reforge';
+      if(target==='tier-unlock') return sheet.kind==='tier' && sheet.id===data.tierId || sheet.kind==='onboarding-notice' && (sheet.ids || []).includes('ready:'+data.tierId);
+      if(target==='catalog-buy') return sheet.kind==='upgrade' && sheet.id===data.catalogId;
+      if(target==='area-expand') return ['objective','finale'].includes(sheet.kind);
+      if(target==='focus-action') return sheet.kind==='focus';
+      if(target==='batch-select')return sheet.kind==='batch';
+      if(target==='playbook-details')return sheet.kind==='loadouts';
+      if(target==='guild-action') return sheet.kind===practiceSection(model).kind;
+      if(['refit-review','charter-review'].includes(target)) return sheet.kind==='reset' && sheet.reset===data.section;
+      if(['shop-review','caravan-review'].includes(target)) return sheet.kind==='options';
+      return false;
+    }
+    function schedulePracticeReceipt(model) {
+      if(model?.mode!=='inspect' || !model.inspectAction || practiceReceiptToken===model.token) return;
+      const identity=onboardingIdentity;
+      root.requestAnimationFrame(()=>{
+        if(disposed || identity!==onboardingIdentity || currentContext.saveFailure || currentContext.awaitingWallet || practice()?.token!==model.token || !practiceInspectionMatches(model)) return;
+        onboardingBusy=true;
+        const result=onboardingAction(model.inspectAction);
+        onboardingBusy=false;
+        if(!result?.ok) { showGuide();return; }
+        practiceReceiptToken=model.token;
+        if(result.completedGuide) notify(model.title+' lesson complete'+(result.reward?.coins && root.WayfarersCore.Numbers.cmp(result.reward.coins,0)>0 ? ' · +'+root.WayfarersCore.format(result.reward.coins)+' coins' : ''));
+        if(!practice()) {guide.hide();restorePracticeControl();}
+        syncOnboarding();
+      });
+    }
     function guideGoal() {
       const area=selectedAreaId();
       const upgrades=q('[data-wx-nav="upgrades"]');
@@ -409,6 +611,7 @@
       return {element:q('[data-wx-objective]'),kind:multiple ? 'areas' : 'objective'};
     }
     function contextualGuide(model) {
+      if (model?.mode) return model;
       if (model?.target !== 'area-goal') return model;
       const goal=guideGoal();
       model.context=goal.kind + ':' + (goal.label || '');
@@ -419,7 +622,8 @@
       }
       return model;
     }
-    function resolveGuideTarget(target, fallback) {
+    function resolveGuideTarget(target, fallback, model) {
+      if (model?.mode && !model.replay) return practiceTarget(model);
       const resolve = key => {
         if (key === 'scene') return {element:q('[data-wx-canvas]'),clip:q('.wx-world')};
         if (key === 'area-upgrades') return {element:q('.wx-upgrade .wx-upgrade-info'),clip:q('[data-wx-tray]'),scroll:q('[data-wx-tray]')};
@@ -445,7 +649,7 @@
         return step ? contextualGuide(Object.assign({},step,{guideId:definition.id,stepId:step.id,title:definition.title,index:onboardingReplay.index,total:definition.steps.length,replay:true,epoch:onboardingIdentity})) : null;
       }
       const active = data?.active;
-      if (!active || (active.guideId || active.areaId) !== guideScopeId()) return null;
+      if (!active || !active.mode && (active.guideId || active.areaId) !== guideScopeId()) return null;
       const definition = data.guides?.find(item => item.id === (active.guideId || active.id) || item.areaId === active.areaId);
       const step = definition?.steps?.find(item => item.id === active.stepId) || {};
       return contextualGuide(Object.assign({},step,active,{guideId:active.guideId || active.id || definition?.id,title:active.title || definition?.title,index:active.index ?? definition?.progress ?? 0,total:active.total || definition?.steps?.length || 3,epoch:onboardingIdentity,saveFailure:currentContext.saveFailure,disabled:currentContext.awaitingWallet,leaveLabel:currentContext.saveFailure || (view.expedition.areas || []).filter(area => area.unlocked).length === 1 ? 'Game options' : screen === 'guild' ? 'Guild overview' : 'Leave area'}));
@@ -461,9 +665,21 @@
       const model = guideModel();
       if (!model || !guide) return;
       if (!model.replay && model.index === model.total-1 && model.rewardPreview?.available) model.rewardText=model.rewardPreview.text;
+      if(model.suppliesText) model.rewardText=model.suppliesText;
       cancelSwipe(); suppressSceneTapUntil=root.performance.now()+500;
       if (!guideScroll) guideScroll={scope:guideScopeId(),destination:screen !== 'expedition',top:q(screen !== 'expedition' ? '[data-wx-destination]' : '[data-wx-tray]').scrollTop};
       guide.show(model);
+      if (model.helpOpenAction && deliberateHelp===model.guideId) {
+        const identity=onboardingIdentity;
+        root.requestAnimationFrame(()=>{
+          const active=practice();
+          if(identity!==onboardingIdentity || !guide.isOpen() || active?.token!==model.token || !active.helpOpenAction || currentContext.saveFailure) return;
+          onboardingBusy=true;
+          const result=onboardingAction(active.helpOpenAction);
+          onboardingBusy=false;
+          if(result?.ok) { deliberateHelp=null;notify('Help opened · +4 coins'); }
+        });
+      }
     }
     function advanceGuide(model) {
       if (model.epoch !== onboardingIdentity) return;
@@ -493,6 +709,7 @@
       onboardingBusy=false;
       if (!result?.ok) { showGuide(); return; }
       guide.hide(); restoreGuideScroll();
+      restorePracticeControl();
       if (['cards','equipment'].includes(model.guideId)) { showGuildPage('overview'); return; }
       const areas=(view.expedition.areas || []).filter(area => area.unlocked);
       const previous=areas.find(area => area.id === guideReturnArea && area.id !== selectedAreaId());
@@ -502,10 +719,37 @@
     function replayGuide(areaId) {
       const definition=guideForArea(areaId);
       if (!definition) return;
+      if (definition.steps?.some(step=>step.mode)) { open({kind:'lesson-help',id:definition.id,replay:true});return; }
       close();
       if (areaId === 'cards' || areaId === 'equipment') showGuildPage(areaId);
       else { screen='expedition'; if (areaId !== selectedAreaId()) selectArea(areaId); }
       onboardingReplay={id:definition.id,index:0}; showGuide();
+    }
+    function startLesson(id,intendedAction) {
+      const definition=onboarding()?.guides?.find(item=>item.id===id);
+      if(!definition || definition.complete || !definition.available) return {ok:false,message:'This lesson is not available yet.'};
+      onboardingBusy=true;
+      const result=onboardingAction(Object.assign({},definition.visitAction,intendedAction ? {intendedAction} : {}));
+      onboardingBusy=false;
+      if(result?.ok) {
+        if(sheet?.kind==='lesson-help' || sheet?.kind==='lessons') close();
+        showGuide();
+        schedulePracticeReceipt(practice());
+      }
+      return result;
+    }
+    function rewardOpenedHelp(id) {
+      const definition=onboarding()?.guides?.find(item=>item.id===id);
+      if(!definition?.helpOpenAction || definition.helpReward?.claimed || practice())return;
+      const identity=onboardingIdentity;
+      root.requestAnimationFrame(()=>{
+        if(identity!==onboardingIdentity || !dialog.open || sheet?.kind!=='lesson-help' || sheet.id!==id || currentContext.saveFailure)return;
+        onboardingBusy=true;
+        const action=onboarding()?.guides?.find(item=>item.id===id)?.helpOpenAction;
+        const reward=action ? onboardingAction(action) : null;
+        onboardingBusy=false;
+        if(reward?.ok)notify('Help opened · +4 coins');
+      });
     }
     function discoveryEntries(ids) {
       const entries=onboarding()?.inbox?.entries || [];
@@ -530,9 +774,13 @@
       root.setTimeout(() => node.classList.remove('wx-arrival-target'),2200);
       return true;
     }
-    function goToDiscovery(item) {
+    function goToDiscovery(item,savedResult) {
+      if(!savedResult && !practice() && item.pending) {
+        const lesson=onboarding()?.guides?.find(guide=>guide.id==='tiers' && !guide.complete && guide.available);
+        if(lesson) {startLesson('tiers',item.openAction || {type:'onboarding-open',id:item.id});return;}
+      }
       onboardingBusy=true;
-      const result=onboardingAction(item.openAction || {type:'onboarding-open',id:item.id});
+      const result=savedResult || onboardingAction(item.openAction || {type:'onboarding-open',id:item.id});
       onboardingBusy=false;
       if (!result?.ok) { renderSheet(); return; }
       onboardingNoticePresented=true;
@@ -563,16 +811,18 @@
       const identity=String(data.identity || data.guildIdentity || '') + ':' + String(currentContext.onboardingEpoch || 0);
       if (identity !== onboardingIdentity) {
         root.clearTimeout(onboardingTimer); onboardingTimer=null; onboardingReplay=null;
-        guide.hide(); guideScroll=null; guideReturnArea=null; onboardingIdentity=identity;
+        guide.hide(); restorePracticeControl(); practiceReceiptToken=null; deliberateHelp=null;deliverySequence=null;guideScroll=null; guideReturnArea=null; onboardingIdentity=identity;
         onboardingNoticePresented=false; onboardingSuppressed=new Set();
         if (sheet?.kind.startsWith('onboarding')) close();
       }
       if (onboardingNoticePresented) (data.notice?.items || []).forEach(item => onboardingSuppressed.add(item.id));
       if (guide.isOpen()) {
-        if (!guideScopeId() && !onboardingReplay || options.overlayOpen() || !guideModel()) { guide.hide(); restoreGuideScroll(); }
+        if (!practice() && !guideScopeId() && !onboardingReplay || options.overlayOpen() || !guideModel()) { guide.hide(); restorePracticeControl(); restoreGuideScroll(); }
         else showGuide();
         return;
       }
+      const suppressedSheet=['return','collection-result','onboarding-inbox','lesson-help','lessons'].includes(sheet?.kind) || sheet?.kind==='options' && !/^(shop|caravan)-review/.test(practice()?.target || '') || sheet?.kind==='onboarding-notice' && practice()?.target!=='tier-unlock';
+      if (practice() && !options.overlayOpen() && !currentContext.saveFailure && !currentContext.awaitingWallet && !suppressedSheet) { showGuide(); return; }
       if (!onboardingSafe() || onboardingTimer) return;
       const epoch=onboardingIdentity;
       onboardingTimer=root.setTimeout(() => {
@@ -648,8 +898,12 @@
         if (result?.ok && readyTiers().length) showReadyTiers(null,true);
       }, 1200);
     }
-    function legacy(kind) { close(); options.openLegacy(kind); }
+    function legacy(kind) {
+      if(!practice() && ['shop','caravan'].includes(kind)) {const definition=onboarding()?.guides?.find(item=>item.id===kind && !item.complete && item.available);if(definition){startLesson(kind);return;}}
+      const model=practice(); close(); options.openLegacy(kind); schedulePracticeReceipt(model);
+    }
     function open(model, replace) {
+      if(!practice() && model.kind==='collection-transaction' && model.operation==='reforge') {const definition=onboarding()?.guides?.find(item=>item.id==='gear-reforge' && !item.complete && item.available);if(definition){startLesson('gear-reforge');return;}}
       cancelSwipe();
       if (guide?.isOpen()) { guide.hide(); onboardingReplay=null; restoreGuideScroll(); }
       if (!dialog.open) { opener = document.activeElement; stack.length = 0; }
@@ -658,9 +912,14 @@
       renderSheet();
       if (!dialog.open) dialog.showModal();
       dialog.querySelector('[data-wx-sheet-content]').scrollTop = 0;
+      schedulePracticeReceipt(practice());
+      if (practice()) syncOnboarding();
+      else if(model.kind==='reset') {const definition=onboarding()?.guides?.find(item=>item.id===model.reset && !item.complete && item.available);if(definition)startLesson(model.reset);}
+      if(model.kind==='lesson-help' && !model.replay)rewardOpenedHelp(model.id);
     }
     function close() {
       if (guide?.isOpen()) { guide.hide(); onboardingReplay=null; restoreGuideScroll(); }
+      restorePracticeControl();
       sheet = null;
       stack.length = 0;
       if (dialog.open) dialog.close();
@@ -725,7 +984,7 @@
       if (typeof action === 'function') return action();
       if (!action) return;
       const unfinished=guideForArea(guideScopeId());
-      if (unfinished?.mandatory && !unfinished.complete && !onboardingReplay && (/^expedition-(buy|choice|config|specialize|focus|expand|next)$/.test(action.type) || /^(card-|gear-|deck-)/.test(action.type))) {
+      if (!practice() && unfinished?.mandatory && !unfinished.complete && !onboardingReplay && (/^expedition-(buy|choice|config|specialize|focus|expand|next)$/.test(action.type) || /^(card-|gear-|deck-)/.test(action.type))) {
         if (dialog.open) close();
         if (onboardingSafe()) {
           onboardingBusy=true;
@@ -735,11 +994,19 @@
         }
         return {ok:false,message:'Finish this area’s short guide before working here.'};
       }
+      const currentPractice=practice();
+      if(!currentPractice && !String(action.type).startsWith('onboarding-') && !onboardingReplay) {
+        const trigger=(onboarding()?.triggers || []).find(item=>item.actionTypes.includes(action.type) && Object.entries(item.match || {}).every(([key,value])=>action[key]===value));
+        if(trigger) {const result=startLesson(trigger.id,action);if(result?.ok)return {ok:false,lessonStarted:true,message:'Use the highlighted control for your first practice.'};}
+      }
+      if (currentPractice?.practiceAction && samePracticeAction(action,currentPractice)) action=Object.assign({},currentPractice.practiceAction,{onboardingEpoch:currentContext.onboardingEpoch});
+      const appliedAction=action.type==='onboarding-perform' ? action.action : action;
       if (['challenge'].includes(action.type)) close();
       const investment = ['expedition-buy','buy','expedition-development','research','luck-research','refit-upgrade','legacy-upgrade','project','capability','expedition-next','expedition-expand'].includes(action.type);
       const suppressedBefore = investment ? new Set([...tierNoticeSuppressed,...readyTiers().map(item => item.id)]) : null;
       const onboardingBefore = investment ? new Set([...onboardingSuppressed,...(onboarding()?.notice?.items || []).map(item => item.id)]) : null;
       const result = options.perform(action);
+      if(result?.ok && result.completedGuide) notify((currentPractice?.title || 'Practice')+' complete'+(result.reward?.coins && root.WayfarersCore.Numbers.cmp(result.reward.coins,0)>0 ? ' · +'+root.WayfarersCore.format(result.reward.coins)+' coins' : ''));
       if (result?.ok && investment) {
         tierNoticePresented = false;
         tierNoticeSuppressed = suppressedBefore;
@@ -747,17 +1014,19 @@
         scheduleTierNotice();
         syncOnboarding();
       }
-      if (result?.ok && action.type === 'expedition-choice') { notify('Plan selected'); back(); }
-      if (result?.ok && ['expedition-config','expedition-specialize'].includes(action.type)) notify('Plan updated');
-      if (result?.ok && action.type === 'expedition-batch') back();
-      if (result?.ok && action.type === 'expedition-focus') close();
-      if (result?.ok && action.type === 'upgrade-tier-unlock') { close(); notify('Upgrade tier unlocked'); }
-      if (result?.ok && ['expedition-next','expedition-expand','expedition-select'].includes(action.type)) { close(); screen = 'expedition'; update(view); }
+      if (result?.ok && appliedAction.type === 'expedition-choice') { notify('Plan selected'); back(); }
+      if (result?.ok && ['expedition-config','expedition-specialize'].includes(appliedAction.type)) notify('Plan updated');
+      if (result?.ok && appliedAction.type === 'expedition-batch') back();
+      if (result?.ok && appliedAction.type === 'expedition-focus') close();
+      if (result?.ok && appliedAction.type === 'upgrade-tier-unlock') { close(); notify('Upgrade tier unlocked'); }
+      if (result?.ok && ['expedition-next','expedition-expand','expedition-select'].includes(appliedAction.type)) { close(); screen = 'expedition'; update(view); }
       if (result?.ok && action.type === 'route') { close(); screen = 'expedition'; update(view); }
-      if (result?.ok && ['card-fuse','card-recycle','card-craft','gear-scroll','gear-forge','gear-reforge'].includes(action.type)) {
+      if (result?.ok && ['card-fuse','card-recycle','card-craft','gear-scroll','gear-forge','gear-reforge'].includes(appliedAction.type)) {
         const event = view.collection?.events?.slice(-1)[0];
         if (event) open({kind:'collection-result',id:event.id},true);
       }
+      if(action.type==='onboarding-perform') { restorePracticeControl();syncOnboarding(); }
+      if(result?.ok && action.type==='onboarding-perform' && appliedAction.type==='onboarding-open') goToDiscovery({id:appliedAction.id},result);
       if (result?.ok && action.type === 'retry-save') {
         if (sheet?.kind === 'tier' || sheet?.kind === 'tiers') {
           if (sheet.kind === 'tier' && !readyTiers().some(item => item.id === sheet.id)) close();
@@ -849,7 +1118,17 @@
       if (['deck-name','card-slot','card-equip','card-ink','gear-slot'].includes(model.kind) || model.kind.startsWith('collection-')) {
         const content = collectionSheet(model); title = content.title; html = content.html;
       }
-      else if (model.kind === 'onboarding-notice' || model.kind === 'onboarding-inbox') {
+      else if (model.kind === 'lessons') {
+        title='Field guide';
+        const lessons=(onboarding()?.guides || []).filter(item=>item.available || item.complete);
+        html=lessons.map(item=>menu(item.title,item.complete ? 'Learned · review anytime' : item.optional ? 'Hands-on practice' : 'Continue your area lesson','compass',{kind:'lesson-help',id:item.id})).join('');
+      } else if(model.kind==='lesson-help') {
+        const lesson=(onboarding()?.guides || []).find(item=>item.id===model.id);
+        title=lesson?.title || 'Field guide';
+        html=(lesson?.steps || []).map((step,index)=>'<article class="wx-lesson-reference"><small>'+(index+1)+' / '+lesson.steps.length+'</small><strong>'+esc(step.heading)+'</strong><p>'+esc(step.body)+'</p></article>').join('');
+        if(lesson && !lesson.complete) detailFooter=button('Practice with real controls',()=>{deliberateHelp=lesson.id;startLesson(lesson.id);},{key:'lesson-start:'+lesson.id,className:'wx-confirm'});
+        else detailFooter=button('Back to game',close,{key:'lesson-close',className:'wx-confirm'});
+      } else if (model.kind === 'onboarding-notice' || model.kind === 'onboarding-inbox') {
         const entries=discoveryEntries(model.ids);
         title=entries.length === 1 ? entries[0].label : model.kind === 'onboarding-inbox' ? 'Discoveries' : 'New discoveries';
         const action = item => currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{key:'onboarding-retry',className:'wx-confirm'}) : button(item.openLabel || 'Go to',()=>goToDiscovery(item),{key:'onboarding-open:' + item.id,className:'wx-confirm',disabled:currentContext.awaitingWallet,aria:(item.openLabel || 'Go to') + ' ' + item.label.replace(/ (unlocked|available|completed)$/,'')});
@@ -1034,6 +1313,7 @@
         if (view.premium?.unlocked) html += button(icon('starshards') + '<span>Starshard shop</span>', () => legacy('shop'), { key:'shop', className:'wx-menu' });
         if (view.caravan?.offer || view.caravan?.pending) html += button(icon('caravan') + '<span>Caravan delivery<span class="wx-new">Ready</span></span>',()=>legacy('caravan'),{key:'caravan-options',className:'wx-menu'});
         if (onboarding()) html += button(icon('chest') + '<span>Discoveries' + (discoveryEntries().length ? '<small>' + discoveryEntries().length + ' ready to visit</small>' : '') + '</span>',()=>open({kind:'onboarding-inbox'}),{key:'onboarding-inbox',className:'wx-menu'});
+        if (onboarding()?.guides?.length) html += menu('Field guide','Learn a mechanic by using it','compass',{kind:'lessons'});
         if (guideForArea(selectedAreaId())) html += button(icon('compass') + '<span>Replay area guide</span>',()=>replayGuide(selectedAreaId()),{key:'guide-replay:' + selectedAreaId(),className:'wx-menu'});
         html += menu('How this expedition works', e.stage.name, 'compass', { kind:'objective' });
       } else if (model.kind === 'return') {
@@ -1211,9 +1491,15 @@
       const bottleneck = (e.stations || []).find(s => s.bottleneck);
       const activeArea = areas.find(area => area.id === selectedArea);
       const voyageLabel = e.scene?.kind === 'harbor' && e.scene?.ruleset === 'progression' ? e.scene.voyage?.ships ? 'Voyage · ' + Math.floor(percent(e.scene.voyage.progress)) + '% · ' + e.scene.voyage.ships + ' at sea' : 'Ships waiting for supplies' : null;
-      text(q('[data-wx-world-label]'), voyageLabel || (bottleneck ? bottleneck.label + ' · ' + (bottleneck.status || 'Bottleneck') : activeArea?.established ? activeArea.rateText || 'Area working' : canNavigateAreas ? stage.objective : stage.index === 0 && shown.length === 1 ? 'Coins arrive as you explore' : ''));
+      const delivery=e.delivery || e.scene?.delivery;
+      const deliveryLabel=selectedArea==='greenway' && delivery?.active ? delivery.phase==='arrived' ? 'Outpost · +'+compact(delivery.lastReward)+' coins' : 'Outpost · '+Math.floor(percent(delivery.progress))+'%' : null;
+      if(deliverySequence!==null && delivery?.sequence>deliverySequence && delivery.lastKind==='landmark') notify('Trail outpost reached · +'+compact(delivery.lastReward)+' coins');
+      if(delivery)deliverySequence=delivery.sequence;
+      q('[data-wx-world-label]').dataset.arrived=String(!!deliveryLabel && delivery.phase==='arrived');
+      text(q('[data-wx-world-label]'), deliveryLabel || voyageLabel || (bottleneck ? bottleneck.label + ' · ' + (bottleneck.status || 'Bottleneck') : activeArea?.established ? activeArea.rateText || 'Area working' : canNavigateAreas ? stage.objective : stage.index === 0 && shown.length === 1 ? 'Coins arrive as you explore' : ''));
       q('[data-wx-world-label]').hidden = !q('[data-wx-world-label]').textContent;
       q('[data-wx-world-label]').setAttribute('aria-label','Area details: ' + q('[data-wx-world-label]').textContent);
+      if(deliveryLabel) q('[data-wx-world-label]').setAttribute('aria-label','Trail outpost. '+delivery.deliveries+' deliveries. Last award '+compact(delivery.lastReward)+' coins. '+(delivery.phase==='arrived' ? 'Arrived.' : Math.floor(percent(delivery.progress))+' percent of this journey.'));
       const focus = q('[data-wx-focus]');
       focus.hidden = !e.focus?.unlocked;
       if (e.focus?.unlocked) { markup(focus, '<span aria-hidden="true">◆</span><span>Focus<small>' + (e.focus.active ? Math.ceil(e.focus.remaining) + 's' : e.focus.charges + ' / ' + e.focus.max) + '</small></span>'); focus.setAttribute('aria-label', 'Guild Focus. ' + (e.focus.active ? (areaNames[e.focus.active] || e.focus.active) + ' active, ' + Math.ceil(e.focus.remaining) + ' seconds left. ' : '') + e.focus.charges + ' of ' + e.focus.max + ' shared charges. Review effects.'); }
@@ -1260,7 +1546,8 @@
       const target = event.target.closest('button');
       if (!target || target.disabled) return;
       event.stopPropagation();
-      if (target.dataset.wxDo) execute(commands.get(target.dataset.wxDo));
+      if (target.dataset.wxPractice && target.dataset.wxPractice===practice()?.token) execute(Object.assign({},practice().practiceAction,{onboardingEpoch:currentContext.onboardingEpoch}));
+      else if (target.dataset.wxDo) execute(commands.get(target.dataset.wxDo));
       else if (target.dataset.wxBuy) execute(view.expedition.cards.find(c => c.id === target.dataset.wxBuy)?.action);
       else if (target.dataset.wxArea) selectArea(target.dataset.wxArea);
       else if (target.dataset.wxNav) { close(); guildOrigin = null; screen = target.dataset.wxNav; update(view); }
@@ -1290,6 +1577,7 @@
     q('.wx-world').addEventListener('keydown', event => { if (event.target !== q('[data-wx-canvas]') || dialog.open) return; if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); stepArea(event.key === 'ArrowLeft' ? -1 : 1); } }, {signal:controller.signal});
     shell.addEventListener('input', event => { if (event.target.hasAttribute('data-wx-search')) { upgradeSearch = event.target.value; markup(q('[data-wx-destination]'), destinationBody()); } }, { signal:controller.signal });
     dialog.addEventListener('click', click, { signal:controller.signal });
+    dialog.addEventListener('input',()=>guide?.refresh(),{signal:controller.signal});
     dialog.addEventListener('cancel', event => { event.preventDefault(); back(); }, { signal:controller.signal });
     return {
       update, notify, close,

@@ -9,7 +9,7 @@ const act = (state, action) => { const result = Core.act(state, action); assert.
 function finish(state, id) {
   act(state, { type: 'onboarding-visit', id });
   let result;
-  for (const stepId of ['purpose', 'operation', 'next-step']) result = act(state, { type: 'onboarding-next', id, stepId });
+  for(let n=0;n<8;n+=1) { const active=Core.getView(state).onboarding.active; if(!active) break; result=act(state,active.practiceAction||active.inspectAction); }
   return result;
 }
 function withoutGuidance(state) { const copy = clone(state); delete copy.onboarding; return copy; }
@@ -18,77 +18,6 @@ function porters() {
   act(state, { type: 'expedition-buy', id: 'boots' }); act(state, { type: 'expedition-buy', id: 'boots' });
   return state;
 }
-
-test('fresh first visit has three real descriptive steps and no required spending or automatic reward', () => {
-  const state = Core.createState(10), before = clone(state);
-  const first = Core.getView(state).onboarding;
-  assert.equal(first.active, null); assert.equal(first.notice, null);
-  assert.deepEqual(first.guides.map(guide => guide.id), ['greenway']);
-  assert.equal(first.guides[0].mandatory, true);
-  assert.deepEqual(first.guides[0].steps.map(step => step.target), ['scene', 'area-upgrades', 'area-goal']);
-  assert.deepEqual(state, before, 'views cannot mark guides visited');
-  act(state, first.guides[0].visitAction);
-  const open = Core.getView(state).onboarding.active;
-  assert.equal(open.id, 'greenway'); assert.equal(open.stepId, 'purpose'); assert.equal(open.total, 3);
-  assert.deepEqual(state.resources, before.resources);
-  for (const stepId of ['purpose', 'operation']) act(state, { type: 'onboarding-next', id: 'greenway', stepId });
-  assert.deepEqual(state.resources, before.resources);
-  const result = act(state, { type: 'onboarding-next', id: 'greenway', stepId: 'next-step' });
-  assert.deepEqual(result.reward.coins, N.from(12));
-  assert.deepEqual(state.resources.coins, N.add(before.resources.coins, 12));
-  assert.deepEqual(state.expedition.areas.greenway.ranks, before.expedition.areas.greenway.ranks);
-  assert.deepEqual(state.premium, before.premium); assert.deepEqual(state.luck, before.luck); assert.deepEqual(state.collection, before.collection);
-  assert.equal(Core.getView(state).onboarding.active, null); valid(state);
-});
-
-test('Cards and Equipment become mandatory only after explicit free starter claim, with no tutorial reward or spending', () => {
-  const state=mature();
-  for (const id of ['cards','equipment']) {
-    const before=Core.getView(state).onboarding.guides.find(guide=>guide.id===id);
-    assert.equal(before.mandatory,false);
-    act(state,{type:'collection-unlock',kind:id});
-    const after=Core.getView(state).onboarding.guides.find(guide=>guide.id===id);
-    assert.equal(after.mandatory,true);
-    assert.deepEqual(after.rewardPreview.amount,N.from(0));
-    const inventory=clone(state.collection),resources=clone(state.resources);
-    finish(state,id);
-    assert.equal(state.onboarding.progress[id],3);
-    assert.deepEqual(state.collection,inventory);
-    assert.deepEqual(state.resources,resources);
-    valid(state);
-  }
-});
-
-test('out of order, skipped, stale and completed steps reject without changing any state', () => {
-  const state = Core.createState(0);
-  act(state, { type: 'onboarding-visit', id: 'greenway' });
-  for (const action of [{ type:'onboarding-next', id:'greenway', stepId:'next-step' }, { type:'onboarding-next',id:'quarry',stepId:'purpose' }, { type:'onboarding-visit',id:'harbor' }, { type:'onboarding-next',id:'greenway',stepId:'purpose',coins:1000 }]) {
-    const before = clone(state); assert.equal(Core.act(state, action).ok, false); assert.deepEqual(state, before);
-  }
-  act(state, { type:'onboarding-next',id:'greenway',stepId:'purpose' });
-  const before = clone(state);
-  assert.equal(Core.act(state,{type:'onboarding-next',id:'greenway',stepId:'purpose'}).ok,false); assert.deepEqual(state,before);
-  act(state,{type:'onboarding-next',id:'greenway',stepId:'operation'});
-  const final = {type:'onboarding-next',id:'greenway',stepId:'next-step'}; act(state,final);
-  const completed=clone(state);
-  assert.equal(Core.act(state,final).ok,false); assert.equal(Core.act(state,{type:'onboarding-visit',id:'greenway'}).ok,false);
-  assert.deepEqual(state,completed); valid(state);
-});
-
-test('safe exit, export and reload resume the precise step; replay descriptors never pay', () => {
-  const state=Core.createState(0);
-  act(state,{type:'onboarding-visit',id:'greenway'}); act(state,{type:'onboarding-next',id:'greenway',stepId:'purpose'});
-  act(state,{type:'onboarding-leave',id:'greenway'});
-  const store=Storage.createStore({storage:null,now:()=>state.lastUpdate});
-  const exported=store.export(state); assert.ok(exported.ok);
-  const loaded=Core.normalizeState(JSON.parse(exported.text).state,state.lastUpdate);
-  assert.deepEqual(loaded.onboarding,state.onboarding);
-  act(loaded,{type:'onboarding-visit',id:'greenway'});
-  assert.equal(Core.getView(loaded).onboarding.active.stepId,'operation');
-  act(loaded,{type:'onboarding-next',id:'greenway',stepId:'operation'}); act(loaded,{type:'onboarding-next',id:'greenway',stepId:'next-step'});
-  const complete=clone(loaded); Core.getView(loaded).onboarding.guides[0].steps.forEach(step=>assert.ok(step.heading));
-  assert.deepEqual(loaded,complete); valid(loaded);
-});
 
 test('Unlock and go claims the real tier and acknowledges its resulting notice atomically', () => {
   const state=porters(), entry=Core.getView(state).onboarding.notice.items.find(row=>row.kind==='tier-ready');
@@ -137,7 +66,7 @@ test('all six earned areas teach actual operations and only the visited area bec
     assert.equal(state.onboarding.progress[id],3); valid(state);
   }
   const harbor=Core.getView(state).onboarding.guides.find(guide=>guide.id==='harbor');
-  assert.match(harbor.steps[0].body,/when a funded voyage finishes/); assert.match(harbor.steps[1].body,/Already funded/);
+  assert.ok(harbor.steps.every(step=>step.mode==='inspect'||step.requiredAction));
   assert.equal(harbor.rewardPreview.available,false);
 });
 
@@ -155,7 +84,7 @@ test('returning released saves retain every economic field and receive guides wi
 
 test('Refit and Charter retain guide completion, in-progress steps and once-only reward claims', () => {
   const state=mature(); act(state,{type:'expedition-select',areaId:'greenway'}); finish(state,'greenway');
-  act(state,{type:'expedition-select',areaId:'quarry'}); act(state,{type:'onboarding-visit',id:'quarry'}); act(state,{type:'onboarding-next',id:'quarry',stepId:'purpose'}); act(state,{type:'onboarding-leave',id:'quarry'});
+  act(state,{type:'expedition-select',areaId:'quarry'}); act(state,{type:'onboarding-visit',id:'quarry'}); act(state,Core.getView(state).onboarding.active.inspectAction); act(state,{type:'onboarding-leave',id:'quarry'});
   const learned=clone(state.onboarding.progress), claimed=clone(state.onboarding.rewardClaims);
   assert.ok(Core.getRefitPreview(state).available); act(state,{type:'refit'});
   assert.deepEqual(state.onboarding.progress,learned); assert.deepEqual(state.onboarding.rewardClaims,claimed); valid(state);

@@ -83,6 +83,7 @@ class GuildOfflineDeviceTest {
     evaluate(scenario, "document.querySelector('[data-wx-nav=\"expedition\"]').click(); document.querySelector('[data-wx-objective]').click(); true")
     awaitSheet(scenario, "areas")
     evaluate(scenario, "document.querySelector('[data-wx-area=\"$id\"]').click(); true")
+    awaitReady(scenario)
   }
 
   @Test fun sixAreaPickerExactBatchAndPlansRemainUsableWithLargeText() {
@@ -109,6 +110,8 @@ class GuildOfflineDeviceTest {
         }
         selectArea(scenario, "greenway")
         evaluate(scenario, "document.querySelector('[data-wx-batch]').click(); document.querySelector('[data-wx-do=\"batch:5\"]').click(); true")
+        // Complete the real first-use lesson before measuring an ordinary batch.
+        awaitReady(scenario)
         val purchasedBefore = readSnapshot(scenario)
         evaluate(scenario, "document.querySelector('[data-wx-buy=\"boots\"]').click(); true")
         val purchased = awaitSnapshot(scenario, "Exact five-rank purchase must be durably saved") {
@@ -126,11 +129,16 @@ class GuildOfflineDeviceTest {
   }
 
   @Test fun firstBootAvailabilityAndPurchaseKeepThePlayfieldAnchored() {
+    assumeTrue("Requires explicit permission to spend on the disposable opening guild",
+      InstrumentationRegistry.getArguments().getString("guildGuideAcknowledgementQa") == "true")
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val opening = awaitReady(scenario)
-      // Run on a fresh disposable AVD to cover the real first-run transition.
-      // Retained save QA deliberately does not reset somebody else's guild.
-      assumeTrue("Opening transition requires a naturally fresh guild", opening.getInt("stageIndex") == 0 && opening.getInt("boots") == 0 && opening.getInt("guildBoots") == 0)
+      // The separate onboarding suite proves the free practice rank is exactly
+      // zero to one. This case measures the next ordinary paid rank instead.
+      assumeTrue("Opening transition requires a naturally fresh guild after its real lesson", opening.getInt("stageIndex") == 0 && opening.getInt("guildBoots") == 0 && opening.optInt("trailPracticeProgress") == 3)
+      val initialRank = opening.getInt("boots")
+      val initialSupplies = opening.getInt("trailPracticeSupplies")
+      assertTrue("The completed lesson must leave its actual rank", initialRank >= 1)
       val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20)
       var ready = opening
       while (!ready.optBoolean("canBuyBoots") && System.nanoTime() < deadline) {
@@ -138,18 +146,57 @@ class GuildOfflineDeviceTest {
         ready = readSnapshot(scenario)
         assertAnchored(opening, ready)
       }
-      assertTrue("The first useful upgrade must arrive within 20 seconds on the device", ready.optBoolean("canBuyBoots"))
+      assertTrue("The next ordinary upgrade must arrive within 20 seconds on the device", ready.optBoolean("canBuyBoots"))
       assertAnchored(opening, ready)
-      evaluate(scenario, "document.querySelector('[data-wx-buy=\"boots\"]').click(); true")
-      var purchased = readSnapshot(scenario)
-      val saveDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
-      while ((purchased.optInt("boots") == 0 || !purchased.optBoolean("nativeConfirmed")) && System.nanoTime() < saveDeadline) {
-        Thread.sleep(200)
-        purchased = readSnapshot(scenario)
+      evaluate(scenario, "document.querySelector('[data-upgrade=\"boots\"] .wx-upgrade-info').click(); window.WayfarersAndroidUI.flush(); true")
+      awaitSnapshot(scenario, "The exact ordinary price must have a durable starting checkpoint") {
+        it.optBoolean("nativeConfirmed") && it.optString("sheetKind") == "local"
       }
-      assertEquals("Normal purchase must persist its improvement", 1, purchased.getInt("boots"))
+      evaluate(scenario, """
+        (function(){
+          var audit = window.__guildPaidPurchaseQa = {ok:false};
+          try {
+            var read = function(){return JSON.parse(localStorage.getItem('wayfarers-guild-save-v1')).state;};
+            var before = read(), core = window.WayfarersCore, n = core.Numbers;
+            var item = core.getView(before).expedition.cards.find(function(row){return row.action.id === 'boots';});
+            var summary = document.querySelector('.wx-sheet[open] .wx-purchase-summary');
+            var button = document.querySelector('.wx-sheet[open] .wx-confirm');
+            if(!item || item.quantity !== 1 || !button || button.disabled || button.hasAttribute('data-wx-practice')) throw new Error('Ordinary single-rank offer missing');
+            audit.displayedCost = summary && summary.textContent;
+            audit.priceMatches = !!summary && item.cost.every(function(cost){return summary.textContent.includes(cost.text);});
+            if(!audit.priceMatches) throw new Error('Displayed exact cost differs from the canonical offer');
+            button.click();
+            var after = read(), accrued = JSON.parse(JSON.stringify(before));
+            // Simulate only a copy to account for normal production between the
+            // checkpoint and click; the live clock and resources are untouched.
+            core.advanceTo(accrued,after.lastUpdate);
+            audit.debits = item.cost.map(function(cost){
+              var actual = n.toNumber(n.sub(accrued.resources[cost.resource],after.resources[cost.resource]));
+              var expected = n.toNumber(cost.amount);
+              return {resource:cost.resource,actual:actual,expected:expected,ok:Math.abs(actual-expected)<=Math.max(1e-7,Math.abs(expected)*1e-7)};
+            });
+            audit.rankDelta = after.expedition.areas.greenway.ranks.boots-before.expedition.areas.greenway.ranks.boots;
+            audit.ok = audit.rankDelta === 1 && audit.debits.length > 0 && audit.debits.every(function(cost){return cost.ok;});
+          } catch(error) { audit.error = String(error); }
+          return true;
+        }())
+      """.trimIndent())
+      val purchased = awaitSnapshot(scenario, "The normal paid rank must persist its exact improvement") {
+        it.optInt("boots") == initialRank + 1 && it.optBoolean("nativeConfirmed")
+      }
+      val audit = purchased.getJSONObject("paidPurchaseAudit")
+      assertTrue("The normal purchase must spend its displayed exact price: $audit", audit.optBoolean("ok"))
+      assertEquals("An ordinary purchase must not consume a tutorial supply", initialSupplies, purchased.getInt("trailPracticeSupplies"))
+      assertEquals("Normal purchase must persist its exact improvement", initialRank + 1, purchased.getInt("boots"))
       assertTrue("Native storage acknowledges the durable purchase", purchased.getBoolean("nativeConfirmed"))
-      assertAnchored(opening, purchased)
+      scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+      val closed = awaitReady(scenario)
+      assertAnchored(opening, closed)
+      scenario.recreate()
+      val restored = awaitReady(scenario)
+      assertEquals(purchased.getLong("createdAt"), restored.getLong("createdAt"))
+      assertEquals("The exact paid rank survives a cold WebView", initialRank + 1, restored.getInt("boots"))
+      assertEquals(initialSupplies, restored.getInt("trailPracticeSupplies"))
     }
   }
 
@@ -275,22 +322,33 @@ class GuildOfflineDeviceTest {
   private fun awaitReady(scenario: ActivityScenario<MainActivity>, landscape: Boolean? = null): JSONObject {
     val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(35)
     var snapshot = JSONObject()
+    var practiced = false
     while (System.nanoTime() < deadline) {
       snapshot = readSnapshot(scenario)
       if (snapshot.optString("sheetKind") in listOf("return", "finale")) {
         evaluate(scenario, "document.querySelector('.wx-sheet [data-wx-close]').click(); true")
+        continue
       }
       if (snapshot.optString("sheetKind") in listOf("onboarding-notice", "onboarding-inbox")) {
         evaluate(scenario, "document.querySelector('.wx-sheet [data-wx-do=\"onboarding-later\"]').click(); true")
+        continue
       }
-      // Legacy geometry/economy cases can explicitly acknowledge real controls
-      // on disposable fixtures. The separate guide suite owns step/resume tests.
+      // Opted-in legacy cases use the actual required game controls. They never
+      // skip a lesson or edit its proof; the guide suite owns resume assertions.
       if (snapshot.optBoolean("guideOpen") && InstrumentationRegistry.getArguments()
           .getString("guildGuideAcknowledgementQa") == "true") {
-        evaluate(scenario, "document.querySelector('.wx-guide[open] [data-guide-next]').click(); true")
+        practiced = true
+        evaluate(scenario, "var target=Array.from(document.querySelectorAll('[aria-describedby~=\"wx-guide-body\"]')).find(function(node){return !node.classList.contains('wx-guide');}); if(target && !target.disabled && !target.closest('[inert]')) target.click(); true")
+        Thread.sleep(150)
+        continue
+      }
+      if (practiced && !snapshot.optBoolean("guideOpen") && snapshot.optString("sheetKind").isNotEmpty()) {
+        scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        Thread.sleep(150)
+        continue
       }
       val orientationMatches = landscape == null || (snapshot.optInt("viewportWidth") > snapshot.optInt("viewportHeight")) == landscape
-      if (snapshot.optString("scene") == "ready" && snapshot.optBoolean("saved") && snapshot.optBoolean("rendered") && orientationMatches) return snapshot
+      if (snapshot.optString("scene") == "ready" && snapshot.optBoolean("saved") && snapshot.optBoolean("nativeConfirmed") && !snapshot.optBoolean("guideOpen") && snapshot.optBoolean("rendered") && orientationMatches) return snapshot
       Thread.sleep(150)
     }
     throw AssertionError("Bundled game did not become ready with a durable save: $snapshot")
@@ -326,6 +384,9 @@ class GuildOfflineDeviceTest {
           return {url: location.href, scene: scene && scene.dataset.sceneStatus, saved: !!state,
             createdAt: state && state.createdAt, lastUpdate: state && state.lastUpdate,
             boots: trail && trail.ranks.boots,
+            trailPracticeProgress: state && state.onboarding.practice.progress.greenway,
+            trailPracticeSupplies: state ? state.onboarding.practice.supplies.filter(function(id){return id==='greenway:upgrade';}).length : 0,
+            paidPurchaseAudit: window.__guildPaidPurchaseQa || {},
             areaCount: Object.keys(areas).length, selectedArea: expedition && expedition.selectedArea,
             batch: expedition && expedition.batch || 1, trackCount: document.querySelectorAll('[data-wx-buy]').length,
             priceLabelsFit: Array.from(document.querySelectorAll('.wx-dock .wx-price>span')).every(function (label) {

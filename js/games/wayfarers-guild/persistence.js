@@ -348,6 +348,12 @@
       let restored;
       try {
         restored = restore(parsed.payload, now(), false, options && options.premiumEntitlements);
+        // An older backup of this same guild must not reissue consumed practice
+        // supplies or help rewards. A deliberately different guild stays separate.
+        if (options && options.preservePracticeFrom && core.mergePracticeReceipts) {
+          core.mergePracticeReceipts(restored.state, options.preservePracticeFrom);
+          if (!validateState(restored.state).ok) throw new Error('Invalid practice receipts.');
+        }
       } catch (error) {
         return result(false, 'invalid', 'This guild could not be restored. Your current guild has not changed.');
       }

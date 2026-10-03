@@ -1,10 +1,10 @@
 (function (root, factory) {
   'use strict';
   const common = typeof module === 'object' && module.exports;
-  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./progression-content.js') : root.WayfarersProgressionContent, common ? require('./upgrade-tiers.js') : root.WayfarersUpgradeTiers);
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./progression-content.js') : root.WayfarersProgressionContent, common ? require('./upgrade-tiers.js') : root.WayfarersUpgradeTiers, common ? require('./practice-lessons.js') : root.WayfarersPractice);
   if (common) module.exports = api;
   if (root) root.WayfarersOnboarding = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, D, Tiers) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, D, Tiers, Practice) {
   'use strict';
   const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
   const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -20,7 +20,7 @@
   };
   const firstArea = 'area:greenway';
   function initial() {
-    return { version: 1, progress: { greenway: 0 }, active: null, entries: [firstArea], announced: [firstArea], read: [firstArea], rewardClaims: [] };
+    return { version: 1, progress: { greenway: 0 }, active: null, entries: [firstArea], announced: [firstArea], read: [firstArea], rewardClaims: [], practice: Practice.initial() };
   }
   const hasArea = (state, id) => !!state.expedition?.areas?.[id];
   const available = (state, id) => GUIDES.includes(id) && (id === 'cards' ? hasArea(state, 'quarry') : id === 'equipment' ? hasArea(state, 'watchtower') : hasArea(state, id));
@@ -72,6 +72,7 @@
       }
     }
     if (x.active && !['cards', 'equipment'].includes(x.active) && state.expedition?.selectedArea !== x.active) x.active = null;
+    Practice.sync(state);
   }
   function adopt(state) {
     const x = state.onboarding;
@@ -122,6 +123,7 @@
   function act(state, action) {
     const x = state.onboarding;
     if (!x) return { ok: false, message: 'Reload this guild before starting a guide.' };
+    if (x.practice && ['onboarding-visit', 'onboarding-next', 'onboarding-leave', 'onboarding-inspect', 'onboarding-help-open'].includes(action.type)) return Practice.act(state, action);
     if (action.type === 'onboarding-visit') {
       if (!exact(action, ['type', 'id']) || !available(state, action.id) || !own(x.progress, action.id) || !['cards', 'equipment'].includes(action.id) && state.expedition.selectedArea !== action.id || x.progress[action.id] === 3) return { ok: false, message: 'Visit an available, unfinished guide.' };
       if (x.active && x.active !== action.id) return { ok: false, message: 'Close the current guide before starting another.' };
@@ -174,7 +176,7 @@
     }
     return { ok: false, message: 'Choose a valid guide action.' };
   }
-  function view(state) {
+  function view(state, context) {
     const x = state.onboarding;
     if (!x) return { identity: String(state.createdAt) + ':1', guides: [], active: null, inbox: { entries: [], unreadCount: 0 }, notice: null };
     const guides = GUIDES.filter(id => available(state, id)).map(id => guide(state, id));
@@ -183,11 +185,13 @@
     const rows = definitions(state);
     const entries = x.entries.map(id => rows.find(row => row.id === id)).filter(Boolean).map(row => { const item = clone(row); delete item.earned; return { ...item, read: x.read.includes(row.id), announced: x.announced.includes(row.id), readAction: { type: 'onboarding-read', ids: [row.id] }, openAction: { type: 'onboarding-open', id: row.id }, openLabel: row.kind === 'tier-ready' && row.pending ? 'Unlock & go' : row.retired ? 'View area' : 'Go to' }; });
     const unseen = entries.filter(row => !row.announced);
-    return { identity: String(state.createdAt) + ':1', guides, active, inbox: { entries, unreadCount: entries.filter(row => !row.read).length }, notice: unseen.length ? { id: unseen.map(row => row.id).join('|'), title: unseen.length === 1 ? 'New discovery' : unseen.length + ' new discoveries', items: unseen, deferAction: { type: 'onboarding-announce', ids: unseen.map(row => row.id) } } : null };
+    const practice = x.practice ? Practice.view(state, context) : null;
+    return { identity: String(state.createdAt) + (practice ? ':practice-1' : ':1'), guides: practice?.guides || guides, active: practice?.active || (practice ? null : active), triggers: practice?.triggers || [], helpQueue: practice?.helpQueue || [], inbox: { entries, unreadCount: entries.filter(row => !row.read).length }, notice: unseen.length ? { id: unseen.map(row => row.id).join('|'), title: unseen.map(row => row.id).length === 1 ? 'New discovery' : unseen.length + ' new discoveries', items: unseen, deferAction: { type: 'onboarding-announce', ids: unseen.map(row => row.id) } } : null };
   }
   function validate(x, state) {
     try {
-      if (!exact(x, ['version', 'progress', 'active', 'entries', 'announced', 'read', 'rewardClaims']) || x.version !== 1 || !object(x.progress)) return false;
+      if (!exact(x, ['version', 'progress', 'active', 'entries', 'announced', 'read', 'rewardClaims'].concat(own(x, 'practice') ? ['practice'] : [])) || x.version !== 1 || !object(x.progress)) return false;
+      if (own(x, 'practice') && !Practice.validate(x.practice, state)) return false;
       if (Object.entries(x.progress).some(([id, value]) => !available(state, id) || !Number.isSafeInteger(value) || value < 0 || value > 3)) return false;
       if (x.active !== null && (typeof x.active !== 'string' || !own(x.progress, x.active) || x.progress[x.active] >= 3)) return false;
       if (x.active !== null && !['cards', 'equipment'].includes(x.active) && state.expedition?.selectedArea !== x.active) return false;
@@ -199,5 +203,5 @@
       return true;
     } catch (_) { return false; }
   }
-  return { initial, migrate, sync, adopt, act, view, validate };
+  return { initial, migrate, sync, adopt, act, view, validate, setContextProvider: Practice.setContextProvider, preparePractice: Practice.prepare, capture: Practice.capture, observeAction: Practice.observe, mergePracticeReceipts: Practice.mergeReceipts };
 });

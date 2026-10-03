@@ -45,6 +45,7 @@
       developments: Array.isArray(source.developments) ? source.developments.slice().sort() : [],
       ranks: source.ranks || {},
       rates: source.rates || {},
+      delivery: source.delivery || null,
       flows: source.flows || null,
       templates: source.templates || [],
       assignments: source.assignments || [],
@@ -327,8 +328,16 @@
       const route = view.route === 'supply' ? supply : short;
       const operating = view.established && finite(view.rates.travel) > 0;
       const run = reduced() ? 0.57 : animation * Math.max(0.012,Math.min(0.13,Math.sqrt(finite(view.rates.travel)) * 0.018)) % 1;
-      const explorer = operating ? pathPosition(route, run < 0.5 ? run * 1.86 : (1 - run) * 1.86) : view.completed ? [bridgeX + 23, bridgeY] : pathPosition(route, Math.min(0.84, view.progress / 0.78 * 0.84));
-      actor(explorer[0], explorer[1] - 2, 'explorer', operating || !view.completed, operating && run > 0.5 ? -1 : 1);
+      const deliveryRoute=route.concat([[bridgeX + 23,bridgeY]]);
+      const trip=view.delivery?.active;
+      const explorer = trip ? pathPosition(deliveryRoute,clamp(view.delivery.progress,0,1)) : operating ? pathPosition(route, run < 0.5 ? run * 1.86 : (1 - run) * 1.86) : view.completed ? [bridgeX + 23, bridgeY] : pathPosition(route, Math.min(0.84, view.progress / 0.78 * 0.84));
+      actor(explorer[0], explorer[1] - 2, 'explorer', trip ? view.delivery.phase!=='arrived' : operating || !view.completed, !trip && operating && run > 0.5 ? -1 : 1);
+      if(trip) {
+        rectangle(bridgeX + 19,bridgeY - 18,12,10,'#795a3c');
+        polygon([[bridgeX + 16,bridgeY - 18],[bridgeX + 25,bridgeY - 25],[bridgeX + 34,bridgeY - 18]],'#e1bb72');
+        crate(bridgeX + 32,bridgeY + 3,6);
+        if(view.delivery.phase==='arrived') {rectangle(bridgeX + 21,bridgeY - 16,7,5,GOLD);label('Arrived',bridgeX + 17,bridgeY + 17);}
+      }
       companion(explorer[0] - 17, explorer[1] + 2);
       if (rank('porters') >= 3) crate(explorer[0] - 12, explorer[1] - 3, 6);
       [0.22, 0.49, 0.72].forEach((fraction, i) => {
@@ -803,6 +812,8 @@
       canvas.dataset.sceneKind = view.kind;
       canvas.dataset.sceneCheckpoint = String(view.checkpoint);
       canvas.dataset.sceneProgress = String(Math.round(view.progress * 100));
+      canvas.dataset.deliveryProgress = String(view.delivery?.progress ?? '');
+      canvas.dataset.deliveryPhase = view.delivery?.phase || '';
       canvas.dataset.sceneEstablished = String(view.established);
       canvas.dataset.sceneDevelopments = view.developments.join(',');
       canvas.dataset.scenePixelScale = String(scale);

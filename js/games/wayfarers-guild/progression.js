@@ -333,7 +333,10 @@
       const area = x.areas.harbor, remaining = [];
       for (const voyage of area.voyages) {
         voyage.work = Math.min(voyage.target, voyage.work + voyageRate(r.areas.harbor, voyage) * seconds);
-        if (voyage.work >= voyage.target - EPS) {
+        // Thousands of unrelated event boundaries can accumulate a few ULPs of
+        // work error. Snap only the final billionth of a voyage so foreground
+        // partitions and one offline interval pay the same boundary arrival.
+        if (voyage.work >= voyage.target - Math.max(EPS, voyage.target * 1e-9)) {
           Object.entries(voyage.payout).forEach(([key, value]) => { state.resources[key] = N.add(state.resources[key], value); if (key === 'coins') state.lifetime.coins = N.add(state.lifetime.coins, value); });
           event(x, 'stage', 'Voyage delivered', voyage.port + ' cargo arrived automatically. Supplies were paid when the ship departed.', 'harbor');
         } else remaining.push(voyage);

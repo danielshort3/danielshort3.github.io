@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.8.0`, version code `10` |
+| Default candidate | `0.9.0`, version code `11` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 
@@ -24,7 +24,7 @@ The runtime is under `src/main/java/me/danielshort/wayfarers/`. Its activity and
 
 The game envelope now uses schema 6, adding an initially inactive card and equipment collection. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 6, so an older checkpoint can reach the canonical migration code. Retained expedition-version-2 runs keep their released economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-6 envelope; the WebView backup retains the previous valid bytes. [Collection contracts](../../../docs/games/wayfarers-collections.md) describe permanent inventory, named decks, scroll outcomes and schema compatibility.
 
-The additive [onboarding metadata](../../../docs/games/wayfarers-onboarding.md) retains first-visit walkthrough steps, discovery notices and once-only learning rewards in the same checkpoint. Existing saves keep their production and ownership. Area guides resume after an interrupted visit; completed guides can be replayed without another reward. Testing reset clears these fields with the guild, while normal Refit and Charter retain them.
+The additive [onboarding metadata](../../../docs/games/wayfarers-onboarding.md) retains first-visit action lessons, discovery notices, consumed practice supplies and once-only help rewards in the same checkpoint. Lessons use real controls and advance after a successful saved action or opening the specified information. Existing saves keep their production and ownership. Interrupted lessons resume; completed lessons can be replayed without another reward. Testing reset clears these fields with the guild, while normal Refit and Charter retain them. Trail delivery progress uses the simulation clock; reaching the outpost pays a coin bonus online or offline. Prestige clears unfinished cargo while keeping the delivery history.
 
 ## Local builds and signing
 
