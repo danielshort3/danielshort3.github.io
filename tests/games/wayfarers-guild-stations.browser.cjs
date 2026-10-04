@@ -18,6 +18,15 @@ const output=path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.jo
 const report={browser:'In-app browser unavailable: Browser is not available: iab; repository Playwright workflow used.',flows:[],viewports:[],errors:[]};
 function fresh() {const state=H.Core.createState(1000);H.fund(state);F.completeAreaGuides(state);F.announceDiscoveries(state);return state;}
 function mature() {const state=StationFixtures.mature();state.stations.encounter.remaining=0;F.announceDiscoveries(state);return state;}
+function sortingOnly() {
+  const state=StationFixtures.expansionReady();StationFixtures.act(state,{type:'expedition-next'});F.completeAreaGuides(state);StationFixtures.fund(state);
+  const mine=Stations.Content.STATIONS.find(station=>station.areaId==='quarry'&&station.localId==='mine'),hauling=Stations.Content.STATIONS.find(station=>station.areaId==='quarry'&&station.localId==='hauling'),sorting=Stations.Content.STATIONS.find(station=>station.areaId==='quarry'&&station.localId==='sorting');
+  while(state.stations.ranks[mine.skillIds[0]]<60)StationFixtures.act(state,{type:'station-skill-buy',id:mine.skillIds[0],count:1});H.Core.advance(state,800);
+  for(const station of [hauling,sorting]){StationFixtures.act(state,{type:'station-build',id:station.id});StationFixtures.act(state,{type:'station-select',id:station.id});}
+  while((state.stations.ranks[sorting.skillIds[0]] || 0)<25)StationFixtures.act(state,{type:'station-skill-buy',id:sorting.skillIds[0],count:1});
+  const skill=Stations.Content.SKILLS.find(skill=>skill.stationId===sorting.id&&skill.alias==='ore-sorting');StationFixtures.act(state,{type:'station-skill-unlock',id:skill.id});StationFixtures.act(state,{type:'station-skill-buy',id:skill.id,count:1});
+  StationFixtures.act(state,{type:'expedition-select',areaId:'quarry'});assert.equal(H.Core.getView(state).expedition.configurations.length,0,'Early sorting has no later configurations');StationFixtures.act(state,{type:'onboarding-visit',id:'plans'});assert(H.Core.validateState(state).valid);return state;
+}
 async function run() {
   fs.mkdirSync(output,{recursive:true});const files=path.join(output,'bundle');bundle(files);
   const server=http.createServer((req,res)=>{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/assets\//,'/');const file=path.resolve(files,'.'+pathname);if(!file.startsWith(files+path.sep)){res.writeHead(403).end();return;}fs.readFile(file,(error,bytes)=>{if(error){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp'})[path.extname(file)] || 'application/json');res.end(bytes);});});
@@ -89,9 +98,10 @@ async function run() {
     for(const area of Stations.Content.AREAS) {await page.locator('[data-wx-objective]').click();await page.locator('[data-wx-area="'+area.id+'"]').click();await page.clock.runFor(1000);await ready(page);await shot(page,'area-'+area.id+'-world-390');}
     await context.close();assert.deepEqual(report.errors,[]);report.flows.push('Every area renders its own source art with no runtime errors');
     const lessons=['quarry','watchtower','workshop','ruins','harbor','cards','equipment','tiers','techniques','guild-upgrades','projects','plans','configuration','refit','shop','bulk','focus','automation','reserves','planner'].map(id=>({id,label:id,seed:()=>StationFixtures.lesson(id)}));
-    lessons.push({id:'tiers',label:'tiers-build',seed:()=>{const state=StationFixtures.buildReady();state.onboarding.practice.intentions.tiers={type:'station-build',id:Stations.Content.STATIONS[1].id};StationFixtures.act(state,{type:'onboarding-visit',id:'tiers'});return state;}});
-    lessons.push({id:'tiers',label:'tiers-area',seed:()=>{const state=StationFixtures.buildReady(),station=Stations.Content.STATIONS[1];StationFixtures.act(state,{type:'station-build',id:station.id});StationFixtures.act(state,{type:'station-select',id:station.id});while((state.stations.ranks[station.skillIds[0]] || 0)<5)StationFixtures.act(state,{type:'station-skill-buy',id:station.skillIds[0],count:1});const row=Stations.view(state).currentArea.areaUpgrades.find(row=>row.ready);assert(row,'Second station and actual20ranks earn Area improvement');state.onboarding.practice.intentions.tiers=row.unlockAction;StationFixtures.act(state,{type:'onboarding-visit',id:'tiers'});return state;}});
+    lessons.push({id:'tiers',label:'tiers-build',seed:()=>{const state=StationFixtures.buildReady();StationFixtures.act(state,{type:'onboarding-visit',id:'tiers',intendedAction:{type:'station-build',id:Stations.Content.STATIONS[1].id}});return state;}});
+    lessons.push({id:'tiers',label:'tiers-area',seed:()=>{const state=StationFixtures.buildReady(),station=Stations.Content.STATIONS[1];StationFixtures.act(state,{type:'station-build',id:station.id});StationFixtures.act(state,{type:'station-select',id:station.id});while((state.stations.ranks[station.skillIds[0]] || 0)<5)StationFixtures.act(state,{type:'station-skill-buy',id:station.skillIds[0],count:1});const row=Stations.view(state).currentArea.areaUpgrades.find(row=>row.ready);assert(row,'Second station and actual20ranks earn Area improvement');StationFixtures.act(state,{type:'onboarding-visit',id:'tiers',intendedAction:row.unlockAction});return state;}});
     lessons.push({id:'expansion',label:'expansion',seed:()=>{const state=StationFixtures.expansionReady();StationFixtures.act(state,{type:'onboarding-visit',id:'expansion'});return state;}});
+    lessons.push({id:'plans',label:'plans-early',seed:sortingOnly});
     for(const lesson of lessons) {
       const {id,label}=lesson,seed=lesson.seed();F.announceDiscoveries(seed);
       const {page,context}=await open(390,844,seed);const expected=H.Core.getView(seed).onboarding.guides.find(row=>row.id===id).steps.length,trace=[];
@@ -102,11 +112,16 @@ async function run() {
           while(/^currency:/.test(await coach.getAttribute('data-step'))){await page.locator('[data-guide-next]').click();await page.clock.runFor(100);}
           assert.equal(await coach.getAttribute('data-missing'),'false',id+' real destination is visible');const target=page.locator('[data-guide-target]');assert.equal(await target.count(),1);
           trace.push({step:await coach.getAttribute('data-step'),target:await target.getAttribute('data-wx-do') || await target.getAttribute('data-wx-nav') || await target.getAttribute('data-wx-close')});
+          if(label==='plans-early' && await page.locator('.wx-sheet[open][data-kind="choice"]').count()){const actual=H.Core.getView(await saved()).stations.currentArea.stations.filter(station=>station.status==='built');assert.deepEqual(await page.locator('[data-wx-operation-station]').evaluateAll(nodes=>nodes.map(node=>({id:node.dataset.wxOperationStation,rate:node.querySelector('small').textContent}))),actual.map(station=>({id:station.id,rate:station.outputText})),'Processing shows canonical new-station rates');}
           await shot(page,'lesson-'+label+'-'+n);
           if(await target.getAttribute('data-wx-reserve')!==null)await target.fill(H.Core.getView(seed).onboarding.active?.requiredAction?.amount || '10');else await target.click();
           await page.clock.runFor(300);
         }
         const result=await saved();assert.equal(result.onboarding.practice.progress[id],expected,JSON.stringify({id,trace}));assert(H.Core.validateState(result).valid,id+' stays valid');
+        if(label==='tiers-area')assert(result.stations.areaUnlocked.includes('area:greenway:training'),'Area lesson claims the actual Area improvement');
+        if(label==='tiers-build')assert(result.stations.built.includes('greenway:porter-camp'),'Build lesson constructs actual second station');
+        if(label==='expansion')assert(result.expedition.areas.quarry,'Expansion opens the actual next area');
+        if(label==='plans-early'){assert.equal(result.expedition.areas.quarry.choice,'rich');const station=Stations.Content.STATIONS.find(station=>station.areaId==='quarry'&&station.localId==='sorting'),before=Stations.stationEconomy(seed,station),after=Stations.stationEconomy(result,station),knowledge=economy=>economy.byproducts.find(row=>row.resource==='knowledge')?.rate || 0;assert(after.primary>before.primary && knowledge(after)<knowledge(before),'Early Ore priority changes actual ore versus knowledge production');}
         report.flows.push('Earned '+label+' lesson completes through actual controls: '+JSON.stringify(trace));
       }catch(error){await shot(page,'lesson-'+label+'-FAILED');process.stderr.write(JSON.stringify({output,id,label,trace,body:await page.locator('body').innerText(),errors:report.errors},null,2)+'\n');throw error;}finally{await context.close();}
     }
