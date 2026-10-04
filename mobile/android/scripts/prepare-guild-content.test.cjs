@@ -8,13 +8,13 @@ const path = require('node:path');
 const test = require('node:test');
 const content = require('./prepare-guild-content.cjs');
 
-const BASE_URL = 'https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-content-v4/';
+const BASE_URL = 'https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-content-v6/';
 const sampleFiles = () => new Map([['wayfarers/index.html', Buffer.from('<!doctype html><title>Guild</title>')], ['wayfarers/game.css', Buffer.from('body{margin:0}')], ['wayfarers/numbers.js', Buffer.from('window.guild=1;')]]);
 const keys = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
 
 function sampleManifest(changes = {}) {
   const { archive, records } = content.writeStoreZip(sampleFiles());
-  return { schemaVersion: 1, packageName: content.PACKAGE_NAME, contentVersion: 4, label: '0.13.0.1', nativeApi: 1, minAppVersionCode: 17, saveSchema: 8,
+  return { schemaVersion: 1, packageName: content.PACKAGE_NAME, contentVersion: 6, label: '0.14.0.1', nativeApi: 1, minAppVersionCode: 18, saveSchema: 8,
     archive: { url: `${BASE_URL}archive.zip`, sha256: content.sha256(archive), size: archive.length }, records, ...changes };
 }
 
@@ -41,9 +41,9 @@ function fakeBundle(directory, files = sampleFiles()) {
 
 test('explicit CLI enforces positive version, required options and approved immutable release URLs', () => {
   assert.throws(() => content.validateAssetUrl(BASE_URL + 'nested/archive.zip'));
-  const argv = ['--key', 'key.pem', '--output', 'release', '--base-url', BASE_URL, '--version', '4', '--label', '0.13.0.1', '--previous-envelope', 'prior.json'];
-  assert.equal(content.parseArgs(argv).version, 4);
-  for (const args of [argv.concat(['--wat', 'x']), argv.concat(['--version', '5']), argv.slice(0, 8), argv.slice(0, -2), argv.map(value => value === '4' ? '3' : value), argv.map(value => value === '4' ? '4.5' : value)]) assert.throws(() => content.parseArgs(args));
+  const argv = ['--key', 'key.pem', '--output', 'release', '--base-url', BASE_URL, '--version', '6', '--label', '0.14.0.1', '--previous-envelope', 'prior.json'];
+  assert.equal(content.parseArgs(argv).version, 6);
+  for (const args of [argv.concat(['--wat', 'x']), argv.concat(['--version', '7']), argv.slice(0, 8), argv.slice(0, -2), argv.map(value => value === '6' ? '5' : value), argv.map(value => value === '6' ? '6.5' : value)]) assert.throws(() => content.parseArgs(args));
   for (const url of ['http://github.com/danielshort3/danielshort3.github.io/releases/download/v1/', 'https://github.com/other/repo/releases/download/v1/', `${BASE_URL}?q=1`, `${BASE_URL}#x`, `${BASE_URL}../x`, `${BASE_URL}%2e%2e/x`, `${BASE_URL}%2fx`, `${BASE_URL}%5cx`, `${BASE_URL}%25x`, BASE_URL.replace('github.com', 'github.com:443'), `${BASE_URL}a b`]) assert.throws(() => content.validateAssetUrl(url), url);
   assert.throws(() => content.parseArgs(argv.map(value => value === BASE_URL ? BASE_URL.slice(0, -1) : value)), /end with/);
 });
@@ -93,7 +93,7 @@ test('ZIP and manifest reject empty, excessive, duplicate or unsupported file in
   assert.throws(() => content.validateManifest({ ...manifest, records: [] }), /inventory/);
   assert.throws(() => content.validateManifest({ ...manifest, records: [manifest.records[0], manifest.records[0]] }), /Duplicate/);
   assert.throws(() => content.validateManifest({ ...manifest, records: manifest.records.filter(record => record.path !== 'wayfarers/index.html') }), /include/);
-  for (const change of [{ extra: true }, { packageName: 'other.app' }, { schemaVersion: 2 }, { nativeApi: 2 }, { saveSchema: 7 }, { minAppVersionCode: 16 }, { minAppVersionCode: 18 }, { label: '' }, { label: 'x\n' }, { contentVersion: 3 }, { contentVersion: 4.5 }, { contentVersion: 2147483648 }]) assert.throws(() => content.validateManifest({ ...manifest, ...change }), /identity/);
+  for (const change of [{ extra: true }, { packageName: 'other.app' }, { schemaVersion: 2 }, { nativeApi: 2 }, { saveSchema: 7 }, { minAppVersionCode: 16 }, { minAppVersionCode: 17 }, { minAppVersionCode: 19 }, { label: '' }, { label: 'x\n' }, { contentVersion: 5 }, { contentVersion: 6.5 }, { contentVersion: 2147483648 }]) assert.throws(() => content.validateManifest({ ...manifest, ...change }), /identity/);
   assert.throws(() => content.validateManifest({ ...manifest, archive: { ...manifest.archive, sha256: 'x' } }), /archive/);
 });
 
@@ -141,14 +141,14 @@ test('builder signs canonical complete content, preserves prior-version monotoni
     fs.writeFileSync(legacy, signLegacyManifest(sampleManifest({ contentVersion: 2, label: '0.12.0.1', minAppVersionCode: 16, saveSchema: 7 })));
     assert.throws(() => content.signManifest(sampleManifest({ contentVersion: 2, minAppVersionCode: 16, saveSchema: 7 }), keys.privateKey), /identity/);
     assert.throws(() => content.verifyEnvelope(fs.readFileSync(legacy), keys.publicKey), /identity/);
-    const options = { key, version: 4, label: '0.13.0.1', 'base-url': BASE_URL, 'previous-envelope': legacy };
+    const options = { key, version: 6, label: '0.14.0.1', 'base-url': BASE_URL, 'previous-envelope': legacy };
     const release = content.prepareBundle(options, fakeBundle);
     assert.equal(release.publicKeySpki, keys.publicKey.export({ type: 'spki', format: 'der' }).toString('base64'));
     assert.equal(release.manifest.records.length, sampleFiles().size);
-    assert.equal(release.manifest.minAppVersionCode, 17);
+    assert.equal(release.manifest.minAppVersionCode, 18);
     assert.equal(release.manifest.saveSchema, 8);
     assert.equal(release.manifest.nativeApi, 1);
-    assert.throws(() => content.prepareBundle({ ...options, version: 3 }, fakeBundle), /baseline/);
+    assert.throws(() => content.prepareBundle({ ...options, version: 5 }, fakeBundle), /baseline/);
     assert.throws(() => content.prepareBundle({ ...options, 'previous-envelope': undefined }, fakeBundle), /previous/);
     const incompatiblePrior = path.join(directory, 'incompatible-prior.json');
     fs.writeFileSync(incompatiblePrior, signLegacyManifest(sampleManifest({ contentVersion: 2, minAppVersionCode: 15, saveSchema: 6 })));
@@ -161,7 +161,11 @@ test('builder signs canonical complete content, preserves prior-version monotoni
     const prior = path.join(directory, 'prior.json');
     fs.writeFileSync(prior, signed);
     assert.throws(() => content.prepareBundle({ ...options, 'previous-envelope': prior }, fakeBundle), /increase/);
-    assert.equal(content.prepareBundle({ ...options, version: 5, 'previous-envelope': prior }, fakeBundle).manifest.contentVersion, 5);
+    assert.equal(content.prepareBundle({ ...options, version: 7, 'previous-envelope': prior }, fakeBundle).manifest.contentVersion, 7);
+    const releasedSeventeen = path.join(directory, 'released-seventeen.json');
+    fs.writeFileSync(releasedSeventeen, signLegacyManifest(sampleManifest({ contentVersion: 4, label: '0.13.0.1', minAppVersionCode: 17, saveSchema: 8 })));
+    assert.throws(() => content.verifyEnvelope(fs.readFileSync(releasedSeventeen), keys.publicKey), /identity/);
+    assert.equal(content.prepareBundle({ ...options, 'previous-envelope': releasedSeventeen }, fakeBundle).manifest.contentVersion, 6);
     const output = path.join(directory, 'release');
     content.writeBundle(output, release.artifacts);
     content.writeBundle(output, release.artifacts);

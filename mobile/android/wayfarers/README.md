@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.13.0`, version code `17` |
+| Default candidate | `0.14.0`, version code `18` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 | Signed game-content channel | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest-content.json` |
@@ -21,7 +21,7 @@ The runtime is under `src/main/java/me/danielshort/wayfarers/`. Its activity and
 
 `GuildCheckpointStore.kt` adds a private, atomic, fsynced checkpoint of each successful canonical game save. `web/checkpoint.js` validates the envelope with the canonical parser before mirroring it and before bootstrap recovery; the native wrapper verifies its SHA-256 when reading. A newer valid WebView save wins. Recovery across a different guild identity requires the recorded identity from an explicitly reviewed import. `native-checkpoint.js` is an empty generated fallback for browser previews; the Android asset loader supplies the private checkpoint at that exact same-origin script URL without caching it. Checkpoints contain the normal exported game envelope, never a paid wallet. Lifecycle and installer safety checks finish the native write before reporting success.
 
-`shareUpdaterSources` copies the canonical `app/src/main/java/me/danielshort/app/updates/*.kt` and `data/AppSettings.kt` into an ignored generated source set without rewriting them. It excludes `AutomaticInstallReceiver.kt` and `AutomaticAppInstaller.kt`: this standalone sideload app owns both Android platform adapters under `wayfarers/src/main/java/me/danielshort/app/updates/`. The installer adapter preserves the previously released PackageInstaller bridge; the main app removed that bridge for its Google Play distribution. The shared verification, coordinator and installation engine remain canonical. `shareUpdaterTests` compiles the original updater JVM tests in this module too. Changes to signatures, exact APK identity, patch verification, download bounds or installer recovery remain owned by the original updater sources. The main application build configuration is unchanged.
+`shareUpdaterSources` copies the canonical `app/src/main/java/me/danielshort/app/updates/*.kt` and `data/AppSettings.kt` into an ignored generated source set without rewriting them. It excludes only `AutomaticInstallReceiver.kt`, whose application cast is specific to the main app. `shareUpdaterTests` compiles the original updater JVM tests in this module too. Changes to signatures, exact APK identity, patch verification, download bounds or installer recovery remain owned by the original updater sources; do not fork them here. The main application build configuration is unchanged.
 
 The game envelope uses schema 8 and adds dormant station knowledge to validated historical guilds. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 8, so an older checkpoint can reach canonical migration. Existing version-2 and version-3 economies remain unchanged until a confirmed Refit or Charter; fresh games and testing resets use the station economy (version 4). Native storage preserves the first pre-schema-8 checkpoint separately and rejects ordinary schema downgrades. [Station contracts](../../../docs/games/wayfarers-stations.md) and [collection contracts](../../../docs/games/wayfarers-collections.md) describe retained ownership.
 
@@ -59,6 +59,12 @@ Open **App options → Game updates → Check game updates → Download game upd
 
 Game content is versioned separately from the APK. Native API, permissions, SDK and unsupported save-schema changes require a normal APK update. The first content-enabled APK bundles content version 1; subsequent signed content versions increase monotonically. Automatic mode may download a verified content update on allowed connections, but applying always waits for the player's tap. Cancelled automatic downloads remain cancelled until a fresh check or manual download.
 
+APK 18 includes content baseline 5, native API 1 and save schema 8. On an APK upgrade, an older compatible downloaded snapshot is retained for recovery and the newer included baseline supplies the matching UI. A newer compatible downloaded snapshot remains active. Selecting content does not modify the guild checkpoint.
+
+**Game Settings → Testing → Reset after successful updates** is an optional debugging preference, off by default and available from APK 18. Enabling requires explicit confirmation and affects future successful APK/content updates. A document-scoped native receipt is emitted only after canonical initialization, painted visible scenes, durable checkpoint acknowledgment and content commit; failed/rolled-back candidates do not trigger a reset. Initial installation and ordinary launches never reset. The actual selected content version, rather than the APK's baseline label, identifies the update.
+
+The reset waits for pending purchase wallets, imports and verified rewards, then uses the same durable testing-reset journal and generation fencing. It retains settings, paid account ownership/wallet, local shop keepsakes and caravan receipt/cooldown history; earned progression, cards and equipment restart. Exact pre-reset game text is retained under `wayfarers-guild-save-v1-before-update-reset` and can be downloaded from Testing settings. Native checkpoint bytes are also retained privately as `guild-checkpoint.json.before-update-reset`. A matching interrupted update-reset journal resumes its already fixed seed before content readiness, including native-first/lost-ack recovery; a completed update receipt prevents another wipe on reload. Never use this option to simulate a rollback or clear pending commerce.
+
 The native **Automatic updates** option follows the shared updater's eligibility checks, including verified downloads and deferred installation only while the app is out of use and Android permits it. Its unmetered setting applies to automatic downloads. It does not bypass installation permission or the platform's confirmation requirements. Manual checking, downloading and installation remain available separately.
 
 The manifest permits networking and package installation, disables cleartext traffic and Android backup/transfer, and exposes only the private verified `app-updates/ready/` directory through an unexported FileProvider. It does not request microphone, recording or broad storage access. JSON saves may be opened or shared into the game; the runtime must use inspected import and confirmation before replacing a save. Personal-site app, Android browser and standalone game state remain separate; there is no silent migration.
@@ -69,13 +75,14 @@ Focused game checks run from the repository root:
 
 ```powershell
 npm run test:wayfarers-guild:expeditions
-npm run test:wayfarers-guild:stations
-npm run test:wayfarers-guild:stations:browser
+npm run test:wayfarers-guild:progression:browser
+npm run test:wayfarers-guild:collections:browser
 npm run test:wayfarers-guild:onboarding:browser
+node tests/games/wayfarers-guild-expedition.browser.cjs
 node --test mobile/android/scripts/wayfarers-bundle.test.cjs
 ```
 
-These browser checks build the same offline assets as the APK. The station suites check the fresh opening, six-area navigation, exact purchases, action lessons, gestures, fixed camera, compact drawers and retained legacy work. They replace older browser checks that assumed permanent inline upgrade cards. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, six-area controls and native checkpoint acknowledgement. Run first-boot and opted-in mature fixtures only on a disposable emulator; never clear an existing player's data to make a case run.
+These browser checks build the same offline assets as the APK. The expedition suite checks retained published runs; the progression suite checks the new opening, six-area navigation, exact bulk transactions, cap remainders, gestures and bounded layouts. Set `WAYFARERS_QA_DIR` to an external directory to retain screenshots. `GuildOfflineDeviceTest` separately covers real Android text scaling, rotation, offline rendering, first purchase geometry, context-sheet Back navigation, six-area controls and native checkpoint acknowledgement. Run first-boot and opted-in mature fixtures only on a disposable emulator; never clear an existing player's data to make a case run.
 
 `GuildOnboardingDeviceTest` requires `guildOnboardingQa=true` and an explicitly reset disposable guild. It exercises the actual guide controls, saved step resume, Android Back, rotation, enlarged text, native checkpoint acknowledgment and rewardless replay. Legacy interaction tests can explicitly acknowledge guides with `guildGuideAcknowledgementQa=true`; those tests isolate established gameplay controls and do not replace first-visit coverage. Run the fresh-guide class separately so test ordering cannot consume its initial state.
 

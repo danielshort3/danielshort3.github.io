@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
   private var documentToken = ""
   private var contentTimeout: Job? = null
   private var expectedGuildId: Double? = null
+  private var committedUpdateDocument: String? = null
 
   private val exportDocument = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
     val text = pendingExport
@@ -307,7 +308,8 @@ class MainActivity : ComponentActivity() {
               reply.postMessage(JSONObject().put("type", "checkpoint").put("requestId", request.optLong("requestId")).put("ok", success).toString())
             }
             "reset-guild" -> {
-              val success = checkpoints.reset(request.optString("text"), request.optString("previousGeneration"), request.optString("generation"))
+              val success = checkpoints.reset(request.optString("text"), request.optString("previousGeneration"), request.optString("generation"), request.optString("updateId"))
+              if (success) expectedGuildId = checkpoints.read()?.createdAt
               reply.postMessage(JSONObject().put("type", "reset-guild").put("requestId", request.optLong("requestId")).put("ok", success).toString())
             }
             "options" -> showOptions()
@@ -331,6 +333,7 @@ class MainActivity : ComponentActivity() {
 
   private fun contentBootstrap(session: ContentSession, token: String, recovery: Recovery?): String {
     val metadata = JSONObject().put("version", session.contentVersion).put("label", session.label)
+      .put("apkVersion", BuildConfig.VERSION_CODE)
       .put("documentToken", token).put("recoveryToken", recovery?.token ?: "")
     val restore = recovery?.let {
       """
@@ -341,7 +344,7 @@ class MainActivity : ComponentActivity() {
         }catch(error){window.WayfarersContent.restoreFailed=true;}
       """.trimIndent()
     } ?: ""
-    return "window.WayfarersContent=$metadata;$restore${checkpoints.bootstrapScript()}"
+    return "window.WayfarersContent=Object.assign(window.WayfarersContent||{},$metadata);$restore${checkpoints.bootstrapScript()}"
   }
 
   private fun applyContentUpdate() {
@@ -408,6 +411,16 @@ class MainActivity : ComponentActivity() {
     if (wasApplying && game === view) {
       contentNotice = if (recovery == null) "Game update applied · ${session.label}" else "Previous game restored. Your guild is ready."
       notice(contentNotice)
+    }
+    // Debugging resets may observe only a committed, durable and rendered game.
+    // Restored content consumes the identity without resetting the recovered guild.
+    val documentTime = request.optDouble("documentTimeOrigin", 0.0)
+    val committedDocument = "$documentToken:${session.id}:${if (documentTime.isFinite()) documentTime else 0.0}"
+    if (game === view && committedUpdateDocument != committedDocument) {
+      committedUpdateDocument = committedDocument
+      val identity = JSONObject().put("apkVersion", BuildConfig.VERSION_CODE).put("contentVersion", session.contentVersion)
+        .put("recovered", recovery != null).put("documentToken", documentToken)
+      view.evaluateJavascript("window.dispatchEvent(new CustomEvent('wayfarers-update-committed',{detail:$identity}));", null)
     }
   }
 

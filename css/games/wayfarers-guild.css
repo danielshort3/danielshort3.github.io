@@ -1067,15 +1067,48 @@ dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform
 .wx-world-continuation { height:max(0px,calc(100% - var(--wx-built-height,0px))); background-color:#102b46; background-size:100% 100%; background-position:center top; background-repeat:no-repeat; image-rendering:pixelated; pointer-events:none; }
 .wx-station-world::-webkit-scrollbar { width:5px; }
 .wx-station-world::-webkit-scrollbar-thumb { background:#63d8f0; border:1px solid #102b46; border-radius:4px; }
-.wx-station-segment { position:relative; width:100%; aspect-ratio:384/208; isolation:isolate; }
-.wx-station-segment.wx-station-surface { aspect-ratio:384/320; }
+.wx-station-segment { position:relative; width:100%; isolation:isolate; }
+.wx-station-illustration { position:relative; width:100%; aspect-ratio:384/208; }
+.wx-station-surface .wx-station-illustration { aspect-ratio:384/320; }
 .wx-game[data-station-layout="true"] .wx-station-segment canvas { position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; touch-action:pan-y; }
-.wx-game[data-station-layout="true"] .wx-station-badge { position:absolute; left:12px; top:12px; display:flex; align-items:center; gap:6px; min-height:48px; padding:4px 8px; border:1px solid #67c9f1; border-radius:7px; background:linear-gradient(#0d3b58f2,#05223bee); box-shadow:inset 0 0 0 1px #031427,0 2px 4px #00152988; font-size:13px; color:#f1f9ff; }
-.wx-station-surface .wx-station-badge { top:calc(112/320 * 100% + 10px); }
+.wx-station-heading { position:absolute; left:12px; right:12px; top:12px; display:flex; align-items:center; gap:6px; pointer-events:none; }
+.wx-station-surface .wx-station-heading { top:calc(112/320 * 100% + 10px); }
+.wx-game[data-station-layout="true"] .wx-station-badge { position:relative; left:auto; top:auto; display:flex; align-items:center; gap:6px; min-width:0; max-width:calc(100% - 58px); min-height:48px; padding:4px 8px; border:1px solid #67c9f1; border-radius:7px; background:linear-gradient(#0d3b58f2,#05223bee); box-shadow:inset 0 0 0 1px #031427,0 2px 4px #00152988; font-size:13px; color:#f1f9ff; pointer-events:auto; }
+.wx-station-badge>span:not(.wg-icon) { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.wx-game .wx-inline-quantity { min-width:48px; min-height:48px; padding:4px; font:750 12px/16px system-ui,sans-serif; border:1px solid #48d5df; background:#063048ee; color:#6cf4ed; pointer-events:auto; }
 .wx-station-badge>.wg-icon,.wx-station-badge>.wx-station-icon { width:25px!important; height:25px!important; font-size:25px; }
 .wx-game[data-station-layout="true"] .wx-station-badge[aria-pressed="true"],.wx-game[data-station-layout="true"] .wx-station-jump[aria-pressed="true"] { border-color:#67fff4; box-shadow:inset 0 0 0 1px #1ae6e066,0 0 8px #21dce040; }
 .wx-station-rate { position:absolute; right:11px; bottom:12px; max-width:65%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:3px 6px; background:#051d32c9; border:1px solid #4c86a580; border-radius:3px; color:#d4f9f9; font:600 11px/16px system-ui,sans-serif; }
 .wx-station-rate:empty { display:none; }
+.wx-station-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; gap:6px; height:104px; padding:3px 8px; border-block:1px solid #227eab; background:linear-gradient(#082d46,#051d30); box-sizing:border-box; }
+.wx-inline-upgrade { min-width:0; display:grid; grid-template-rows:48px 48px; border:0; box-shadow:inset 0 0 0 1px #286c94; border-radius:6px; overflow:hidden; background:#072840; }
+.wx-game .wx-inline-info,.wx-game .wx-inline-buy { width:100%; min-width:0; min-height:48px; height:48px; margin:0; padding:2px 4px; border:0; border-radius:0; box-sizing:border-box; }
+.wx-game .wx-inline-info { position:relative; display:grid; justify-items:center; grid-template-rows:28px 14px; align-content:center; background:linear-gradient(#0e3a55,#082840); color:#f0f8ff; }
+.wx-inline-info>.wg-icon,.wx-inline-info>.wx-station-icon { width:28px!important; height:28px!important; font-size:28px; }
+.wx-inline-info>strong { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:750 11px/14px system-ui,sans-serif; }
+.wx-inline-rank { position:absolute; right:3px; top:3px; color:#79eee9; font:750 10px/13px system-ui,sans-serif; }
+.wx-inline-rank>.wg-icon { width:12px!important; height:12px!important; font-size:12px; }
+.wx-inline-info[data-wx-unseen]::after { left:4px; right:auto; top:4px; }
+.wx-game .wx-inline-buy { position:relative; display:flex; align-items:center; justify-content:center; gap:5px; border-top:1px solid #31babc; background:linear-gradient(#27e5df,#10c9c9); color:#032338; font:800 12px/16px system-ui,sans-serif; }
+.wx-inline-count { position:absolute; top:0; left:3px; font:750 9px/12px system-ui,sans-serif!important; color:inherit; }
+.wx-inline-buy>b { flex-shrink:0; font-size:24px; line-height:1; }
+.wx-inline-price { display:grid; gap:1px; min-width:0; }
+.wx-inline-price>span { display:flex; justify-content:center; align-items:center; gap:3px; white-space:nowrap; font:800 12px/15px system-ui,sans-serif; }
+.wx-inline-price .wg-icon { width:15px!important; height:15px!important; font-size:15px; }
+.wx-game .wx-inline-buy:disabled { background:#0d344c; border-color:#20526d; color:#829baa; opacity:1; }
+.wx-inline-buy:disabled>.wx-inline-price .wg-icon { opacity:.55; }
+.wx-game .wx-inline-upgrade[data-state="locked"] .wx-inline-buy { flex-direction:column; gap:0; background:#0b2b42; color:#a9c8da; border-color:#254e68; }
+.wx-inline-lock { display:flex; align-items:center; justify-content:center; gap:4px; }
+.wx-inline-lock .wg-icon { width:16px!important; height:16px!important; font-size:16px; }
+.wx-inline-buy>small { min-width:0; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font:600 10px/13px system-ui,sans-serif; }
+.wx-inline-upgrade[data-ready="true"] { box-shadow:inset 0 0 0 1px #ffe181,0 0 9px #ffde6555; }
+.wx-game .wx-inline-upgrade[data-ready="true"] .wx-inline-buy { background:linear-gradient(#ffe994,#f5c642); border-color:#ffe993; animation:wx-station-ready 1.9s ease-in-out infinite; }
+.wx-inline-upgrade[data-ready="true"] .wx-inline-buy>b { font-size:12px; }
+.wx-inline-upgrade.wx-purchased { animation:wx-inline-purchase .55s ease-out; }
+.wx-core-location { margin-bottom:8px; }
+@keyframes wx-inline-purchase { from { box-shadow:inset 0 0 0 2px #8fffea,0 0 12px #42e9d277; } to { box-shadow:none; } }
+@media (prefers-reduced-motion:reduce) { .wx-game .wx-inline-upgrade .wx-inline-buy,.wx-inline-upgrade.wx-purchased { animation:none!important; } }
+.wx-game[data-quiet="true"] .wx-inline-upgrade .wx-inline-buy,.wx-game[data-quiet="true"] .wx-inline-upgrade.wx-purchased { animation:none!important; }
 .wx-station-icon { width:36px; height:36px; object-fit:contain; image-rendering:pixelated; flex-shrink:0; }
 .wx-station-jumps { position:absolute; z-index:3; top:12px; right:8px; display:flex; flex-direction:column; gap:5px; }
 .wx-game[data-station-layout="true"] .wx-station-jump { width:48px; min-width:48px; height:48px; min-height:48px; padding:5px; border:1px solid #61b8d2; border-radius:6px; background:#07253eeb; box-shadow:0 1px 4px #001b31aa; }
@@ -1154,7 +1187,7 @@ dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform
 .wx-station-cache>.wg-icon { width:43px!important; height:43px!important; font-size:43px; }
 .wx-station-cache>span:last-child { padding:2px 4px; border:1px solid #dcb952; border-radius:3px; background:#0a273dcc; }
 .wx-game[data-focus-visible="true"] .wx-station-cache { bottom:76px; }
-.wx-station-boost { position:absolute; z-index:3; top:9px; right:9px; padding:5px 8px; border:1px solid #e9c954; border-radius:5px; color:#ffdd73; background:#082641dd; font:750 12px/17px system-ui,sans-serif; pointer-events:none; }
+.wx-station-boost { position:absolute; z-index:3; top:9px; right:9px; max-width:calc(100% - 180px); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; padding:5px 8px; border:1px solid #e9c954; border-radius:5px; color:#ffdd73; background:#082641dd; font:750 12px/17px system-ui,sans-serif; pointer-events:none; }
 .wx-station-jumps:not([hidden])~.wx-station-boost { right:66px; }
 .wx-station-reward { position:absolute; z-index:8; right:28px; bottom:88px; color:#ffdc64; font:800 22px/28px system-ui,sans-serif; text-shadow:0 2px 0 #062038,2px 0 0 #062038,-2px 0 0 #062038; pointer-events:none; }
 .wx-reward-burst { animation:wx-reward-rise 1.6s ease-out both; }

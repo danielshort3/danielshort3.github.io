@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..');
-const MODULES = ['numbers', 'content', 'collection-content', 'collections', 'expeditions', 'progression-content', 'area-skills-content', 'area-skills', 'station-content', 'progression-modifiers', 'progression', 'progression-purchases', 'stations', 'upgrade-tiers', 'practice-lessons', 'onboarding', 'trail-deliveries', 'core', 'persistence', 'billing', 'rewarded', 'icons', 'station-art', 'station-scene', 'scene', 'expedition-scene', 'onboarding-ui', 'area-motion', 'expedition-ui', 'app'];
+const MODULES = ['numbers', 'content', 'collection-content', 'collections', 'expeditions', 'progression-content', 'area-skills-content', 'area-skills', 'station-content', 'progression-modifiers', 'progression', 'progression-purchases', 'stations', 'upgrade-tiers', 'practice-lessons', 'onboarding', 'trail-deliveries', 'core', 'persistence', 'debug-updates', 'billing', 'rewarded', 'icons', 'station-art', 'station-scene', 'scene', 'expedition-scene', 'onboarding-ui', 'area-motion', 'expedition-ui', 'app'];
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
 function bundle(output) {

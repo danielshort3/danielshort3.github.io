@@ -263,6 +263,59 @@ class GuildContentUpdateTest {
     assertTrue(active.directory.isDirectory)
   }
 
+  @Test fun newerApkBaselineSupersedesOlderCompatibleContentWithoutChangingGuild() {
+    val root = temporary()
+    val old = GuildContentStore(root, verifier(version = 17, schema = 8), bundledVersion = 3)
+    stage(old, fixture(version = 4, schema = 8, minimum = 17))
+    val active = old.beginApply(checkpoint(schema = 8), storage)
+    assertTrue(old.commitApply(active.id))
+    val guild = File(root, "guild-checkpoint.json").apply { writeBytes(checkpoint(schema = 8)) }
+    val bytes = guild.readBytes()
+    val updated = GuildContentStore(root, verifier(version = 18, schema = 8), bundledVersion = 5)
+    assertNull(updated.startupRecovery())
+    assertTrue(updated.session().isBundled)
+    assertEquals(5L, updated.currentVersion())
+    assertArrayEquals(bytes, guild.readBytes())
+    assertTrue(active.directory!!.isDirectory)
+    assertEquals(active.id, JSONObject(File(root, "journal.json").readText()).getString("appUpgradeBackup"))
+    assertNull(updated.startupRecovery())
+    assertTrue(active.directory.isDirectory)
+    fails { updated.accept(fixture(version = 4, schema = 8, minimum = 17).manifest) }
+  }
+
+  @Test fun newerCompatibleContentRemainsActiveAcrossApkBaselineUpgrade() {
+    val root = temporary()
+    val old = GuildContentStore(root, verifier(version = 18, schema = 8), bundledVersion = 3)
+    stage(old, fixture(version = 6, schema = 8, minimum = 18))
+    val active = old.beginApply(checkpoint(schema = 8), storage)
+    assertTrue(old.commitApply(active.id))
+    val updated = GuildContentStore(root, verifier(version = 18, schema = 8), bundledVersion = 5)
+    assertNull(updated.startupRecovery())
+    assertEquals(active.id, updated.session().id)
+    assertEquals(6L, updated.currentVersion())
+  }
+
+  @Test fun newerBaselinePreservesInterruptedPatchRecoveryAndDebugPreference() {
+    val root = temporary()
+    val old = GuildContentStore(root, verifier(version = 18, schema = 8), bundledVersion = 3)
+    stage(old, fixture(version = 4, schema = 8, minimum = 17))
+    val active = old.beginApply(checkpoint(schema = 8), storage)
+    assertTrue(old.commitApply(active.id))
+    stage(old, fixture(version = 6, schema = 8, minimum = 18))
+    val pairedStorage = JSONObject(storage).put("wayfarers-guild-debug-update-reset", "enabled-policy-and-receipt").toString()
+    val pending = old.beginApply(checkpoint(schema = 8), pairedStorage)
+    val updated = GuildContentStore(root, verifier(version = 18, schema = 8), bundledVersion = 5)
+    val restored = updated.startupRecovery()!!
+    assertArrayEquals(checkpoint(schema = 8), restored.checkpointBytes)
+    assertEquals(pairedStorage, restored.localStorageJson)
+    assertEquals(5L, updated.currentVersion())
+    assertTrue(active.directory!!.isDirectory)
+    assertFalse(updated.commitApply(pending.id))
+    assertTrue(updated.consumeRecovery(restored.token))
+    assertNull(updated.startupRecovery())
+    assertEquals(5L, updated.currentVersion())
+  }
+
   @Test fun schemaEightStationSaveAndAllStorageAreRestoredAsOneRollbackPair() {
     val root = temporary()
     val store = GuildContentStore(root, verifier(version = 17, schema = 8), bundledVersion = 3)

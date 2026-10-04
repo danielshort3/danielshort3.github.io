@@ -110,6 +110,7 @@
       window.WayfarersAndroid.postMessage(JSON.stringify({ type: 'content-ready',
         documentToken: window.WayfarersContent.documentToken,
         version: window.WayfarersContent.version,
+        documentTimeOrigin: window.performance && window.performance.timeOrigin || 0,
         recoveryToken: window.WayfarersContent.recoveryToken || '',
         text: window.WayfarersCheckpoint.snapshot(), generation: window.WayfarersCheckpoint.generation() }));
     }, 150);
