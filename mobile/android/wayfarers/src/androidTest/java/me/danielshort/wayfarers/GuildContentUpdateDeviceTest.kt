@@ -45,6 +45,244 @@ class GuildContentUpdateDeviceTest {
   private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
   private val arguments get() = InstrumentationRegistry.getArguments()
 
+  @Test fun captureActualApkSeventeenBeforeInlineUpgrade() {
+    assumeTrue(arguments.getString("guildInlineBaselineQa") == "true")
+    val context = instrumentation.targetContext
+    assertEquals(17L, context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode)
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val before = awaitReady(scenario, 4)
+      val output = File(context.getExternalFilesDir(null), "inline-qa").apply { mkdirs() }
+      File(output, "before-apk18.json").writeText(before.toString(2))
+      File(output, "native-settings-before-apk18.xml").writeText(nativeSettings())
+      exportEvidence("inline-before-apk18", before)
+    }
+  }
+
+  @Test fun installedApkEighteenKeepsDisabledGuildAndSelectsItsNewBaseline() {
+    assumeTrue(arguments.getString("guildInlineUpgradeQa") == "true")
+    val context = instrumentation.targetContext
+    assertEquals(18L, context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode)
+    val before = JSONObject(File(context.getExternalFilesDir(null), "inline-qa/before-apk18.json").readText())
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val after = awaitReady(scenario, 5)
+      assertGuildRetained(before.getJSONObject("state"), after.getJSONObject("state"))
+      assertEquals(before.getString("resetGeneration"), after.getString("resetGeneration"))
+      assertEquals(File(context.getExternalFilesDir(null), "inline-qa/native-settings-before-apk18.xml").readText(), nativeSettings())
+      val policy = awaitSnapshot(scenario, "Native committed identity must reach the policy") {
+        it.optJSONObject("debugPolicy")?.optJSONObject("state")?.optJSONObject("seen")?.optInt("contentVersion") == 5
+      }.getJSONObject("debugPolicy")
+      assertFalse(policy.getBoolean("enabled"))
+      assertEquals(18, policy.getJSONObject("state").getJSONObject("seen").getInt("apkVersion"))
+      val journal = JSONObject(File(context.filesDir, "guild-content/journal.json").readText())
+      assertTrue(journal.getString("appUpgradeBackup").startsWith("v4-"))
+      assertCheckpoint(after)
+      scenario.recreate()
+      val restored = awaitReady(scenario, 5)
+      assertGuildRetained(after.getJSONObject("state"), restored.getJSONObject("state"))
+      exportEvidence("inline-after-apk18", restored)
+    }
+  }
+
+  @Test fun signedFullRuntimeUpdateHonorsTheActualDebugOptionAndNeverRepeatsReset() {
+    assumeTrue("A backed-up disposable APK18 installation is required", arguments.getString("guildDebugUpdateQa") == "true")
+    val context = instrumentation.targetContext
+    assertEquals(18L, context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode)
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val current = awaitReady(scenario, 5)
+      File(context.getExternalFilesDir(null), "inline-qa").mkdirs()
+      File(context.getExternalFilesDir(null), "inline-qa/before-debug.json").writeText(current.getString("checkpoint"))
+    }
+    withIsolatedApplicationStore(baseline = 5) { fixture ->
+      val candidate = fixture.releaseCanonical(6)
+      fixture.store.stage(candidate.manifest, candidate.archive)
+      ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+        val before = awaitReady(scenario, 5)
+        val enabled = arguments.getString("guildDebugUpdateEnabled") == "true"
+        setDebugOption(scenario, enabled)
+        val armed = awaitReady(scenario, 5)
+        assertGuildRetained(before.getJSONObject("state"), armed.getJSONObject("state"))
+        val process = Process.myPid()
+        var activity: MainActivity? = null
+        scenario.onActivity { activity = it }
+        exportEvidence(if (enabled) "debug-enabled-before" else "debug-disabled-before", armed)
+        openUpdates(scenario)
+        clickNativeButton("Apply game update")
+        val after = awaitSnapshot(scenario, "The committed full-runtime update must honor the opted-in policy", 65) {
+          it.optLong("contentVersion") == 6L && it.optBoolean("valid") && it.optBoolean("confirmed") &&
+            (!enabled || it.getJSONObject("state").getLong("createdAt") != armed.getJSONObject("state").getLong("createdAt"))
+        }
+        assertEquals(process, Process.myPid())
+        scenario.onActivity { assertSame(activity, it) }
+        assertEquals(6L, fixture.store.currentVersion())
+        assertCheckpoint(after)
+        if (!enabled) {
+          assertGuildRetained(armed.getJSONObject("state"), after.getJSONObject("state"))
+          assertEquals(armed.getString("resetGeneration"), after.getString("resetGeneration"))
+        } else {
+          assertNotEquals(armed.getString("resetGeneration"), after.getString("resetGeneration"))
+          val checkpoint = GuildCheckpointStore(File(context.filesDir, "guild-checkpoint.json")).read()!!
+          assertEquals("debug-update-apk18-content6", checkpoint.updateId)
+          val nativeBackup = GuildCheckpointStore(File(context.filesDir, "guild-checkpoint.json.before-update-reset")).read()!!
+          assertEquals(armed.getJSONObject("state").getLong("createdAt"), nativeBackup.createdAt.toLong())
+          val text = read(scenario).getString("updateResetBackup")
+          assertEquals(nativeBackup.text, text)
+          File(context.getExternalFilesDir(null), "inline-qa/pre-update-backup.json").writeText(text)
+          assertEquals(armed.getJSONObject("preferences").toString(), after.getJSONObject("preferences").toString())
+          assertJsonEqual("Local keepsakes are retained", armed.getJSONObject("state").getJSONObject("premium").get("owned"), after.getJSONObject("state").getJSONObject("premium").get("owned"))
+          assertJsonEqual("Daily reward allowance is retained", armed.getJSONObject("state").getJSONObject("caravan").getJSONArray("completed"), after.getJSONObject("state").getJSONObject("caravan").getJSONArray("completed"))
+          completeFirstLesson(scenario)
+        }
+        val settled = awaitReady(scenario, 6)
+        val identity = settled.getJSONObject("state").getLong("createdAt")
+        scenario.recreate()
+        val recreated = awaitReady(scenario, 6)
+        assertEquals(identity, recreated.getJSONObject("state").getLong("createdAt"))
+        assertEquals(settled.getString("resetGeneration"), recreated.getString("resetGeneration"))
+        val policy = awaitSnapshot(scenario, "The selected committed identity must remain handled") {
+          it.optJSONObject("debugPolicy")?.optJSONObject("state")?.optJSONObject("seen")?.optInt("contentVersion") == 6
+        }.getJSONObject("debugPolicy")
+        assertEquals(enabled, policy.getBoolean("enabled"))
+        assertTrue(policy.getJSONObject("state").isNull("pending"))
+        exportEvidence(if (enabled) "debug-enabled-after" else "debug-disabled-after", recreated.put("sameActivity", true).put("processIdBefore", process))
+      }
+    }
+  }
+
+  private fun setDebugOption(scenario: ActivityScenario<MainActivity>, enabled: Boolean) {
+    awaitSnapshot(scenario, "Settings must wait for the native committed identity") {
+      it.optJSONObject("debugPolicy")?.optJSONObject("state")?.optJSONObject("seen")?.optInt("contentVersion") == it.optLong("contentVersion").toInt()
+    }
+    evaluate(scenario, "var close=document.querySelector('.wx-sheet[open] [data-wx-close]');if(close)close.click();document.querySelector('[data-wx-options]').click(); document.querySelector('[data-wx-do=\"settings\"]').click(); document.querySelector('[data-testing] summary').click(); true")
+    evaluate(scenario, "(function(){var input=document.querySelector('[data-reset-after-update]');if(!input||input.disabled)throw new Error('Debug option must be operable after native commit');if(input.checked!==$enabled)input.click();return true;}())")
+    if (enabled) evaluate(scenario, "var confirm=document.querySelector('[data-confirm-update-reset]');if(confirm)confirm.click();true")
+    evaluate(scenario, "var close=document.querySelector('[data-close-dialog]');if(close)close.click();true")
+  }
+
+  private fun completeFirstLesson(scenario: ActivityScenario<MainActivity>) {
+    val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(40)
+    while (System.nanoTime() < deadline) {
+      val snapshot = read(scenario)
+      val state = snapshot.optJSONObject("state")
+      if (state?.getJSONObject("stations")?.getJSONObject("ranks")?.optInt("station:greenway:path:pathfinding") == 1 &&
+        state.getJSONObject("onboarding").getJSONObject("practice").getJSONObject("progress").optInt("greenway") == 3) return
+      evaluate(scenario, "var guide=document.querySelector('.wx-guide[open]');var target=guide&&guide.dataset.step.startsWith('currency:')?guide.querySelector('[data-guide-next]:not([hidden])'):Array.from(document.querySelectorAll('[aria-describedby~=\"wx-guide-body\"]')).find(function(n){return !n.classList.contains('wx-guide');});if(target&&!target.disabled&&!target.closest('[inert]'))target.click();true")
+      Thread.sleep(180)
+    }
+    fail("The reset must lead to the actual funded first purchase")
+  }
+
+  @Test fun debugBackupDownloadOpensTheRealAndroidDocumentPicker() {
+    assumeTrue(arguments.getString("guildDebugBackupQa") == "true")
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      awaitReady(scenario, 6)
+      evaluate(scenario, "var close=document.querySelector('.wx-sheet[open] [data-wx-close]');if(close)close.click();true")
+      completeFirstLesson(scenario)
+      setDebugOption(scenario, true)
+      val before = awaitReady(scenario, 6)
+      evaluate(scenario, "document.querySelector('[data-wx-options]').click();document.querySelector('[data-wx-do=\"settings\"]').click();document.querySelector('[data-testing] summary').click();document.querySelector('[data-update-reset-backup]').click();true")
+      awaitCondition("The exact pre-update backup must open the native CreateDocument picker") {
+        findAccessible(instrumentation.uiAutomation.rootInActiveWindow) { it.packageName?.toString() == "com.google.android.documentsui" && it.isVisibleToUser } != null
+      }
+      val pending = MainActivity::class.java.getDeclaredField("pendingExport").apply { isAccessible = true }
+      scenario.onActivity { assertEquals(before.getString("updateResetBackup"), pending.get(it)) }
+      clickNativeButton("Save")
+      awaitCondition("The native export callback must consume the exact backup") {
+        var done = false
+        scenario.onActivity { done = pending.get(it) == null }
+        done
+      }
+      val after = awaitReady(scenario, 6)
+      assertEquals(before.getJSONObject("state").getLong("createdAt"), after.getJSONObject("state").getLong("createdAt"))
+      exportEvidence("debug-backup-exported", after)
+    }
+  }
+
+  @Test fun enabledDebugOptionDoesNotResetAFailedOrInterruptedContentCandidate() {
+    assumeTrue(arguments.getString("guildDebugRecoveryQa") == "true")
+    captureCurrentDebugBackup()
+    withIsolatedApplicationStore(baseline = 5) { fixture ->
+      ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+        val before = awaitReady(scenario, 5)
+        setDebugOption(scenario, true)
+        val nativeBackup = File(instrumentation.targetContext.filesDir, "guild-checkpoint.json.before-update-reset").readBytes()
+        for (version in listOf(7L, 8L)) {
+          val candidate = fixture.release(version)
+          fixture.store.stage(candidate.manifest, candidate.archive)
+          openUpdates(scenario)
+          clickNativeButton("Apply game update")
+          awaitCondition("The failing candidate must actually enter activation") { fixture.store.currentVersion() == version }
+          if (version == 8L) scenario.recreate()
+          val restored = awaitReady(scenario, 5, 65)
+          assertGuildRetained(before.getJSONObject("state"), restored.getJSONObject("state"))
+          assertEquals(before.getString("resetGeneration"), restored.getString("resetGeneration"))
+          assertArrayEquals("Failure cannot create a new reset backup", nativeBackup,
+            File(instrumentation.targetContext.filesDir, "guild-checkpoint.json.before-update-reset").readBytes())
+          assertCheckpoint(restored)
+          exportEvidence("debug-failed-candidate-$version", restored)
+        }
+      }
+    }
+  }
+
+  @Test fun interruptedAutoResetResumesTheSameSeedAfterNativeFirstLostAcknowledgment() {
+    assumeTrue(arguments.getString("guildDebugRecoveryQa") == "true")
+    captureCurrentDebugBackup()
+    withIsolatedApplicationStore(baseline = 5) { fixture ->
+      val candidate = fixture.releaseCanonical(7)
+      fixture.store.stage(candidate.manifest, candidate.archive)
+      val checkpointFile = File(instrumentation.targetContext.filesDir, "guild-checkpoint.json")
+      val checkpoints = GuildCheckpointStore(checkpointFile)
+      val blocked = File(checkpointFile.parentFile, checkpointFile.name + ".before-update-reset.pending")
+      assertFalse("Never replace an existing player's file for failure injection", blocked.exists())
+      check(blocked.mkdir())
+      try {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+          val before = awaitReady(scenario, 5)
+          setDebugOption(scenario, true)
+          openUpdates(scenario)
+          clickNativeButton("Apply game update")
+          var reset = JSONObject()
+          awaitCondition("A committed candidate must leave exactly one recoverable auto-reset seed when native save fails") {
+            evaluate(scenario, "localStorage.getItem(WayfarersStorage.RESET_KEY)") { raw ->
+              reset = runCatching { JSONObject(JSONArray("[$raw]").getString(0)) }.getOrDefault(JSONObject())
+            }
+            reset.optString("updateId") == "debug-update-apk18-content7" && reset.optString("text").isNotEmpty()
+          }
+          assertEquals(before.getJSONObject("state").getLong("createdAt"), checkpoints.read()!!.createdAt.toLong())
+          val seed = JSONObject(reset.getString("text")).getJSONObject("state").getLong("createdAt")
+          exportEvidence("debug-interrupted-reset", read(scenario).put("nativeGuildBefore", checkpoints.read()!!.createdAt))
+          check(blocked.delete())
+          // A durable native write with a lost reply must not reroll the seed or
+          // replay commerce on the next document. The JS journal is still pending.
+          assertTrue(checkpoints.reset(reset.getString("text"), reset.getString("previousId"), reset.getString("id"), reset.getString("updateId")))
+          scenario.recreate()
+          val resumed = awaitSnapshot(scenario, "The matching authorized seed must resume before readiness", 65) {
+            it.optLong("contentVersion") == 7L && it.optBoolean("confirmed") && it.optBoolean("valid") &&
+              it.optJSONObject("state")?.optLong("createdAt") == seed
+          }
+          assertEquals(reset.getString("id"), resumed.getString("resetGeneration"))
+          assertEquals("debug-update-apk18-content7", checkpoints.read()!!.updateId)
+          completeFirstLesson(scenario)
+          scenario.recreate()
+          val settled = awaitReady(scenario, 7)
+          assertEquals(seed, settled.getJSONObject("state").getLong("createdAt"))
+          assertEquals(reset.getString("id"), settled.getString("resetGeneration"))
+          assertCheckpoint(settled)
+          exportEvidence("debug-interrupted-reset-resumed", settled)
+        }
+      } finally {
+        if (blocked.isDirectory) check(blocked.delete())
+      }
+    }
+  }
+
+  private fun captureCurrentDebugBackup() {
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val current = awaitReady(scenario, 6)
+      File(instrumentation.targetContext.getExternalFilesDir(null), "inline-qa/before-debug.json").writeText(current.getString("checkpoint"))
+    }
+  }
+
   @Test fun publishedSchemaEightContentCannotReplaceTheRealInstalledApkSixteenGuild() {
     assumeTrue("Requires the actual published schema-8 feed and a backed-up APK-16 guild",
       arguments.getString("guildOldApkIncompatibleQa") == "true")
@@ -424,7 +662,7 @@ class GuildContentUpdateDeviceTest {
     val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds)
     while (System.nanoTime() < deadline) {
       val root = instrumentation.uiAutomation.rootInActiveWindow
-      val match = findAccessible(root) { it.text?.toString() == label || it.contentDescription?.toString() == label }
+      val match = findAccessible(root) { it.text?.toString()?.equals(label, ignoreCase = true) == true || it.contentDescription?.toString()?.equals(label, ignoreCase = true) == true }
       var target = match
       while (target != null && !target.isClickable) target = target.parent
       if (target != null && target.isEnabled && target.isVisibleToUser && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
@@ -489,6 +727,8 @@ class GuildContentUpdateDeviceTest {
             visibleStationScenes:visible.map(function(canvas){return {id:canvas.dataset.stationId,status:canvas.dataset.sceneStatus};}),
             noOverflow:document.documentElement.scrollWidth<=innerWidth+1,
             preferences:{quiet:localStorage.getItem('wayfarers-guild-quiet'),sound:localStorage.getItem('wayfarers-guild-sound')},
+            debugPolicy:window.WayfarersDebugUpdates?.createPolicy().read(),
+            updateResetBackup:localStorage.getItem(window.WayfarersStorage?.UPDATE_RESET_BACKUP_KEY || 'missing-key'),
             resetGeneration:window.WayfarersCheckpoint?.generation() || ''};
         } catch(error) { return {error:String(error.stack || error)}; }
       }()))
@@ -618,10 +858,42 @@ class GuildContentUpdateDeviceTest {
 
   private data class SignedFixture(val manifest: GuildContentManifest, val archive: File)
 
-  private class StoreFixture(val root: File) {
+  private class StoreFixture(val root: File, baseline: Long = 1, selectedStore: GuildContentStore? = null) {
     private val keys: KeyPair = KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair()
-    val verifier = GuildContentVerifier(Base64.getEncoder().encodeToString(keys.public.encoded), "me.danielshort.wayfarers", 1, 17, 8)
-    val store = GuildContentStore(File(root, "store"), verifier)
+    val verifier = GuildContentVerifier(Base64.getEncoder().encodeToString(keys.public.encoded), "me.danielshort.wayfarers", 1, 18, 8)
+    val store = selectedStore ?: GuildContentStore(File(root, "store"), verifier, baseline)
+
+    fun releaseCanonical(version: Long): SignedFixture {
+      val published = File(root, "latest-content.json")
+      if (published.isFile) {
+        val manifest = store.verifyManifest(published.readText())
+        check(manifest.contentVersion == version)
+        val archive = File(root, java.net.URI(manifest.archive.url).path.substringAfterLast('/'))
+        check(archive.isFile && archive.length() == manifest.archive.size)
+        check(GuildContentLimits.digest(archive.readBytes()) == manifest.archive.sha256)
+        return SignedFixture(manifest, archive)
+      }
+      val assets = InstrumentationRegistry.getInstrumentation().targetContext.assets
+      val files = linkedMapOf<String, ByteArray>()
+      fun collect(path: String) {
+        val children = assets.list(path)!!
+        if (children.isEmpty()) files[path] = assets.open(path).use { it.readBytes() }
+        else children.forEach { collect("$path/$it") }
+      }
+      collect("wayfarers"); collect("img/wayfarers-guild")
+      listOf("native-checkpoint.js", "checkpoint.js", "android.js", "bundle-manifest.json").forEach { files.remove("wayfarers/$it") }
+      val archive = File(root, "canonical-$version.zip")
+      ZipOutputStream(archive.outputStream()).use { zip -> files.forEach { (path, bytes) -> zip.putNextEntry(ZipEntry(path)); zip.write(bytes); zip.closeEntry() } }
+      val records = JSONArray()
+      files.forEach { (path, bytes) -> records.put(JSONObject().put("path", path).put("sha256", GuildContentLimits.digest(bytes)).put("size", bytes.size)) }
+      val payload = JSONObject().put("schemaVersion", 1).put("packageName", "me.danielshort.wayfarers")
+        .put("nativeApi", 1).put("saveSchema", 8).put("minAppVersionCode", 18).put("contentVersion", version).put("label", "Local canonical QA $version")
+        .put("archive", JSONObject().put("url", "https://github.com/danielshort3/danielshort3.github.io/releases/download/qa-content/canonical-$version.zip")
+          .put("sha256", GuildContentLimits.digest(archive.readBytes())).put("size", archive.length())).put("records", records).toString().toByteArray()
+      val signature = Signature.getInstance("SHA256withECDSA").apply { initSign(keys.private); update(payload) }.sign()
+      val envelope = JSONObject().put("payload", Base64.getEncoder().encodeToString(payload)).put("signature", Base64.getEncoder().encodeToString(signature)).toString()
+      return SignedFixture(verifier.verify(envelope), archive)
+    }
 
     fun release(version: Long): SignedFixture {
       val files = linkedMapOf("wayfarers/index.html" to "<!doctype html><title>content $version</title>", "wayfarers/game.css" to "body{color:#ffffff;background:#112233}")
@@ -645,28 +917,34 @@ class GuildContentUpdateDeviceTest {
     }
   }
 
-  private fun withIsolatedStore(block: (StoreFixture) -> Unit) {
+  private fun withIsolatedStore(baseline: Long = 1, block: (StoreFixture) -> Unit) {
     val parent = File(instrumentation.targetContext.cacheDir, "content-device-tests").apply { mkdirs() }
     val directory = File(parent, UUID.randomUUID().toString()).apply { mkdirs() }
-    try { block(StoreFixture(directory)) } finally {
+    try { block(StoreFixture(directory, baseline)) } finally {
       check(directory.canonicalFile.parentFile == parent.canonicalFile)
       directory.deleteRecursively()
     }
   }
 
-  private fun withIsolatedApplicationStore(block: (StoreFixture) -> Unit) {
+  private fun withIsolatedApplicationStore(baseline: Long = 1, block: (StoreFixture) -> Unit) {
     val app = instrumentation.targetContext.applicationContext as WayfarersApplication
     val checkpoint = GuildCheckpointStore(File(app.filesDir, "guild-checkpoint.json")).read()
     assertNotNull("Back up a real guild before an opted-in device failure case", checkpoint)
-    val exported = File(app.getExternalFilesDir(null), "release-qa/guild.json")
+    val exported = File(app.getExternalFilesDir(null), if (arguments.getString("guildDebugUpdateQa") == "true" || arguments.getString("guildDebugRecoveryQa") == "true") "inline-qa/before-debug.json" else "release-qa/guild.json")
     assertTrue(exported.isFile)
     assertEquals("External backup must identify this same disposable guild", checkpoint!!.createdAt,
       JSONObject(exported.readText()).getJSONObject("state").getDouble("createdAt"), 0.0)
+    if (arguments.getString("guildSignedCandidateQa") == "true") {
+      // Use the exact staged release and installed production verifier/store.
+      // This is local candidate evidence, not a publicly downloaded update.
+      block(StoreFixture(File(app.getExternalFilesDir(null), "inline-qa/content6"), baseline, app.contentStore))
+      return
+    }
     val originalStore = app.contentStore
     val originalManager = app.contentUpdates
     val originalSettings = nativeSettings()
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    withIsolatedStore { fixture ->
+    withIsolatedStore(baseline) { fixture ->
       val manager = GuildContentUpdateManager(fixture.store,
         "https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-content-updates/latest-content.json", scope = scope)
       val storeField = WayfarersApplication::class.java.getDeclaredField("contentStore").apply { isAccessible = true }

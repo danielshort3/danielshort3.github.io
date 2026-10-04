@@ -41,6 +41,10 @@
       if (node && node.textContent !== String(text)) node.textContent = text;
     };
     const store = root.WayfarersStorage.createStore({ core });
+    const updatePolicy = root.WayfarersDebugUpdates ? root.WayfarersDebugUpdates.createPolicy() : null;
+    let latestCommittedUpdate = null;
+    let pendingUpdateReset = null;
+    let updateResetFailure = '';
     let awaitingPurchaseWallet = !!(root.WayfarersBilling && root.WayfarersPlayBilling && typeof root.WayfarersPlayBilling.postMessage === 'function');
     const loaded = store.load({ deferOffline: awaitingPurchaseWallet });
     let state = loaded.state || core.createState(Date.now());
@@ -1186,7 +1190,7 @@
     }
 
     function setSheetFooter(primary, secondary) {
-      const hooks = ['data-perform', 'data-close-dialog', 'data-sheet-back', 'data-watch-caravan', 'data-skip-caravan', 'data-confirm-reset', 'data-confirm-testing-reset', 'data-confirm-challenge', 'data-confirm-import', 'data-cancel-import', 'data-goal-guide'];
+      const hooks = ['data-open', 'data-perform', 'data-close-dialog', 'data-sheet-back', 'data-watch-caravan', 'data-skip-caravan', 'data-confirm-reset', 'data-confirm-testing-reset', 'data-confirm-update-reset', 'data-retry-update-reset', 'data-confirm-challenge', 'data-confirm-import', 'data-cancel-import', 'data-goal-guide'];
       [['[data-sheet-primary]', primary], ['[data-sheet-secondary]', secondary]].forEach(([selector, action]) => {
         const button = q(selector);
         hooks.forEach(hook => button.removeAttribute(hook));
@@ -1221,6 +1225,8 @@
       else if (kind === 'caravan') renderCaravan();
       else if (kind === 'settings') { renderSettings(); updateSaveStatus(); }
       else if (kind === 'testing-reset') renderTestingReset();
+      else if (kind === 'update-reset-confirm') renderUpdateResetConfirmation();
+      else if (kind === 'update-reset-status') renderUpdateResetStatus();
       else if (kind === 'refit' || kind === 'charter') renderReset();
       else if (kind === 'challenge') renderChallenge();
       else if (kind === 'room') { q('[data-room-content]').appendChild(playPanel); set('[data-dialog-title]', (view.rooms.find(item => item.id === room) || {}).name || 'Guild room'); }
@@ -1271,7 +1277,79 @@
         '<label class="wg-dialog-label" for="wg-save-text">Backup text</label><textarea id="wg-save-text" spellcheck="false" autocomplete="off" placeholder="Paste an exported Wayfarers save here"></textarea>' +
         '<div class="wg-dialog-actions"><button type="button" class="wg-text-button" data-copy-save>Copy backup</button><button type="button" class="wg-button" data-review-import>Review import</button></div>' +
         '<label class="wg-dialog-label" for="wg-save-file">Or choose a save file</label><input id="wg-save-file" type="file" accept=".json,application/json,text/plain">' +
-        '<div data-import-preview hidden></div><details class="wg-details" data-testing><summary>Testing</summary><button type="button" class="wg-button" data-open="testing-reset">Reset all game progress</button></details>' + (help.length ? '<details class="wg-details" data-unlocked-help><summary>Your unlocked features</summary>' + help.map(item => '<section class="wg-section"><h3>' + escapeHtml(item.label) + '</h3><p>' + escapeHtml(item.requirement || '') + '</p><p>' + escapeHtml(item.effect) + '</p></section>').join('') + '</details>' : '<p>Explore the trail and improve your boots. The next unlock explains what comes next.</p>');
+        '<div data-import-preview hidden></div><details class="wg-details" data-testing><summary>Testing</summary>' + renderUpdateResetSetting() + '<button type="button" class="wg-button" data-open="testing-reset">Reset all game progress</button></details>' + (help.length ? '<details class="wg-details" data-unlocked-help><summary>Your unlocked features</summary>' + help.map(item => '<section class="wg-section"><h3>' + escapeHtml(item.label) + '</h3><p>' + escapeHtml(item.requirement || '') + '</p><p>' + escapeHtml(item.effect) + '</p></section>').join('') + '</details>' : '<p>Explore the trail and improve your boots. The next unlock explains what comes next.</p>');
+    }
+    function updateResetHost() {
+      const host = root.WayfarersContent;
+      return updatePolicy && host && Number.isSafeInteger(host.apkVersion) && host.apkVersion >= 18 && Number.isSafeInteger(host.version) && host.version > 0 && typeof host.documentToken === 'string' && host.documentToken ? host : null;
+    }
+    function renderUpdateResetSetting() {
+      const preference = updatePolicy && updatePolicy.read();
+      let backup = false;
+      try { backup = !!root.localStorage.getItem(root.WayfarersStorage.UPDATE_RESET_BACKUP_KEY); } catch (error) {}
+      return (updateResetHost() && preference?.ok
+        ? '<label class="wg-toggle">Reset after successful updates<input type="checkbox" data-reset-after-update' + (preference.enabled ? ' checked' : '') + (!latestCommittedUpdate || hardResetBusy ? ' disabled' : '') + '></label><p>Testing only · off by default. Future app or game updates restart your guild. Settings, paid wallet, shop keepsakes and reward receipts stay intact. A backup is saved first.</p>'
+        : '<p>Automatic update resets require the dedicated Android app, version 18 or later.</p>') +
+        (pendingUpdateReset ? '<p data-update-reset-wait>' + escapeHtml(updateResetFailure || 'Update reset is waiting for pending purchases, rewards or saves to finish.') + '</p>' + (updateResetFailure ? '<button type="button" class="wg-button" data-retry-update-reset>Retry update reset</button>' : '') : '') +
+        (backup ? '<button type="button" class="wg-button" data-update-reset-backup>Download pre-update backup</button>' : '');
+    }
+    function renderUpdateResetConfirmation() {
+      set('[data-dialog-title]', 'Reset after future updates?');
+      q('[data-dialog-body]').innerHTML = '<p>Each successfully installed app or game update will erase local progression and restart from the first lesson.</p><p>Your current guild stays intact when you enable this. Settings, paid wallet, shop keepsakes and verified reward receipts are retained. Each reset saves a downloadable backup first.</p><p>You can turn this testing option off in Settings.</p>';
+      setSheetFooter({ hook: 'data-confirm-update-reset', label: 'Enable reset after updates', disabled: !latestCommittedUpdate || hardResetBusy }, { hook: 'data-open', value: 'settings', label: 'Keep resets off' });
+    }
+    function renderUpdateResetStatus() {
+      set('[data-dialog-title]', 'Update reset paused');
+      q('[data-dialog-body]').innerHTML = '<p>' + escapeHtml(updateResetFailure || 'Finish pending purchases, rewards or saves. Your current guild remains protected until the reset can complete.') + '</p>';
+      setSheetFooter(updateResetFailure ? { hook: 'data-retry-update-reset', label: 'Retry update reset', disabled: hardResetRequest } : null, { hook: 'data-open', value: 'settings', label: 'Settings & backups' });
+    }
+    function downloadSaveFile(exported) {
+      if (!exported.ok) { set('[data-dialog-notice]', exported.message); return; }
+      if (root.WayfarersAndroid) { root.WayfarersAndroid.postMessage(JSON.stringify({ type: 'export', text: exported.text, documentToken: root.WayfarersContent?.documentToken })); return; }
+      const url = URL.createObjectURL(new Blob([exported.text], { type: 'application/json' }));
+      const anchor = document.createElement('a'); anchor.href = url; anchor.download = exported.filename; anchor.click();
+      root.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    async function processUpdateReset() {
+      if (!pendingUpdateReset || updateResetFailure || hardResetRequest || disposed) return;
+      const request = pendingUpdateReset;
+      const journal = store.pendingReset();
+      const resuming = journal?.updateId === request.updateId;
+      if (!resuming && (caravanBusy || billingBusy || billingSnapshot.pending || receiptsInFlight.size || awaitingPurchaseWallet || rewardedSnapshot.pending || state.caravan.pendingQuote || pendingImport || saveFailure && !hardResetBusy)) {
+        set('[data-update-reset-wait]', 'Update reset is waiting for pending purchases, rewards or saves to finish. Your guild is kept until they complete.');
+        return;
+      }
+      if (journal?.updateId === request.updateId && journal.text === null) {
+        const completed = updatePolicy.completeReset(request.updateId, journal);
+        if (!completed.ok) { updateResetFailure = completed.message; openDialog('update-reset-status'); return; }
+        pendingUpdateReset = null;
+        hardResetBusy = true;
+        root.location.reload();
+        return;
+      }
+      if (!hardResetBusy) {
+        const persisted = save();
+        if (!persisted.ok) { updateResetFailure = persisted.message || 'Save the current guild before retrying the update reset.'; openDialog('update-reset-status'); return; }
+      }
+      hardResetBusy = true; hardResetRequest = true; onboardingEpoch += 1;
+      let result;
+      try {
+        const run = () => store.resetForTesting(request.options);
+        result = navigator.locks ? await navigator.locks.request('wayfarers-guild-testing-reset', run) : await run();
+      } catch (error) { result = { ok: false, status: 'reset-pending', message: 'The update reset was interrupted. Retry to finish the same reset.' }; }
+      hardResetRequest = false;
+      if (!result.ok) {
+        hardResetBusy = result.status === 'reset-pending' || !!store.pendingReset()?.text;
+        updateResetFailure = result.message; openDialog('update-reset-status'); return;
+      }
+      state = result.state;
+      const completed = updatePolicy.completeReset(request.updateId, store.pendingReset());
+      if (!completed.ok) { updateResetFailure = 'The fresh guild is saved, but its update receipt needs to finish. Retry safely resumes this reset.'; openDialog('update-reset-status'); return; }
+      pendingUpdateReset = null;
+      pendingFinds = []; pendingSeenSeq = null; pendingImport = null; feedbackFind = null; teaching = null;
+      // Native checkpoint and policy are committed before a same-Activity reload.
+      // Keep autosaves, rewards and purchases fenced through the reload.
+      root.location.reload();
     }
     function renderTestingReset() {
       set('[data-dialog-title]', hardResetBusy ? 'Finish testing reset' : 'Reset all game progress?');
@@ -1442,13 +1520,29 @@
         const kind = dialogKind;
         if (perform({ type: kind }).ok) { closeDialog(); tab = 'trail'; room = 'mine'; render(); }
       } else if (button.hasAttribute('data-confirm-testing-reset')) await resetGameForTesting();
+      else if (button.hasAttribute('data-confirm-update-reset')) {
+        if (!updateResetHost() || !latestCommittedUpdate || hardResetBusy) return;
+        // Consume the current committed identity while still off: arming is never
+        // retroactive, including when the user opens Settings just after a patch.
+        const observed = updatePolicy.observeCommitted(latestCommittedUpdate, store.pendingReset());
+        const enabled = observed.ok && updatePolicy.setEnabled(true);
+        openDialog('settings');
+        set('[data-dialog-notice]', enabled?.ok ? 'Enabled. The next successful update restarts your guild.' : observed.message || enabled?.message);
+      } else if (button.hasAttribute('data-retry-update-reset')) {
+        updateResetFailure = '';
+        await processUpdateReset();
+        if (!hardResetRequest && pendingUpdateReset && !updateResetFailure) renderUpdateResetStatus();
+      } else if (button.hasAttribute('data-update-reset-backup')) {
+        try {
+          const text = root.localStorage.getItem(root.WayfarersStorage.UPDATE_RESET_BACKUP_KEY);
+          const restored = store.inspectImport(text, { premiumEntitlements: billingSnapshot.owned });
+          downloadSaveFile(restored.ok ? { ok: true, text, filename: 'wayfarers-guild-before-update-reset.json' } : restored);
+        } catch (error) { set('[data-dialog-notice]', 'The pre-update backup could not be read. Your current guild is unchanged.'); }
+      }
       else if (button.hasAttribute('data-reset-export')) {
         const exported = store.export(state);
         if (exported.ok) {
-          if (root.WayfarersAndroid) { root.WayfarersAndroid.postMessage(JSON.stringify({ type: 'export', text: exported.text })); return; }
-          const url = URL.createObjectURL(new Blob([exported.text], { type: 'application/json' }));
-          const anchor = document.createElement('a'); anchor.href = url; anchor.download = exported.filename; anchor.click();
-          root.setTimeout(() => URL.revokeObjectURL(url), 1000);
+          downloadSaveFile(exported);
           set('[data-dialog-notice]', 'Backup downloaded. Your guild has not changed.');
         } else set('[data-dialog-notice]', exported.message);
       } else if (button.hasAttribute('data-confirm-challenge')) {
@@ -1499,7 +1593,17 @@
       }
     }, { signal });
     element.addEventListener('change', async event => {
-      if (event.target.hasAttribute('data-sound')) { sound = event.target.checked; interacted = true; try { root.localStorage.setItem('wayfarers-guild-sound', String(sound)); } catch (error) {} }
+      if (event.target.hasAttribute('data-reset-after-update')) {
+        if (event.target.checked) { event.target.checked = false; openDialog('update-reset-confirm'); }
+        else if (!hardResetBusy && updatePolicy) {
+          const disabled = updatePolicy.setEnabled(false);
+          if (disabled.ok && latestCommittedUpdate) updatePolicy.observeCommitted(latestCommittedUpdate, store.pendingReset());
+          if (disabled.ok) { pendingUpdateReset = null; updateResetFailure = ''; }
+          event.target.checked = !disabled.ok;
+          set('[data-dialog-notice]', disabled.ok ? 'Update resets are off. Future updates keep your guild.' : disabled.message);
+        }
+      }
+      else if (event.target.hasAttribute('data-sound')) { sound = event.target.checked; interacted = true; try { root.localStorage.setItem('wayfarers-guild-sound', String(sound)); } catch (error) {} }
       else if (event.target.hasAttribute('data-quiet')) {
         quiet = event.target.checked;
         try { root.localStorage.setItem('wayfarers-guild-quiet', String(quiet)); } catch (error) { set('[data-dialog-notice]', 'Quiet animation applies to this session. Browser storage is unavailable.'); }
@@ -1560,12 +1664,23 @@
       if (event.key === root.WayfarersStorage.SAVE_KEY) save();
     }, { signal });
     motionQuery.addEventListener('change', render, { signal });
+    root.addEventListener('wayfarers-update-committed', event => {
+      const host = updateResetHost(), detail = event.detail;
+      if (!host || !detail || detail.documentToken !== host.documentToken || detail.apkVersion !== host.apkVersion || detail.contentVersion !== host.version) return;
+      latestCommittedUpdate = Object.assign({}, detail);
+      const decision = updatePolicy.observeCommitted(detail, store.pendingReset());
+      if (!decision.ok) { storageNotice(decision.message); return; }
+      if (decision.action === 'reset') { pendingUpdateReset = decision; updateResetFailure = ''; announce('Testing update reset is queued. Pending purchases, rewards and saves will finish first.'); processUpdateReset(); }
+      else { pendingUpdateReset = null; updateResetFailure = ''; }
+      if (dialogKind === 'settings') renderSettings();
+    }, { signal });
     const timer = root.setInterval(() => {
       if (document.hidden || disposed) return;
       advance();
       render();
       if (Date.now() - lastSave >= 15000) save();
       retryReceipts();
+      processUpdateReset();
     }, 1000);
     qa('[data-tab]').forEach(button => { const id = button.dataset.tab; setMarkup(button, icon(id === 'journey' ? 'journal' : id) + '<span>' + (id === 'journey' ? 'Journal' : id[0].toUpperCase() + id.slice(1)) + '</span>'); });
     setMarkup(q('[data-open="shop"]'), icon('shop') + '<span>Shop</span>');
@@ -1591,7 +1706,16 @@
     if (!expeditionUI && loaded.offline && loaded.offline.seconds >= 60) renderReturnSummary(loaded.offline.summary, loaded.offline.seconds, loaded.offline.gains);
     render();
     if (expeditionUI && !hardResetBusy) expeditionUI.showReturn(loaded.offline);
-    if (hardResetBusy) openDialog('testing-reset');
+    if (hardResetBusy) {
+      const journal = store.pendingReset(), preference = updatePolicy && updatePolicy.read();
+      const pending = preference?.ok && preference.state.pending;
+      if (journal?.updateId && pending && pending.id === journal.updateId) {
+        // Resume only the exact previously authorized transaction. Readiness is
+        // intentionally blocked by its journal, so no new commit event can fire.
+        pendingUpdateReset = { updateId: journal.updateId, options: { updateId: journal.updateId, preserveCommerce: true, backupBeforeReset: true } };
+        processUpdateReset();
+      } else openDialog('testing-reset');
+    }
     if (rewarded) rewarded.refresh().catch(() => announce('The caravan service could not connect. Saved deliveries will retry when it reconnects.'));
     if (billing && root.WayfarersPlayBilling) billingAction('refresh');
     if (loaded.status === 'new') save();

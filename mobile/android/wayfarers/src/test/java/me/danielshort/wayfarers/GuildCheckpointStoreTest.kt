@@ -14,6 +14,50 @@ class GuildCheckpointStoreTest {
     .put("state", JSONObject().put("schemaVersion", version).put("createdAt", createdAt).put("lastUpdate", savedAt)
       .put("resources", JSONObject()).put("upgrades", JSONObject().put("boots", boots)).put("rooms", JSONObject())).toString()
 
+  @Test fun automaticUpdateResetKeepsExactPriorRecordAndReceiptAcrossRetryAndNormalSaves() {
+    val file = temporary.newFile("update-reset.json")
+    val store = GuildCheckpointStore(file)
+    val old = envelope(boots = 31)
+    assertTrue(store.write(old))
+    val priorRecord = file.readBytes()
+    val generation = "12345678-1234-1234-1234-123456789012"
+    val update = "debug-update-apk18-content5"
+    val fresh = envelope(createdAt = 3000, savedAt = 3000, boots = 0)
+    assertTrue(store.reset(fresh, "", generation, update))
+    assertFalse(store.reset(fresh, "", generation, "debug-update-apk18-content6"))
+    val backup = File(file.parentFile, file.name + ".before-update-reset")
+    assertArrayEquals(priorRecord, backup.readBytes())
+    assertEquals(old, GuildCheckpointStore(backup).read()!!.text)
+    assertEquals(update, GuildCheckpointStore(file).read()!!.updateId)
+    assertTrue(store.write(envelope(createdAt = 3000, savedAt = 3100, boots = 1), generation = generation))
+    assertTrue(store.reset(fresh, "", generation, update))
+    assertArrayEquals(priorRecord, backup.readBytes())
+    assertEquals(3100.0, store.read()!!.savedAt, 0.0)
+    assertTrue(store.bootstrapScript().contains("\"updateId\":\"$update\""))
+  }
+
+  @Test fun updateBackupFailureDoesNotResetTheVerifiedGuild() {
+    val file = temporary.newFile("failed-update-backup.json")
+    val store = GuildCheckpointStore(file)
+    val original = envelope(boots = 24)
+    assertTrue(store.write(original))
+    File(file.parentFile, file.name + ".before-update-reset").mkdir()
+    assertFalse(store.reset(envelope(createdAt = 3000, savedAt = 3000, boots = 0), "",
+      "12345678-1234-1234-1234-123456789012", "debug-update-apk18-content5"))
+    assertEquals(original, store.read()!!.text)
+    assertEquals("", store.read()!!.generation)
+  }
+
+  @Test fun invalidUpdateReceiptAndMissingPriorGuildCannotAuthorizeAutomaticReset() {
+    val file = temporary.newFile("invalid-update-reset.json")
+    val store = GuildCheckpointStore(file)
+    val generation = "12345678-1234-1234-1234-123456789012"
+    assertFalse(store.reset(envelope(createdAt = 3000, savedAt = 3000), "", generation, "debug-update-apk18-content5"))
+    assertTrue(store.write(envelope()))
+    assertFalse(store.reset(envelope(createdAt = 3000, savedAt = 3000), "", generation, "../../outside"))
+    assertEquals(1000.0, store.read()!!.createdAt, 0.0)
+  }
+
   @Test fun exactEnvelopeSurvivesASeparateStoreInstance() {
     val file = temporary.newFile("guild.json")
     val text = envelope()

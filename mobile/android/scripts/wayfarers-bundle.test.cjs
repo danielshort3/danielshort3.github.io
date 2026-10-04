@@ -200,6 +200,6 @@ test('native content readiness waits for every visible real station and its dura
   interval(); assert.equal(messages.length, 0, 'A painted scene still needs a durable native save');
   confirmed = true; interval();
   assert.deepEqual(messages, [{ type: 'content-ready', documentToken: 'new-document', version: 3,
-    recoveryToken: '', text: 'schema8 durable save', generation: '' }]);
+    documentTimeOrigin: 0, recoveryToken: '', text: 'schema8 durable save', generation: '' }]);
   assert.equal(cleared, 1);
 });
